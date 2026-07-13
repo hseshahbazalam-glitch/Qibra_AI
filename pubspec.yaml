@@ -1,0 +1,182 @@
+name: qibra_ai
+description: "QIBRA AI — Your Complete Islamic Companion.
+  Prayer times, Quran, Hadith, AI assistant, Qibla,
+  Tasbih, and much more."
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+# ============================================================
+# DEPENDENCIES
+# ============================================================
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ── UI & FONTS ─────────────────────────────────────────
+
+  # Google Fonts — Poppins (English) + Amiri (Arabic)
+  google_fonts: ^6.2.1
+
+  # Flutter SVG — SVG icons render karne ke liye
+  flutter_svg: ^2.0.10+1
+
+  # Cached Network Image — Network images cache karna
+  cached_network_image: ^3.3.1
+
+  # Lottie — JSON animations play karne ke liye
+  lottie: ^3.1.2
+
+  # ── STATE MANAGEMENT ───────────────────────────────────
+
+  # Flutter Riverpod — State management
+  flutter_riverpod: ^2.5.1
+
+  # Riverpod Annotation — Code generation ke liye
+  riverpod_annotation: ^2.3.5
+
+  # ── NAVIGATION ─────────────────────────────────────────
+
+  # GoRouter — Declarative routing
+  go_router: ^14.2.7
+
+  # ── NETWORKING ─────────────────────────────────────────
+
+  # Dio — HTTP client
+  dio: ^5.4.3+1
+
+  # ── LOCAL STORAGE ──────────────────────────────────────
+
+  # SharedPreferences — Simple key-value storage
+  shared_preferences: ^2.3.2
+
+  # Flutter Secure Storage — Sensitive data (tokens)
+  flutter_secure_storage: ^9.2.2
+
+  # ── DEPENDENCY INJECTION ───────────────────────────────
+
+  # GetIt — Service locator pattern
+  get_it: ^7.7.0
+
+  # ── PERMISSIONS & LOCATION ─────────────────────────────
+
+  # Permission Handler — Location, notification, camera
+  permission_handler: ^11.3.1
+
+  # Geolocator — GPS location for prayer times & Qibla
+  geolocator: ^13.0.1
+
+  # Geocoding — Convert coordinates to city/country name
+  geocoding: ^3.0.0
+
+  # ── UTILITIES ──────────────────────────────────────────
+
+  # Intl — Date/time formatting, localization
+  intl: ^0.19.0
+
+  # Connectivity Plus — Internet connection check
+  connectivity_plus: ^6.0.5
+
+  # URL Launcher — Browser mein links open karna
+  url_launcher: ^6.3.0
+
+  # Share Plus — Content sharing (ayah, hadith)
+  share_plus: ^10.0.2
+
+  # Package Info Plus — App version, package name
+  package_info_plus: ^8.0.2
+
+  # Device Info Plus — Device information
+  device_info_plus: ^10.1.2
+
+  # Uuid — Unique ID generation
+  uuid: ^4.4.2
+
+  # Equatable — Object equality comparison
+  equatable: ^2.0.5
+
+  # Freezed Annotation — Immutable data classes
+  freezed_annotation: ^2.4.4
+
+  # Json Annotation — JSON serialization
+  json_annotation: ^4.9.0
+
+  # ── ISLAMIC SPECIFIC ───────────────────────────────────
+
+  # Hijri — Hijri calendar conversion (null-safe version)
+  hijri: ^3.0.1
+
+  # ── NOTIFICATIONS ──────────────────────────────────────
+
+  # Flutter Local Notifications — Prayer time alerts
+  flutter_local_notifications: ^17.2.2
+
+# ============================================================
+# DEV DEPENDENCIES
+# ============================================================
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Flutter Lints — Code quality rules
+  flutter_lints: ^4.0.0
+
+  # Build Runner — Code generation run karta hai
+  build_runner: ^2.4.12
+
+  # Riverpod Generator
+  riverpod_generator: ^2.4.3
+
+  # Freezed — Immutable data classes generate karta hai
+  freezed: ^2.5.7
+
+  # Json Serializable — JSON toJson/fromJson generate karta hai
+  json_serializable: ^6.8.0
+
+# ============================================================
+# FLUTTER CONFIGURATION
+# ============================================================
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # Images
+    - assets/images/logo.png
+    - assets/images/logo_white.png
+    - assets/images/logo_icon.png
+    - assets/images/splash_bg.png
+    - assets/images/splash_logo.png
+    - assets/images/onboarding_1.png
+    - assets/images/onboarding_2.png
+    - assets/images/onboarding_3.png
+    - assets/images/onboarding_4.png
+    - assets/images/quran_bg.png
+    - assets/images/quran_cover.png
+    - assets/images/mosque.png
+    - assets/images/compass_bg.png
+    - assets/images/islamic_pattern_1.png
+    - assets/images/islamic_pattern_2.png
+    - assets/images/pattern_overlay.png
+
+    # Icons
+    - assets/icons/quran.svg
+    - assets/icons/prayer.svg
+    - assets/icons/qibla.svg
+    - assets/icons/hadith.svg
+    - assets/icons/ai.svg
+    - assets/icons/calendar.svg
+    - assets/icons/tasbih.svg
+    - assets/icons/dua.svg
+
+    # Animations
+    - assets/animations/loading.json
+    - assets/animations/success.json
+    - assets/animations/error.json
+    - assets/animations/prayer.json
+    - assets/animations/quran.json
+    - assets/animations/ai_thinking.json
