@@ -1,10 +1,11 @@
 // lib/core/router/app_router.dart
 
 // ============================================================
-// QIBRA AI — APP ROUTER (Riverpod Integrated)
-// Version: 2.2.0
-// Description: Router with SplashScreen + OnboardingScreen.
-//              Auth state managed via Riverpod.
+// QIBRA AI — APP ROUTER (Premium Bottom Nav Integrated)
+// Version: 4.0.0
+// Description: Uses AppShellScaffold from reusable navigation.
+//              All auth screens integrated.
+//              Ready for Step 17 (Home Dashboard).
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -16,118 +17,20 @@ import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
+import 'package:qibra_ai/features/auth/presentation/forgot_password_screen.dart';
+import 'package:qibra_ai/features/auth/presentation/login_screen.dart';
+import 'package:qibra_ai/features/auth/presentation/register_screen.dart';
+import 'package:qibra_ai/features/auth/presentation/verify_otp_screen.dart';
 import 'package:qibra_ai/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:qibra_ai/features/splash/presentation/splash_screen.dart';
+import 'package:qibra_ai/shared/widgets/navigation/app_bottom_nav.dart';
 
 // ============================================================
-// PLACEHOLDER SCREENS — Real screens baad mein aayenge
+// PLACEHOLDER SCREENS (Only for main app — Step 17+ replace)
+// Auth placeholders removed — real screens now used
 // ============================================================
 
-// ── LOGIN PLACEHOLDER ──────────────────────────────────
-class _LoginPlaceholder extends ConsumerWidget {
-  const _LoginPlaceholder();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-    final isLoading = authState.isLoading;
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Login'),
-        backgroundColor: AppColors.background,
-      ),
-      body: Center(
-        child: Padding(
-          padding: AppSpacing.screenPadding,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Login Screen', style: AppTextStyles.headlineLarge),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'Step 15 mein real screen aayegi',
-                style: AppTextStyles.bodyMedium.secondary,
-              ),
-              const SizedBox(height: AppSpacing.xl3),
-              if (authState.errorMessage != null) ...[
-                Container(
-                  padding: AppSpacing.cardPadding,
-                  decoration: BoxDecoration(
-                    color: AppColors.error.withValues(alpha: 0.12),
-                    borderRadius: AppRadius.cardRadius,
-                    border: Border.all(color: AppColors.error),
-                  ),
-                  child: Text(
-                    authState.errorMessage!,
-                    style: AppTextStyles.errorText,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-              ],
-              ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : () async {
-                        await ref.read(authProvider.notifier).login(
-                              email: 'test@qibra.ai',
-                              password: 'password123',
-                            );
-                      },
-                child: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text('Test Login'),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextButton(
-                onPressed: () => context.go(AppRoutes.register),
-                child: const Text('Go to Register'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── REGISTER PLACEHOLDER ───────────────────────────────
-class _RegisterPlaceholder extends ConsumerWidget {
-  const _RegisterPlaceholder();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Register'),
-        backgroundColor: AppColors.background,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Register Screen', style: AppTextStyles.headlineLarge),
-            const SizedBox(height: AppSpacing.xl3),
-            ElevatedButton(
-              onPressed: () => context.go(AppRoutes.login),
-              child: const Text('Back to Login'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── HOME PLACEHOLDER ───────────────────────────────────
+// ── HOME PLACEHOLDER (Step 17 mein real screen aayega) ──
 class _HomePlaceholder extends ConsumerWidget {
   const _HomePlaceholder();
 
@@ -188,14 +91,15 @@ class _HomePlaceholder extends ConsumerWidget {
               child: Column(
                 children: [
                   Text(
-                    '✅ Riverpod Integrated',
+                    '✅ Bottom Nav Integrated!',
                     style: AppTextStyles.titleMedium.emerald,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Auth state managed by Riverpod\n'
-                    'Router redirects automatic\n'
-                    'Theme toggle works instantly',
+                    'Premium bottom navigation active\n'
+                    'Center gold FAB → Quran quick access\n'
+                    'Prayer tab has notification badge (3)\n'
+                    'Step 17 mein real Home Dashboard aayega',
                     style: AppTextStyles.bodySmall.secondary,
                     textAlign: TextAlign.center,
                   ),
@@ -209,7 +113,7 @@ class _HomePlaceholder extends ConsumerWidget {
   }
 }
 
-// ── FEATURE PLACEHOLDERS ───────────────────────────────
+// ── FEATURE PLACEHOLDERS (Phase 2 mein real screens) ────
 
 class _QuranPlaceholder extends StatelessWidget {
   const _QuranPlaceholder();
@@ -219,7 +123,26 @@ class _QuranPlaceholder extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
-        child: Text('Quran Screen', style: AppTextStyles.headlineLarge),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.menu_book,
+              color: AppColors.primary,
+              size: 64,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Quran Screen',
+              style: AppTextStyles.headlineLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Coming in Phase 2',
+              style: AppTextStyles.bodyMedium.secondary,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -233,7 +156,26 @@ class _PrayerPlaceholder extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
-        child: Text('Prayer Screen', style: AppTextStyles.headlineLarge),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.access_time_filled,
+              color: AppColors.primary,
+              size: 64,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Prayer Screen',
+              style: AppTextStyles.headlineLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Coming in Phase 2',
+              style: AppTextStyles.bodyMedium.secondary,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -247,7 +189,26 @@ class _HadithPlaceholder extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
-        child: Text('Hadith Screen', style: AppTextStyles.headlineLarge),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.library_books,
+              color: AppColors.primary,
+              size: 64,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Hadith Screen',
+              style: AppTextStyles.headlineLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Coming in Phase 2',
+              style: AppTextStyles.bodyMedium.secondary,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -261,7 +222,26 @@ class _AiChatPlaceholder extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
-        child: Text('AI Chat Screen', style: AppTextStyles.headlineLarge),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.smart_toy,
+              color: AppColors.primary,
+              size: 64,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'AI Chat Screen',
+              style: AppTextStyles.headlineLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Coming in Phase 2',
+              style: AppTextStyles.bodyMedium.secondary,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -275,7 +255,10 @@ class _ProfilePlaceholder extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
-        child: Text('Profile Screen', style: AppTextStyles.headlineLarge),
+        child: Text(
+          'Profile Screen',
+          style: AppTextStyles.headlineLarge,
+        ),
       ),
     );
   }
@@ -289,7 +272,10 @@ class _SettingsPlaceholder extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
-        child: Text('Settings Screen', style: AppTextStyles.headlineLarge),
+        child: Text(
+          'Settings Screen',
+          style: AppTextStyles.headlineLarge,
+        ),
       ),
     );
   }
@@ -314,7 +300,10 @@ class _ErrorScreen extends StatelessWidget {
               size: 64,
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('Page Not Found', style: AppTextStyles.headlineSmall),
+            Text(
+              'Page Not Found',
+              style: AppTextStyles.headlineSmall,
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               message ?? 'The requested page does not exist.',
@@ -325,201 +314,6 @@ class _ErrorScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => context.go(AppRoutes.splash),
               child: const Text('Go to Home'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================
-// SHELL SCAFFOLD — Bottom Navigation
-// ============================================================
-
-class _ShellScaffold extends StatelessWidget {
-  final Widget child;
-  final String location;
-
-  const _ShellScaffold({
-    required this.child,
-    required this.location,
-  });
-
-  int _getActiveIndex() {
-    if (location.startsWith(AppRoutes.quran)) return 1;
-    if (location.startsWith(AppRoutes.prayer)) return 2;
-    if (location.startsWith(AppRoutes.hadith)) return 3;
-    if (location.startsWith(AppRoutes.aiChat)) return 4;
-    return 0;
-  }
-
-  void _onTabTapped(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.go(AppRoutes.home);
-        break;
-      case 1:
-        context.go(AppRoutes.quran);
-        break;
-      case 2:
-        context.go(AppRoutes.prayer);
-        break;
-      case 3:
-        context.go(AppRoutes.hadith);
-        break;
-      case 4:
-        context.go(AppRoutes.aiChat);
-        break;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final int activeIndex = _getActiveIndex();
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: child,
-      bottomNavigationBar: _AppBottomNavBar(
-        activeIndex: activeIndex,
-        onTap: (index) => _onTabTapped(context, index),
-      ),
-    );
-  }
-}
-
-class _AppBottomNavBar extends StatelessWidget {
-  final int activeIndex;
-  final ValueChanged<int> onTap;
-
-  const _AppBottomNavBar({
-    required this.activeIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.navBackground,
-        border: const Border(
-          top: BorderSide(
-            color: AppColors.borderSubtle,
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.30),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home,
-                label: 'Home',
-                isActive: activeIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              _NavItem(
-                icon: Icons.menu_book_outlined,
-                activeIcon: Icons.menu_book,
-                label: 'Quran',
-                isActive: activeIndex == 1,
-                onTap: () => onTap(1),
-              ),
-              _NavItem(
-                icon: Icons.access_time_outlined,
-                activeIcon: Icons.access_time_filled,
-                label: 'Prayer',
-                isActive: activeIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              _NavItem(
-                icon: Icons.library_books_outlined,
-                activeIcon: Icons.library_books,
-                label: 'Hadith',
-                isActive: activeIndex == 3,
-                onTap: () => onTap(3),
-              ),
-              _NavItem(
-                icon: Icons.smart_toy_outlined,
-                activeIcon: Icons.smart_toy,
-                label: 'AI',
-                isActive: activeIndex == 4,
-                onTap: () => onTap(4),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: AppDurations.fast,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: AppRadius.cardRadius,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedSwitcher(
-              duration: AppDurations.fast,
-              child: Icon(
-                isActive ? activeIcon : icon,
-                key: ValueKey(isActive),
-                color: isActive ? AppColors.primary : AppColors.navInactive,
-                size: AppIconSizes.lg,
-              ),
-            ),
-            const SizedBox(height: 3),
-            AnimatedDefaultTextStyle(
-              duration: AppDurations.fast,
-              style: isActive
-                  ? AppTextStyles.navLabelActive
-                  : AppTextStyles.navLabelInactive,
-              child: Text(label),
             ),
           ],
         ),
@@ -588,52 +382,61 @@ final routerProvider = Provider<GoRouter>((ref) {
 
     // ── ROUTES ─────────────────────────────────────────
     routes: [
-      // Splash — REAL SplashScreen
+      // Splash Screen
       GoRoute(
         path: AppRoutes.splash,
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
 
-      // Onboarding — REAL OnboardingScreen
+      // Onboarding Screen
       GoRoute(
         path: AppRoutes.onboarding,
         name: 'onboarding',
         builder: (context, state) => const OnboardingScreen(),
       ),
 
-      // Auth Routes
+      // ── AUTH ROUTES (All Real Screens) ───────────────
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) => const _LoginPlaceholder(),
+        builder: (context, state) => const LoginScreen(),
         routes: [
           GoRoute(
             path: 'register',
             name: 'register',
-            builder: (context, state) => const _RegisterPlaceholder(),
+            builder: (context, state) => const RegisterScreen(),
           ),
           GoRoute(
             path: 'forgot-password',
             name: 'forgot-password',
-            builder: (context, state) => const _ErrorScreen(
-              message: 'Forgot Password — Step 15 mein aayega',
-            ),
+            builder: (context, state) => const ForgotPasswordScreen(),
           ),
           GoRoute(
             path: 'verify-otp',
             name: 'verify-otp',
-            builder: (context, state) => const _ErrorScreen(
-              message: 'OTP Verification — Step 15 mein aayega',
-            ),
+            builder: (context, state) {
+              final email = state.uri.queryParameters['email'];
+              return VerifyOtpScreen(email: email);
+            },
           ),
         ],
       ),
 
-      // Main App with Bottom Nav
+      // ── MAIN APP with Premium Bottom Nav ─────────────
       ShellRoute(
-        builder: (context, state, child) => _ShellScaffold(
+        builder: (context, state, child) => AppShellScaffold(
           location: state.matchedLocation,
+          notificationCount: 3, // Example — real count later
+          onHomeTap: () => context.go(AppRoutes.home),
+          onQuranTap: () => context.go(AppRoutes.quran),
+          onPrayerTap: () => context.go(AppRoutes.prayer),
+          onHadithTap: () => context.go(AppRoutes.hadith),
+          onAiTap: () => context.go(AppRoutes.aiChat),
+          onCenterFabTap: () {
+            // Center FAB press — Quick Quran access
+            context.go(AppRoutes.quran);
+          },
           child: child,
         ),
         routes: [
