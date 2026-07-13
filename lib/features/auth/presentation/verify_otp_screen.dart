@@ -16,7 +16,6 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
-import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/shared/widgets/buttons/app_button.dart';
 import 'package:qibra_ai/shared/widgets/inputs/app_text_field.dart';
 
