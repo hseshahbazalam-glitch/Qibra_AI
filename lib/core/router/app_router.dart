@@ -1,13 +1,9 @@
 // lib/core/router/app_router.dart
 
 // ============================================================
-// QIBRA AI — APP ROUTER (Home Dashboard Integrated)
-// Version: 5.0.0 — PHASE 1 COMPLETE
-// Description: Final router with all real screens.
-//              Splash, Onboarding, Auth, Home — all real.
-//              Only Phase 2 features are placeholders.
+// QIBRA AI — APP ROUTER (Complete with All Placeholders)
+// Version: 6.0.0 — All routes working
 // ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,12 +19,13 @@ import 'package:qibra_ai/features/auth/presentation/register_screen.dart';
 import 'package:qibra_ai/features/auth/presentation/verify_otp_screen.dart';
 import 'package:qibra_ai/features/home/presentation/home_screen.dart';
 import 'package:qibra_ai/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:qibra_ai/features/prayer/presentation/prayer_times_screen.dart';
+import 'package:qibra_ai/features/quran/presentation/quran_screen.dart';
+import 'package:qibra_ai/features/settings/presentation/profile_setup_screen.dart';
 import 'package:qibra_ai/features/splash/presentation/splash_screen.dart';
 import 'package:qibra_ai/shared/widgets/navigation/app_bottom_nav.dart';
-
 // ============================================================
-// PHASE 2 PLACEHOLDER SCREENS
-// These will be replaced in Phase 2 development
+// PLACEHOLDER SCREENS (Phase 2 mein real screens replace honge)
 // ============================================================
 
 // ── QURAN PLACEHOLDER ──────────────────────────────────
@@ -58,10 +55,7 @@ class _QuranPlaceholder extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              'Quran Screen',
-              style: AppTextStyles.headlineLarge,
-            ),
+            Text('Quran Screen', style: AppTextStyles.headlineLarge),
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Coming in Phase 2',
@@ -70,9 +64,7 @@ class _QuranPlaceholder extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl2),
             Container(
               padding: AppSpacing.cardPadding,
-              margin: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl2,
-              ),
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: AppRadius.cardRadius,
@@ -104,8 +96,8 @@ class _QuranPlaceholder extends StatelessWidget {
 }
 
 // ── PRAYER PLACEHOLDER ─────────────────────────────────
-class _PrayerPlaceholder extends StatelessWidget {
-  const _PrayerPlaceholder();
+class _PrayerTimesPlaceholder extends StatelessWidget {
+  const _PrayerTimesPlaceholder();
 
   @override
   Widget build(BuildContext context) {
@@ -136,10 +128,7 @@ class _PrayerPlaceholder extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              'Prayer Screen',
-              style: AppTextStyles.headlineLarge,
-            ),
+            Text('Prayer Screen', style: AppTextStyles.headlineLarge),
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Coming in Phase 2',
@@ -148,9 +137,7 @@ class _PrayerPlaceholder extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl2),
             Container(
               padding: AppSpacing.cardPadding,
-              margin: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl2,
-              ),
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: AppRadius.cardRadius,
@@ -168,6 +155,152 @@ class _PrayerPlaceholder extends StatelessWidget {
                     '5 Daily Prayers\n'
                     'Qibla Direction Compass\n'
                     'Adhan Notifications',
+                    style: AppTextStyles.bodySmall.secondary,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── QIBLA PLACEHOLDER ──────────────────────────────────
+class _QiblaPlaceholder extends StatelessWidget {
+  const _QiblaPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF7C3AED),
+                    Color(0xFF6D28D9),
+                  ],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7C3AED).withValues(alpha: 0.40),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.explore_outlined,
+                color: AppColors.white,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Qibla Direction', style: AppTextStyles.headlineLarge),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Coming in Phase 2',
+              style: AppTextStyles.bodyMedium.secondary,
+            ),
+            const SizedBox(height: AppSpacing.xl2),
+            Container(
+              padding: AppSpacing.cardPadding,
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.cardRadius,
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    '🧭 Qibla Compass',
+                    style: AppTextStyles.titleMedium.emerald,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'GPS-based Direction\n'
+                    'Real-time Compass\n'
+                    'Makkah Distance\n'
+                    'Location Accuracy',
+                    style: AppTextStyles.bodySmall.secondary,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── TASBIH PLACEHOLDER ─────────────────────────────────
+class _TasbihPlaceholder extends StatelessWidget {
+  const _TasbihPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: AppGradients.gold,
+                shape: BoxShape.circle,
+                boxShadow: AppShadows.goldGlow,
+              ),
+              child: const Icon(
+                Icons.pinch_rounded,
+                color: AppColors.background,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Digital Tasbih', style: AppTextStyles.headlineLarge),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Coming in Phase 2',
+              style: AppTextStyles.bodyMedium.secondary,
+            ),
+            const SizedBox(height: AppSpacing.xl2),
+            Container(
+              padding: AppSpacing.cardPadding,
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.cardRadius,
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    '📿 Tasbih Counter',
+                    style: AppTextStyles.titleMedium.gold,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'SubhanAllah, Alhamdulillah\n'
+                    'Allahu Akbar Counter\n'
+                    'Custom Dhikr\n'
+                    'Vibration Feedback\n'
+                    'Progress Tracking',
                     style: AppTextStyles.bodySmall.secondary,
                     textAlign: TextAlign.center,
                   ),
@@ -208,10 +341,7 @@ class _HadithPlaceholder extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              'Hadith Screen',
-              style: AppTextStyles.headlineLarge,
-            ),
+            Text('Hadith Screen', style: AppTextStyles.headlineLarge),
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Coming in Phase 2',
@@ -220,9 +350,7 @@ class _HadithPlaceholder extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl2),
             Container(
               padding: AppSpacing.cardPadding,
-              margin: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl2,
-              ),
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: AppRadius.cardRadius,
@@ -291,10 +419,7 @@ class _AiChatPlaceholder extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              'AI Chat Screen',
-              style: AppTextStyles.headlineLarge,
-            ),
+            Text('AI Chat Screen', style: AppTextStyles.headlineLarge),
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Coming in Phase 2',
@@ -303,9 +428,7 @@ class _AiChatPlaceholder extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl2),
             Container(
               padding: AppSpacing.cardPadding,
-              margin: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl2,
-              ),
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: AppRadius.cardRadius,
@@ -328,6 +451,126 @@ class _AiChatPlaceholder extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── DUA PLACEHOLDER ────────────────────────────────────
+class _DuaPlaceholder extends StatelessWidget {
+  const _DuaPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: AppGradients.emerald,
+                shape: BoxShape.circle,
+                boxShadow: AppShadows.emeraldGlow,
+              ),
+              child: const Icon(
+                Icons.favorite_outline,
+                color: AppColors.white,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Duas Collection', style: AppTextStyles.headlineLarge),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Coming in Phase 2',
+              style: AppTextStyles.bodyMedium.secondary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── ISLAMIC CALENDAR PLACEHOLDER ───────────────────────
+class _CalendarPlaceholder extends StatelessWidget {
+  const _CalendarPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: AppGradients.gold,
+                shape: BoxShape.circle,
+                boxShadow: AppShadows.goldGlow,
+              ),
+              child: const Icon(
+                Icons.calendar_month,
+                color: AppColors.background,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Islamic Calendar', style: AppTextStyles.headlineLarge),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Coming in Phase 2',
+              style: AppTextStyles.bodyMedium.secondary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── MOSQUES PLACEHOLDER ────────────────────────────────
+class _MosquesPlaceholder extends StatelessWidget {
+  const _MosquesPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: AppGradients.emerald,
+                shape: BoxShape.circle,
+                boxShadow: AppShadows.emeraldGlow,
+              ),
+              child: const Icon(
+                Icons.mosque,
+                color: AppColors.white,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Nearby Mosques', style: AppTextStyles.headlineLarge),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Coming in Phase 2',
+              style: AppTextStyles.bodyMedium.secondary,
             ),
           ],
         ),
@@ -363,7 +606,6 @@ class _ProfilePlaceholder extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Avatar
             Container(
               width: 100,
               height: 100,
@@ -383,16 +625,10 @@ class _ProfilePlaceholder extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              userName,
-              style: AppTextStyles.headlineMedium,
-            ),
+            Text(userName, style: AppTextStyles.headlineMedium),
             if (user != null) ...[
               const SizedBox(height: AppSpacing.xs),
-              Text(
-                user.email,
-                style: AppTextStyles.bodyMedium.secondary,
-              ),
+              Text(user.email, style: AppTextStyles.bodyMedium.secondary),
             ],
             const SizedBox(height: AppSpacing.xl2),
             Text(
@@ -424,16 +660,12 @@ class _SettingsPlaceholder extends ConsumerWidget {
         padding: AppSpacing.screenPadding,
         children: [
           const SizedBox(height: AppSpacing.md),
-          // Theme toggle
           ListTile(
             leading: Icon(
               isDark ? Icons.dark_mode : Icons.light_mode,
               color: AppColors.primary,
             ),
-            title: Text(
-              'Dark Mode',
-              style: AppTextStyles.bodyMedium,
-            ),
+            title: Text('Dark Mode', style: AppTextStyles.bodyMedium),
             trailing: Switch(
               value: isDark,
               onChanged: (_) {
@@ -442,16 +674,12 @@ class _SettingsPlaceholder extends ConsumerWidget {
             ),
           ),
           const Divider(color: AppColors.divider),
-          // App version
           ListTile(
             leading: const Icon(
               Icons.info_outline,
               color: AppColors.iconSecondary,
             ),
-            title: Text(
-              'App Version',
-              style: AppTextStyles.bodyMedium,
-            ),
+            title: Text('App Version', style: AppTextStyles.bodyMedium),
             trailing: Text(
               AppInfo.versionFull,
               style: AppTextStyles.labelMedium.secondary,
@@ -482,10 +710,7 @@ class _ErrorScreen extends StatelessWidget {
               size: 64,
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              'Page Not Found',
-              style: AppTextStyles.headlineSmall,
-            ),
+            Text('Page Not Found', style: AppTextStyles.headlineSmall),
             const SizedBox(height: AppSpacing.sm),
             Text(
               message ?? 'The requested page does not exist.',
@@ -535,10 +760,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // Splash screen pe hai — splash khud navigate karega
-      if (currentPath == AppRoutes.splash) {
-        return null;
-      }
+      // Splash screen pe hai
+      if (currentPath == AppRoutes.splash) return null;
 
       // Onboarding screen — no redirect
       if (currentPath == AppRoutes.onboarding) return null;
@@ -564,76 +787,84 @@ final routerProvider = Provider<GoRouter>((ref) {
 
     // ── ROUTES ─────────────────────────────────────────
     routes: [
-      // Splash Screen (REAL)
+      // Splash Screen
       GoRoute(
         path: AppRoutes.splash,
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
 
-      // Onboarding Screen (REAL)
+      // Onboarding Screen
       GoRoute(
         path: AppRoutes.onboarding,
         name: 'onboarding',
         builder: (context, state) => const OnboardingScreen(),
       ),
 
-      // ── AUTH ROUTES (All Real Screens) ───────────────
+      // ── AUTH ROUTES (Top-level, not nested) ──────────
+      // Login
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
         builder: (context, state) => const LoginScreen(),
-        routes: [
-          GoRoute(
-            path: 'register',
-            name: 'register',
-            builder: (context, state) => const RegisterScreen(),
-          ),
-          GoRoute(
-            path: 'forgot-password',
-            name: 'forgot-password',
-            builder: (context, state) => const ForgotPasswordScreen(),
-          ),
-          GoRoute(
-            path: 'verify-otp',
-            name: 'verify-otp',
-            builder: (context, state) {
-              final email = state.uri.queryParameters['email'];
-              return VerifyOtpScreen(email: email);
-            },
-          ),
-        ],
       ),
 
-      // ── MAIN APP with Premium Bottom Nav ─────────────
+      // Register (Top-level)
+      GoRoute(
+        path: AppRoutes.register,
+        name: 'register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+
+      // Forgot Password (Top-level)
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+
+      // Verify OTP (Top-level)
+      GoRoute(
+        path: AppRoutes.verifyOtp,
+        name: 'verify-otp',
+        builder: (context, state) {
+          final email = state.uri.queryParameters['email'];
+          return VerifyOtpScreen(email: email);
+        },
+      ),
+      // Profile Setup (after OTP verification)
+      GoRoute(
+        path: AppRoutes.profileSetup,
+        name: 'profile-setup',
+        builder: (context, state) => const ProfileSetupScreen(),
+      ),
+
+      // ── MAIN APP with Bottom Nav ─────────────────────
       ShellRoute(
         builder: (context, state, child) => AppShellScaffold(
           location: state.matchedLocation,
-          notificationCount: 3, // Example — real count later
+          notificationCount: 3,
           onHomeTap: () => context.go(AppRoutes.home),
           onQuranTap: () => context.go(AppRoutes.quran),
           onPrayerTap: () => context.go(AppRoutes.prayer),
           onHadithTap: () => context.go(AppRoutes.hadith),
           onAiTap: () => context.go(AppRoutes.aiChat),
-          onCenterFabTap: () {
-            // Center FAB press — Quick Quran access
-            context.go(AppRoutes.quran);
-          },
+          onCenterFabTap: () => context.go(AppRoutes.quran),
           child: child,
         ),
         routes: [
-          // Home (REAL — Phase 1 Complete!)
+          // Home (REAL)
           GoRoute(
             path: AppRoutes.home,
             name: 'home',
             builder: (context, state) => const HomeScreen(),
           ),
 
-          // Quran (Phase 2)
+          // Quran (Phase 2 placeholder)
           GoRoute(
             path: AppRoutes.quran,
             name: 'quran',
-            builder: (context, state) => const _QuranPlaceholder(),
+            builder: (context, state) => const QuranScreen(),
             routes: [
               GoRoute(
                 path: 'surah',
@@ -648,32 +879,60 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Prayer (Phase 2)
+          // Prayer (with Qibla sub-route)
           GoRoute(
             path: AppRoutes.prayer,
             name: 'prayer',
-            builder: (context, state) => const _PrayerPlaceholder(),
-            routes: [
-              GoRoute(
-                path: 'qibla',
-                name: 'qibla',
-                builder: (context, state) => const _PrayerPlaceholder(),
-              ),
-            ],
+            builder: (context, state) => const PrayerTimesScreen(),
           ),
 
-          // Hadith (Phase 2)
+          // Qibla (top-level for /prayer/qibla)
+          GoRoute(
+            path: AppRoutes.qibla,
+            name: 'qibla',
+            builder: (context, state) => const _QiblaPlaceholder(),
+          ),
+
+          // Tasbih
+          GoRoute(
+            path: AppRoutes.tasbih,
+            name: 'tasbih',
+            builder: (context, state) => const _TasbihPlaceholder(),
+          ),
+
+          // Hadith
           GoRoute(
             path: AppRoutes.hadith,
             name: 'hadith',
             builder: (context, state) => const _HadithPlaceholder(),
           ),
 
-          // AI Chat (Phase 2)
+          // AI Chat
           GoRoute(
             path: AppRoutes.aiChat,
             name: 'ai-chat',
             builder: (context, state) => const _AiChatPlaceholder(),
+          ),
+
+          // Dua
+          GoRoute(
+            path: AppRoutes.dua,
+            name: 'dua',
+            builder: (context, state) => const _DuaPlaceholder(),
+          ),
+
+          // Islamic Calendar
+          GoRoute(
+            path: AppRoutes.islamicCalendar,
+            name: 'islamic-calendar',
+            builder: (context, state) => const _CalendarPlaceholder(),
+          ),
+
+          // Mosques
+          GoRoute(
+            path: AppRoutes.mosques,
+            name: 'mosques',
+            builder: (context, state) => const _MosquesPlaceholder(),
           ),
 
           // Profile

@@ -1,12 +1,14 @@
 // lib/features/splash/presentation/splash_screen.dart
 
 // ============================================================
-// QIBRA AI — SPLASH SCREEN
-// Version: 1.0.0
-// Description: Premium animated splash screen.
-//              Islamic theme with Bismillah, gold accents,
-//              and smooth fade/scale animations.
+// QIBRA AI — PREMIUM SPLASH SCREEN (Phase 2)
+// Version: 2.0.0
+// Description: Apple-quality splash with glassmorphism,
+//              glowing particles, and Islamic patterns.
 // ============================================================
+
+import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,282 +34,414 @@ class SplashScreen extends ConsumerStatefulWidget {
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
   // ── ANIMATION CONTROLLERS ────────────────────────────
-  // Alag-alag animations ke liye alag controllers
 
-  /// Logo scale + fade animation
+  /// Background rotating pattern
+  late AnimationController _patternController;
+
+  /// Floating particles animation
+  late AnimationController _particleController;
+
+  /// Logo scale + fade
   late AnimationController _logoController;
   late Animation<double> _logoScale;
   late Animation<double> _logoFade;
+  late Animation<double> _logoGlow;
 
-  /// Text fade + slide animation
-  late AnimationController _textController;
-  late Animation<double> _textFade;
-  late Animation<Offset> _textSlide;
-
-  /// Bismillah fade animation
+  /// Bismillah fade + slide
   late AnimationController _bismillahController;
   late Animation<double> _bismillahFade;
+  late Animation<Offset> _bismillahSlide;
 
-  /// Loading dots animation
+  /// App name reveal (letter by letter)
+  late AnimationController _nameController;
+  late Animation<double> _nameReveal;
+
+  /// Tagline fade
+  late AnimationController _taglineController;
+  late Animation<double> _taglineFade;
+
+  /// Loading dots
   late AnimationController _loadingController;
-
-  /// Background rotation animation (subtle)
-  late AnimationController _rotationController;
 
   @override
   void initState() {
     super.initState();
 
-    // ── Logo Animation (scale + fade) ──────────────────
-    // Duration: 800ms — smooth entry
+    // ── Background Pattern (very slow, continuous) ──
+    _patternController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 40),
+    )..repeat();
+
+    // ── Floating Particles (continuous) ──
+    _particleController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat();
+
+    // ── Logo Animation ──
     _logoController = AnimationController(
       vsync: this,
-      duration: AppDurations.extraSlow,
+      duration: const Duration(milliseconds: 1200),
     );
 
-    // Scale: 0.5 → 1.0 (start small, grow to full)
     _logoScale = Tween<double>(
-      begin: 0.5,
+      begin: 0.3,
       end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        // easeOutBack = overshoot effect — premium feel
-        curve: Curves.easeOutBack,
-      ),
-    );
+    ).animate(CurvedAnimation(
+      parent: _logoController,
+      curve: Curves.elasticOut,
+    ));
 
-    // Fade: 0 → 1 (invisible to visible)
     _logoFade = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: Curves.easeIn,
-      ),
-    );
+    ).animate(CurvedAnimation(
+      parent: _logoController,
+      curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+    ));
 
-    // ── Text Animation (fade + slide up) ───────────────
-    _textController = AnimationController(
-      vsync: this,
-      duration: AppDurations.slow,
-    );
-
-    _textFade = Tween<double>(
+    _logoGlow = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: Curves.easeIn,
-      ),
-    );
+    ).animate(CurvedAnimation(
+      parent: _logoController,
+      curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
+    ));
 
-    // Slide from below (0.5 offset = below screen)
-    _textSlide = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: Curves.easeOut,
-      ),
-    );
-
-    // ── Bismillah Animation ─────────────────────────────
+    // ── Bismillah Animation ──
     _bismillahController = AnimationController(
       vsync: this,
-      duration: AppDurations.slow,
+      duration: const Duration(milliseconds: 800),
     );
 
     _bismillahFade = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _bismillahController,
-        curve: Curves.easeIn,
-      ),
+    ).animate(CurvedAnimation(
+      parent: _bismillahController,
+      curve: Curves.easeIn,
+    ));
+
+    _bismillahSlide = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _bismillahController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    // ── App Name Reveal Animation ──
+    _nameController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
     );
 
-    // ── Loading Animation (continuous) ─────────────────
+    _nameReveal = CurvedAnimation(
+      parent: _nameController,
+      curve: Curves.easeOutCubic,
+    );
+
+    // ── Tagline Animation ──
+    _taglineController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _taglineFade = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _taglineController,
+      curve: Curves.easeIn,
+    ));
+
+    // ── Loading Dots (continuous) ──
     _loadingController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(); // Repeat forever
-
-    // ── Background Rotation (very slow, subtle) ────────
-    _rotationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 30),
+      duration: const Duration(milliseconds: 1400),
     )..repeat();
 
-    // ── Start animation sequence ───────────────────────
-    _startAnimations();
+    // Start choreographed animation sequence
+    _startAnimationSequence();
 
-    // ── Auto navigate after splash duration ────────────
-    _navigateAfterDelay();
+    // Schedule navigation
+    _scheduleNavigation();
   }
 
-  /// Animations ko sequence mein play karo
-  Future<void> _startAnimations() async {
-    // Logo pehle animate ho
-    await _logoController.forward();
-
-    // Fir Bismillah dikhao
+  /// Animation sequence with proper timing
+  Future<void> _startAnimationSequence() async {
+    // Wait 200ms
     await Future.delayed(const Duration(milliseconds: 200));
-    await _bismillahController.forward();
-
-    // Fir tagline text
-    await Future.delayed(const Duration(milliseconds: 200));
-    await _textController.forward();
-  }
-
-  /// 3 seconds ke baad navigate karo
-  Future<void> _navigateAfterDelay() async {
-    // Wait for splash duration (3 seconds)
-    await Future.delayed(AppDurations.splash);
-
-    // Check if widget still mounted (user navigate away nahi hua)
     if (!mounted) return;
 
-    // Auth state check karo
+    // Bismillah appears first
+    _bismillahController.forward();
+
+    // Wait 500ms then logo
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+    _logoController.forward();
+
+    // Wait 800ms then app name
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    _nameController.forward();
+
+    // Wait 600ms then tagline
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    _taglineController.forward();
+  }
+
+  /// Navigate after splash duration
+  Future<void> _scheduleNavigation() async {
+    await Future.delayed(const Duration(milliseconds: 3500));
+
+    if (!mounted) return;
+
     final authState = ref.read(authProvider);
     final hasSeenOnboarding = ref.read(onboardingProvider);
 
-    // Navigation logic
     if (!hasSeenOnboarding) {
-      // First time user — onboarding pe bhejo
-      if (mounted) context.go(AppRoutes.onboarding);
+      context.go(AppRoutes.onboarding);
     } else if (!authState.isAuthenticated) {
-      // Logged out — login pe bhejo
-      if (mounted) context.go(AppRoutes.login);
+      context.go(AppRoutes.login);
     } else {
-      // Logged in — home pe bhejo
-      if (mounted) context.go(AppRoutes.home);
+      context.go(AppRoutes.home);
     }
   }
 
   @override
   void dispose() {
-    // Memory leak se bachne ke liye — sab controllers dispose karo
+    _patternController.dispose();
+    _particleController.dispose();
     _logoController.dispose();
-    _textController.dispose();
     _bismillahController.dispose();
+    _nameController.dispose();
+    _taglineController.dispose();
     _loadingController.dispose();
-    _rotationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+
     return Scaffold(
-      body: Container(
-        // Full screen radial gradient background
-        decoration: const BoxDecoration(
-          gradient: AppGradients.splashGradient,
-        ),
-        child: Stack(
-          children: [
-            // Layer 1: Rotating Islamic pattern background
-            _buildRotatingPattern(),
+      backgroundColor: AppColors.background,
+      body: Stack(
+        children: [
+          // ── LAYER 1: Deep gradient background ──
+          _buildBackgroundGradient(),
 
-            // Layer 2: Main content
-            SafeArea(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Spacer(flex: 2),
+          // ── LAYER 2: Rotating Islamic pattern ──
+          _buildRotatingPattern(size),
 
-                  // Bismillah text
-                  _buildBismillah(),
+          // ── LAYER 3: Floating particles ──
+          _buildFloatingParticles(size),
 
-                  const SizedBox(height: AppSpacing.xl4),
+          // ── LAYER 4: Glassmorphism blur overlay ──
+          _buildGlassOverlay(),
 
-                  // Logo with animation
-                  _buildLogo(),
+          // ── LAYER 5: Main content ──
+          SafeArea(
+            child: Column(
+              children: [
+                const Spacer(flex: 3),
 
-                  const SizedBox(height: AppSpacing.xl3),
+                // Bismillah
+                _buildBismillah(),
 
-                  // App name + tagline
-                  _buildAppInfo(),
+                const SizedBox(height: AppSpacing.xl4),
 
-                  const Spacer(flex: 2),
+                // Premium Logo
+                _buildPremiumLogo(),
 
-                  // Loading indicator
-                  _buildLoadingIndicator(),
+                const SizedBox(height: AppSpacing.xl3),
 
-                  const SizedBox(height: AppSpacing.xl2),
+                // App Name with reveal
+                _buildAppNameReveal(),
 
-                  // Version info at bottom
-                  _buildVersionInfo(),
+                const SizedBox(height: AppSpacing.md),
 
-                  const SizedBox(height: AppSpacing.lg),
-                ],
-              ),
+                // Decorative divider
+                _buildDecorativeDivider(),
+
+                const SizedBox(height: AppSpacing.md),
+
+                // Tagline
+                _buildTagline(),
+
+                const Spacer(flex: 3),
+
+                // Loading indicator
+                _buildLoadingIndicator(),
+
+                const SizedBox(height: AppSpacing.xl2),
+
+                // Version + copyright
+                _buildFooter(),
+
+                const SizedBox(height: AppSpacing.lg),
+              ],
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════
+  // LAYER 1: Background Gradient
+  // ══════════════════════════════════════════
+
+  Widget _buildBackgroundGradient() {
+    return Positioned.fill(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.5,
+            colors: [
+              Color(0xFF0D3320), // Emerald center
+              Color(0xFF071A14), // Deep emerald
+              Color(0xFF020A08), // Almost black
+            ],
+            stops: [0.0, 0.5, 1.0],
+          ),
         ),
       ),
     );
   }
 
   // ══════════════════════════════════════════
-  // BISMILLAH TEXT
+  // LAYER 2: Rotating Islamic Pattern
+  // ══════════════════════════════════════════
+
+  Widget _buildRotatingPattern(Size size) {
+    return Positioned.fill(
+      child: AnimatedBuilder(
+        animation: _patternController,
+        builder: (context, child) {
+          return Transform.rotate(
+            angle: _patternController.value * 2 * math.pi,
+            child: Opacity(
+              opacity: 0.06,
+              child: CustomPaint(
+                painter: _IslamicPatternPainter(),
+                size: Size(size.width * 2, size.height * 2),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════
+  // LAYER 3: Floating Particles
+  // ══════════════════════════════════════════
+
+  Widget _buildFloatingParticles(Size size) {
+    return Positioned.fill(
+      child: AnimatedBuilder(
+        animation: _particleController,
+        builder: (context, child) {
+          return CustomPaint(
+            painter: _ParticlePainter(
+              animationValue: _particleController.value,
+            ),
+            size: size,
+          );
+        },
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════
+  // LAYER 4: Glassmorphism Overlay
+  // ══════════════════════════════════════════
+
+  Widget _buildGlassOverlay() {
+    return Positioned.fill(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
+        child: Container(
+          color: AppColors.background.withValues(alpha: 0.10),
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════
+  // BISMILLAH
   // ══════════════════════════════════════════
 
   Widget _buildBismillah() {
-    return FadeTransition(
-      opacity: _bismillahFade,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl2,
-        ),
-        child: Column(
-          children: [
-            // Arabic Bismillah
-            Text(
-              AppIslamicConstants.bismillah,
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: AppColors.accent, // Royal gold
-                height: 1.5,
-                shadows: [
-                  Shadow(
-                    color: AppColors.accent.withValues(alpha: 0.30),
-                    blurRadius: 12,
+    return SlideTransition(
+      position: _bismillahSlide,
+      child: FadeTransition(
+        opacity: _bismillahFade,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl2,
+          ),
+          child: Column(
+            children: [
+              // Arabic Bismillah
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    AppColors.accent,
+                    AppColors.accentBright,
+                    AppColors.accent,
+                  ],
+                ).createShader(bounds),
+                child: Text(
+                  AppIslamicConstants.bismillah,
+                  style: TextStyle(
+                    fontFamily: 'Amiri',
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    height: 1.5,
+                    shadows: [
+                      Shadow(
+                        color: AppColors.accent.withValues(alpha: 0.60),
+                        blurRadius: 20,
+                      ),
+                    ],
                   ),
-                ],
+                  textDirection: TextDirection.rtl,
+                  textAlign: TextAlign.center,
+                ),
               ),
-              textDirection: TextDirection.rtl,
-              textAlign: TextAlign.center,
-            ),
 
-            const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.sm),
 
-            // English translation
-            Text(
-              'In the name of Allah, the Most Gracious, the Most Merciful',
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.textSecondary,
-                fontStyle: FontStyle.italic,
+              // English translation
+              Text(
+                'In the name of Allah, the Most Gracious, the Most Merciful',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.textSecondary,
+                  fontStyle: FontStyle.italic,
+                  letterSpacing: 0.5,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   // ══════════════════════════════════════════
-  // ANIMATED LOGO
+  // PREMIUM LOGO
   // ══════════════════════════════════════════
 
-  Widget _buildLogo() {
+  Widget _buildPremiumLogo() {
     return AnimatedBuilder(
       animation: _logoController,
       builder: (context, child) {
@@ -319,144 +453,133 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           ),
         );
       },
-      child: Container(
-        width: 140,
-        height: 140,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          // Gold gradient background
-          gradient: AppGradients.gold,
-          // Gold glow shadow
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.accent.withValues(alpha: 0.50),
-              blurRadius: 40,
-              spreadRadius: 8,
-            ),
-            BoxShadow(
-              color: AppColors.accent.withValues(alpha: 0.30),
-              blurRadius: 80,
-              spreadRadius: 16,
-            ),
-          ],
-        ),
-        child: Center(
-          child: Container(
-            width: 120,
-            height: 120,
+      child: AnimatedBuilder(
+        animation: _logoGlow,
+        builder: (context, child) {
+          return Container(
+            width: 160,
+            height: 160,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              // Dark inner circle
-              color: AppColors.background,
-              border: Border.all(
-                color: AppColors.accent.withValues(alpha: 0.50),
-                width: 2,
-              ),
-            ),
-            child: Center(
-              // Logo icon — mosque
-              child: ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppGradients.gold.createShader(bounds),
-                child: const Icon(
-                  Icons.mosque,
-                  size: 60,
-                  color: Colors.white,
+              gradient: AppGradients.gold,
+              boxShadow: [
+                // Multi-layer glow effect
+                BoxShadow(
+                  color: AppColors.accent
+                      .withValues(alpha: 0.60 * _logoGlow.value),
+                  blurRadius: 40,
+                  spreadRadius: 8,
                 ),
-              ),
+                BoxShadow(
+                  color: AppColors.accent
+                      .withValues(alpha: 0.40 * _logoGlow.value),
+                  blurRadius: 80,
+                  spreadRadius: 16,
+                ),
+                BoxShadow(
+                  color: AppColors.primary
+                      .withValues(alpha: 0.20 * _logoGlow.value),
+                  blurRadius: 120,
+                  spreadRadius: 24,
+                ),
+              ],
             ),
-          ),
-        ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Outer ring
+                Container(
+                  width: 145,
+                  height: 145,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.white.withValues(alpha: 0.40),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+
+                // Inner dark circle with glass effect
+                ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: 10,
+                      sigmaY: 10,
+                    ),
+                    child: Container(
+                      width: 130,
+                      height: 130,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.background.withValues(alpha: 0.90),
+                        border: Border.all(
+                          color: AppColors.accent.withValues(alpha: 0.50),
+                          width: 2,
+                        ),
+                      ),
+                      child: Center(
+                        // Mosque icon with gradient
+                        child: ShaderMask(
+                          shaderCallback: (bounds) =>
+                              AppGradients.gold.createShader(bounds),
+                          child: const Icon(
+                            Icons.mosque_rounded,
+                            size: 64,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
   // ══════════════════════════════════════════
-  // APP NAME + TAGLINE
+  // APP NAME REVEAL
   // ══════════════════════════════════════════
 
-  Widget _buildAppInfo() {
-    return SlideTransition(
-      position: _textSlide,
-      child: FadeTransition(
-        opacity: _textFade,
-        child: Column(
-          children: [
-            // App name with gold gradient text
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppGradients.gold.createShader(bounds),
-              child: Text(
-                AppInfo.appName,
-                style: AppTextStyles.displaySmall.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 6,
-                  height: 1.0,
-                ),
-              ),
-            ),
+  Widget _buildAppNameReveal() {
+    const appName = 'QIBRA AI';
+    final letters = appName.split('');
 
-            const SizedBox(height: AppSpacing.md),
-
-            // Decorative divider
-            Container(
-              width: 60,
-              height: 2,
-              decoration: BoxDecoration(
-                gradient: AppGradients.gold,
-                borderRadius: AppRadius.pillRadius,
-              ),
-            ),
-
-            const SizedBox(height: AppSpacing.md),
-
-            // Tagline
-            Text(
-              AppInfo.tagline,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.w300,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // LOADING INDICATOR (Custom animated dots)
-  // ══════════════════════════════════════════
-
-  Widget _buildLoadingIndicator() {
     return AnimatedBuilder(
-      animation: _loadingController,
+      animation: _nameReveal,
       builder: (context, child) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(3, (index) {
-            // Har dot ke liye alag delay
-            final delay = index * 0.2;
-            final animationValue =
-                (_loadingController.value - delay).clamp(0.0, 1.0);
-            // Wave effect — sin curve
-            final scale = 0.5 + 0.5 * (1.0 - (2 * animationValue - 1).abs());
+          children: List.generate(letters.length, (index) {
+            // Each letter appears at different time
+            final letterProgress =
+                (_nameReveal.value * letters.length - index).clamp(0.0, 1.0);
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 4,
-              ),
-              child: Transform.scale(
-                scale: scale,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.accent.withValues(alpha: scale),
+            return Opacity(
+              opacity: letterProgress,
+              child: Transform.translate(
+                offset: Offset(0, 20 * (1 - letterProgress)),
+                child: ShaderMask(
+                  shaderCallback: (bounds) =>
+                      AppGradients.gold.createShader(bounds),
+                  child: Text(
+                    letters[index],
+                    style: AppTextStyles.displaySmall.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 6,
+                      height: 1.0,
+                      shadows: [
+                        Shadow(
+                          color: AppColors.accent.withValues(alpha: 0.60),
+                          blurRadius: 20,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -468,12 +591,120 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   // ══════════════════════════════════════════
-  // VERSION INFO
+  // DECORATIVE DIVIDER
   // ══════════════════════════════════════════
 
-  Widget _buildVersionInfo() {
+  Widget _buildDecorativeDivider() {
     return FadeTransition(
-      opacity: _bismillahFade,
+      opacity: _taglineFade,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 40,
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.transparent,
+                  AppColors.accent.withValues(alpha: 0.60),
+                ],
+              ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+            ),
+            child: Icon(
+              Icons.star,
+              color: AppColors.accent,
+              size: 12,
+            ),
+          ),
+          Container(
+            width: 40,
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.accent.withValues(alpha: 0.60),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════
+  // TAGLINE
+  // ══════════════════════════════════════════
+
+  Widget _buildTagline() {
+    return FadeTransition(
+      opacity: _taglineFade,
+      child: Text(
+        AppInfo.tagline,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textSecondary,
+          letterSpacing: 2,
+          fontWeight: FontWeight.w300,
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════
+  // LOADING INDICATOR (Premium)
+  // ══════════════════════════════════════════
+
+  Widget _buildLoadingIndicator() {
+    return AnimatedBuilder(
+      animation: _loadingController,
+      builder: (context, child) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(3, (index) {
+            final delay = index * 0.15;
+            final animationValue =
+                (_loadingController.value - delay).clamp(0.0, 1.0);
+            final wave = math.sin(animationValue * math.pi);
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                      AppColors.accent.withValues(alpha: 0.30 + (wave * 0.70)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.accent.withValues(alpha: wave * 0.60),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  // ══════════════════════════════════════════
+  // FOOTER
+  // ══════════════════════════════════════════
+
+  Widget _buildFooter() {
+    return FadeTransition(
+      opacity: _taglineFade,
       child: Column(
         children: [
           Text(
@@ -483,9 +714,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: 4),
           Text(
-            '© ${DateTime.now().year} QIBRA Technologies',
+            AppInfo.copyright,
             style: AppTextStyles.labelXSmall.copyWith(
               color: AppColors.textTertiary.withValues(alpha: 0.60),
               fontSize: 9,
@@ -495,32 +726,123 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ),
     );
   }
+}
 
-  // ══════════════════════════════════════════
-  // ROTATING PATTERN BACKGROUND (subtle)
-  // ══════════════════════════════════════════
+// ============================================================
+// ISLAMIC PATTERN PAINTER
+// ============================================================
 
-  Widget _buildRotatingPattern() {
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _rotationController,
-        builder: (context, child) {
-          return Transform.rotate(
-            angle: _rotationController.value * 2 * 3.14159,
-            child: Opacity(
-              opacity: 0.03, // Very subtle
-              child: child,
-            ),
-          );
-        },
-        child: Center(
-          child: Icon(
-            Icons.star,
-            size: MediaQuery.of(context).size.width * 1.5,
-            color: AppColors.accent,
-          ),
-        ),
-      ),
-    );
+class _IslamicPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.accent
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 4;
+
+    // Draw 8-pointed star pattern
+    for (int i = 0; i < 8; i++) {
+      final angle = (i * math.pi / 4);
+      final path = Path();
+
+      for (int j = 0; j < 8; j++) {
+        final r = j % 2 == 0 ? radius : radius * 0.6;
+        final x = center.dx + r * math.cos(angle + (j * math.pi / 4));
+        final y = center.dy + r * math.sin(angle + (j * math.pi / 4));
+
+        if (j == 0) {
+          path.moveTo(x, y);
+        } else {
+          path.lineTo(x, y);
+        }
+      }
+
+      path.close();
+      canvas.drawPath(path, paint);
+    }
+
+    // Concentric circles
+    for (int i = 1; i <= 5; i++) {
+      canvas.drawCircle(
+        center,
+        radius * i * 0.3,
+        paint,
+      );
+    }
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ============================================================
+// FLOATING PARTICLES PAINTER
+// ============================================================
+
+class _ParticlePainter extends CustomPainter {
+  final double animationValue;
+
+  _ParticlePainter({required this.animationValue});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final random = math.Random(42); // Fixed seed for consistency
+
+    // Draw 30 floating particles
+    for (int i = 0; i < 30; i++) {
+      final baseX = random.nextDouble() * size.width;
+      final baseY = random.nextDouble() * size.height;
+
+      // Floating motion
+      final offset = math.sin(
+        (animationValue * 2 * math.pi) + i,
+      );
+
+      final x = baseX + (offset * 20);
+      final y = baseY + (offset * 30);
+
+      // Particle size varies
+      final particleSize = 1.5 + random.nextDouble() * 2;
+
+      // Alternate emerald and gold particles
+      final isGold = i % 3 == 0;
+      final color = isGold ? AppColors.accent : AppColors.primary;
+
+      // Fade in/out based on position
+      final alpha = 0.20 + (random.nextDouble() * 0.30);
+
+      final paint = Paint()
+        ..color = color.withValues(alpha: alpha)
+        ..style = PaintingStyle.fill;
+
+      // Draw particle with glow
+      canvas.drawCircle(
+        Offset(x, y),
+        particleSize,
+        paint,
+      );
+
+      // Draw glow effect
+      final glowPaint = Paint()
+        ..color = color.withValues(alpha: alpha * 0.3)
+        ..style = PaintingStyle.fill
+        ..maskFilter = const MaskFilter.blur(
+          BlurStyle.normal,
+          6,
+        );
+
+      canvas.drawCircle(
+        Offset(x, y),
+        particleSize * 3,
+        glowPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ParticlePainter oldDelegate) =>
+      oldDelegate.animationValue != animationValue;
 }

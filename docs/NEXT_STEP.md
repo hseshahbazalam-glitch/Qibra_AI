@@ -1,85 +1,112 @@
 # QIBRA AI — NEXT STEP
 
-## CURRENT ACTION REQUIRED
+**Current:** Phase 7 Complete + Reference Image Received
+**Next:** PREMIUM UI REDESIGN + Bug Fix + Option B + Phase 8
 
-### 🎯 Next Task: Step 2.1 — Premium Splash Screen
+---
 
-**Phase:** PHASE 2 — Premium UI & User Experience
+## 🎨 NEW DESIGN DIRECTION
 
-## FILE TO CREATE/MODIFY
+User has provided REFERENCE IMAGE showing premium design quality target:
+- Photorealistic hero images
+- 3D-rendered Islamic elements
+- Circular progress rings
+- Ornamental star badges
+- Character illustrations
+- Feature cards with 3D icons
+- Golden Arabic calligraphy accents
 
-**Path:** `lib/features/splash/presentation/splash_screen.dart`
+---
 
-**Action:** REPLACE existing splash_screen.dart with premium version
+## IMMEDIATE PRIORITIES
 
-## REQUIREMENTS
+### 🔴 PRIORITY 1 — Fix Scroll-Stuck Bug (URGENT)
 
-Build a premium, Apple-quality splash screen with:
+**Problem:** App stuck on scroll (Chrome)
+**Files:**
+1. lib/features/home/presentation/home_screen.dart
+2. lib/features/prayer/presentation/prayer_screen.dart
 
-### Visual Requirements:
-- Glassmorphism effects (frosted glass)
-- Soft glowing emerald + gold particles
-- Animated Islamic geometric patterns
-- Bismillah in beautiful Arabic calligraphy
-- Custom logo animation
-- Smooth 120 FPS animations
+**Fix:** Change Timer.periodic(seconds: 1) → seconds: 30
 
-### Technical Requirements:
-- Use existing design system (AppColors, AppSpacing, etc.)
-- Use existing AppShadows.emeraldGlow, AppShadows.goldGlow
-- Riverpod for state
-- GoRouter for navigation
-- Proper mounted checks
-- Dispose all controllers
-- No hardcoded values
+---
 
-### Animation Sequence:
-1. Background particle animation starts immediately
-2. Islamic pattern fades in (0-800ms)
-3. Logo scales up with bounce (400-1200ms)
-4. Bismillah fades in (1000-1600ms)
-5. App name reveals letter by letter (1400-2200ms)
-6. Loading indicator appears (2000ms+)
-7. Auto navigate after 3.5 seconds
+### 🎨 PRIORITY 2 — Setup Image Assets
 
-### Interactions:
-- Auth state check
-- Navigate to onboarding (first time)
-- Navigate to login (logged out)
-- Navigate to home (logged in)
+**Create folders:**
+- assets/images/hero/
+- assets/images/illustrations/
+- assets/images/patterns/
 
-## CONTEXT FROM PHASE 1
+**Update pubspec.yaml** to include new asset paths
 
-The current splash screen exists at:
-`lib/features/splash/presentation/splash_screen.dart`
+**Generate 10+ AI images using DALL-E/Midjourney**
 
-It has basic animations but needs to be upgraded to premium quality per Phase 2 UI Style requirements:
-- Apple Quality
-- Material 3 Expressive
-- Glassmorphism
-- Luxury feel
+---
 
-## RULES REMINDER
+### 🏗️ PRIORITY 3 — Create New Reusable Widgets
 
-- ONE FILE AT A TIME
-- Wait for confirmation
-- Use existing widgets from shared/
-- Explain in Hinglish
-- Production-ready code only
-- Follow response format from AI_CONTEXT.md
+Create these premium widgets:
+- AppHeroImageCard (background image + gradient overlay)
+- AppCircularProgressRing (for countdowns)
+- AppOrnamentalStarBadge (for Surah numbers)
+- AppRecentSurahCard (horizontal card with star)
+- AppVerticalProgressBar (for daily stats)
+- AppListenCard (recitation card with play)
+- AppFeatureIllustrationCard (3D icon feature card)
+- AppEmptyState (with illustration)
+- AppErrorState (with illustration)
 
-## AFTER STEP 2.1 COMPLETES
+---
 
-**Next will be:** Step 2.2 — Onboarding Screen 1
-**File:** New file — first premium onboarding slide
+### 🎯 PRIORITY 4 — REDESIGN Home Screen
 
-## COMMAND TO START
+Match REFERENCE IMAGE 1:
+- Hero mosque night background
+- Circular countdown ring (not linear)
+- Ornamental Surah number badges
+- Vertical progress bars for daily stats
+- 3D illustration feature grid
+- Golden Arabic calligraphy elements
 
-Give AI this instruction:
-```
-Start with Step 2.1 — Premium Splash Screen.
-Read AI_CONTEXT.md and PROJECT_STATUS.md first.
-Follow the response format exactly.
-Handle only this ONE file.
-Wait for my confirmation before proceeding.
-```
+---
+
+### 🎯 PRIORITY 5 — Option B Enhancements
+
+1. Ramadan Widget (with lantern hero image)
+2. Nearby Mosque Card (with mosque image)
+3. Error State (with broken book illustration)
+4. Empty State (with praying character)
+
+---
+
+### 🎯 PRIORITY 6 — Phase 8: Quran Module
+
+Match REFERENCE IMAGE 2:
+- Al-Fatihah hero card with glowing Quran 3D
+- Circular category buttons
+- Reading progress card
+- Recently Read horizontal cards
+- Daily Verse with mosque background
+- Listen to Quran with waveform
+
+---
+
+## COMMAND FOR AI
+
+Use the comprehensive prompt provided in handoff docs.
+Follow 23-step response format.
+ONE FILE at a time.
+Provide DALL-E prompts for every image needed.
+
+---
+
+## KEY DESIGN RULES
+
+1. NEVER use flat basic icons — use 3D illustrations
+2. ALWAYS add hero images to major cards
+3. Use gradient overlays for text on images
+4. Prefer circular progress over linear
+5. Use ornamental Islamic shapes
+6. Golden accents on emerald base
+7. Cinematic depth and lighting

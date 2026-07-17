@@ -1,10 +1,13 @@
 // lib/shared/widgets/navigation/app_bottom_nav.dart
 
 // ============================================================
-// QIBRA AI — PREMIUM BOTTOM NAVIGATION
-// Version: 1.0.0
-// Description: Custom bottom navigation with center FAB,
-//              badges, animations, and Islamic design.
+// QIBRA AI — PREMIUM BOTTOM NAVIGATION (v1.2 — FINAL FIX)
+// ============================================================
+// FIX v1.2:
+//   ✅ FAB spacing 80 → 90 (more breathing room)
+//   ✅ Nav height 78 → 85 (bigger touch area)
+//   ✅ Badge moved to LEFT of icon (no FAB overlap)
+//   ✅ Better badge positioning
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -36,19 +39,10 @@ class NavBarItem {
 // ============================================================
 
 class AppBottomNav extends StatelessWidget {
-  /// Currently active tab index
   final int activeIndex;
-
-  /// Tab press handler
   final ValueChanged<int> onTap;
-
-  /// Center FAB press handler (Quran quick access)
   final VoidCallback? onCenterTap;
-
-  /// Nav items list
   final List<NavBarItem> items;
-
-  /// Show center FAB?
   final bool showCenterFab;
 
   const AppBottomNav({
@@ -65,14 +59,12 @@ class AppBottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.navBackground,
-        // Top border
         border: const Border(
           top: BorderSide(
             color: AppColors.borderSubtle,
             width: 1,
           ),
         ),
-        // Elevation shadow (upward)
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.30),
@@ -89,14 +81,15 @@ class AppBottomNav extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 70,
+          // ✅ FIX v1.2: Height 78 → 85
+          height: 85,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
               // ── NAV ITEMS ROW ──────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
+                  horizontal: 4,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -107,7 +100,7 @@ class AppBottomNav extends StatelessWidget {
               // ── CENTER FAB ─────────────────────────
               if (showCenterFab)
                 Positioned(
-                  top: -24,
+                  top: -22,
                   left: 0,
                   right: 0,
                   child: Center(
@@ -121,14 +114,13 @@ class AppBottomNav extends StatelessWidget {
     );
   }
 
-  // ── BUILD NAV ITEMS WITH CENTER SPACE ────────────────
   List<Widget> _buildNavItems() {
     final List<Widget> widgets = [];
 
     for (int i = 0; i < items.length; i++) {
-      // Center FAB space add karo middle mein
+      // ✅ FIX v1.2: FAB spacing 80 → 90
       if (showCenterFab && i == items.length ~/ 2) {
-        widgets.add(const SizedBox(width: 56));
+        widgets.add(const SizedBox(width: 90));
       }
 
       widgets.add(
@@ -170,36 +162,41 @@ class _NavBarItemWidget extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // ── ICON WITH BADGE ────────────────────
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Animated icon
-                AnimatedSwitcher(
-                  duration: AppDurations.fast,
-                  transitionBuilder: (child, animation) {
-                    return ScaleTransition(
-                      scale: animation,
-                      child: child,
-                    );
-                  },
-                  child: Icon(
-                    isActive ? item.activeIcon : item.icon,
-                    key: ValueKey(isActive),
-                    color: isActive ? AppColors.primary : AppColors.navInactive,
-                    size: AppIconSizes.lg,
+            SizedBox(
+              height: 30,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  AnimatedSwitcher(
+                    duration: AppDurations.fast,
+                    transitionBuilder: (child, animation) {
+                      return ScaleTransition(
+                        scale: animation,
+                        child: child,
+                      );
+                    },
+                    child: Icon(
+                      isActive ? item.activeIcon : item.icon,
+                      key: ValueKey(isActive),
+                      color:
+                          isActive ? AppColors.primary : AppColors.navInactive,
+                      size: 22,
+                    ),
                   ),
-                ),
 
-                // Badge (if count > 0)
-                if (item.badgeCount != null && item.badgeCount! > 0)
-                  Positioned(
-                    top: -4,
-                    right: -8,
-                    child: _NavBadge(count: item.badgeCount!),
-                  ),
-              ],
+                  // ✅ FIX v1.2: Badge moved to LEFT of icon (top-left)
+                  if (item.badgeCount != null && item.badgeCount! > 0)
+                    Positioned(
+                      top: -4,
+                      left: 4, // ✅ Changed from right to LEFT
+                      child: _NavBadge(count: item.badgeCount!),
+                    ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 4),
@@ -211,23 +208,25 @@ class _NavBarItemWidget extends StatelessWidget {
                   ? AppTextStyles.labelSmall.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w700,
-                      fontSize: 11,
+                      fontSize: 10,
+                      height: 1.0,
                     )
                   : AppTextStyles.labelSmall.copyWith(
                       color: AppColors.navInactive,
                       fontWeight: FontWeight.w500,
-                      fontSize: 11,
+                      fontSize: 10,
+                      height: 1.0,
                     ),
               child: Text(item.label),
             ),
 
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
 
             // ── ACTIVE INDICATOR DOT ───────────────
             AnimatedContainer(
               duration: AppDurations.normal,
               curve: Curves.easeInOut,
-              width: isActive ? 20 : 0,
+              width: isActive ? 16 : 0,
               height: 3,
               decoration: BoxDecoration(
                 gradient: isActive ? AppGradients.emerald : null,
@@ -263,12 +262,12 @@ class _NavBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 5,
-        vertical: 2,
+        horizontal: 4,
+        vertical: 1,
       ),
       constraints: const BoxConstraints(
-        minWidth: 18,
-        minHeight: 18,
+        minWidth: 16,
+        minHeight: 16,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -280,12 +279,12 @@ class _NavBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: AppColors.navBackground,
-          width: 2,
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.error.withValues(alpha: 0.50),
-            blurRadius: 6,
+            blurRadius: 4,
             spreadRadius: 0,
           ),
         ],
@@ -295,7 +294,7 @@ class _NavBadge extends StatelessWidget {
           count > 99 ? '99+' : '$count',
           style: TextStyle(
             color: AppColors.white,
-            fontSize: count > 9 ? 8 : 10,
+            fontSize: count > 9 ? 7 : 9,
             fontWeight: FontWeight.w800,
             height: 1.0,
           ),
@@ -367,7 +366,6 @@ class _CenterFabState extends State<_CenterFab>
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: AppGradients.gold,
-            // Multiple shadows for premium glow
             boxShadow: [
               BoxShadow(
                 color: AppColors.accent.withValues(alpha: 0.50),
@@ -389,7 +387,6 @@ class _CenterFabState extends State<_CenterFab>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Inner ring
               Container(
                 width: 50,
                 height: 50,
@@ -401,8 +398,6 @@ class _CenterFabState extends State<_CenterFab>
                   ),
                 ),
               ),
-
-              // Icon
               const Icon(
                 Icons.mosque_rounded,
                 color: AppColors.background,
@@ -419,36 +414,16 @@ class _CenterFabState extends State<_CenterFab>
 // ============================================================
 // APP SHELL SCAFFOLD — Complete Bottom Nav Container
 // ============================================================
-// Yeh main widget hai jo router mein use hoga
-// Screens + Bottom Nav dono handle karta hai
-// ============================================================
 
 class AppShellScaffold extends StatelessWidget {
-  /// Current screen content
   final Widget child;
-
-  /// Current location/path
   final String location;
-
-  /// Home route pe click hone par
   final VoidCallback onHomeTap;
-
-  /// Quran route pe click hone par
   final VoidCallback onQuranTap;
-
-  /// Prayer route pe click hone par
   final VoidCallback onPrayerTap;
-
-  /// Hadith route pe click hone par
   final VoidCallback onHadithTap;
-
-  /// AI route pe click hone par
   final VoidCallback onAiTap;
-
-  /// Center FAB press (Quick Quran)
   final VoidCallback onCenterFabTap;
-
-  /// Notification count (for future)
   final int? notificationCount;
 
   const AppShellScaffold({
@@ -464,7 +439,6 @@ class AppShellScaffold extends StatelessWidget {
     this.notificationCount,
   });
 
-  // Active tab index calculate karo current location se
   int _getActiveIndex() {
     if (location.startsWith('/quran')) return 1;
     if (location.startsWith('/prayer')) return 2;
@@ -497,7 +471,6 @@ class AppShellScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      // Extend body behind bottom nav (for FAB overlap)
       extendBody: true,
       body: child,
       bottomNavigationBar: AppBottomNav(
@@ -505,32 +478,27 @@ class AppShellScaffold extends StatelessWidget {
         onTap: _handleTap,
         onCenterTap: onCenterFabTap,
         items: [
-          // Home
           const NavBarItem(
             icon: Icons.home_outlined,
             activeIcon: Icons.home_rounded,
             label: 'Home',
           ),
-          // Quran
           const NavBarItem(
             icon: Icons.menu_book_outlined,
             activeIcon: Icons.menu_book_rounded,
             label: 'Quran',
           ),
-          // Prayer (with notification badge example)
           NavBarItem(
             icon: Icons.access_time_outlined,
             activeIcon: Icons.access_time_filled_rounded,
             label: 'Prayer',
             badgeCount: notificationCount,
           ),
-          // Hadith
           const NavBarItem(
             icon: Icons.library_books_outlined,
             activeIcon: Icons.library_books_rounded,
             label: 'Hadith',
           ),
-          // AI Chat
           const NavBarItem(
             icon: Icons.smart_toy_outlined,
             activeIcon: Icons.smart_toy_rounded,

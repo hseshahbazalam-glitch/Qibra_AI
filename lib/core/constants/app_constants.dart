@@ -987,7 +987,7 @@ abstract final class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
   static const String verifyOtp = '/verify-otp';
-
+  static const String profileSetup = '/profile-setup';
   // --- Main Routes ---
   static const String home = '/home';
   static const String quran = '/quran';

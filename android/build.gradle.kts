@@ -1,4 +1,4 @@
-allprojects {
+﻿allprojects {
     repositories {
         google()
         mavenCentral()
@@ -15,8 +15,17 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
+
+    // Force all Android library plugins to use compileSdk 36
+    // Uses plugin listener (not afterEvaluate) for modern AGP compatibility
+    plugins.withId("com.android.library") {
+        extensions.configure<com.android.build.gradle.LibraryExtension> {
+            compileSdk = 36
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {

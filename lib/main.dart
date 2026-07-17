@@ -3,10 +3,10 @@
 // ============================================================
 // QIBRA AI — Main Entry Point
 // Version: 2.0.0
-// Description: Now uses Riverpod ProviderScope for state management.
-//              Router integrated with Riverpod auth state.
 // ============================================================
 
+import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
+import 'package:qibra_ai/features/quran/providers/audio_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
@@ -20,7 +20,6 @@ void main() async {
   AppSystemUI.setDarkTheme();
   await AppSystemUI.setPortraitOnly();
 
-  // Assets verify karo — sirf debug mode mein
   assert(() {
     AppAssetsCheck.verifyAllAssets();
     return true;
@@ -28,11 +27,20 @@ void main() async {
 
   _testDesignSystem();
 
-  // ProviderScope = Riverpod ka root wrapper
-  // Iske andar hi providers kaam karenge
+  try {
+    debugPrint('📖 Loading Quran data...');
+    final quranRepo = QuranRepository();
+    await quranRepo.initialize();
+    debugPrint('✅ Quran data loaded successfully!');
+    debugPrint('   📊 Stats: ${quranRepo.statistics}');
+  } catch (e) {
+    debugPrint('⚠️ Quran data loading failed: $e');
+    debugPrint('   App will continue with fallback data');
+  }
+
   runApp(
     const ProviderScope(
-      child: QibraApp(),
+      child: _AppWithAudio(),
     ),
   );
 }
@@ -48,12 +56,21 @@ void _testDesignSystem() {
   debugPrint('╚══════════════════════════════════════╝');
 }
 
-// ============================================================
-// QibraApp — Root Widget
-// ============================================================
-// ConsumerWidget = Riverpod-aware widget
-// ref parameter se providers access hote hain
-// ============================================================
+// ── Audio Pre-Warmer ──────────────────────────────────────────
+
+class _AppWithAudio extends ConsumerWidget {
+  const _AppWithAudio();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Audio service ko app start pe initialize karo
+    // Taaki pehli ayah tap pe koi delay na ho
+    ref.watch(quranAudioServiceProvider);
+    return const QibraApp();
+  }
+}
+
+// ── Root App ──────────────────────────────────────────────────
 
 class QibraApp extends ConsumerWidget {
   const QibraApp({super.key});
@@ -61,7 +78,6 @@ class QibraApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(flutterThemeModeProvider);
-    // Router provider se watch karo
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
@@ -70,7 +86,6 @@ class QibraApp extends ConsumerWidget {
       theme: AppTheme.dark,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
-      // Provider se aa raha hai
       routerConfig: router,
     );
   }

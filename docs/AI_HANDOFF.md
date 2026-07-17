@@ -1,792 +1,504 @@
-git add docs/AI_HANDOFF.md
-git commit -m "docs: update AI_HANDOFF.md to v3.0 with complete Steps 1-15.3 state"
-# QIBRA AI — COMPLETE AI HANDOFF DOCUMENT
-
-**Version:** 3.0 — Final Polished  
-**Last Updated:** End of Step 15.3 (Forgot Password Screen complete)  
-**Status:** Phase 1 Foundation — 15.3 of 17 steps complete  
-
----
-
-## ⚠️ MOST CRITICAL RULE
-
-> This is an **EXISTING PROJECT**.  
-> **NEVER create a new project.**  
-> **Continue ONLY from this existing codebase.**  
-> **Read this entire file BEFORE writing a single line of code.**
-
----
-
-## SECTION 1 — PROJECT IDENTITY
-
-| Field | Value |
-|---|---|
-| **App Name** | QIBRA AI |
-| **Full Name** | QIBRA AI — Islamic Super App |
-| **Framework** | Flutter (Dart 3.3+) |
-| **Package Name** | ai.qibra.app |
-| **Version** | 1.0.0+1 |
-| **Current Phase** | PHASE 1 — FOUNDATION |
-| **Theme** | Dark Emerald (#00A86B) + Royal Gold (#D4AF37) |
-| **State Management** | Riverpod ^2.5.1 |
-| **Navigation** | GoRouter ^14.2.7 |
-| **DI** | GetIt ^7.7.0 |
-| **HTTP** | Dio ^5.4.3+1 |
-| **Fonts** | Poppins (English) + Amiri (Arabic) via google_fonts |
-| **Developer** | QIBRA Technologies |
-| **Support** | support@qibra.ai |
-
----
-
-## SECTION 2 — NON-NEGOTIABLE RULES
-
-### Development Rules
-1. **NEVER create a new project** — continue from existing only
-2. **NEVER break existing working code**
-3. **NEVER redesign completed modules** — they are production-ready
-4. **NEVER use placeholders, TODO, or demo code**
-5. Every code must be **production-ready**
-6. Handle only **ONE FILE at a time**
-7. Wait for user confirmation after every file
-8. Build in the **EXACT order** defined in Section 4
-9. **DO NOT start Phase 2 features** (Quran, Prayer, Hadith, AI) until Phase 1 complete
-
-### Teaching Rules
-10. **Explain everything in simple Hinglish** (Hindi + English mix)
-11. **Never skip explanations** — teach every concept
-12. **Teach like the user is a complete beginner**
-13. **Explain every technical term simply**
-
-### Code Quality Rules
-14. Use `withValues(alpha:)` NOT `withOpacity()` — Flutter 3.27+ compatibility
-15. All enums use `abstract final class` pattern for constants
-16. `ConsumerWidget` for Riverpod-aware stateless widgets
-17. `ConsumerStatefulWidget` for Riverpod-aware stateful widgets
-18. Dispose all controllers and focus nodes in `dispose()`
-19. Check `mounted` before `setState` after async operations
-20. Always use `AppSpacing.md` etc., NEVER hardcode values like `16.0`
-
----
-
-## SECTION 3 — APP CONCEPT
-
-QIBRA AI is a premium Islamic Super App containing:
-
-| Feature | Description | Status |
-|---|---|---|
-| Quran | Full Arabic Quran with translation, audio, bookmarks | ⏳ Phase 2 |
-| Prayer Times | GPS-based accurate prayer times | ⏳ Phase 2 |
-| Qibla | Compass-based Qibla direction | ⏳ Phase 2 |
-| Hadith | Major hadith collections | ⏳ Phase 2 |
-| AI Chat | Islamic AI assistant | ⏳ Phase 2 |
-| Dua | Duas by category | ⏳ Phase 2 |
-| Tasbih | Digital tasbih counter | ⏳ Phase 2 |
-| Islamic Calendar | Hijri calendar + events | ⏳ Phase 2 |
-
-> **DO NOT build any of the above features until PHASE 1 FOUNDATION is 100% complete.**
-
----
-
-## SECTION 4 — OFFICIAL BUILD ORDER (PHASE 1)
-
-```
-PHASE 1 — FOUNDATION
-
-Step 01 ✅ Premium Design System
-Step 02 ✅ Color System
-Step 03 ✅ Typography System
-Step 04 ✅ Theme System
-Step 05 ✅ App Constants
-Step 06 ✅ Assets Structure
-Step 07 ✅ Reusable Buttons
-Step 08 ✅ Reusable Cards
-Step 09 ✅ Reusable Text Fields
-Step 10 ✅ App Router (GoRouter)
-Step 11 ✅ Riverpod Setup (4 sub-steps complete)
-Step 12 ✅ Dependency Injection (3 sub-steps complete)
-Step 13 ✅ Splash Screen
-Step 14 ✅ Onboarding Screen
-Step 15 🔄 Authentication (3 of 5 sub-steps complete)
-      ✅ 15.1 Login Screen
-      ✅ 15.2 Register Screen
-      ✅ 15.3 Forgot Password Screen
-      ❌ 15.4 Verify OTP Screen         ← NEXT FILE
-      ❌ 15.5 Router Update (integrate all 4 auth screens)
-Step 16 ⏳ Bottom Navigation (real implementation)
-Step 17 ⏳ Home Dashboard
-
-Legend:
-✅ = Complete
-🔄 = In Progress
-⏳ = Pending
-❌ = Not Yet Created
-```
-
----
-
-## SECTION 5 — ALL FILES CREATED (22 files)
-
-### Core — Design System (4 files)
-
-```
-lib/core/design_system/app_design_system.dart   ✅
-lib/core/design_system/app_colors.dart          ✅
-lib/core/design_system/app_typography.dart      ✅
-lib/core/design_system/app_theme.dart           ✅
-```
-
-### Core — Constants (2 files)
-
-```
-lib/core/constants/app_constants.dart           ✅
-lib/core/constants/app_assets_check.dart        ✅
-```
-
-### Core — Providers (3 files)
-
-```
-lib/core/providers/app_providers.dart           ✅
-lib/core/providers/auth_provider.dart           ✅
-lib/core/providers/theme_provider.dart          ✅
-```
-
-### Core — Network & Services (2 files)
-
-```
-lib/core/network/dio_client.dart                ✅
-lib/core/services/api_service.dart              ✅
-```
-
-### Core — DI & Router (2 files)
-
-```
-lib/core/di/service_locator.dart                ✅
-lib/core/router/app_router.dart                 ✅
-```
-
-### Shared — Reusable Widgets (3 files)
-
-```
-lib/shared/widgets/buttons/app_button.dart      ✅
-lib/shared/widgets/cards/app_card.dart          ✅
-lib/shared/widgets/inputs/app_text_field.dart   ✅
-```
-
-### Features (6 files)
-
-```
-lib/features/splash/presentation/splash_screen.dart               ✅
-lib/features/onboarding/presentation/onboarding_screen.dart       ✅
-lib/features/auth/presentation/login_screen.dart                  ✅
-lib/features/auth/presentation/register_screen.dart               ✅
-lib/features/auth/presentation/forgot_password_screen.dart        ✅
-lib/features/auth/presentation/verify_otp_screen.dart             ❌ NEXT
-```
-
-### Entry Point & Config
-
-```
-lib/main.dart                                   ✅
-pubspec.yaml                                    ✅
-test/widget_test.dart                           ✅
-ios/Runner/Info.plist                           ✅
-docs/AI_HANDOFF.md                              ✅ (this file)
-```
-
----
-
-## SECTION 6 — WHAT EACH FILE CONTAINS
-
-### `app_design_system.dart`
-- `AppSpacing` — spacing tokens (xs2 to xl9)
-- `AppRadius` — border radius tokens
-- `AppElevation` & `AppShadows` — shadow presets (goldGlow, emeraldGlow)
-- `AppDurations` & `AppCurves` — animation tokens
-- `AppIconSizes` — icon size scale
-- `AppBreakpoints` — responsive breakpoints
-- `AppGradients` — gradient presets (emerald, gold, splash, premium)
-- `AppBorders` — border styles
-- `AppOpacity` — opacity constants
-- `AppAssets` — asset path constants
-- `AppZIndex` — layer ordering
-
-### `app_colors.dart`
-- `AppEmerald` — 9-shade emerald palette (s50 to s900)
-- `AppGold` — 9-shade royal gold palette (s50 to s900)
-- `AppNeutral` — cool-tinted gray scale
-- `AppSemanticColors` — success, error, warning, info
-- `AppSurface` — dark surface hierarchy (background, card, elevated, high, highest)
-- `AppTextColors` — text color hierarchy
-- `AppIconColors` — icon colors
-- `AppBorderColors` — border colors
-- `AppColors` — main unified access class
-
-### `app_typography.dart`
-- `AppFontFamily` — Poppins + Amiri
-- `AppFontWeight` — 100 to 900
-- `AppFontSize` — complete type scale
-- `AppLineHeight` & `AppLetterSpacing`
-- `AppTextStyles` — 30+ English text presets
-- `AppArabicStyles` — Quran, Hadith, Bismillah styles
-- `TextStyleExtension` — chainable modifiers (.gold, .bold, .emerald)
-- `AppTextTheme` — Material TextTheme integration
-
-### `app_theme.dart`
-- `AppTheme.dark` — complete dark ThemeData
-- M3 ColorScheme, AppBar, Card, ElevatedButton, OutlinedButton, TextButton
-- FloatingActionButton, InputDecoration, Dialog, BottomSheet
-- SnackBar, Chip, Divider, ListTile, Switch, Checkbox, Radio
-- Slider, ProgressIndicator, TabBar, Tooltip, PopupMenu
-- Drawer, Badge, SearchBar themes
-- `AppSystemUI` — status bar + orientation helpers
-
-### `app_constants.dart`
-- `AppInfo` — name, version, URLs, contact
-- `AppApi` — base URLs, all endpoint constants, timeouts
-- `AppStorageKeys` — SharedPreferences keys
-- `AppPagination` — page sizes
-- `AppIslamicConstants` — Quran (114 surahs, 6236 ayahs), prayer names, Hijri months, common duas
-- `AppValidation` — regex patterns, length limits, error messages
-- `AppCacheDuration` — cache timeouts per feature
-- `AppFeatureFlags` — enable/disable features
-- `AppUIConstants` — common UI sizes
-- `AppLanguages` — en, ar, ur
-- `AppRoutes` — all route name constants
-
-### `app_providers.dart`
-- `sharedPreferencesProvider` (FutureProvider)
-- `secureStorageProvider` (Provider)
-- `packageInfoProvider` (FutureProvider)
-- `connectivityProvider` (StreamProvider)
-- `isOnlineProvider` (Provider<bool>)
-- `appInitializationProvider` (FutureProvider)
-- `appLifecycleProvider` (StateProvider)
-- `AppInitState` and `AppLifecycleStatus` models
-
-### `auth_provider.dart`
-- `AuthStatus` enum (initial, loading, authenticated, unauthenticated)
-- `AppUser` immutable model (id, email, name, avatar, phone, etc.)
-- `AuthState` model with copyWith
-- `AuthNotifier` — login, register, logout, refreshToken methods
-- `authProvider` (StateNotifierProvider)
-- Convenience providers: `isAuthenticatedProvider`, `currentUserProvider`, `authLoadingProvider`, `authErrorProvider`, `userDisplayNameProvider`, `isPremiumUserProvider`
-
-### `theme_provider.dart`
-- `AppThemeMode` enum (system, light, dark) with helpers
-- `ThemeNotifier` — theme with SharedPreferences persistence
-- `LocaleNotifier` — language with RTL support
-- `OnboardingNotifier` — onboarding completion tracking
-- `themeProvider`, `localeProvider`, `onboardingProvider`
-- `flutterThemeModeProvider`, `isDarkModeProvider`, `currentLanguageProvider`, `isRTLProvider`
-- `_DummyPrefs` — fallback for async loading
-
-### `dio_client.dart`
-- `DioClient` class with baseUrl and timeouts
-- Auth interceptor (auto-inject Bearer token)
-- Logging interceptor (debug mode)
-- Error interceptor (auto-logout on 401)
-- HTTP methods: get, post, put, patch, delete
-- `ApiException` custom exception
-- `ApiExceptionType` enum
-
-### `api_service.dart`
-- `ApiService` wrapping DioClient
-- 40+ endpoint methods across all features:
-  - Auth: login, register, logout, refresh, OTP, social
-  - User: profile, update, password, delete, avatar upload
-  - Prayer: times, qibla, nearby mosques
-  - Quran: surahs, ayahs, search, audio, bookmarks
-  - Hadith: collections, books, search, daily
-  - AI Chat: send message, history, Islamic questions
-  - Dua: categories, list, favorites
-  - Calendar: Hijri, Islamic events, Ramadan
-  - Notifications: list, mark read, FCM
-  - Tasbih: save, history
-
-### `service_locator.dart`
-- `ServiceLocator.init()` — GetIt initialization
-- `sl` global instance
-- Registered: SharedPreferences, FlutterSecureStorage, DioClient, ApiService
-- Convenience accessors: prefs, secureStorage, dioClient, apiService
-
-### `app_router.dart`
-- `routerProvider` (Provider<GoRouter>)
-- `_RouterRefreshNotifier` — auth state listener
-- Redirect logic (auth guard, onboarding check)
-- Routes: splash, onboarding, login, register, forgot-password, verify-otp
-- ShellRoute with bottom nav (home, quran, prayer, hadith, ai-chat, profile, settings)
-- `_ShellScaffold`, `_AppBottomNavBar`, `_NavItem` widgets
-- Placeholder screens: `_LoginPlaceholder`, `_RegisterPlaceholder`, `_HomePlaceholder`, etc.
-- Real screens integrated: `SplashScreen`, `OnboardingScreen`
-
-### `app_button.dart` (Reusable Buttons)
-- `AppButtonSize` enum (small, medium, large)
-- `AppPrimaryButton` — Emerald gradient with press animation
-- `AppSecondaryButton` — Transparent with emerald border
-- `AppGoldButton` — Royal gold gradient with glow
-- `AppTextBtn` — Text only with gold/emerald variants
-- `AppIconBtn` — Circular with badge, outlined, filled variants
-- `AppSocialButton` — Google and Apple sign-in
-- `AppLoadingButton` — Auto async loading management
-- All with HapticFeedback and scale animations
-
-### `app_card.dart` (Reusable Cards)
-- `AppCard` — Standard dark card with optional tap
-- `AppGradientCard` — Emerald/Gold gradient cards
-- `AppFeatureCard` — Islamic feature grid cards with badges
-- `AppInfoCard` — Stats/info display
-- `AppPrayerCard` — Prayer time with active state
-- `AppListCard` — List item with InkWell ripple
-- `AppQuranCard` — Surah list with bookmarks
-- `AppHadithCard` — Hadith with Arabic text
-- `AppShimmerCard` — Skeleton loading animation
-- `AppShimmerList` — Multiple shimmer items
-
-### `app_text_field.dart` (Reusable Inputs)
-- `AppTextField` — Standard input with focus animation
-- `AppPasswordField` — Password with show/hide toggle
-- `AppSearchField` — Search with clear button
-- `AppOtpField` — 6-digit OTP with auto-advance
-- `AppTextArea` — Multi-line with char counter
-- `AppDropdownField` — Dropdown selection
-- All with error/success states, validation, RTL support
-
-### `splash_screen.dart`
-- Multiple animations (logo, text, bismillah, loading dots)
-- Gold gradient logo with mosque icon
-- ShaderMask for gradient text/icons
-- Bismillah with Arabic + English
-- Custom animated loading dots (wave effect)
-- Rotating Islamic pattern background
-- Version info and copyright
-- Auto-navigation based on auth state (3 second delay)
-
-### `onboarding_screen.dart`
-- 4-slide PageView experience
-- Multi-layered animated icon containers
-- Radial gradient backgrounds per slide
-- Arabic text badges with English translations
-- Animated page indicators (expand for active)
-- Skip button in top bar
-- Previous/Next navigation
-- Gold "Get Started" button on last slide
-- HapticFeedback on page changes
-- Auto-mark onboarding complete via provider
-
-### `login_screen.dart`
-- Email + password fields with validation
-- Form validation via GlobalKey
-- Riverpod authProvider integration
-- Remember me checkbox
-- Forgot password navigation
-- Google + Apple social auth buttons
-- Error banner with dismiss
-- Loading states
-- Focus node chaining
-- Register link at bottom
-
-### `register_screen.dart`
-- 4 form fields (name, email, password, confirm)
-- Real-time password strength indicator (5 levels)
-- Color-coded progress bar
-- Terms & Conditions checkbox with RichText
-- Form validation
-- Auto-navigation between fields
-- Auto-navigate to OTP verification on success
-
-### `forgot_password_screen.dart`
-- 2-state UI (form + success)
-- AnimatedSwitcher smooth transition
-- Email validation
-- Simulated API call
-- Success state with sent email display
-- Numbered instruction list
-- Warning banner for link expiration
-- Open email + Resend link buttons
-
-### `main.dart`
-- Entry point with ProviderScope
-- ServiceLocator.init() before runApp
-- QibraApp as ConsumerWidget
-- Uses routerProvider for navigation
-- Uses flutterThemeModeProvider for theme
-- Console boot test
-- Asset verification in debug mode
-
----
-
-## SECTION 7 — CURRENT STEP STATUS
-
-### ✅ COMPLETED
-- Steps 1 through 14 (100% complete)
-- Step 15.1 Login Screen
-- Step 15.2 Register Screen
-- Step 15.3 Forgot Password Screen
-
-### ❌ NOT DONE — IMMEDIATE NEXT WORK
-
-**Step 15.4** — Create `verify_otp_screen.dart`
-
-**Location:** `lib/features/auth/presentation/verify_otp_screen.dart`
-
-**Must contain:**
-- 6-digit OTP input using existing `AppOtpField` component (from Step 9)
-- Timer countdown for resend (60 seconds)
-- Auto-submit when all 6 digits entered
-- Resend OTP button (enabled after timer expires)
-- Email display showing where OTP was sent
-- Error state handling
-- Loading state with spinner
-- Success → auto-navigate to home
-- Riverpod auth integration
-- Premium Islamic design (Dark Emerald + Royal Gold)
-- Uses `AppTextStyles`, `AppColors`, `AppSpacing`, `AppRadius` from design system
-- Uses `AppPrimaryButton`, `AppSecondaryButton`, `AppTextBtn` from reusable widgets
-
-**Step 15.5** — After OTP screen, update `app_router.dart`:
-- Replace `_LoginPlaceholder` with `LoginScreen`
-- Replace `_RegisterPlaceholder` with `RegisterScreen`
-- Replace forgot-password `_ErrorScreen` with `ForgotPasswordScreen`
-- Replace verify-otp `_ErrorScreen` with `VerifyOtpScreen`
-- Add imports for all 4 screens
-- Delete placeholder classes: `_LoginPlaceholder`, `_RegisterPlaceholder`
-
----
-
-## SECTION 8 — KNOWN BUGS & FIXES APPLIED
-
-| Bug | Fix | Status |
-|---|---|---|
-| `withOpacity()` deprecated Flutter 3.27+ | Replaced with `withValues(alpha:)` in all files | ✅ Fixed |
-| `AppColors.surfaceHighest` missing | Added to app_colors.dart | ✅ Fixed |
-| `hijri ^2.0.1` null safety failure | Updated pubspec to `hijri: ^3.0.1` | ✅ Fixed |
-| `MyApp` not found in widget_test.dart | Changed to `QibraApp` | ✅ Fixed |
-| Unused `_fonts` field | Removed from app_design_system.dart | ✅ Fixed |
-| `DioExceptionType` switch not exhaustive | Added `default` case | ✅ Fixed |
-| `_SplashPlaceholder` class corrupt | Deleted, real `SplashScreen` integrated | ✅ Fixed |
-| `_OnboardingScreen` wrong name | Changed to `OnboardingScreen` | ✅ Fixed |
-| Missing `(` in GoRoute | Fixed syntax | ✅ Fixed |
-| Missing `;` at end of routerProvider | Fixed syntax | ✅ Fixed |
-| Stray `S` character in router | Removed | ✅ Fixed |
-| Unnecessary `foundation.dart` import | Removed | ✅ Fixed |
-| `AppUIConstants` not found in buttons | Added import | ✅ Fixed |
-
-### Remaining Issues:
-**NONE** — Last `flutter analyze` returned zero issues.  
-App runs without crashes.
-
----
-
-## SECTION 9 — pubspec.yaml DEPENDENCIES
-
-### Production Dependencies:
-
-```yaml
-google_fonts: ^6.2.1
-flutter_svg: ^2.0.10+1
-cached_network_image: ^3.3.1
-lottie: ^3.1.2
-flutter_riverpod: ^2.5.1
-riverpod_annotation: ^2.3.5
-go_router: ^14.2.7
-dio: ^5.4.3+1
-shared_preferences: ^2.3.2
-flutter_secure_storage: ^9.2.2
-get_it: ^7.7.0
-permission_handler: ^11.3.1
-geolocator: ^13.0.1
-geocoding: ^3.0.0
-intl: ^0.19.0
-connectivity_plus: ^6.0.5
-url_launcher: ^6.3.0
-share_plus: ^10.0.2
-package_info_plus: ^8.0.2
-device_info_plus: ^10.1.2
-uuid: ^4.4.2
-equatable: ^2.0.5
-freezed_annotation: ^2.4.4
-json_annotation: ^4.9.0
-hijri: ^3.0.1
+# QIBRA AI — COMPLETE PROJECT HANDOFF v7.0
+
+═══════════════════════════════════════════════════════════
+📊 PROJECT IDENTITY
+═══════════════════════════════════════════════════════════
+
+App:        QIBRA AI (Premium Islamic Super App)
+Framework:  Flutter Dart 3.3+
+Package:    com.example.qibra_ai
+Path:       E:\qibra_ai
+Device:     CPH2573 (Oppo Android 16)
+Theme:      Dark Emerald (#00A86B) + Royal Gold (#D4AF37)
+Version:    v7.0 (Phase 9 complete)
+
+═══════════════════════════════════════════════════════════
+✅ COMPLETED PHASES (6 Major Phases Done!)
+═══════════════════════════════════════════════════════════
+
+PHASE 1-7: FOUNDATION ✅
+- Splash Screen with animations
+- Onboarding (4 screens)
+- Auth Module (5 screens: Login, Register, OTP, Forgot Password, Profile Setup)
+- Home Dashboard v6.0 (4800+ lines, 27 sections)
+- Prayer Times UI (basic)
+- Design System (Colors, Typography, Spacing)
+- Bottom Navigation
+
+PHASE 8.1-8.2: QURAN CORE ✅
+- 6236 real ayahs loaded from JSON
+- 114 surahs metadata
+- Real Quran data integration
+- Assets: quran_arabic.json (4.5MB), translation_en.json (1.8MB), surah_info.json (27KB)
+
+PHASE 8.3: SURAH READER ✅
+Files created:
+- lib/features/quran/presentation/surah_list_screen.dart
+- lib/features/quran/presentation/surah_reader_screen.dart
+- lib/features/quran/presentation/ayah_action_sheet.dart
+- lib/features/quran/presentation/font_size_selector.dart
+
+Features: Search, filter Meccan/Medinan, ayah-by-ayah, bookmarks, font size S/M/L/XL, notes
+
+PHASE 8.4: AUDIO PLAYER ⚠️ (Has Oppo bugs)
+Files created:
+- lib/features/quran/services/quran_audio_service.dart (v4.1)
+- lib/features/quran/providers/audio_provider.dart
+- lib/features/quran/presentation/quran_audio_player.dart
+
+Features: 4 reciters, mini player, full player, auto-next, 64kbps optimized
+Issue: AudioTrack write failed -6 on Oppo Android 16
+
+PHASE 8.5: BOOKMARKS ✅
+File: lib/features/quran/presentation/bookmarks_screen.dart
+Features: Search, sort, notes edit, options sheet, statistics
+
+PHASE 8.6: QURAN SEARCH ✅
+File: lib/features/quran/presentation/quran_search_screen.dart
+Features: Arabic + English search, popular topics, recent searches, highlights
+
+PHASE 9: PRAYER SYSTEM ✅ (6 files)
+Files created:
+- lib/features/prayer/data/models/prayer_models.dart
+- lib/features/prayer/data/services/prayer_calculation_service.dart
+- lib/features/prayer/providers/prayer_provider.dart (with geocoding)
+- lib/features/prayer/presentation/prayer_times_screen.dart
+- lib/features/prayer/presentation/prayer_settings_screen.dart
+- lib/features/prayer/presentation/prayer_tracker_screen.dart
+
+Features:
+- 9 calculation methods (MWL, ISNA, Egypt, Makkah, Karachi, Tehran, Jafari, Singapore, Gulf)
+- Auto-detect country method
+- GPS location with reverse geocoding
+- Live countdown per second
+- Prayer tracking (Prayed, In Mosque, Missed, Makeup)
+- Statistics & streaks
+- Hijri date support
+
+═══════════════════════════════════════════════════════════
+🔥 CRITICAL ISSUES TO FIX NEXT
+═══════════════════════════════════════════════════════════
+
+🔴 ISSUE 1: QURAN COMPLETENESS (HIGH PRIORITY)
+Problem: Need to verify all 114 surahs load properly
+Some surahs might have missing ayahs or translations
+Test surahs: 1 (Al-Fatihah), 2 (Al-Baqarah), 100, 105, 114 (An-Nas)
+
+Files to check:
+- lib/features/quran/data/repository/quran_repository.dart
+- assets/data/quran/quran_arabic.json
+- assets/data/quran/translation_en.json
+- assets/data/quran/surah_info.json
+
+Debug commands:
+findstr /n "totalSurahs" E:\qibra_ai\lib\features\quran\data\repository\quran_repository.dart
+findstr /n "6236" E:\qibra_ai\lib\features\quran\data\repository\quran_repository.dart
+
+🔴 ISSUE 2: AUDIO PLAYER PROBLEMS (Oppo-Specific)
+Problem: Audio glitches on Oppo Android 16
+- Pause button not working
+- Cuts off beginning when changing ayahs
+- "AudioTrack write failed: -6" errors
+- Native driver bug in ColorOS 16
+
+Attempted (all failed):
+- Fresh player recreation
+- 500ms throttling
+- 64kbps bitrate
+- Download-first approach
+- Request cancellation tokens
+
+Next solutions to try:
+1. Replace just_audio with audioplayers package
+2. Native Android MediaPlayer via platform channels
+3. Test in release mode (may work better)
+4. Test on different device (Samsung/Pixel)
+
+File: lib/features/quran/services/quran_audio_service.dart
+
+🟡 ISSUE 3: HOME SCREEN HARDCODED DATA
+Problem: Home screen still shows static "Karachi, Pakistan"
+Lines to fix in home_screen.dart:
+- Line 233: '5:12 AM' (Fajr static)
+- Line 247: '3:45 PM' (Asr static)
+- Line 1299: 'Karachi, Pakistan' text
+
+Solution: Replace with real providers
+- locationProvider.location?.displayName
+- dailyPrayerTimesProvider
+- currentTimeProvider (live)
+
+═══════════════════════════════════════════════════════════
+🔒 CRITICAL RULES (NEVER BREAK!)
+═══════════════════════════════════════════════════════════
+
+❌ NEVER:
+- Create new project (continue E:\qibra_ai)
+- Use withOpacity() → USE withValues(alpha:)
+- Upgrade Riverpod (LOCKED at 2.5.1)
+- Handle multiple files at once
+- Give shortened/abbreviated code
+- Build MVP (build FULL PREMIUM)
+- Skip 23-step format
+
+✅ ALWAYS:
+- Full production code (1500-2500+ lines OK)
+- Wait for confirmation after each file
+- 23-step response format
+- Hinglish explanations (Hindi + English mix)
+- Use existing widgets + design tokens
+- Real device tested quality
+- Test with flutter analyze after each file
+
+═══════════════════════════════════════════════════════════
+🎯 TECH STACK (LOCKED VERSIONS - DO NOT UPGRADE!)
+═══════════════════════════════════════════════════════════
+
+flutter_riverpod:            ^2.5.1  (LOCKED!)
+riverpod_annotation:         ^2.3.5
+go_router:                   ^14.2.7
+google_fonts:                ^6.2.1
+just_audio:                  ^0.9.40  (has Oppo bugs)
+audio_session:               ^0.1.21
+sqflite:                     ^2.3.3+1
+hijri:                       ^3.0.1
+geocoding:                   ^4.0.0
+geolocator:                  ^11.0.0
+dio:                         ^5.4.3+1
+path_provider:               ^2.1.4
+shared_preferences:          ^2.3.2
+flutter_secure_storage:      ^9.2.2
+freezed_annotation:          ^2.4.4
+json_annotation:             ^4.9.0
+equatable:                   ^2.0.5
 flutter_local_notifications: ^17.2.2
-```
+permission_handler:          ^11.3.1
+flutter_svg:                 ^2.0.10+1
+cached_network_image:        ^3.3.1
+lottie:                      ^3.1.2
 
-### Dev Dependencies:
+═══════════════════════════════════════════════════════════
+🎨 DESIGN SYSTEM PATHS & TOKENS
+═══════════════════════════════════════════════════════════
 
-```yaml
-flutter_lints: ^4.0.0
-build_runner: ^2.4.12
-riverpod_generator: ^2.4.3
-freezed: ^2.5.7
-json_serializable: ^6.8.0
-```
+Files:
+- lib/core/design_system/app_colors.dart
+- lib/core/design_system/app_typography.dart (AppTextStyles)
+- lib/core/design_system/app_design_system.dart (AppSpacing, AppRadius, AppGradients, AppShadows)
 
----
+Colors:
+- AppColors.primary (Emerald #00A86B)
+- AppColors.accent (Gold #D4AF37)
+- AppColors.background
+- AppColors.surface, surfaceElevated, surfaceSheet, surfaceHigh
+- AppColors.textPrimary/Secondary/Tertiary
+- AppColors.error, warning, success
 
-## SECTION 10 — ASSETS STRUCTURE
+Spacing:
+- AppSpacing.xs(4), sm(8), md(12), lg(16)
+- AppSpacing.xl(20), xl2(24), xl3(32), xl4(40)
 
-```
-assets/
-├── images/          (16 placeholder PNGs)
-│   ├── logo.png
-│   ├── logo_white.png
-│   ├── logo_icon.png
-│   ├── splash_bg.png
-│   ├── splash_logo.png
-│   ├── onboarding_1.png
-│   ├── onboarding_2.png
-│   ├── onboarding_3.png
-│   ├── onboarding_4.png
-│   ├── quran_bg.png
-│   ├── quran_cover.png
-│   ├── mosque.png
-│   ├── compass_bg.png
-│   ├── islamic_pattern_1.png
-│   ├── islamic_pattern_2.png
-│   └── pattern_overlay.png
-├── icons/           (8 placeholder SVGs)
-│   ├── quran.svg
-│   ├── prayer.svg
-│   ├── qibla.svg
-│   ├── hadith.svg
-│   ├── ai.svg
-│   ├── calendar.svg
-│   ├── tasbih.svg
-│   └── dua.svg
-├── animations/      (6 placeholder Lottie JSONs)
-│   ├── loading.json
-│   ├── success.json
-│   ├── error.json
-│   ├── prayer.json
-│   ├── quran.json
-│   └── ai_thinking.json
-└── fonts/           (empty — Google Fonts handles)
-```
+Typography:
+- AppTextStyles.titleLarge/Medium/Small
+- AppTextStyles.bodyLarge/Medium/Small
+- AppTextStyles.labelLarge/Medium/Small
+- Font: Amiri (for Arabic)
 
----
+Radius:
+- AppRadius.sm(8), md(12), lg(16)
+- AppRadius.xl(20), xl2(24), xl3(32)
+- AppRadius.full (999)
 
-## SECTION 11 — REQUIRED RESPONSE FORMAT
+Gradients:
+- AppGradients.emerald
+- AppGradients.gold
 
-Every response must follow this format exactly:
+═══════════════════════════════════════════════════════════
+📁 COMPLETE FILE STRUCTURE
+═══════════════════════════════════════════════════════════
 
-```
-STEP NUMBER
+E:\qibra_ai\
+├── lib\
+│   ├── main.dart (has _AppWithAudio pre-warm class)
+│   │
+│   ├── core\
+│   │   ├── constants\
+│   │   │   ├── app_constants.dart
+│   │   │   └── app_assets_check.dart
+│   │   ├── design_system\
+│   │   │   ├── app_colors.dart
+│   │   │   ├── app_typography.dart
+│   │   │   ├── app_design_system.dart
+│   │   │   └── app_theme.dart
+│   │   ├── di\
+│   │   │   └── service_locator.dart
+│   │   ├── network\
+│   │   │   └── dio_client.dart
+│   │   ├── providers\
+│   │   │   ├── app_providers.dart
+│   │   │   ├── auth_provider.dart
+│   │   │   └── theme_provider.dart
+│   │   ├── router\
+│   │   │   └── app_router.dart (Prayer connected)
+│   │   └── services\
+│   │       └── api_service.dart
+│   │
+│   ├── features\
+│   │   ├── auth\ (Login, Register, OTP, Forgot Pwd screens)
+│   │   ├── home\
+│   │   │   └── presentation\
+│   │   │       ├── home_screen.dart (4800+ lines, HAS HARDCODED DATA)
+│   │   │       └── home_screen_v4_backup.dart
+│   │   ├── onboarding\
+│   │   ├── splash\
+│   │   ├── settings\
+│   │   │   └── presentation\
+│   │   │       └── profile_setup_screen.dart
+│   │   │
+│   │   ├── quran\
+│   │   │   ├── data\
+│   │   │   │   ├── models\
+│   │   │   │   │   └── quran_models.dart
+│   │   │   │   └── repository\
+│   │   │   │       └── quran_repository.dart
+│   │   │   ├── providers\
+│   │   │   │   ├── quran_provider.dart (19 providers)
+│   │   │   │   └── audio_provider.dart
+│   │   │   ├── services\
+│   │   │   │   └── quran_audio_service.dart ⚠️
+│   │   │   └── presentation\
+│   │   │       ├── quran_screen.dart (Home Quran tab)
+│   │   │       ├── surah_list_screen.dart
+│   │   │       ├── surah_reader_screen.dart
+│   │   │       ├── ayah_action_sheet.dart
+│   │   │       ├── font_size_selector.dart
+│   │   │       ├── bookmarks_screen.dart
+│   │   │       ├── quran_search_screen.dart
+│   │   │       └── quran_audio_player.dart
+│   │   │
+│   │   └── prayer\
+│   │       ├── data\
+│   │       │   ├── models\
+│   │       │   │   └── prayer_models.dart
+│   │       │   └── services\
+│   │       │       └── prayer_calculation_service.dart
+│   │       ├── providers\
+│   │       │   └── prayer_provider.dart (with geocoding)
+│   │       └── presentation\
+│   │           ├── prayer_times_screen.dart
+│   │           ├── prayer_settings_screen.dart
+│   │           └── prayer_tracker_screen.dart
+│   │
+│   └── shared\
+│       └── widgets\
+│           └── navigation\
+│               └── app_bottom_nav.dart
+│
+├── assets\
+│   ├── images\ (logo, splash, onboarding, hero, patterns, quran)
+│   ├── icons\ (svg icons: quran, prayer, qibla, hadith, ai, calendar, tasbih, dua)
+│   ├── animations\ (lottie - some missing)
+│   └── data\
+│       └── quran\
+│           ├── quran_arabic.json (4.5 MB)
+│           ├── translation_en.json (1.8 MB)
+│           └── surah_info.json (27 KB)
+│
+├── android\
+│   └── app\
+│       └── src\
+│           └── main\
+│               ├── AndroidManifest.xml (has network security config)
+│               └── res\
+│                   └── xml\
+│                       └── network_security_config.xml
+│
+└── pubspec.yaml (has all dependencies)
 
-GOAL
+═══════════════════════════════════════════════════════════
+🎯 NEXT SESSION PRIORITY ORDER
+═══════════════════════════════════════════════════════════
 
-WHY
+1️⃣ FIRST — Verify Quran Completeness
+   - Check all 114 surahs load
+   - Test random surahs (2, 55, 100, 114)
+   - Verify translations complete
+   - Check JSON file integrity
 
-Prerequisites
+2️⃣ SECOND — Fix Audio Player
+   Options:
+   a) Try audioplayers package (replace just_audio)
+   b) Native Android MediaPlayer
+   c) Skip and continue features
 
-Folder Path
+3️⃣ THIRD — Home Screen Real Data
+   - Replace "Karachi, Pakistan" with real location
+   - Replace static prayer times with live data
+   - Add live countdown
 
-File Name
+4️⃣ FOURTH — Phase 10: Hadith Module
+   Files to create:
+   - hadith_models.dart
+   - hadith_service.dart
+   - hadith_provider.dart
+   - hadith_books_screen.dart
+   - hadith_chapters_screen.dart
+   - hadith_reader_screen.dart
+   - hadith_search_screen.dart
+   - hadith_favorites_screen.dart
+   
+   Books: Bukhari, Muslim, Tirmidhi, Abu Dawud, Nasai, Ibn Majah
 
-Create or Replace
+5️⃣ REMAINING PHASES:
+   - Phase 11: Duas & Azkar (Morning/Evening, situational)
+   - Phase 12: Islamic Calendar (Hijri, events, Ramadan)
+   - Phase 13: Tasbih Counter (digital, custom dhikr)
+   - Phase 14: Zakat Calculator (Nisab, charity)
+   - Phase 15: AI Islamic Assistant (Q&A, guidance)
 
-Delete old code (if required)
+═══════════════════════════════════════════════════════════
+📊 CURRENT PROJECT STATE
+═══════════════════════════════════════════════════════════
 
-Paste complete production-ready code
+Errors:              0
+Warnings:            13-15 (all safe, unused elements)
+Working:             All screens functional
+App runs on device:  ✅ Yes
+Location detection:  ✅ Working (geocoding + GPS)
+Prayer calculation:  ✅ Working (9 methods)
+Audio:               ⚠️ Oppo Android 16 driver bugs
+Quran:               ⚠️ Needs completeness verification
 
-Explain every important line (in Hinglish)
+═══════════════════════════════════════════════════════════
+🚀 NEXT CHAT — STARTUP MESSAGE
+═══════════════════════════════════════════════════════════
 
-How to save
+Copy paste this in new chat:
 
-Terminal command
+"Assalamu Alaikum!
 
-Expected output
+Continuing QIBRA AI project.
+Path: E:\qibra_ai
+Previous chat filled up.
 
-Common errors
+CURRENT STATE:
+- 6 Phases complete (Auth, Quran, Bookmarks, Search, Audio, Prayer)
+- Phase 9 (Prayer System) just completed
+- 0 errors, 13 safe warnings
+- Location detection working with geocoding
 
-How to fix them
+PENDING ISSUES:
+1. Quran completeness — verify all 114 surahs load
+2. Audio glitches on Oppo Android 16 (pause not working)
+3. Home screen has hardcoded 'Karachi, Pakistan' — need real location
 
-Testing steps
+NEXT PRIORITY:
+Fix Quran → Fix Audio → Home integration → Phase 10 (Hadith)
 
-Expected UI (ASCII art)
+I'll paste the full handoff document in next message.
+Please wait, read, and confirm."
 
-Git commit message
+Then paste this full document as next message.
 
-What will be built next
+═══════════════════════════════════════════════════════════
+💡 IMPORTANT NOTES & TIPS
+═══════════════════════════════════════════════════════════
 
-STOP.
-Wait for confirmation.
-```
+1. Aap ne bahut mehnat ki hai!
+   - 6 phases complete
+   - 20+ production files
+   - 25,000+ lines of code
+   - Zero errors maintained
+   Alhamdulillah! 🕌
 
-### Additional Style Rules:
-- Explain in **simple Hinglish** (Hindi + English mix)
-- Use **tables** for comparisons
-- Use **ASCII art** for UI mockups
-- Show **folder trees** for file locations
-- Include **git commit messages** for every file
-- When giving main.dart or router changes — give **FULL FILE**
-- When fixing errors — use **DHUNDO** (find) → **REPLACE WITH** pattern
-- Explain **WHY** something is needed, not just HOW
-- When adding to existing file — explain **exact location** (before/after which line)
+2. Audio issue is Oppo-specific
+   - Other devices should work fine
+   - Test on friend's Samsung/iPhone
+   - Release APK might work better
 
----
+3. Backup regularly
+   - Push to GitHub after each phase
+   - Zip file backup weekly
+   - Keep handoff document updated
 
-## SECTION 12 — DO NOT REBUILD
+4. Test on real device always
+   - Emulator can behave differently
+   - Real device is source of truth
 
-### These files are FINAL and PRODUCTION-READY:
+5. Follow the 23-step format
+   - Ye workflow prove ho chuka hai
+   - Deviations create bugs
 
-❌ Do not recreate `app_design_system.dart`  
-❌ Do not recreate `app_colors.dart`  
-❌ Do not recreate `app_typography.dart`  
-❌ Do not recreate `app_theme.dart`  
-❌ Do not recreate `app_constants.dart`  
-❌ Do not recreate `app_assets_check.dart`  
-❌ Do not recreate any provider file  
-❌ Do not recreate `dio_client.dart`  
-❌ Do not recreate `api_service.dart`  
-❌ Do not recreate `service_locator.dart`  
-❌ Do not redesign button components  
-❌ Do not redesign card components  
-❌ Do not redesign text field components  
-❌ Do not redesign splash screen  
-❌ Do not redesign onboarding screen  
-❌ Do not redesign login screen  
-❌ Do not redesign register screen  
-❌ Do not redesign forgot password screen  
+═══════════════════════════════════════════════════════════
+✅ TESTING CHECKLIST FOR NEXT SESSION
+═══════════════════════════════════════════════════════════
 
-### Only modify existing files when:
-1. Fixing a confirmed bug
-2. Adding an import for a new file
-3. Replacing a placeholder with a real screen (in router)
+Before continuing new work, test these:
 
----
+Basic App:
+[ ] flutter analyze — 13-15 warnings, 0 errors
+[ ] flutter run — app opens successfully
+[ ] Bottom navigation works (Home, Quran, Prayer, Hadith, AI)
 
-## SECTION 13 — COMMANDS TO RESUME
+Quran Module:
+[ ] Home → Popular Surahs shows correctly
+[ ] Al-Fatihah (Surah 1) — opens with 7 ayahs
+[ ] Al-Baqarah (Surah 2) — opens with 286 ayahs
+[ ] An-Nas (Surah 114) — opens with 6 ayahs
+[ ] Surah 100 — opens correctly
+[ ] Surah 55 (Ar-Rahman) — opens correctly
+[ ] Font size selector works (S/M/L/XL)
+[ ] Bookmark ayah — save works
+[ ] Bookmarks screen — bookmarks appear
+[ ] Search "mercy" — results appear
+[ ] Search "Al-Fatihah" — finds surah
 
-```bash
-# Verify project state
-cd qibra_ai
-flutter clean
-flutter pub get
-dart analyze
-flutter run
+Prayer Module:
+[ ] Prayer tab → Location prompt appears
+[ ] Allow location → Real city detected (village name)
+[ ] Prayer times calculated automatically
+[ ] Next prayer countdown updates every second
+[ ] Tap Fajr → Mark as Prayed works
+[ ] Settings icon → Opens settings screen
+[ ] Change calculation method — times update
+[ ] Analytics icon → Opens tracker
+[ ] Statistics show correctly
 
-# If dependency issues
-flutter pub outdated
-flutter pub upgrade
+Audio (Known Issues):
+[ ] Play button appears
+[ ] Tap play → audio starts (may glitch)
+[ ] Pause — MAY NOT WORK on Oppo Android 16
+[ ] Change ayah — MAY GLITCH on Oppo
 
-# Create next file folder (already exists)
-# lib/features/auth/presentation/verify_otp_screen.dart
-```
+═══════════════════════════════════════════════════════════
+🎯 SUCCESS METRICS
+═══════════════════════════════════════════════════════════
 
----
+By end of project (Phase 15):
+- 15+ complete phases
+- 50+ production files
+- 100,000+ lines of code
+- Zero errors maintained
+- All Islamic features working
+- Real users testing
+- Play Store ready
 
-## SECTION 14 — GIT WORKFLOW
+Currently at:
+- 40% completion
+- Foundation SOLID
+- Ready for content phases (Hadith, Duas, etc.)
 
-### Save current state:
-```bash
-git status
-git add .
-git commit -m "checkpoint: Steps 1-15.3 complete, ready for Step 15.4"
-git log --oneline -5
-```
+═══════════════════════════════════════════════════════════
+📌 END OF HANDOFF DOCUMENT
+═══════════════════════════════════════════════════════════
 
-### Before starting new AI session:
-```bash
-git log --oneline -10  # See last 10 commits
-```
+May Allah reward your efforts.
+Barakallahu feekum. 🕌
 
----
+Save this document. Copy to:
+- Notepad file
+- Google Docs
+- WhatsApp saved messages
+- Email to yourself
 
-## SECTION 15 — MASTER HANDOVER PROMPT
-
-**Copy-paste this entire prompt into a new AI chat:**
-
-```
-You are a Senior Flutter Architect, Senior Full Stack Engineer, Senior UI/UX Designer, Senior AI Engineer, Senior Code Reviewer, and Technical Mentor.
-
-You are continuing work on an EXISTING Flutter project called QIBRA AI — an Islamic Super App.
-
-CRITICAL RULES (NEVER BREAK):
-1. NEVER create a new project — continue from existing only
-2. NEVER break existing working code
-3. NEVER redesign completed modules — they are production-ready
-4. NEVER use placeholders, TODO, or demo code
-5. Every code must be production-ready
-6. Handle only ONE FILE at a time
-7. Wait for user confirmation after every file
-8. Explain everything in simple Hinglish (Hindi + English mix)
-9. Teach like the user is a complete beginner
-10. Use withValues(alpha:) NOT withOpacity() — Flutter 3.27+
-
-CURRENT PROJECT STATE:
-- Phase 1 Foundation in progress
-- Steps 1-14 FULLY COMPLETE (Design System, Colors, Typography, Theme, Constants, Assets, Buttons, Cards, Text Fields, Router, Riverpod, DI, Splash, Onboarding)
-- Step 15 Authentication PARTIALLY complete:
-  ✅ login_screen.dart DONE
-  ✅ register_screen.dart DONE
-  ✅ forgot_password_screen.dart DONE
-  ❌ verify_otp_screen.dart NOT YET CREATED ← BUILD THIS NEXT
-  ❌ app_router.dart update PENDING
-
-NEXT IMMEDIATE ACTION:
-Create file: lib/features/auth/presentation/verify_otp_screen.dart
-
-Must contain:
-- 6-digit OTP input using existing AppOtpField component
-- Timer countdown (60 seconds) for resend
-- Auto-submit when all 6 digits entered
-- Resend OTP button (enabled after timer)
-- Email display showing where OTP was sent
-- Error/loading states
-- Success → navigate to home
-- Riverpod auth integration
-- Premium Islamic design (Dark Emerald + Royal Gold theme)
-
-After OTP screen, update app_router.dart to replace all 4 placeholder auth screens with real ones (LoginScreen, RegisterScreen, ForgotPasswordScreen, VerifyOtpScreen).
-
-After auth complete:
-- Step 16: Bottom Navigation (real implementation)
-- Step 17: Home Dashboard
-- Then Phase 1 Foundation COMPLETE
-
-TECH STACK:
-- Flutter (Dart 3.3+), Material 3
-- Riverpod (state management)
-- GoRouter (navigation with auth guards)
-- GetIt (dependency injection)
-- Dio (HTTP client)
-- Google Fonts (Poppins + Amiri)
-- SharedPreferences + FlutterSecureStorage
-
-EXISTING REUSABLE WIDGETS (already built, just import and use):
-- Buttons: AppPrimaryButton, AppSecondaryButton, AppGoldButton, AppTextBtn, AppIconBtn, AppSocialButton, AppLoadingButton
-- Cards: AppCard, AppGradientCard, AppFeatureCard, AppInfoCard, AppPrayerCard, AppQuranCard, AppHadithCard, AppShimmerCard
-- Inputs: AppTextField, AppPasswordField, AppSearchField, AppOtpField, AppTextArea, AppDropdownField
-- Design System: AppSpacing, AppRadius, AppColors, AppTextStyles, AppArabicStyles, AppGradients, AppShadows, AppDurations
-
-RESPONSE FORMAT (follow exactly):
-STEP NUMBER / GOAL / WHY / Prerequisites / Folder Path / File Name / Create or Replace / Delete old code / Complete production-ready code / Explain every important line in Hinglish / How to save / Terminal command / Expected output / Common errors / How to fix / Testing steps / Expected UI (ASCII art) / Git commit message / What next / STOP. Wait for confirmation.
-
-START NOW:
-Begin with Step 15.4: verify_otp_screen.dart
-Handle only this ONE FILE.
-Wait for my confirmation before proceeding.
-```
-
----
-
-## SECTION 16 — HANDOFF STATUS
-
-```
-Document Version   : 3.0 Final
-Phase              : 1 — Foundation
-Steps Complete     : 1-14, 15.1, 15.2, 15.3
-Steps In Progress  : 15 (2 sub-steps remaining)
-Steps Pending      : 16, 17
-Next File          : lib/features/auth/presentation/verify_otp_screen.dart
-Total Files Built  : 22 production files
-Total Code Lines   : ~8000+ Dart
-Last Analyzer Run  : Zero issues
-App Status         : Runs perfectly
-Last Known Issue   : None
-```
-
----
-
-*This document is the SINGLE SOURCE OF TRUTH for QIBRA AI project continuation.*  
-*Any future AI must read this ENTIRELY before making any changes.*  
-*Version 3.0 — Generated at end of Step 15.3.*
+Use it to start next chat seamlessly.
