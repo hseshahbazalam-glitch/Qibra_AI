@@ -15,6 +15,7 @@ import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../data/models/quran_models.dart';
+import '../providers/audio_provider.dart';
 import '../providers/quran_provider.dart';
 import 'quran_audio_player.dart';
 
@@ -849,6 +850,13 @@ class _AyahCard extends ConsumerWidget {
             ),
           ),
           const Spacer(),
+          // Play/Pause button for this ayah
+          _AyahPlayButton(
+            surahNumber: surah.number,
+            ayahNumber: ayah.number,
+            globalAyahNumber: ayah.numberInQuran,
+          ),
+          const SizedBox(width: AppSpacing.xs),
           GestureDetector(
             onTap: onBookmark,
             child: Container(
@@ -1361,6 +1369,105 @@ class _FontSizeBottomSheet extends ConsumerWidget {
 // ============================================================
 // SECTION 11 — READER SETTINGS SHEET (Multi-Language)
 // ============================================================
+
+// ============================================================
+// AYAH PLAY BUTTON (NEW)
+// ============================================================
+
+class _AyahPlayButton extends ConsumerWidget {
+  const _AyahPlayButton({
+    required this.surahNumber,
+    required this.ayahNumber,
+    required this.globalAyahNumber,
+  });
+
+  final int surahNumber;
+  final int ayahNumber;
+  final int globalAyahNumber;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPlaying = ref.watch(
+      isAyahPlayingProvider((surah: surahNumber, ayah: ayahNumber)),
+    );
+    final isActive = ref.watch(
+      isAyahActiveProvider((surah: surahNumber, ayah: ayahNumber)),
+    );
+    final audioState = ref.watch(audioProvider);
+
+    final isLoading = isActive && audioState.isLoading;
+
+    return GestureDetector(
+      onTap: () async {
+        HapticFeedback.mediumImpact();
+
+        if (isPlaying) {
+          // Pause if currently playing
+          await ref.read(audioProvider.notifier).pause();
+        } else if (isActive && audioState.isPaused) {
+          // Resume if paused
+          await ref.read(audioProvider.notifier).resume();
+        } else {
+          // Play new ayah
+          await ref.read(audioProvider.notifier).playAyah(
+                surahNumber: surahNumber,
+                ayahNumber: ayahNumber,
+                globalAyahNumber: globalAyahNumber,
+              );
+        }
+      },
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          gradient: isActive
+              ? LinearGradient(
+                  colors: [
+                    AppColors.primary,
+                    AppColors.accent,
+                  ],
+                )
+              : null,
+          color: isActive ? null : AppColors.surface.withValues(alpha: 0.60),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isActive
+                ? Colors.transparent
+                : AppColors.primary.withValues(alpha: 0.25),
+            width: 1,
+          ),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: isLoading
+              ? SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation(
+                      isActive ? Colors.white : AppColors.primary,
+                    ),
+                  ),
+                )
+              : Icon(
+                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  color: isActive ? Colors.white : AppColors.primary,
+                  size: 20,
+                ),
+        ),
+      ),
+    );
+  }
+}
 
 class _ReaderSettingsSheet extends ConsumerWidget {
   const _ReaderSettingsSheet({required this.surah});
