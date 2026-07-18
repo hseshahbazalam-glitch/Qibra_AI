@@ -151,6 +151,8 @@ class AyahModel extends Equatable {
   final int numberInQuran;
   final String text;
   final String? translation;
+  final String? translationUrdu;
+  final String? translationRoman;
   final int juz;
   final int page;
   final int? ruku;
@@ -162,6 +164,8 @@ class AyahModel extends Equatable {
     required this.numberInQuran,
     required this.text,
     this.translation,
+    this.translationUrdu,
+    this.translationRoman,
     required this.juz,
     required this.page,
     this.ruku,
@@ -187,6 +191,8 @@ class AyahModel extends Equatable {
       numberInQuran: (json['number'] as num?)?.toInt() ?? 0,
       text: json['text'] as String? ?? '',
       translation: json['translation'] as String?,
+      translationUrdu: json['translationUrdu'] as String?,
+      translationRoman: json['translationRoman'] as String?,
       juz: (json['juz'] as num?)?.toInt() ?? 1,
       page: (json['page'] as num?)?.toInt() ?? 1,
       ruku: (json['ruku'] as num?)?.toInt(),
@@ -202,6 +208,8 @@ class AyahModel extends Equatable {
       'number': numberInQuran,
       'text': text,
       'translation': translation,
+      'translationUrdu': translationUrdu,
+      'translationRoman': translationRoman,
       'juz': juz,
       'page': page,
       'ruku': ruku,
@@ -210,13 +218,36 @@ class AyahModel extends Equatable {
     };
   }
 
-  /// Copy with new translation
+  /// Copy with new translation (English)
   AyahModel copyWithTranslation(String newTranslation) {
     return AyahModel(
       number: number,
       numberInQuran: numberInQuran,
       text: text,
       translation: newTranslation,
+      translationUrdu: translationUrdu,
+      translationRoman: translationRoman,
+      juz: juz,
+      page: page,
+      ruku: ruku,
+      sajdah: sajdah,
+      hizbQuarter: hizbQuarter,
+    );
+  }
+
+  /// Copy with all translations (English + Urdu + Roman)
+  AyahModel copyWithAllTranslations({
+    String? english,
+    String? urdu,
+    String? roman,
+  }) {
+    return AyahModel(
+      number: number,
+      numberInQuran: numberInQuran,
+      text: text,
+      translation: english ?? translation,
+      translationUrdu: urdu ?? translationUrdu,
+      translationRoman: roman ?? translationRoman,
       juz: juz,
       page: page,
       ruku: ruku,
@@ -244,6 +275,8 @@ class AyahModel extends Equatable {
         numberInQuran,
         text,
         translation,
+        translationUrdu,
+        translationRoman,
         juz,
         page,
         ruku,

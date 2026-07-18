@@ -1,28 +1,15 @@
 // lib/features/quran/data/repository/quran_repository.dart
 
 // ============================================================
-// QIBRA AI — QURAN REPOSITORY (v1.0)
-// Phase: 8.2 — Real Quran Data Integration
+// QIBRA AI — QURAN REPOSITORY (v2.0)
+// Version: 2.0.0 — With Urdu + Roman Urdu Translations
 // ============================================================
 // Description: Repository for loading and managing Quran data
-//
-// Features:
-//   ✅ Load JSON from assets (offline)
-//   ✅ Parse Arabic + Translation
-//   ✅ Cache for fast access
-//   ✅ Search functionality
-//   ✅ Get specific surah/ayah
-//   ✅ Filter by Meccan/Medinan
-//   ✅ Get random ayah (for daily verse)
-//   ✅ Error handling
-//
-// Usage:
-//   final repo = QuranRepository();
-//   await repo.initialize();
-//   final surah = await repo.getSurah(1);  // Al-Fatihah
+//              Supports Arabic + English + Urdu + Roman Urdu
 // ============================================================
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../models/quran_models.dart';
@@ -32,44 +19,60 @@ import '../models/quran_models.dart';
 // ============================================================
 
 class QuranRepository {
-  // ── Singleton Pattern ─────────────────────────────────
+  // Singleton
   static final QuranRepository _instance = QuranRepository._internal();
   factory QuranRepository() => _instance;
   QuranRepository._internal();
 
-  // ── Asset paths ───────────────────────────────────────
+  // Asset paths
   static const String _arabicFilePath = 'assets/data/quran/quran_arabic.json';
-  static const String _translationFilePath =
+  static const String _translationEnPath =
       'assets/data/quran/translation_en.json';
+  static const String _translationUrPath =
+      'assets/data/quran/translation_ur_jalandhry.json';
+  static const String _translationRomanPath =
+      'assets/data/quran/translation_ur_maududi_roman.json';
   static const String _surahInfoFilePath = 'assets/data/quran/surah_info.json';
 
-  // ── Cache ─────────────────────────────────────────────
+  // Cache
   List<SurahInfoModel>? _cachedSurahInfoList;
   Map<int, SurahModel>? _cachedSurahsMap;
-  Map<int, String>? _cachedTranslationsMap;
+  Map<int, String>? _cachedTranslationsEn;
+  Map<String, String>? _cachedTranslationsUrdu; // "chapter_verse" -> text
+  Map<String, String>? _cachedTranslationsRoman;
   bool _isInitialized = false;
 
-  // ── Initialization state ──────────────────────────────
   bool get isInitialized => _isInitialized;
 
   // ============================================================
   // SECTION 2 — INITIALIZATION
   // ============================================================
 
-  /// Initialize repository — load all data at app startup
-  /// Call this ONCE in main.dart or splash screen
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      // Load in parallel for speed
+      debugPrint('[QURAN] Initializing...');
+      final stopwatch = Stopwatch()..start();
+
       await Future.wait([
         _loadSurahInfo(),
         _loadArabicQuran(),
-        _loadTranslations(),
+        _loadTranslationsEnglish(),
+        _loadTranslationsUrdu(),
+        _loadTranslationsRoman(),
       ]);
 
       _isInitialized = true;
+      stopwatch.stop();
+
+      debugPrint('[QURAN] Initialized in ${stopwatch.elapsedMilliseconds}ms');
+      debugPrint(
+          '   English translations: ${_cachedTranslationsEn?.length ?? 0}');
+      debugPrint(
+          '   Urdu translations: ${_cachedTranslationsUrdu?.length ?? 0}');
+      debugPrint(
+          '   Roman translations: ${_cachedTranslationsRoman?.length ?? 0}');
     } catch (e, stackTrace) {
       throw QuranRepositoryException(
         'Failed to initialize Quran data: $e',
@@ -79,16 +82,14 @@ class QuranRepository {
   }
 
   // ============================================================
-  // SECTION 3 — DATA LOADING METHODS
+  // SECTION 3 — DATA LOADING
   // ============================================================
 
-  /// Load surah info metadata (all 114 surahs)
   Future<void> _loadSurahInfo() async {
     try {
-      final String jsonString = await rootBundle.loadString(_surahInfoFilePath);
-      final dynamic decoded = json.decode(jsonString);
+      final jsonString = await rootBundle.loadString(_surahInfoFilePath);
+      final decoded = json.decode(jsonString);
 
-      // Handle alquran.cloud API structure: { "data": [...] }
       final List<dynamic> surahsList = decoded is Map<String, dynamic>
           ? (decoded['data'] as List<dynamic>? ?? [])
           : (decoded is List<dynamic> ? decoded : []);
@@ -101,13 +102,11 @@ class QuranRepository {
     }
   }
 
-  /// Load Arabic Quran text (all 6236 ayahs)
   Future<void> _loadArabicQuran() async {
     try {
-      final String jsonString = await rootBundle.loadString(_arabicFilePath);
-      final dynamic decoded = json.decode(jsonString);
+      final jsonString = await rootBundle.loadString(_arabicFilePath);
+      final decoded = json.decode(jsonString);
 
-      // Handle alquran.cloud API structure
       final Map<String, dynamic> data =
           decoded is Map<String, dynamic> ? decoded : {'data': decoded};
 
@@ -127,12 +126,10 @@ class QuranRepository {
     }
   }
 
-  /// Load English translations
-  Future<void> _loadTranslations() async {
+  Future<void> _loadTranslationsEnglish() async {
     try {
-      final String jsonString =
-          await rootBundle.loadString(_translationFilePath);
-      final dynamic decoded = json.decode(jsonString);
+      final jsonString = await rootBundle.loadString(_translationEnPath);
+      final decoded = json.decode(jsonString);
 
       final Map<String, dynamic> data =
           decoded is Map<String, dynamic> ? decoded : {'data': decoded};
@@ -143,41 +140,82 @@ class QuranRepository {
       final List<dynamic> surahsList =
           quranData['surahs'] as List<dynamic>? ?? [];
 
-      _cachedTranslationsMap = {};
+      _cachedTranslationsEn = {};
 
       for (final surahJson in surahsList) {
-        final int surahNumber = (surahJson['number'] as num?)?.toInt() ?? 0;
         final List<dynamic> ayahs = surahJson['ayahs'] as List<dynamic>? ?? [];
 
         for (final ayahJson in ayahs) {
           final int globalNumber = (ayahJson['number'] as num?)?.toInt() ?? 0;
           final String text = ayahJson['text'] as String? ?? '';
 
-          // Use global ayah number as key
-          _cachedTranslationsMap![globalNumber] = text;
+          _cachedTranslationsEn![globalNumber] = text;
         }
       }
     } catch (e) {
-      // Translations optional — don't throw
-      _cachedTranslationsMap = {};
+      debugPrint('[QURAN] English translations failed: $e');
+      _cachedTranslationsEn = {};
+    }
+  }
+
+  /// Load Urdu translation (Fateh Muhammad Jalandhry)
+  /// Format: {"quran": [{"chapter": 1, "verse": 1, "text": "..."}]}
+  Future<void> _loadTranslationsUrdu() async {
+    try {
+      final jsonString = await rootBundle.loadString(_translationUrPath);
+      final decoded = json.decode(jsonString) as Map<String, dynamic>;
+      final List<dynamic> ayahs = decoded['quran'] as List<dynamic>? ?? [];
+
+      _cachedTranslationsUrdu = {};
+
+      for (final ayahJson in ayahs) {
+        final map = ayahJson as Map<String, dynamic>;
+        final int chapter = (map['chapter'] as num?)?.toInt() ?? 0;
+        final int verse = (map['verse'] as num?)?.toInt() ?? 0;
+        final String text = map['text'] as String? ?? '';
+
+        final key = '${chapter}_$verse';
+        _cachedTranslationsUrdu![key] = text;
+      }
+    } catch (e) {
+      debugPrint('[QURAN] Urdu translations failed: $e');
+      _cachedTranslationsUrdu = {};
+    }
+  }
+
+  /// Load Roman Urdu translation (Maududi Roman)
+  Future<void> _loadTranslationsRoman() async {
+    try {
+      final jsonString = await rootBundle.loadString(_translationRomanPath);
+      final decoded = json.decode(jsonString) as Map<String, dynamic>;
+      final List<dynamic> ayahs = decoded['quran'] as List<dynamic>? ?? [];
+
+      _cachedTranslationsRoman = {};
+
+      for (final ayahJson in ayahs) {
+        final map = ayahJson as Map<String, dynamic>;
+        final int chapter = (map['chapter'] as num?)?.toInt() ?? 0;
+        final int verse = (map['verse'] as num?)?.toInt() ?? 0;
+        final String text = map['text'] as String? ?? '';
+
+        final key = '${chapter}_$verse';
+        _cachedTranslationsRoman![key] = text;
+      }
+    } catch (e) {
+      debugPrint('[QURAN] Roman translations failed: $e');
+      _cachedTranslationsRoman = {};
     }
   }
 
   // ============================================================
-  // SECTION 4 — PUBLIC API METHODS
+  // SECTION 4 — PUBLIC API
   // ============================================================
 
-  /// Get all surahs info (metadata only — fast)
-  ///
-  /// Use this for: Surah list screen
   Future<List<SurahInfoModel>> getAllSurahsInfo() async {
     await _ensureInitialized();
     return _cachedSurahInfoList ?? [];
   }
 
-  /// Get specific surah by number (1-114) with all ayahs
-  ///
-  /// Use this for: Surah reader screen
   Future<SurahModel?> getSurah(int surahNumber) async {
     if (surahNumber < 1 || surahNumber > 114) {
       throw ArgumentError('Surah number must be between 1 and 114');
@@ -188,11 +226,9 @@ class QuranRepository {
     final surah = _cachedSurahsMap?[surahNumber];
     if (surah == null) return null;
 
-    // Attach translations to each ayah
-    return _attachTranslations(surah);
+    return _attachAllTranslations(surah);
   }
 
-  /// Get surah info only (metadata, no ayahs — fast)
   Future<SurahInfoModel?> getSurahInfo(int surahNumber) async {
     await _ensureInitialized();
 
@@ -204,7 +240,6 @@ class QuranRepository {
     }
   }
 
-  /// Get specific ayah by surah number and ayah number
   Future<AyahModel?> getAyah(int surahNumber, int ayahNumber) async {
     final surah = await getSurah(surahNumber);
     if (surah == null) return null;
@@ -212,13 +247,11 @@ class QuranRepository {
     return surah.getAyahByNumber(ayahNumber);
   }
 
-  /// Get random ayah (for daily verse)
   Future<AyahModel?> getRandomAyah() async {
     await _ensureInitialized();
 
     if (_cachedSurahsMap == null || _cachedSurahsMap!.isEmpty) return null;
 
-    // Get random surah
     final surahNumbers = _cachedSurahsMap!.keys.toList();
     surahNumbers.shuffle();
     final randomSurahNumber = surahNumbers.first;
@@ -226,41 +259,27 @@ class QuranRepository {
     final surah = await getSurah(randomSurahNumber);
     if (surah == null || surah.ayahs.isEmpty) return null;
 
-    // Get random ayah from that surah
     final ayahs = List<AyahModel>.from(surah.ayahs);
     ayahs.shuffle();
     return ayahs.first;
   }
 
-  /// Get Meccan surahs only
   Future<List<SurahInfoModel>> getMeccanSurahs() async {
     await _ensureInitialized();
     return _cachedSurahInfoList?.where((surah) => surah.isMeccan).toList() ??
         [];
   }
 
-  /// Get Medinan surahs only
   Future<List<SurahInfoModel>> getMedinanSurahs() async {
     await _ensureInitialized();
     return _cachedSurahInfoList?.where((surah) => surah.isMedinan).toList() ??
         [];
   }
 
-  /// Get popular/recommended surahs
   Future<List<SurahInfoModel>> getPopularSurahs() async {
     await _ensureInitialized();
 
-    // Popular surah numbers
-    const popularNumbers = [
-      1, // Al-Fatihah
-      2, // Al-Baqarah
-      18, // Al-Kahf
-      36, // Ya-Sin
-      55, // Ar-Rahman
-      56, // Al-Waqiah
-      67, // Al-Mulk
-      112, // Al-Ikhlas
-    ];
+    const popularNumbers = [1, 2, 18, 36, 55, 56, 67, 112];
 
     final List<SurahInfoModel> popular = [];
     for (final num in popularNumbers) {
@@ -271,10 +290,9 @@ class QuranRepository {
   }
 
   // ============================================================
-  // SECTION 5 — SEARCH FUNCTIONALITY
+  // SECTION 5 — SEARCH
   // ============================================================
 
-  /// Search Quran (Arabic + Translation)
   Future<List<SearchResultModel>> search(String query) async {
     if (query.trim().isEmpty) return [];
 
@@ -289,22 +307,22 @@ class QuranRepository {
       final surah = entry.value;
 
       for (final ayah in surah.ayahs) {
-        // Check Arabic text
+        // Arabic text search
         if (ayah.text.contains(query)) {
           results.add(SearchResultModel(
             surahNumber: surah.number,
             surahName: surah.name,
             ayahNumber: ayah.number,
             ayahText: ayah.text,
-            translation: _getTranslation(ayah.numberInQuran),
+            translation: _getTranslationEn(ayah.numberInQuran),
             matchedText: query,
-            matchType: 0, // Arabic match
+            matchType: 0,
           ));
           continue;
         }
 
-        // Check translation
-        final translation = _getTranslation(ayah.numberInQuran);
+        // English translation search
+        final translation = _getTranslationEn(ayah.numberInQuran);
         if (translation != null &&
             translation.toLowerCase().contains(lowerQuery)) {
           results.add(SearchResultModel(
@@ -314,11 +332,10 @@ class QuranRepository {
             ayahText: ayah.text,
             translation: translation,
             matchedText: query,
-            matchType: 1, // Translation match
+            matchType: 1,
           ));
         }
 
-        // Limit results for performance
         if (results.length >= 100) return results;
       }
     }
@@ -326,7 +343,6 @@ class QuranRepository {
     return results;
   }
 
-  /// Search surahs by name
   Future<List<SurahInfoModel>> searchSurahs(String query) async {
     if (query.trim().isEmpty) return [];
 
@@ -347,30 +363,39 @@ class QuranRepository {
   // SECTION 6 — HELPER METHODS
   // ============================================================
 
-  /// Ensure repository is initialized before use
   Future<void> _ensureInitialized() async {
     if (!_isInitialized) {
       await initialize();
     }
   }
 
-  /// Get translation for specific ayah number
-  String? _getTranslation(int globalAyahNumber) {
-    return _cachedTranslationsMap?[globalAyahNumber];
+  /// Get English translation by global ayah number
+  String? _getTranslationEn(int globalAyahNumber) {
+    return _cachedTranslationsEn?[globalAyahNumber];
   }
 
-  /// Attach translations to all ayahs in a surah
-  SurahModel _attachTranslations(SurahModel surah) {
-    if (_cachedTranslationsMap == null || _cachedTranslationsMap!.isEmpty) {
-      return surah;
-    }
+  /// Get Urdu translation by chapter and verse
+  String? _getTranslationUrdu(int chapter, int verse) {
+    return _cachedTranslationsUrdu?['${chapter}_$verse'];
+  }
 
+  /// Get Roman Urdu translation by chapter and verse
+  String? _getTranslationRoman(int chapter, int verse) {
+    return _cachedTranslationsRoman?['${chapter}_$verse'];
+  }
+
+  /// Attach ALL translations (English + Urdu + Roman) to surah
+  SurahModel _attachAllTranslations(SurahModel surah) {
     final updatedAyahs = surah.ayahs.map((ayah) {
-      final translation = _getTranslation(ayah.numberInQuran);
-      if (translation != null) {
-        return ayah.copyWithTranslation(translation);
-      }
-      return ayah;
+      final english = _getTranslationEn(ayah.numberInQuran);
+      final urdu = _getTranslationUrdu(surah.number, ayah.number);
+      final roman = _getTranslationRoman(surah.number, ayah.number);
+
+      return ayah.copyWithAllTranslations(
+        english: english,
+        urdu: urdu,
+        roman: roman,
+      );
     }).toList();
 
     return surah.copyWith(ayahs: updatedAyahs);
@@ -380,33 +405,31 @@ class QuranRepository {
   // SECTION 7 — STATISTICS
   // ============================================================
 
-  /// Get total surahs count
   int get totalSurahs => _cachedSurahInfoList?.length ?? 0;
 
-  /// Get total ayahs count across all surahs
   int get totalAyahs {
     if (_cachedSurahInfoList == null) return 0;
     return _cachedSurahInfoList!
         .fold(0, (sum, surah) => sum + surah.numberOfAyahs);
   }
 
-  /// Get total Meccan surahs count
   int get meccanSurahsCount {
     return _cachedSurahInfoList?.where((surah) => surah.isMeccan).length ?? 0;
   }
 
-  /// Get total Medinan surahs count
   int get medinanSurahsCount {
     return _cachedSurahInfoList?.where((surah) => surah.isMedinan).length ?? 0;
   }
 
-  /// Get statistics summary
   Map<String, dynamic> get statistics {
     return {
       'totalSurahs': totalSurahs,
       'totalAyahs': totalAyahs,
       'meccanSurahs': meccanSurahsCount,
       'medinanSurahs': medinanSurahsCount,
+      'englishTranslations': _cachedTranslationsEn?.length ?? 0,
+      'urduTranslations': _cachedTranslationsUrdu?.length ?? 0,
+      'romanTranslations': _cachedTranslationsRoman?.length ?? 0,
       'isInitialized': _isInitialized,
     };
   }
@@ -415,15 +438,15 @@ class QuranRepository {
   // SECTION 8 — CACHE MANAGEMENT
   // ============================================================
 
-  /// Clear cache (free memory)
   void clearCache() {
     _cachedSurahInfoList = null;
     _cachedSurahsMap = null;
-    _cachedTranslationsMap = null;
+    _cachedTranslationsEn = null;
+    _cachedTranslationsUrdu = null;
+    _cachedTranslationsRoman = null;
     _isInitialized = false;
   }
 
-  /// Reload data (useful if data updated)
   Future<void> reload() async {
     clearCache();
     await initialize();
@@ -434,7 +457,6 @@ class QuranRepository {
 // SECTION 9 — CUSTOM EXCEPTION
 // ============================================================
 
-/// Custom exception for repository errors
 class QuranRepositoryException implements Exception {
   final String message;
   final StackTrace? stackTrace;
@@ -444,7 +466,3 @@ class QuranRepositoryException implements Exception {
   @override
   String toString() => 'QuranRepositoryException: $message';
 }
-
-// ============================================================
-// END OF FILE — quran_repository.dart
-// ============================================================

@@ -353,7 +353,6 @@ class AiChatService {
       'mein',
       'hai',
       'ho',
-      'kya',
       'aap',
       'tell',
       'about',

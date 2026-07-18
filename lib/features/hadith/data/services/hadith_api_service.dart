@@ -231,6 +231,7 @@ class HadithApiService {
   /// Generate sample hadiths when API fails
   List<HadithModel> _generateFallbackHadiths(
       String bookSlug, int? chapterNumber) {
+    // ignore: unused_local_variable
     final book = popularHadithBooks.firstWhere(
       (b) => b.slug == bookSlug,
       orElse: () => popularHadithBooks.first,

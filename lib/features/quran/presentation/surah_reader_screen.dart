@@ -1,8 +1,8 @@
 // lib/features/quran/presentation/surah_reader_screen.dart
 
 // ============================================================
-// QIBRA AI — SURAH READER SCREEN (v1.1 — Audio Integrated)
-// Phase: 8.3 + 8.4
+// QIBRA AI — SURAH READER SCREEN (v2.0)
+// Version: 2.0.0 — Multi-language translations (En/Ur/Roman)
 // ============================================================
 
 import 'dart:ui';
@@ -17,6 +17,7 @@ import '../../../core/design_system/app_typography.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_provider.dart';
 import 'quran_audio_player.dart';
+
 // ============================================================
 // SECTION 1 — FONT SIZE ENUM
 // ============================================================
@@ -74,6 +75,11 @@ final _readerFontSizeProvider =
 final _showTranslationProvider = StateProvider.autoDispose<bool>((ref) => true);
 
 final _showArabicOnlyProvider = StateProvider.autoDispose<bool>((ref) => false);
+
+// Language toggles
+final _showEnglishProvider = StateProvider.autoDispose<bool>((ref) => true);
+final _showUrduProvider = StateProvider.autoDispose<bool>((ref) => true);
+final _showRomanProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 // ============================================================
 // SECTION 3 — MAIN SCREEN WIDGET
@@ -133,16 +139,12 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     super.dispose();
   }
 
-  // ── Scroll ────────────────────────────────────────────────
-
   void _onScroll() {
     final shouldCollapse = _scrollController.offset > 120;
     if (shouldCollapse != !_isAppBarExpanded) {
       setState(() => _isAppBarExpanded = !shouldCollapse);
     }
   }
-
-  // ── Last Read ─────────────────────────────────────────────
 
   void _updateLastRead(SurahModel surah, int ayahNumber) {
     ref.read(lastReadProvider.notifier).updateLastRead(
@@ -152,8 +154,6 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
           totalAyahsInSurah: surah.numberOfAyahs,
         );
   }
-
-  // ── Bookmark ──────────────────────────────────────────────
 
   void _toggleBookmark(SurahModel surah, AyahModel ayah) {
     HapticFeedback.mediumImpact();
@@ -207,12 +207,25 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     }
   }
 
-  // ── Copy ──────────────────────────────────────────────────
-
   void _copyAyah(SurahModel surah, AyahModel ayah) {
-    final text = '${ayah.text}\n\n${ayah.translation ?? ''}\n\n'
-        '— ${surah.name} ${surah.number}:${ayah.number}';
-    Clipboard.setData(ClipboardData(text: text));
+    final buffer = StringBuffer();
+    buffer.writeln(ayah.text);
+    buffer.writeln();
+    if (ayah.translation != null) {
+      buffer.writeln(ayah.translation);
+      buffer.writeln();
+    }
+    if (ayah.translationUrdu != null) {
+      buffer.writeln(ayah.translationUrdu);
+      buffer.writeln();
+    }
+    if (ayah.translationRoman != null) {
+      buffer.writeln(ayah.translationRoman);
+      buffer.writeln();
+    }
+    buffer.write('— ${surah.name} ${surah.number}:${ayah.number}');
+
+    Clipboard.setData(ClipboardData(text: buffer.toString()));
     HapticFeedback.lightImpact();
 
     if (mounted) {
@@ -234,8 +247,6 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     }
   }
 
-  // ── Sheets ────────────────────────────────────────────────
-
   void _showFontSizeSheet() {
     HapticFeedback.selectionClick();
     showModalBottomSheet(
@@ -255,8 +266,6 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
       builder: (_) => _ReaderSettingsSheet(surah: surah),
     );
   }
-
-  // ── Build ─────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -288,12 +297,9 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     );
   }
 
-  // ── Reader Body ───────────────────────────────────────────
-
   Widget _buildReaderBody(SurahModel surah) {
     return Stack(
       children: [
-        // ── Main scrollable content ──
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -311,10 +317,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // App Bar
               _buildSliverAppBar(surah),
-
-              // Surah Header
               SliverToBoxAdapter(
                 child: FadeTransition(
                   opacity: _headerFade,
@@ -329,8 +332,6 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
                   ),
                 ),
               ),
-
-              // Bismillah
               if (surah.number != 1 && surah.number != 9)
                 SliverToBoxAdapter(
                   child: Padding(
@@ -343,15 +344,11 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
                     child: _BismillahWidget(),
                   ),
                 ),
-
-              // Ayahs List
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.lg,
                   AppSpacing.lg,
                   AppSpacing.lg,
-                  // Extra bottom padding so mini player doesn't
-                  // cover last ayah
                   AppSpacing.xl3 + AppSpacing.xl4 + AppSpacing.xl3,
                 ),
                 sliver: SliverList.separated(
@@ -378,8 +375,6 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
             ],
           ),
         ),
-
-        // ── Mini Player (floats above scroll content) ──
         Positioned(
           bottom: 0,
           left: 0,
@@ -391,8 +386,6 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
       ],
     );
   }
-
-  // ── Sliver App Bar ────────────────────────────────────────
 
   Widget _buildSliverAppBar(SurahModel surah) {
     return SliverAppBar(
@@ -469,8 +462,6 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     );
   }
 
-  // ── Not Found ─────────────────────────────────────────────
-
   Widget _buildNotFound() {
     return SafeArea(
       child: Padding(
@@ -501,7 +492,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Surah ${widget.surahNumber} load nahi ho saca.',
+              'Surah ${widget.surahNumber} load nahi ho saka.',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -680,25 +671,24 @@ class _BismillahWidget extends StatelessWidget {
         children: [
           Text(
             'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-            textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
-            style: AppTextStyles.titleLarge.copyWith(
+            textAlign: TextAlign.center,
+            style: TextStyle(
               fontFamily: 'Amiri',
               fontSize: 26,
               color: AppColors.accent,
-              fontWeight: FontWeight.w700,
-              height: 2.0,
+              fontWeight: FontWeight.w600,
+              height: 1.8,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             'In the name of Allah, the Most Gracious, the Most Merciful',
-            textAlign: TextAlign.center,
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.textSecondary,
               fontStyle: FontStyle.italic,
-              height: 1.5,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -730,6 +720,9 @@ class _AyahCard extends ConsumerWidget {
     final fontSize = ref.watch(_readerFontSizeProvider);
     final showTranslation = ref.watch(_showTranslationProvider);
     final arabicOnly = ref.watch(_showArabicOnlyProvider);
+    final showEnglish = ref.watch(_showEnglishProvider);
+    final showUrdu = ref.watch(_showUrduProvider);
+    final showRoman = ref.watch(_showRomanProvider);
 
     final isBookmarked = ref.watch(
       isBookmarkedProvider((surah: surah.number, ayah: ayah.number)),
@@ -786,8 +779,14 @@ class _AyahCard extends ConsumerWidget {
               ),
             ),
           ),
-          if (showTranslation && !arabicOnly && ayah.translation != null)
-            _buildTranslation(ayah.translation!, fontSize),
+          if (showTranslation && !arabicOnly)
+            _buildAllTranslations(
+              ayah: ayah,
+              fontSize: fontSize,
+              showEnglish: showEnglish,
+              showUrdu: showUrdu,
+              showRoman: showRoman,
+            ),
           _buildMetaRow(),
           const SizedBox(height: AppSpacing.sm),
         ],
@@ -810,7 +809,6 @@ class _AyahCard extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          // Ayah number badge
           Container(
             width: 36,
             height: 36,
@@ -843,8 +841,6 @@ class _AyahCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-
-          // Juz info
           Text(
             'Juz ${ayah.juz}',
             style: AppTextStyles.labelSmall.copyWith(
@@ -852,45 +848,36 @@ class _AyahCard extends ConsumerWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-
           const Spacer(),
-
-          // Audio play button
-          // v7.0: Ayah-level play button removed
-          // Main audio player (Quran tab) handles playback
-          // Prevents multiple simultaneous player conflicts
-          // Bookmark button
           GestureDetector(
             onTap: onBookmark,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.all(AppSpacing.xs),
+            child: Container(
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: isBookmarked
-                    ? AppColors.accent.withValues(alpha: 0.12)
+                    ? AppColors.accent.withValues(alpha: 0.15)
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppRadius.md),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 isBookmarked
                     ? Icons.bookmark_rounded
-                    : Icons.bookmark_border_rounded,
+                    : Icons.bookmark_outline_rounded,
+                color:
+                    isBookmarked ? AppColors.accent : AppColors.textSecondary,
                 size: 20,
-                color: isBookmarked ? AppColors.accent : AppColors.textTertiary,
               ),
             ),
           ),
           const SizedBox(width: AppSpacing.xs),
-
-          // Copy button
           GestureDetector(
             onTap: onCopy,
             child: Container(
-              padding: const EdgeInsets.all(AppSpacing.xs),
-              child: const Icon(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
                 Icons.copy_rounded,
+                color: AppColors.textSecondary,
                 size: 18,
-                color: AppColors.textTertiary,
               ),
             ),
           ),
@@ -901,31 +888,28 @@ class _AyahCard extends ConsumerWidget {
 
   Widget _buildSajdahBadge() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
+        vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.24),
-        ),
+        color: const Color(0xFFFFC107).withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
-            Icons.expand_more_rounded,
+            Icons.star_rounded,
+            color: Color(0xFFFFC107),
             size: 14,
-            color: AppColors.primary,
           ),
           const SizedBox(width: 4),
           Text(
-            'Sajdah — Sujood required when reciting this ayah',
+            'Sajdah',
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.primary,
+              color: const Color(0xFFFFC107),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -934,31 +918,104 @@ class _AyahCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildTranslation(String translation, QuranFontSize fontSize) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        0,
+  // NEW: All translations widget
+  Widget _buildAllTranslations({
+    required AyahModel ayah,
+    required QuranFontSize fontSize,
+    required bool showEnglish,
+    required bool showUrdu,
+    required bool showRoman,
+  }) {
+    return Column(
+      children: [
+        if (showEnglish &&
+            ayah.translation != null &&
+            ayah.translation!.isNotEmpty)
+          _buildTranslationCard(
+            label: 'English',
+            text: ayah.translation!,
+            fontSize: fontSize,
+            color: const Color(0xFF4CAF50),
+            icon: Icons.language_rounded,
+          ),
+        if (showUrdu &&
+            ayah.translationUrdu != null &&
+            ayah.translationUrdu!.isNotEmpty)
+          _buildTranslationCard(
+            label: 'اردو',
+            text: ayah.translationUrdu!,
+            fontSize: fontSize,
+            color: const Color(0xFF00A86B),
+            icon: Icons.translate_rounded,
+            isRtl: true,
+            useUrduFont: true,
+          ),
+        if (showRoman &&
+            ayah.translationRoman != null &&
+            ayah.translationRoman!.isNotEmpty)
+          _buildTranslationCard(
+            label: 'Roman Urdu',
+            text: ayah.translationRoman!,
+            fontSize: fontSize,
+            color: const Color(0xFFFF9800),
+            icon: Icons.abc_rounded,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTranslationCard({
+    required String label,
+    required String text,
+    required QuranFontSize fontSize,
+    required Color color,
+    required IconData icon,
+    bool isRtl = false,
+    bool useUrduFont = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
         AppSpacing.sm,
+        AppSpacing.lg,
+        0,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: color.withValues(alpha: 0.20),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            height: 1,
-            color: AppColors.primary.withValues(alpha: 0.10),
+          Row(
+            children: [
+              Icon(icon, color: color, size: 14),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: 6),
           Text(
-            translation,
-            textAlign: TextAlign.left,
+            text,
+            textAlign: isRtl ? TextAlign.right : TextAlign.left,
+            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
             style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: fontSize.translationSize,
-              color: AppColors.textSecondary,
-              height: 1.65,
+              fontFamily: useUrduFont ? 'Amiri' : null,
+              fontSize: fontSize.translationSize + (useUrduFont ? 2 : 0),
+              color: AppColors.textPrimary,
+              height: useUrduFont ? 2.0 : 1.6,
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -971,43 +1028,37 @@ class _AyahCard extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
-        0,
+        AppSpacing.md,
         AppSpacing.lg,
         0,
       ),
       child: Row(
         children: [
           Icon(
-            Icons.menu_book_rounded,
-            size: 13,
-            color: AppColors.textTertiary.withValues(alpha: 0.70),
+            Icons.location_on_rounded,
+            size: 12,
+            color: AppColors.textTertiary,
           ),
           const SizedBox(width: 4),
           Text(
             'Page ${ayah.page}',
             style: AppTextStyles.labelSmall.copyWith(
               color: AppColors.textTertiary,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
-          if (ayah.ruku != null) ...[
-            Icon(
-              Icons.trip_origin_rounded,
-              size: 11,
-              color: AppColors.textTertiary.withValues(alpha: 0.70),
+          Icon(
+            Icons.numbers_rounded,
+            size: 12,
+            color: AppColors.textTertiary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '#${ayah.numberInQuran}',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.textTertiary,
             ),
-            const SizedBox(width: 4),
-            Text(
-              'Ruku ${ayah.ruku}',
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.textTertiary,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+          ),
         ],
       ),
     );
@@ -1015,341 +1066,44 @@ class _AyahCard extends ConsumerWidget {
 }
 
 // ============================================================
-// SECTION 7 — FONT SIZE BOTTOM SHEET
+// SECTION 7 — APP BAR BUTTON
 // ============================================================
 
-class _FontSizeBottomSheet extends ConsumerWidget {
-  const _FontSizeBottomSheet();
+class _AppBarButton extends StatelessWidget {
+  const _AppBarButton({
+    required this.icon,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentSize = ref.watch(_readerFontSizeProvider);
-
-    return Container(
-      margin: const EdgeInsets.all(AppSpacing.lg),
-      padding: const EdgeInsets.all(AppSpacing.xl2),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceSheet,
-        borderRadius: BorderRadius.circular(AppRadius.xl3),
-        border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.16),
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.surface.withValues(alpha: 0.60),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.15),
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.textTertiary.withValues(alpha: 0.40),
-              borderRadius: BorderRadius.circular(AppRadius.full),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Arabic Font Size',
-            style: AppTextStyles.titleMedium.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            'Choose your preferred reading size',
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl2),
-          Row(
-            children: QuranFontSize.values.map((size) {
-              final isSelected = size == currentSize;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    ref.read(_readerFontSizeProvider.notifier).state = size;
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.18)
-                          : AppColors.surfaceElevated.withValues(alpha: 0.80),
-                      borderRadius: BorderRadius.circular(AppRadius.xl),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.primary.withValues(alpha: 0.50)
-                            : AppColors.primary.withValues(alpha: 0.12),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'ب',
-                          style: TextStyle(
-                            fontFamily: 'Amiri',
-                            fontSize: size.arabicSize * 0.7 + 8,
-                            color: isSelected
-                                ? AppColors.accent
-                                : AppColors.textSecondary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          size.label,
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.textTertiary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceElevated.withValues(alpha: 0.70),
-              borderRadius: BorderRadius.circular(AppRadius.xl2),
-              border: Border.all(
-                color: AppColors.accent.withValues(alpha: 0.12),
-              ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'بِسْمِ اللَّهِ',
-                  textDirection: TextDirection.rtl,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
-                    fontSize: currentSize.arabicSize,
-                    color: AppColors.textPrimary,
-                    height: 2.0,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'In the name of Allah',
-                  style: TextStyle(
-                    fontSize: currentSize.translationSize,
-                    color: AppColors.textSecondary,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'Preview — ${currentSize.fullLabel}',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                ),
-              ),
-              child: Text(
-                'Done',
-                style: AppTextStyles.labelLarge.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        ],
+        child: Icon(
+          icon,
+          color: AppColors.textPrimary,
+          size: 18,
+        ),
       ),
     );
   }
 }
 
 // ============================================================
-// SECTION 8 — READER SETTINGS SHEET
-// ============================================================
-
-class _ReaderSettingsSheet extends ConsumerWidget {
-  const _ReaderSettingsSheet({required this.surah});
-
-  final SurahModel surah;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final showTranslation = ref.watch(_showTranslationProvider);
-    final arabicOnly = ref.watch(_showArabicOnlyProvider);
-
-    return Container(
-      margin: const EdgeInsets.all(AppSpacing.lg),
-      padding: const EdgeInsets.all(AppSpacing.xl2),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceSheet,
-        borderRadius: BorderRadius.circular(AppRadius.xl3),
-        border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.16),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.textTertiary.withValues(alpha: 0.40),
-              borderRadius: BorderRadius.circular(AppRadius.full),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Text(
-                'Reader Settings',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceElevated.withValues(alpha: 0.70),
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(
-                color: AppColors.accent.withValues(alpha: 0.14),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    gradient: AppGradients.emerald,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                  ),
-                  child: Center(
-                    child: Text(
-                      surah.number.toString(),
-                      style: AppTextStyles.labelLarge.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      surah.name,
-                      style: AppTextStyles.titleSmall.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      '${surah.numberOfAyahs} ayahs • ${surah.revelationType}',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Text(
-                  surah.nameArabic,
-                  style: AppTextStyles.titleMedium.copyWith(
-                    fontFamily: 'Amiri',
-                    color: AppColors.accent,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _SettingsToggle(
-            icon: Icons.translate_rounded,
-            iconColor: const Color(0xFF1E88E5),
-            title: 'Show Translation',
-            subtitle: 'English translation ke saath padhen',
-            value: showTranslation,
-            onChanged: (val) {
-              HapticFeedback.selectionClick();
-              ref.read(_showTranslationProvider.notifier).state = val;
-            },
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _SettingsToggle(
-            icon: Icons.text_format_rounded,
-            iconColor: AppColors.accent,
-            title: 'Arabic Only Mode',
-            subtitle: 'Sirf Arabic text dikhaye — distraction free',
-            value: arabicOnly,
-            onChanged: (val) {
-              HapticFeedback.selectionClick();
-              ref.read(_showArabicOnlyProvider.notifier).state = val;
-            },
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.surfaceHigh,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                ),
-              ),
-              child: Text(
-                'Close',
-                style: AppTextStyles.labelLarge.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================================
-// SECTION 9 — SMALL REUSABLE WIDGETS
+// SECTION 8 — META PILL
 // ============================================================
 
 class _MetaPill extends StatelessWidget {
@@ -1367,21 +1121,22 @@ class _MetaPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs + 2,
+        horizontal: AppSpacing.sm + 2,
+        vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(AppRadius.full),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: color.withValues(alpha: 0.22),
+          color: color.withValues(alpha: 0.24),
+          width: 0.8,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 5),
+          Icon(icon, color: color, size: 12),
+          const SizedBox(width: 4),
           Text(
             label,
             style: AppTextStyles.labelSmall.copyWith(
@@ -1395,122 +1150,8 @@ class _MetaPill extends StatelessWidget {
   }
 }
 
-class _AppBarButton extends StatelessWidget {
-  const _AppBarButton({
-    required this.icon,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        child: Ink(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.80),
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.14),
-            ),
-          ),
-          child: Icon(
-            icon,
-            size: 19,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsToggle extends StatelessWidget {
-  const _SettingsToggle({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceElevated.withValues(alpha: 0.70),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.10),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            child: Icon(icon, size: 18, color: iconColor),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.primary,
-            activeTrackColor: AppColors.primary.withValues(alpha: 0.30),
-            inactiveThumbColor: AppColors.textTertiary,
-            inactiveTrackColor: AppColors.surfaceHigh,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ============================================================
-// SECTION 10 — LOADING STATE
+// SECTION 9 — LOADING & ERROR STATES
 // ============================================================
 
 class _ReaderLoadingState extends StatelessWidget {
@@ -1518,65 +1159,13 @@ class _ReaderLoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: ListView(
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          Row(
-            children: [
-              _shimmer(width: 42, height: 42, radius: AppRadius.xl),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: _shimmer(
-                  width: double.infinity,
-                  height: 16,
-                  radius: AppRadius.full,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              _shimmer(width: 42, height: 42, radius: AppRadius.xl),
-              const SizedBox(width: AppSpacing.sm),
-              _shimmer(width: 42, height: 42, radius: AppRadius.xl),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _shimmer(width: double.infinity, height: 220, radius: AppRadius.xl3),
-          const SizedBox(height: AppSpacing.lg),
-          _shimmer(width: double.infinity, height: 80, radius: AppRadius.xl2),
-          const SizedBox(height: AppSpacing.lg),
-          for (int i = 0; i < 5; i++) ...[
-            _shimmer(
-              width: double.infinity,
-              height: 130 + (i % 2 == 0 ? 30.0 : 0.0),
-              radius: AppRadius.xl2,
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-        ],
-      ),
-    );
-  }
-
-  static Widget _shimmer({
-    required double width,
-    required double height,
-    required double radius,
-  }) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHigh.withValues(alpha: 0.86),
-        borderRadius: BorderRadius.circular(radius),
+    return const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primary,
       ),
     );
   }
 }
-
-// ============================================================
-// SECTION 11 — ERROR STATE
-// ============================================================
 
 class _ReaderErrorState extends StatelessWidget {
   const _ReaderErrorState({
@@ -1605,114 +1194,55 @@ class _ReaderErrorState extends StatelessWidget {
               ],
             ),
             const Spacer(),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.xl2),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceElevated.withValues(alpha: 0.88),
-                borderRadius: BorderRadius.circular(AppRadius.xl3),
-                border: Border.all(
-                  color: AppColors.error.withValues(alpha: 0.14),
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 64,
+              color: AppColors.error,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Unable to Load Surah',
+              style: AppTextStyles.titleMedium.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Surah data load karne mein problem aayi. Retry karein.',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              error,
+              style: AppTextStyles.labelSmall.copyWith(
+                color: AppColors.textTertiary,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: AppSpacing.xl2),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton(
+                  onPressed: onBack,
+                  child: const Text('Go Back'),
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.error.withValues(alpha: 0.09),
-                    ),
-                    child: Icon(
-                      Icons.error_outline_rounded,
-                      size: 34,
-                      color: AppColors.error.withValues(alpha: 0.84),
-                    ),
+                const SizedBox(width: AppSpacing.md),
+                ElevatedButton(
+                  onPressed: onRetry,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    'Unable to Load Surah',
-                    style: AppTextStyles.titleMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Surah data load karne mein problem aayi. Retry karein.',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    error,
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textTertiary,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: onBack,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.textSecondary,
-                            side: BorderSide(
-                              color: AppColors.primary.withValues(alpha: 0.30),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: AppSpacing.md,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.lg),
-                            ),
-                          ),
-                          child: Text(
-                            'Go Back',
-                            style: AppTextStyles.labelLarge.copyWith(
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: onRetry,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: AppSpacing.md,
-                            ),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.lg),
-                            ),
-                          ),
-                          child: Text(
-                            'Retry',
-                            style: AppTextStyles.labelLarge.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                  child: const Text('Retry'),
+                ),
+              ],
             ),
             const Spacer(),
           ],
@@ -1723,5 +1253,256 @@ class _ReaderErrorState extends StatelessWidget {
 }
 
 // ============================================================
-// END OF FILE — surah_reader_screen.dart
+// SECTION 10 — FONT SIZE BOTTOM SHEET
 // ============================================================
+
+class _FontSizeBottomSheet extends ConsumerWidget {
+  const _FontSizeBottomSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentSize = ref.watch(_readerFontSizeProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppRadius.xl2),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.borderSubtle,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Font Size',
+            style: AppTextStyles.titleMedium.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          ...QuranFontSize.values.map((size) {
+            final isSelected = size == currentSize;
+            return InkWell(
+              onTap: () {
+                ref.read(_readerFontSizeProvider.notifier).state = size;
+                HapticFeedback.selectionClick();
+                Navigator.pop(context);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary.withValues(alpha: 0.15)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color:
+                        isSelected ? AppColors.primary : AppColors.borderSubtle,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        size.label,
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Text(
+                      size.fullLabel,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (isSelected)
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// SECTION 11 — READER SETTINGS SHEET (Multi-Language)
+// ============================================================
+
+class _ReaderSettingsSheet extends ConsumerWidget {
+  const _ReaderSettingsSheet({required this.surah});
+
+  final SurahModel surah;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showTranslation = ref.watch(_showTranslationProvider);
+    final arabicOnly = ref.watch(_showArabicOnlyProvider);
+    final showEnglish = ref.watch(_showEnglishProvider);
+    final showUrdu = ref.watch(_showUrduProvider);
+    final showRoman = ref.watch(_showRomanProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppRadius.xl2),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.borderSubtle,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Reading Settings',
+            style: AppTextStyles.titleMedium.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          _buildToggle(
+            title: 'Show Translations',
+            subtitle: 'Display translations below Arabic',
+            value: showTranslation,
+            onChanged: (v) {
+              ref.read(_showTranslationProvider.notifier).state = v;
+            },
+          ),
+          _buildToggle(
+            title: 'Arabic Only',
+            subtitle: 'Hide all translations',
+            value: arabicOnly,
+            onChanged: (v) {
+              ref.read(_showArabicOnlyProvider.notifier).state = v;
+            },
+          ),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Translation Languages',
+            style: AppTextStyles.labelMedium.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _buildToggle(
+            title: 'English',
+            subtitle: 'Standard English translation',
+            value: showEnglish,
+            onChanged: (v) {
+              ref.read(_showEnglishProvider.notifier).state = v;
+            },
+            color: const Color(0xFF4CAF50),
+          ),
+          _buildToggle(
+            title: 'اردو (Urdu)',
+            subtitle: 'Fateh Muhammad Jalandhry',
+            value: showUrdu,
+            onChanged: (v) {
+              ref.read(_showUrduProvider.notifier).state = v;
+            },
+            color: const Color(0xFF00A86B),
+          ),
+          _buildToggle(
+            title: 'Roman Urdu',
+            subtitle: 'Maududi Roman transliteration',
+            value: showRoman,
+            onChanged: (v) {
+              ref.read(_showRomanProvider.notifier).state = v;
+            },
+            color: const Color(0xFFFF9800),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggle({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    Color? color,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: color ?? AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: color ?? AppColors.primary,
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -98,6 +98,7 @@ class _QuranPlaceholder extends StatelessWidget {
 }
 
 // ── PRAYER PLACEHOLDER ─────────────────────────────────
+// ignore: unused_element
 class _PrayerTimesPlaceholder extends StatelessWidget {
   const _PrayerTimesPlaceholder();
 
@@ -317,6 +318,7 @@ class _TasbihPlaceholder extends StatelessWidget {
 }
 
 // ── HADITH PLACEHOLDER ─────────────────────────────────
+// ignore: unused_element
 class _HadithPlaceholder extends StatelessWidget {
   const _HadithPlaceholder();
 
@@ -384,6 +386,7 @@ class _HadithPlaceholder extends StatelessWidget {
 }
 
 // ── AI CHAT PLACEHOLDER ────────────────────────────────
+// ignore: unused_element
 class _AiChatPlaceholder extends StatelessWidget {
   const _AiChatPlaceholder();
 
