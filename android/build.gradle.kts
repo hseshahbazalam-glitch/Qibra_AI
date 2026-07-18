@@ -19,8 +19,7 @@ subprojects {
 subprojects {
     project.evaluationDependsOn(":app")
 
-    // Force all Android library plugins to use compileSdk 36
-    // Uses plugin listener (not afterEvaluate) for modern AGP compatibility
+    // Force compileSdk 36 on all Android library subprojects
     plugins.withId("com.android.library") {
         extensions.configure<com.android.build.gradle.LibraryExtension> {
             compileSdk = 36

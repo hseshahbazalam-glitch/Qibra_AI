@@ -1,8 +1,7 @@
 // lib/features/prayer/providers/prayer_provider.dart
 
 // ============================================================
-// QIBRA AI — PRAYER PROVIDER (v1.1 — Reverse Geocoding)
-// Phase: 9 — Prayer Times State Management
+// QIBRA AI — PRAYER PROVIDER (v1.2 — No Geocoding Dependency)
 // ============================================================
 
 import 'dart:async';
@@ -10,7 +9,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -128,7 +126,7 @@ class LocationNotifier extends StateNotifier<LocationState> {
     }
   }
 
-  /// Fetch current location from GPS with reverse geocoding
+  /// Fetch current location from GPS
   Future<void> fetchCurrentLocation() async {
     state = state.copyWith(
       status: LocationStatus.loading,
@@ -179,59 +177,17 @@ class LocationNotifier extends StateNotifier<LocationState> {
         '[LOCATION] Position: ${position.latitude}, ${position.longitude}',
       );
 
-      // Reverse geocoding — get city name from coordinates
-      String cityName = 'Unknown';
-      String countryName = 'Unknown';
-      String? countryCode;
-
-      try {
-        debugPrint('[LOCATION] Reverse geocoding...');
-        final placemarks = await placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
-        ).timeout(const Duration(seconds: 10));
-
-        if (placemarks.isNotEmpty) {
-          final place = placemarks.first;
-
-          debugPrint('[LOCATION] Placemark data:');
-          debugPrint('  locality: ${place.locality}');
-          debugPrint('  subLocality: ${place.subLocality}');
-          debugPrint('  subAdminArea: ${place.subAdministrativeArea}');
-          debugPrint('  adminArea: ${place.administrativeArea}');
-          debugPrint('  country: ${place.country}');
-          debugPrint('  isoCountryCode: ${place.isoCountryCode}');
-
-          // Try multiple fields — best match for village/town/city
-          final possibleNames = <String>[
-            place.locality ?? '',
-            place.subLocality ?? '',
-            place.subAdministrativeArea ?? '',
-            place.administrativeArea ?? '',
-          ].where((n) => n.isNotEmpty).toList();
-
-          if (possibleNames.isNotEmpty) {
-            cityName = possibleNames.first;
-          }
-
-          countryName = place.country ?? 'Unknown';
-          countryCode = place.isoCountryCode;
-
-          debugPrint(
-              '[LOCATION] Final: $cityName, $countryName ($countryCode)');
-        }
-      } catch (e) {
-        debugPrint('[LOCATION] Geocoding failed: $e');
-        cityName = 'Location';
-        countryName = 'Auto-detected';
-      }
+      // Use coordinates as city name — geocoding removed
+      // Will be improved in future with a free geocoding API
+      const cityName = 'My Location';
+      const countryName = 'Auto-detected';
 
       final location = PrayerLocation(
         latitude: position.latitude,
         longitude: position.longitude,
         city: cityName,
         country: countryName,
-        countryCode: countryCode,
+        countryCode: null,
         isManuallySet: false,
       );
 
@@ -241,13 +197,6 @@ class LocationNotifier extends StateNotifier<LocationState> {
       );
 
       await _cacheLocation(location);
-
-      // Auto-configure calculation method based on country
-      if (countryCode != null) {
-        _ref
-            .read(prayerSettingsProvider.notifier)
-            .autoConfigureForCountry(countryCode);
-      }
     } catch (e) {
       debugPrint('[LOCATION] Error: $e');
       state = state.copyWith(
@@ -481,7 +430,7 @@ final dailyPrayerTimesProvider = Provider<DailyPrayerTimes?>((ref) {
 });
 
 // ============================================================
-// SECTION 7 — MONTHLY PRAYER TIMES (for calendar)
+// SECTION 7 — MONTHLY PRAYER TIMES
 // ============================================================
 
 final monthlyPrayerTimesProvider =
@@ -840,7 +789,3 @@ final distanceToKaabaProvider = Provider<double?>((ref) {
   if (locationState.location == null) return null;
   return service.calculateDistanceToKaaba(locationState.location!);
 });
-
-// ============================================================
-// END OF FILE — prayer_provider.dart
-// ============================================================

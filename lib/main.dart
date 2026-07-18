@@ -2,31 +2,47 @@
 
 // ============================================================
 // QIBRA AI — Main Entry Point
-// Version: 2.0.0
+// Version: 4.0.0 — With Gemini AI
 // ============================================================
 
-import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
-import 'package:qibra_ai/features/quran/providers/audio_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/constants/app_assets_check.dart';
 import 'package:qibra_ai/core/design_system/app_theme.dart';
+import 'package:qibra_ai/core/di/service_locator.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/core/router/app_router.dart';
+import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
+import 'package:qibra_ai/features/quran/providers/audio_provider.dart';
 
 void main() async {
+  // Must be first
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load .env file (Gemini API key)
+  try {
+    await dotenv.load(fileName: '.env');
+    debugPrint('✅ .env loaded successfully');
+  } catch (e) {
+    debugPrint('⚠️ .env not loaded: $e');
+  }
+
+  // System UI setup
   AppSystemUI.setDarkTheme();
   await AppSystemUI.setPortraitOnly();
 
+  // Assets check (debug only)
   assert(() {
     AppAssetsCheck.verifyAllAssets();
     return true;
   }());
 
-  _testDesignSystem();
+  // Initialize Service Locator
+  await ServiceLocator.init();
 
+  // Quran data load karo
   try {
     debugPrint('📖 Loading Quran data...');
     final quranRepo = QuranRepository();
@@ -35,9 +51,12 @@ void main() async {
     debugPrint('   📊 Stats: ${quranRepo.statistics}');
   } catch (e) {
     debugPrint('⚠️ Quran data loading failed: $e');
-    debugPrint('   App will continue with fallback data');
   }
 
+  // Boot info
+  _printBootInfo();
+
+  // Run app
   runApp(
     const ProviderScope(
       child: _AppWithAudio(),
@@ -45,32 +64,23 @@ void main() async {
   );
 }
 
-void _testDesignSystem() {
-  debugPrint('╔══════════════════════════════════════╗');
-  debugPrint('║   QIBRA AI — System Boot Test        ║');
-  debugPrint('╠══════════════════════════════════════╣');
-  debugPrint('║  Name    : ${AppInfo.appName}                 ║');
-  debugPrint('║  Version : ${AppInfo.version}                       ║');
-  debugPrint('║  ✅ Riverpod initialized              ║');
-  debugPrint('║  ✅ Router ready                      ║');
-  debugPrint('╚══════════════════════════════════════╝');
-}
-
-// ── Audio Pre-Warmer ──────────────────────────────────────────
+// ============================================================
+// AUDIO PRE-WARMER
+// ============================================================
 
 class _AppWithAudio extends ConsumerWidget {
   const _AppWithAudio();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Audio service ko app start pe initialize karo
-    // Taaki pehli ayah tap pe koi delay na ho
     ref.watch(quranAudioServiceProvider);
     return const QibraApp();
   }
 }
 
-// ── Root App ──────────────────────────────────────────────────
+// ============================================================
+// ROOT APP WIDGET
+// ============================================================
 
 class QibraApp extends ConsumerWidget {
   const QibraApp({super.key});
@@ -89,4 +99,22 @@ class QibraApp extends ConsumerWidget {
       routerConfig: router,
     );
   }
+}
+
+// ============================================================
+// BOOT INFO LOGGER
+// ============================================================
+
+void _printBootInfo() {
+  debugPrint('╔═══════════════════════════════════════╗');
+  debugPrint('║       QIBRA AI — System Boot          ║');
+  debugPrint('╠═══════════════════════════════════════╣');
+  debugPrint('║  Name    : ${AppInfo.appName}');
+  debugPrint('║  Version : ${AppInfo.version}');
+  debugPrint('║  ✅ .env loaded');
+  debugPrint('║  ✅ ServiceLocator ready');
+  debugPrint('║  ✅ Riverpod initialized');
+  debugPrint('║  ✅ Router ready');
+  debugPrint('║  🤖 Gemini AI ready');
+  debugPrint('╚═══════════════════════════════════════╝');
 }

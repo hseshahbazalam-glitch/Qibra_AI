@@ -1,146 +1,87 @@
-# ============================================================
-# QIBRA AI — pubspec.yaml (v8.2 — Full Quran Data Ready)
-# ============================================================
-# Version:      8.2.0
-# Last Updated: Phase 8.2 (Real Quran Data Integration)
-# Description:  Islamic Super App with Real Quran + Audio
-# Package:      com.example.qibra_ai
-# ============================================================
-
 name: qibra_ai
-description: "QIBRA AI — Premium Islamic Super App with Quran, Prayer, Hadith, Qibla, and AI Assistant."
-publish_to: 'none'
+description: Qibra AI - AI Powered Islamic Assistant
+publish_to: "none"
+
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
-  flutter: ">=3.19.0"
+  sdk: ">=3.3.0 <4.0.0"
 
-# ============================================================
-# DEPENDENCIES
-# ============================================================
 dependencies:
   flutter:
     sdk: flutter
 
-  # ── FLUTTER UI ────────────────────────────────────────────
-  cupertino_icons: ^1.0.6
+  # ─── UI & FONTS ───────────────────────────────────────────
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
 
-  # ── STATE MANAGEMENT (LOCKED at 2.x — DO NOT UPGRADE) ────
+  # ─── STATE MANAGEMENT ─────────────────────────────────────
   flutter_riverpod: ^2.5.1
-  riverpod_annotation: ^2.3.5
 
-  # ── NAVIGATION ────────────────────────────────────────────
-  go_router: ^14.2.7
+  # ─── NAVIGATION ───────────────────────────────────────────
+  go_router: ^14.2.0
 
-  # ── CODE GENERATION ANNOTATIONS ──────────────────────────
-  freezed_annotation: ^2.4.4
-  json_annotation: ^4.9.0
-
-  # ── NETWORKING ────────────────────────────────────────────
-  dio: ^5.4.3+1
-
-  # ── STORAGE (Local) ───────────────────────────────────────
-  shared_preferences: ^2.3.2
-  flutter_secure_storage: ^9.2.2
-
-  # ── DEPENDENCY INJECTION ─────────────────────────────────
+  # ─── DEPENDENCY INJECTION ─────────────────────────────────
   get_it: ^7.7.0
 
-  # ── PERMISSIONS & LOCATION ───────────────────────────────
-  permission_handler: ^11.3.1
-  geolocator: ^11.0.0
+  # ─── NETWORKING ───────────────────────────────────────────
+  dio: ^5.4.3+1
+  connectivity_plus: ^6.0.3
 
-  # ── UTILITIES ─────────────────────────────────────────────
-  intl: ^0.19.0
-  connectivity_plus: ^6.0.5
-  url_launcher: ^6.3.0
-  share_plus: ^9.0.0
-  package_info_plus: ^8.0.2
-  device_info_plus: ^10.1.2
-  uuid: ^4.4.2
-  equatable: ^2.0.5
+  # ─── STORAGE ──────────────────────────────────────────────
+  shared_preferences: ^2.2.3
+  flutter_secure_storage: ^9.2.2
 
-  # ── ISLAMIC ───────────────────────────────────────────────
+  # ─── FIREBASE ─────────────────────────────────────────────
+  firebase_core: ^2.30.0
+  firebase_auth: ^4.19.0
+
+  # ─── LOCATION & PRAYER TIMES ──────────────────────────────
+  geolocator: ^11.1.0
   hijri: ^3.0.1
 
-  # ── NOTIFICATIONS ─────────────────────────────────────────
-  flutter_local_notifications: ^17.2.2
-
-  # ── UI ENHANCEMENTS ──────────────────────────────────────
-  google_fonts: ^6.2.1
-  flutter_svg: ^2.0.10+1
-  cached_network_image: ^3.3.1
-  lottie: ^3.1.2
-
-  # ── PHASE 8.2: AUDIO PLAYER (for Quran recitation) ──────
-  just_audio: ^0.9.40
+  # ─── AUDIO (QURAN PLAYER) ─────────────────────────────────
+  just_audio: ^0.9.38
   audio_session: ^0.1.21
+  path_provider: ^2.1.3
 
-  # ── PHASE 8.2: LOCAL DATABASE (bookmarks, notes) ────────
-  path_provider: ^2.1.4
-  sqflite: ^2.3.3+1
-  geocoding: ^4.0.0
+  # ─── PERMISSIONS ──────────────────────────────────────────
+  permission_handler: ^11.3.1
 
-# ============================================================
-# DEV DEPENDENCIES
-# ============================================================
+  # ─── APP INFO ─────────────────────────────────────────────
+  package_info_plus: ^8.0.2
+
+  # ─── UTILITIES ────────────────────────────────────────────
+  equatable: ^2.0.5
+  json_annotation: ^4.9.0
+
+  # ─── AI (GEMINI) ──────────────────────────────────────────
+  google_generative_ai: ^0.4.6
+  flutter_dotenv: ^5.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^4.0.0
+  build_runner: ^2.4.9
+  json_serializable: ^6.7.1
 
-  # ── CODE GENERATION ──────────────────────────────────────
-  build_runner: ^2.4.11
-  freezed: ^2.5.7
-  json_serializable: ^6.8.0
-  riverpod_generator: ^2.4.3
-
-# ============================================================
-# FLUTTER CONFIGURATION
-# ============================================================
 flutter:
   uses-material-design: true
 
-  # ============================================================
-  # ASSETS REGISTRATION
-  # ============================================================
-  # IMPORTANT: Har new asset folder yahan register karo
-  # Without registration, Image.asset() will crash
   assets:
-    # ── EXISTING ASSETS (Phase 1-7) ──────────────────────────
+    - .env
     - assets/images/
+    - assets/images/hero/
+    - assets/images/calligraphy/
+    - assets/images/features/
+    - assets/images/illustrations/
     - assets/images/logo/
     - assets/images/onboarding/
-    - assets/icons/
-    - assets/lottie/
-
-    # ── PHASE 8: PREMIUM UI ASSETS (v5.0) ────────────────────
-    - assets/images/hero/
-    - assets/images/features/
-    - assets/images/calligraphy/
     - assets/images/patterns/
-    - assets/images/illustrations/
     - assets/images/quran/
-
-    # ── PHASE 8.2: QURAN DATA (JSON files) ───────────────────
-    - assets/data/
+    - assets/icons/
     - assets/data/quran/
-
-  # ============================================================
-  # FONTS (Commented out - using google_fonts package instead)
-  # ============================================================
-  # NOTE: Amiri font loaded via google_fonts package
-  # To bundle offline fonts, uncomment below:
-  #
-  # fonts:
-  #   - family: Amiri
-  #     fonts:
-  #       - asset: assets/fonts/Amiri-Regular.ttf
-  #       - asset: assets/fonts/Amiri-Bold.ttf
-  #         weight: 700
-
-# ============================================================
-# END OF pubspec.yaml
-# ============================================================
+    - assets/animations/
+    - assets/lottie/

@@ -24,6 +24,7 @@ import 'package:qibra_ai/features/quran/presentation/quran_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/profile_setup_screen.dart';
 import 'package:qibra_ai/features/splash/presentation/splash_screen.dart';
 import 'package:qibra_ai/shared/widgets/navigation/app_bottom_nav.dart';
+import 'package:qibra_ai/features/chat/presentation/screens/ai_chat_screen.dart';
 // ============================================================
 // PLACEHOLDER SCREENS (Phase 2 mein real screens replace honge)
 // ============================================================
@@ -911,7 +912,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.aiChat,
             name: 'ai-chat',
-            builder: (context, state) => const _AiChatPlaceholder(),
+            builder: (context, state) => const AiChatScreen(),
           ),
 
           // Dua
