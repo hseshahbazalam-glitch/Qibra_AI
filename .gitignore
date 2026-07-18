@@ -44,3 +44,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .env
+# Hadith data (too large for git)
+assets/data/hadith/*

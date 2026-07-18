@@ -25,6 +25,7 @@ import 'package:qibra_ai/features/settings/presentation/profile_setup_screen.dar
 import 'package:qibra_ai/features/splash/presentation/splash_screen.dart';
 import 'package:qibra_ai/shared/widgets/navigation/app_bottom_nav.dart';
 import 'package:qibra_ai/features/chat/presentation/screens/ai_chat_screen.dart';
+import 'package:qibra_ai/features/hadith/presentation/hadith_screen.dart';
 // ============================================================
 // PLACEHOLDER SCREENS (Phase 2 mein real screens replace honge)
 // ============================================================
@@ -905,7 +906,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.hadith,
             name: 'hadith',
-            builder: (context, state) => const _HadithPlaceholder(),
+            builder: (context, state) => const HadithScreen(),
           ),
 
           // AI Chat

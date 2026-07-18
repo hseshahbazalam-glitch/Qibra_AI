@@ -2,7 +2,7 @@
 
 // ============================================================
 // QIBRA AI — Main Entry Point
-// Version: 4.0.0 — With Gemini AI
+// Version: 5.0.0 — With Gemini AI + Hadith Database
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -14,11 +14,19 @@ import 'package:qibra_ai/core/design_system/app_theme.dart';
 import 'package:qibra_ai/core/di/service_locator.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/core/router/app_router.dart';
+import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
 import 'package:qibra_ai/features/quran/providers/audio_provider.dart';
 
+// ============================================================
+// GLOBAL HADITH DATABASE INSTANCE
+// Accessible by AI service for RAG (Retrieval Augmented Generation)
+// ============================================================
+
+HadithDatabaseService? _globalHadithDb;
+HadithDatabaseService? get globalHadithDb => _globalHadithDb;
+
 void main() async {
-  // Must be first
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load .env file (Gemini API key)
@@ -51,6 +59,19 @@ void main() async {
     debugPrint('   📊 Stats: ${quranRepo.statistics}');
   } catch (e) {
     debugPrint('⚠️ Quran data loading failed: $e');
+  }
+
+  // Hadith database load karo (34,395 hadiths)
+  try {
+    debugPrint('📚 Loading Hadith database...');
+    final hadithDb = HadithDatabaseService();
+    await hadithDb.initialize();
+    debugPrint('✅ Hadith database loaded!');
+    debugPrint('   📊 Total: ${hadithDb.totalHadiths} hadiths');
+    // Store globally for AI RAG access
+    _globalHadithDb = hadithDb;
+  } catch (e) {
+    debugPrint('⚠️ Hadith database loading failed: $e');
   }
 
   // Boot info
@@ -116,5 +137,6 @@ void _printBootInfo() {
   debugPrint('║  ✅ Riverpod initialized');
   debugPrint('║  ✅ Router ready');
   debugPrint('║  🤖 Gemini AI ready');
+  debugPrint('║  📚 Hadith DB ready');
   debugPrint('╚═══════════════════════════════════════╝');
 }

@@ -2,15 +2,14 @@
 
 // ============================================================
 // QIBRA AI — CHAT PROVIDER
-// Version: 1.0.0
-// Description: Riverpod state management for AI chat.
-//              Handles messages, sending, streaming, errors.
+// Version: 2.0.0 — RAG Integration with global Hadith DB
 // ============================================================
 
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qibra_ai/main.dart' show globalHadithDb;
 
 import '../../data/services/ai_chat_service.dart';
 import '../../domain/models/chat_models.dart';
@@ -20,8 +19,21 @@ import '../../domain/models/chat_models.dart';
 // ============================================================
 
 /// AI Chat Service singleton
+/// Uses global Hadith DB from main.dart for RAG
 final aiChatServiceProvider = Provider<AiChatService>((ref) {
-  final service = AiChatService();
+  // Use globally loaded hadith database
+  final hadithDb = globalHadithDb;
+
+  if (hadithDb == null) {
+    debugPrint('[CHAT] ⚠️ Hadith DB not loaded — RAG disabled');
+  } else if (!hadithDb.isInitialized) {
+    debugPrint('[CHAT] ⚠️ Hadith DB not initialized — RAG disabled');
+  } else {
+    debugPrint(
+        '[CHAT] ✅ Hadith DB ready — RAG enabled (${hadithDb.totalHadiths} hadiths)');
+  }
+
+  final service = AiChatService(hadithDb: hadithDb);
 
   ref.onDispose(() {
     service.dispose();
@@ -62,7 +74,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   // ─── SEND MESSAGE ───────────────────────────────────────
 
-  /// User ka message send karo aur AI response lo
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty) return;
     if (state.isGenerating) return;
@@ -88,7 +99,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
         (partialResponse) {
           accumulatedContent = partialResponse;
 
-          // Thinking message ko streaming message se replace karo
           final aiMessage = ChatMessage(
             id: aiMessageId,
             content: accumulatedContent,
@@ -97,7 +107,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
             timestamp: DateTime.now(),
           );
 
-          // Last message (thinking) ko replace karo
           final messages = [...state.messages];
           messages.removeLast();
           messages.add(aiMessage);
@@ -105,7 +114,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
           state = state.copyWith(messages: messages);
         },
         onDone: () {
-          // Streaming complete — status update karo
           final messages = [...state.messages];
           if (messages.isNotEmpty) {
             final lastMessage = messages.last;
@@ -133,13 +141,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
   void _handleError(String error) {
     debugPrint('[CHAT] Error: $error');
 
-    // Thinking message remove karo
     final messages = [...state.messages];
     if (messages.isNotEmpty && messages.last.isThinking) {
       messages.removeLast();
     }
 
-    // Error message add karo
     final errorMessage = ChatMessage.error(errorMessage: error);
     messages.add(errorMessage);
 
@@ -152,7 +158,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   // ─── STOP GENERATION ────────────────────────────────────
 
-  /// AI response generation stop karo
   void stopGeneration() {
     _currentStream?.cancel();
     _currentStream = null;
@@ -170,7 +175,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   // ─── CLEAR CHAT ─────────────────────────────────────────
 
-  /// Sari messages clear karo aur welcome message dobara add karo
   void clearChat() {
     _currentStream?.cancel();
     state = ChatState.initial();
@@ -179,7 +183,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   // ─── DELETE MESSAGE ─────────────────────────────────────
 
-  /// Specific message delete karo
   void deleteMessage(String messageId) {
     final messages = state.messages.where((m) => m.id != messageId).toList();
     state = state.copyWith(messages: messages);
@@ -198,7 +201,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 // SECTION 3: MAIN CHAT PROVIDER
 // ============================================================
 
-/// Main chat provider — poori app mein use hoga
 final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
   final service = ref.watch(aiChatServiceProvider);
   return ChatNotifier(service);
@@ -208,27 +210,22 @@ final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
 // SECTION 4: CONVENIENCE PROVIDERS
 // ============================================================
 
-/// All messages
 final chatMessagesProvider = Provider<List<ChatMessage>>((ref) {
   return ref.watch(chatProvider).messages;
 });
 
-/// Is AI generating?
 final isGeneratingProvider = Provider<bool>((ref) {
   return ref.watch(chatProvider).isGenerating;
 });
 
-/// Message count
 final chatMessageCountProvider = Provider<int>((ref) {
   return ref.watch(chatProvider).messageCount;
 });
 
-/// Last message
 final lastMessageProvider = Provider<ChatMessage?>((ref) {
   return ref.watch(chatProvider).lastMessage;
 });
 
-/// Error state
 final chatErrorProvider = Provider<String?>((ref) {
   return ref.watch(chatProvider).error;
 });
