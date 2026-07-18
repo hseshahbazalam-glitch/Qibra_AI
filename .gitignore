@@ -46,3 +46,5 @@ app.*.map.json
 .env
 # Hadith data (too large for git)
 assets/data/hadith/*
+# Tafseer data (too large for git)
+assets/data/tafseer/*

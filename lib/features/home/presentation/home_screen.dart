@@ -44,7 +44,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../prayer/providers/prayer_provider.dart';
 import '../../prayer/data/models/prayer_models.dart';
-
+import 'package:qibra_ai/features/tafseer/presentation/tafseer_home_screen.dart';
+import 'package:qibra_ai/features/tasbih/presentation/tasbih_screen.dart';
 // ── Core ─────────────────────────────────────────────────
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
@@ -498,6 +499,12 @@ final List<FeatureItem> _homeFeatures = [
     icon: Icons.grain_rounded,
     theme: FeatureCardTheme.emerald,
   ),
+  const FeatureItem(
+    title: 'Tafseer',
+    description: 'Read Ibn Kathir tafseer in Urdu',
+    icon: Icons.menu_book_rounded,
+    theme: FeatureCardTheme.amber,
+  ),
 ];
 
 /// Nearby mosques (V4 restored — 3 mosques)
@@ -544,12 +551,6 @@ const List<_BottomFeature> _bottomFeatures = [
     subtitle: '50+ languages',
     icon: Icons.translate_rounded,
     color: Color(0xFF0891B2),
-  ),
-  _BottomFeature(
-    label: 'Tafsir',
-    subtitle: 'Ibn Kathir',
-    icon: Icons.book_rounded,
-    color: Color(0xFFB45309),
   ),
   _BottomFeature(
     label: 'Notes',
@@ -4690,8 +4691,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               case 'AI Assistant':
                 context.go(AppRoutes.aiChat);
                 break;
+              case 'Tafseer':
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TafseerHomeScreen(),
+                  ),
+                );
+                break;
               case 'Tasbih':
-                _showComingSoon('Tasbih counter coming soon');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TasbihScreen(),
+                  ),
+                );
                 break;
               default:
                 _showComingSoon('${feature.title} opening soon');
@@ -4738,9 +4752,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           case 'Translations':
             context.go(AppRoutes.quran);
             break;
-          case 'Tafsir':
-            _showComingSoon('Tafsir coming soon');
-            break;
+
           case 'Notes':
             _showComingSoon('Notes coming soon');
             break;
