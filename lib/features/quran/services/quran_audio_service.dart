@@ -1,20 +1,19 @@
 // lib/features/quran/services/quran_audio_service.dart
 
 // ============================================================
-// QIBRA AI — QURAN AUDIO SERVICE (v7.0 — Smart Cache)
+// QIBRA AI — QURAN AUDIO SERVICE (v9.0 — audioplayers engine)
 // ============================================================
+// NEW ENGINE: audioplayers (uses Android MediaPlayer)
+// Solves: All Oppo/OnePlus AudioTrack conflicts
 // Strategy: Download → Cache → Play from local file
-// First time: Download + Play (2-3 sec)
-// Next time: Instant play from cache
-// Pre-fetch: Downloads next ayahs in background
 // ============================================================
 
+import 'dart:async';
 import 'dart:io';
 
-import 'package:audio_session/audio_session.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
 // ============================================================
@@ -25,7 +24,6 @@ enum QuranAudioStatus {
   idle,
   downloading,
   loading,
-  buffering,
   playing,
   paused,
   completed,
@@ -172,7 +170,6 @@ class QuranAudioState {
   bool get isDownloading => status == QuranAudioStatus.downloading;
   bool get isLoading =>
       status == QuranAudioStatus.loading ||
-      status == QuranAudioStatus.buffering ||
       status == QuranAudioStatus.downloading;
   bool get isIdle => status == QuranAudioStatus.idle;
   bool get hasError => status == QuranAudioStatus.error;
@@ -218,20 +215,25 @@ class QuranAudioState {
 }
 
 // ============================================================
-// SECTION 5 — AUDIO SERVICE (SMART CACHE)
+// SECTION 5 — AUDIO SERVICE (audioplayers engine)
 // ============================================================
 
 class QuranAudioService {
   QuranAudioService() {
-    _initAudioSession();
-    _createPlayer();
+    _initPlayer();
     _initCacheDir();
   }
 
-  AudioPlayer? _player;
-  AudioSession? _audioSession;
+  // Single AudioPlayer instance — reusable, no crashes
+  final AudioPlayer _player = AudioPlayer();
   Directory? _cacheDir;
   final Dio _dio = Dio();
+
+  // Subscriptions
+  StreamSubscription<Duration>? _positionSub;
+  StreamSubscription<Duration>? _durationSub;
+  StreamSubscription<PlayerState>? _playerStateSub;
+  StreamSubscription<void>? _completionSub;
 
   // Callbacks
   void Function(QuranAudioState state)? onStateChanged;
@@ -245,11 +247,60 @@ class QuranAudioService {
 
   void _log(String message) {
     if (kDebugMode) {
-      debugPrint('[QURAN_AUDIO] $message');
+      debugPrint('[QIBRA_AUDIO] $message');
     }
   }
 
-  // ─── CACHE DIRECTORY ───────────────────────────────────
+  // ─── PLAYER INIT ───────────────────────────────
+
+  void _initPlayer() {
+    // Position updates
+    _positionSub = _player.onPositionChanged.listen((position) {
+      _updateState(
+        _state.copyWith(
+          position: position,
+          progress: _state.duration.inMilliseconds > 0
+              ? position.inMilliseconds / _state.duration.inMilliseconds
+              : 0.0,
+        ),
+      );
+    });
+
+    // Duration updates
+    _durationSub = _player.onDurationChanged.listen((duration) {
+      _updateState(_state.copyWith(duration: duration));
+    });
+
+    // Player state changes
+    _playerStateSub = _player.onPlayerStateChanged.listen((playerState) {
+      _log('State: $playerState');
+      switch (playerState) {
+        case PlayerState.playing:
+          _updateState(_state.copyWith(status: QuranAudioStatus.playing));
+          break;
+        case PlayerState.paused:
+          _updateState(_state.copyWith(status: QuranAudioStatus.paused));
+          break;
+        case PlayerState.stopped:
+          // Don't update — let complete/manual stop handle
+          break;
+        case PlayerState.completed:
+          _handleAyahCompleted();
+          break;
+        case PlayerState.disposed:
+          break;
+      }
+    });
+
+    // Completion event
+    _completionSub = _player.onPlayerComplete.listen((_) {
+      _handleAyahCompleted();
+    });
+
+    _log('Player initialized');
+  }
+
+  // ─── CACHE DIRECTORY ───────────────────────────
 
   Future<void> _initCacheDir() async {
     try {
@@ -265,7 +316,10 @@ class QuranAudioService {
   }
 
   String _getCachedFilePath(
-      int surahNumber, int ayahNumber, QuranReciter reciter) {
+    int surahNumber,
+    int ayahNumber,
+    QuranReciter reciter,
+  ) {
     if (_cacheDir == null) return '';
     final fileName = '${reciter.id}_${surahNumber}_$ayahNumber.mp3';
     return '${_cacheDir!.path}/$fileName';
@@ -274,95 +328,11 @@ class QuranAudioService {
   bool _isCached(int surahNumber, int ayahNumber, QuranReciter reciter) {
     final path = _getCachedFilePath(surahNumber, ayahNumber, reciter);
     if (path.isEmpty) return false;
-    return File(path).existsSync();
+    final file = File(path);
+    return file.existsSync() && file.lengthSync() > 500;
   }
 
-  // ─── AUDIO SESSION ─────────────────────────────────────
-
-  Future<void> _initAudioSession() async {
-    try {
-      _audioSession = await AudioSession.instance;
-      await _audioSession!.configure(
-        const AudioSessionConfiguration(
-          avAudioSessionCategory: AVAudioSessionCategory.playback,
-          avAudioSessionCategoryOptions:
-              AVAudioSessionCategoryOptions.duckOthers,
-          avAudioSessionMode: AVAudioSessionMode.defaultMode,
-          androidAudioAttributes: AndroidAudioAttributes(
-            contentType: AndroidAudioContentType.speech,
-            usage: AndroidAudioUsage.media,
-          ),
-          androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
-        ),
-      );
-      _log('Audio session ready');
-    } catch (e) {
-      _log('Audio session error: $e');
-    }
-  }
-
-  // ─── PLAYER CREATION ───────────────────────────────────
-
-  void _createPlayer() {
-    _player = AudioPlayer();
-    _setupPlayerListeners();
-    _log('Player created');
-  }
-
-  void _setupPlayerListeners() {
-    if (_player == null) return;
-
-    _player!.positionStream.listen((position) {
-      _updateState(
-        _state.copyWith(
-          position: position,
-          progress: _state.duration.inMilliseconds > 0
-              ? position.inMilliseconds / _state.duration.inMilliseconds
-              : 0.0,
-        ),
-      );
-    });
-
-    _player!.durationStream.listen((duration) {
-      if (duration != null) {
-        _updateState(_state.copyWith(duration: duration));
-      }
-    });
-
-    _player!.playerStateStream.listen((playerState) {
-      final processingState = playerState.processingState;
-      final playing = playerState.playing;
-
-      if (processingState == ProcessingState.loading) {
-        _updateState(_state.copyWith(status: QuranAudioStatus.loading));
-      } else if (processingState == ProcessingState.buffering) {
-        _updateState(_state.copyWith(status: QuranAudioStatus.buffering));
-      } else if (processingState == ProcessingState.ready) {
-        if (playing) {
-          _updateState(_state.copyWith(status: QuranAudioStatus.playing));
-        } else {
-          _updateState(_state.copyWith(status: QuranAudioStatus.paused));
-        }
-      } else if (processingState == ProcessingState.completed) {
-        _handleAyahCompleted();
-      }
-    });
-
-    _player!.playbackEventStream.listen(
-      (event) {},
-      onError: (Object error, StackTrace stackTrace) {
-        _log('Player error: $error');
-        _updateState(
-          _state.copyWith(
-            status: QuranAudioStatus.error,
-            error: error.toString(),
-          ),
-        );
-      },
-    );
-  }
-
-  // ─── HANDLE COMPLETION ─────────────────────────────────
+  // ─── HANDLE COMPLETION ─────────────────────────
 
   void _handleAyahCompleted() {
     _log('Ayah completed: ${_state.surahNumber}:${_state.ayahNumber}');
@@ -376,9 +346,13 @@ class QuranAudioService {
     }
   }
 
-  // ─── DOWNLOAD FILE ─────────────────────────────────────
+  // ─── DOWNLOAD FILE ─────────────────────────────
 
-  Future<bool> _downloadFile(String url, String savePath, int requestId) async {
+  Future<bool> _downloadFile(
+    String url,
+    String savePath,
+    int requestId,
+  ) async {
     try {
       await _dio.download(
         url,
@@ -397,7 +371,7 @@ class QuranAudioService {
       );
 
       final file = File(savePath);
-      if (await file.exists() && await file.length() > 100) {
+      if (await file.exists() && await file.length() > 500) {
         return true;
       }
       return false;
@@ -405,22 +379,27 @@ class QuranAudioService {
       _log('Download error: $e');
       final file = File(savePath);
       if (await file.exists()) {
-        await file.delete();
+        try {
+          await file.delete();
+        } catch (_) {}
       }
       return false;
     }
   }
 
-  // ─── URL BUILDER ───────────────────────────────────────
+  // ─── URL BUILDER ───────────────────────────────
 
   String _buildStreamUrl(
-      int surahNumber, int ayahNumber, QuranReciter reciter) {
+    int surahNumber,
+    int ayahNumber,
+    QuranReciter reciter,
+  ) {
     final surah = surahNumber.toString().padLeft(3, '0');
     final ayah = ayahNumber.toString().padLeft(3, '0');
     return 'https://everyayah.com/data/${reciter.everyAyahFolder}/$surah$ayah.mp3';
   }
 
-  // ─── PLAY AYAH ─────────────────────────────────────────
+  // ─── PLAY AYAH ─────────────────────────────────
 
   Future<void> playAyah({
     required int surahNumber,
@@ -433,10 +412,13 @@ class QuranAudioService {
 
     final selectedReciter = reciter ?? _state.reciter;
 
-    _log('Playing $surahNumber:$ayahNumber with ${selectedReciter.name}');
+    _log('→ Play $surahNumber:$ayahNumber (${selectedReciter.name})');
 
     try {
-      // Update state — set current ayah
+      // Stop current playback first
+      await _player.stop();
+
+      // Update state
       _updateState(
         _state.copyWith(
           surahNumber: surahNumber,
@@ -454,27 +436,29 @@ class QuranAudioService {
       // Wait for cache dir
       if (_cacheDir == null) await _initCacheDir();
 
-      final localPath =
-          _getCachedFilePath(surahNumber, ayahNumber, selectedReciter);
+      final localPath = _getCachedFilePath(
+        surahNumber,
+        ayahNumber,
+        selectedReciter,
+      );
 
-      // Check if cached
+      // Check cache
       if (_isCached(surahNumber, ayahNumber, selectedReciter)) {
-        _log('Playing from cache: $localPath');
+        _log('Playing from cache');
         await _playFromFile(localPath, requestId);
       } else {
-        // Download first
+        // Download
         _log('Downloading...');
         _updateState(_state.copyWith(status: QuranAudioStatus.downloading));
 
         final url = _buildStreamUrl(surahNumber, ayahNumber, selectedReciter);
-        _log('URL: $url');
 
         final downloaded = await _downloadFile(url, localPath, requestId);
 
         if (requestId != _playRequestId) return;
 
         if (downloaded) {
-          _log('Downloaded successfully');
+          _log('Downloaded OK');
           await _playFromFile(localPath, requestId);
         } else {
           _updateState(
@@ -487,7 +471,7 @@ class QuranAudioService {
         }
       }
 
-      // Pre-fetch next 2 ayahs in background
+      // Pre-fetch next ayahs in background
       _prefetchNextAyahs(surahNumber, ayahNumber, selectedReciter);
     } catch (e) {
       _log('Play error: $e');
@@ -502,32 +486,41 @@ class QuranAudioService {
 
   Future<void> _playFromFile(String filePath, int requestId) async {
     try {
-      await _audioSession?.setActive(true);
-      await _player?.stop();
+      if (requestId != _playRequestId) return;
+
+      _updateState(_state.copyWith(status: QuranAudioStatus.loading));
+
+      // Set volume
+      await _player.setVolume(_state.volume);
+
+      // Set playback rate
+      await _player.setPlaybackRate(_state.playbackSpeed);
 
       if (requestId != _playRequestId) return;
 
-      await _player?.setFilePath(filePath);
+      // Play using DeviceFileSource (native path)
+      await _player.play(DeviceFileSource(filePath));
 
-      if (requestId != _playRequestId) return;
-
-      await _player?.setVolume(_state.volume);
-      await _player?.setSpeed(_state.playbackSpeed);
-      await _player?.play();
-
-      _log('Playing from file');
+      _log('→ PLAYING');
     } catch (e) {
       _log('Play file error: $e');
-      rethrow;
+      _updateState(
+        _state.copyWith(
+          status: QuranAudioStatus.error,
+          error: 'Audio playback failed.',
+        ),
+      );
     }
   }
 
-  // ─── PRE-FETCH ─────────────────────────────────────────
+  // ─── PRE-FETCH ─────────────────────────────────
 
-  /// Download next 2 ayahs in background for instant playback
   void _prefetchNextAyahs(
-      int surahNumber, int currentAyah, QuranReciter reciter) {
-    for (int i = 1; i <= 2; i++) {
+    int surahNumber,
+    int currentAyah,
+    QuranReciter reciter,
+  ) {
+    for (int i = 1; i <= 3; i++) {
       final nextAyah = currentAyah + i;
       _prefetchSingleAyah(surahNumber, nextAyah, reciter);
     }
@@ -538,10 +531,8 @@ class QuranAudioService {
     int ayahNumber,
     QuranReciter reciter,
   ) async {
-    // Skip if already cached
     if (_isCached(surahNumber, ayahNumber, reciter)) return;
 
-    // Skip if already being prefetched
     final key = '${reciter.id}_${surahNumber}_$ayahNumber';
     if (_prefetchInProgress.contains(key)) return;
     _prefetchInProgress.add(key);
@@ -560,18 +551,18 @@ class QuranAudioService {
 
       _log('Prefetched $surahNumber:$ayahNumber');
     } catch (e) {
-      _log('Prefetch failed for $surahNumber:$ayahNumber: $e');
+      // Silent fail — not critical
     } finally {
       _prefetchInProgress.remove(key);
     }
   }
 
-  // ─── PLAYBACK CONTROLS ─────────────────────────────────
+  // ─── PLAYBACK CONTROLS ─────────────────────────
 
   Future<void> pause() async {
     try {
-      await _player?.pause();
-      _log('Paused');
+      await _player.pause();
+      _log('→ PAUSED');
     } catch (e) {
       _log('Pause error: $e');
     }
@@ -579,8 +570,8 @@ class QuranAudioService {
 
   Future<void> resume() async {
     try {
-      await _player?.play();
-      _log('Resumed');
+      await _player.resume();
+      _log('→ RESUMED');
     } catch (e) {
       _log('Resume error: $e');
     }
@@ -597,9 +588,9 @@ class QuranAudioService {
   Future<void> stop() async {
     try {
       _playRequestId++;
-      await _player?.stop();
+      await _player.stop();
       _updateState(const QuranAudioState());
-      _log('Stopped');
+      _log('→ STOPPED');
     } catch (e) {
       _log('Stop error: $e');
     }
@@ -607,7 +598,7 @@ class QuranAudioService {
 
   Future<void> seekTo(Duration position) async {
     try {
-      await _player?.seek(position);
+      await _player.seek(position);
     } catch (e) {
       _log('Seek error: $e');
     }
@@ -621,17 +612,17 @@ class QuranAudioService {
     await seekTo(position);
   }
 
-  // ─── SETTINGS ──────────────────────────────────────────
+  // ─── SETTINGS ──────────────────────────────────
 
   Future<void> setReciter(QuranReciter reciter) async {
     _updateState(_state.copyWith(reciter: reciter));
-    _log('Reciter set to ${reciter.name}');
+    _log('Reciter: ${reciter.name}');
   }
 
   Future<void> setVolume(double volume) async {
     try {
       final clamped = volume.clamp(0.0, 1.0);
-      await _player?.setVolume(clamped);
+      await _player.setVolume(clamped);
       _updateState(_state.copyWith(volume: clamped));
     } catch (e) {
       _log('Volume error: $e');
@@ -641,7 +632,7 @@ class QuranAudioService {
   Future<void> setPlaybackSpeed(double speed) async {
     try {
       final clamped = speed.clamp(0.5, 2.0);
-      await _player?.setSpeed(clamped);
+      await _player.setPlaybackRate(clamped);
       _updateState(_state.copyWith(playbackSpeed: clamped));
     } catch (e) {
       _log('Speed error: $e');
@@ -659,10 +650,9 @@ class QuranAudioService {
 
   void setPlayMode(PlayMode mode) {
     _updateState(_state.copyWith(playMode: mode));
-    _log('Play mode: $mode');
   }
 
-  // ─── HELPERS ───────────────────────────────────────────
+  // ─── HELPERS ───────────────────────────────────
 
   bool isAyahPlaying(int surahNumber, int ayahNumber) {
     return _state.isPlaying &&
@@ -676,9 +666,8 @@ class QuranAudioService {
         _state.ayahNumber == ayahNumber;
   }
 
-  // ─── CACHE MANAGEMENT ──────────────────────────────────
+  // ─── CACHE MANAGEMENT ──────────────────────────
 
-  /// Get total cache size in MB
   Future<double> getCacheSizeMB() async {
     if (_cacheDir == null || !await _cacheDir!.exists()) return 0.0;
 
@@ -695,7 +684,6 @@ class QuranAudioService {
     }
   }
 
-  /// Clear all cached audio files
   Future<void> clearCache() async {
     try {
       if (_cacheDir != null && await _cacheDir!.exists()) {
@@ -708,21 +696,23 @@ class QuranAudioService {
     }
   }
 
-  // ─── STATE MANAGEMENT ──────────────────────────────────
+  // ─── STATE MANAGEMENT ──────────────────────────
 
   void _updateState(QuranAudioState newState) {
     _state = newState;
     onStateChanged?.call(newState);
   }
 
-  // ─── DISPOSE ───────────────────────────────────────────
+  // ─── DISPOSE ───────────────────────────────────
 
   Future<void> dispose() async {
     try {
-      await _player?.dispose();
-      _audioSession?.setActive(false);
-      _player = null;
-      _audioSession = null;
+      _playRequestId++;
+      await _positionSub?.cancel();
+      await _durationSub?.cancel();
+      await _playerStateSub?.cancel();
+      await _completionSub?.cancel();
+      await _player.dispose();
       _log('Service disposed');
     } catch (e) {
       _log('Dispose error: $e');
