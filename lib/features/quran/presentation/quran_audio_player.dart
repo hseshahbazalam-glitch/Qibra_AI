@@ -279,6 +279,9 @@ class QuranFullPlayer extends ConsumerStatefulWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.75,
+      ),
       builder: (_) => const QuranFullPlayer(),
     );
   }
@@ -313,52 +316,55 @@ class _QuranFullPlayerState extends ConsumerState<QuranFullPlayer> {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          Center(
-            child: Container(
-              width: 42,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.textTertiary.withValues(alpha: 0.40),
-                borderRadius: BorderRadius.circular(AppRadius.full),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.textTertiary.withValues(alpha: 0.40),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
-          // Header
-          _buildHeader(audioState),
-          const SizedBox(height: AppSpacing.xl2),
+            // Header
+            _buildHeader(audioState),
+            const SizedBox(height: AppSpacing.xl2),
 
-          // Status
-          _buildStatusBadge(audioState),
-          const SizedBox(height: AppSpacing.lg),
+            // Status
+            _buildStatusBadge(audioState),
+            const SizedBox(height: AppSpacing.lg),
 
-          // Reciter info
-          Text(
-            audioState.reciter.name,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.accent,
-              fontWeight: FontWeight.w700,
+            // Reciter info
+            Text(
+              audioState.reciter.name,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.accent,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.xl2),
+            const SizedBox(height: AppSpacing.xl2),
 
-          // Progress bar
-          _buildProgressBar(audioState),
-          const SizedBox(height: AppSpacing.lg),
+            // Progress bar
+            _buildProgressBar(audioState),
+            const SizedBox(height: AppSpacing.lg),
 
-          // Controls
-          _buildControls(audioState),
-          const SizedBox(height: AppSpacing.lg),
+            // Controls
+            _buildControls(audioState),
+            const SizedBox(height: AppSpacing.lg),
 
-          // Bottom row
-          _buildBottomRow(audioState),
-          const SizedBox(height: AppSpacing.sm),
-        ],
+            // Bottom row
+            _buildBottomRow(audioState),
+            SizedBox(
+                height: MediaQuery.of(context).padding.bottom + AppSpacing.xl),
+          ],
+        ),
       ),
     );
   }
