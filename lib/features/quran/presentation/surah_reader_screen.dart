@@ -170,12 +170,29 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   // ─── SMOOTH AUTO-SCROLL ───────────────────────
 
   void _scrollToAyah(int ayahNumber, {bool force = false}) {
-    if (!_isAutoScrollEnabled && !force) return;
-    if (_lastScrolledAyah == ayahNumber && !force) return;
-    if (!_scrollController.hasClients) return;
+    debugPrint(
+        '[AUTO-SCROLL] Request: ayah=$ayahNumber, enabled=$_isAutoScrollEnabled, force=$force');
+
+    if (!_isAutoScrollEnabled && !force) {
+      debugPrint('[AUTO-SCROLL] BLOCKED: auto-scroll disabled');
+      return;
+    }
+    if (_lastScrolledAyah == ayahNumber && !force) {
+      debugPrint('[AUTO-SCROLL] SKIPPED: already scrolled to $ayahNumber');
+      return;
+    }
+    if (!_scrollController.hasClients) {
+      debugPrint('[AUTO-SCROLL] FAILED: no scroll clients');
+      return;
+    }
 
     final key = _ayahKeys[ayahNumber];
-    if (key == null) return;
+    if (key == null) {
+      debugPrint('[AUTO-SCROLL] FAILED: no key for ayah $ayahNumber');
+      return;
+    }
+
+    debugPrint('[AUTO-SCROLL] SCROLLING to ayah $ayahNumber');
 
     _lastScrolledAyah = ayahNumber;
 
@@ -286,11 +303,12 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
 
           if (!_hasTrackedInitialRead) {
             _hasTrackedInitialRead = true;
+            // Initialize keys IMMEDIATELY (not in post frame)
+            for (var ayah in surah.ayahs) {
+              _ayahKeys.putIfAbsent(ayah.number, () => GlobalKey());
+            }
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _updateLastRead(surah, widget.initialAyah ?? 1);
-              for (var ayah in surah.ayahs) {
-                _ayahKeys[ayah.number] = GlobalKey();
-              }
             });
           }
 
@@ -373,9 +391,12 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                       const SizedBox(height: AppSpacing.md),
                   itemBuilder: (context, index) {
                     final ayah = surah.ayahs[index];
-                    _ayahKeys[ayah.number] ??= GlobalKey();
+                    final ayahKey = _ayahKeys.putIfAbsent(
+                      ayah.number,
+                      () => GlobalKey(),
+                    );
                     return _PremiumAyahCard(
-                      key: _ayahKeys[ayah.number],
+                      key: ayahKey,
                       ayah: ayah,
                       surahNumber: surah.number,
                     );
@@ -403,9 +424,9 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
             right: AppSpacing.lg,
             child: _ResumeAutoScrollButton(onTap: _resumeAutoScroll),
           ),
-        // Audio player at bottom
+        // Audio player at bottom (above bottom nav)
         Positioned(
-          bottom: 0,
+          bottom: MediaQuery.of(context).padding.bottom + 70,
           left: 0,
           right: 0,
           child: QuranMiniPlayer(surahName: surah.name),
