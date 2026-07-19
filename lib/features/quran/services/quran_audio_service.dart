@@ -282,17 +282,15 @@ class QuranAudioService {
           _updateState(_state.copyWith(status: QuranAudioStatus.paused));
           break;
         case PlayerState.stopped:
-          // Don't update — let complete/manual stop handle
           break;
         case PlayerState.completed:
-          _handleAyahCompleted();
           break;
         case PlayerState.disposed:
           break;
       }
     });
 
-    // Completion event
+    // Completion event (SINGLE handler — no duplicates)
     _completionSub = _player.onPlayerComplete.listen((_) {
       _handleAyahCompleted();
     });

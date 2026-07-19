@@ -262,6 +262,16 @@ class QuranAudioNotifier extends StateNotifier<QuranAudioState> {
     _service.setAutoPlay(!state.isAutoPlayEnabled);
   }
 
+  /// Set repeat mode
+  void setRepeatMode(PlayMode mode) {
+    _service.setPlayMode(mode);
+  }
+
+  /// Set playback speed
+  Future<void> setPlaybackSpeed(double speed) async {
+    await _service.setPlaybackSpeed(speed);
+  }
+
   /// Set volume
   Future<void> setVolume(double volume) async {
     await _service.setVolume(volume);
