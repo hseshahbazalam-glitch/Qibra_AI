@@ -1,17 +1,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Internet — API calls ke liye -->
+    <!-- Internet - API calls ke liye -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Location — Prayer times aur Qibla ke liye -->
+    <!-- Location - Prayer times aur Qibla ke liye -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- Notifications — Prayer alerts ke liye -->
+    <!-- Notifications - Prayer alerts ke liye -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!-- Storage — Quran audio cache ke liye -->
+    <!-- Azan Alarms -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Compass - Qibla direction ke liye -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
+
+    <!-- Storage - Quran audio cache ke liye -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -23,6 +32,7 @@
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config">
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -40,6 +50,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Notification Receivers -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

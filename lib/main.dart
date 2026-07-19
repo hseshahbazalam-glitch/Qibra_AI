@@ -4,7 +4,8 @@
 // QIBRA AI — Main Entry Point
 // Version: 5.0.0 — With Gemini AI + Hadith Database
 // ============================================================
-
+import 'package:flutter/foundation.dart';
+import 'package:qibra_ai/features/prayer/data/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,7 +49,15 @@ void main() async {
   }());
 
   // Initialize Service Locator
-  await ServiceLocator.init();
+
+  // Initialize Notification Service
+  try {
+    debugPrint('🔔 Initializing Notification Service...');
+    await NotificationService.instance.initialize();
+    debugPrint('✅ Notification Service ready');
+  } catch (e) {
+    debugPrint('⚠️ Notification Service failed: $e');
+  }
 
   // Quran data load karo
   try {

@@ -4,6 +4,8 @@
 // QIBRA AI — APP ROUTER (Complete with All Placeholders)
 // Version: 6.0.0 — All routes working
 // ============================================================
+import 'package:qibra_ai/features/qibla/presentation/qibla_screen.dart';
+import 'package:qibra_ai/features/duas/presentation/duas_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -896,7 +898,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.qibla,
             name: 'qibla',
-            builder: (context, state) => const _QiblaPlaceholder(),
+            builder: (context, state) => const QiblaScreen(),
           ),
 
           // Tasbih
@@ -920,13 +922,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AiChatScreen(),
           ),
 
-          // Dua
+          // Dua (REAL)
           GoRoute(
             path: AppRoutes.dua,
             name: 'dua',
-            builder: (context, state) => const _DuaPlaceholder(),
+            builder: (context, state) => const DuasHomeScreen(),
           ),
-
           // Islamic Calendar
           GoRoute(
             path: AppRoutes.islamicCalendar,

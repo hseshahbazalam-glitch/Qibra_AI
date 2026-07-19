@@ -433,6 +433,49 @@ abstract final class AppTextStyles {
         height: AppLineHeight.tight,
         letterSpacing: AppLetterSpacing.wider,
       );
+  // ============================================================
+  // ARABIC TEXT STYLES (Amiri Font)
+  // ============================================================
+
+  /// Arabic Small — 18px (duas, short Arabic text)
+  static TextStyle get arabicSmall => GoogleFonts.amiri(
+        fontSize: AppFontSize.arabicSmall,
+        fontWeight: AppFontWeight.regular,
+        color: AppColors.textPrimary,
+        height: AppLineHeight.arabicNormal,
+      );
+
+  /// Arabic Medium — 22px (standard Quran ayah)
+  static TextStyle get arabicMedium => GoogleFonts.amiri(
+        fontSize: AppFontSize.arabicMedium,
+        fontWeight: AppFontWeight.regular,
+        color: AppColors.textPrimary,
+        height: AppLineHeight.arabicRelaxed,
+      );
+
+  /// Arabic Large — 28px (large ayah display)
+  static TextStyle get arabicLarge => GoogleFonts.amiri(
+        fontSize: AppFontSize.arabicLarge,
+        fontWeight: AppFontWeight.regular,
+        color: AppColors.textPrimary,
+        height: AppLineHeight.arabicRelaxed,
+      );
+
+  /// Arabic Display — 36px (Bismillah, surah names)
+  static TextStyle get arabicDisplay => GoogleFonts.amiri(
+        fontSize: AppFontSize.arabicDisplay,
+        fontWeight: AppFontWeight.bold,
+        color: AppColors.textPrimary,
+        height: AppLineHeight.arabicRelaxed,
+      );
+
+  /// Arabic Hero — 48px (splash screen)
+  static TextStyle get arabicHero => GoogleFonts.amiri(
+        fontSize: AppFontSize.arabicHero,
+        fontWeight: AppFontWeight.bold,
+        color: AppColors.textPrimary,
+        height: AppLineHeight.arabicLoose,
+      );
 
   // ══════════════════════════════════════════
   // SPECIAL PURPOSE STYLES

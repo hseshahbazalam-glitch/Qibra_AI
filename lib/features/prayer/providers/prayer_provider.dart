@@ -3,11 +3,11 @@
 // ============================================================
 // QIBRA AI — PRAYER PROVIDER (v1.2 — No Geocoding Dependency)
 // ============================================================
-
+import 'package:flutter/foundation.dart';
+import 'package:qibra_ai/features/prayer/data/services/notification_service.dart';
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -788,4 +788,118 @@ final distanceToKaabaProvider = Provider<double?>((ref) {
 
   if (locationState.location == null) return null;
   return service.calculateDistanceToKaaba(locationState.location!);
+}); // ============================================================
+// ============================================================
+// SECTION: AZAN NOTIFICATION SCHEDULER
+// ============================================================
+
+class _PrayerNotificationIds {
+  static const int fajr = 1001;
+  static const int dhuhr = 1002;
+  static const int asr = 1003;
+  static const int maghrib = 1004;
+  static const int isha = 1005;
+
+  static int getId(PrayerType type) {
+    switch (type) {
+      case PrayerType.fajr:
+        return fajr;
+      case PrayerType.dhuhr:
+        return dhuhr;
+      case PrayerType.asr:
+        return asr;
+      case PrayerType.maghrib:
+        return maghrib;
+      case PrayerType.isha:
+        return isha;
+      default:
+        return 1000;
+    }
+  }
+}
+
+String _getPrayerArabic(PrayerType type) {
+  switch (type) {
+    case PrayerType.fajr:
+      return 'الفجر';
+    case PrayerType.dhuhr:
+      return 'الظهر';
+    case PrayerType.asr:
+      return 'العصر';
+    case PrayerType.maghrib:
+      return 'المغرب';
+    case PrayerType.isha:
+      return 'العشاء';
+    default:
+      return '';
+  }
+}
+
+Future<void> _scheduleAllAzanNotifications(
+  DailyPrayerTimes times,
+  PrayerSettings settings,
+) async {
+  final notifService = NotificationService.instance;
+
+  // Cancel all previous notifications
+  await notifService.cancelAll();
+
+  if (!settings.enableNotifications) {
+    debugPrint('🔕 Notifications disabled - not scheduling');
+    return;
+  }
+
+  for (final prayer in times.prayers) {
+    // Skip Sunrise (no azan)
+    if (prayer.type == PrayerType.sunrise) continue;
+
+    final baseId = _PrayerNotificationIds.getId(prayer.type);
+
+    // 1. Main azan notification
+    if (settings.enableAdhan) {
+      await notifService.scheduleAzanNotification(
+        id: baseId,
+        prayerName: prayer.type.name,
+        prayerNameArabic: prayer.type.arabicName,
+        prayerTime: prayer.time,
+        playAdhan: settings.enableAdhan,
+      );
+    }
+
+    // 2. Pre-prayer reminder (15 min before)
+    if (settings.enablePreReminder) {
+      await notifService.schedulePreReminder(
+        id: baseId + 100, // Different ID range
+        prayerName: prayer.type.name,
+        prayerTime: prayer.time,
+        minutesBefore: settings.preReminderMinutes,
+      );
+    }
+
+    // 3. Silent mode reminder (at prayer time)
+    if (settings.enableSilentMode) {
+      await notifService.scheduleSilentModeReminder(
+        id: baseId + 200, // Different ID range
+        prayerName: prayer.type.name,
+        prayerTime: prayer.time,
+        durationMinutes: settings.silentModeDuration,
+      );
+    }
+  }
+
+  debugPrint('✅ All prayer notifications scheduled');
+  debugPrint('   Azan: ${settings.enableAdhan}');
+  debugPrint(
+      '   Pre-reminder: ${settings.enablePreReminder} (${settings.preReminderMinutes} min)');
+  debugPrint(
+      '   Silent mode: ${settings.enableSilentMode} (${settings.silentModeDuration} min)');
+}
+
+final azanSchedulerProvider = Provider<void>((ref) {
+  final times = ref.watch(dailyPrayerTimesProvider);
+  final settings = ref.watch(prayerSettingsProvider);
+
+  if (times != null) {
+    _scheduleAllAzanNotifications(times, settings);
+  }
 });

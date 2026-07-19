@@ -726,7 +726,7 @@ class _PremiumAyahCard extends ConsumerWidget {
             height: 38,
             decoration: BoxDecoration(
               gradient: isActive
-                  ? LinearGradient(
+                  ? const LinearGradient(
                       colors: [AppColors.primary, AppColors.accent],
                     )
                   : LinearGradient(
@@ -768,7 +768,7 @@ class _PremiumAyahCard extends ConsumerWidget {
               ),
             ),
           ] else if (isActive && audioState.isPaused) ...[
-            Icon(Icons.pause_circle_filled_rounded,
+            const Icon(Icons.pause_circle_filled_rounded,
                 color: AppColors.primary, size: 18),
             const SizedBox(width: 4),
             Text(
@@ -779,7 +779,7 @@ class _PremiumAyahCard extends ConsumerWidget {
               ),
             ),
           ] else if (isActive && audioState.isLoading) ...[
-            SizedBox(
+            const SizedBox(
               width: 14,
               height: 14,
               child: CircularProgressIndicator(
@@ -892,7 +892,7 @@ class _PremiumAyahCard extends ConsumerWidget {
               value: audioState.progress.clamp(0.0, 1.0),
               minHeight: 4,
               backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-              valueColor: AlwaysStoppedAnimation(AppColors.primary),
+              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
             ),
           ),
           const SizedBox(height: 4),
@@ -1082,7 +1082,7 @@ class _ResumeAutoScrollButton extends StatelessWidget {
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [AppColors.primary, AppColors.accent],
             ),
             borderRadius: BorderRadius.circular(24),
@@ -1282,7 +1282,7 @@ class _PlayFullSurahButton extends ConsumerWidget {
               vertical: AppSpacing.md + 4,
             ),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [AppColors.primary, AppColors.accent],
@@ -1379,7 +1379,7 @@ class _BismillahWidget extends StatelessWidget {
           color: AppColors.accent.withValues(alpha: 0.16),
         ),
       ),
-      child: Text(
+      child: const Text(
         'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
         textDirection: TextDirection.rtl,
         textAlign: TextAlign.center,
@@ -1437,7 +1437,7 @@ class _TafseerButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.menu_book_rounded,
+                const Icon(Icons.menu_book_rounded,
                     color: AppColors.accent, size: 22),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
@@ -1544,9 +1544,9 @@ class _FontSizeBottomSheet extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
-        borderRadius: const BorderRadius.vertical(
+        borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppRadius.xl2),
         ),
       ),
@@ -1646,9 +1646,9 @@ class _ReaderSettingsSheet extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
-        borderRadius: const BorderRadius.vertical(
+        borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppRadius.xl2),
         ),
       ),

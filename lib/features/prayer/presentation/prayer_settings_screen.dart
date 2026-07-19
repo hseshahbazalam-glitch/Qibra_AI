@@ -4,7 +4,7 @@
 // QIBRA AI — PRAYER SETTINGS SCREEN (v1.0)
 // Phase: 9 — Prayer Configuration
 // ============================================================
-
+import '../data/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -203,6 +203,28 @@ class _PrayerSettingsScreenState extends ConsumerState<PrayerSettingsScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          HapticFeedback.mediumImpact();
+          await NotificationService.instance.showTestNotification();
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('🔔 Test notification sent!'),
+                backgroundColor: AppColors.primary,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        backgroundColor: AppColors.primary,
+        icon:
+            const Icon(Icons.notifications_active_rounded, color: Colors.white),
+        label: const Text(
+          'Test Azan',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

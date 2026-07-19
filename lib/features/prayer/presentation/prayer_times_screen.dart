@@ -4,7 +4,6 @@
 // QIBRA AI — PRAYER TIMES SCREEN (v1.0)
 // Phase: 9 — Premium Prayer UI
 // ============================================================
-
 import 'prayer_settings_screen.dart';
 import 'prayer_tracker_screen.dart';
 import 'package:flutter/material.dart';
@@ -146,6 +145,9 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(azanSchedulerProvider); // ← YEH LINE ADD KARO
+
+    // Baaki jo pehle se code tha
     final locationState = ref.watch(locationProvider);
     final times = ref.watch(dailyPrayerTimesProvider);
 
