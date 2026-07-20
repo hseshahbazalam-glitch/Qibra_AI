@@ -1,12 +1,6 @@
 // lib/features/chat/data/services/islamic_ai_engine.dart
-
-// ============================================================
-// QIBRA AI — ISLAMIC KNOWLEDGE ENGINE (v2.0 with Dictionary)
-// Custom AI that searches ONLY authentic sources:
-// - Quran (Arabic + Urdu + English + Roman Urdu)
-// - 34,532 Hadiths (6 Sahih Books)
-// - Tafseer Ibn Kathir (Urdu)
-// ============================================================
+// QIBRA AI — Islamic Knowledge Engine v3.0
+// Detailed answers from local data only
 
 import 'package:flutter/foundation.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
@@ -56,23 +50,23 @@ class IslamicAIEngine {
 
   bool _isInitialized = false;
 
+  // ============================================================
+  // INITIALIZE
+  // ============================================================
+
   Future<void> initialize() async {
     if (_isInitialized) return;
-
     debugPrint('[ISLAMIC_AI] 🚀 Initializing...');
-
     await Future.wait([
       _hadithDb.initialize(),
       _quranSearch.initialize(),
     ]);
-
     _isInitialized = true;
     debugPrint('[ISLAMIC_AI] ✅ Ready');
   }
 
   // ============================================================
   // MAIN ANSWER FUNCTION
-  // Priority: Dictionary → Keyword Search
   // ============================================================
 
   Future<IslamicAnswer> answerQuestion(String question) async {
@@ -83,50 +77,53 @@ class IslamicAIEngine {
     debugPrint(
         '[ISLAMIC_AI] Language: ${LanguageDetector.getName(detectedLang)}');
 
-    // 2. Try Dictionary first (smart topic detection)
+    // 2. Try dictionary topic match first
     final topic = IslamicDictionary.findTopic(question);
 
     List<QuranSearchResult> quranResults = [];
     List<LocalSearchResult> hadithResults = [];
 
     if (topic != null) {
-      debugPrint('[ISLAMIC_AI] ✅ Topic matched: ${topic.nameEnglish}');
+      debugPrint('[ISLAMIC_AI] ✅ Topic: ${topic.nameEnglish}');
 
-      // Get exact Quran verses for this topic
+      // Get exact Quran verses
       quranResults = _getVersesFromRefs(topic.quranRefs);
 
-      // Search hadith with topic-specific English keywords
+      // Search hadith with topic keywords
       for (final kw in topic.hadithKeywords) {
-        final results = _hadithDb.search(kw, maxResults: 2);
+        final results = _hadithDb.search(kw, maxResults: 3);
         for (final r in results) {
           if (!hadithResults.any((h) => h.hadith.id == r.hadith.id)) {
             hadithResults.add(r);
           }
         }
-        if (hadithResults.length >= 3) break;
+        if (hadithResults.length >= 5) break;
+      }
+
+      // If hadith still empty, try question words
+      if (hadithResults.isEmpty) {
+        hadithResults = _hadithDb.search(question, maxResults: 3);
       }
     } else {
-      debugPrint(
-          '[ISLAMIC_AI] ⚠️ No topic matched — falling back to keyword search');
-
-      // Fallback: basic keyword search
-      quranResults = _quranSearch.search(question, maxResults: 3);
-      hadithResults = _hadithDb.search(question, maxResults: 3);
+      debugPrint('[ISLAMIC_AI] ⚠️ No topic — keyword search');
+      quranResults = _quranSearch.search(question, maxResults: 5);
+      hadithResults = _hadithDb.search(question, maxResults: 5);
     }
 
-    // 3. Get tafseer for top Quran result
+    // 3. Get tafseer for top Quran results
     final tafseerResults = <TafseerAyah>[];
-    if (quranResults.isNotEmpty) {
-      final top = quranResults.first;
+    for (final verse in quranResults.take(2)) {
       final tafseer = await _tafseerService.getAyahTafseer(
-        top.surahNumber,
-        top.ayahNumber,
+        verse.surahNumber,
+        verse.ayahNumber,
       );
-      if (tafseer != null) tafseerResults.add(tafseer);
+      if (tafseer != null) {
+        tafseerResults.add(tafseer);
+      }
     }
 
-    // 4. Format answer
-    final formatted = _formatAnswer(
+    // 4. Format detailed answer
+    final formatted = _formatDetailedAnswer(
       question: question,
       language: detectedLang,
       quran: quranResults,
@@ -154,23 +151,19 @@ class IslamicAIEngine {
 
   List<QuranSearchResult> _getVersesFromRefs(List<QuranReference> refs) {
     final results = <QuranSearchResult>[];
-
     for (final ref in refs) {
       final result = _quranSearch.getVerse(ref.surah, ref.ayah);
-      if (result != null) {
-        results.add(result);
-      }
-      if (results.length >= 3) break;
+      if (result != null) results.add(result);
+      if (results.length >= 5) break;
     }
-
     return results;
   }
 
   // ============================================================
-  // FORMAT ANSWER
+  // FORMAT DETAILED ANSWER
   // ============================================================
 
-  String _formatAnswer({
+  String _formatDetailedAnswer({
     required String question,
     required QueryLanguage language,
     required List<QuranSearchResult> quran,
@@ -178,189 +171,290 @@ class IslamicAIEngine {
     required List<TafseerAyah> tafseer,
     IslamicTopic? matchedTopic,
   }) {
-    final buffer = StringBuffer();
-    final responseLang = LanguageDetector.getResponseLanguage(language);
+    final buf = StringBuffer();
+    final lang = LanguageDetector.getResponseLanguage(language);
+    final bool isUrdu = lang == QueryLanguage.urdu;
+    final bool isRoman = lang == QueryLanguage.romanUrdu;
+    final bool isArabic = lang == QueryLanguage.arabic;
 
-    // ═══════════════════════════════════════════════
-    // HEADER
-    // ═══════════════════════════════════════════════
-    if (responseLang == QueryLanguage.urdu) {
-      buffer.writeln('✨ بسم اللہ الرحمٰن الرحیم ✨\n');
-    } else if (responseLang == QueryLanguage.arabic) {
-      buffer.writeln('✨ بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ ✨\n');
+    // ── Bismillah Header ──────────────────────────────────────
+    if (isUrdu) {
+      buf.writeln('✨ **بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ** ✨\n');
+    } else if (isArabic) {
+      buf.writeln('✨ **بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ** ✨\n');
     } else {
-      buffer.writeln('✨ **Bismillah ir-Rahman ir-Raheem** ✨\n');
+      buf.writeln('✨ **Bismillah ir-Rahman ir-Raheem** ✨\n');
     }
 
-    buffer.writeln('---\n');
+    buf.writeln('---\n');
 
-    // ═══════════════════════════════════════════════
-    // TOPIC BADGE (if matched)
-    // ═══════════════════════════════════════════════
+    // ── No Results ────────────────────────────────────────────
+    if (quran.isEmpty && hadiths.isEmpty && tafseer.isEmpty) {
+      buf.writeln(_noResultsResponse(lang));
+      return buf.toString();
+    }
+
+    // ── Topic Introduction ────────────────────────────────────
     if (matchedTopic != null) {
-      if (responseLang == QueryLanguage.romanUrdu ||
-          responseLang == QueryLanguage.urdu) {
-        buffer.writeln(
-            '### 📌 Topic: **${matchedTopic.nameEnglish}** _(${matchedTopic.nameUrdu})_\n');
+      if (isUrdu) {
+        buf.writeln('## 📌 ${matchedTopic.nameUrdu}\n');
+        buf.writeln(
+            'اس موضوع کے بارے میں قرآن و حدیث سے مستند دلائل پیش ہیں:\n');
+      } else if (isRoman) {
+        buf.writeln('## 📌 ${matchedTopic.nameEnglish}\n');
+        buf.writeln(
+            'Is mauzu ke baare mein Quran aur Hadith se mustanad dalail:\n');
       } else {
-        buffer.writeln('### 📌 Topic: **${matchedTopic.nameEnglish}**\n');
+        buf.writeln('## 📌 ${matchedTopic.nameEnglish}\n');
+        buf.writeln(
+            'Here are authentic evidences from Quran and Hadith on this topic:\n');
       }
+      buf.writeln('---\n');
     }
 
-    // Check if any results found
-    if (quran.isEmpty && hadiths.isEmpty) {
-      return _noResultsResponse(responseLang);
-    }
-
-    // ═══════════════════════════════════════════════
-    // QURAN SECTION
-    // ═══════════════════════════════════════════════
+    // ── QURAN SECTION ─────────────────────────────────────────
     if (quran.isNotEmpty) {
-      if (responseLang == QueryLanguage.urdu) {
-        buffer.writeln('## 📖 قرآن کی روشنی میں\n');
-      } else if (responseLang == QueryLanguage.romanUrdu) {
-        buffer.writeln('## 📖 Quran Ki Roshni Mein\n');
+      if (isUrdu) {
+        buf.writeln('## 📖 قرآنِ کریم کی روشنی میں\n');
+      } else if (isRoman) {
+        buf.writeln('## 📖 Quran Ki Roshni Mein\n');
+      } else if (isArabic) {
+        buf.writeln('## 📖 من القرآن الكريم\n');
       } else {
-        buffer.writeln('## 📖 From the Quran\n');
+        buf.writeln('## 📖 Quranic Evidence\n');
       }
 
-      for (final ayah in quran.take(3)) {
-        buffer.writeln(
-            '### 🕌 Surah ${ayah.surahNumber}, Ayah ${ayah.ayahNumber}\n');
+      for (int i = 0; i < quran.take(5).length; i++) {
+        final v = quran[i];
+        buf.writeln('### 🌿 آیت ${i + 1} — ${v.reference}\n');
 
-        // Arabic
-        if (ayah.arabic.isNotEmpty) {
-          buffer.writeln('${ayah.arabic}\n');
+        // Arabic text always shown
+        if (v.arabic.isNotEmpty) {
+          buf.writeln('**عربی:**\n');
+          buf.writeln('> ${v.arabic}\n');
         }
 
-        // Translation
-        buffer.writeln('**Translation:**\n');
-
-        if (responseLang == QueryLanguage.romanUrdu &&
-            ayah.romanUrdu.isNotEmpty) {
-          buffer.writeln('> ${ayah.romanUrdu}\n');
-        } else if (responseLang == QueryLanguage.english &&
-            ayah.english.isNotEmpty) {
-          buffer.writeln('> ${ayah.english}\n');
-        } else if (ayah.urdu.isNotEmpty) {
-          buffer.writeln('> ${ayah.urdu}\n');
-        } else if (ayah.english.isNotEmpty) {
-          buffer.writeln('> ${ayah.english}\n');
+        // Translation based on language
+        if (isUrdu && v.urdu.isNotEmpty) {
+          buf.writeln('**اردو ترجمہ:**\n');
+          buf.writeln('> ${v.urdu}\n');
+        } else if (isRoman && v.romanUrdu.isNotEmpty) {
+          buf.writeln('**Roman Urdu:**\n');
+          buf.writeln('> ${v.romanUrdu}\n');
+          if (v.urdu.isNotEmpty) {
+            buf.writeln('**اردو:**\n');
+            buf.writeln('> ${v.urdu}\n');
+          }
+        } else if (isArabic && v.arabic.isNotEmpty) {
+          // Arabic only
+        } else {
+          // English
+          if (v.english.isNotEmpty) {
+            buf.writeln('**English Translation:**\n');
+            buf.writeln('> ${v.english}\n');
+          }
+          if (v.urdu.isNotEmpty) {
+            buf.writeln('**اردو:**\n');
+            buf.writeln('> ${v.urdu}\n');
+          }
         }
 
-        buffer.writeln(
-            '📌 *Reference: Quran ${ayah.surahNumber}:${ayah.ayahNumber}*\n');
-        buffer.writeln('---\n');
+        buf.writeln('📌 *${v.reference}*\n');
+        buf.writeln('---\n');
       }
     }
 
-    // ═══════════════════════════════════════════════
-    // HADITH SECTION
-    // ═══════════════════════════════════════════════
+    // ── HADITH SECTION ────────────────────────────────────────
     if (hadiths.isNotEmpty) {
-      if (responseLang == QueryLanguage.urdu) {
-        buffer.writeln('## 📚 احادیث سے رہنمائی\n');
-      } else if (responseLang == QueryLanguage.romanUrdu) {
-        buffer.writeln('## 📚 Ahadith Se Rehnumai\n');
+      if (isUrdu) {
+        buf.writeln('## 📚 احادیثِ نبویؐ سے رہنمائی\n');
+      } else if (isRoman) {
+        buf.writeln('## 📚 Ahadith Se Rehnumai\n');
+      } else if (isArabic) {
+        buf.writeln('## 📚 من السنة النبوية\n');
       } else {
-        buffer.writeln('## 📚 From the Hadith\n');
+        buf.writeln('## 📚 Hadith Evidence\n');
       }
 
-      for (final result in hadiths.take(3)) {
-        final h = result.hadith;
+      for (int i = 0; i < hadiths.take(5).length; i++) {
+        final h = hadiths[i].hadith;
 
-        buffer.writeln('### ✅ ${h.displayReference}\n');
-        buffer.writeln('🏷️ *Grade: ${h.grade}*\n');
+        buf.writeln('### ✅ حدیث ${i + 1} — ${h.displayReference}\n');
 
+        // Grade badge
+        if (h.grade.isNotEmpty) {
+          buf.writeln('🏷️ **Grade:** ${h.grade}\n');
+        }
+
+        // Arabic text if available
+        if (h.textArabic != null && h.textArabic!.isNotEmpty) {
+          buf.writeln('**عربی متن:**\n');
+          buf.writeln('> ${h.textArabic}\n');
+        }
+
+        // Hadith text based on language
         String hadithText = '';
-        if (responseLang == QueryLanguage.urdu ||
-            responseLang == QueryLanguage.romanUrdu) {
+        if (isUrdu || isRoman) {
           hadithText = h.textUrdu.isNotEmpty ? h.textUrdu : h.textEnglish;
         } else {
           hadithText = h.textEnglish.isNotEmpty ? h.textEnglish : h.textUrdu;
         }
 
         if (hadithText.isNotEmpty) {
-          buffer.writeln('> $hadithText\n');
+          if (isUrdu) {
+            buf.writeln('**اردو:**\n');
+          } else if (isRoman) {
+            buf.writeln('**متن:**\n');
+          } else {
+            buf.writeln('**Text:**\n');
+          }
+          buf.writeln('> $hadithText\n');
         }
 
-        buffer.writeln('---\n');
+        // English always shown if Urdu was primary
+        if ((isUrdu || isRoman) && h.textEnglish.isNotEmpty) {
+          buf.writeln('**English:**\n');
+          buf.writeln('> ${h.textEnglish}\n');
+        }
+
+        buf.writeln('📌 *${h.displayReference}*\n');
+        buf.writeln('---\n');
       }
     }
 
-    // ═══════════════════════════════════════════════
-    // TAFSEER SECTION
-    // ═══════════════════════════════════════════════
+    // ── TAFSEER SECTION ───────────────────────────────────────
     if (tafseer.isNotEmpty) {
-      if (responseLang == QueryLanguage.urdu) {
-        buffer.writeln('## 💡 تفسیر (ابن کثیر)\n');
+      if (isUrdu) {
+        buf.writeln('## 💡 تفسیر (ابنِ کثیر)\n');
+      } else if (isRoman) {
+        buf.writeln('## 💡 Tafseer — Ibn Kathir\n');
+      } else if (isArabic) {
+        buf.writeln('## 💡 التفسير — ابن كثير\n');
       } else {
-        buffer.writeln('## 💡 Tafseer (Ibn Kathir)\n');
+        buf.writeln('## 💡 Tafseer — Ibn Kathir\n');
       }
 
       for (final t in tafseer) {
-        String text = t.text;
-        if (text.length > 500) {
-          text = '${text.substring(0, 500)}...';
+        buf.writeln('### 📖 Surah ${t.surahNumber} : Ayah ${t.ayahNumber}\n');
+
+        String text = t.text.trim();
+
+        // Show full tafseer up to 800 chars
+        if (text.length > 800) {
+          text = '${text.substring(0, 800)}...';
         }
-        buffer.writeln('> $text\n');
-        buffer.writeln('📌 *Surah ${t.surahNumber}:${t.ayahNumber}*\n');
+
+        buf.writeln('> $text\n');
+        buf.writeln(
+            '📌 *Tafseer Ibn Kathir — ${t.surahNumber}:${t.ayahNumber}*\n');
+        buf.writeln('---\n');
       }
-      buffer.writeln('---\n');
     }
 
-    // ═══════════════════════════════════════════════
-    // FOOTER
-    // ═══════════════════════════════════════════════
-    if (responseLang == QueryLanguage.urdu) {
-      buffer.writeln(
-          '\n_🤲 یہ جواب مستند اسلامی ذرائع سے ہے۔ اللہ سب کو ہدایت دے۔ آمین۔_');
-    } else if (responseLang == QueryLanguage.romanUrdu) {
-      buffer.writeln(
-          '\n_🤲 Yeh jawab authentic Islamic sources se hai — Quran, Sahih Ahadith, aur Tafseer Ibn Kathir. Allah aap ko hidayat de. Aameen._');
+    // ── SUMMARY ───────────────────────────────────────────────
+    final totalRefs = quran.length + hadiths.length + tafseer.length;
+
+    buf.writeln('## 📊 Summary\n');
+
+    if (isUrdu) {
+      buf.writeln('| ذریعہ | تعداد |');
+      buf.writeln('|-------|-------|');
+      if (quran.isNotEmpty) buf.writeln('| 📖 قرآنی آیات | ${quran.length} |');
+      if (hadiths.isNotEmpty) buf.writeln('| 📚 احادیث | ${hadiths.length} |');
+      if (tafseer.isNotEmpty) buf.writeln('| 💡 تفسیر | ${tafseer.length} |');
+      buf.writeln('| **کل** | **$totalRefs** |');
+    } else if (isRoman) {
+      buf.writeln('| Source | Count |');
+      buf.writeln('|--------|-------|');
+      if (quran.isNotEmpty)
+        buf.writeln('| 📖 Qurani Ayaat | ${quran.length} |');
+      if (hadiths.isNotEmpty) buf.writeln('| 📚 Ahadith | ${hadiths.length} |');
+      if (tafseer.isNotEmpty) buf.writeln('| 💡 Tafseer | ${tafseer.length} |');
+      buf.writeln('| **Kul** | **$totalRefs** |');
     } else {
-      buffer.writeln(
+      buf.writeln('| Source | Count |');
+      buf.writeln('|--------|-------|');
+      if (quran.isNotEmpty)
+        buf.writeln('| 📖 Quran Verses | ${quran.length} |');
+      if (hadiths.isNotEmpty) buf.writeln('| 📚 Hadiths | ${hadiths.length} |');
+      if (tafseer.isNotEmpty) buf.writeln('| 💡 Tafseer | ${tafseer.length} |');
+      buf.writeln('| **Total** | **$totalRefs** |');
+    }
+
+    buf.writeln('');
+
+    // ── Footer ────────────────────────────────────────────────
+    if (isUrdu) {
+      buf.writeln(
+          '\n_🤲 یہ جواب مستند اسلامی ذرائع (قرآن، صحیح احادیث، تفسیر ابنِ کثیر) سے ہے۔ اللہ سب کو ہدایت دے۔ آمین۔_');
+    } else if (isRoman) {
+      buf.writeln(
+          '\n_🤲 Yeh jawab authentic Islamic sources se hai — Quran, Sahih Ahadith, aur Tafseer Ibn Kathir. Allah aap ko hidayat de. Aameen._');
+    } else if (isArabic) {
+      buf.writeln(
+          '\n_🤲 هذه الإجابة من المصادر الإسلامية الأصيلة. هدانا الله وإياكم. آمين._');
+    } else {
+      buf.writeln(
           '\n_🤲 This answer is from authentic Islamic sources (Quran, Sahih Hadiths, Tafseer Ibn Kathir). May Allah guide us all. Aameen._');
     }
 
-    return buffer.toString();
+    return buf.toString();
   }
 
   // ============================================================
-  // NO RESULTS FALLBACK
+  // NO RESULTS RESPONSE
   // ============================================================
 
   String _noResultsResponse(QueryLanguage lang) {
     if (lang == QueryLanguage.urdu) {
-      return '''معاف کیجیے، میں آپ کے سوال کا جواب اپنے authentic database میں نہیں ڈھونڈ سکا۔
+      return '''## ⚠️ کوئی نتیجہ نہیں ملا
 
-براہ کرم:
+معاف کیجیے، میں آپ کے سوال کا جواب اپنے مستند ڈیٹابیس میں نہیں ڈھونڈ سکا۔
+
+**براہ کرم:**
 - سوال دوبارہ الفاظ بدل کر پوچھیں
 - زیادہ مخصوص سوال کریں
-- کوئی مستند عالم دین سے رجوع کریں
+- کسی مستند عالمِ دین سے رجوع کریں
 
-*"جو نہیں جانتا وہ اہل علم سے پوچھے" — Quran 16:43*''';
+*"جو نہیں جانتا وہ اہلِ علم سے پوچھے"* — قرآن 16:43''';
     }
 
     if (lang == QueryLanguage.romanUrdu) {
-      return '''Maaf kijiye, main aap ke sawal ka jawab apne authentic database mein nahi dhoondh saka.
+      return '''## ⚠️ Koi Nateeja Nahi Mila
 
-Please:
+Maaf kijiye, main aap ke sawal ka jawab apne authentic database mein nahi dhoondh saka.
+
+**Please:**
 - Sawal dobara alfaz badal kar puchein
-- Zyada specific sawal karein
+- Zyada specific sawal karein  
 - Kisi mustanad Aalim-e-Deen se rujoo karein
 
-*"Jo nahi jaante woh ahl-e-ilm se poochein" — Quran 16:43*''';
+*"Jo nahi jaanta woh ahl-e-ilm se pooche"* — Quran 16:43''';
     }
 
-    return '''I could not find an answer in my authentic database.
+    if (lang == QueryLanguage.arabic) {
+      return '''## ⚠️ لم يتم العثور على نتيجة
 
-Please:
+عذراً، لم أتمكن من العثور على إجابة في قاعدة البيانات الإسلامية.
+
+**يرجى:**
+- إعادة صياغة السؤال
+- طرح سؤال أكثر تحديداً
+- الرجوع إلى عالم دين متخصص
+
+*"فَاسْأَلُوا أَهْلَ الذِّكْرِ إِن كُنتُمْ لَا تَعْلَمُونَ"* — القرآن 16:43''';
+    }
+
+    return '''## ⚠️ No Results Found
+
+I could not find an answer in my authentic Islamic database.
+
+**Please:**
 - Rephrase your question
 - Ask a more specific question
 - Consult a qualified Islamic scholar
 
-*"Ask the people of knowledge if you do not know" — Quran 16:43*''';
+*"Ask the people of knowledge if you do not know"* — Quran 16:43''';
   }
 
   bool get isReady => _isInitialized;
