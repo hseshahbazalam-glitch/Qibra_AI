@@ -3,6 +3,7 @@
 // QIBRA AI — APP ROUTER (Complete)
 // Version: 8.0.0 — Mushaf Fullscreen (No Bottom Nav)
 // ============================================================
+import 'package:qibra_ai/features/settings/presentation/settings_screen.dart';
 import 'package:qibra_ai/features/qibla/presentation/qibla_screen.dart';
 import 'package:qibra_ai/features/duas/presentation/duas_home_screen.dart';
 import 'package:flutter/material.dart';
@@ -420,6 +421,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           onPrayerTap: () => context.go(AppRoutes.prayer),
           onHadithTap: () => context.go(AppRoutes.hadith),
           onAiTap: () => context.go(AppRoutes.aiChat),
+          onSettingsTap: () => context.go(AppRoutes.settings),
           onCenterFabTap: () => context.go(AppRoutes.quran),
           child: child,
         ),
@@ -514,10 +516,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
 
           // Settings
+          // Settings
           GoRoute(
             path: AppRoutes.settings,
             name: 'settings',
-            builder: (context, state) => const _SettingsPlaceholder(),
+            builder: (context, state) => const SettingsScreen(),
           ),
         ],
       ),

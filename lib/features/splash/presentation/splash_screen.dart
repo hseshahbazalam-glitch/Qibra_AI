@@ -1,10 +1,8 @@
 // lib/features/splash/presentation/splash_screen.dart
 
 // ============================================================
-// QIBRA AI — PREMIUM SPLASH SCREEN (Phase 2)
-// Version: 2.0.0
-// Description: Apple-quality splash with glassmorphism,
-//              glowing particles, and Islamic patterns.
+// QIBRA AI — PREMIUM SPLASH SCREEN v3.0
+// Updated: 2026 + Shahbaz Alam credit
 // ============================================================
 
 import 'dart:math' as math;
@@ -20,10 +18,6 @@ import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 
-// ============================================================
-// SPLASH SCREEN WIDGET
-// ============================================================
-
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -33,105 +27,77 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
-  // ── ANIMATION CONTROLLERS ────────────────────────────
-
-  /// Background rotating pattern
   late AnimationController _patternController;
-
-  /// Floating particles animation
   late AnimationController _particleController;
-
-  /// Logo scale + fade
   late AnimationController _logoController;
   late Animation<double> _logoScale;
   late Animation<double> _logoFade;
   late Animation<double> _logoGlow;
-
-  /// Bismillah fade + slide
   late AnimationController _bismillahController;
   late Animation<double> _bismillahFade;
   late Animation<Offset> _bismillahSlide;
-
-  /// App name reveal (letter by letter)
   late AnimationController _nameController;
   late Animation<double> _nameReveal;
-
-  /// Tagline fade
   late AnimationController _taglineController;
   late Animation<double> _taglineFade;
-
-  /// Loading dots
   late AnimationController _loadingController;
 
   @override
   void initState() {
     super.initState();
 
-    // ── Background Pattern (very slow, continuous) ──
     _patternController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 40),
     )..repeat();
 
-    // ── Floating Particles (continuous) ──
     _particleController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10),
     )..repeat();
 
-    // ── Logo Animation ──
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
 
-    _logoScale = Tween<double>(
-      begin: 0.3,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: Curves.elasticOut,
-    ));
+    _logoScale = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
+    );
 
-    _logoFade = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
-    ));
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _logoController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
 
-    _logoGlow = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
-    ));
+    _logoGlow = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _logoController,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
+      ),
+    );
 
-    // ── Bismillah Animation ──
     _bismillahController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
 
-    _bismillahFade = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _bismillahController,
-      curve: Curves.easeIn,
-    ));
+    _bismillahFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _bismillahController, curve: Curves.easeIn),
+    );
 
     _bismillahSlide = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _bismillahController,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: _bismillahController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
 
-    // ── App Name Reveal Animation ──
     _nameController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -142,62 +108,44 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       curve: Curves.easeOutCubic,
     );
 
-    // ── Tagline Animation ──
     _taglineController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
 
-    _taglineFade = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _taglineController,
-      curve: Curves.easeIn,
-    ));
+    _taglineFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _taglineController, curve: Curves.easeIn),
+    );
 
-    // ── Loading Dots (continuous) ──
     _loadingController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     )..repeat();
 
-    // Start choreographed animation sequence
     _startAnimationSequence();
-
-    // Schedule navigation
     _scheduleNavigation();
   }
 
-  /// Animation sequence with proper timing
   Future<void> _startAnimationSequence() async {
-    // Wait 200ms
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
-
-    // Bismillah appears first
     _bismillahController.forward();
 
-    // Wait 500ms then logo
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     _logoController.forward();
 
-    // Wait 800ms then app name
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
     _nameController.forward();
 
-    // Wait 600ms then tagline
     await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
     _taglineController.forward();
   }
 
-  /// Navigate after splash duration
   Future<void> _scheduleNavigation() async {
     await Future.delayed(const Duration(milliseconds: 3500));
-
     if (!mounted) return;
 
     final authState = ref.read(authProvider);
@@ -232,57 +180,27 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // ── LAYER 1: Deep gradient background ──
           _buildBackgroundGradient(),
-
-          // ── LAYER 2: Rotating Islamic pattern ──
           _buildRotatingPattern(size),
-
-          // ── LAYER 3: Floating particles ──
           _buildFloatingParticles(size),
-
-          // ── LAYER 4: Glassmorphism blur overlay ──
           _buildGlassOverlay(),
-
-          // ── LAYER 5: Main content ──
           SafeArea(
             child: Column(
               children: [
                 const Spacer(flex: 3),
-
-                // Bismillah
                 _buildBismillah(),
-
                 const SizedBox(height: AppSpacing.xl4),
-
-                // Premium Logo
                 _buildPremiumLogo(),
-
                 const SizedBox(height: AppSpacing.xl3),
-
-                // App Name with reveal
                 _buildAppNameReveal(),
-
                 const SizedBox(height: AppSpacing.md),
-
-                // Decorative divider
                 _buildDecorativeDivider(),
-
                 const SizedBox(height: AppSpacing.md),
-
-                // Tagline
                 _buildTagline(),
-
                 const Spacer(flex: 3),
-
-                // Loading indicator
                 _buildLoadingIndicator(),
-
                 const SizedBox(height: AppSpacing.xl2),
-
-                // Version + copyright
-                _buildFooter(),
-
+                _buildPremiumFooter(),
                 const SizedBox(height: AppSpacing.lg),
               ],
             ),
@@ -292,10 +210,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  // ══════════════════════════════════════════
-  // LAYER 1: Background Gradient
-  // ══════════════════════════════════════════
-
   Widget _buildBackgroundGradient() {
     return Positioned.fill(
       child: Container(
@@ -304,9 +218,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             center: Alignment.center,
             radius: 1.5,
             colors: [
-              Color(0xFF0D3320), // Emerald center
-              Color(0xFF071A14), // Deep emerald
-              Color(0xFF020A08), // Almost black
+              Color(0xFF0D3320),
+              Color(0xFF071A14),
+              Color(0xFF020A08),
             ],
             stops: [0.0, 0.5, 1.0],
           ),
@@ -314,10 +228,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ),
     );
   }
-
-  // ══════════════════════════════════════════
-  // LAYER 2: Rotating Islamic Pattern
-  // ══════════════════════════════════════════
 
   Widget _buildRotatingPattern(Size size) {
     return Positioned.fill(
@@ -339,10 +249,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  // ══════════════════════════════════════════
-  // LAYER 3: Floating Particles
-  // ══════════════════════════════════════════
-
   Widget _buildFloatingParticles(Size size) {
     return Positioned.fill(
       child: AnimatedBuilder(
@@ -359,10 +265,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  // ══════════════════════════════════════════
-  // LAYER 4: Glassmorphism Overlay
-  // ══════════════════════════════════════════
-
   Widget _buildGlassOverlay() {
     return Positioned.fill(
       child: BackdropFilter(
@@ -374,22 +276,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  // ══════════════════════════════════════════
-  // BISMILLAH
-  // ══════════════════════════════════════════
-
   Widget _buildBismillah() {
     return SlideTransition(
       position: _bismillahSlide,
       child: FadeTransition(
         opacity: _bismillahFade,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl2,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
           child: Column(
             children: [
-              // Arabic Bismillah
               ShaderMask(
                 shaderCallback: (bounds) => const LinearGradient(
                   colors: [
@@ -417,10 +312,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   textAlign: TextAlign.center,
                 ),
               ),
-
               const SizedBox(height: AppSpacing.sm),
-
-              // English translation
               Text(
                 'In the name of Allah, the Most Gracious, the Most Merciful',
                 style: AppTextStyles.labelSmall.copyWith(
@@ -437,20 +329,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  // ══════════════════════════════════════════
-  // PREMIUM LOGO
-  // ══════════════════════════════════════════
-
   Widget _buildPremiumLogo() {
     return AnimatedBuilder(
       animation: _logoController,
       builder: (context, child) {
         return FadeTransition(
           opacity: _logoFade,
-          child: ScaleTransition(
-            scale: _logoScale,
-            child: child,
-          ),
+          child: ScaleTransition(scale: _logoScale, child: child),
         );
       },
       child: AnimatedBuilder(
@@ -463,7 +348,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               shape: BoxShape.circle,
               gradient: AppGradients.gold,
               boxShadow: [
-                // Multi-layer glow effect
                 BoxShadow(
                   color: AppColors.accent
                       .withValues(alpha: 0.60 * _logoGlow.value),
@@ -487,7 +371,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Outer ring
                 Container(
                   width: 145,
                   height: 145,
@@ -499,14 +382,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     ),
                   ),
                 ),
-
-                // Inner dark circle with glass effect
                 ClipOval(
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: 10,
-                      sigmaY: 10,
-                    ),
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: Container(
                       width: 130,
                       height: 130,
@@ -519,7 +397,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         ),
                       ),
                       child: Center(
-                        // Mosque icon with gradient
                         child: ShaderMask(
                           shaderCallback: (bounds) =>
                               AppGradients.gold.createShader(bounds),
@@ -541,10 +418,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  // ══════════════════════════════════════════
-  // APP NAME REVEAL
-  // ══════════════════════════════════════════
-
   Widget _buildAppNameReveal() {
     const appName = 'QIBRA AI';
     final letters = appName.split('');
@@ -555,7 +428,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(letters.length, (index) {
-            // Each letter appears at different time
             final letterProgress =
                 (_nameReveal.value * letters.length - index).clamp(0.0, 1.0);
 
@@ -590,10 +462,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  // ══════════════════════════════════════════
-  // DECORATIVE DIVIDER
-  // ══════════════════════════════════════════
-
   Widget _buildDecorativeDivider() {
     return FadeTransition(
       opacity: _taglineFade,
@@ -613,14 +481,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             ),
           ),
           const Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-            ),
-            child: Icon(
-              Icons.star,
-              color: AppColors.accent,
-              size: 12,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            child: Icon(Icons.star, color: AppColors.accent, size: 12),
           ),
           Container(
             width: 40,
@@ -639,15 +501,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  // ══════════════════════════════════════════
-  // TAGLINE
-  // ══════════════════════════════════════════
-
   Widget _buildTagline() {
     return FadeTransition(
       opacity: _taglineFade,
       child: Text(
-        AppInfo.tagline,
+        'Your Complete Islamic Companion',
         style: AppTextStyles.bodyMedium.copyWith(
           color: AppColors.textSecondary,
           letterSpacing: 2,
@@ -656,10 +514,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ),
     );
   }
-
-  // ══════════════════════════════════════════
-  // LOADING INDICATOR (Premium)
-  // ══════════════════════════════════════════
 
   Widget _buildLoadingIndicator() {
     return AnimatedBuilder(
@@ -698,28 +552,129 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  // ══════════════════════════════════════════
-  // FOOTER
-  // ══════════════════════════════════════════
+  // ============================================================
+  // PREMIUM FOOTER — NEW DESIGN with Shahbaz Alam
+  // ============================================================
 
-  Widget _buildFooter() {
+  Widget _buildPremiumFooter() {
     return FadeTransition(
       opacity: _taglineFade,
       child: Column(
         children: [
+          // Version + BETA badge
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                  borderRadius: AppRadius.pillRadius,
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'v1.0.0',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 10,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFEF4444),
+                      Color(0xFFDC2626),
+                    ],
+                  ),
+                  borderRadius: AppRadius.pillRadius,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  'BETA',
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 9,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // Developer credit
           Text(
-            AppInfo.versionFull,
+            'Designed & Developed by',
             style: AppTextStyles.labelXSmall.copyWith(
-              color: AppColors.textTertiary,
-              letterSpacing: 1.2,
+              color: AppColors.textTertiary.withValues(alpha: 0.70),
+              fontSize: 8,
+              letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
+          ShaderMask(
+            shaderCallback: (bounds) => const LinearGradient(
+              colors: [
+                Color(0xFFFFD700),
+                Color(0xFFB8960C),
+                Color(0xFFFFD700),
+              ],
+            ).createShader(bounds),
+            child: Text(
+              'SHAHBAZ ALAM',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+                letterSpacing: 2.5,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          // Copyright
           Text(
-            AppInfo.copyright,
+            '© 2026 QIBRA AI · All Rights Reserved',
             style: AppTextStyles.labelXSmall.copyWith(
-              color: AppColors.textTertiary.withValues(alpha: 0.60),
-              fontSize: 9,
+              color: AppColors.textTertiary.withValues(alpha: 0.50),
+              fontSize: 8,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -743,7 +698,6 @@ class _IslamicPatternPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 4;
 
-    // Draw 8-pointed star pattern
     for (int i = 0; i < 8; i++) {
       final angle = (i * math.pi / 4);
       final path = Path();
@@ -764,13 +718,8 @@ class _IslamicPatternPainter extends CustomPainter {
       canvas.drawPath(path, paint);
     }
 
-    // Concentric circles
     for (int i = 1; i <= 5; i++) {
-      canvas.drawCircle(
-        center,
-        radius * i * 0.3,
-        paint,
-      );
+      canvas.drawCircle(center, radius * i * 0.3, paint);
     }
   }
 
@@ -789,56 +738,31 @@ class _ParticlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final random = math.Random(42); // Fixed seed for consistency
+    final random = math.Random(42);
 
-    // Draw 30 floating particles
     for (int i = 0; i < 30; i++) {
       final baseX = random.nextDouble() * size.width;
       final baseY = random.nextDouble() * size.height;
-
-      // Floating motion
-      final offset = math.sin(
-        (animationValue * 2 * math.pi) + i,
-      );
-
+      final offset = math.sin((animationValue * 2 * math.pi) + i);
       final x = baseX + (offset * 20);
       final y = baseY + (offset * 30);
-
-      // Particle size varies
       final particleSize = 1.5 + random.nextDouble() * 2;
-
-      // Alternate emerald and gold particles
       final isGold = i % 3 == 0;
       final color = isGold ? AppColors.accent : AppColors.primary;
-
-      // Fade in/out based on position
       final alpha = 0.20 + (random.nextDouble() * 0.30);
 
       final paint = Paint()
         ..color = color.withValues(alpha: alpha)
         ..style = PaintingStyle.fill;
 
-      // Draw particle with glow
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize,
-        paint,
-      );
+      canvas.drawCircle(Offset(x, y), particleSize, paint);
 
-      // Draw glow effect
       final glowPaint = Paint()
         ..color = color.withValues(alpha: alpha * 0.3)
         ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(
-          BlurStyle.normal,
-          6,
-        );
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
 
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize * 3,
-        glowPaint,
-      );
+      canvas.drawCircle(Offset(x, y), particleSize * 3, glowPaint);
     }
   }
 
