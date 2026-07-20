@@ -6,10 +6,8 @@
 // ============================================================
 
 import 'dart:async';
-import 'package:qibra_ai/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qibra_ai/main.dart' show globalHadithDb;
 
 import '../../data/services/ai_chat_service.dart';
 import '../../domain/models/chat_models.dart';

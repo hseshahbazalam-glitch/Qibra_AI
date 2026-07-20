@@ -528,7 +528,7 @@ class _MessageBubble extends StatelessWidget {
                                 color:
                                     AppColors.primary.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border(
+                                border: const Border(
                                   left: BorderSide(
                                     color: AppColors.primary,
                                     width: 3,
@@ -537,7 +537,7 @@ class _MessageBubble extends StatelessWidget {
                               ),
                               blockquotePadding: const EdgeInsets.all(12),
                               // Horizontal divider
-                              horizontalRuleDecoration: BoxDecoration(
+                              horizontalRuleDecoration: const BoxDecoration(
                                 border: Border(
                                   top: BorderSide(
                                     color: AppColors.borderSubtle,

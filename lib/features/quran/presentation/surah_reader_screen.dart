@@ -29,7 +29,7 @@ import '../../../core/design_system/app_typography.dart';
 import '../data/models/quran_models.dart';
 import '../providers/audio_provider.dart';
 import '../providers/quran_provider.dart';
-import '../services/quran_audio_service.dart';
+import 'services/quran_audio_service.dart';
 import 'quran_audio_player.dart';
 
 // ============================================================

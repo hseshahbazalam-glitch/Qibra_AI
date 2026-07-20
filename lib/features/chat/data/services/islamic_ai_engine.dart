@@ -287,7 +287,7 @@ class IslamicAIEngine {
         }
 
         // Arabic text if available
-        if (h.textArabic != null && h.textArabic!.isNotEmpty) {
+        if (h.textArabic.isNotEmpty) {
           buf.writeln('**عربی متن:**\n');
           buf.writeln('> ${h.textArabic}\n');
         }
@@ -366,16 +366,18 @@ class IslamicAIEngine {
     } else if (isRoman) {
       buf.writeln('| Source | Count |');
       buf.writeln('|--------|-------|');
-      if (quran.isNotEmpty)
+      if (quran.isNotEmpty) {
         buf.writeln('| 📖 Qurani Ayaat | ${quran.length} |');
+      }
       if (hadiths.isNotEmpty) buf.writeln('| 📚 Ahadith | ${hadiths.length} |');
       if (tafseer.isNotEmpty) buf.writeln('| 💡 Tafseer | ${tafseer.length} |');
       buf.writeln('| **Kul** | **$totalRefs** |');
     } else {
       buf.writeln('| Source | Count |');
       buf.writeln('|--------|-------|');
-      if (quran.isNotEmpty)
+      if (quran.isNotEmpty) {
         buf.writeln('| 📖 Quran Verses | ${quran.length} |');
+      }
       if (hadiths.isNotEmpty) buf.writeln('| 📚 Hadiths | ${hadiths.length} |');
       if (tafseer.isNotEmpty) buf.writeln('| 💡 Tafseer | ${tafseer.length} |');
       buf.writeln('| **Total** | **$totalRefs** |');

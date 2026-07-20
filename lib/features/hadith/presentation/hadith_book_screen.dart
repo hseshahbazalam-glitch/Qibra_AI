@@ -407,7 +407,7 @@ class _HadithCard extends ConsumerWidget {
                         color: AppColors.primary.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
+                      child: const Text(
                         'اردو',
                         style: TextStyle(
                           color: AppColors.primary,
@@ -496,7 +496,7 @@ class _HadithCard extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline_rounded,
                     color: AppColors.warning,
                     size: 20,
@@ -521,7 +521,7 @@ class _HadithCard extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.folder_outlined,
                   color: AppColors.textTertiary,
                   size: 14,

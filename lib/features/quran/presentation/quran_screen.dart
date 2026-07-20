@@ -20,6 +20,7 @@
 //   - AppListenCard + AppQuranListenCard (Step 6)
 //   - AppFeatureIllustrationCard (Step 7 — future use)
 // ============================================================
+import 'widgets/premium_continue_reading_card.dart';
 import 'quran_search_screen.dart';
 import 'bookmarks_screen.dart';
 import 'surah_reader_screen.dart';
@@ -539,7 +540,11 @@ class _QuranScreenState extends ConsumerState<QuranScreen>
                   const SizedBox(height: AppSpacing.xl2),
                   _buildCategoryButtonsRow(),
 
-                  // 4. Reading Progress Card
+                  // 4. Premium Continue Reading Card (Mushaf)
+                  const SizedBox(height: AppSpacing.xl2),
+                  const PremiumContinueReadingCard(),
+
+                  // 5. Reading Progress Card
                   const SizedBox(height: AppSpacing.xl2),
                   _buildReadingProgressCard(),
 

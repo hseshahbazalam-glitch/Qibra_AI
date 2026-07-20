@@ -165,7 +165,7 @@ class NotificationService {
         icon: '@mipmap/ic_launcher',
       );
 
-      final details = NotificationDetails(android: androidDetails);
+      const details = NotificationDetails(android: androidDetails);
       final scheduledDate = tz.TZDateTime.from(reminderTime, tz.local);
 
       await _plugin.zonedSchedule(

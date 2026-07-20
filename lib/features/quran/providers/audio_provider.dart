@@ -17,7 +17,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/models/quran_models.dart';
-import '../services/quran_audio_service.dart';
+import '../presentation/services/quran_audio_service.dart';
 import 'quran_provider.dart';
 
 // ============================================================
