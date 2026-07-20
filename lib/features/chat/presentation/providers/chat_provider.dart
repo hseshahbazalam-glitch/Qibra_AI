@@ -6,7 +6,7 @@
 // ============================================================
 
 import 'dart:async';
-
+import 'package:qibra_ai/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/main.dart' show globalHadithDb;
@@ -21,19 +21,7 @@ import '../../domain/models/chat_models.dart';
 /// AI Chat Service singleton
 /// Uses global Hadith DB from main.dart for RAG
 final aiChatServiceProvider = Provider<AiChatService>((ref) {
-  // Use globally loaded hadith database
-  final hadithDb = globalHadithDb;
-
-  if (hadithDb == null) {
-    debugPrint('[CHAT] ⚠️ Hadith DB not loaded — RAG disabled');
-  } else if (!hadithDb.isInitialized) {
-    debugPrint('[CHAT] ⚠️ Hadith DB not initialized — RAG disabled');
-  } else {
-    debugPrint(
-        '[CHAT] ✅ Hadith DB ready — RAG enabled (${hadithDb.totalHadiths} hadiths)');
-  }
-
-  final service = AiChatService(hadithDb: hadithDb);
+  final service = AiChatService();
 
   ref.onDispose(() {
     service.dispose();

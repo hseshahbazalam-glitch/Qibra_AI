@@ -175,6 +175,7 @@ class _PrayerTimesPlaceholder extends StatelessWidget {
 }
 
 // ── QIBLA PLACEHOLDER ──────────────────────────────────
+// ignore: unused_element
 class _QiblaPlaceholder extends StatelessWidget {
   const _QiblaPlaceholder();
 
@@ -253,6 +254,7 @@ class _QiblaPlaceholder extends StatelessWidget {
 }
 
 // ── TASBIH PLACEHOLDER ─────────────────────────────────
+// ignore: unused_element
 class _TasbihPlaceholder extends StatelessWidget {
   const _TasbihPlaceholder();
 

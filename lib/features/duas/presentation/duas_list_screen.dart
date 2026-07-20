@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
-import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/features/duas/data/models/dua_model.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
@@ -157,9 +156,9 @@ class DuasListScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       '🤲',
-                      style: const TextStyle(fontSize: 56),
+                      style: TextStyle(fontSize: 56),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -316,7 +315,7 @@ class _DuaCard extends ConsumerWidget {
             ),
 
             // ── DIVIDER ──────────────────────────────────────
-            Divider(
+            const Divider(
               color: AppColors.borderSubtle,
               indent: 16,
               endIndent: 16,
@@ -358,9 +357,9 @@ class _DuaCard extends ConsumerWidget {
             // ── FOOTER ───────────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.surfaceElevated,
-                borderRadius: const BorderRadius.vertical(
+                borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(20),
                 ),
               ),

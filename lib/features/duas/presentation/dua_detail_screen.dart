@@ -32,9 +32,9 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     final dua = ref.watch(duaByIdProvider(widget.duaId));
 
     if (dua == null) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppColors.background,
-        body: const Center(
+        body: Center(
           child: Text('Dua not found'),
         ),
       );

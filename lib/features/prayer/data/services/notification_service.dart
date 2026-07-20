@@ -154,7 +154,7 @@ class NotificationService {
         return;
       }
 
-      final androidDetails = AndroidNotificationDetails(
+      const androidDetails = AndroidNotificationDetails(
         _channelIdReminder,
         'Pre-Prayer Reminders',
         channelDescription: 'Reminders before prayer time',

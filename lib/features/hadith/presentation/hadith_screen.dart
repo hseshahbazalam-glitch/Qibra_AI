@@ -467,34 +467,109 @@ class _DailyHadithCard extends ConsumerWidget {
             ],
           ),
 
-          // Arabic text
-          if (hadith.hasArabic) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              hadith.textArabic,
-              style: AppArabicStyles.hadithArabic.copyWith(
-                height: 2,
-              ),
-              textAlign: TextAlign.right,
-              textDirection: TextDirection.rtl,
-            ),
+          // ══════════════════════════════════════════════
+          // URDU TRANSLATION (Prominent — Top)
+          // ══════════════════════════════════════════════
+          if (hadith.hasUrdu) ...[
             const SizedBox(height: AppSpacing.md),
             Container(
-              height: 1,
-              color: AppColors.borderSubtle,
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-
-          // English text
-          if (hadith.hasEnglish)
-            Text(
-              hadith.textEnglish,
-              style: AppTextStyles.bodyMedium.copyWith(
-                height: 1.6,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'اردو',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SelectableText(
+                    hadith.textUrdu,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      height: 1.9,
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                    ),
+                    textDirection: TextDirection.rtl,
+                    textAlign: TextAlign.right,
+                  ),
+                ],
               ),
             ),
+          ],
 
+          // ══════════════════════════════════════════════
+          // ENGLISH TRANSLATION
+          // ══════════════════════════════════════════════
+          if (hadith.hasEnglish) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.borderSubtle,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'ENGLISH',
+                      style: TextStyle(
+                        color: Color(0xFF3B82F6),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 10,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SelectableText(
+                    hadith.textEnglish,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      height: 1.7,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: AppSpacing.md),
 
           // Reference

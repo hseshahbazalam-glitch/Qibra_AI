@@ -248,7 +248,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                 child: Container(
                   margin: const EdgeInsets.only(right: 12),
                   padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.surfaceElevated,
                     shape: BoxShape.circle,
                   ),

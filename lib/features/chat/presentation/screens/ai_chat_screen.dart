@@ -6,7 +6,7 @@
 // Description: Premium AI chat interface with message bubbles,
 //              typing indicator, and smart suggestions.
 // ============================================================
-
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -470,15 +470,98 @@ class _MessageBubble extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SelectableText(
-                      message.content,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: isUser
-                            ? AppColors.background
-                            : AppColors.textPrimary,
-                        height: 1.5,
-                      ),
-                    ),
+                    // ── User = plain text | AI = Markdown ──
+                    isUser
+                        ? SelectableText(
+                            message.content,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.background,
+                              height: 1.5,
+                            ),
+                          )
+                        : MarkdownBody(
+                            data: message.content,
+                            selectable: true,
+                            styleSheet: MarkdownStyleSheet(
+                              // Body text
+                              p: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.textPrimary,
+                                height: 1.7,
+                              ),
+                              // Headings
+                              h1: AppTextStyles.titleLarge.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                              h2: AppTextStyles.titleMedium.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                              h3: AppTextStyles.titleSmall.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
+                              h4: AppTextStyles.bodyLarge.copyWith(
+                                color: const Color(0xFFFBBF24),
+                                fontWeight: FontWeight.w700,
+                              ),
+                              // Bold text
+                              strong: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w800,
+                                height: 1.7,
+                              ),
+                              // Italic
+                              em: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.textSecondary,
+                                fontStyle: FontStyle.italic,
+                                height: 1.7,
+                              ),
+                              // Blockquote (verse translations)
+                              blockquote: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.textSecondary,
+                                fontStyle: FontStyle.italic,
+                                height: 1.8,
+                              ),
+                              blockquoteDecoration: BoxDecoration(
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border(
+                                  left: BorderSide(
+                                    color: AppColors.primary,
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                              blockquotePadding: const EdgeInsets.all(12),
+                              // Horizontal divider
+                              horizontalRuleDecoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: AppColors.borderSubtle,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              // List
+                              listBullet: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.primary,
+                                height: 1.6,
+                              ),
+                              // Code
+                              code: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.accent,
+                                backgroundColor: AppColors.surfaceElevated,
+                                fontFamily: 'monospace',
+                              ),
+                              codeblockDecoration: BoxDecoration(
+                                color: AppColors.surfaceElevated,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
                     const SizedBox(height: 4),
                     Text(
                       _formatTime(message.timestamp),

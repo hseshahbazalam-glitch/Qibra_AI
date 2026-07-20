@@ -326,13 +326,13 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             height: 292,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
+              gradient: const RadialGradient(
                 colors: [
-                  const Color(0xFF1E293B),
-                  const Color(0xFF0F172A),
+                  Color(0xFF1E293B),
+                  Color(0xFF0F172A),
                   Colors.black,
                 ],
-                stops: const [0.0, 0.7, 1.0],
+                stops: [0.0, 0.7, 1.0],
               ),
               boxShadow: [
                 BoxShadow(
@@ -351,16 +351,16 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             child: Container(
               width: 280,
               height: 280,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  center: const Alignment(-0.3, -0.3),
+                  center: Alignment(-0.3, -0.3),
                   colors: [
-                    const Color(0xFF334155),
-                    const Color(0xFF1E293B),
-                    const Color(0xFF0F172A),
+                    Color(0xFF334155),
+                    Color(0xFF1E293B),
+                    Color(0xFF0F172A),
                   ],
-                  stops: const [0.0, 0.5, 1.0],
+                  stops: [0.0, 0.5, 1.0],
                 ),
               ),
               child: CustomPaint(
@@ -492,12 +492,12 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             width: double.infinity,
             height: 8,
             margin: const EdgeInsets.only(top: 14),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFFFBBF24),
-                  const Color(0xFFF59E0B),
-                  const Color(0xFFFBBF24),
+                  Color(0xFFFBBF24),
+                  Color(0xFFF59E0B),
+                  Color(0xFFFBBF24),
                 ],
               ),
             ),
@@ -675,7 +675,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
                 color: AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.location_off_rounded,
                 color: AppColors.error,
                 size: 48,
@@ -813,7 +813,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
@@ -946,8 +946,8 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
           Container(
             width: 22,
             height: 22,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
                 colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
               ),
               shape: BoxShape.circle,
@@ -1066,7 +1066,7 @@ class _Premium3DNeedlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final needleLength = size.height * 0.4;
-    final needleWidth = 14.0;
+    const needleWidth = 14.0;
 
     final topPoint = Offset(center.dx, center.dy - needleLength);
     final bottomPoint = Offset(center.dx, center.dy + needleLength * 0.35);

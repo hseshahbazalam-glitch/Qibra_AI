@@ -4,7 +4,7 @@
 // QIBRA AI — Main Entry Point
 // Version: 5.0.0 — With Gemini AI + Hadith Database
 // ============================================================
-import 'package:flutter/foundation.dart';
+import 'package:qibra_ai/features/chat/data/services/islamic_ai_engine.dart';
 import 'package:qibra_ai/features/prayer/data/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -12,7 +12,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/constants/app_assets_check.dart';
 import 'package:qibra_ai/core/design_system/app_theme.dart';
-import 'package:qibra_ai/core/di/service_locator.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/core/router/app_router.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
@@ -81,6 +80,15 @@ void main() async {
     _globalHadithDb = hadithDb;
   } catch (e) {
     debugPrint('⚠️ Hadith database loading failed: $e');
+  }
+
+  // Initialize Islamic AI Engine
+  try {
+    debugPrint('🤖 Initializing Islamic AI Engine...');
+    await IslamicAIEngine.instance.initialize();
+    debugPrint('✅ Islamic AI Engine ready');
+  } catch (e) {
+    debugPrint('⚠️ Islamic AI Engine init failed: $e');
   }
 
   // Boot info

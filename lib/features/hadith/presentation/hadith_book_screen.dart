@@ -2,8 +2,7 @@
 
 // ============================================================
 // QIBRA AI — HADITH BOOK DETAIL SCREEN
-// Version: 1.0.0
-// Description: Shows all hadiths from a specific book.
+// Urdu + English focus (No Arabic display)
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -102,171 +101,155 @@ class HadithBookScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 120)),
           ],
         ),
       ),
     );
   }
 
-  // ─── APP BAR ─────────────────────────────────────────────
+  // ────────────────────────────────────────────────────────
+  // APP BAR
+  // ────────────────────────────────────────────────────────
 
   Widget _buildAppBar(BuildContext context) {
     return SliverAppBar(
       backgroundColor: AppColors.background,
       pinned: true,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        color: AppColors.iconPrimary,
-        onPressed: () => Navigator.pop(context),
+        icon: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: AppColors.iconPrimary,
+        ),
+        onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text(
         book.name,
-        style: AppTextStyles.titleLarge.copyWith(
+        style: AppTextStyles.titleMedium.copyWith(
           fontWeight: FontWeight.w700,
         ),
       ),
+      centerTitle: true,
     );
   }
 
-  // ─── BOOK HEADER ─────────────────────────────────────────
+  // ────────────────────────────────────────────────────────
+  // BOOK HEADER
+  // ────────────────────────────────────────────────────────
 
   Widget _buildBookHeader() {
     return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.all(AppSpacing.lg),
+      child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              book.color.withValues(alpha: 0.2),
-              book.color.withValues(alpha: 0.05),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: book.color.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: book.color.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    Icons.menu_book_rounded,
-                    color: book.color,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        book.name,
-                        style: AppTextStyles.titleLarge.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (book.nameArabic.isNotEmpty)
-                        Text(
-                          book.nameArabic,
-                          style: AppArabicStyles.hadithArabic.copyWith(
-                            color: book.color,
-                            fontSize: 18,
-                          ),
-                          textDirection: TextDirection.rtl,
-                        ),
-                    ],
-                  ),
-                ),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                book.color.withValues(alpha: 0.15),
+                book.color.withValues(alpha: 0.05),
               ],
             ),
-            if (book.description.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.md),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: book.color.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: book.color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.menu_book_rounded,
+                      color: book.color,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          book.name,
+                          style: AppTextStyles.titleLarge.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        if (book.nameArabic.isNotEmpty)
+                          Text(
+                            book.nameArabic,
+                            style: TextStyle(
+                              color: book.color,
+                              fontSize: 18,
+                              fontFamily: 'Amiri',
+                            ),
+                            textDirection: TextDirection.rtl,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               Text(
                 book.description,
-                style: AppTextStyles.bodySmall.copyWith(
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
                   height: 1.5,
                 ),
               ),
-            ],
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                _StatChip(
-                  icon: Icons.article_outlined,
-                  label: '${book.totalHadiths}',
-                  sublabel: 'Hadiths',
-                  color: book.color,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _StatChip(
-                  icon: Icons.folder_outlined,
-                  label: '${book.totalChapters}',
-                  sublabel: 'Chapters',
-                  color: book.color,
-                ),
-                if (book.author.isNotEmpty) ...[
-                  const SizedBox(width: AppSpacing.sm),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  _buildStatChip(
+                    icon: Icons.article_rounded,
+                    label: 'Hadiths',
+                    value: '${book.totalHadiths}',
+                    color: book.color,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildStatChip(
+                    icon: Icons.folder_rounded,
+                    label: 'Chapters',
+                    value: '${book.totalChapters}',
+                    color: book.color,
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: _StatChip(
-                      icon: Icons.person_outline,
-                      label: book.author,
-                      sublabel: 'Author',
+                    child: _buildStatChip(
+                      icon: Icons.person_rounded,
+                      label: 'Author',
+                      value: book.author,
                       color: book.color,
                     ),
                   ),
                 ],
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
-// ============================================================
-// STAT CHIP
-// ============================================================
-
-class _StatChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String sublabel;
-  final Color color;
-
-  const _StatChip({
-    required this.icon,
-    required this.label,
-    required this.sublabel,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildStatChip({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -277,18 +260,17 @@ class _StatChip extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                label,
+                value,
                 style: AppTextStyles.labelMedium.copyWith(
                   color: color,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               Text(
-                sublabel,
+                label,
                 style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.textTertiary,
                   fontSize: 9,
-                  color: AppColors.textSecondary,
                 ),
               ),
             ],
@@ -310,8 +292,6 @@ class _HadithCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isBookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
-
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -322,12 +302,13 @@ class _HadithCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Number + Grade + Bookmark
+          // ── HEADER: Number + Grade + Actions ────────────
           Row(
             children: [
+              // Hadith number
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
+                  horizontal: 10,
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
@@ -336,16 +317,17 @@ class _HadithCard extends ConsumerWidget {
                 ),
                 child: Text(
                   '#${hadith.hadithNumber}',
-                  style: AppTextStyles.labelMedium.copyWith(
+                  style: AppTextStyles.labelSmall.copyWith(
                     color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: 8),
+              // Grade
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
+                  horizontal: 10,
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
@@ -372,97 +354,185 @@ class _HadithCard extends ConsumerWidget {
                 ),
               ),
               const Spacer(),
+              // Bookmark
               IconButton(
-                icon: Icon(
-                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                  color: isBookmarked
-                      ? AppColors.primary
-                      : AppColors.iconSecondary,
+                icon: const Icon(
+                  Icons.bookmark_border_rounded,
+                  color: AppColors.iconSecondary,
                   size: 20,
                 ),
                 onPressed: () {
+                  HapticFeedback.lightImpact();
                   ref
                       .read(hadithBookmarksProvider.notifier)
                       .toggleBookmark(hadith);
                 },
               ),
+              // Share
               IconButton(
                 icon: const Icon(
-                  Icons.share_outlined,
+                  Icons.share_rounded,
+                  color: AppColors.iconSecondary,
                   size: 20,
                 ),
-                color: AppColors.iconSecondary,
                 onPressed: () => _share(context),
               ),
             ],
           ),
 
-          // Arabic
-          if (hadith.hasArabic) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              hadith.textArabic,
-              style: AppArabicStyles.hadithArabic,
-              textAlign: TextAlign.right,
-              textDirection: TextDirection.rtl,
-            ),
-          ],
-
-          // Divider
-          if (hadith.hasArabic && hadith.hasEnglish) ...[
+          // ── URDU (Prominent) ─────────────────────────────
+          if (hadith.hasUrdu) ...[
             const SizedBox(height: AppSpacing.md),
             Container(
-              height: 1,
-              color: AppColors.borderSubtle,
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-
-          // English
-          if (hadith.hasEnglish)
-            SelectableText(
-              hadith.textEnglish,
-              style: AppTextStyles.bodyMedium.copyWith(
-                height: 1.6,
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'اردو',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SelectableText(
+                    hadith.textUrdu,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      height: 2.1,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary,
+                      letterSpacing: 0.2,
+                    ),
+                    textDirection: TextDirection.rtl,
+                    textAlign: TextAlign.right,
+                  ),
+                ],
               ),
             ),
+          ],
 
-          // Chapter
+          // ── ENGLISH ──────────────────────────────────────
+          if (hadith.hasEnglish) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'ENGLISH',
+                      style: TextStyle(
+                        color: Color(0xFF3B82F6),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 10,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SelectableText(
+                    hadith.textEnglish,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      height: 1.7,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // ── FALLBACK (Agar dono empty hon) ───────────────
+          if (!hadith.hasUrdu && !hadith.hasEnglish) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: AppColors.warning,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Translation not available for this hadith',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.warning,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // ── CHAPTER ──────────────────────────────────────
           if (hadith.chapterName.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.folder_outlined,
-                  color: AppColors.iconSecondary,
+                  color: AppColors.textTertiary,
                   size: 14,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     'Chapter: ${hadith.chapterName}',
-                    style: AppTextStyles.labelSmall.secondary,
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          // Narrator
-          if (hadith.narrator.name.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(
-                  Icons.person_outline,
-                  color: AppColors.iconSecondary,
-                  size: 14,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    'Narrator: ${hadith.narrator.displayName}',
-                    style: AppTextStyles.labelSmall.secondary,
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.textTertiary,
+                    ),
                   ),
                 ),
               ],
@@ -475,7 +545,10 @@ class _HadithCard extends ConsumerWidget {
 
   void _share(BuildContext context) {
     final shareText =
-        '${hadith.textEnglish}\n\n— ${hadith.displayReference}\nGrade: ${hadith.grade.label}\nNarrator: ${hadith.narrator.name}';
+        '${hadith.textUrdu.isNotEmpty ? "${hadith.textUrdu}\n\n" : ""}'
+        '${hadith.textEnglish.isNotEmpty ? "${hadith.textEnglish}\n\n" : ""}'
+        '— ${hadith.displayReference}\n'
+        'Grade: ${hadith.grade.label}';
     Clipboard.setData(ClipboardData(text: shareText));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

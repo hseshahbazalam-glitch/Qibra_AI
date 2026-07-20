@@ -89,6 +89,23 @@ final hadithBookProvider =
 // ============================================================
 
 /// Convert LocalHadith to HadithModel
+/// Smart grade detection — Bukhari & Muslim default to Sahih
+HadithGrade _gradeForLocalHadith(LocalHadith local) {
+  final rawGrade = local.grade.trim();
+
+  // Agar JSON mein grade hai to use karo
+  if (rawGrade.isNotEmpty && rawGrade.toLowerCase() != 'unknown') {
+    return HadithGrade.fromString(rawGrade);
+  }
+
+  // Sahiheen — automatically Sahih
+  if (local.bookSlug == 'bukhari' || local.bookSlug == 'muslim') {
+    return HadithGrade.sahih;
+  }
+
+  return HadithGrade.unknown;
+}
+
 HadithModel _localToHadithModel(LocalHadith local) {
   return HadithModel(
     id: local.id,
@@ -100,7 +117,7 @@ HadithModel _localToHadithModel(LocalHadith local) {
     textArabic: local.textArabic,
     textEnglish: local.textEnglish,
     textUrdu: local.textUrdu,
-    grade: HadithGrade.fromString(local.grade),
+    grade: _gradeForLocalHadith(local),
     narrator: const HadithNarrator(name: ''),
     reference: local.displayReference,
   );
