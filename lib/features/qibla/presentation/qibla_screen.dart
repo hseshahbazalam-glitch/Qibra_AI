@@ -1,8 +1,8 @@
 // lib/features/qibla/presentation/qibla_screen.dart
 
 // ============================================================
-// QIBRA AI — PREMIUM 3D QIBLA COMPASS
-// Beautiful 3D compass with glassmorphism & depth
+// QIBRA AI — PREMIUM 3D QIBLA COMPASS (v2.0)
+// Beautiful 3D compass + Enhanced info + Location
 // ============================================================
 
 import 'dart:math' as math;
@@ -80,6 +80,142 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     super.dispose();
   }
 
+  void _calibrate() {
+    HapticFeedback.mediumImpact();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.compass_calibration_rounded,
+                color: Color(0xFF8B5CF6), size: 24),
+            const SizedBox(width: 8),
+            Text('Calibrate Compass',
+                style: AppTextStyles.titleMedium
+                    .copyWith(fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'To calibrate your compass:',
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _calibrationStep('1', 'Hold phone flat in your hand'),
+            _calibrationStep('2', 'Move phone in figure-8 pattern'),
+            _calibrationStep('3', 'Rotate 360° slowly'),
+            _calibrationStep('4', 'Keep away from metal objects'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline,
+                      color: Color(0xFFF59E0B), size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Move phone slowly for best results',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: const Color(0xFFF59E0B),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it',
+                style: TextStyle(color: Color(0xFF8B5CF6))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _calibrationStep(String num, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: const BoxDecoration(
+              color: Color(0xFF8B5CF6),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                num,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text,
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: AppColors.textSecondary)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _shareQibla() {
+    final state = ref.read(qiblaProvider);
+    final result = state.result;
+    if (result == null) return;
+
+    final text = '''🕋 Qibla Direction
+
+📍 Location: ${result.city ?? 'Unknown'}, ${result.country ?? ''}
+🧭 Direction: ${result.qiblaAngle.toStringAsFixed(1)}° from North
+📏 Distance to Makkah: ${QiblaService.formatDistance(result.distanceToMakkah)}
+🗺️ Coordinates: ${result.formattedCoordinates}
+
+Shared via Qibra AI 🌙''';
+
+    Clipboard.setData(ClipboardData(text: text));
+    HapticFeedback.mediumImpact();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Text('📋 Qibla info copied - paste to share'),
+          ],
+        ),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final qiblaState = ref.watch(qiblaProvider);
@@ -88,10 +224,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // ── ANIMATED BACKGROUND GRADIENT ────────────────
           _buildAnimatedBackground(),
-
-          // ── SCROLLABLE CONTENT ──────────────────────────
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
@@ -103,33 +236,30 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
                     children: [
                       if (qiblaState.result?.isFromCache == true)
                         _buildCacheWarning(),
-
-                      const SizedBox(height: 24),
-
+                      const SizedBox(height: 20),
+                      // Location card (NEW)
+                      if (qiblaState.result != null)
+                        _buildLocationCard(qiblaState),
+                      const SizedBox(height: 20),
                       // 3D Compass
                       _build3DCompass(qiblaState),
-
                       const SizedBox(height: 32),
-
                       // Angle badge
                       if (qiblaState.result != null)
                         _buildAngleBadge(qiblaState),
-
-                      const SizedBox(height: 24),
-
-                      // Info cards
-                      _buildInfoCards(qiblaState),
-
                       const SizedBox(height: 20),
-
-                      // Refresh button
-                      _buildRefreshButton(),
-
-                      const SizedBox(height: 24),
-
+                      // Enhanced Info cards
+                      _buildEnhancedInfoCards(qiblaState),
+                      const SizedBox(height: 12),
+                      // Coordinates card (NEW)
+                      if (qiblaState.result != null)
+                        _buildCoordinatesCard(qiblaState),
+                      const SizedBox(height: 20),
+                      // Action buttons row (NEW)
+                      _buildActionButtons(),
+                      const SizedBox(height: 20),
                       // Instructions
                       _buildInstructions(),
-
                       const SizedBox(height: 120),
                     ],
                   ),
@@ -142,9 +272,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     );
   }
 
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
   // ANIMATED BACKGROUND
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
 
   Widget _buildAnimatedBackground() {
     return Positioned.fill(
@@ -164,9 +294,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     );
   }
 
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
   // APP BAR
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
 
   Widget _buildSliverAppBar() {
     return SliverAppBar(
@@ -178,28 +308,54 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
         background: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  'القبلة',
-                  style: AppTextStyles.arabicLarge.copyWith(
-                    color: const Color(0xFF8B5CF6),
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'القبلة',
+                        style: AppTextStyles.arabicLarge.copyWith(
+                          color: const Color(0xFF8B5CF6),
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Colors.white, Color(0xFFA78BFA)],
+                        ).createShader(bounds),
+                        child: Text(
+                          'Qibla Direction',
+                          style: AppTextStyles.displaySmall.copyWith(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 32,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 6),
-                ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Colors.white, Color(0xFFA78BFA)],
-                  ).createShader(bounds),
-                  child: Text(
-                    'Qibla Direction',
-                    style: AppTextStyles.displaySmall.copyWith(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 32,
-                      color: Colors.white,
+                // Share button (NEW)
+                GestureDetector(
+                  onTap: _shareQibla,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.surface.withValues(alpha: 0.6),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.share_rounded,
+                      color: Color(0xFF8B5CF6),
+                      size: 20,
                     ),
                   ),
                 ),
@@ -231,7 +387,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Using cached location. Enable GPS for accuracy.',
+              'Using cached location. Tap refresh for accuracy.',
               style: AppTextStyles.labelSmall.copyWith(
                 color: const Color(0xFFF59E0B),
               ),
@@ -242,9 +398,124 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     );
   }
 
-  // ──────────────────────────────────────────────────────────
-  // 3D COMPASS — MAIN ATTRACTION
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
+  // LOCATION CARD (NEW)
+  // ============================================================
+
+  Widget _buildLocationCard(QiblaState state) {
+    final result = state.result!;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+            const Color(0xFF6D28D9).withValues(alpha: 0.10),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                  blurRadius: 12,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.location_on_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  result.city ?? 'Unknown',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                if (result.country != null && result.country!.isNotEmpty)
+                  Text(
+                    result.country!,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                if (result.accuracy != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getAccuracyColor(result.accuracy!)
+                              .withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.gps_fixed_rounded,
+                              size: 10,
+                              color: _getAccuracyColor(result.accuracy!),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${result.accuracyText} (${result.accuracy!.toStringAsFixed(0)}m)',
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: _getAccuracyColor(result.accuracy!),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getAccuracyColor(double accuracy) {
+    if (accuracy < 5) return const Color(0xFF10B981);
+    if (accuracy < 15) return const Color(0xFF3B82F6);
+    if (accuracy < 30) return const Color(0xFFF59E0B);
+    return const Color(0xFFEF4444);
+  }
+
+  // ============================================================
+  // 3D COMPASS (Unchanged - Already Perfect!)
+  // ============================================================
 
   Widget _build3DCompass(QiblaState state) {
     if (state.status == QiblaStatus.loading) {
@@ -265,7 +536,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // ── LAYER 1: Outer glow (when aligned) ────────
           if (isAligned)
             AnimatedBuilder(
               animation: _pulseAnim,
@@ -286,8 +556,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
                 ),
               ),
             ),
-
-          // ── LAYER 2: Outer ring with gradient border ──
           Container(
             width: 300,
             height: 300,
@@ -319,8 +587,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
               ],
             ),
           ),
-
-          // ── LAYER 3: Inner black recess (depth) ───────
           Container(
             width: 292,
             height: 292,
@@ -344,8 +610,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
               ],
             ),
           ),
-
-          // ── LAYER 4: Compass face (rotates with body) ──
           Transform.rotate(
             angle: -state.compassHeading * math.pi / 180,
             child: Container(
@@ -363,13 +627,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
                   stops: [0.0, 0.5, 1.0],
                 ),
               ),
-              child: CustomPaint(
-                painter: _CompassFacePainter(),
-              ),
+              child: CustomPaint(painter: _CompassFacePainter()),
             ),
           ),
-
-          // ── LAYER 5: Shine overlay (glass effect) ─────
           AnimatedBuilder(
             animation: _shineAnim,
             builder: (_, __) => Container(
@@ -396,8 +656,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
               ),
             ),
           ),
-
-          // ── LAYER 6: Qibla needle (rotates) ───────────
           AnimatedRotation(
             turns: needleAngle / 360,
             duration: const Duration(milliseconds: 400),
@@ -410,8 +668,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
               ),
             ),
           ),
-
-          // ── LAYER 7: Floating Kaaba (top of needle) ───
           AnimatedRotation(
             turns: needleAngle / 360,
             duration: const Duration(milliseconds: 400),
@@ -427,29 +683,19 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
               ),
             ),
           ),
-
-          // ── LAYER 8: Center hub (3D dome) ─────────────
           _buildCenterHub(isAligned),
-
-          // ── LAYER 9: Cardinal directions (fixed) ──────
           Transform.rotate(
             angle: -state.compassHeading * math.pi / 180,
             child: SizedBox(
               width: 280,
               height: 280,
-              child: Stack(
-                children: _buildCardinalDirections(),
-              ),
+              child: Stack(children: _buildCardinalDirections()),
             ),
           ),
         ],
       ),
     );
   }
-
-  // ──────────────────────────────────────────────────────────
-  // FLOATING KAABA
-  // ──────────────────────────────────────────────────────────
 
   Widget _buildFloatingKaaba(bool isAligned) {
     return Container(
@@ -459,17 +705,10 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF1F2937),
-            Color(0xFF111827),
-            Colors.black,
-          ],
+          colors: [Color(0xFF1F2937), Color(0xFF111827), Colors.black],
         ),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFFBBF24),
-          width: 1.5,
-        ),
+        border: Border.all(color: const Color(0xFFFBBF24), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: (isAligned ? AppColors.primary : const Color(0xFFFBBF24))
@@ -487,7 +726,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Golden band
           Container(
             width: double.infinity,
             height: 8,
@@ -502,16 +740,11 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
               ),
             ),
           ),
-          // Kaaba emoji center
           const Text('🕋', style: TextStyle(fontSize: 22)),
         ],
       ),
     );
   }
-
-  // ──────────────────────────────────────────────────────────
-  // CENTER HUB (3D dome effect)
-  // ──────────────────────────────────────────────────────────
 
   Widget _buildCenterHub(bool isAligned) {
     return Container(
@@ -570,10 +803,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     );
   }
 
-  // ──────────────────────────────────────────────────────────
-  // CARDINAL DIRECTIONS (N, S, E, W)
-  // ──────────────────────────────────────────────────────────
-
   List<Widget> _buildCardinalDirections() {
     final positions = [
       ('N', 0.0, Alignment.topCenter, AppColors.error),
@@ -611,10 +840,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
       );
     }).toList();
   }
-
-  // ──────────────────────────────────────────────────────────
-  // LOADING & ERROR STATES
-  // ──────────────────────────────────────────────────────────
 
   Widget _buildLoadingCompass() {
     return SizedBox(
@@ -698,10 +923,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     );
   }
 
-  // ──────────────────────────────────────────────────────────
-  // ANGLE BADGE
-  // ──────────────────────────────────────────────────────────
-
   Widget _buildAngleBadge(QiblaState state) {
     final normalizedAngle = ((state.needleAngle % 360) + 360) % 360;
     final isAligned = normalizedAngle < 5 || normalizedAngle > 355;
@@ -723,11 +944,8 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              color: Colors.white,
-              size: 20,
-            ),
+            const Icon(Icons.check_circle_rounded,
+                color: Colors.white, size: 20),
             const SizedBox(width: 10),
             Text(
               'You are facing Qibla! 🕋',
@@ -753,11 +971,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.explore_rounded,
-            color: Color(0xFF8B5CF6),
-            size: 18,
-          ),
+          const Icon(Icons.explore_rounded, color: Color(0xFF8B5CF6), size: 18),
           const SizedBox(width: 8),
           Text(
             '${state.result!.qiblaAngle.toStringAsFixed(1)}° from North',
@@ -771,11 +985,11 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     );
   }
 
-  // ──────────────────────────────────────────────────────────
-  // INFO CARDS
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
+  // ENHANCED INFO CARDS
+  // ============================================================
 
-  Widget _buildInfoCards(QiblaState state) {
+  Widget _buildEnhancedInfoCards(QiblaState state) {
     final result = state.result;
     return Row(
       children: [
@@ -816,10 +1030,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.surface,
-            AppColors.surfaceElevated,
-          ],
+          colors: [AppColors.surface, AppColors.surfaceElevated],
         ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: color.withValues(alpha: 0.2)),
@@ -856,51 +1067,177 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     );
   }
 
-  // ──────────────────────────────────────────────────────────
-  // REFRESH BUTTON
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
+  // COORDINATES CARD (NEW)
+  // ============================================================
 
-  Widget _buildRefreshButton() {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.mediumImpact();
-        ref.read(qiblaProvider.notifier).refresh();
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
+  Widget _buildCoordinatesCard(QiblaState state) {
+    final result = state.result!;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.my_location_rounded,
-              color: Colors.white,
+            child: const Icon(
+              Icons.gps_fixed_rounded,
+              color: Color(0xFF3B82F6),
               size: 20,
             ),
-            const SizedBox(width: 10),
-            Text(
-              'Refresh Location',
-              style: AppTextStyles.titleSmall.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Coordinates',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  result.formattedCoordinates,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                if (result.altitude != null && result.altitude! > 0) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Altitude: ${result.altitude!.toStringAsFixed(0)}m',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Clipboard.setData(ClipboardData(
+                text: result.formattedCoordinates,
+              ));
+              HapticFeedback.lightImpact();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('📋 Coordinates copied'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.copy_rounded,
+                color: Color(0xFF3B82F6),
+                size: 16,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+
+  // ============================================================
+  // ACTION BUTTONS (NEW)
+  // ============================================================
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        // Refresh
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              ref.read(qiblaProvider.notifier).refresh();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.my_location_rounded,
+                      color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Refresh',
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Calibrate
+        Expanded(
+          child: GestureDetector(
+            onTap: _calibrate,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.compass_calibration_rounded,
+                      color: Color(0xFF8B5CF6), size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Calibrate',
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: const Color(0xFF8B5CF6),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -980,7 +1317,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
 }
 
 // ============================================================
-// COMPASS FACE PAINTER (Tick marks, degree numbers)
+// COMPASS FACE PAINTER (Unchanged)
 // ============================================================
 
 class _CompassFacePainter extends CustomPainter {
@@ -989,11 +1326,10 @@ class _CompassFacePainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // Tick marks
     for (int i = 0; i < 72; i++) {
       final angle = (i * 5) * math.pi / 180;
-      final isMajor = i % 6 == 0; // Every 30 degrees
-      final isMinor = i % 2 == 0; // Every 10 degrees
+      final isMajor = i % 6 == 0;
+      final isMinor = i % 2 == 0;
 
       final tickLength = isMajor ? 14.0 : (isMinor ? 8.0 : 4.0);
       final tickWidth = isMajor ? 2.5 : (isMinor ? 1.5 : 1.0);
@@ -1020,7 +1356,6 @@ class _CompassFacePainter extends CustomPainter {
       canvas.drawLine(start, end, paint);
     }
 
-    // Degree numbers (30, 60, 120, 150, 210, 240, 300, 330)
     final degrees = [30, 60, 120, 150, 210, 240, 300, 330];
     for (final deg in degrees) {
       final angle = deg * math.pi / 180;
@@ -1054,7 +1389,7 @@ class _CompassFacePainter extends CustomPainter {
 }
 
 // ============================================================
-// PREMIUM 3D NEEDLE PAINTER
+// PREMIUM 3D NEEDLE PAINTER (Unchanged)
 // ============================================================
 
 class _Premium3DNeedlePainter extends CustomPainter {
@@ -1079,7 +1414,6 @@ class _Premium3DNeedlePainter extends CustomPainter {
     final colorDark =
         isAligned ? const Color(0xFF047857) : const Color(0xFF4C1D95);
 
-    // ── Shadow behind needle ────────────────────────────
     final shadowPath = Path()
       ..moveTo(topPoint.dx + 3, topPoint.dy + 5)
       ..lineTo(leftPoint.dx + 3, leftPoint.dy + 5)
@@ -1094,7 +1428,6 @@ class _Premium3DNeedlePainter extends CustomPainter {
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
     );
 
-    // ── LEFT HALF (darker — 3D depth) ───────────────────
     final leftPath = Path()
       ..moveTo(topPoint.dx, topPoint.dy)
       ..lineTo(leftPoint.dx, leftPoint.dy)
@@ -1109,12 +1442,9 @@ class _Premium3DNeedlePainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [colorDark, color.withValues(alpha: 0.7)],
-        ).createShader(
-          Rect.fromPoints(topPoint, bottomPoint),
-        ),
+        ).createShader(Rect.fromPoints(topPoint, bottomPoint)),
     );
 
-    // ── RIGHT HALF (lighter — 3D highlight) ─────────────
     final rightPath = Path()
       ..moveTo(topPoint.dx, topPoint.dy)
       ..lineTo(rightPoint.dx, rightPoint.dy)
@@ -1129,12 +1459,9 @@ class _Premium3DNeedlePainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [colorLight, color],
-        ).createShader(
-          Rect.fromPoints(topPoint, bottomPoint),
-        ),
+        ).createShader(Rect.fromPoints(topPoint, bottomPoint)),
     );
 
-    // ── Highlight line down center ──────────────────────
     canvas.drawLine(
       topPoint,
       Offset(center.dx, center.dy - 4),
@@ -1144,7 +1471,6 @@ class _Premium3DNeedlePainter extends CustomPainter {
         ..strokeCap = StrokeCap.round,
     );
 
-    // ── Glow when aligned ───────────────────────────────
     if (isAligned) {
       final glowPath = Path()
         ..moveTo(topPoint.dx, topPoint.dy)

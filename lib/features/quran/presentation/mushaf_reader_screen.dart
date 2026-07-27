@@ -1,177 +1,27 @@
 // lib/features/quran/presentation/mushaf_reader_screen.dart
-// ============================================================
-// QIBRA AI — Premium Mushaf Reader v4.0
-// Ornamental Corners + Golden Borders + Luxury Design
-// ============================================================
 
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../data/repository/reading_progress_repository.dart';
-import '../data/services/mushaf_page_service.dart';
-import '../providers/reading_progress_provider.dart';
+import '../../../core/design_system/app_colors.dart';
+import '../../tafseer/presentation/tafseer_screen.dart';
+import 'surah_reader_screen.dart';
 
-// ============================================================
-// READING MODE
-// ============================================================
-
-enum ReadingMode {
-  light,
-  night,
-  sepia;
-
-  String get label {
-    return switch (this) {
-      ReadingMode.light => 'Light',
-      ReadingMode.night => 'Night',
-      ReadingMode.sepia => 'Sepia',
-    };
-  }
-
-  IconData get icon {
-    return switch (this) {
-      ReadingMode.light => Icons.wb_sunny_rounded,
-      ReadingMode.night => Icons.nightlight_round,
-      ReadingMode.sepia => Icons.local_cafe_rounded,
-    };
-  }
-
-  Color get pageBackground {
-    return switch (this) {
-      ReadingMode.light => const Color(0xFFFBF6E9),
-      ReadingMode.night => const Color(0xFF0F1B15),
-      ReadingMode.sepia => const Color(0xFFF4E8CD),
-    };
-  }
-
-  Color get pageBackgroundEnd {
-    return switch (this) {
-      ReadingMode.light => const Color(0xFFF5EDD5),
-      ReadingMode.night => const Color(0xFF0A1410),
-      ReadingMode.sepia => const Color(0xFFEDDCB0),
-    };
-  }
-
-  Color get textColor {
-    return switch (this) {
-      ReadingMode.light => const Color(0xFF1A1A1A),
-      ReadingMode.night => const Color(0xFFF0E6CC),
-      ReadingMode.sepia => const Color(0xFF3D2914),
-    };
-  }
-
-  Color get accentColor {
-    return switch (this) {
-      ReadingMode.light => const Color(0xFFB8860B),
-      ReadingMode.night => const Color(0xFFD4AF37),
-      ReadingMode.sepia => const Color(0xFF8B4513),
-    };
-  }
-
-  Color get borderColor {
-    return switch (this) {
-      ReadingMode.light => const Color(0xFFB8860B),
-      ReadingMode.night => const Color(0xFFD4AF37),
-      ReadingMode.sepia => const Color(0xFF8B4513),
-    };
-  }
-
-  Color get scaffoldBg {
-    return switch (this) {
-      ReadingMode.light => const Color(0xFF000000),
-      ReadingMode.night => const Color(0xFF000000),
-      ReadingMode.sepia => const Color(0xFF1A0F05),
-    };
-  }
-}
-
-// ============================================================
-// FONT SIZE
-// ============================================================
-
-enum MushafFontSize {
-  small(20),
-  medium(24),
-  large(28),
-  xLarge(32);
-
-  final double size;
-  const MushafFontSize(this.size);
-
-  String get label {
-    return switch (this) {
-      MushafFontSize.small => 'S',
-      MushafFontSize.medium => 'M',
-      MushafFontSize.large => 'L',
-      MushafFontSize.xLarge => 'XL',
-    };
-  }
-}
-
-// ============================================================
-// JUZ DATA
-// ============================================================
-
-class _JuzData {
-  static const List<Map<String, dynamic>> juzPages = [
-    {'juz': 1, 'startPage': 1},
-    {'juz': 2, 'startPage': 22},
-    {'juz': 3, 'startPage': 42},
-    {'juz': 4, 'startPage': 62},
-    {'juz': 5, 'startPage': 82},
-    {'juz': 6, 'startPage': 102},
-    {'juz': 7, 'startPage': 121},
-    {'juz': 8, 'startPage': 142},
-    {'juz': 9, 'startPage': 162},
-    {'juz': 10, 'startPage': 182},
-    {'juz': 11, 'startPage': 201},
-    {'juz': 12, 'startPage': 222},
-    {'juz': 13, 'startPage': 242},
-    {'juz': 14, 'startPage': 262},
-    {'juz': 15, 'startPage': 282},
-    {'juz': 16, 'startPage': 302},
-    {'juz': 17, 'startPage': 322},
-    {'juz': 18, 'startPage': 342},
-    {'juz': 19, 'startPage': 362},
-    {'juz': 20, 'startPage': 382},
-    {'juz': 21, 'startPage': 402},
-    {'juz': 22, 'startPage': 422},
-    {'juz': 23, 'startPage': 442},
-    {'juz': 24, 'startPage': 462},
-    {'juz': 25, 'startPage': 482},
-    {'juz': 26, 'startPage': 502},
-    {'juz': 27, 'startPage': 522},
-    {'juz': 28, 'startPage': 542},
-    {'juz': 29, 'startPage': 562},
-    {'juz': 30, 'startPage': 582},
-  ];
-
-  static int getJuzForPage(int page) {
-    int juz = 1;
-    for (final j in juzPages) {
-      if (page >= (j['startPage'] as int)) {
-        juz = j['juz'] as int;
-      } else {
-        break;
-      }
-    }
-    return juz;
-  }
-}
-
-// ============================================================
-// MUSHAF READER SCREEN
-// ============================================================
+final _currentPageProvider = StateProvider.autoDispose<int>((ref) => 1);
+final _isNightModeProvider = StateProvider.autoDispose<bool>((ref) => false);
+final _showControlsProvider = StateProvider.autoDispose<bool>((ref) => true);
 
 class MushafReaderScreen extends ConsumerStatefulWidget {
-  final int initialPage;
-
   const MushafReaderScreen({
     super.key,
     this.initialPage = 1,
+    this.surahNumber,
   });
+
+  final int initialPage;
+  final int? surahNumber;
 
   @override
   ConsumerState<MushafReaderScreen> createState() => _MushafReaderScreenState();
@@ -179,160 +29,544 @@ class MushafReaderScreen extends ConsumerStatefulWidget {
 
 class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   late PageController _pageController;
-  final _mushafService = MushafPageService.instance;
-
-  int _currentPage = 1;
-  static const int _totalPages = 604;
-
-  bool _showControls = true;
-  bool _isLoading = true;
-  Timer? _controlsTimer;
-  Timer? _saveTimer;
-
-  DateTime? _pageOpenedAt;
-  int _totalReadingSeconds = 0;
-
-  final TextEditingController _pageInputController = TextEditingController();
-
-  ReadingMode _readingMode = ReadingMode.light;
-  MushafFontSize _fontSize = MushafFontSize.medium;
+  Set<int> _bookmarkedPages = {};
 
   @override
   void initState() {
     super.initState();
-    _currentPage = widget.initialPage.clamp(1, _totalPages);
-
-    _pageController = PageController(
-      initialPage: _currentPage - 1,
-      viewportFraction: 1.0,
-    );
-
-    _pageOpenedAt = DateTime.now();
-
-    _initService();
-    _startControlsTimer();
-
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.immersiveSticky,
-      overlays: [],
-    );
-  }
-
-  Future<void> _initService() async {
-    await _mushafService.initialize();
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
+    _pageController = PageController(initialPage: widget.initialPage - 1);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(_currentPageProvider.notifier).state = widget.initialPage;
+    });
+    _loadBookmarks();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _controlsTimer?.cancel();
-    _saveTimer?.cancel();
-    _pageInputController.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
-  void _startControlsTimer() {
-    _controlsTimer?.cancel();
-    _controlsTimer = Timer(const Duration(seconds: 4), () {
-      if (mounted && _showControls) {
-        setState(() => _showControls = false);
+  // ═══════════════════════════════════════════════
+  // BOOKMARKS (Real - SharedPreferences)
+  // ═══════════════════════════════════════════════
+
+  Future<void> _loadBookmarks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bookmarks = prefs.getStringList('mushaf_bookmarked_pages') ?? [];
+    setState(() {
+      _bookmarkedPages = bookmarks.map((e) => int.parse(e)).toSet();
+    });
+  }
+
+  Future<void> _toggleBookmark(int page) async {
+    HapticFeedback.mediumImpact();
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      if (_bookmarkedPages.contains(page)) {
+        _bookmarkedPages.remove(page);
+      } else {
+        _bookmarkedPages.add(page);
       }
     });
-  }
 
-  void _toggleControls() {
-    setState(() => _showControls = !_showControls);
-    if (_showControls) _startControlsTimer();
-  }
-
-  void _onPageChanged(int index) {
-    final newPage = index + 1;
-    setState(() => _currentPage = newPage);
-
-    _saveTimer?.cancel();
-    _saveTimer = Timer(const Duration(seconds: 1), () {
-      _saveProgress(newPage);
-    });
-  }
-
-  Future<void> _saveProgress(int page) async {
-    final pageData = _mushafService.getPageSync(page);
-
-    if (_pageOpenedAt != null) {
-      _totalReadingSeconds +=
-          DateTime.now().difference(_pageOpenedAt!).inSeconds;
-      _pageOpenedAt = DateTime.now();
-    }
-
-    final model = MushafPageModel(
-      pageNumber: page,
-      surahNumber: pageData?.primarySurahNumber ?? 1,
-      surahName: pageData?.primarySurahNameEnglish ?? 'Al-Fatihah',
-      ayahNumber: pageData?.ayahs.first.ayahNumber ?? 1,
-      juzNumber: pageData?.juz ?? _JuzData.getJuzForPage(page),
-      hizbNumber: ((_JuzData.getJuzForPage(page) - 1) * 2) + 1,
-      savedAt: DateTime.now(),
-      totalReadingSeconds: _totalReadingSeconds,
+    await prefs.setStringList(
+      'mushaf_bookmarked_pages',
+      _bookmarkedPages.map((e) => e.toString()).toList(),
     );
 
-    await ref.read(readingProgressProvider.notifier).savePage(model);
-  }
-
-  void _jumpToPage(int page) {
-    final target = page.clamp(1, _totalPages);
-    _pageController.animateToPage(
-      target - 1,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
+    _showToast(
+      _bookmarkedPages.contains(page)
+          ? '🔖 Page $page bookmarked'
+          : 'Bookmark removed from page $page',
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: _readingMode.scaffoldBg,
-        body: Center(
-          child: CircularProgressIndicator(
-            color: _readingMode.accentColor,
-          ),
-        ),
-      );
-    }
+    final currentPage = ref.watch(_currentPageProvider);
+    final isNightMode = ref.watch(_isNightModeProvider);
+    final showControls = ref.watch(_showControlsProvider);
 
     return Scaffold(
-      backgroundColor: _readingMode.scaffoldBg,
-      extendBodyBehindAppBar: true,
-      extendBody: true,
-      body: AnimatedContainer(
-        duration: const Duration(milliseconds: 400),
-        color: _readingMode.scaffoldBg,
-        child: GestureDetector(
-          onTap: _toggleControls,
-          child: Stack(
-            children: [
-              // Main Page View
-              PageView.builder(
+      backgroundColor: isNightMode ? Colors.black : const Color(0xFFF5EEDC),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            GestureDetector(
+              onTap: () {
+                ref.read(_showControlsProvider.notifier).state = !showControls;
+              },
+              child: PageView.builder(
                 controller: _pageController,
-                onPageChanged: _onPageChanged,
-                itemCount: _totalPages,
                 reverse: true,
+                itemCount: 604,
+                onPageChanged: (index) {
+                  HapticFeedback.selectionClick();
+                  ref.read(_currentPageProvider.notifier).state = index + 1;
+                },
                 itemBuilder: (context, index) {
-                  return _MushafPageWidget(
+                  return _MushafPage(
                     pageNumber: index + 1,
-                    service: _mushafService,
-                    readingMode: _readingMode,
-                    fontSize: _fontSize,
+                    isNightMode: isNightMode,
                   );
                 },
               ),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              top: showControls ? 0 : -100,
+              left: 0,
+              right: 0,
+              child: _buildTopBar(currentPage, isNightMode),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              bottom: showControls ? 0 : -200,
+              left: 0,
+              right: 0,
+              child: _buildBottomBar(currentPage, isNightMode),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-              if (_showControls) _buildTopBar(),
-              if (_showControls) _buildBottomBar(),
+  Widget _buildTopBar(int currentPage, bool isNightMode) {
+    final isBookmarked = _bookmarkedPages.contains(currentPage);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isNightMode
+            ? Colors.black.withValues(alpha: 0.85)
+            : const Color(0xFF0A1F14).withValues(alpha: 0.95),
+        border: Border(
+          bottom: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
+        ),
+      ),
+      child: Row(
+        children: [
+          _iconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+            },
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _getSurahName(currentPage),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  'Juz ${_getJuzForPage(currentPage)} • Page $currentPage',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _iconButton(
+            icon: isBookmarked
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_border_rounded,
+            onTap: () => _toggleBookmark(currentPage),
+            highlight: isBookmarked,
+          ),
+          const SizedBox(width: 8),
+          _iconButton(
+            icon: isNightMode ? Icons.wb_sunny_rounded : Icons.nightlight_round,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              ref.read(_isNightModeProvider.notifier).state = !isNightMode;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(int currentPage, bool isNightMode) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isNightMode
+            ? Colors.black.withValues(alpha: 0.85)
+            : const Color(0xFF0A1F14).withValues(alpha: 0.95),
+        border: Border(
+          top: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Text(
+                  '1',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 11,
+                  ),
+                ),
+                Expanded(
+                  child: SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 3,
+                      activeTrackColor: AppColors.accent,
+                      inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
+                      thumbColor: AppColors.accent,
+                      overlayColor: AppColors.accent.withValues(alpha: 0.2),
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 8,
+                      ),
+                    ),
+                    child: Slider(
+                      value: currentPage.toDouble(),
+                      min: 1,
+                      max: 604,
+                      onChanged: (value) {
+                        ref.read(_currentPageProvider.notifier).state =
+                            value.toInt();
+                      },
+                      onChangeEnd: (value) {
+                        _pageController.jumpToPage(value.toInt() - 1);
+                        HapticFeedback.selectionClick();
+                      },
+                    ),
+                  ),
+                ),
+                Text(
+                  '604',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                _iconButton(
+                  icon: Icons.chevron_left_rounded,
+                  onTap: () {
+                    if (currentPage < 604) {
+                      _pageController.nextPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _showGoToPageSheet,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.accent.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        '$currentPage / 604',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                _iconButton(
+                  icon: Icons.chevron_right_rounded,
+                  onTap: () {
+                    if (currentPage > 1) {
+                      _pageController.previousPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: AppColors.accent.withValues(alpha: 0.2)),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _actionButton(
+                  icon: Icons.article_outlined,
+                  label: 'Go to',
+                  onTap: _showGoToPageSheet,
+                ),
+                _actionButton(
+                  icon: Icons.menu_book_outlined,
+                  label: 'Tafsir',
+                  onTap: _openTafsir,
+                ),
+                _actionButton(
+                  icon: Icons.play_arrow_rounded,
+                  label: 'Audio',
+                  onTap: _playAudio,
+                ),
+                _actionButton(
+                  icon: Icons.translate_rounded,
+                  label: 'Translate',
+                  onTap: _openTranslation,
+                ),
+                _actionButton(
+                  icon: Icons.more_horiz_rounded,
+                  label: 'More',
+                  onTap: _showMoreOptions,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _iconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    bool highlight = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: highlight
+              ? AppColors.accent.withValues(alpha: 0.35)
+              : AppColors.accent.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: highlight ? AppColors.accent : Colors.white,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  Widget _actionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 22),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  int _getSurahNumberForPage(int page) {
+    if (page == 1) return 1;
+    if (page <= 49) return 2;
+    if (page <= 76) return 3;
+    if (page <= 106) return 4;
+    if (page <= 127) return 5;
+    if (page <= 149) return 6;
+    if (page <= 176) return 7;
+    if (page <= 187) return 8;
+    if (page <= 207) return 9;
+    if (page <= 221) return 10;
+    return 1;
+  }
+
+  void _openTafsir() {
+    HapticFeedback.mediumImpact();
+    final currentPage = ref.read(_currentPageProvider);
+    final surahNum = _getSurahNumberForPage(currentPage);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TafseerScreen(
+          surahNumber: surahNum,
+          initialAyah: 1,
+        ),
+      ),
+    );
+  }
+
+  void _openTranslation() {
+    HapticFeedback.mediumImpact();
+    final currentPage = ref.read(_currentPageProvider);
+    final surahNum = _getSurahNumberForPage(currentPage);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SurahReaderScreen(surahNumber: surahNum),
+      ),
+    );
+  }
+
+  // ✅ AUDIO - Opens Surah Reader with audio
+  void _playAudio() {
+    HapticFeedback.mediumImpact();
+    final currentPage = ref.read(_currentPageProvider);
+    final surahNum = _getSurahNumberForPage(currentPage);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SurahReaderScreen(surahNumber: surahNum),
+      ),
+    );
+    _showToast('🎵 Opening surah reader with audio');
+  }
+
+  // ✅ MORE OPTIONS - Real menu
+  void _showMoreOptions() {
+    HapticFeedback.selectionClick();
+    final currentPage = ref.read(_currentPageProvider);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1A2438),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.more_horiz_rounded,
+                        color: AppColors.accent, size: 24),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Page $currentPage Options',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(color: Colors.white12, height: 1),
+              _menuOption(
+                icon: Icons.copy_rounded,
+                label: 'Copy Page Info',
+                color: const Color(0xFF10B981),
+                onTap: () {
+                  Navigator.pop(context);
+                  _copyPageInfo(currentPage);
+                },
+              ),
+              _menuOption(
+                icon: Icons.share_rounded,
+                label: 'Share Page',
+                color: const Color(0xFF3B82F6),
+                onTap: () {
+                  Navigator.pop(context);
+                  _sharePage(currentPage);
+                },
+              ),
+              _menuOption(
+                icon: _bookmarkedPages.contains(currentPage)
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_border_rounded,
+                label: _bookmarkedPages.contains(currentPage)
+                    ? 'Remove Bookmark'
+                    : 'Bookmark Page',
+                color: const Color(0xFFEC4899),
+                onTap: () {
+                  Navigator.pop(context);
+                  _toggleBookmark(currentPage);
+                },
+              ),
+              _menuOption(
+                icon: Icons.list_alt_rounded,
+                label: 'View All Bookmarks',
+                color: const Color(0xFFF59E0B),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showBookmarksList();
+                },
+              ),
+              _menuOption(
+                icon: Icons.info_outline_rounded,
+                label: 'Page Info',
+                color: const Color(0xFF8B5CF6),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showPageInfo(currentPage);
+                },
+              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -340,691 +574,270 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     );
   }
 
-  // ============================================================
-  // TOP BAR
-  // ============================================================
-
-  Widget _buildTopBar() {
-    final pageData = _mushafService.getPageSync(_currentPage);
-
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 250),
-        opacity: _showControls ? 1.0 : 0.0,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withValues(alpha: 0.92),
-                Colors.black.withValues(alpha: 0.5),
-                Colors.transparent,
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              child: Row(
-                children: [
-                  _iconButton(
-                    icon: Icons.arrow_back_ios_new_rounded,
-                    onTap: () => Navigator.pop(context),
-                  ),
-                  const Spacer(),
-                  Column(
-                    children: [
-                      Text(
-                        pageData?.primarySurahName ?? '',
-                        style: const TextStyle(
-                          fontFamily: 'Amiri',
-                          color: Color(0xFFD4AF37),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'JUZ ${pageData?.juz ?? 1}  •  PAGE $_currentPage',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  _iconButton(
-                    icon: Icons.tune_rounded,
-                    onTap: _showSettings,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // BOTTOM BAR
-  // ============================================================
-
-  Widget _buildBottomBar() {
-    final progress = _currentPage / _totalPages;
-
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 250),
-        opacity: _showControls ? 1.0 : 0.0,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [
-                Colors.black.withValues(alpha: 0.97),
-                Colors.black.withValues(alpha: 0.6),
-                Colors.transparent,
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Page $_currentPage',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.55),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color:
-                                const Color(0xFFD4AF37).withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Text(
-                          '${(progress * 100).toStringAsFixed(1)}%',
-                          style: const TextStyle(
-                            color: Color(0xFFD4AF37),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '$_totalPages',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.55),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: progress,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFFD4AF37),
-                              Color(0xFFF4CE5B),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFD4AF37)
-                                  .withValues(alpha: 0.4),
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _navButton(
-                        icon: Icons.chevron_left_rounded,
-                        label: 'Previous',
-                        onTap: _currentPage > 1
-                            ? () => _jumpToPage(_currentPage - 1)
-                            : null,
-                      ),
-                      _navButton(
-                        icon: Icons.menu_book_rounded,
-                        label: 'Juz',
-                        onTap: _showJuzSelector,
-                      ),
-                      _navButton(
-                        icon: Icons.format_list_numbered_rounded,
-                        label: 'Page',
-                        onTap: _showPageJumper,
-                      ),
-                      _navButton(
-                        icon: Icons.chevron_right_rounded,
-                        label: 'Next',
-                        onTap: _currentPage < _totalPages
-                            ? () => _jumpToPage(_currentPage + 1)
-                            : null,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // HELPERS
-  // ============================================================
-
-  Widget _iconButton({required IconData icon, VoidCallback? onTap}) {
-    return GestureDetector(
+  Widget _menuOption({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
       onTap: onTap,
-      child: Container(
+      leading: Container(
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
-            width: 1,
-          ),
+          color: color.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: const Color(0xFFD4AF37), size: 20),
+        child: Icon(icon, color: color, size: 22),
       ),
-    );
-  }
-
-  Widget _navButton({
-    required IconData icon,
-    required String label,
-    VoidCallback? onTap,
-  }) {
-    final enabled = onTap != null;
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient: enabled
-                  ? LinearGradient(
-                      colors: [
-                        const Color(0xFF1A2744),
-                        const Color(0xFF0F1B2E),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    )
-                  : null,
-              color: enabled ? null : Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: enabled
-                    ? const Color(0xFFD4AF37).withValues(alpha: 0.35)
-                    : Colors.white.withValues(alpha: 0.05),
-                width: 1.2,
-              ),
-              boxShadow: enabled
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-                        blurRadius: 12,
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Icon(
-              icon,
-              color: enabled ? const Color(0xFFD4AF37) : Colors.white24,
-              size: 24,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            style: TextStyle(
-              color: enabled
-                  ? Colors.white.withValues(alpha: 0.75)
-                  : Colors.white24,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // SETTINGS
-  // ============================================================
-
-  void _showSettings() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF0D1B2A),
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 14,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 30,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 48,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 24),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.tune_rounded,
-                        color: Color(0xFFD4AF37),
-                        size: 22,
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        'Reading Settings',
-                        style: TextStyle(
-                          color: Color(0xFFD4AF37),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                  _sectionLabel('READING MODE'),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: ReadingMode.values.map((mode) {
-                      final isSelected = _readingMode == mode;
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() => _readingMode = mode);
-                              setModalState(() {});
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              decoration: BoxDecoration(
-                                gradient: isSelected
-                                    ? const LinearGradient(
-                                        colors: [
-                                          Color(0xFFD4AF37),
-                                          Color(0xFFB8860B),
-                                        ],
-                                      )
-                                    : null,
-                                color:
-                                    isSelected ? null : const Color(0xFF1A2744),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? const Color(0xFFD4AF37)
-                                      : Colors.white.withValues(alpha: 0.1),
-                                  width: 1.5,
-                                ),
-                                boxShadow: isSelected
-                                    ? [
-                                        BoxShadow(
-                                          color: const Color(0xFFD4AF37)
-                                              .withValues(alpha: 0.4),
-                                          blurRadius: 15,
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    mode.icon,
-                                    color: isSelected
-                                        ? Colors.black
-                                        : Colors.white,
-                                    size: 26,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    mode.label,
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? Colors.black
-                                          : Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 28),
-                  _sectionLabel('FONT SIZE'),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: MushafFontSize.values.map((size) {
-                      final isSelected = _fontSize == size;
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() => _fontSize = size);
-                              setModalState(() {});
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              decoration: BoxDecoration(
-                                gradient: isSelected
-                                    ? const LinearGradient(
-                                        colors: [
-                                          Color(0xFFD4AF37),
-                                          Color(0xFFB8860B),
-                                        ],
-                                      )
-                                    : null,
-                                color:
-                                    isSelected ? null : const Color(0xFF1A2744),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? const Color(0xFFD4AF37)
-                                      : Colors.white.withValues(alpha: 0.1),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  size.label,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? Colors.black
-                                        : Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 28),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFD4AF37),
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Done',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _sectionLabel(String label) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
+      title: Text(
         label,
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.6),
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.5,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
         ),
+      ),
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        color: Colors.white38,
+        size: 14,
       ),
     );
   }
 
-  // ============================================================
-  // PAGE JUMPER
-  // ============================================================
+  // ✅ COPY PAGE INFO
+  void _copyPageInfo(int page) {
+    final text = '''📖 Quran Reading Progress
 
-  void _showPageJumper() {
+Page: $page / 604
+Surah: ${_getSurahName(page)}
+Juz: ${_getJuzForPage(page)}
+
+Shared via Qibra AI''';
+
+    Clipboard.setData(ClipboardData(text: text));
+    HapticFeedback.mediumImpact();
+    _showToast('📋 Page info copied');
+  }
+
+  // ✅ SHARE PAGE
+  void _sharePage(int page) {
+    final text = '''📖 I'm reading Quran
+
+Currently on Page $page of 604
+Surah: ${_getSurahName(page)}
+Juz: ${_getJuzForPage(page)}
+
+Join me on Qibra AI 🕌''';
+
+    Clipboard.setData(ClipboardData(text: text));
+    HapticFeedback.mediumImpact();
+    _showToast('📤 Page info copied - paste to share');
+  }
+
+  // ✅ SHOW PAGE INFO DIALOG
+  void _showPageInfo(int page) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0D1B2A),
+        backgroundColor: const Color(0xFF1A2438),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
-          ),
         ),
-        title: const Text(
-          'Jump to Page',
-          style: TextStyle(color: Color(0xFFD4AF37)),
-        ),
-        content: TextField(
-          controller: _pageInputController,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
-          textAlign: TextAlign.center,
-          decoration: InputDecoration(
-            hintText: '1 - 604',
-            hintStyle: TextStyle(
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.2),
+        title: Row(
+          children: [
+            const Icon(Icons.info_outline, color: AppColors.accent),
+            const SizedBox(width: 8),
+            Text(
+              'Page $page',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
               ),
-              borderRadius: BorderRadius.circular(12),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Color(0xFFD4AF37)),
-              borderRadius: BorderRadius.circular(12),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _infoRow('Surah', _getSurahName(page)),
+            _infoRow('Juz', 'Para ${_getJuzForPage(page)}'),
+            _infoRow('Position', '$page of 604'),
+            _infoRow('Progress', '${(page / 604 * 100).toStringAsFixed(1)}%'),
+            _infoRow(
+              'Bookmarked',
+              _bookmarkedPages.contains(page) ? 'Yes ✓' : 'No',
             ),
-          ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:
-                const Text('Cancel', style: TextStyle(color: Colors.white54)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD4AF37),
-              foregroundColor: Colors.black,
+            child: const Text(
+              'Close',
+              style: TextStyle(color: AppColors.accent),
             ),
-            onPressed: () {
-              final page = int.tryParse(_pageInputController.text);
-              if (page != null) {
-                Navigator.pop(ctx);
-                _pageInputController.clear();
-                _jumpToPage(page);
-              }
-            },
-            child: const Text('Go'),
           ),
         ],
       ),
     );
   }
 
-  // ============================================================
-  // JUZ SELECTOR
-  // ============================================================
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 13,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  void _showJuzSelector() {
+  // ✅ BOOKMARKS LIST
+  void _showBookmarksList() {
+    if (_bookmarkedPages.isEmpty) {
+      _showToast('No bookmarks yet. Bookmark pages to see them here!');
+      return;
+    }
+
+    final sortedBookmarks = _bookmarkedPages.toList()..sort();
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0D1B2A),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (ctx) {
-        return Container(
-          height: MediaQuery.of(ctx).size.height * 0.7,
-          padding: const EdgeInsets.all(20),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.4,
+        expand: false,
+        builder: (_, controller) => Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF1A2438),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
           child: Column(
             children: [
               Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                width: 48,
+                width: 40,
                 height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: Colors.white24,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const Text(
-                'Jump to Juz',
-                style: TextStyle(
-                  color: Color(0xFFD4AF37),
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.bookmark_rounded,
+                        color: AppColors.accent, size: 24),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Bookmarked Pages',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${sortedBookmarks.length} pages',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const Divider(color: Colors.white12, height: 1),
               Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 5,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                  ),
-                  itemCount: 30,
+                child: ListView.builder(
+                  controller: controller,
+                  padding: const EdgeInsets.all(12),
+                  itemCount: sortedBookmarks.length,
                   itemBuilder: (context, index) {
-                    final juz = index + 1;
-                    final isCurrent =
-                        _JuzData.getJuzForPage(_currentPage) == juz;
-
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        final juzData = _JuzData.juzPages[index];
-                        _jumpToPage(juzData['startPage'] as int);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: isCurrent
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFFD4AF37),
-                                    Color(0xFFB8860B),
-                                  ],
-                                )
-                              : null,
-                          color: isCurrent ? null : const Color(0xFF1A2744),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isCurrent
-                                ? const Color(0xFFD4AF37)
-                                : Colors.white.withValues(alpha: 0.1),
-                            width: 1.5,
+                    final page = sortedBookmarks[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.pop(context);
+                          _pageController.jumpToPage(page - 1);
+                          HapticFeedback.mediumImpact();
+                        },
+                        leading: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary,
+                                AppColors.accent,
+                              ],
+                            ),
+                            shape: BoxShape.circle,
                           ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '$juz',
-                            style: TextStyle(
-                              color: isCurrent ? Colors.black : Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          child: Center(
+                            child: Text(
+                              '$page',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
+                        ),
+                        title: Text(
+                          'Page $page',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${_getSurahName(page)} • Juz ${_getJuzForPage(page)}',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                            color: Colors.red,
+                          ),
+                          onPressed: () async {
+                            _toggleBookmark(page);
+                            Navigator.pop(context);
+                          },
                         ),
                       ),
                     );
@@ -1033,457 +846,232 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  // ✅ GO TO PAGE - Real dialog
+  void _showGoToPageSheet() {
+    HapticFeedback.selectionClick();
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A2438),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.article_outlined, color: AppColors.accent),
+            SizedBox(width: 8),
+            Text(
+              'Go to Page',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Enter page number (1 - 604)',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(
+                hintText: 'e.g. 100',
+                hintStyle: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.3),
+                ),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.05),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onSubmitted: (value) => _goToPage(value, ctx),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () => _goToPage(controller.text, ctx),
+            child: const Text('Go'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _goToPage(String text, BuildContext dialogContext) {
+    final page = int.tryParse(text);
+    if (page == null || page < 1 || page > 604) {
+      _showToast('❌ Please enter a valid page (1-604)');
+      return;
+    }
+
+    Navigator.pop(dialogContext);
+    _pageController.jumpToPage(page - 1);
+    HapticFeedback.mediumImpact();
+    _showToast('📄 Jumped to page $page');
+  }
+
+  String _getSurahName(int page) {
+    if (page == 1) return 'Al-Fatihah';
+    if (page <= 49) return 'Al-Baqarah';
+    if (page <= 76) return 'Aal-Imran';
+    if (page <= 106) return 'An-Nisa';
+    if (page <= 127) return 'Al-Maidah';
+    if (page <= 149) return 'Al-Anam';
+    if (page <= 176) return 'Al-Araf';
+    if (page <= 187) return 'Al-Anfal';
+    if (page <= 207) return 'At-Tawbah';
+    if (page <= 221) return 'Yunus';
+    return 'Al-Quran';
+  }
+
+  int _getJuzForPage(int page) {
+    return ((page - 1) ~/ 20) + 1;
+  }
+
+  void _showToast(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
     );
   }
 }
 
-// ============================================================
-// MUSHAF PAGE WIDGET — LUXURY DESIGN
-// ============================================================
-
-class _MushafPageWidget extends StatelessWidget {
-  final int pageNumber;
-  final MushafPageService service;
-  final ReadingMode readingMode;
-  final MushafFontSize fontSize;
-
-  const _MushafPageWidget({
+class _MushafPage extends StatelessWidget {
+  const _MushafPage({
     required this.pageNumber,
-    required this.service,
-    required this.readingMode,
-    required this.fontSize,
+    required this.isNightMode,
   });
+
+  final int pageNumber;
+  final bool isNightMode;
 
   @override
   Widget build(BuildContext context) {
-    final pageData = service.getPageSync(pageNumber);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
-      color: readingMode.scaffoldBg,
+    return Container(
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 8,
-        bottom: MediaQuery.of(context).padding.bottom + 8,
         left: 8,
         right: 8,
+        top: 60,
+        bottom: MediaQuery.of(context).padding.bottom + 80,
       ),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 400),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              readingMode.pageBackground,
-              readingMode.pageBackgroundEnd,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.6),
-              blurRadius: 25,
-              offset: const Offset(0, 5),
-            ),
-            BoxShadow(
-              color: readingMode.accentColor.withValues(alpha: 0.15),
-              blurRadius: 30,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // Main Content
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: readingMode.accentColor.withValues(alpha: 0.4),
-                    width: 1.5,
+      child: Center(
+        child: InteractiveViewer(
+          minScale: 1.0,
+          maxScale: 4.0,
+          child: ColorFiltered(
+            colorFilter: isNightMode
+                ? const ColorFilter.matrix([
+                    -1,
+                    0,
+                    0,
+                    0,
+                    255,
+                    0,
+                    -1,
+                    0,
+                    0,
+                    255,
+                    0,
+                    0,
+                    -1,
+                    0,
+                    255,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                  ])
+                : const ColorFilter.matrix([
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                  ]),
+            child: Image.asset(
+              'assets/mushaf_pages/$pageNumber.png',
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              isAntiAlias: true,
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: Text(
+                    'Page $pageNumber',
+                    style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: readingMode.accentColor.withValues(alpha: 0.7),
-                        width: 0.8,
-                      ),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildHeader(pageData),
-                        _buildFancyDivider(),
-                        Expanded(
-                          child: pageData == null
-                              ? _buildLoading()
-                              : _buildAyahs(pageData, context),
-                        ),
-                        _buildFancyDivider(),
-                        _buildFooter(),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+                );
+              },
             ),
-
-            // Corner Ornaments
-            _cornerOrnament(Alignment.topLeft),
-            _cornerOrnament(Alignment.topRight),
-            _cornerOrnament(Alignment.bottomLeft),
-            _cornerOrnament(Alignment.bottomRight),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _cornerOrnament(Alignment alignment) {
-    return Align(
-      alignment: alignment,
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: readingMode.accentColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: readingMode.accentColor.withValues(alpha: 0.5),
-              width: 1,
-            ),
-          ),
-          child: Icon(
-            Icons.star_rounded,
-            size: 18,
-            color: readingMode.accentColor.withValues(alpha: 0.7),
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildFancyDivider() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    readingMode.accentColor.withValues(alpha: 0.5),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Icon(
-              Icons.circle,
-              size: 4,
-              color: readingMode.accentColor.withValues(alpha: 0.6),
-            ),
-          ),
-          Icon(
-            Icons.star_rounded,
-            size: 14,
-            color: readingMode.accentColor,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Icon(
-              Icons.circle,
-              size: 4,
-              color: readingMode.accentColor.withValues(alpha: 0.6),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    readingMode.accentColor.withValues(alpha: 0.5),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(MushafPageData? pageData) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        children: [
-          Text(
-            pageData?.primarySurahNameEnglish ?? '',
-            style: TextStyle(
-              fontSize: 13,
-              color: readingMode.accentColor,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.8,
-            ),
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-            decoration: BoxDecoration(
-              color: readingMode.accentColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: readingMode.accentColor.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Text(
-              'الجزء ${pageData?.juz ?? _JuzData.getJuzForPage(pageNumber)}',
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontSize: 14,
-                color: readingMode.accentColor,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return Center(
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        color: readingMode.accentColor,
-      ),
-    );
-  }
-
-  Widget _buildAyahs(MushafPageData pageData, BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ..._buildSurahHeaders(pageData),
-          _buildAyahsRichText(pageData),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildSurahHeaders(MushafPageData pageData) {
-    final headers = <Widget>[];
-    final shownSurahs = <int>{};
-
-    for (final ayah in pageData.ayahs) {
-      if (ayah.ayahNumber == 1 && !shownSurahs.contains(ayah.surahNumber)) {
-        shownSurahs.add(ayah.surahNumber);
-        headers.add(_buildSurahHeader(ayah));
-        headers.add(const SizedBox(height: 12));
-      }
-    }
-
-    return headers;
-  }
-
-  Widget _buildSurahHeader(MushafAyah ayah) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            readingMode.accentColor.withValues(alpha: 0.05),
-            readingMode.accentColor.withValues(alpha: 0.25),
-            readingMode.accentColor.withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: readingMode.accentColor.withValues(alpha: 0.6),
-          width: 1.8,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.star_rounded,
-                size: 14,
-                color: readingMode.accentColor.withValues(alpha: 0.7),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                ayah.surahName,
-                style: TextStyle(
-                  fontFamily: 'Amiri',
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: readingMode.accentColor,
-                ),
-                textDirection: TextDirection.rtl,
-              ),
-              const SizedBox(width: 12),
-              Icon(
-                Icons.star_rounded,
-                size: 14,
-                color: readingMode.accentColor.withValues(alpha: 0.7),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            ayah.surahNameEnglish.toUpperCase(),
-            style: TextStyle(
-              fontSize: 11,
-              color: readingMode.accentColor.withValues(alpha: 0.8),
-              fontWeight: FontWeight.w700,
-              letterSpacing: 2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAyahsRichText(MushafPageData pageData) {
-    final spans = <TextSpan>[];
-
-    for (int i = 0; i < pageData.ayahs.length; i++) {
-      final ayah = pageData.ayahs[i];
-
-      String text = ayah.arabicText;
-      if (ayah.isBismillah) {
-        text = text.replaceFirst(
-          RegExp(r'^بِسْمِ.*?الرَّحِيمِ\s*'),
-          '',
-        );
-        if (text.trim().isEmpty) continue;
-      }
-
-      spans.add(
-        TextSpan(
-          text: text,
-          style: TextStyle(
-            fontFamily: 'Amiri',
-            fontSize: fontSize.size,
-            height: 2.3,
-            color: readingMode.textColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      );
-
-      spans.add(
-        TextSpan(
-          text: ' ﴿${_toArabicNumber(ayah.ayahNumber)}﴾ ',
-          style: TextStyle(
-            fontFamily: 'Amiri',
-            fontSize: fontSize.size * 0.75,
-            color: readingMode.accentColor,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      );
-    }
-
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: RichText(
-        text: TextSpan(children: spans),
-        textAlign: TextAlign.justify,
-        textDirection: TextDirection.rtl,
-      ),
-    );
-  }
-
-  Widget _buildFooter() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            height: 1.5,
-            width: 40,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  readingMode.accentColor.withValues(alpha: 0.5),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  readingMode.accentColor.withValues(alpha: 0.15),
-                  readingMode.accentColor.withValues(alpha: 0.25),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: readingMode.accentColor,
-                width: 1.2,
-              ),
-            ),
-            child: Text(
-              _toArabicNumber(pageNumber),
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontSize: 18,
-                color: readingMode.accentColor,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          const Spacer(),
-          Container(
-            height: 1.5,
-            width: 40,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  readingMode.accentColor.withValues(alpha: 0.5),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _toArabicNumber(int number) {
-    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-    return number.toString().split('').map((d) => arabic[int.parse(d)]).join();
   }
 }

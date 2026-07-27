@@ -34,180 +34,167 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     if (dua == null) {
       return const Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(
-          child: Text('Dua not found'),
+        body: SafeArea(
+          child: Center(
+            child: Text('Dua not found'),
+          ),
         ),
       );
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // ── APP BAR ─────────────────────────────────────
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: AppColors.background,
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.borderSubtle),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 16,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            actions: [
-              // Favorite button
-              IconButton(
-                icon: Icon(
-                  dua.isFavorite
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  color: dua.isFavorite
-                      ? const Color(0xFFFF6B6B)
-                      : AppColors.iconSecondary,
-                ),
-                onPressed: () {
-                  HapticFeedback.selectionClick();
-                  ref
-                      .read(favoriteDuaIdsProvider.notifier)
-                      .toggleFavorite(dua.id);
-                },
-              ),
-              // Share button
-              IconButton(
-                icon: const Icon(
-                  Icons.share_rounded,
-                  color: AppColors.iconSecondary,
-                ),
-                onPressed: () => _shareDua(),
-              ),
-              // Copy button
-              IconButton(
-                icon: const Icon(
-                  Icons.copy_rounded,
-                  color: AppColors.iconSecondary,
-                ),
-                onPressed: () => _copyDua(),
-              ),
-            ],
-            title: Text(
-              'Dua',
-              style: AppTextStyles.titleMedium,
-            ),
-          ),
-
-          // ── CONTENT ─────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Title card
-                  _buildTitleCard(dua.titleEnglish, dua.titleUrdu,
-                      dua.titleArabic, dua.grade),
-
-                  const SizedBox(height: 20),
-
-                  // Arabic text card
-                  _buildArabicCard(dua.arabic),
-
-                  const SizedBox(height: 16),
-
-                  // Toggles row
-                  _buildToggles(),
-
-                  const SizedBox(height: 16),
-
-                  // Transliteration
-                  if (_showTransliteration)
-                    _buildInfoCard(
-                      icon: Icons.translate_rounded,
-                      iconColor: const Color(0xFF3B82F6),
-                      label: 'Transliteration',
-                      content: dua.transliteration,
-                      isItalic: true,
-                    ),
-
-                  // Urdu translation
-                  if (_showUrdu)
-                    _buildInfoCard(
-                      icon: Icons.language_rounded,
-                      iconColor: const Color(0xFF8B5CF6),
-                      label: 'Urdu Translation',
-                      content: dua.translationUrdu,
-                      isRtl: true,
-                    ),
-
-                  // English translation
-                  if (_showEnglish)
-                    _buildInfoCard(
-                      icon: Icons.article_rounded,
-                      iconColor: const Color(0xFF10B981),
-                      label: 'English Translation',
-                      content: dua.translationEnglish,
-                    ),
-
-                  const SizedBox(height: 8),
-
-                  // Reference card
-                  _buildReferenceCard(
-                    dua.reference,
-                    dua.referenceBook,
-                    dua.referenceNumber,
-                    dua.grade,
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // APP BAR
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: AppColors.background,
+              leading: IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.borderSubtle),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // When to recite
-                  _buildDetailSection(
-                    icon: '🕐',
-                    title: 'When to Recite',
-                    content: dua.whenToRecite,
+                  child: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 16,
+                    color: AppColors.textPrimary,
                   ),
-
-                  // How to recite
-                  _buildDetailSection(
-                    icon: '📿',
-                    title: 'How to Recite',
-                    content: dua.howToRecite,
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              actions: [
+                // Favorite button
+                IconButton(
+                  icon: Icon(
+                    dua.isFavorite
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    color: dua.isFavorite
+                        ? const Color(0xFFFF6B6B)
+                        : AppColors.iconSecondary,
                   ),
-
-                  // Benefits
-                  _buildDetailSection(
-                    icon: '✨',
-                    title: 'Benefits & Fazilat',
-                    content: dua.benefits,
-                    isHighlighted: true,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    ref
+                        .read(favoriteDuaIdsProvider.notifier)
+                        .toggleFavorite(dua.id);
+                  },
+                ),
+                // Share button
+                IconButton(
+                  icon: const Icon(
+                    Icons.share_rounded,
+                    color: AppColors.iconSecondary,
                   ),
-
-                  const SizedBox(height: 120),
-                ],
+                  onPressed: () => _shareDua(),
+                ),
+                // Copy button
+                IconButton(
+                  icon: const Icon(
+                    Icons.copy_rounded,
+                    color: AppColors.iconSecondary,
+                  ),
+                  onPressed: () => _copyDua(),
+                ),
+              ],
+              title: Text(
+                'Dua',
+                style: AppTextStyles.titleMedium,
               ),
             ),
-          ),
-        ],
+
+            // CONTENT
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildTitleCard(
+                      dua.titleEnglish,
+                      dua.titleUrdu,
+                      dua.titleArabic,
+                      dua.grade,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildArabicCard(dua.arabic),
+                    const SizedBox(height: 16),
+                    _buildToggles(),
+                    const SizedBox(height: 16),
+                    if (_showTransliteration)
+                      _buildInfoCard(
+                        icon: Icons.translate_rounded,
+                        iconColor: const Color(0xFF3B82F6),
+                        label: 'Transliteration',
+                        content: dua.transliteration,
+                        isItalic: true,
+                      ),
+                    if (_showUrdu)
+                      _buildInfoCard(
+                        icon: Icons.language_rounded,
+                        iconColor: const Color(0xFF8B5CF6),
+                        label: 'Urdu Translation',
+                        content: dua.translationUrdu,
+                        isRtl: true,
+                      ),
+                    if (_showEnglish)
+                      _buildInfoCard(
+                        icon: Icons.article_rounded,
+                        iconColor: const Color(0xFF10B981),
+                        label: 'English Translation',
+                        content: dua.translationEnglish,
+                      ),
+                    const SizedBox(height: 8),
+                    _buildReferenceCard(
+                      dua.reference,
+                      dua.referenceBook,
+                      dua.referenceNumber,
+                      dua.grade,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDetailSection(
+                      icon: '🕐',
+                      title: 'When to Recite',
+                      content: dua.whenToRecite,
+                    ),
+                    _buildDetailSection(
+                      icon: '📿',
+                      title: 'How to Recite',
+                      content: dua.howToRecite,
+                    ),
+                    _buildDetailSection(
+                      icon: '✨',
+                      title: 'Benefits & Fazilat',
+                      content: dua.benefits,
+                      isHighlighted: true,
+                    ),
+                    const SizedBox(height: 120),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
   // TITLE CARD
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
 
   Widget _buildTitleCard(
-      String titleEn, String titleUr, String titleAr, String grade) {
+    String titleEn,
+    String titleUr,
+    String titleAr,
+    String grade,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -282,9 +269,9 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
   // ARABIC TEXT CARD
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
 
   Widget _buildArabicCard(String arabic) {
     return Container(
@@ -343,9 +330,9 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
   // TOGGLES ROW
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
 
   Widget _buildToggles() {
     return Container(
@@ -405,9 +392,9 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
   // INFO CARD (Translation, Transliteration)
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
 
   Widget _buildInfoCard({
     required IconData icon,
@@ -462,12 +449,16 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
   // REFERENCE CARD
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
 
   Widget _buildReferenceCard(
-      String reference, String book, String number, String grade) {
+    String reference,
+    String book,
+    String number,
+    String grade,
+  ) {
     Color gradeColor;
     switch (grade.toLowerCase()) {
       case 'sahih':
@@ -542,9 +533,9 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
   // DETAIL SECTION (When, How, Benefits)
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
 
   Widget _buildDetailSection({
     required String icon,
@@ -596,9 +587,9 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
   // ACTIONS
-  // ──────────────────────────────────────────────────────────
+  // ============================================================
 
   void _copyDua() {
     final dua = ref.read(duaByIdProvider(widget.duaId));

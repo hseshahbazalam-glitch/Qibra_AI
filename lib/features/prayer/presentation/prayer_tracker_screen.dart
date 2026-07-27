@@ -1,8 +1,8 @@
-// lib/features/prayer/presentation/prayer_tracker_screen.dart
+﻿// lib/features/prayer/presentation/prayer_tracker_screen.dart
 
 // ============================================================
-// QIBRA AI — PRAYER TRACKER SCREEN (v1.0)
-// Phase: 9 — Prayer Statistics & History
+// QIBRA AI â€” PRAYER TRACKER SCREEN (v1.0)
+// Phase: 9 â€” Prayer Statistics & History
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -213,7 +213,7 @@ class _PrayerTrackerScreenState extends ConsumerState<PrayerTrackerScreen>
     );
   }
 
-  // ── Top Bar ────────────────────────────────────────────────
+  // â”€â”€ Top Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildTopBar() {
     return Row(
@@ -258,7 +258,7 @@ class _PrayerTrackerScreenState extends ConsumerState<PrayerTrackerScreen>
     );
   }
 
-  // ── Hero Stats ─────────────────────────────────────────────
+  // â”€â”€ Hero Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildHeroStats(PrayerStatistics stats) {
     return Container(
@@ -379,7 +379,7 @@ class _PrayerTrackerScreenState extends ConsumerState<PrayerTrackerScreen>
     );
   }
 
-  // ── Streak Cards ───────────────────────────────────────────
+  // â”€â”€ Streak Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildStreakCards(PrayerStatistics stats) {
     return Row(
@@ -415,7 +415,7 @@ class _PrayerTrackerScreenState extends ConsumerState<PrayerTrackerScreen>
     );
   }
 
-  // ── Section Header ─────────────────────────────────────────
+  // â”€â”€ Section Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildSectionHeader(String title) {
     return Row(
@@ -441,7 +441,7 @@ class _PrayerTrackerScreenState extends ConsumerState<PrayerTrackerScreen>
     );
   }
 
-  // ── By Type Chart ──────────────────────────────────────────
+  // â”€â”€ By Type Chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildByTypeChart(PrayerStatistics stats) {
     final maxCount = stats.byType.values.isEmpty
@@ -522,7 +522,7 @@ class _PrayerTrackerScreenState extends ConsumerState<PrayerTrackerScreen>
     );
   }
 
-  // ── Weekly Overview ────────────────────────────────────────
+  // â”€â”€ Weekly Overview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildWeeklyOverview() {
     final now = DateTime.now();
@@ -645,42 +645,42 @@ class _PrayerTrackerScreenState extends ConsumerState<PrayerTrackerScreen>
     );
   }
 
-  // ── Motivation Card ────────────────────────────────────────
+  // â”€â”€ Motivation Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildMotivationCard(PrayerStatistics stats) {
     String message;
     String emoji;
-    IconData icon;
     Color color;
+    IconData icon;
 
     if (stats.currentStreak >= 30) {
       message =
           'Masha\'Allah! ${stats.currentStreak} days of consistency!\nMay Allah reward your dedication.';
-      emoji = '🌟';
+      emoji = 'ðŸŒŸ';
       icon = Icons.emoji_events_rounded;
       color = AppColors.accent;
     } else if (stats.currentStreak >= 7) {
       message =
           'Great job! ${stats.currentStreak} days in a row.\nKeep the momentum going!';
-      emoji = '💚';
+      emoji = 'ðŸ’š';
       icon = Icons.local_fire_department_rounded;
       color = const Color(0xFFFF7043);
     } else if (stats.consistencyPercentage >= 80) {
       message =
           'You\'re doing amazing!\n${stats.consistencyPercentage.toStringAsFixed(0)}% consistency is excellent.';
-      emoji = '🎯';
+      emoji = 'ðŸŽ¯';
       icon = Icons.check_circle_rounded;
       color = AppColors.primary;
     } else if (stats.consistencyPercentage >= 50) {
       message =
           'Good progress! Keep improving.\nEvery prayer counts, don\'t give up.';
-      emoji = '📈';
+      emoji = 'ðŸ“ˆ';
       icon = Icons.trending_up_rounded;
       color = const Color(0xFF42A5F5);
     } else {
       message =
           'Bismillah, let\'s make today count.\n"Verily, prayer prevents wrongdoing."';
-      emoji = '🤲';
+      emoji = 'ðŸ¤²';
       icon = Icons.self_improvement_rounded;
       color = const Color(0xFF7C4DFF);
     }
@@ -733,7 +733,7 @@ class _PrayerTrackerScreenState extends ConsumerState<PrayerTrackerScreen>
     );
   }
 
-  // ── Empty State ────────────────────────────────────────────
+  // â”€â”€ Empty State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _buildEmptyState() {
     return Column(
@@ -819,7 +819,7 @@ class _PrayerTrackerScreenState extends ConsumerState<PrayerTrackerScreen>
     );
   }
 
-  // ── Helpers ────────────────────────────────────────────────
+  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -1055,5 +1055,5 @@ class _CircleButton extends StatelessWidget {
 }
 
 // ============================================================
-// END OF FILE — prayer_tracker_screen.dart
+// END OF FILE â€” prayer_tracker_screen.dart
 // ============================================================

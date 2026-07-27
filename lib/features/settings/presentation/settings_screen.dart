@@ -1,7 +1,6 @@
-// lib/features/settings/presentation/settings_screen.dart
+﻿// lib/features/settings/presentation/settings_screen.dart
 // ============================================================
-// QIBRA AI — Premium Settings Screen
-// Complete settings with Profile, Preferences, About
+// QIBRA AI — Premium Settings Screen (FIXED)
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -27,205 +26,209 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // ── APP BAR ──────────────────────────────────
-          SliverAppBar(
-            expandedHeight: 100,
-            pinned: true,
-            backgroundColor: AppColors.background,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              title: Text(
-                'Settings',
-                style: AppTextStyles.titleLarge.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // APP BAR
+            SliverAppBar(
+              expandedHeight: 100,
+              pinned: true,
+              backgroundColor: AppColors.background,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: Text(
+                  'Settings',
+                  style: AppTextStyles.titleLarge.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.sm,
-              AppSpacing.lg,
-              120,
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.lg,
+                120,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // PROFILE CARD
+                  _buildProfileCard(context, userName, user?.email ?? ''),
+                  const SizedBox(height: AppSpacing.xl2),
+
+                  // APP PREFERENCES
+                  _buildSectionTitle('APP PREFERENCES'),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildSettingsGroup([
+                    _SettingsTile(
+                      icon: isDark ? Icons.dark_mode : Icons.light_mode,
+                      iconColor: const Color(0xFF7C3AED),
+                      title: 'Dark Mode',
+                      subtitle: isDark ? 'Enabled' : 'Disabled',
+                      trailing: Switch(
+                        value: isDark,
+                        activeThumbColor: AppColors.primary,
+                        onChanged: (_) {
+                          HapticFeedback.lightImpact();
+                          ref.read(themeProvider.notifier).toggleTheme();
+                        },
+                      ),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.language_rounded,
+                      iconColor: const Color(0xFF0891B2),
+                      title: 'Language',
+                      subtitle: 'English',
+                      onTap: () =>
+                          _showComingSoon(context, 'Language selection'),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.text_fields_rounded,
+                      iconColor: const Color(0xFFB45309),
+                      title: 'Font Size',
+                      subtitle: 'Medium',
+                      onTap: () => _showComingSoon(context, 'Font size'),
+                    ),
+                  ]),
+
+                  const SizedBox(height: AppSpacing.xl2),
+
+                  // ISLAMIC SETTINGS
+                  _buildSectionTitle('ISLAMIC PREFERENCES'),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildSettingsGroup([
+                    _SettingsTile(
+                      icon: Icons.access_time_filled_rounded,
+                      iconColor: AppColors.primary,
+                      title: 'Prayer Times',
+                      subtitle: 'Calculation method',
+                      onTap: () => context.go(AppRoutes.prayer),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.headphones_rounded,
+                      iconColor: AppColors.accent,
+                      title: 'Quran Reciter',
+                      subtitle: 'Mishary Rashid',
+                      onTap: () =>
+                          _showComingSoon(context, 'Reciter selection'),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.translate_rounded,
+                      iconColor: const Color(0xFF10B981),
+                      title: 'Translation',
+                      subtitle: 'English',
+                      onTap: () => _showComingSoon(context, 'Translation'),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.explore_rounded,
+                      iconColor: const Color(0xFF7C3AED),
+                      title: 'Qibla Direction',
+                      subtitle: 'Auto-detect',
+                      onTap: () => context.go(AppRoutes.qibla),
+                    ),
+                  ]),
+
+                  const SizedBox(height: AppSpacing.xl2),
+
+                  // NOTIFICATIONS
+                  _buildSectionTitle('NOTIFICATIONS'),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildSettingsGroup([
+                    _SettingsTile(
+                      icon: Icons.notifications_active_rounded,
+                      iconColor: const Color(0xFFEF4444),
+                      title: 'Adhan Notifications',
+                      subtitle: 'Enabled',
+                      trailing: Switch(
+                        value: true,
+                        activeThumbColor: AppColors.primary,
+                        onChanged: (_) {
+                          HapticFeedback.lightImpact();
+                          _showComingSoon(context, 'Adhan settings');
+                        },
+                      ),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.notification_add_rounded,
+                      iconColor: const Color(0xFFF59E0B),
+                      title: 'Daily Reminders',
+                      subtitle: 'Quran & Duas',
+                      trailing: Switch(
+                        value: true,
+                        activeThumbColor: AppColors.primary,
+                        onChanged: (_) {
+                          HapticFeedback.lightImpact();
+                          _showComingSoon(context, 'Reminder settings');
+                        },
+                      ),
+                    ),
+                  ]),
+
+                  const SizedBox(height: AppSpacing.xl2),
+
+                  // SUPPORT
+                  _buildSectionTitle('SUPPORT'),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildSettingsGroup([
+                    _SettingsTile(
+                      icon: Icons.help_outline_rounded,
+                      iconColor: const Color(0xFF0891B2),
+                      title: 'Help & FAQ',
+                      subtitle: 'Get help',
+                      onTap: () => _showComingSoon(context, 'Help center'),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.star_rounded,
+                      iconColor: const Color(0xFFFBBF24),
+                      title: 'Rate App',
+                      subtitle: 'Share your feedback',
+                      onTap: () => _showComingSoon(context, 'App rating'),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.share_rounded,
+                      iconColor: const Color(0xFF10B981),
+                      title: 'Share App',
+                      subtitle: 'Invite friends',
+                      onTap: () => _showComingSoon(context, 'Share app'),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.privacy_tip_outlined,
+                      iconColor: const Color(0xFF6B7280),
+                      title: 'Privacy Policy',
+                      onTap: () => _showComingSoon(context, 'Privacy policy'),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.description_outlined,
+                      iconColor: const Color(0xFF6B7280),
+                      title: 'Terms of Service',
+                      onTap: () => _showComingSoon(context, 'Terms'),
+                    ),
+                  ]),
+
+                  const SizedBox(height: AppSpacing.xl2),
+
+                  // ABOUT
+                  _buildAboutCard(context),
+
+                  const SizedBox(height: AppSpacing.xl2),
+
+                  // LOGOUT
+                  _buildLogoutButton(context, ref),
+
+                  const SizedBox(height: AppSpacing.xl3),
+
+                  // FOOTER
+                  _buildFooter(),
+                ]),
+              ),
             ),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // ── PROFILE CARD ─────────────────────
-                _buildProfileCard(context, userName, user?.email ?? ''),
-                const SizedBox(height: AppSpacing.xl2),
-
-                // ── APP PREFERENCES ──────────────────
-                _buildSectionTitle('APP PREFERENCES'),
-                const SizedBox(height: AppSpacing.md),
-                _buildSettingsGroup([
-                  _SettingsTile(
-                    icon: isDark ? Icons.dark_mode : Icons.light_mode,
-                    iconColor: const Color(0xFF7C3AED),
-                    title: 'Dark Mode',
-                    subtitle: isDark ? 'Enabled' : 'Disabled',
-                    trailing: Switch(
-                      value: isDark,
-                      activeThumbColor: AppColors.primary,
-                      onChanged: (_) {
-                        HapticFeedback.lightImpact();
-                        ref.read(themeProvider.notifier).toggleTheme();
-                      },
-                    ),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.language_rounded,
-                    iconColor: const Color(0xFF0891B2),
-                    title: 'Language',
-                    subtitle: 'English',
-                    onTap: () => _showComingSoon(context, 'Language selection'),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.text_fields_rounded,
-                    iconColor: const Color(0xFFB45309),
-                    title: 'Font Size',
-                    subtitle: 'Medium',
-                    onTap: () => _showComingSoon(context, 'Font size'),
-                  ),
-                ]),
-
-                const SizedBox(height: AppSpacing.xl2),
-
-                // ── ISLAMIC SETTINGS ─────────────────
-                _buildSectionTitle('ISLAMIC PREFERENCES'),
-                const SizedBox(height: AppSpacing.md),
-                _buildSettingsGroup([
-                  _SettingsTile(
-                    icon: Icons.access_time_filled_rounded,
-                    iconColor: AppColors.primary,
-                    title: 'Prayer Times',
-                    subtitle: 'Calculation method',
-                    onTap: () => context.go(AppRoutes.prayer),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.headphones_rounded,
-                    iconColor: AppColors.accent,
-                    title: 'Quran Reciter',
-                    subtitle: 'Mishary Rashid',
-                    onTap: () => _showComingSoon(context, 'Reciter selection'),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.translate_rounded,
-                    iconColor: const Color(0xFF10B981),
-                    title: 'Translation',
-                    subtitle: 'English',
-                    onTap: () => _showComingSoon(context, 'Translation'),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.explore_rounded,
-                    iconColor: const Color(0xFF7C3AED),
-                    title: 'Qibla Direction',
-                    subtitle: 'Auto-detect',
-                    onTap: () => context.go(AppRoutes.qibla),
-                  ),
-                ]),
-
-                const SizedBox(height: AppSpacing.xl2),
-
-                // ── NOTIFICATIONS ────────────────────
-                _buildSectionTitle('NOTIFICATIONS'),
-                const SizedBox(height: AppSpacing.md),
-                _buildSettingsGroup([
-                  _SettingsTile(
-                    icon: Icons.notifications_active_rounded,
-                    iconColor: const Color(0xFFEF4444),
-                    title: 'Adhan Notifications',
-                    subtitle: 'Enabled',
-                    trailing: Switch(
-                      value: true,
-                      activeThumbColor: AppColors.primary,
-                      onChanged: (_) {
-                        HapticFeedback.lightImpact();
-                        _showComingSoon(context, 'Adhan settings');
-                      },
-                    ),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.notification_add_rounded,
-                    iconColor: const Color(0xFFF59E0B),
-                    title: 'Daily Reminders',
-                    subtitle: 'Quran & Duas',
-                    trailing: Switch(
-                      value: true,
-                      activeThumbColor: AppColors.primary,
-                      onChanged: (_) {
-                        HapticFeedback.lightImpact();
-                        _showComingSoon(context, 'Reminder settings');
-                      },
-                    ),
-                  ),
-                ]),
-
-                const SizedBox(height: AppSpacing.xl2),
-
-                // ── SUPPORT ──────────────────────────
-                _buildSectionTitle('SUPPORT'),
-                const SizedBox(height: AppSpacing.md),
-                _buildSettingsGroup([
-                  _SettingsTile(
-                    icon: Icons.help_outline_rounded,
-                    iconColor: const Color(0xFF0891B2),
-                    title: 'Help & FAQ',
-                    subtitle: 'Get help',
-                    onTap: () => _showComingSoon(context, 'Help center'),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.star_rounded,
-                    iconColor: const Color(0xFFFBBF24),
-                    title: 'Rate App',
-                    subtitle: 'Share your feedback',
-                    onTap: () => _showComingSoon(context, 'App rating'),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.share_rounded,
-                    iconColor: const Color(0xFF10B981),
-                    title: 'Share App',
-                    subtitle: 'Invite friends',
-                    onTap: () => _showComingSoon(context, 'Share app'),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.privacy_tip_outlined,
-                    iconColor: const Color(0xFF6B7280),
-                    title: 'Privacy Policy',
-                    onTap: () => _showComingSoon(context, 'Privacy policy'),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.description_outlined,
-                    iconColor: const Color(0xFF6B7280),
-                    title: 'Terms of Service',
-                    onTap: () => _showComingSoon(context, 'Terms'),
-                  ),
-                ]),
-
-                const SizedBox(height: AppSpacing.xl2),
-
-                // ── ABOUT ─────────────────────────────
-                _buildAboutCard(context),
-
-                const SizedBox(height: AppSpacing.xl2),
-
-                // ── LOGOUT ────────────────────────────
-                _buildLogoutButton(context, ref),
-
-                const SizedBox(height: AppSpacing.xl3),
-
-                // ── FOOTER ────────────────────────────
-                _buildFooter(),
-              ]),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -448,7 +451,6 @@ class SettingsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               Container(
@@ -495,10 +497,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
-
           const SizedBox(height: AppSpacing.md),
-
-          // Description
           Text(
             'QIBRA AI is an Islamic Super App designed to help Muslims with the Quran, Hadith, Prayer Times, Qibla, and AI-powered Islamic knowledge.',
             style: AppTextStyles.bodyMedium.copyWith(
@@ -506,10 +505,7 @@ class SettingsScreen extends ConsumerWidget {
               height: 1.6,
             ),
           ),
-
           const SizedBox(height: AppSpacing.md),
-
-          // Version + Beta badge
           Row(
             children: [
               Container(
@@ -565,9 +561,9 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(
                       Icons.science_rounded,
                       color: AppColors.white,
@@ -588,10 +584,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
-
           const SizedBox(height: AppSpacing.lg),
-
-          // Divider
           Container(
             height: 1,
             decoration: BoxDecoration(
@@ -604,10 +597,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-
           const SizedBox(height: AppSpacing.md),
-
-          // Developer info
           Row(
             children: [
               Container(
@@ -698,7 +688,6 @@ class SettingsScreen extends ConsumerWidget {
   Widget _buildFooter() {
     return Column(
       children: [
-        // Gold divider with star
         Row(
           children: [
             Expanded(
@@ -737,10 +726,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
         ),
-
         const SizedBox(height: AppSpacing.md),
-
-        // Arabic phrase
         ShaderMask(
           shaderCallback: (bounds) => const LinearGradient(
             colors: [
@@ -759,9 +745,7 @@ class SettingsScreen extends ConsumerWidget {
             textDirection: TextDirection.rtl,
           ),
         ),
-
         const SizedBox(height: 4),
-
         Text(
           'May Allah bless you',
           style: AppTextStyles.labelSmall.copyWith(
@@ -770,10 +754,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 10,
           ),
         ),
-
         const SizedBox(height: AppSpacing.md),
-
-        // Copyright
         Text(
           '© 2026 Shahbaz Alam',
           style: AppTextStyles.labelSmall.copyWith(
@@ -789,9 +770,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 9,
           ),
         ),
-
         const SizedBox(height: AppSpacing.sm),
-
         Text(
           'QIBRA AI',
           style: AppTextStyles.labelSmall.copyWith(
@@ -870,7 +849,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(
+            child: const Text(
               'Cancel',
               style: TextStyle(
                 color: AppColors.textSecondary,
@@ -974,7 +953,7 @@ class _SettingsTile extends StatelessWidget {
               if (trailing != null)
                 trailing!
               else if (onTap != null)
-                Icon(
+                const Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.textTertiary,
                   size: 20,

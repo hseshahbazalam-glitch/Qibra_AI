@@ -1,8 +1,8 @@
-// lib/features/quran/presentation/bookmarks_screen.dart
+﻿// lib/features/quran/presentation/bookmarks_screen.dart
 
 // ============================================================
-// QIBRA AI — BOOKMARKS SCREEN (v1.0)
-// Phase: 8.5 — Bookmarks Management
+// QIBRA AI â€” BOOKMARKS SCREEN (v1.0)
+// Phase: 8.5 â€” Bookmarks Management
 // ============================================================
 
 import 'dart:ui';
@@ -19,7 +19,7 @@ import '../providers/quran_provider.dart';
 import 'surah_reader_screen.dart';
 
 // ============================================================
-// SECTION 1 — SORT ENUM
+// SECTION 1 â€” SORT ENUM
 // ============================================================
 
 enum BookmarkSortOption {
@@ -34,7 +34,7 @@ enum BookmarkSortOption {
 }
 
 // ============================================================
-// SECTION 2 — MAIN SCREEN
+// SECTION 2 â€” MAIN SCREEN
 // ============================================================
 
 class BookmarksScreen extends ConsumerStatefulWidget {
@@ -51,8 +51,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
 
   String _searchQuery = '';
   BookmarkSortOption _sortOption = BookmarkSortOption.newestFirst;
-  final bool _isSearchExpanded = false;
-
+  bool _isSearchExpanded = false;
   late final AnimationController _animController;
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
@@ -145,7 +144,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
     return filtered;
   }
 
-  // ── Actions ──────────────────────────────────────────────
+  // â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   void _openAyah(BookmarkModel bookmark) {
     HapticFeedback.selectionClick();
@@ -189,7 +188,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
 
   void _copyBookmark(BookmarkModel bookmark) {
     final text = '${bookmark.ayahText}\n\n'
-        '— ${bookmark.surahName} '
+        'â€” ${bookmark.surahName} '
         '(${bookmark.surahNumber}:${bookmark.ayahNumber})'
         '${bookmark.note != null ? '\n\nNote: ${bookmark.note}' : ''}';
     Clipboard.setData(ClipboardData(text: text));
@@ -442,7 +441,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────
+  // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   @override
   Widget build(BuildContext context) {
@@ -944,7 +943,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
 }
 
 // ============================================================
-// SECTION 3 — BOOKMARK CARD
+// SECTION 3 â€” BOOKMARK CARD
 // ============================================================
 
 class _BookmarkCard extends StatelessWidget {
@@ -1042,7 +1041,7 @@ class _BookmarkCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${bookmark.surahNumber}:${bookmark.ayahNumber}  •  ${bookmark.formattedTime}',
+                            '${bookmark.surahNumber}:${bookmark.ayahNumber}  â€¢  ${bookmark.formattedTime}',
                             style: AppTextStyles.labelSmall.copyWith(
                               color: AppColors.textTertiary,
                               fontWeight: FontWeight.w600,
@@ -1172,7 +1171,7 @@ class _BookmarkCard extends StatelessWidget {
 }
 
 // ============================================================
-// SECTION 4 — OPTIONS SHEET
+// SECTION 4 â€” OPTIONS SHEET
 // ============================================================
 
 class _BookmarkOptionsSheet extends StatelessWidget {
@@ -1229,7 +1228,7 @@ class _BookmarkOptionsSheet extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  '${bookmark.surahName} • ${bookmark.surahNumber}:${bookmark.ayahNumber}',
+                  '${bookmark.surahName} â€¢ ${bookmark.surahNumber}:${bookmark.ayahNumber}',
                   style: AppTextStyles.labelLarge.copyWith(
                     color: AppColors.accent,
                     fontWeight: FontWeight.w800,
@@ -1368,7 +1367,7 @@ class _OptionTile extends StatelessWidget {
 }
 
 // ============================================================
-// SECTION 5 — SORT SHEET
+// SECTION 5 â€” SORT SHEET
 // ============================================================
 
 class _SortOptionsSheet extends StatelessWidget {
@@ -1493,7 +1492,7 @@ class _SortOptionsSheet extends StatelessWidget {
 }
 
 // ============================================================
-// SECTION 6 — SMALL WIDGETS
+// SECTION 6 â€” SMALL WIDGETS
 // ============================================================
 
 class _StatItem extends StatelessWidget {
@@ -1588,5 +1587,5 @@ class _CircleButton extends StatelessWidget {
 }
 
 // ============================================================
-// END OF FILE — bookmarks_screen.dart
+// END OF FILE â€” bookmarks_screen.dart
 // ============================================================

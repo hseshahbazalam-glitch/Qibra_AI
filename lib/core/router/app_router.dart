@@ -1,8 +1,9 @@
-// lib/core/router/app_router.dart
+﻿// lib/core/router/app_router.dart
 // ============================================================
-// QIBRA AI — APP ROUTER (Complete)
-// Version: 8.0.0 — Mushaf Fullscreen (No Bottom Nav)
+// QIBRA AI – APP ROUTER (Complete)
+// Version: 8.0.0 – Mushaf Fullscreen (No Bottom Nav)
 // ============================================================
+import 'package:qibra_ai/features/calendar/presentation/islamic_calendar_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/settings_screen.dart';
 import 'package:qibra_ai/features/qibla/presentation/qibla_screen.dart';
 import 'package:qibra_ai/features/duas/presentation/duas_home_screen.dart';
@@ -27,7 +28,7 @@ import 'package:qibra_ai/features/quran/presentation/mushaf_reader_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/profile_setup_screen.dart';
 import 'package:qibra_ai/features/splash/presentation/splash_screen.dart';
 import 'package:qibra_ai/shared/widgets/navigation/app_bottom_nav.dart';
-import 'package:qibra_ai/features/chat/presentation/screens/ai_chat_screen.dart';
+import 'package:qibra_ai/features/ai/presentation/ai_explain_screen.dart';
 import 'package:qibra_ai/features/hadith/presentation/hadith_screen.dart';
 import 'package:qibra_ai/features/tasbih/presentation/tasbih_screen.dart';
 
@@ -74,98 +75,6 @@ class _QuranPlaceholder extends StatelessWidget {
   }
 }
 
-// ignore: unused_element
-class _PrayerTimesPlaceholder extends StatelessWidget {
-  const _PrayerTimesPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(child: Text('Prayer', style: AppTextStyles.headlineLarge)),
-    );
-  }
-}
-
-// ignore: unused_element
-class _QiblaPlaceholder extends StatelessWidget {
-  const _QiblaPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(child: Text('Qibla', style: AppTextStyles.headlineLarge)),
-    );
-  }
-}
-
-// ignore: unused_element
-class _TasbihPlaceholder extends StatelessWidget {
-  const _TasbihPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(child: Text('Tasbih', style: AppTextStyles.headlineLarge)),
-    );
-  }
-}
-
-// ignore: unused_element
-class _HadithPlaceholder extends StatelessWidget {
-  const _HadithPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(child: Text('Hadith', style: AppTextStyles.headlineLarge)),
-    );
-  }
-}
-
-// ignore: unused_element
-class _AiChatPlaceholder extends StatelessWidget {
-  const _AiChatPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(child: Text('AI Chat', style: AppTextStyles.headlineLarge)),
-    );
-  }
-}
-
-// ignore: unused_element
-class _DuaPlaceholder extends StatelessWidget {
-  const _DuaPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(child: Text('Duas', style: AppTextStyles.headlineLarge)),
-    );
-  }
-}
-
-class _CalendarPlaceholder extends StatelessWidget {
-  const _CalendarPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: Text('Islamic Calendar', style: AppTextStyles.headlineLarge),
-      ),
-    );
-  }
-}
-
 class _MosquesPlaceholder extends StatelessWidget {
   const _MosquesPlaceholder();
 
@@ -173,7 +82,9 @@ class _MosquesPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Center(child: Text('Mosques', style: AppTextStyles.headlineLarge)),
+      body: Center(
+        child: Text('Mosques', style: AppTextStyles.headlineLarge),
+      ),
     );
   }
 }
@@ -226,58 +137,13 @@ class _ProfilePlaceholder extends ConsumerWidget {
             Text(userName, style: AppTextStyles.headlineMedium),
             if (user != null) ...[
               const SizedBox(height: AppSpacing.xs),
-              Text(user.email, style: AppTextStyles.bodyMedium.secondary),
+              Text(
+                user.email,
+                style: AppTextStyles.bodyMedium.secondary,
+              ),
             ],
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SettingsPlaceholder extends ConsumerWidget {
-  const _SettingsPlaceholder();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = ref.watch(isDarkModeProvider);
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: AppColors.background,
-      ),
-      body: ListView(
-        padding: AppSpacing.screenPadding,
-        children: [
-          const SizedBox(height: AppSpacing.md),
-          ListTile(
-            leading: Icon(
-              isDark ? Icons.dark_mode : Icons.light_mode,
-              color: AppColors.primary,
-            ),
-            title: Text('Dark Mode', style: AppTextStyles.bodyMedium),
-            trailing: Switch(
-              value: isDark,
-              onChanged: (_) {
-                ref.read(themeProvider.notifier).toggleTheme();
-              },
-            ),
-          ),
-          const Divider(color: AppColors.divider),
-          ListTile(
-            leading: const Icon(
-              Icons.info_outline,
-              color: AppColors.iconSecondary,
-            ),
-            title: Text('App Version', style: AppTextStyles.bodyMedium),
-            trailing: Text(
-              AppInfo.versionFull,
-              style: AppTextStyles.labelMedium.secondary,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -295,7 +161,11 @@ class _ErrorScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: AppColors.error, size: 64),
+            const Icon(
+              Icons.error_outline,
+              color: AppColors.error,
+              size: 64,
+            ),
             const SizedBox(height: AppSpacing.lg),
             Text('Page Not Found', style: AppTextStyles.headlineSmall),
             const SizedBox(height: AppSpacing.sm),
@@ -329,47 +199,65 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: refreshNotifier,
     errorBuilder: (context, state) =>
         _ErrorScreen(message: state.error?.message),
+
+    // ============================================================
+    // REDIRECT LOGIC
+    // ============================================================
     redirect: (context, state) {
       final String currentPath = state.matchedLocation;
       final authState = ref.read(authProvider);
       final hasSeenOnboarding = ref.read(onboardingProvider);
 
+      // 1️⃣ Agar auth abhi load ho raha hai → splash pe raho
       if (authState.status == AuthStatus.initial ||
           authState.status == AuthStatus.loading) {
         if (currentPath != AppRoutes.splash) return AppRoutes.splash;
         return null;
       }
 
+      // 2️⃣ Splash aur Onboarding ko freely jaane do
       if (currentPath == AppRoutes.splash) return null;
       if (currentPath == AppRoutes.onboarding) return null;
 
-      final bool isAuthScreen = currentPath == AppRoutes.login ||
+      // 3️⃣ Onboarding nahi dekha → pehle onboarding
+      if (!hasSeenOnboarding) return AppRoutes.onboarding;
+
+      // 4️⃣ Auth screens (login, register, etc.)
+      final bool isAuthScreen =
+          currentPath == AppRoutes.login ||
           currentPath == AppRoutes.register ||
           currentPath == AppRoutes.forgotPassword ||
           currentPath == AppRoutes.verifyOtp;
 
-      if (!hasSeenOnboarding) return AppRoutes.onboarding;
-      if (!authState.isAuthenticated && !isAuthScreen) return AppRoutes.login;
-      if (authState.isAuthenticated && isAuthScreen) return AppRoutes.home;
+      // Login optional hai — agar already logged in hai aur auth screen pe hai
+      // toh home pe bhejo
+      if (authState.isAuthenticated && isAuthScreen) {
+        return AppRoutes.home;
+      }
 
+      // 5️⃣ Baaki sab allow — no forced login
       return null;
     },
+
+    // ============================================================
+    // ROUTES
+    // ============================================================
     routes: [
-      // Splash
+      // ── Splash ────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.splash,
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
 
-      // Onboarding
+      // ── Onboarding ────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.onboarding,
         name: 'onboarding',
         builder: (context, state) => const OnboardingScreen(),
       ),
 
-      // Auth Routes
+      // ── Auth Routes ───────────────────────────────────────────
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
@@ -399,8 +287,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ProfileSetupScreen(),
       ),
 
-      // ✅ MUSHAF READER — FULLSCREEN (OUTSIDE ShellRoute)
-      // Ye bottom nav ke bahar hai — full immersive experience
+      // ── Mushaf Reader (Fullscreen — Shell ke bahar) ───────────
       GoRoute(
         path: AppRoutes.mushafReader,
         name: 'mushaf-reader',
@@ -411,7 +298,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // ── MAIN APP Shell (with Bottom Nav) ─────────────────
+      // ── Main App Shell (Bottom Nav ke saath) ──────────────────
       ShellRoute(
         builder: (context, state, child) => AppShellScaffold(
           location: state.matchedLocation,
@@ -433,7 +320,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const HomeScreen(),
           ),
 
-          // Quran (with sub-routes only — NO mushaf here)
+          // Quran
           GoRoute(
             path: AppRoutes.quran,
             name: 'quran',
@@ -452,7 +339,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Prayer
+          // Prayer Times
           GoRoute(
             path: AppRoutes.prayer,
             name: 'prayer',
@@ -484,7 +371,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.aiChat,
             name: 'ai-chat',
-            builder: (context, state) => const AiChatScreen(),
+            builder: (context, state) => const AIExplainScreen(),
           ),
 
           // Dua
@@ -498,7 +385,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.islamicCalendar,
             name: 'islamic-calendar',
-            builder: (context, state) => const _CalendarPlaceholder(),
+            builder: (context, state) => const IslamicCalendarScreen(),
           ),
 
           // Mosques
@@ -515,7 +402,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const _ProfilePlaceholder(),
           ),
 
-          // Settings
           // Settings
           GoRoute(
             path: AppRoutes.settings,

@@ -1,6 +1,6 @@
-// lib/features/quran/data/services/mushaf_page_service.dart
+﻿// lib/features/quran/data/services/mushaf_page_service.dart
 // ============================================================
-// QIBRA AI — Mushaf Page Service v2.0
+// QIBRA AI â€” Mushaf Page Service v2.0
 // Uses `quran` package for perfect Mushaf pages
 // ============================================================
 
@@ -76,18 +76,15 @@ class MushafPageService {
       }
 
       _isLoaded = true;
-      debugPrint('[MUSHAF] ✅ Loaded ${_pageCache.length} pages');
+      debugPrint('[MUSHAF] âœ… Loaded ${_pageCache.length} pages');
     } catch (e, st) {
-      debugPrint('[MUSHAF] ❌ Load error: $e\n$st');
+      debugPrint('[MUSHAF] âŒ Load error: $e\n$st');
     }
   }
 
   MushafPageData _loadPage(int pageNumber) {
     // Get all verses on this page
-    final pageVerses = quran.getVersesTextByPage(
-      pageNumber,
-      verseEndSymbol: false,
-    );
+    final pageVerses = quran.getVerse(pageNumber, 1, verseEndSymbol: false);
 
     final ayahs = <MushafAyah>[];
     final surahsMap = <int, String>{};
