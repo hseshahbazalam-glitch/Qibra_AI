@@ -81,7 +81,7 @@ extension PrayerTypeUIHelpers on PrayerType {
 }
 
 // ============================================================
-// DATA MODELS (Only ones still needed in main file)
+// DATA MODELS
 // ============================================================
 
 class _AyahOfDay {
@@ -130,7 +130,7 @@ class _RamadanInfo {
 }
 
 // ============================================================
-// STATIC DATA (Only ones still needed)
+// STATIC DATA
 // ============================================================
 
 const List<_AyahOfDay> _allAyahsList = [
@@ -357,6 +357,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         'Saturday',
         'Sunday'
       ][w - 1];
+
   String _getMonthShort(int m) => [
         'Jan',
         'Feb',
@@ -382,6 +383,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _scrollController.dispose();
     super.dispose();
   }
+
   // ============================================================
   // BUILD METHOD
   // ============================================================
@@ -468,6 +470,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   const SizedBox(height: AppSpacing.md),
                   const HomeFeatureGrid(),
                   const SizedBox(height: AppSpacing.xl2),
+
+                  // ✅ ISLAMIC TOOLS BANNER — NEW
+                  _buildIslamicToolsBanner(),
+                  const SizedBox(height: AppSpacing.xl2),
+
                   const HomeBottomFeatures(),
                   const SizedBox(height: AppSpacing.xl3),
                   const GoldenArabicWatermark(),
@@ -477,6 +484,185 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // ✅ ISLAMIC TOOLS BANNER — NEW WIDGET
+  // ============================================================
+
+  Widget _buildIslamicToolsBanner() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          context.push('/tools');
+        },
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF1B4332),
+                Color(0xFF2D6A4F),
+                Color(0xFF1B4332),
+              ],
+            ),
+            borderRadius: AppRadius.cardRadiusLarge,
+            border: Border.all(
+              color: const Color(0xFF52B788).withValues(alpha: 0.35),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF52B788).withValues(alpha: 0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Left: Icon + Text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF52B788).withValues(alpha: 0.20),
+                        borderRadius: AppRadius.pillRadius,
+                        border: Border.all(
+                          color:
+                              const Color(0xFF52B788).withValues(alpha: 0.40),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.apps_rounded,
+                            color: Color(0xFF52B788),
+                            size: 10,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'ISLAMIC TOOLS',
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: const Color(0xFF52B788),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 9,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+
+                    // Title
+                    Text(
+                      'Your Islamic\nToolkit',
+                      style: AppTextStyles.headlineSmall.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        height: 1.2,
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+
+                    // Subtitle
+                    Text(
+                      'Zakat • Hajj • Ramadan • Habits',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.white.withValues(alpha: 0.65),
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    // Explore Button
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF52B788),
+                        borderRadius: AppRadius.pillRadius,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Explore Tools',
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 11,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 12,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: AppSpacing.lg),
+
+              // Right: Tools Emoji Grid
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      _toolEmoji('💚'),
+                      const SizedBox(width: 8),
+                      _toolEmoji('🕋'),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _toolEmoji('🌙'),
+                      const SizedBox(width: 8),
+                      _toolEmoji('📿'),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _toolEmoji(String emoji) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF52B788).withValues(alpha: 0.20),
+        ),
+      ),
+      child: Center(
+        child: Text(emoji, style: const TextStyle(fontSize: 20)),
       ),
     );
   }
@@ -683,7 +869,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   // ============================================================
-  // PRAYER COUNTDOWN (Stays here - uses providers + animations)
+  // PRAYER COUNTDOWN
   // ============================================================
 
   Widget _buildPrayerCountdownCard() {
@@ -854,7 +1040,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   // ============================================================
-  // PRAYER STRIP (Uses providers)
+  // PRAYER STRIP
   // ============================================================
 
   Widget _buildAllPrayersStrip() {
@@ -970,7 +1156,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   // ============================================================
-  // DAILY VERSE (Uses providers + animation)
+  // DAILY VERSE
   // ============================================================
 
   Widget _buildDailyVerseSection() {
@@ -1057,7 +1243,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   // ============================================================
-  // READING STREAK (Uses providers)
+  // READING STREAK
   // ============================================================
 
   Widget _buildReadingStreakCard() {
@@ -1254,7 +1440,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   // ============================================================
-  // QURAN SECTION (Uses providers)
+  // QURAN SECTION
   // ============================================================
 
   Widget _buildQuranSectionHeader() {
@@ -1462,7 +1648,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   // ============================================================
-  // POPULAR SURAHS (Uses providers)
+  // POPULAR SURAHS
   // ============================================================
 
   Widget _buildPopularSurahsList() {

@@ -76,9 +76,9 @@ class HomeHadithCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Text(
+                const Text(
                   hadithArabic,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Amiri',
                     fontSize: 18,
                     color: AppColors.textPrimary,

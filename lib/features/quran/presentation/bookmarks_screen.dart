@@ -1,4 +1,4 @@
-﻿// lib/features/quran/presentation/bookmarks_screen.dart
+// lib/features/quran/presentation/bookmarks_screen.dart
 
 // ============================================================
 // QIBRA AI â€” BOOKMARKS SCREEN (v1.0)
@@ -51,7 +51,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
 
   String _searchQuery = '';
   BookmarkSortOption _sortOption = BookmarkSortOption.newestFirst;
-  bool _isSearchExpanded = false;
+  final bool _isSearchExpanded = false;
   late final AnimationController _animController;
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;

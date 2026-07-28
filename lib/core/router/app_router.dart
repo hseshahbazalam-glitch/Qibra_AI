@@ -1,12 +1,13 @@
 ﻿// lib/core/router/app_router.dart
 // ============================================================
 // QIBRA AI – APP ROUTER (Complete)
-// Version: 8.0.0 – Mushaf Fullscreen (No Bottom Nav)
+// Version: 9.0.0 – Islamic Tools Hub Added
 // ============================================================
 import 'package:qibra_ai/features/calendar/presentation/islamic_calendar_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/settings_screen.dart';
 import 'package:qibra_ai/features/qibla/presentation/qibla_screen.dart';
 import 'package:qibra_ai/features/duas/presentation/duas_home_screen.dart';
+import 'package:qibra_ai/features/tools/screens/tools_hub_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +32,15 @@ import 'package:qibra_ai/shared/widgets/navigation/app_bottom_nav.dart';
 import 'package:qibra_ai/features/ai/presentation/ai_explain_screen.dart';
 import 'package:qibra_ai/features/hadith/presentation/hadith_screen.dart';
 import 'package:qibra_ai/features/tasbih/presentation/tasbih_screen.dart';
-
+import 'package:qibra_ai/features/tools/screens/zakat_calculator_screen.dart';
+import 'package:qibra_ai/features/tools/screens/dhikr_counter_screen.dart';
+import 'package:qibra_ai/features/tools/screens/sadaqah_tracker_screen.dart';
+import 'package:qibra_ai/features/tools/screens/habit_tracker_screen.dart';
+import 'package:qibra_ai/features/tools/screens/ramadan_timer_screen.dart';
+import 'package:qibra_ai/features/tools/screens/hajj_guide_screen.dart';
+import 'package:qibra_ai/features/tools/screens/umrah_guide_screen.dart';
+import 'package:qibra_ai/features/tools/screens/nikah_guide_screen.dart';
+import 'package:qibra_ai/features/tools/screens/halal_scanner_screen.dart';
 // ============================================================
 // PLACEHOLDER SCREENS
 // ============================================================
@@ -223,8 +232,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (!hasSeenOnboarding) return AppRoutes.onboarding;
 
       // 4️⃣ Auth screens (login, register, etc.)
-      final bool isAuthScreen =
-          currentPath == AppRoutes.login ||
+      final bool isAuthScreen = currentPath == AppRoutes.login ||
           currentPath == AppRoutes.register ||
           currentPath == AppRoutes.forgotPassword ||
           currentPath == AppRoutes.verifyOtp;
@@ -313,14 +321,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: child,
         ),
         routes: [
-          // Home
+          // ── Home ──────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.home,
             name: 'home',
             builder: (context, state) => const HomeScreen(),
           ),
 
-          // Quran
+          // ── Quran ─────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.quran,
             name: 'quran',
@@ -339,74 +347,137 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Prayer Times
+          // ── Prayer Times ───────────────────────────────────────
           GoRoute(
             path: AppRoutes.prayer,
             name: 'prayer',
             builder: (context, state) => const PrayerTimesScreen(),
           ),
 
-          // Qibla
+          // ── Qibla ─────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.qibla,
             name: 'qibla',
             builder: (context, state) => const QiblaScreen(),
           ),
 
-          // Tasbih
+          // ── Tasbih ────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.tasbih,
             name: 'tasbih',
             builder: (context, state) => const TasbihScreen(),
           ),
 
-          // Hadith
+          // ── Hadith ────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.hadith,
             name: 'hadith',
             builder: (context, state) => const HadithScreen(),
           ),
 
-          // AI Chat
+          // ── AI Chat ───────────────────────────────────────────
           GoRoute(
             path: AppRoutes.aiChat,
             name: 'ai-chat',
             builder: (context, state) => const AIExplainScreen(),
           ),
 
-          // Dua
+          // ── Dua ───────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.dua,
             name: 'dua',
             builder: (context, state) => const DuasHomeScreen(),
           ),
 
-          // Islamic Calendar
+          // ── Islamic Calendar ──────────────────────────────────
           GoRoute(
             path: AppRoutes.islamicCalendar,
             name: 'islamic-calendar',
             builder: (context, state) => const IslamicCalendarScreen(),
           ),
 
-          // Mosques
+          // ── Mosques ───────────────────────────────────────────
           GoRoute(
             path: AppRoutes.mosques,
             name: 'mosques',
             builder: (context, state) => const _MosquesPlaceholder(),
           ),
 
-          // Profile
+          // ── Profile ───────────────────────────────────────────
           GoRoute(
             path: AppRoutes.profile,
             name: 'profile',
             builder: (context, state) => const _ProfilePlaceholder(),
           ),
 
-          // Settings
+          // ── Settings ──────────────────────────────────────────
           GoRoute(
             path: AppRoutes.settings,
             name: 'settings',
             builder: (context, state) => const SettingsScreen(),
+          ),
+
+          // ── Islamic Tools Hub ─────────────────────────────────
+          GoRoute(
+            path: '/tools',
+            name: 'tools',
+            builder: (context, state) => const ToolsHubScreen(),
+          ),
+
+          // ── Zakat Calculator ──────────────────────────────────
+          GoRoute(
+            path: '/tools/zakat',
+            name: 'tools-zakat',
+            builder: (context, state) => const ZakatCalculatorScreen(),
+          ),
+          // ── Dhikr Counter ─────────────────────────────────────
+          GoRoute(
+            path: '/tools/dhikr',
+            name: 'tools-dhikr',
+            builder: (context, state) => const DhikrCounterScreen(),
+          ),
+          // ── Sadaqah Tracker ───────────────────────────────────
+          GoRoute(
+            path: '/tools/sadaqah',
+            name: 'tools-sadaqah',
+            builder: (context, state) => const SadaqahTrackerScreen(),
+          ),
+          // ── Habit Tracker ─────────────────────────────────────
+          GoRoute(
+            path: '/tools/habits',
+            name: 'tools-habits',
+            builder: (context, state) => const HabitTrackerScreen(),
+          ),
+          // ── Ramadan Timer ─────────────────────────────────────
+          GoRoute(
+            path: '/tools/ramadan',
+            name: 'tools-ramadan',
+            builder: (context, state) => const RamadanTimerScreen(),
+          ),
+          // ── Hajj Guide ────────────────────────────────────────
+          GoRoute(
+            path: '/tools/hajj',
+            name: 'tools-hajj',
+            builder: (context, state) => const HajjGuideScreen(),
+          ),
+
+          // ── Umrah Guide ───────────────────────────────────────
+          GoRoute(
+            path: '/tools/umrah',
+            name: 'tools-umrah',
+            builder: (context, state) => const UmrahGuideScreen(),
+          ),
+          // ── Nikah Guide ───────────────────────────────────────
+          GoRoute(
+            path: '/tools/nikah',
+            name: 'tools-nikah',
+            builder: (context, state) => const NikahGuideScreen(),
+          ),
+          // ── Halal Scanner ─────────────────────────────────────
+          GoRoute(
+            path: '/tools/halal',
+            name: 'tools-halal',
+            builder: (context, state) => const HalalScannerScreen(),
           ),
         ],
       ),

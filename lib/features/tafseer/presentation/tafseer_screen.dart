@@ -1060,10 +1060,10 @@ class _WordByWordTab extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.3),
               ),
             ),
-            child: Row(
+            child: const Row(
               children: [
                 Icon(Icons.auto_awesome, color: AppColors.primary, size: 20),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Tap any word to learn its meaning',
@@ -1135,7 +1135,7 @@ class _WordByWordTab extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         meaning,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppColors.accent,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -1160,12 +1160,12 @@ class _WordByWordTab extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.info_outline,
+                const Icon(Icons.info_outline,
                     color: AppColors.textSecondary, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   '${words.length} words in this ayah',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
