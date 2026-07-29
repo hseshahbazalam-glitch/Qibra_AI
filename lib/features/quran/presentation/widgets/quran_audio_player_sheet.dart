@@ -11,21 +11,23 @@ class QuranAudioPlayerSheet extends StatefulWidget {
 }
 
 class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
-  final _audioService = QuranAudioService.instance;
+  final _audio = QuranAudioService.instance;
 
   @override
   void initState() {
     super.initState();
-    _audioService.addListener(_update);
+    _audio.addListener(_update);
   }
 
   @override
   void dispose() {
-    _audioService.removeListener(_update);
+    _audio.removeListener(_update);
     super.dispose();
   }
 
-  void _update() => setState(() {});
+  void _update() {
+    if (mounted) setState(() {});
+  }
 
   String _formatDuration(Duration d) {
     final m = d.inMinutes.toString().padLeft(2, '0');
@@ -35,10 +37,10 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final reciter = _audioService.currentReciter;
+    final reciter = _audio.currentReciter;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.9,
+      height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -53,7 +55,6 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
       ),
       child: Column(
         children: [
-          // Handle
           Container(
             width: 40,
             height: 4,
@@ -65,7 +66,6 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
           ),
           const SizedBox(height: 16),
 
-          // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -107,17 +107,15 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 30),
 
           // Album Art
           Center(
             child: Container(
-              width: 240,
-              height: 240,
+              width: 220,
+              height: 220,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
                   colors: [
                     reciter.themeColor,
                     reciter.themeColor.withValues(alpha: 0.6),
@@ -135,42 +133,33 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(
-                    width: 220,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 2,
+                  const Text('🕌', style: TextStyle(fontSize: 70)),
+                  if (_audio.isLoading)
+                    const SizedBox(
+                      width: 220,
+                      height: 220,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
                       ),
-                    ),
-                  ),
-                  const Text('🕌', style: TextStyle(fontSize: 80)),
-                  if (_audioService.isLoading)
-                    const CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 3,
                     ),
                 ],
               ),
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 30),
 
-          // Surah Name
           Text(
-            _audioService.currentSurahName ?? 'No Surah Selected',
+            _audio.currentSurahName ?? 'No Surah Selected',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 4),
 
-          // Reciter Name
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -200,16 +189,18 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
                     thumbColor: Colors.white,
                     overlayColor: reciter.themeColor.withValues(alpha: 0.2),
                     trackHeight: 4,
-                    thumbShape:
-                        const RoundSliderThumbShape(enabledThumbRadius: 8),
                   ),
                   child: Slider(
-                    value: _audioService.position.inSeconds.toDouble(),
-                    max: _audioService.duration.inSeconds.toDouble() > 0
-                        ? _audioService.duration.inSeconds.toDouble()
+                    value: _audio.position.inSeconds.toDouble().clamp(
+                        0.0,
+                        _audio.duration.inSeconds.toDouble() > 0
+                            ? _audio.duration.inSeconds.toDouble()
+                            : 1.0),
+                    max: _audio.duration.inSeconds.toDouble() > 0
+                        ? _audio.duration.inSeconds.toDouble()
                         : 1.0,
                     onChanged: (v) {
-                      _audioService.seekTo(Duration(seconds: v.toInt()));
+                      _audio.seekTo(Duration(seconds: v.toInt()));
                     },
                   ),
                 ),
@@ -219,14 +210,14 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _formatDuration(_audioService.position),
+                        _formatDuration(_audio.position),
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 12,
                         ),
                       ),
                       Text(
-                        _formatDuration(_audioService.duration),
+                        _formatDuration(_audio.duration),
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 12,
@@ -246,25 +237,33 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _controlButton(
-                Icons.shuffle_rounded,
-                () {},
+                _audio.repeatMode
+                    ? Icons.repeat_one_rounded
+                    : Icons.repeat_rounded,
+                () {
+                  HapticFeedback.selectionClick();
+                  _audio.toggleRepeat();
+                },
                 small: true,
+                active: _audio.repeatMode,
+                color: reciter.themeColor,
               ),
               _controlButton(
                 Icons.skip_previous_rounded,
                 () {
                   HapticFeedback.mediumImpact();
-                  _audioService.playPreviousSurah();
+                  _audio.playPreviousSurah();
                 },
+                color: reciter.themeColor,
               ),
               GestureDetector(
                 onTap: () {
                   HapticFeedback.heavyImpact();
-                  _audioService.togglePlayPause();
+                  _audio.togglePlayPause();
                 },
                 child: Container(
-                  width: 72,
-                  height: 72,
+                  width: 70,
+                  height: 70,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
@@ -277,11 +276,11 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
                     ],
                   ),
                   child: Icon(
-                    _audioService.isPlaying
+                    _audio.isPlaying
                         ? Icons.pause_rounded
                         : Icons.play_arrow_rounded,
                     color: reciter.themeColor,
-                    size: 40,
+                    size: 38,
                   ),
                 ),
               ),
@@ -289,37 +288,17 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
                 Icons.skip_next_rounded,
                 () {
                   HapticFeedback.mediumImpact();
-                  _audioService.playNextSurah();
+                  _audio.playNextSurah();
                 },
+                color: reciter.themeColor,
               ),
               _controlButton(
-                _audioService.repeatMode
-                    ? Icons.repeat_one_rounded
-                    : Icons.repeat_rounded,
-                () {
-                  HapticFeedback.selectionClick();
-                  _audioService.toggleRepeat();
-                },
+                Icons.speed_rounded,
+                () => _showSpeedDialog(context),
                 small: true,
-                active: _audioService.repeatMode,
+                color: reciter.themeColor,
               ),
             ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Extra Options
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _optionChip('${_audioService.speed}x', Icons.speed_rounded,
-                    () => _showSpeedDialog(context)),
-                _optionChip('Download', Icons.download_rounded, () {}),
-                _optionChip('Share', Icons.share_rounded, () {}),
-              ],
-            ),
           ),
 
           const SizedBox(height: 30),
@@ -328,51 +307,27 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
     );
   }
 
-  Widget _controlButton(IconData icon, VoidCallback onTap,
-      {bool small = false, bool active = false}) {
+  Widget _controlButton(
+    IconData icon,
+    VoidCallback onTap, {
+    bool small = false,
+    bool active = false,
+    required Color color,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(small ? 8 : 12),
         decoration: BoxDecoration(
           color: active
-              ? _audioService.currentReciter.themeColor.withValues(alpha: 0.2)
+              ? color.withValues(alpha: 0.2)
               : Colors.white.withValues(alpha: 0.05),
           shape: BoxShape.circle,
         ),
         child: Icon(
           icon,
-          color:
-              active ? _audioService.currentReciter.themeColor : Colors.white,
+          color: active ? color : Colors.white,
           size: small ? 20 : 32,
-        ),
-      ),
-    );
-  }
-
-  Widget _optionChip(String label, IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white.withValues(alpha: 0.7), size: 14),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -387,9 +342,12 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => Container(
-        height: MediaQuery.of(ctx).size.height * 0.7,
         padding: const EdgeInsets.all(20),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(ctx).size.height * 0.6,
+        ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 40,
@@ -404,29 +362,22 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
               'Select Reciter',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              '${famousReciters.length} world-class Qaris',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
-                fontSize: 12,
-              ),
-            ),
             const SizedBox(height: 16),
-            Expanded(
+            Flexible(
               child: ListView.builder(
+                shrinkWrap: true,
                 itemCount: famousReciters.length,
                 itemBuilder: (c, i) {
                   final r = famousReciters[i];
-                  final selected = r.id == _audioService.currentReciter.id;
+                  final selected = r.id == _audio.currentReciter.id;
                   return GestureDetector(
                     onTap: () {
                       HapticFeedback.mediumImpact();
-                      _audioService.setReciter(r);
+                      _audio.setReciter(r);
                       Navigator.pop(ctx);
                     },
                     child: Container(
@@ -441,24 +392,20 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
                           color: selected
                               ? r.themeColor
                               : Colors.white.withValues(alpha: 0.05),
-                          width: selected ? 1.5 : 1,
                         ),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            width: 48,
-                            height: 48,
+                            width: 44,
+                            height: 44,
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [
-                                r.themeColor,
-                                r.themeColor.withValues(alpha: 0.6),
-                              ]),
+                              color: r.themeColor.withValues(alpha: 0.15),
                               shape: BoxShape.circle,
                             ),
                             child: Center(
                               child: Text(r.flag,
-                                  style: const TextStyle(fontSize: 22)),
+                                  style: const TextStyle(fontSize: 20)),
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -466,30 +413,19 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  r.name,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text(
-                                  r.arabicName,
-                                  style: TextStyle(
-                                    fontFamily: 'Amiri',
-                                    color: r.themeColor,
-                                    fontSize: 14,
-                                  ),
-                                  textDirection: TextDirection.rtl,
-                                ),
-                                Text(
-                                  '${r.country} • ${r.bitrate}kbps',
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.35),
-                                    fontSize: 10,
-                                  ),
-                                ),
+                                Text(r.name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    )),
+                                Text(r.arabicName,
+                                    style: TextStyle(
+                                      fontFamily: 'Amiri',
+                                      color: r.themeColor,
+                                      fontSize: 13,
+                                    ),
+                                    textDirection: TextDirection.rtl),
                               ],
                             ),
                           ),
@@ -533,11 +469,11 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
             const SizedBox(height: 16),
             ...speeds.map((s) => GestureDetector(
                   onTap: () {
-                    _audioService.setSpeed(s);
+                    _audio.setSpeed(s);
                     Navigator.pop(ctx);
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
@@ -545,22 +481,19 @@ class _QuranAudioPlayerSheetState extends State<QuranAudioPlayerSheet> {
                         ),
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${s}x',
-                          style: TextStyle(
-                            color: _audioService.speed == s
-                                ? _audioService.currentReciter.themeColor
-                                : Colors.white,
-                            fontSize: 16,
-                            fontWeight: _audioService.speed == s
-                                ? FontWeight.w800
-                                : FontWeight.w500,
-                          ),
+                    child: Center(
+                      child: Text(
+                        '${s}x',
+                        style: TextStyle(
+                          color: _audio.speed == s
+                              ? _audio.currentReciter.themeColor
+                              : Colors.white,
+                          fontSize: 16,
+                          fontWeight: _audio.speed == s
+                              ? FontWeight.w800
+                              : FontWeight.w500,
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 )),

@@ -13,7 +13,7 @@ class QuranAudioService extends ChangeNotifier {
 
   final AudioPlayer _player = AudioPlayer();
 
-  Reciter _currentReciter = famousReciters[1]; // Mishary default
+  Reciter _currentReciter = famousReciters[0];
   int? _currentSurah;
   String? _currentSurahName;
   bool _isPlaying = false;
@@ -23,7 +23,6 @@ class QuranAudioService extends ChangeNotifier {
   double _speed = 1.0;
   bool _repeatMode = false;
 
-  // Getters
   Reciter get currentReciter => _currentReciter;
   int? get currentSurah => _currentSurah;
   String? get currentSurahName => _currentSurahName;
@@ -33,17 +32,13 @@ class QuranAudioService extends ChangeNotifier {
   Duration get duration => _duration;
   double get speed => _speed;
   bool get repeatMode => _repeatMode;
-  AudioPlayer get player => _player;
-
-  Stream<Duration> get positionStream => _player.onPositionChanged;
-  Stream<Duration> get durationStream => _player.onDurationChanged;
 
   void _init() {
     _loadSavedReciter();
 
     _player.onPlayerStateChanged.listen((state) {
       _isPlaying = state == PlayerState.playing;
-      _isLoading = false;
+      if (state == PlayerState.playing) _isLoading = false;
       notifyListeners();
     });
 
@@ -72,7 +67,7 @@ class QuranAudioService extends ChangeNotifier {
     final savedId = prefs.getString('reciter_id') ?? 'mishary';
     _currentReciter = famousReciters.firstWhere(
       (r) => r.id == savedId,
-      orElse: () => famousReciters[1],
+      orElse: () => famousReciters[0],
     );
     notifyListeners();
   }
@@ -81,12 +76,6 @@ class QuranAudioService extends ChangeNotifier {
     _currentReciter = reciter;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('reciter_id', reciter.id);
-
-    if (_currentSurah != null && _currentSurahName != null) {
-      final wasPlaying = _isPlaying;
-      await playSurah(_currentSurah!, _currentSurahName!);
-      if (!wasPlaying) await pause();
-    }
     notifyListeners();
   }
 
@@ -100,18 +89,24 @@ class QuranAudioService extends ChangeNotifier {
       final url = _currentReciter.getSurahUrl(surahNumber);
       debugPrint('🎵 Playing: $url');
 
+      await _player.stop();
       await _player.play(UrlSource(url));
 
-      _saveLastPlayed(surahNumber, surahName);
+      debugPrint('✅ Audio started');
     } catch (e) {
-      debugPrint('❌ Playback error: $e');
+      debugPrint('❌ Error: $e');
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> pause() async => await _player.pause();
-  Future<void> resume() async => await _player.resume();
+  Future<void> pause() async {
+    await _player.pause();
+  }
+
+  Future<void> resume() async {
+    await _player.resume();
+  }
 
   Future<void> togglePlayPause() async {
     if (_isPlaying) {
@@ -125,10 +120,14 @@ class QuranAudioService extends ChangeNotifier {
     await _player.stop();
     _currentSurah = null;
     _currentSurahName = null;
+    _position = Duration.zero;
+    _duration = Duration.zero;
     notifyListeners();
   }
 
-  Future<void> seekTo(Duration position) async => await _player.seek(position);
+  Future<void> seekTo(Duration position) async {
+    await _player.seek(position);
+  }
 
   Future<void> playNextSurah() async {
     if (_currentSurah == null) return;
@@ -155,22 +154,6 @@ class QuranAudioService extends ChangeNotifier {
   void toggleRepeat() {
     _repeatMode = !_repeatMode;
     notifyListeners();
-  }
-
-  Future<void> _saveLastPlayed(int surah, String name) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('last_played_surah', surah);
-    await prefs.setString('last_played_name', name);
-  }
-
-  Future<Map<String, dynamic>?> getLastPlayed() async {
-    final prefs = await SharedPreferences.getInstance();
-    final surah = prefs.getInt('last_played_surah');
-    final name = prefs.getString('last_played_name');
-    if (surah != null && name != null) {
-      return {'surah': surah, 'name': name};
-    }
-    return null;
   }
 
   @override

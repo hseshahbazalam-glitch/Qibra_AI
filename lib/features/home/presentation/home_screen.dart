@@ -1,7 +1,6 @@
 ﻿// lib/features/home/presentation/home_screen.dart
 // ============================================================
-// QIBRA AI — HOME DASHBOARD (Split v8.0)
-// Widgets moved to widgets/ folder
+// QIBRA AI — HOME DASHBOARD (v8.1 — Audio Fixed)
 // ============================================================
 
 import 'dart:async';
@@ -9,13 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:qibra_ai/features/quran/data/services/quran_audio_service.dart';
-import 'package:qibra_ai/features/quran/presentation/widgets/quran_audio_player_sheet.dart';
+
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
+import 'package:qibra_ai/features/quran/data/services/quran_audio_service.dart';
+import 'package:qibra_ai/features/quran/presentation/widgets/quran_audio_player_sheet.dart';
 
 import '../../quran/presentation/quran_search_screen.dart';
 import '../../quran/presentation/surah_reader_screen.dart';
@@ -287,7 +287,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       if (mounted) _changeAyah();
     });
 
-    // ✅ Location auto-fetch
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _detectLocation();
     });
@@ -368,6 +367,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       _hasLoadingError = false;
       _isContentEmpty = false;
     });
+  }
+
+  // ─── Audio Play Helper ────────────────────────────────────
+  void _playAudio(int surahNumber, String surahName) async {
+    HapticFeedback.heavyImpact();
+    await QuranAudioService.instance.playSurah(surahNumber, surahName);
+    if (mounted) {
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        builder: (_) => const QuranAudioPlayerSheet(),
+      );
+    }
   }
 
   String _getDayName(int w) => [
@@ -492,11 +505,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   const SizedBox(height: AppSpacing.md),
                   const HomeFeatureGrid(),
                   const SizedBox(height: AppSpacing.xl2),
-
-                  // ✅ ISLAMIC TOOLS BANNER — NEW
                   _buildIslamicToolsBanner(),
                   const SizedBox(height: AppSpacing.xl2),
-
                   const HomeBottomFeatures(),
                   const SizedBox(height: AppSpacing.xl3),
                   const GoldenArabicWatermark(),
@@ -511,7 +521,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   // ============================================================
-  // ✅ ISLAMIC TOOLS BANNER — NEW WIDGET
+  // ISLAMIC TOOLS BANNER
   // ============================================================
 
   Widget _buildIslamicToolsBanner() {
@@ -549,12 +559,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
           child: Row(
             children: [
-              // Left: Icon + Text
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
@@ -588,8 +596,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
-
-                    // Title
                     Text(
                       'Your Islamic\nToolkit',
                       style: AppTextStyles.headlineSmall.copyWith(
@@ -600,8 +606,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ),
                     ),
                     const SizedBox(height: 4),
-
-                    // Subtitle
                     Text(
                       'Zakat • Hajj • Ramadan • Habits',
                       style: AppTextStyles.bodySmall.copyWith(
@@ -610,8 +614,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-
-                    // Explore Button
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 7),
@@ -642,10 +644,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ],
                 ),
               ),
-
               const SizedBox(width: AppSpacing.lg),
-
-              // Right: Tools Emoji Grid
               Column(
                 children: [
                   Row(
@@ -1798,16 +1797,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ])),
           const SizedBox(width: AppSpacing.sm),
           GestureDetector(
-            onTap: () {
-              HapticFeedback.heavyImpact();
-              QuranAudioService.instance.playSurah(surah.number, surah.name);
-              showModalBottomSheet(
-                context: context,
-                backgroundColor: Colors.transparent,
-                isScrollControlled: true,
-                builder: (_) => const QuranAudioPlayerSheet(),
-              );
-            },
+            onTap: () => _playAudio(surah.number, surah.name),
             child: Container(
               width: 36,
               height: 36,
@@ -1874,14 +1864,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                         color: AppColors.textTertiary,
                                         fontSize: 10)),
                               ])),
-                          Container(
+                          GestureDetector(
+                            onTap: () => _playAudio(s.surahNumber, s.surahName),
+                            child: Container(
                               width: 36,
                               height: 36,
                               decoration: const BoxDecoration(
                                   gradient: AppGradients.emerald,
                                   shape: BoxShape.circle),
                               child: const Icon(Icons.play_arrow_rounded,
-                                  color: AppColors.white, size: 20)),
+                                  color: AppColors.white, size: 20),
+                            ),
+                          ),
                         ]),
                       ),
                     ),
