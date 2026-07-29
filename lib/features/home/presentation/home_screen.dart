@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:qibra_ai/features/quran/data/services/quran_audio_service.dart';
+import 'package:qibra_ai/features/quran/presentation/widgets/quran_audio_player_sheet.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
@@ -1796,13 +1797,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ]),
               ])),
           const SizedBox(width: AppSpacing.sm),
-          Container(
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.heavyImpact();
+              QuranAudioService.instance.playSurah(surah.number, surah.name);
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (_) => const QuranAudioPlayerSheet(),
+              );
+            },
+            child: Container(
               width: 36,
               height: 36,
               decoration: const BoxDecoration(
                   gradient: AppGradients.emerald, shape: BoxShape.circle),
               child: const Icon(Icons.play_arrow_rounded,
-                  color: AppColors.white, size: 20)),
+                  color: AppColors.white, size: 20),
+            ),
+          ),
         ]),
       ),
     );
