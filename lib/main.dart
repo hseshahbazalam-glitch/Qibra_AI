@@ -1,5 +1,4 @@
 // lib/main.dart
-
 // ============================================================
 // QIBRA AI — Main Entry Point
 // Version: 6.0.0 — Clean (No Audio, New AI System)
@@ -8,14 +7,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:qibra_ai/core/services/notification_service.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/constants/app_assets_check.dart';
 import 'package:qibra_ai/core/design_system/app_theme.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/core/router/app_router.dart';
-
-import 'package:qibra_ai/features/prayer/data/services/notification_service.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
 
@@ -54,7 +51,7 @@ void main() async {
   // ─── Notification Service ─────────────────────────
   try {
     debugPrint('🔔 Initializing Notification Service...');
-    await NotificationService.instance.initialize();
+    await NotificationService().initialize();
     debugPrint('✅ Notification Service ready');
   } catch (e) {
     debugPrint('⚠️ Notification Service failed: $e');

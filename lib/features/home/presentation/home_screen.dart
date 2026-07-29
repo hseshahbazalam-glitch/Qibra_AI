@@ -285,6 +285,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _ayahRotationTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted) _changeAyah();
     });
+
+    // ✅ Location auto-fetch
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _detectLocation();
+    });
+  }
+
+  Future<void> _detectLocation() async {
+    final locationState = ref.read(locationProvider);
+    if (locationState.location == null) {
+      debugPrint('🌍 Fetching location on home load...');
+      try {
+        await ref
+            .read(locationProvider.notifier)
+            .fetchCurrentLocation()
+            .timeout(const Duration(seconds: 20));
+      } catch (e) {
+        debugPrint('⚠️ Location timeout - using Makkah default');
+        await ref.read(locationProvider.notifier).resetToDefault();
+      }
+    }
   }
 
   void _initAnimations() {

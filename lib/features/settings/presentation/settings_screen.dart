@@ -142,30 +142,16 @@ class SettingsScreen extends ConsumerWidget {
                     _SettingsTile(
                       icon: Icons.notifications_active_rounded,
                       iconColor: const Color(0xFFEF4444),
-                      title: 'Adhan Notifications',
-                      subtitle: 'Enabled',
-                      trailing: Switch(
-                        value: true,
-                        activeThumbColor: AppColors.primary,
-                        onChanged: (_) {
-                          HapticFeedback.lightImpact();
-                          _showComingSoon(context, 'Adhan settings');
-                        },
-                      ),
+                      title: 'Prayer Notifications',
+                      subtitle: 'Azan alerts & reminders',
+                      onTap: () => context.push('/settings/notifications'),
                     ),
                     _SettingsTile(
                       icon: Icons.notification_add_rounded,
                       iconColor: const Color(0xFFF59E0B),
                       title: 'Daily Reminders',
-                      subtitle: 'Quran & Duas',
-                      trailing: Switch(
-                        value: true,
-                        activeThumbColor: AppColors.primary,
-                        onChanged: (_) {
-                          HapticFeedback.lightImpact();
-                          _showComingSoon(context, 'Reminder settings');
-                        },
-                      ),
+                      subtitle: 'Adhkar, Quran & Jummah',
+                      onTap: () => context.push('/settings/notifications'),
                     ),
                   ]),
 

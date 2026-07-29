@@ -44,6 +44,7 @@ import 'package:qibra_ai/features/tools/screens/halal_scanner_screen.dart';
 import 'package:qibra_ai/features/tools/screens/asma_ul_husna_screen.dart';
 import 'package:qibra_ai/features/tools/screens/islamic_name_finder_screen.dart';
 import 'package:qibra_ai/features/tools/screens/inheritance_calculator_screen.dart';
+import 'package:qibra_ai/features/settings/presentation/notification_settings_screen.dart';
 // ============================================================
 // PLACEHOLDER SCREENS
 // ============================================================
@@ -499,6 +500,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/tools/inheritance',
             name: 'tools-inheritance',
             builder: (context, state) => const InheritanceCalculatorScreen(),
+          ),
+          // ── Notification Settings ─────────────────────────────
+          GoRoute(
+            path: '/settings/notifications',
+            name: 'notification-settings',
+            builder: (context, state) => const NotificationSettingsScreen(),
           ),
         ],
       ),

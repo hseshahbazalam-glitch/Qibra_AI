@@ -1,24 +1,26 @@
 // lib/features/prayer/presentation/prayer_times_screen.dart
 // ============================================================
-// QIBRA AI — Premium Prayer Times Screen v2.1
+// QIBRA AI — Premium Prayer Times Screen v2.2
 // ============================================================
 import 'tahajjud_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'prayer_statistics_screen.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
-
 import '../providers/prayer_provider.dart';
 import '../data/models/prayer_models.dart';
 import 'salah_schedule_screen.dart';
 import 'widgets/prayer_hero_card.dart';
 import 'widgets/prayer_quick_action.dart';
 import 'widgets/night_worship_card.dart';
+import 'package:qibra_ai/core/services/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PrayerTimesScreen extends ConsumerStatefulWidget {
   const PrayerTimesScreen({super.key});
@@ -28,12 +30,21 @@ class PrayerTimesScreen extends ConsumerStatefulWidget {
 }
 
 class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _detectLocation();
+      _schedulePrayerNotifications();
     });
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 
   Future<void> _detectLocation() async {
@@ -41,6 +52,58 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     if (locationState.status == LocationStatus.initial ||
         locationState.status == LocationStatus.disabled) {
       await ref.read(locationProvider.notifier).fetchCurrentLocation();
+    }
+  }
+
+  Future<void> _playAzan() async {
+    try {
+      await _audioPlayer.play(AssetSource('audio/azan_makkah.mp3'));
+      debugPrint('✅ Azan playing');
+    } catch (e) {
+      debugPrint('❌ Azan error: $e');
+    }
+  }
+
+  Future<void> _schedulePrayerNotifications() async {
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+
+    final dailyTimes = ref.read(dailyPrayerTimesProvider);
+    if (dailyTimes == null) return;
+
+    // Check if any prayer time is NOW — play azan
+    final now = DateTime.now();
+    final prayerTimes = [
+      dailyTimes.fajr.time,
+      dailyTimes.dhuhr.time,
+      dailyTimes.asr.time,
+      dailyTimes.maghrib.time,
+      dailyTimes.isha.time,
+    ];
+
+    for (final t in prayerTimes) {
+      if (t.difference(now).inSeconds.abs() < 60) {
+        await _playAzan();
+        break;
+      }
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final service = NotificationService();
+      await service.initialize();
+      await service.schedulePrayerNotifications(
+        fajr: dailyTimes.fajr.time,
+        dhuhr: dailyTimes.dhuhr.time,
+        asr: dailyTimes.asr.time,
+        maghrib: dailyTimes.maghrib.time,
+        isha: dailyTimes.isha.time,
+        prePrayerAlert: prefs.getBool('pre_prayer_alert') ?? true,
+        preMinutes: prefs.getInt('pre_minutes') ?? 10,
+      );
+      debugPrint('✅ Prayer notifications scheduled');
+    } catch (e) {
+      debugPrint('❌ Error: $e');
     }
   }
 
@@ -78,11 +141,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
             parent: AlwaysScrollableScrollPhysics(),
           ),
           slivers: [
-            // Status bar safe area
             SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.of(context).padding.top,
-              ),
+              child: SizedBox(height: MediaQuery.of(context).padding.top),
             ),
             SliverToBoxAdapter(child: _buildTopBar(context)),
             SliverToBoxAdapter(
@@ -162,9 +222,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
               child: _buildCompactSchedule(dailyTimes, nextPrayerInfo),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            SliverToBoxAdapter(
-              child: _buildSectionHeader('NIGHT WORSHIP'),
-            ),
+            SliverToBoxAdapter(child: _buildSectionHeader('NIGHT WORSHIP')),
             const SliverToBoxAdapter(child: SizedBox(height: 12)),
             SliverToBoxAdapter(
               child: NightWorshipCard(
@@ -207,9 +265,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     HapticFeedback.mediumImpact();
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const SalahScheduleScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const SalahScheduleScreen()),
     );
   }
 
@@ -248,35 +304,38 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
               ],
             ),
           ),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.borderSubtle),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const Icon(
-                  Icons.notifications_outlined,
-                  color: AppColors.textPrimary,
-                  size: 20,
-                ),
-                Positioned(
-                  top: 8,
-                  right: 10,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFEF4444),
-                      shape: BoxShape.circle,
+          GestureDetector(
+            onTap: () => context.push('/settings/notifications'),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(
+                    Icons.notifications_outlined,
+                    color: AppColors.textPrimary,
+                    size: 20,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 10,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -358,35 +417,17 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     } else {
       prayers.addAll([
         _PrayerScheduleItem(
-          type: PrayerType.fajr,
-          time: '04:21 AM',
-          isNext: true,
-        ),
+            type: PrayerType.fajr, time: '04:21 AM', isNext: true),
         _PrayerScheduleItem(
-          type: PrayerType.sunrise,
-          time: '05:38 AM',
-          isNext: false,
-        ),
+            type: PrayerType.sunrise, time: '05:38 AM', isNext: false),
         _PrayerScheduleItem(
-          type: PrayerType.dhuhr,
-          time: '12:00 PM',
-          isNext: false,
-        ),
+            type: PrayerType.dhuhr, time: '12:00 PM', isNext: false),
         _PrayerScheduleItem(
-          type: PrayerType.asr,
-          time: '03:21 PM',
-          isNext: false,
-        ),
+            type: PrayerType.asr, time: '03:21 PM', isNext: false),
         _PrayerScheduleItem(
-          type: PrayerType.maghrib,
-          time: '06:22 PM',
-          isNext: false,
-        ),
+            type: PrayerType.maghrib, time: '06:22 PM', isNext: false),
         _PrayerScheduleItem(
-          type: PrayerType.isha,
-          time: '07:34 PM',
-          isNext: false,
-        ),
+            type: PrayerType.isha, time: '07:34 PM', isNext: false),
       ]);
     }
 
@@ -402,10 +443,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     final color = _getColor(item.type);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 10,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: item.isNext ? color.withValues(alpha: 0.1) : AppColors.surface,
         borderRadius: AppRadius.cardRadius,
@@ -446,9 +484,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: 0.2),
                           borderRadius: AppRadius.pillRadius,
@@ -493,54 +529,36 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
   }
 
   String _getArabicName(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return 'الفجر';
-      case PrayerType.sunrise:
-        return 'الشروق';
-      case PrayerType.dhuhr:
-        return 'الظهر';
-      case PrayerType.asr:
-        return 'العصر';
-      case PrayerType.maghrib:
-        return 'المغرب';
-      case PrayerType.isha:
-        return 'العشاء';
-    }
+    return switch (type) {
+      PrayerType.fajr => 'الفجر',
+      PrayerType.sunrise => 'الشروق',
+      PrayerType.dhuhr => 'الظهر',
+      PrayerType.asr => 'العصر',
+      PrayerType.maghrib => 'المغرب',
+      PrayerType.isha => 'العشاء',
+    };
   }
 
   IconData _getIcon(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return Icons.wb_twilight_rounded;
-      case PrayerType.sunrise:
-        return Icons.wb_sunny_outlined;
-      case PrayerType.dhuhr:
-        return Icons.wb_sunny_rounded;
-      case PrayerType.asr:
-        return Icons.wb_cloudy_rounded;
-      case PrayerType.maghrib:
-        return Icons.nights_stay_rounded;
-      case PrayerType.isha:
-        return Icons.brightness_2_rounded;
-    }
+    return switch (type) {
+      PrayerType.fajr => Icons.wb_twilight_rounded,
+      PrayerType.sunrise => Icons.wb_sunny_outlined,
+      PrayerType.dhuhr => Icons.wb_sunny_rounded,
+      PrayerType.asr => Icons.wb_cloudy_rounded,
+      PrayerType.maghrib => Icons.nights_stay_rounded,
+      PrayerType.isha => Icons.brightness_2_rounded,
+    };
   }
 
   Color _getColor(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return const Color(0xFF7C3AED);
-      case PrayerType.sunrise:
-        return const Color(0xFFF59E0B);
-      case PrayerType.dhuhr:
-        return const Color(0xFFFBBF24);
-      case PrayerType.asr:
-        return const Color(0xFFEF4444);
-      case PrayerType.maghrib:
-        return const Color(0xFF7C3AED);
-      case PrayerType.isha:
-        return const Color(0xFF0891B2);
-    }
+    return switch (type) {
+      PrayerType.fajr => const Color(0xFF7C3AED),
+      PrayerType.sunrise => const Color(0xFFF59E0B),
+      PrayerType.dhuhr => const Color(0xFFFBBF24),
+      PrayerType.asr => const Color(0xFFEF4444),
+      PrayerType.maghrib => const Color(0xFF7C3AED),
+      PrayerType.isha => const Color(0xFF0891B2),
+    };
   }
 
   String _getMonthShort(int month) {
@@ -560,20 +578,6 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     ];
     return months[month - 1];
   }
-
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature coming soon'),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.buttonRadius,
-        ),
-      ),
-    );
-  }
 }
 
 class _PrayerScheduleItem {
@@ -590,19 +594,13 @@ class _PrayerScheduleItem {
 
 extension _PrayerTypeName on PrayerType {
   String get uiDisplayName {
-    switch (this) {
-      case PrayerType.fajr:
-        return 'Fajr';
-      case PrayerType.sunrise:
-        return 'Sunrise';
-      case PrayerType.dhuhr:
-        return 'Dhuhr';
-      case PrayerType.asr:
-        return 'Asr';
-      case PrayerType.maghrib:
-        return 'Maghrib';
-      case PrayerType.isha:
-        return 'Isha';
-    }
+    return switch (this) {
+      PrayerType.fajr => 'Fajr',
+      PrayerType.sunrise => 'Sunrise',
+      PrayerType.dhuhr => 'Dhuhr',
+      PrayerType.asr => 'Asr',
+      PrayerType.maghrib => 'Maghrib',
+      PrayerType.isha => 'Isha',
+    };
   }
 }
