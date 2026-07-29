@@ -41,6 +41,9 @@ import 'package:qibra_ai/features/tools/screens/hajj_guide_screen.dart';
 import 'package:qibra_ai/features/tools/screens/umrah_guide_screen.dart';
 import 'package:qibra_ai/features/tools/screens/nikah_guide_screen.dart';
 import 'package:qibra_ai/features/tools/screens/halal_scanner_screen.dart';
+import 'package:qibra_ai/features/tools/screens/asma_ul_husna_screen.dart';
+import 'package:qibra_ai/features/tools/screens/islamic_name_finder_screen.dart';
+import 'package:qibra_ai/features/tools/screens/inheritance_calculator_screen.dart';
 // ============================================================
 // PLACEHOLDER SCREENS
 // ============================================================
@@ -473,11 +476,29 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'tools-nikah',
             builder: (context, state) => const NikahGuideScreen(),
           ),
+          // ── 99 Names of Allah ─────────────────────────────────
+          GoRoute(
+            path: '/tools/asma',
+            name: 'tools-asma',
+            builder: (context, state) => const AsmaUlHusnaScreen(),
+          ),
           // ── Halal Scanner ─────────────────────────────────────
           GoRoute(
             path: '/tools/halal',
             name: 'tools-halal',
             builder: (context, state) => const HalalScannerScreen(),
+          ),
+          // ── Islamic Name Finder ───────────────────────────────
+          GoRoute(
+            path: '/tools/names',
+            name: 'tools-names',
+            builder: (context, state) => const IslamicNameFinderScreen(),
+          ),
+          // ── Inheritance Calculator ────────────────────────────
+          GoRoute(
+            path: '/tools/inheritance',
+            name: 'tools-inheritance',
+            builder: (context, state) => const InheritanceCalculatorScreen(),
           ),
         ],
       ),

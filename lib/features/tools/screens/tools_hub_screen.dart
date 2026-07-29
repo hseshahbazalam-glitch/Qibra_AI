@@ -212,6 +212,33 @@ const List<IslamicTool> _tools = [
     route: '/tools/halal',
     isReady: true,
   ),
+  IslamicTool(
+    title: 'Asma\nul Husna',
+    subtitle: '99 Names of Allah',
+    emoji: '📿',
+    color: Color(0xFFA78BFA),
+    bgColor: Color(0xFF1A0D35),
+    route: '/tools/asma',
+    isReady: true,
+  ),
+  IslamicTool(
+    title: 'Islamic\nNames',
+    subtitle: 'Find baby names',
+    emoji: '🧒',
+    color: Color(0xFF74C0FC),
+    bgColor: Color(0xFF0D2137),
+    route: '/tools/names',
+    isReady: true,
+  ),
+  IslamicTool(
+    title: 'Faraid\nCalculator',
+    subtitle: 'Islamic inheritance',
+    emoji: '⚖️',
+    color: Color(0xFFA78BFA),
+    bgColor: Color(0xFF1A0D35),
+    route: '/tools/inheritance',
+    isReady: true,
+  ),
 ];
 
 // ─── Tool Card Widget ─────────────────────────────────────────
