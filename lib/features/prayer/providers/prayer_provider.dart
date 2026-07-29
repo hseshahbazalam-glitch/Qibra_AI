@@ -1,10 +1,9 @@
 // lib/features/prayer/providers/prayer_provider.dart
-
 // ============================================================
-// QIBRA AI — PRAYER PROVIDER (v1.2 — No Geocoding Dependency)
+// QIBRA AI — PRAYER PROVIDER (v1.3 — Fixed)
 // ============================================================
 import 'package:flutter/foundation.dart';
-import 'package:qibra_ai/features/prayer/data/services/notification_service.dart';
+import 'package:qibra_ai/core/services/notification_service.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -126,7 +125,6 @@ class LocationNotifier extends StateNotifier<LocationState> {
     }
   }
 
-  /// Fetch current location from GPS
   Future<void> fetchCurrentLocation() async {
     state = state.copyWith(
       status: LocationStatus.loading,
@@ -134,7 +132,6 @@ class LocationNotifier extends StateNotifier<LocationState> {
     );
 
     try {
-      // Check if location service is enabled
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         state = state.copyWith(
@@ -144,7 +141,6 @@ class LocationNotifier extends StateNotifier<LocationState> {
         return;
       }
 
-      // Check permission
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -166,7 +162,6 @@ class LocationNotifier extends StateNotifier<LocationState> {
         return;
       }
 
-      // Get current position
       debugPrint('[LOCATION] Getting current position...');
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -177,8 +172,6 @@ class LocationNotifier extends StateNotifier<LocationState> {
         '[LOCATION] Position: ${position.latitude}, ${position.longitude}',
       );
 
-      // Use coordinates as city name — geocoding removed
-      // Will be improved in future with a free geocoding API
       const cityName = 'My Location';
       const countryName = 'Auto-detected';
 
@@ -206,7 +199,6 @@ class LocationNotifier extends StateNotifier<LocationState> {
     }
   }
 
-  /// Set location manually
   Future<void> setManualLocation(PrayerLocation location) async {
     final withFlag = location.copyWith(isManuallySet: true);
     state = state.copyWith(
@@ -216,7 +208,6 @@ class LocationNotifier extends StateNotifier<LocationState> {
     await _cacheLocation(withFlag);
   }
 
-  /// Reset to default (Makkah)
   Future<void> resetToDefault() async {
     final makkah = PrayerLocation.makkah();
     state = state.copyWith(
@@ -384,7 +375,6 @@ class PrayerSettingsNotifier extends StateNotifier<PrayerSettings> {
     await _saveSettings();
   }
 
-  /// Auto-configure based on country
   Future<void> autoConfigureForCountry(String? countryCode) async {
     final service = _ref.read(prayerCalculationServiceProvider);
     final method = service.detectMethodByCountry(countryCode);
@@ -788,52 +778,11 @@ final distanceToKaabaProvider = Provider<double?>((ref) {
 
   if (locationState.location == null) return null;
   return service.calculateDistanceToKaaba(locationState.location!);
-}); // ============================================================
+});
+
 // ============================================================
-// SECTION: AZAN NOTIFICATION SCHEDULER
+// SECTION 14 — AZAN NOTIFICATION SCHEDULER
 // ============================================================
-
-class _PrayerNotificationIds {
-  static const int fajr = 1001;
-  static const int dhuhr = 1002;
-  static const int asr = 1003;
-  static const int maghrib = 1004;
-  static const int isha = 1005;
-
-  static int getId(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return fajr;
-      case PrayerType.dhuhr:
-        return dhuhr;
-      case PrayerType.asr:
-        return asr;
-      case PrayerType.maghrib:
-        return maghrib;
-      case PrayerType.isha:
-        return isha;
-      default:
-        return 1000;
-    }
-  }
-}
-
-String _getPrayerArabic(PrayerType type) {
-  switch (type) {
-    case PrayerType.fajr:
-      return 'الفجر';
-    case PrayerType.dhuhr:
-      return 'الظهر';
-    case PrayerType.asr:
-      return 'العصر';
-    case PrayerType.maghrib:
-      return 'المغرب';
-    case PrayerType.isha:
-      return 'العشاء';
-    default:
-      return '';
-  }
-}
 
 Future<void> _scheduleAllAzanNotifications(
   DailyPrayerTimes times,
@@ -841,58 +790,31 @@ Future<void> _scheduleAllAzanNotifications(
 ) async {
   final notifService = NotificationService.instance;
 
-  // Cancel all previous notifications
-  await notifService.cancelAll();
+  await notifService.cancelPrayerNotifications();
 
   if (!settings.enableNotifications) {
     debugPrint('🔕 Notifications disabled - not scheduling');
     return;
   }
 
-  for (final prayer in times.prayers) {
-    // Skip Sunrise (no azan)
-    if (prayer.type == PrayerType.sunrise) continue;
+  try {
+    await notifService.schedulePrayerNotifications(
+      fajr: times.fajr.time,
+      dhuhr: times.dhuhr.time,
+      asr: times.asr.time,
+      maghrib: times.maghrib.time,
+      isha: times.isha.time,
+      prePrayerAlert: settings.enablePreReminder,
+      preMinutes: settings.preReminderMinutes,
+    );
 
-    final baseId = _PrayerNotificationIds.getId(prayer.type);
-
-    // 1. Main azan notification
-    if (settings.enableAdhan) {
-      await notifService.scheduleAzanNotification(
-        id: baseId,
-        prayerName: prayer.type.name,
-        prayerNameArabic: prayer.type.arabicName,
-        prayerTime: prayer.time,
-        playAdhan: settings.enableAdhan,
-      );
-    }
-
-    // 2. Pre-prayer reminder (15 min before)
-    if (settings.enablePreReminder) {
-      await notifService.schedulePreReminder(
-        id: baseId + 100, // Different ID range
-        prayerName: prayer.type.name,
-        prayerTime: prayer.time,
-        minutesBefore: settings.preReminderMinutes,
-      );
-    }
-
-    // 3. Silent mode reminder (at prayer time)
-    if (settings.enableSilentMode) {
-      await notifService.scheduleSilentModeReminder(
-        id: baseId + 200, // Different ID range
-        prayerName: prayer.type.name,
-        prayerTime: prayer.time,
-        durationMinutes: settings.silentModeDuration,
-      );
-    }
+    debugPrint('✅ All prayer notifications scheduled');
+    debugPrint('   Azan: ${settings.enableAdhan}');
+    debugPrint(
+        '   Pre-reminder: ${settings.enablePreReminder} (${settings.preReminderMinutes} min)');
+  } catch (e) {
+    debugPrint('❌ Azan schedule error: $e');
   }
-
-  debugPrint('✅ All prayer notifications scheduled');
-  debugPrint('   Azan: ${settings.enableAdhan}');
-  debugPrint(
-      '   Pre-reminder: ${settings.enablePreReminder} (${settings.preReminderMinutes} min)');
-  debugPrint(
-      '   Silent mode: ${settings.enableSilentMode} (${settings.silentModeDuration} min)');
 }
 
 final azanSchedulerProvider = Provider<void>((ref) {
