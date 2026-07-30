@@ -377,12 +377,20 @@ class QiblaService {
       }
     } catch (_) {}
 
-    // Default — Karachi
-    return const QiblaResult(
-      qiblaAngle: 292.0,
-      latitude: 24.8607,
-      longitude: 67.0011,
-      distanceToMakkah: 4524,
+    // SAHI — Dynamic calculate karo:
+    const double defaultLat = 24.8607;
+    const double defaultLng = 67.0011;
+
+    return QiblaResult(
+      qiblaAngle: _calculateQiblaAngle(defaultLat, defaultLng),
+      latitude: defaultLat,
+      longitude: defaultLng,
+      distanceToMakkah: _calculateDistance(
+        defaultLat,
+        defaultLng,
+        _makkahLat,
+        _makkahLng,
+      ),
       locationName: 'Default (Karachi)',
       city: 'Karachi',
       country: 'Pakistan',

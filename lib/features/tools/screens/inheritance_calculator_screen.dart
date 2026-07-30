@@ -68,7 +68,9 @@ class _InheritanceCalculatorScreenState
     if (amount >= 100000) {
       return '$symbol ${(amount / 100000).toStringAsFixed(2)} Lac';
     }
-    if (amount >= 1000) return '$symbol ${(amount / 1000).toStringAsFixed(1)}K';
+    if (amount >= 1000) {
+      return '$symbol ${(amount / 1000).toStringAsFixed(1)}K';
+    }
     return '$symbol ${amount.toStringAsFixed(0)}';
   }
 
@@ -83,14 +85,12 @@ class _InheritanceCalculatorScreenState
       return;
     }
 
-    // Step 1: Deduct debts
     double remaining = estate - debt;
     if (remaining <= 0) {
       _showSnackbar('Debts exceed estate — no inheritance to distribute');
       return;
     }
 
-    // Step 2: Deduct Wasiyyah (max 1/3)
     final maxWasiyyah = remaining / 3;
     final actualWasiyyah = wasiyyah > maxWasiyyah ? maxWasiyyah : wasiyyah;
     remaining -= actualWasiyyah;
@@ -98,362 +98,523 @@ class _InheritanceCalculatorScreenState
     _totalEstate = estate;
     _netEstate = remaining;
 
-    // Step 3: Calculate shares
     _results = _calculateShares(remaining);
 
     setState(() => _showResult = true);
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // MAIN CALCULATION — AWL + RADD + HALF SIBLINGS FIXED
+  // ═══════════════════════════════════════════════════════════
   List<_ShareResult> _calculateShares(double estate) {
-    List<_ShareResult> shares = [];
-    double distributed = 0;
+    Map<String, _ShareResult> sharesMap = {};
+    Map<String, double> fractions = {};
 
-    // ═══════════════════════════════════════════════════════
-    // SPOUSE SHARE
-    // ═══════════════════════════════════════════════════════
+    bool hasChildren =
+        _sons > 0 || _daughters > 0 || _grandsons > 0 || _granddaughters > 0;
+
+    // ─── STEP 1: Fixed Shares (Fard) ──────────────────────
 
     // Husband
     if (_hasHusband && _deceasedGender == 'female') {
-      double fraction;
-      String rule;
-      if (_sons > 0 ||
-          _daughters > 0 ||
-          _grandsons > 0 ||
-          _granddaughters > 0) {
-        fraction = 1 / 4;
-        rule = '1/4 — because deceased has children';
-      } else {
-        fraction = 1 / 2;
-        rule = '1/2 — because deceased has no children';
-      }
-      final amount = estate * fraction;
-      shares.add(_ShareResult('Husband', 'زَوْج', amount, fraction, 1, rule,
-          const Color(0xFF74C0FC), Icons.man_rounded));
-      distributed += amount;
+      double f = hasChildren ? 1 / 4 : 1 / 2;
+      String rule = hasChildren
+          ? '1/4 — because deceased has children'
+          : '1/2 — because deceased has no children';
+      fractions['Husband'] = f;
+      sharesMap['Husband'] = _ShareResult(
+        'Husband',
+        'زَوْج',
+        0,
+        f,
+        1,
+        rule,
+        const Color(0xFF74C0FC),
+        Icons.man_rounded,
+      );
     }
 
     // Wife/Wives
     if (_hasWife && _deceasedGender == 'male') {
-      double fraction;
-      String rule;
-      if (_sons > 0 ||
-          _daughters > 0 ||
-          _grandsons > 0 ||
-          _granddaughters > 0) {
-        fraction = 1 / 8;
-        rule = '1/8 — because deceased has children';
-      } else {
-        fraction = 1 / 4;
-        rule = '1/4 — because deceased has no children';
-      }
-      final totalAmount = estate * fraction;
-      final perWife = totalAmount / _wifeCount;
+      double f = hasChildren ? 1 / 8 : 1 / 4;
+      String rule = hasChildren
+          ? '1/8 — because deceased has children'
+          : '1/4 — because deceased has no children';
+      double perWife = f / _wifeCount;
       for (int i = 0; i < _wifeCount; i++) {
-        shares.add(_ShareResult(
-            'Wife ${_wifeCount > 1 ? "${i + 1}" : ""}',
-            'زَوْجَة',
-            perWife,
-            fraction / _wifeCount,
-            1,
-            '$rule (shared among $_wifeCount wife${_wifeCount > 1 ? "s" : ""})',
-            const Color(0xFFFF9EBC),
-            Icons.woman_rounded));
+        String key = 'Wife${_wifeCount > 1 ? "_$i" : ""}';
+        String label = 'Wife${_wifeCount > 1 ? " ${i + 1}" : ""}';
+        fractions[key] = perWife;
+        sharesMap[key] = _ShareResult(
+          label,
+          'زَوْجَة',
+          0,
+          perWife,
+          1,
+          '$rule (shared among $_wifeCount wife${_wifeCount > 1 ? "s" : ""})',
+          const Color(0xFFFF9EBC),
+          Icons.woman_rounded,
+        );
       }
-      distributed += totalAmount;
     }
-
-    // ═══════════════════════════════════════════════════════
-    // PARENTS SHARE
-    // ═══════════════════════════════════════════════════════
 
     // Father
     if (_hasFather) {
-      double fraction;
-      String rule;
-      if (_sons > 0 || _grandsons > 0) {
-        fraction = 1 / 6;
-        rule = '1/6 — because deceased has male offspring';
-      } else if (_daughters > 0 || _granddaughters > 0) {
-        fraction = 1 / 6; // Gets 1/6 + residual
-        rule = '1/6 fixed share + residual (Asabah)';
-      } else {
-        fraction = 0; // Gets residual as Asabah
-        rule = 'Residual share (Asabah)';
+      if (hasChildren) {
+        fractions['Father'] = 1 / 6;
+        sharesMap['Father'] = _ShareResult(
+          'Father',
+          'أَب',
+          0,
+          1 / 6,
+          1,
+          '1/6 fixed share + may get residual',
+          const Color(0xFF52B788),
+          Icons.man_rounded,
+        );
       }
-      if (fraction > 0) {
-        final amount = estate * fraction;
-        shares.add(_ShareResult('Father', 'أَب', amount, fraction, 1, rule,
-            const Color(0xFF52B788), Icons.man_rounded));
-        distributed += amount;
-      }
+      // If no children, father gets residual — handled in Step 2
     }
 
     // Mother
     if (_hasMother) {
-      double fraction;
+      bool hasMultipleSiblings =
+          (_brothers + _sisters + _halfBrothersFather + _halfSistersFather) >=
+              2;
+      double f;
       String rule;
-      if (_sons > 0 ||
-          _daughters > 0 ||
-          _grandsons > 0 ||
-          _granddaughters > 0) {
-        fraction = 1 / 6;
+      if (hasChildren) {
+        f = 1 / 6;
         rule = '1/6 — because deceased has children';
-      } else if (_brothers > 0 || _sisters > 0) {
-        fraction = 1 / 6;
-        rule = '1/6 — because deceased has siblings';
+      } else if (hasMultipleSiblings) {
+        f = 1 / 6;
+        rule = '1/6 — because deceased has multiple siblings';
       } else {
-        fraction = 1 / 3;
-        rule = '1/3 — no children and no siblings';
+        f = 1 / 3;
+        rule = '1/3 — no children and less than 2 siblings';
       }
-      final amount = estate * fraction;
-      shares.add(_ShareResult('Mother', 'أُمّ', amount, fraction, 1, rule,
-          const Color(0xFFA78BFA), Icons.woman_rounded));
-      distributed += amount;
+      fractions['Mother'] = f;
+      sharesMap['Mother'] = _ShareResult(
+        'Mother',
+        'أُمّ',
+        0,
+        f,
+        1,
+        rule,
+        const Color(0xFFA78BFA),
+        Icons.woman_rounded,
+      );
     }
 
     // Grandfather (if no father)
     if (_hasGrandfather && !_hasFather) {
-      const fraction = 1 / 6;
-      final amount = estate * fraction;
-      shares.add(_ShareResult(
-          'Grandfather',
-          'جَدّ',
-          amount,
-          fraction,
-          1,
-          '1/6 — takes father\'s share',
-          const Color(0xFF4ECDC4),
-          Icons.elderly_rounded));
-      distributed += amount;
+      fractions['Grandfather'] = 1 / 6;
+      sharesMap['Grandfather'] = _ShareResult(
+        'Grandfather',
+        'جَدّ',
+        0,
+        1 / 6,
+        1,
+        '1/6 — takes father\'s place',
+        const Color(0xFF4ECDC4),
+        Icons.elderly_rounded,
+      );
     }
 
     // Grandmother (if no mother)
     if (_hasGrandmother && !_hasMother) {
-      const fraction = 1 / 6;
-      final amount = estate * fraction;
-      shares.add(_ShareResult(
-          'Grandmother',
-          'جَدَّة',
-          amount,
-          fraction,
-          1,
-          '1/6 — takes mother\'s share',
-          const Color(0xFFFF8C42),
-          Icons.elderly_woman_rounded));
-      distributed += amount;
+      fractions['Grandmother'] = 1 / 6;
+      sharesMap['Grandmother'] = _ShareResult(
+        'Grandmother',
+        'جَدَّة',
+        0,
+        1 / 6,
+        1,
+        '1/6 — takes mother\'s place',
+        const Color(0xFFFF8C42),
+        Icons.elderly_woman_rounded,
+      );
     }
 
-    // ═══════════════════════════════════════════════════════
-    // CHILDREN SHARE (Residual / Asabah)
-    // ═══════════════════════════════════════════════════════
+    // Daughters only (no sons)
+    if (_daughters > 0 && _sons == 0 && _grandsons == 0) {
+      double f = _daughters == 1 ? 1 / 2 : 2 / 3;
+      String rule = _daughters == 1
+          ? '1/2 — one daughter without sons'
+          : '2/3 — multiple daughters without sons';
+      fractions['Daughters'] = f;
+      sharesMap['Daughters'] = _ShareResult(
+        'Daughters',
+        'بَنَات',
+        0,
+        f,
+        _daughters,
+        rule,
+        const Color(0xFFFF9EBC),
+        Icons.girl_rounded,
+      );
+    }
 
-    double residual = estate - distributed;
+    // Granddaughters only (no sons, no daughters, no grandsons)
+    if (_granddaughters > 0 &&
+        _sons == 0 &&
+        _daughters == 0 &&
+        _grandsons == 0) {
+      double f = _granddaughters == 1 ? 1 / 2 : 2 / 3;
+      fractions['Granddaughters'] = f;
+      sharesMap['Granddaughters'] = _ShareResult(
+        'Granddaughters',
+        'حَفِيدَات',
+        0,
+        f,
+        _granddaughters,
+        _granddaughters == 1 ? '1/2' : '2/3',
+        const Color(0xFFFF9EBC),
+        Icons.girl_rounded,
+      );
+    }
 
-    if (_sons > 0 || _daughters > 0) {
-      if (_sons > 0 && _daughters == 0) {
-        // Only sons — equal distribution
-        final perSon = residual / _sons;
-        shares.add(_ShareResult(
+    // Sisters only (no brothers, no children, no father)
+    if (_sisters > 0 && _brothers == 0 && !hasChildren && !_hasFather) {
+      double f = _sisters == 1 ? 1 / 2 : 2 / 3;
+      fractions['Sisters'] = f;
+      sharesMap['Sisters'] = _ShareResult(
+        'Sisters',
+        'أَخَوَات',
+        0,
+        f,
+        _sisters,
+        _sisters == 1 ? '1/2' : '2/3',
+        const Color(0xFFFF9EBC),
+        Icons.people_rounded,
+      );
+    }
+
+    // Maternal Half-Siblings (FIXED — separate rules)
+    int maternalSiblings = _halfBrothersMother + _halfSistersMother;
+    if (maternalSiblings > 0 && !hasChildren && !_hasFather) {
+      double f = maternalSiblings == 1 ? 1 / 6 : 1 / 3;
+      String rule = maternalSiblings == 1
+          ? '1/6 — one maternal sibling'
+          : '1/3 — multiple maternal siblings (shared equally)';
+      fractions['Maternal Siblings'] = f;
+      sharesMap['Maternal Siblings'] = _ShareResult(
+        'Maternal Siblings',
+        'أَخَوَاتٌ لِأُمّ',
+        0,
+        f,
+        maternalSiblings,
+        rule,
+        const Color(0xFFFFD166),
+        Icons.people_rounded,
+      );
+    }
+
+    // ─── STEP 2: Check if Awl needed ──────────────────────
+    double totalFixed = fractions.values.fold(0.0, (sum, f) => sum + f);
+
+    // AWL: Shares exceed 100% — reduce proportionally
+    if (totalFixed > 1.001) {
+      double factor = 1.0 / totalFixed;
+      fractions.updateAll((key, value) => value * factor);
+      // Update fractions in sharesMap
+      sharesMap.forEach((key, result) {
+        sharesMap[key] = _ShareResult(
+          result.label,
+          result.arabic,
+          0,
+          fractions[key] ?? result.fraction,
+          result.count,
+          '${result.rule} (Awl applied — proportional reduction)',
+          result.color,
+          result.icon,
+        );
+      });
+      totalFixed = 1.0;
+    }
+
+    // ─── STEP 3: Residual (Asabah) ────────────────────────
+    double remainder = 1.0 - totalFixed;
+
+    if (remainder > 0.001) {
+      // Sons + Daughters (2:1)
+      if (_sons > 0) {
+        if (_daughters > 0) {
+          int totalParts = (_sons * 2) + _daughters;
+          double sonFraction = (2 * remainder) / totalParts;
+          double daughterFraction = remainder / totalParts;
+          fractions['Sons'] = sonFraction * _sons;
+          fractions['Daughters'] = daughterFraction * _daughters;
+          sharesMap['Sons'] = _ShareResult(
             'Sons',
             'أَبْنَاء',
-            residual,
-            residual / estate,
+            0,
+            sonFraction * _sons,
             _sons,
-            'Equal share among $_sons son${_sons > 1 ? "s" : ""} (Asabah)',
+            '2:1 ratio with daughters — each son: ${(sonFraction * 100).toStringAsFixed(1)}%',
             const Color(0xFF74C0FC),
-            Icons.boy_rounded));
-      } else if (_sons == 0 && _daughters > 0) {
-        // Only daughters
-        double daughterTotal;
-        String rule;
-        if (_daughters == 1) {
-          daughterTotal = min(residual, estate * 0.5);
-          rule = '1/2 — one daughter without sons';
+            Icons.boy_rounded,
+          );
+          sharesMap['Daughters'] = _ShareResult(
+            'Daughters',
+            'بَنَات',
+            0,
+            daughterFraction * _daughters,
+            _daughters,
+            '2:1 ratio with sons — each daughter: ${(daughterFraction * 100).toStringAsFixed(1)}%',
+            const Color(0xFFFF9EBC),
+            Icons.girl_rounded,
+          );
         } else {
-          daughterTotal = min(residual, estate * (2 / 3));
-          rule = '2/3 — multiple daughters without sons';
-        }
-        shares.add(_ShareResult(
-            'Daughters',
-            'بَنَات',
-            daughterTotal,
-            daughterTotal / estate,
-            _daughters,
-            rule,
-            const Color(0xFFFF9EBC),
-            Icons.girl_rounded));
-
-        // Remaining residual goes to father (if alive) as Asabah
-        final leftover = residual - daughterTotal;
-        if (leftover > 0 && _hasFather) {
-          shares.add(_ShareResult(
-              'Father (Asabah)',
-              'أَب',
-              leftover,
-              leftover / estate,
-              1,
-              'Residual after daughters\' share',
-              const Color(0xFF52B788),
-              Icons.man_rounded));
-        } else if (leftover > 0 && !_hasFather) {
-          // Goes to brothers or other Asabah
-          if (_brothers > 0) {
-            shares.add(_ShareResult(
-                'Brothers (Asabah)',
-                'إِخْوَة',
-                leftover,
-                leftover / estate,
-                _brothers,
-                'Residual share',
-                const Color(0xFF4ECDC4),
-                Icons.people_rounded));
-          }
-        }
-      } else {
-        // Sons AND Daughters — 2:1 ratio
-        final totalParts = (_sons * 2) + _daughters;
-        final perPart = residual / totalParts;
-        final sonShare = perPart * 2;
-        final daughterShare = perPart;
-
-        shares.add(_ShareResult(
+          fractions['Sons'] = remainder;
+          sharesMap['Sons'] = _ShareResult(
             'Sons',
             'أَبْنَاء',
-            sonShare * _sons,
-            (sonShare * _sons) / estate,
+            0,
+            remainder,
             _sons,
-            '2:1 ratio — each son gets ${_formatAmount(sonShare)}',
+            'Equal residual share among $_sons son${_sons > 1 ? "s" : ""} (Asabah)',
             const Color(0xFF74C0FC),
-            Icons.boy_rounded));
-        shares.add(_ShareResult(
-            'Daughters',
-            'بَنَات',
-            daughterShare * _daughters,
-            (daughterShare * _daughters) / estate,
-            _daughters,
-            '2:1 ratio — each daughter gets ${_formatAmount(daughterShare)}',
-            const Color(0xFFFF9EBC),
-            Icons.girl_rounded));
-      }
-    } else if (_grandsons > 0 || _granddaughters > 0) {
-      // Grandsons/Granddaughters (if no children)
-      if (_grandsons > 0 && _granddaughters == 0) {
-        shares.add(_ShareResult(
-            'Grandsons',
-            'أَحْفَاد',
-            residual,
-            residual / estate,
-            _grandsons,
-            'Equal share (Asabah)',
-            const Color(0xFF74C0FC),
-            Icons.boy_rounded));
-      } else if (_grandsons == 0 && _granddaughters > 0) {
-        double gdTotal = _granddaughters == 1 ? estate * 0.5 : estate * (2 / 3);
-        gdTotal = min(residual, gdTotal);
-        shares.add(_ShareResult(
-            'Granddaughters',
-            'حَفِيدَات',
-            gdTotal,
-            gdTotal / estate,
-            _granddaughters,
-            _granddaughters == 1 ? '1/2' : '2/3',
-            const Color(0xFFFF9EBC),
-            Icons.girl_rounded));
-      } else {
-        final totalParts = (_grandsons * 2) + _granddaughters;
-        final perPart = residual / totalParts;
-        shares.add(_ShareResult(
-            'Grandsons',
-            'أَحْفَاد',
-            perPart * 2 * _grandsons,
-            (perPart * 2 * _grandsons) / estate,
-            _grandsons,
-            '2:1 ratio',
-            const Color(0xFF74C0FC),
-            Icons.boy_rounded));
-        shares.add(_ShareResult(
-            'Granddaughters',
-            'حَفِيدَات',
-            perPart * _granddaughters,
-            (perPart * _granddaughters) / estate,
-            _granddaughters,
-            '2:1 ratio',
-            const Color(0xFFFF9EBC),
-            Icons.girl_rounded));
-      }
-    } else {
-      // No children, no grandchildren
-      // Father gets residual (already handled above partially)
-      if (_hasFather && residual > 0) {
-        shares.add(_ShareResult(
-            'Father (Asabah)',
-            'أَب',
-            residual,
-            residual / estate,
-            1,
-            'Residual — no children',
-            const Color(0xFF52B788),
-            Icons.man_rounded));
-      } else if (!_hasFather && residual > 0) {
-        // Brothers/Sisters
-        if (_brothers > 0 && _sisters == 0) {
-          shares.add(_ShareResult(
-              'Brothers',
-              'إِخْوَة',
-              residual,
-              residual / estate,
-              _brothers,
-              'Equal share (Asabah)',
-              const Color(0xFF4ECDC4),
-              Icons.people_rounded));
-        } else if (_brothers == 0 && _sisters > 0) {
-          double sisterTotal = _sisters == 1 ? estate * 0.5 : estate * (2 / 3);
-          sisterTotal = min(residual, sisterTotal);
-          shares.add(_ShareResult(
-              'Sisters',
-              'أَخَوَات',
-              sisterTotal,
-              sisterTotal / estate,
-              _sisters,
-              _sisters == 1 ? '1/2' : '2/3',
-              const Color(0xFFFF9EBC),
-              Icons.people_rounded));
-        } else if (_brothers > 0 && _sisters > 0) {
-          final totalParts = (_brothers * 2) + _sisters;
-          final perPart = residual / totalParts;
-          shares.add(_ShareResult(
-              'Brothers',
-              'إِخْوَة',
-              perPart * 2 * _brothers,
-              (perPart * 2 * _brothers) / estate,
-              _brothers,
-              '2:1 ratio',
-              const Color(0xFF4ECDC4),
-              Icons.people_rounded));
-          shares.add(_ShareResult(
-              'Sisters',
-              'أَخَوَات',
-              perPart * _sisters,
-              (perPart * _sisters) / estate,
-              _sisters,
-              '2:1 ratio',
-              const Color(0xFFFF9EBC),
-              Icons.people_rounded));
-        } else if (_hasUncle && residual > 0) {
-          shares.add(_ShareResult(
-              'Uncle',
-              'عَمّ',
-              residual,
-              residual / estate,
-              1,
-              'Residual (Asabah)',
-              const Color(0xFF4ECDC4),
-              Icons.man_rounded));
+            Icons.boy_rounded,
+          );
         }
+        remainder = 0;
+      }
+      // Father as Asabah (no sons)
+      else if (_hasFather && !fractions.containsKey('Father')) {
+        fractions['Father'] = remainder;
+        sharesMap['Father'] = _ShareResult(
+          'Father',
+          'أَب',
+          0,
+          remainder,
+          1,
+          'Residual — no male children (Asabah)',
+          const Color(0xFF52B788),
+          Icons.man_rounded,
+        );
+        remainder = 0;
+      }
+      // Father fixed share + Asabah
+      else if (_hasFather && fractions.containsKey('Father') && remainder > 0) {
+        double existingF = fractions['Father'] ?? 0;
+        double newF = existingF + remainder;
+        fractions['Father'] = newF;
+        sharesMap['Father'] = _ShareResult(
+          'Father (Fixed + Asabah)',
+          'أَب',
+          0,
+          newF,
+          1,
+          '1/6 fixed + residual after daughters',
+          const Color(0xFF52B788),
+          Icons.man_rounded,
+        );
+        remainder = 0;
+      }
+      // Grandsons + Granddaughters
+      else if (_grandsons > 0 && _sons == 0 && _daughters == 0) {
+        if (_granddaughters > 0) {
+          int totalParts = (_grandsons * 2) + _granddaughters;
+          double gsonF = (2 * remainder) / totalParts;
+          double gdaughterF = remainder / totalParts;
+          fractions['Grandsons'] = gsonF * _grandsons;
+          fractions['Granddaughters'] = gdaughterF * _granddaughters;
+          sharesMap['Grandsons'] = _ShareResult(
+            'Grandsons',
+            'أَحْفَاد',
+            0,
+            gsonF * _grandsons,
+            _grandsons,
+            '2:1 ratio (Asabah)',
+            const Color(0xFF74C0FC),
+            Icons.boy_rounded,
+          );
+          sharesMap['Granddaughters'] = _ShareResult(
+            'Granddaughters',
+            'حَفِيدَات',
+            0,
+            gdaughterF * _granddaughters,
+            _granddaughters,
+            '2:1 ratio (Asabah)',
+            const Color(0xFFFF9EBC),
+            Icons.girl_rounded,
+          );
+        } else {
+          fractions['Grandsons'] = remainder;
+          sharesMap['Grandsons'] = _ShareResult(
+            'Grandsons',
+            'أَحْفَاد',
+            0,
+            remainder,
+            _grandsons,
+            'Equal residual (Asabah)',
+            const Color(0xFF74C0FC),
+            Icons.boy_rounded,
+          );
+        }
+        remainder = 0;
+      }
+      // Brothers + Sisters (2:1)
+      else if (_brothers > 0 && !hasChildren && !_hasFather) {
+        if (_sisters > 0) {
+          int totalParts = (_brothers * 2) + _sisters;
+          double brotherF = (2 * remainder) / totalParts;
+          double sisterF = remainder / totalParts;
+          fractions['Brothers'] = brotherF * _brothers;
+          fractions['Sisters'] = sisterF * _sisters;
+          sharesMap['Brothers'] = _ShareResult(
+            'Brothers',
+            'إِخْوَة',
+            0,
+            brotherF * _brothers,
+            _brothers,
+            '2:1 ratio with sisters (Asabah)',
+            const Color(0xFF4ECDC4),
+            Icons.people_rounded,
+          );
+          sharesMap['Sisters'] = _ShareResult(
+            'Sisters',
+            'أَخَوَات',
+            0,
+            sisterF * _sisters,
+            _sisters,
+            '2:1 ratio with brothers',
+            const Color(0xFFFF9EBC),
+            Icons.people_rounded,
+          );
+        } else {
+          fractions['Brothers'] = remainder;
+          sharesMap['Brothers'] = _ShareResult(
+            'Brothers',
+            'إِخْوَة',
+            0,
+            remainder,
+            _brothers,
+            'Equal residual (Asabah)',
+            const Color(0xFF4ECDC4),
+            Icons.people_rounded,
+          );
+        }
+        remainder = 0;
+      }
+      // Paternal Half-Brothers (if no full brothers)
+      else if (_halfBrothersFather > 0 &&
+          _brothers == 0 &&
+          !hasChildren &&
+          !_hasFather) {
+        if (_halfSistersFather > 0) {
+          int totalParts = (_halfBrothersFather * 2) + _halfSistersFather;
+          double hbF = (2 * remainder) / totalParts;
+          double hsF = remainder / totalParts;
+          fractions['Half Brothers (Paternal)'] = hbF * _halfBrothersFather;
+          fractions['Half Sisters (Paternal)'] = hsF * _halfSistersFather;
+          sharesMap['Half Brothers (Paternal)'] = _ShareResult(
+            'Half Brothers (Paternal)',
+            'إِخْوَةٌ لِأَب',
+            0,
+            hbF * _halfBrothersFather,
+            _halfBrothersFather,
+            '2:1 ratio (Asabah)',
+            const Color(0xFF4ECDC4),
+            Icons.people_rounded,
+          );
+          sharesMap['Half Sisters (Paternal)'] = _ShareResult(
+            'Half Sisters (Paternal)',
+            'أَخَوَاتٌ لِأَب',
+            0,
+            hsF * _halfSistersFather,
+            _halfSistersFather,
+            '2:1 ratio',
+            const Color(0xFFFF9EBC),
+            Icons.people_rounded,
+          );
+        } else {
+          fractions['Half Brothers (Paternal)'] = remainder;
+          sharesMap['Half Brothers (Paternal)'] = _ShareResult(
+            'Half Brothers (Paternal)',
+            'إِخْوَةٌ لِأَب',
+            0,
+            remainder,
+            _halfBrothersFather,
+            'Equal residual (Asabah)',
+            const Color(0xFF4ECDC4),
+            Icons.people_rounded,
+          );
+        }
+        remainder = 0;
+      }
+      // Uncle
+      else if (_hasUncle && remainder > 0) {
+        fractions['Uncle'] = remainder;
+        sharesMap['Uncle'] = _ShareResult(
+          'Uncle',
+          'عَمّ',
+          0,
+          remainder,
+          1,
+          'Residual (Asabah)',
+          const Color(0xFF4ECDC4),
+          Icons.man_rounded,
+        );
+        remainder = 0;
       }
     }
 
-    return shares;
+    // ─── STEP 4: RADD ─────────────────────────────────────
+    // If remainder still exists and no Asabah — return to
+    // fixed share heirs (except Husband/Wife)
+    double finalTotal = fractions.values.fold(0.0, (sum, f) => sum + f);
+    double surplus = 1.0 - finalTotal;
+
+    if (surplus > 0.001) {
+      // Radd heirs — exclude spouse
+      Map<String, double> raddHeirs = Map.from(fractions);
+      raddHeirs.remove('Husband');
+      for (int i = 0; i < _wifeCount; i++) {
+        raddHeirs.remove('Wife${_wifeCount > 1 ? "_$i" : ""}');
+      }
+
+      if (raddHeirs.isNotEmpty) {
+        double raddTotal = raddHeirs.values.fold(0.0, (sum, f) => sum + f);
+        raddHeirs.forEach((key, f) {
+          double extra = surplus * (f / raddTotal);
+          fractions[key] = (fractions[key] ?? 0) + extra;
+          if (sharesMap.containsKey(key)) {
+            _ShareResult old = sharesMap[key]!;
+            sharesMap[key] = _ShareResult(
+              old.label,
+              old.arabic,
+              0,
+              fractions[key]!,
+              old.count,
+              '${old.rule} (Radd applied)',
+              old.color,
+              old.icon,
+            );
+          }
+        });
+      }
+    }
+
+    // ─── STEP 5: Convert fractions to amounts ─────────────
+    List<_ShareResult> results = [];
+    sharesMap.forEach((key, result) {
+      double f = fractions[key] ?? result.fraction;
+      double amount = estate * f;
+      results.add(_ShareResult(
+        result.label,
+        result.arabic,
+        amount,
+        f,
+        result.count,
+        result.rule,
+        result.color,
+        result.icon,
+      ));
+    });
+
+    return results;
   }
 
   void _resetAll() {
@@ -507,6 +668,9 @@ class _InheritanceCalculatorScreenState
             padding: const EdgeInsets.all(20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+                // DISCLAIMER — Sabse Pehle
+                _buildDisclaimer(),
+                const SizedBox(height: 16),
                 _buildInfoCard(),
                 const SizedBox(height: 20),
                 _buildDeceasedGender(),
@@ -524,6 +688,8 @@ class _InheritanceCalculatorScreenState
                 _buildChildrenSection(),
                 const SizedBox(height: 12),
                 _buildSiblingsSection(),
+                const SizedBox(height: 12),
+                _buildHalfSiblingsSection(),
                 const SizedBox(height: 12),
                 _buildOtherSection(),
                 const SizedBox(height: 24),
@@ -549,6 +715,53 @@ class _InheritanceCalculatorScreenState
     );
   }
 
+  // ─── Disclaimer ─────────────────────────────────────────────
+  Widget _buildDisclaimer() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.warning_amber_rounded,
+              color: Colors.orange, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Important Notice',
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'These calculations are for educational reference only. '
+                  'Islamic inheritance (Fara\'id) has school-of-thought '
+                  'variations. Please consult a qualified Islamic scholar '
+                  'before making any actual distribution decisions.',
+                  style: TextStyle(
+                    color: Colors.orange.withValues(alpha: 0.8),
+                    fontSize: 11,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── App Bar ────────────────────────────────────────────────
   SliverAppBar _buildAppBar() {
     return SliverAppBar(
@@ -559,7 +772,8 @@ class _InheritanceCalculatorScreenState
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
+              color: Colors.white.withValues(alpha: 0.1),
+              shape: BoxShape.circle),
           child: const Icon(Icons.arrow_back_rounded,
               color: Colors.white, size: 20),
         ),
@@ -589,7 +803,8 @@ class _InheritanceCalculatorScreenState
                           fontWeight: FontWeight.bold)),
                   Text('Islamic Law of Succession',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontSize: 12)),
                 ],
               ),
             ),
@@ -606,7 +821,8 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: const Color(0xFFA78BFA).withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.2)),
+        border:
+            Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -631,7 +847,9 @@ class _InheritanceCalculatorScreenState
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 Text(
-                  '1. Enter estate value & debts\n2. Select family members\n3. Calculate automatic Islamic shares',
+                  '1. Enter estate value & debts\n'
+                  '2. Select family members\n'
+                  '3. Calculate automatic Islamic shares',
                   style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.5),
                       fontSize: 11,
@@ -681,7 +899,9 @@ class _InheritanceCalculatorScreenState
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected ? color.withValues(alpha: 0.15) : const Color(0xFF141926),
+            color: selected
+                ? color.withValues(alpha: 0.15)
+                : const Color(0xFF141926),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
                 color: selected ? color : Colors.white.withValues(alpha: 0.05)),
@@ -693,7 +913,9 @@ class _InheritanceCalculatorScreenState
               const SizedBox(width: 6),
               Text(label,
                   style: TextStyle(
-                      color: selected ? color : Colors.white.withValues(alpha: 0.4),
+                      color: selected
+                          ? color
+                          : Colors.white.withValues(alpha: 0.4),
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
             ],
@@ -721,7 +943,9 @@ class _InheritanceCalculatorScreenState
               ),
               child: Text(c,
                   style: TextStyle(
-                      color: sel ? Colors.white : Colors.white.withValues(alpha: 0.4),
+                      color: sel
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.4),
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
             ),
@@ -793,10 +1017,11 @@ class _InheritanceCalculatorScreenState
                   decoration: InputDecoration(
                     hintText: hint,
                     hintStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.15), fontSize: 11),
+                        color: Colors.white.withValues(alpha: 0.15),
+                        fontSize: 11),
                     prefixText: '${_currencySymbols[_currency]} ',
-                    prefixStyle:
-                        TextStyle(color: color.withValues(alpha: 0.5), fontSize: 13),
+                    prefixStyle: TextStyle(
+                        color: color.withValues(alpha: 0.5), fontSize: 13),
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
                     border: InputBorder.none,
@@ -959,7 +1184,7 @@ class _InheritanceCalculatorScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Siblings',
+          Text('Full Siblings',
               style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 12,
@@ -969,6 +1194,66 @@ class _InheritanceCalculatorScreenState
               (v) => setState(() => _brothers = v), const Color(0xFF4ECDC4)),
           _counterRow('Sisters', _sisters, 0, 20,
               (v) => setState(() => _sisters = v), const Color(0xFFFF9EBC)),
+        ],
+      ),
+    );
+  }
+
+  // ─── Half Siblings Section (NEW — FIXED) ────────────────────
+  Widget _buildHalfSiblingsSection() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF141926),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Half Siblings',
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text('Paternal (same father)',
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.3), fontSize: 10)),
+          const SizedBox(height: 8),
+          _counterRow(
+              'Paternal Half Brothers',
+              _halfBrothersFather,
+              0,
+              20,
+              (v) => setState(() => _halfBrothersFather = v),
+              const Color(0xFF4ECDC4)),
+          _counterRow(
+              'Paternal Half Sisters',
+              _halfSistersFather,
+              0,
+              20,
+              (v) => setState(() => _halfSistersFather = v),
+              const Color(0xFFFF9EBC)),
+          const SizedBox(height: 8),
+          Text('Maternal (same mother)',
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.3), fontSize: 10)),
+          const SizedBox(height: 8),
+          _counterRow(
+              'Maternal Half Brothers',
+              _halfBrothersMother,
+              0,
+              20,
+              (v) => setState(() => _halfBrothersMother = v),
+              const Color(0xFFFFD166)),
+          _counterRow(
+              'Maternal Half Sisters',
+              _halfSistersMother,
+              0,
+              20,
+              (v) => setState(() => _halfSistersMother = v),
+              const Color(0xFFFFD166)),
         ],
       ),
     );
@@ -1011,8 +1296,9 @@ class _InheritanceCalculatorScreenState
           Expanded(
               child: Text(label,
                   style: TextStyle(
-                      color:
-                          value ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                      color: value
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.5),
                       fontSize: 13,
                       fontWeight: FontWeight.w500))),
           GestureDetector(
@@ -1083,7 +1369,8 @@ class _InheritanceCalculatorScreenState
             alignment: Alignment.center,
             child: Text('$value',
                 style: TextStyle(
-                    color: value > 0 ? color : Colors.white.withValues(alpha: 0.3),
+                    color:
+                        value > 0 ? color : Colors.white.withValues(alpha: 0.3),
                     fontSize: 16,
                     fontWeight: FontWeight.w800)),
           ),
@@ -1155,11 +1442,12 @@ class _InheritanceCalculatorScreenState
         gradient: const LinearGradient(
             colors: [Color(0xFF1A0D35), Color(0xFF2D1B69)]),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
+        border:
+            Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
-          const Text('📊 DISTRIBUTION SUMMARY',
+          const Text('DISTRIBUTION SUMMARY',
               style: TextStyle(
                   color: Color(0xFFA78BFA),
                   fontSize: 11,
@@ -1357,7 +1645,8 @@ class _InheritanceCalculatorScreenState
                   const SizedBox(width: 6),
                   Text('${r.label} ${(r.fraction * 100).toStringAsFixed(0)}%',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5), fontSize: 10)),
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontSize: 10)),
                 ],
               );
             }).toList(),
@@ -1403,7 +1692,8 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1421,7 +1711,9 @@ class _InheritanceCalculatorScreenState
           ),
           const SizedBox(height: 10),
           Text(
-            '"These are the limits set by Allah. Whoever obeys Allah and His Messenger, He will admit him into Gardens beneath which rivers flow, to dwell therein forever. That is the great triumph." — Quran 4:13',
+            '"These are the limits set by Allah. Whoever obeys Allah '
+            'and His Messenger, He will admit him into Gardens beneath '
+            'which rivers flow." — Quran 4:13',
             style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.6),
                 fontSize: 12,
@@ -1430,7 +1722,9 @@ class _InheritanceCalculatorScreenState
           ),
           const SizedBox(height: 8),
           Text(
-            '⚠️ This calculator provides general guidance based on Sunni Hanafi fiqh. For specific cases, consult a qualified Islamic scholar.',
+            'This calculator uses Sunni Hanafi fiqh principles. '
+            'Awl and Radd rules are applied automatically. '
+            'For complex cases, always consult a qualified Islamic scholar.',
             style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.35),
                 fontSize: 10,
@@ -1471,7 +1765,6 @@ class _PieChartPainter extends CustomPainter {
         paint,
       );
 
-      // Border
       final borderPaint = Paint()
         ..color = const Color(0xFF0A0E1A)
         ..style = PaintingStyle.stroke
@@ -1488,7 +1781,6 @@ class _PieChartPainter extends CustomPainter {
       startAngle += sweepAngle;
     }
 
-    // Center hole
     final holePaint = Paint()
       ..color = const Color(0xFF0A0E1A)
       ..style = PaintingStyle.fill;
@@ -1500,7 +1792,7 @@ class _PieChartPainter extends CustomPainter {
 }
 
 // ═══════════════════════════════════════════════════════════
-// MODELS
+// MODEL
 // ═══════════════════════════════════════════════════════════
 class _ShareResult {
   final String label;
@@ -1512,6 +1804,14 @@ class _ShareResult {
   final Color color;
   final IconData icon;
 
-  const _ShareResult(this.label, this.arabic, this.amount, this.fraction,
-      this.count, this.rule, this.color, this.icon);
+  const _ShareResult(
+    this.label,
+    this.arabic,
+    this.amount,
+    this.fraction,
+    this.count,
+    this.rule,
+    this.color,
+    this.icon,
+  );
 }

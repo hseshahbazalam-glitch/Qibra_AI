@@ -34,7 +34,7 @@ class PrayerCalculationService {
     final calcDate = DateTime(date.year, date.month, date.day, 12);
 
     // Get timezone offset in hours
-    final timezoneOffset = calcDate.timeZoneOffset.inHours.toDouble();
+    final timezoneOffset = calcDate.timeZoneOffset.inMinutes / 60.0;
 
     // Calculate Julian date
     final julianDate = _calculateJulianDate(

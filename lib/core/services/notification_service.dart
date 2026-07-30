@@ -39,18 +39,21 @@ class NotificationService {
   // INIT
   // ────────────────────────────────────────────────────────────
   Future<void> initialize() async {
-    if (_initialized) {
-      return;
-    }
+    if (_initialized) return;
 
     tz.initializeTimeZones();
 
     await _plugin.initialize(
       settings: const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        ),
       ),
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        debugPrint('🔔 Notification tapped: ${response.payload}');
+        debugPrint('Notification tapped: ${response.payload}');
       },
     );
 
@@ -109,9 +112,16 @@ class NotificationService {
   // PERMISSION
   // ────────────────────────────────────────────────────────────
   Future<bool> requestPermission() async {
+    final ios = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    await ios?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
-
     return await android?.requestNotificationsPermission() ?? false;
   }
 
@@ -130,9 +140,7 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('prayer_notifications') ?? true;
 
-    if (!enabled) {
-      return;
-    }
+    if (!enabled) return;
 
     await cancelPrayerNotifications();
 
@@ -198,17 +206,14 @@ class NotificationService {
   }) async {
     final now = DateTime.now();
 
-    if (time.isBefore(now)) {
-      return;
-    }
+    if (time.isBefore(now)) return;
 
     if (prePrayerAlert && preMinutes > 0) {
       final preTime = time.subtract(Duration(minutes: preMinutes));
-
       if (preTime.isAfter(now)) {
         await _scheduleNotification(
           id: preId,
-          title: '🕐 $name in $preMinutes minutes',
+          title: '$name in $preMinutes minutes',
           body: 'Time to prepare for $name prayer — $arabic',
           scheduledDate: preTime,
           channelId: 'pre_prayer_channel',
@@ -220,7 +225,7 @@ class NotificationService {
 
     await _scheduleNotification(
       id: id,
-      title: '🕌 $name — $arabic',
+      title: '$name — $arabic',
       body: _getPrayerMessage(name),
       scheduledDate: time,
       channelId: 'azan_channel',
@@ -233,12 +238,12 @@ class NotificationService {
   String _getPrayerMessage(String prayer) {
     return switch (prayer) {
       'Fajr' =>
-        'الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ — Prayer is better than sleep',
-      'Dhuhr' => 'حَيَّ عَلَى الصَّلَاةِ — Come to prayer',
-      'Asr' => 'حَافِظُوا عَلَى الصَّلَوَاتِ — Guard your prayers',
-      'Maghrib' => 'حَيَّ عَلَى الْفَلَاحِ — Come to success',
-      'Isha' => 'وَأَقِيمُوا الصَّلَاةَ — Establish the prayer',
-      _ => 'حَيَّ عَلَى الصَّلَاةِ — Time for prayer',
+        'Prayer is better than sleep — الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ',
+      'Dhuhr' => 'Come to prayer — حَيَّ عَلَى الصَّلَاةِ',
+      'Asr' => 'Guard your prayers — حَافِظُوا عَلَى الصَّلَوَاتِ',
+      'Maghrib' => 'Come to success — حَيَّ عَلَى الْفَلَاحِ',
+      'Isha' => 'Establish the prayer — وَأَقِيمُوا الصَّلَاةَ',
+      _ => 'Time for prayer — حَيَّ عَلَى الصَّلَاةِ',
     };
   }
 
@@ -252,9 +257,7 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('tahajjud_notification') ?? false;
 
-    if (!enabled) {
-      return;
-    }
+    if (!enabled) return;
 
     await _plugin.cancel(id: _tahajjudId);
 
@@ -267,8 +270,8 @@ class NotificationService {
 
     await _scheduleNotification(
       id: _tahajjudId,
-      title: '🌙 Tahajjud Time',
-      body: 'وَمِنَ اللَّيْلِ فَتَهَجَّدْ بِهِ — Pray Tahajjud (17:79)',
+      title: 'Tahajjud Time',
+      body: 'Pray Tahajjud — وَمِنَ اللَّيْلِ فَتَهَجَّدْ بِهِ (17:79)',
       scheduledDate: scheduledDate,
       channelId: 'tahajjud_channel',
       channelName: 'Tahajjud Reminder',
@@ -284,9 +287,7 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('morning_adhkar') ?? true;
 
-    if (!enabled) {
-      return;
-    }
+    if (!enabled) return;
 
     await _plugin.cancel(id: _morningAdhkarId);
 
@@ -299,9 +300,9 @@ class NotificationService {
 
     await _scheduleNotification(
       id: _morningAdhkarId,
-      title: '🌅 Morning Adhkar',
+      title: 'Morning Adhkar',
       body:
-          'أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ — Start your day with dhikr',
+          'Start your day with dhikr — أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ',
       scheduledDate: scheduledDate,
       channelId: 'islamic_channel',
       channelName: 'Islamic Reminders',
@@ -317,9 +318,7 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('evening_adhkar') ?? true;
 
-    if (!enabled) {
-      return;
-    }
+    if (!enabled) return;
 
     await _plugin.cancel(id: _eveningAdhkarId);
 
@@ -332,8 +331,8 @@ class NotificationService {
 
     await _scheduleNotification(
       id: _eveningAdhkarId,
-      title: '🌙 Evening Adhkar',
-      body: 'أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ — End your day with dhikr',
+      title: 'Evening Adhkar',
+      body: 'End your day with dhikr — أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ',
       scheduledDate: scheduledDate,
       channelId: 'islamic_channel',
       channelName: 'Islamic Reminders',
@@ -349,15 +348,25 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('jummah_notification') ?? true;
 
-    if (!enabled) {
-      return;
-    }
+    if (!enabled) return;
 
     await _plugin.cancel(id: _jummahId);
 
     final now = DateTime.now();
     int daysUntilFriday = DateTime.friday - now.weekday;
-    if (daysUntilFriday <= 0) {
+
+    if (daysUntilFriday == 0) {
+      final reminderToday = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        11,
+        30,
+      );
+      if (now.isAfter(reminderToday)) {
+        daysUntilFriday = 7;
+      }
+    } else if (daysUntilFriday < 0) {
       daysUntilFriday += 7;
     }
 
@@ -371,8 +380,8 @@ class NotificationService {
 
     await _scheduleNotification(
       id: _jummahId,
-      title: '🕌 Jummah Mubarak!',
-      body: 'Read Surah Al-Kahf & send Durood on Prophet ﷺ',
+      title: 'Jummah Mubarak!',
+      body: 'Read Surah Al-Kahf & send Durood on Prophet',
       scheduledDate: nextFriday,
       channelId: 'azan_channel',
       channelName: 'Azan Notifications',
@@ -399,6 +408,11 @@ class NotificationService {
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
           styleInformation: BigTextStyleInformation(body),
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
         ),
       ),
     );
@@ -461,6 +475,12 @@ class NotificationService {
             body,
             contentTitle: title,
           ),
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          sound: channelId == 'azan_channel' ? 'azan_makkah.mp3' : null,
         ),
       );
 

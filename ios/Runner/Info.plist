@@ -42,9 +42,15 @@
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
-		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>QIBRA AI uses your location to calculate accurate prayer times and show the correct Qibla direction.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>QIBRA AI uses your location to calculate accurate prayer times and show the correct Qibla direction.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Qibra uses camera to scan products for halal verification.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Qibra can check product images for halal verification.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Qibra uses microphone for voice features.</string>
 	</dict>
 </plist>
