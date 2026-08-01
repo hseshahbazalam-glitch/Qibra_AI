@@ -1,27 +1,19 @@
 // lib/features/ai/presentation/ai_explain_screen.dart
 
 // ============================================================
-// QIBRA AI — AI EXPLAIN SCREEN (v1.0)
-// ============================================================
-// Features:
-//   ✅ Beautiful chat interface
-//   ✅ Ayah context support
-//   ✅ Typing animation
-//   ✅ Suggested questions
-//   ✅ Islamic design
-//   ✅ Smooth animations
+// QIBRA AI — AI EXPLAIN SCREEN (v3.0 — WITH VOICE)
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 
 import '../../../core/design_system/app_colors.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../providers/ai_provider.dart';
-
-// ============================================================
-// MAIN SCREEN
-// ============================================================
+import '../services/ai_action_service.dart';
+import '../services/voice_service.dart';
 
 class AIExplainScreen extends ConsumerStatefulWidget {
   const AIExplainScreen({
@@ -46,20 +38,87 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
+  final VoiceService _voice = VoiceService();
+
+  bool _isListening = false;
+  bool _isSpeaking = false;
+  bool _voiceMode = false;
+  bool _autoSpeak = true;
+  String _partialText = '';
+
   @override
   void initState() {
     super.initState();
 
-    // Auto-send initial question if ayah context provided
-    if (widget.ayahText != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // User name pass karo AI ko
+      final userName = ref.read(userDisplayNameProvider);
+      ref.read(chatProvider.notifier).setUserName(userName);
+
+      // Context set karo action service ko
+      AIActionService().setContext(context);
+
+      // Voice service initialize
+      await _initVoice();
+
+      // Initial ayah message
+      if (widget.ayahText != null) {
         _sendInitialMessage();
+      }
+    });
+  }
+
+  Future<void> _initVoice() async {
+    _voice.onResult = (text) {
+      if (text.isNotEmpty) {
+        _controller.text = text;
+        _sendMessage();
+      }
+      setState(() {
+        _isListening = false;
+        _partialText = '';
       });
-    }
+    };
+
+    _voice.onPartialResult = (text) {
+      setState(() {
+        _partialText = text;
+      });
+    };
+
+    _voice.onListeningStart = () {
+      setState(() => _isListening = true);
+    };
+
+    _voice.onListeningStop = () {
+      setState(() {
+        _isListening = false;
+        _partialText = '';
+      });
+    };
+
+    _voice.onSpeakingStart = () {
+      setState(() => _isSpeaking = true);
+    };
+
+    _voice.onSpeakingStop = () {
+      setState(() => _isSpeaking = false);
+    };
+
+    _voice.onError = (error) {
+      setState(() {
+        _isListening = false;
+        _partialText = '';
+      });
+      _showSnackbar('Voice error: $error');
+    };
+
+    await _voice.initialize();
   }
 
   @override
   void dispose() {
+    _voice.dispose();
     _controller.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
@@ -74,6 +133,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           context: 'Surah ${widget.surahName}, Ayah ${widget.ayahNumber}',
         );
     _scrollToBottom();
+    _autoSpeakLastMessage();
   }
 
   void _sendMessage() async {
@@ -85,6 +145,48 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
     await ref.read(chatProvider.notifier).sendMessage(text);
     _scrollToBottom();
+    _autoSpeakLastMessage();
+  }
+
+  void _autoSpeakLastMessage() {
+    if (!_autoSpeak) return;
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      // Widget disposed check
+      if (!mounted) return;
+
+      final messages = ref.read(chatProvider);
+      if (messages.isNotEmpty) {
+        final last = messages.last;
+        if (last.isAI && !last.isTyping) {
+          _voice.speak(last.content);
+        }
+      }
+    });
+  }
+
+  void _toggleVoice() async {
+    HapticFeedback.mediumImpact();
+
+    if (_isSpeaking) {
+      await _voice.stopSpeaking();
+      return;
+    }
+
+    if (_isListening) {
+      await _voice.stopListening();
+    } else {
+      await _voice.startListening();
+    }
+  }
+
+  void _toggleAutoSpeak() {
+    HapticFeedback.selectionClick();
+    setState(() => _autoSpeak = !_autoSpeak);
+    if (!_autoSpeak && _isSpeaking) {
+      _voice.stopSpeaking();
+    }
+    _showSnackbar(_autoSpeak ? 'Auto speak ON' : 'Auto speak OFF');
   }
 
   void _scrollToBottom() {
@@ -99,36 +201,47 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
     });
   }
 
+  void _showSnackbar(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(chatProvider);
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // App Bar
-            _buildAppBar(),
-
-            // Ayah context card (if provided)
-            if (widget.ayahText != null) _buildAyahContext(),
-
-            // Messages
-            Expanded(
-              child: messages.isEmpty
-                  ? _buildEmptyState()
-                  : _buildMessagesList(messages),
-            ),
-
-            // Suggested questions
-            if (messages.isEmpty && widget.ayahText == null)
-              _buildSuggestedQuestions(),
-
-            // Input bar
-            _buildInputBar(),
-          ],
-        ),
+      resizeToAvoidBottomInset: true,
+      body: Column(
+        children: [
+          Container(
+            color: AppColors.surface,
+            padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+            child: _buildAppBar(),
+          ),
+          if (widget.ayahText != null) _buildAyahContext(),
+          Expanded(
+            child: _isListening
+                ? _buildListeningView()
+                : (messages.isEmpty
+                    ? _buildEmptyState()
+                    : _buildMessagesList(messages)),
+          ),
+          if (messages.isEmpty && widget.ayahText == null && !_isListening)
+            _buildSuggestedQuestions(),
+          Container(
+            padding: EdgeInsets.only(bottom: bottomPadding),
+            color: AppColors.surface,
+            child: _buildInputBar(),
+          ),
+        ],
       ),
     );
   }
@@ -140,9 +253,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderSubtle),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
       ),
       child: Row(
         children: [
@@ -171,10 +282,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             height: 44,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF3B82F6),
-                  Color(0xFF8B5CF6),
-                ],
+                colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
@@ -184,11 +292,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.auto_awesome,
-              color: Colors.white,
-              size: 22,
-            ),
+            child:
+                const Icon(Icons.auto_awesome, color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -196,7 +301,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'AI Assistant',
+                  'Qibra AI',
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 16,
@@ -208,15 +313,21 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                     Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF10B981),
+                      decoration: BoxDecoration(
+                        color: _isSpeaking
+                            ? Colors.orange
+                            : (_isListening
+                                ? Colors.red
+                                : const Color(0xFF10B981)),
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 6),
-                    const Text(
-                      'Online • Islamic AI',
-                      style: TextStyle(
+                    Text(
+                      _isSpeaking
+                          ? 'Speaking...'
+                          : (_isListening ? 'Listening...' : 'Online'),
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 11,
                       ),
@@ -226,6 +337,29 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               ],
             ),
           ),
+          // Auto speak toggle
+          GestureDetector(
+            onTap: _toggleAutoSpeak,
+            child: Container(
+              width: 40,
+              height: 40,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: _autoSpeak
+                    ? const Color(0xFF3B82F6).withValues(alpha: 0.2)
+                    : AppColors.surfaceElevated,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _autoSpeak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                color: _autoSpeak
+                    ? const Color(0xFF3B82F6)
+                    : AppColors.textPrimary,
+                size: 18,
+              ),
+            ),
+          ),
+          // Clear chat
           GestureDetector(
             onTap: () {
               HapticFeedback.mediumImpact();
@@ -250,6 +384,109 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
     );
   }
 
+  // ─── LISTENING VIEW ─────────────────────────
+
+  Widget _buildListeningView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AvatarGlow(
+            glowColor: const Color(0xFF3B82F6),
+            duration: const Duration(milliseconds: 2000),
+            repeat: true,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.6),
+                    blurRadius: 30,
+                    spreadRadius: 10,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.mic_rounded,
+                color: Colors.white,
+                size: 60,
+              ),
+            ),
+          ),
+          const SizedBox(height: 30),
+          const Text(
+            'Listening...',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Speak now',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+          if (_partialText.isNotEmpty) ...[
+            const SizedBox(height: 30),
+            Container(
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(horizontal: 32),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Text(
+                _partialText,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 40),
+          GestureDetector(
+            onTap: _toggleVoice,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.4)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.stop_rounded, color: Colors.red, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Stop',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── AYAH CONTEXT ─────────────────────────
 
   Widget _buildAyahContext() {
@@ -266,9 +503,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,10 +511,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 3,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
@@ -325,19 +557,18 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   // ─── EMPTY STATE ─────────────────────────
 
   Widget _buildEmptyState() {
-    return Center(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const SizedBox(height: 40),
           Container(
             width: 100,
             height: 100,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF3B82F6),
-                  Color(0xFF8B5CF6),
-                ],
+                colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
@@ -348,15 +579,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.auto_awesome,
-              color: Colors.white,
-              size: 48,
-            ),
+            child:
+                const Icon(Icons.auto_awesome, color: Colors.white, size: 48),
           ),
           const SizedBox(height: 20),
           const Text(
-            'Islamic AI Assistant',
+            'Qibra AI Assistant',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 22,
@@ -365,12 +593,36 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Ask me anything about\nQuran, Hadith, or Islamic teachings',
+            'Type or speak to ask\nabout Islam or control the app',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 13,
               height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceElevated,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderSubtle),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.mic_rounded, color: Color(0xFF3B82F6), size: 16),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Tap mic to speak — All languages supported',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -394,9 +646,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
-    if (message.isTyping) {
-      return _buildTypingBubble();
-    }
+    if (message.isTyping) return _buildTypingBubble();
 
     final isUser = message.isUser;
 
@@ -413,68 +663,77 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 32,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF3B82F6),
-                    Color(0xFF8B5CF6),
-                  ],
+                  colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
                 ),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.auto_awesome,
-                color: Colors.white,
-                size: 16,
-              ),
+              child:
+                  const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
             ),
             const SizedBox(width: 8),
           ],
           Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 10,
-              ),
-              decoration: BoxDecoration(
-                gradient: isUser
-                    ? const LinearGradient(
-                        colors: [
-                          Color(0xFF10B981),
-                          Color(0xFF059669),
-                        ],
-                      )
-                    : null,
-                color: isUser ? null : AppColors.surfaceElevated,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isUser ? 16 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 16),
+            child: GestureDetector(
+              onLongPress: () {
+                HapticFeedback.mediumImpact();
+                Clipboard.setData(ClipboardData(text: message.content));
+                _showSnackbar('Message copied');
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: isUser
+                      ? const LinearGradient(
+                          colors: [Color(0xFF10B981), Color(0xFF059669)],
+                        )
+                      : null,
+                  color: isUser ? null : AppColors.surfaceElevated,
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(16),
+                    topRight: const Radius.circular(16),
+                    bottomLeft: Radius.circular(isUser ? 16 : 4),
+                    bottomRight: Radius.circular(isUser ? 4 : 16),
+                  ),
+                  border: !isUser
+                      ? Border.all(color: AppColors.borderSubtle)
+                      : null,
                 ),
-                border:
-                    !isUser ? Border.all(color: AppColors.borderSubtle) : null,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    message.content,
-                    style: TextStyle(
-                      color: isUser ? Colors.white : AppColors.textPrimary,
-                      fontSize: 14,
-                      height: 1.5,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildFormattedText(message.content, isUser),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _formatTime(message.timestamp),
+                          style: TextStyle(
+                            color: isUser
+                                ? Colors.white.withValues(alpha: 0.7)
+                                : AppColors.textTertiary,
+                            fontSize: 10,
+                          ),
+                        ),
+                        if (!isUser) ...[
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              _voice.speak(message.content);
+                            },
+                            child: const Icon(
+                              Icons.volume_up_outlined,
+                              color: AppColors.textTertiary,
+                              size: 14,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatTime(message.timestamp),
-                    style: TextStyle(
-                      color: isUser
-                          ? Colors.white.withValues(alpha: 0.7)
-                          : AppColors.textTertiary,
-                      fontSize: 10,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -485,22 +744,46 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 32,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF10B981),
-                    Color(0xFF059669),
-                  ],
+                  colors: [Color(0xFF10B981), Color(0xFF059669)],
                 ),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.person_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
+              child: const Icon(Icons.person_rounded,
+                  color: Colors.white, size: 18),
             ),
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildFormattedText(String text, bool isUser) {
+    final color = isUser ? Colors.white : AppColors.textPrimary;
+    final List<TextSpan> spans = [];
+    final parts = text.split(RegExp(r'(\*\*[^*]+\*\*)'));
+
+    for (final part in parts) {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        spans.add(TextSpan(
+          text: part.substring(2, part.length - 2),
+          style: TextStyle(
+            color: color,
+            fontSize: 14,
+            height: 1.6,
+            fontWeight: FontWeight.w800,
+          ),
+        ));
+      } else {
+        spans.add(TextSpan(
+          text: part,
+          style: TextStyle(color: color, fontSize: 14, height: 1.6),
+        ));
+      }
+    }
+
+    return SelectableText.rich(
+      TextSpan(children: spans),
+      style: TextStyle(color: color, fontSize: 14, height: 1.6),
     );
   }
 
@@ -515,25 +798,16 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             height: 32,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color(0xFF3B82F6),
-                  Color(0xFF8B5CF6),
-                ],
+                colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
               ),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.auto_awesome,
-              color: Colors.white,
-              size: 16,
-            ),
+            child:
+                const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.surfaceElevated,
               borderRadius: BorderRadius.circular(16),
@@ -556,12 +830,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
   Widget _buildSuggestedQuestions() {
     final suggestions = [
-      '📖 What is the Quran?',
-      '🕌 Tell me about Salah',
-      '🤲 How to make Dua?',
-      '🌙 What is Ramadan?',
-      '💚 Explain Zakat',
-      '🕋 About Hajj',
+      '🎤 Tap mic to speak',
+      '🕌 Tahajjud alarm 2 baje',
+      '📖 Quran kholo',
+      '🕋 Qibla dikhao',
+      '🤲 Namaz kaise padhein',
+      '💚 Zakat calculator kholo',
     ];
 
     return Container(
@@ -575,14 +849,15 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           return GestureDetector(
             onTap: () {
               HapticFeedback.selectionClick();
-              _controller.text = suggestions[index].substring(3);
-              _sendMessage();
+              if (index == 0) {
+                _toggleVoice();
+              } else {
+                _controller.text = suggestions[index].substring(3);
+                _sendMessage();
+              }
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: AppColors.surfaceElevated,
                 borderRadius: BorderRadius.circular(20),
@@ -612,12 +887,47 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       padding: const EdgeInsets.all(12),
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: AppColors.borderSubtle),
-        ),
+        border: Border(top: BorderSide(color: AppColors.borderSubtle)),
       ),
       child: Row(
         children: [
+          // Mic Button
+          GestureDetector(
+            onTap: _toggleVoice,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: _isListening
+                      ? [Colors.red, Colors.redAccent]
+                      : (_isSpeaking
+                          ? [Colors.orange, Colors.deepOrange]
+                          : [const Color(0xFF3B82F6), const Color(0xFF8B5CF6)]),
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: (_isListening ? Colors.red : const Color(0xFF3B82F6))
+                        .withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(
+                _isListening
+                    ? Icons.mic_rounded
+                    : (_isSpeaking
+                        ? Icons.stop_rounded
+                        : Icons.mic_none_rounded),
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _controller,
@@ -630,7 +940,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 fontSize: 14,
               ),
               decoration: InputDecoration(
-                hintText: 'Ask about Islam...',
+                hintText: 'Type or tap mic to speak...',
                 hintStyle: const TextStyle(
                   color: AppColors.textTertiary,
                   fontSize: 14,
@@ -660,6 +970,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             ),
           ),
           const SizedBox(width: 8),
+          // Send Button
           GestureDetector(
             onTap: _sendMessage,
             child: Container(
@@ -667,15 +978,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 48,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF3B82F6),
-                    Color(0xFF8B5CF6),
-                  ],
+                  colors: [Color(0xFF10B981), Color(0xFF059669)],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                    color: const Color(0xFF10B981).withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -698,11 +1006,10 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   void _showClearDialog() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Clear Chat?',
           style: TextStyle(
@@ -716,7 +1023,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text(
               'Cancel',
               style: TextStyle(color: AppColors.textSecondary),
@@ -725,7 +1032,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           TextButton(
             onPressed: () {
               ref.read(chatProvider.notifier).clearChat();
-              Navigator.pop(context);
+              Navigator.of(dialogContext).pop();
               HapticFeedback.mediumImpact();
             },
             child: const Text(

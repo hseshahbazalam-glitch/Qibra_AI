@@ -182,7 +182,14 @@ abstract final class AppApi {
   static const String endpointNotifications = '/notifications';
   static const String endpointNotificationRead = '/notifications/read';
   static const String endpointRegisterDevice = '/notifications/register-device';
-
+  // Tools Routes
+  static const String zakat = '/tools/zakat';
+  static const String inheritance = '/tools/inheritance';
+  static const String habits = '/tools/habits';
+  static const String dhikr = '/tools/dhikr';
+  static const String sadaqah = '/tools/sadaqah';
+  static const String ramadan = '/tools/ramadan';
+  static const String halalScanner = '/tools/halal-scanner';
   // --- External APIs ---
 
   /// Prayer times API (Aladhan — free, reliable)
@@ -1020,4 +1027,7 @@ abstract final class AppRoutes {
   static const String settings = '/settings';
   static const String notifications = '/notifications';
   static const String about = '/about';
+  static const String zakat = '/tools/zakat';
+  static const String inheritance = '/tools/inheritance';
+  static const String habits = '/tools/habits';
 }

@@ -1,13 +1,7 @@
 // lib/shared/widgets/navigation/app_bottom_nav.dart
 
 // ============================================================
-// QIBRA AI — PREMIUM BOTTOM NAVIGATION (v2.0 — Settings Added)
-// ============================================================
-// v2.0 Updates:
-//   ✅ Settings icon added (after AI)
-//   ✅ FAB spacing adjusted for 6 items
-//   ✅ Cleaner code + comments
-//   ✅ Better icon sizing
+// QIBRA AI — PREMIUM BOTTOM NAVIGATION (v3.0 — Better UI)
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -59,45 +53,34 @@ class AppBottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.navBackground,
-        border: const Border(
-          top: BorderSide(
-            color: AppColors.borderSubtle,
-            width: 1,
-          ),
-        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.black.withValues(alpha: 0.30),
             blurRadius: 24,
             offset: const Offset(0, -8),
           ),
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 40,
-            offset: const Offset(0, -12),
-          ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 85,
+          height: 72,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // ── NAV ITEMS ROW ──────────────────────
+              // ─── NAV ITEMS ROW ───────────────────────
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: _buildNavItems(),
                 ),
               ),
 
-              // ── CENTER FAB ─────────────────────────
+              // ─── CENTER FAB ──────────────────────────
               if (showCenterFab)
                 Positioned(
-                  top: -22,
+                  top: -18,
                   left: 0,
                   right: 0,
                   child: Center(
@@ -117,7 +100,7 @@ class AppBottomNav extends StatelessWidget {
     for (int i = 0; i < items.length; i++) {
       // FAB space in the middle
       if (showCenterFab && i == items.length ~/ 2) {
-        widgets.add(const SizedBox(width: 75));
+        widgets.add(const SizedBox(width: 60));
       }
 
       widgets.add(
@@ -161,9 +144,9 @@ class _NavBarItemWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── ICON WITH BADGE ────────────────────
+            // ─── ICON WITH BADGE ─────────────────────
             SizedBox(
-              height: 28,
+              height: 26,
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
@@ -181,37 +164,37 @@ class _NavBarItemWidget extends StatelessWidget {
                       key: ValueKey(isActive),
                       color:
                           isActive ? AppColors.primary : AppColors.navInactive,
-                      size: 20,
+                      size: 22,
                     ),
                   ),
 
-                  // Badge (left-top position)
+                  // Badge
                   if (item.badgeCount != null && item.badgeCount! > 0)
                     Positioned(
                       top: -4,
-                      left: 4,
+                      right: -2,
                       child: _NavBadge(count: item.badgeCount!),
                     ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
 
-            // ── LABEL ──────────────────────────────
+            // ─── LABEL ───────────────────────────────
             AnimatedDefaultTextStyle(
               duration: AppDurations.fast,
               style: isActive
                   ? AppTextStyles.labelSmall.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w700,
-                      fontSize: 9,
+                      fontSize: 10,
                       height: 1.0,
                     )
                   : AppTextStyles.labelSmall.copyWith(
                       color: AppColors.navInactive,
                       fontWeight: FontWeight.w500,
-                      fontSize: 9,
+                      fontSize: 10,
                       height: 1.0,
                     ),
               child: Text(
@@ -223,11 +206,11 @@ class _NavBarItemWidget extends StatelessWidget {
 
             const SizedBox(height: 4),
 
-            // ── ACTIVE INDICATOR DOT ───────────────
+            // ─── ACTIVE INDICATOR DOT ─────────────────
             AnimatedContainer(
               duration: AppDurations.normal,
               curve: Curves.easeInOut,
-              width: isActive ? 14 : 0,
+              width: isActive ? 20 : 0,
               height: 3,
               decoration: BoxDecoration(
                 gradient: isActive ? AppGradients.emerald : null,
@@ -251,7 +234,7 @@ class _NavBarItemWidget extends StatelessWidget {
 }
 
 // ============================================================
-// NAV BADGE (Notification count)
+// NAV BADGE
 // ============================================================
 
 class _NavBadge extends StatelessWidget {
@@ -267,8 +250,8 @@ class _NavBadge extends StatelessWidget {
         vertical: 1,
       ),
       constraints: const BoxConstraints(
-        minWidth: 14,
-        minHeight: 14,
+        minWidth: 16,
+        minHeight: 16,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -295,7 +278,7 @@ class _NavBadge extends StatelessWidget {
           count > 99 ? '99+' : '$count',
           style: TextStyle(
             color: AppColors.white,
-            fontSize: count > 9 ? 7 : 8,
+            fontSize: count > 9 ? 8 : 9,
             fontWeight: FontWeight.w800,
             height: 1.0,
           ),
@@ -306,7 +289,7 @@ class _NavBadge extends StatelessWidget {
 }
 
 // ============================================================
-// CENTER FAB (Quran Quick Access)
+// CENTER FAB (Smaller & Cleaner)
 // ============================================================
 
 class _CenterFab extends StatefulWidget {
@@ -362,49 +345,32 @@ class _CenterFabState extends State<_CenterFab>
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          width: 56,
-          height: 56,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: AppGradients.gold,
             boxShadow: [
               BoxShadow(
-                color: AppColors.accent.withValues(alpha: 0.50),
-                blurRadius: 20,
-                spreadRadius: 2,
+                color: AppColors.accent.withValues(alpha: 0.40),
+                blurRadius: 12,
+                spreadRadius: 1,
               ),
               BoxShadow(
-                color: AppColors.accent.withValues(alpha: 0.30),
-                blurRadius: 40,
-                spreadRadius: 4,
-              ),
-              BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.40),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
+                color: AppColors.black.withValues(alpha: 0.30),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
               ),
             ],
+            border: Border.all(
+              color: AppColors.navBackground,
+              width: 3,
+            ),
           ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.white.withValues(alpha: 0.30),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.mosque_rounded,
-                color: AppColors.background,
-                size: 28,
-              ),
-            ],
+          child: const Icon(
+            Icons.mosque_rounded,
+            color: AppColors.background,
+            size: 24,
           ),
         ),
       ),
@@ -413,7 +379,7 @@ class _CenterFabState extends State<_CenterFab>
 }
 
 // ============================================================
-// APP SHELL SCAFFOLD — Complete Bottom Nav Container
+// APP SHELL SCAFFOLD
 // ============================================================
 
 class AppShellScaffold extends StatelessWidget {
@@ -478,45 +444,40 @@ class AppShellScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      extendBody: true,
+      // FIX: extendBody false = content bottom navbar ke upar nahi jayega
+      extendBody: false,
       body: child,
       bottomNavigationBar: AppBottomNav(
         activeIndex: _getActiveIndex(),
         onTap: _handleTap,
         onCenterTap: onCenterFabTap,
         items: [
-          // 0 — Home
           const NavBarItem(
             icon: Icons.home_outlined,
             activeIcon: Icons.home_rounded,
             label: 'Home',
           ),
-          // 1 — Quran
           const NavBarItem(
             icon: Icons.menu_book_outlined,
             activeIcon: Icons.menu_book_rounded,
             label: 'Quran',
           ),
-          // 2 — Prayer (with badge)
           NavBarItem(
             icon: Icons.access_time_outlined,
             activeIcon: Icons.access_time_filled_rounded,
             label: 'Prayer',
             badgeCount: notificationCount,
           ),
-          // 3 — Hadith
           const NavBarItem(
             icon: Icons.library_books_outlined,
             activeIcon: Icons.library_books_rounded,
             label: 'Hadith',
           ),
-          // 4 — AI
           const NavBarItem(
             icon: Icons.smart_toy_outlined,
             activeIcon: Icons.smart_toy_rounded,
             label: 'AI',
           ),
-          // 5 — Settings (NEW)
           const NavBarItem(
             icon: Icons.settings_outlined,
             activeIcon: Icons.settings_rounded,
