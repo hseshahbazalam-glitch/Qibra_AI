@@ -162,14 +162,14 @@ class _InheritanceCalculatorScreenState
     if (_hasFather) {
       if (hasChildren) {
         fractions['Father'] = 1 / 6;
-        sharesMap['Father'] = _ShareResult(
+        sharesMap['Father'] = const _ShareResult(
           'Father',
           'أَب',
           0,
           1 / 6,
           1,
           '1/6 fixed share + may get residual',
-          const Color(0xFF52B788),
+          Color(0xFF52B788),
           Icons.man_rounded,
         );
       }
@@ -209,14 +209,14 @@ class _InheritanceCalculatorScreenState
     // Grandfather (if no father)
     if (_hasGrandfather && !_hasFather) {
       fractions['Grandfather'] = 1 / 6;
-      sharesMap['Grandfather'] = _ShareResult(
+      sharesMap['Grandfather'] = const _ShareResult(
         'Grandfather',
         'جَدّ',
         0,
         1 / 6,
         1,
         '1/6 — takes father\'s place',
-        const Color(0xFF4ECDC4),
+        Color(0xFF4ECDC4),
         Icons.elderly_rounded,
       );
     }
@@ -224,14 +224,14 @@ class _InheritanceCalculatorScreenState
     // Grandmother (if no mother)
     if (_hasGrandmother && !_hasMother) {
       fractions['Grandmother'] = 1 / 6;
-      sharesMap['Grandmother'] = _ShareResult(
+      sharesMap['Grandmother'] = const _ShareResult(
         'Grandmother',
         'جَدَّة',
         0,
         1 / 6,
         1,
         '1/6 — takes mother\'s place',
-        const Color(0xFFFF8C42),
+        Color(0xFFFF8C42),
         Icons.elderly_woman_rounded,
       );
     }

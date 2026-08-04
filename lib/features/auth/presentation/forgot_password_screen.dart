@@ -18,6 +18,9 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
+import 'package:qibra_ai/features/auth/presentation/widgets/auth_header.dart';
+import 'package:qibra_ai/features/auth/presentation/widgets/auth_text_field.dart';
 
 // ============================================================
 // FORGOT PASSWORD SCREEN
@@ -410,35 +413,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHeader() {
-    return Row(
-      children: [
-        // Back button
-        GestureDetector(
-          onTap: () => context.go(AppRoutes.login),
-          child: ClipOval(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.10),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    width: 1,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+    return AuthHeader(
+      onBackTap: () => context.go(AppRoutes.login),
     );
   }
 
@@ -778,97 +754,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPremiumTextField() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.cardRadius,
-        boxShadow: _isEmailFocused
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.30),
-                  blurRadius: 20,
-                ),
-              ]
-            : null,
-      ),
-      child: TextFormField(
-        controller: _emailController,
-        focusNode: _emailFocus,
-        keyboardType: TextInputType.emailAddress,
-        textInputAction: TextInputAction.done,
-        validator: _validateEmail,
-        enabled: !_isLoading,
-        onFieldSubmitted: (_) => _handleSendResetLink(),
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          labelText: 'Email Address',
-          hintText: 'you@example.com',
-          hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textTertiary,
-          ),
-          labelStyle: AppTextStyles.bodyMedium.copyWith(
-            color:
-                _isEmailFocused ? AppColors.primary : AppColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-          prefixIcon: Icon(
-            Icons.mail_outline_rounded,
-            color:
-                _isEmailFocused ? AppColors.primary : AppColors.textSecondary,
-            size: 22,
-          ),
-          filled: true,
-          fillColor: _isEmailFocused
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white.withValues(alpha: 0.02),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
-              width: 1,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.primary,
-              width: 2,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
-              width: 1,
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
-              width: 2,
-            ),
-          ),
-          errorStyle: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.error,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+    return AuthTextField(
+      controller: _emailController,
+      focusNode: _emailFocus,
+      label: 'Email Address',
+      hint: 'you@example.com',
+      validator: _validateEmail,
+      isFocused: _isEmailFocused,
+      enabled: !_isLoading,
+      prefixIcon: Icons.mail_outline_rounded,
+      keyboardType: TextInputType.emailAddress,
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) => _handleSendResetLink(),
     );
   }
 
@@ -877,60 +774,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSendButton() {
-    return GestureDetector(
-      onTap: _isLoading ? null : _handleSendResetLink,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: _isLoading
-              ? LinearGradient(
-                  colors: [
-                    AppColors.primary.withValues(alpha: 0.60),
-                    AppColors.primaryDark.withValues(alpha: 0.60),
-                  ],
-                )
-              : AppGradients.emerald,
-          borderRadius: AppRadius.buttonRadiusLg,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.50),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Center(
-          child: _isLoading
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.send_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      'Send Reset Link',
-                      style: AppTextStyles.buttonLarge.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
+    return AuthButton(
+      label: 'Send Reset Link',
+      onTap: _handleSendResetLink,
+      isLoading: _isLoading,
+      leadingIcon: Icons.send_rounded,
     );
   }
 

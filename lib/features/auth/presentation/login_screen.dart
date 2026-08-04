@@ -19,6 +19,9 @@ import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
+import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
+import 'package:qibra_ai/features/auth/presentation/widgets/auth_social_buttons.dart';
+import 'package:qibra_ai/features/auth/presentation/widgets/auth_text_field.dart';
 
 // ============================================================
 // PREMIUM LOGIN SCREEN
@@ -633,96 +636,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     required bool enabled,
     required void Function(String)? onSubmitted,
   }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.cardRadius,
-        boxShadow: isFocused
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.30),
-                  blurRadius: 20,
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
-      ),
-      child: TextFormField(
-        controller: controller,
-        focusNode: focusNode,
-        keyboardType: keyboardType,
-        textInputAction: textInputAction,
-        validator: validator,
-        enabled: enabled,
-        onFieldSubmitted: onSubmitted,
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textTertiary,
-          ),
-          labelStyle: AppTextStyles.bodyMedium.copyWith(
-            color: isFocused ? AppColors.primary : AppColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-          prefixIcon: Icon(
-            icon,
-            color: isFocused ? AppColors.primary : AppColors.textSecondary,
-            size: 22,
-          ),
-          filled: true,
-          fillColor: isFocused
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white.withValues(alpha: 0.02),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
-              width: 1,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.primary,
-              width: 2,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
-              width: 1,
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
-              width: 2,
-            ),
-          ),
-          errorStyle: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.error,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+    return AuthTextField(
+      controller: controller,
+      focusNode: focusNode,
+      label: label,
+      hint: hint,
+      validator: validator,
+      isFocused: isFocused,
+      enabled: enabled,
+      prefixIcon: icon,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      onSubmitted: onSubmitted,
     );
   }
 
@@ -731,113 +656,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPremiumPasswordField(bool isLoading) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.cardRadius,
-        boxShadow: _isPasswordFocused
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.30),
-                  blurRadius: 20,
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
-      ),
-      child: TextFormField(
-        controller: _passwordController,
-        focusNode: _passwordFocus,
-        obscureText: _obscurePassword,
-        textInputAction: TextInputAction.done,
-        validator: _validatePassword,
-        enabled: !isLoading,
-        onFieldSubmitted: (_) => _handleLogin(),
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          labelText: 'Password',
-          hintText: 'Enter your password',
-          hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textTertiary,
-          ),
-          labelStyle: AppTextStyles.bodyMedium.copyWith(
-            color: _isPasswordFocused
-                ? AppColors.primary
-                : AppColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-          prefixIcon: Icon(
-            Icons.lock_outline_rounded,
-            color: _isPasswordFocused
-                ? AppColors.primary
-                : AppColors.textSecondary,
-            size: 22,
-          ),
-          suffixIcon: IconButton(
-            icon: Icon(
-              _obscurePassword
-                  ? Icons.visibility_off_rounded
-                  : Icons.visibility_rounded,
-              color: AppColors.textSecondary,
-              size: 20,
-            ),
-            onPressed: () {
-              HapticFeedback.selectionClick();
-              setState(() => _obscurePassword = !_obscurePassword);
-            },
-          ),
-          filled: true,
-          fillColor: _isPasswordFocused
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white.withValues(alpha: 0.02),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
-              width: 1,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.primary,
-              width: 2,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
-              width: 1,
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
-              width: 2,
-            ),
-          ),
-          errorStyle: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.error,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+    return AuthTextField(
+      controller: _passwordController,
+      focusNode: _passwordFocus,
+      label: 'Password',
+      hint: 'Enter your password',
+      validator: _validatePassword,
+      isFocused: _isPasswordFocused,
+      enabled: !isLoading,
+      prefixIcon: Icons.lock_outline_rounded,
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) => _handleLogin(),
+      obscureText: _obscurePassword,
+      suffixIcon: _obscurePassword
+          ? Icons.visibility_off_rounded
+          : Icons.visibility_rounded,
+      onSuffixPressed: () {
+        HapticFeedback.selectionClick();
+        setState(() => _obscurePassword = !_obscurePassword);
+      },
     );
   }
 
@@ -924,68 +761,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildLoginButton(bool isLoading) {
-    return GestureDetector(
-      onTap: isLoading ? null : _handleLogin,
-      child: AnimatedBuilder(
-        animation: _buttonPulse,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: isLoading ? 1.0 : _buttonPulse.value * 0.02 + 0.98,
-            child: child,
-          );
-        },
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            gradient: isLoading
-                ? LinearGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.60),
-                      AppColors.primaryDark.withValues(alpha: 0.60),
-                    ],
-                  )
-                : AppGradients.emerald,
-            borderRadius: AppRadius.buttonRadiusLg,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.50),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Center(
-            child: isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Sign In',
-                        style: AppTextStyles.buttonLarge.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      const Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                    ],
-                  ),
-          ),
-        ),
-      ),
+    return AuthButton(
+      label: 'Sign In',
+      onTap: _handleLogin,
+      isLoading: isLoading,
+      trailingIcon: Icons.arrow_forward_rounded,
+      pulseAnimation: _buttonPulse,
     );
   }
 
@@ -994,45 +775,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildBiometricButton(bool isLoading) {
-    return GestureDetector(
-      onTap: isLoading ? null : _handleBiometric,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.buttonRadiusLg,
-          border: Border.all(
-            color: AppColors.accent.withValues(alpha: 0.30),
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppGradients.gold.createShader(bounds),
-              child: const Icon(
-                Icons.fingerprint_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppGradients.gold.createShader(bounds),
-              child: Text(
-                'Use Biometric',
-                style: AppTextStyles.buttonMedium.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return AuthButton(
+      label: 'Use Biometric',
+      onTap: _handleBiometric,
+      isLoading: isLoading,
+      height: 48,
+      gradient: null,
+      backgroundColor: Colors.transparent,
+      borderColor: AppColors.accent.withValues(alpha: 0.30),
+      leadingIcon: Icons.fingerprint_rounded,
+      textColor: AppColors.accent,
+      enabled: !isLoading,
     );
   }
 
@@ -1091,103 +844,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSocialButtons(bool isLoading) {
-    return Row(
-      children: [
-        // Google
-        Expanded(
-          child: _buildSocialButton(
-            icon: 'G',
-            label: 'Google',
-            color: const Color(0xFF4285F4),
-            onTap: isLoading ? null : _handleGoogleAuth,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        // Apple
-        Expanded(
-          child: _buildSocialButton(
-            icon: null,
-            iconData: Icons.apple,
-            label: 'Apple',
-            color: Colors.white,
-            onTap: isLoading ? null : _handleAppleAuth,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSocialButton({
-    String? icon,
-    IconData? iconData,
-    required String label,
-    required Color color,
-    required VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: AppRadius.buttonRadiusLg,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            height: 52,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: 0.08),
-                  Colors.white.withValues(alpha: 0.03),
-                ],
-              ),
-              borderRadius: AppRadius.buttonRadiusLg,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon != null)
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                    ),
-                    child: Center(
-                      child: Text(
-                        icon,
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  )
-                else if (iconData != null)
-                  Icon(
-                    iconData,
-                    color: color,
-                    size: 24,
-                  ),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  label,
-                  style: AppTextStyles.buttonMedium.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return AuthSocialButtons(
+      onGoogleTap: _handleGoogleAuth,
+      onAppleTap: _handleAppleAuth,
+      isLoading: isLoading,
     );
   }
 

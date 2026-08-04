@@ -1,0 +1,3763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copy/Paste Detector Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f7fafc; color: #2d3748; }
+    a { color: #3182ce; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .header { background: #fff; box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06); padding: 1rem 0; }
+    .header-inner { max-width: 80rem; margin: 0 auto; padding: 0 1rem; }
+    .header h1 { font-size: 1.875rem; font-weight: 600; color: #2d3748; margin: 0; }
+    .main { max-width: 80rem; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: #fff; box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06); border-radius: 0.25rem; padding: 1.5rem; margin-bottom: 2rem; }
+    h2 { font-size: 1.5rem; font-weight: 600; color: #4a5568; margin: 0 0 1rem 0; }
+    .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .stat-card { padding: 1rem; border-radius: 0.25rem; text-align: center; }
+    .stat-card h3 { font-size: 1.125rem; font-weight: 600; margin: 0 0 0.5rem 0; }
+    .stat-card .val { font-size: 2.25rem; font-weight: 700; }
+    .stat-blue { background: #bee3f8; color: #2a4365; }
+    .stat-green { background: #c6f6d5; color: #276749; }
+    .stat-yellow { background: #fefcbf; color: #975a16; }
+    .stat-red { background: #fed7d7; color: #9b2c2c; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: #edf2f7; color: #718096; text-transform: uppercase; font-size: 0.75rem; font-weight: 600; padding: 0.75rem 1.5rem; text-align: left; }
+    tbody td { padding: 0.75rem 1.5rem; border-bottom: 1px solid #edf2f7; font-size: 0.875rem; }
+    tbody tr:hover { background: #f7fafc; }
+    .clone-section { margin-bottom: 2rem; }
+    .clone-section h2 { border-bottom: 2px solid #edf2f7; padding-bottom: 0.5rem; }
+    .clone-item { padding: 1rem 0; border-bottom: 1px solid #edf2f7; }
+    .clone-item:last-child { border-bottom: none; }
+    .clone-info { color: #718096; font-size: 0.875rem; margin-bottom: 0.25rem; }
+    .toggle-btn { background: #a0aec0; color: #fff; border: none; padding: 0.125rem 0.5rem; font-size: 0.75rem; border-radius: 0.25rem; cursor: pointer; margin-left: 0.5rem; }
+    .toggle-btn:focus { outline: none; }
+    .code-block { background: #f7fafc; border: 1px solid #edf2f7; border-radius: 0.25rem; padding: 1rem; margin-top: 0.5rem; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 0.875rem; color: #2d3748; white-space: pre-wrap; overflow-x: auto; display: none; }
+    .code-block.visible { display: block; }
+    .no-dupes { color: #27ae60; font-weight: 700; font-size: 1.125rem; }
+    .footer { margin-top: 3rem; padding: 2rem 0; border-top: 1px solid #e0e0e0; text-align: center; font-family: -apple-system, sans-serif; color: #666; }
+    .footer p { margin: 0.5rem 0; font-size: 0.875rem; }
+    .footer a { color: #0066cc; }
+    .footer .small { font-size: 0.75rem; color: #999; }
+    @media (max-width: 768px) { .dashboard { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <h1>jscpd - copy/paste report</h1>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="card">
+      <section>
+        <h2>Dashboard</h2>
+        <div class="dashboard">
+          <div class="stat-card stat-blue">
+            <h3>Total Files</h3>
+            <div class="val">126</div>
+          </div>
+          <div class="stat-card stat-green">
+            <h3>Total Lines of Code</h3>
+            <div class="val">78900</div>
+          </div>
+          <div class="stat-card stat-yellow">
+            <h3>Number of Clones</h3>
+            <div class="val">329</div>
+          </div>
+          <div class="stat-card stat-red">
+            <h3>Duplicated Lines</h3>
+            <div class="val">5272 (6.68%)</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="card">
+      <section>
+        <h2>Formats with Duplications</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Format</th>
+              <th>Files</th>
+              <th>Lines</th>
+              <th>Clones</th>
+              <th>Duplicated Lines</th>
+              <th>Duplicated Tokens</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+            <tr>
+              <td><a href="#dart-clones">dart</a></td>
+              <td>126</td>
+              <td>78900</td>
+              <td>329</td>
+              <td>5272 (6.68%)</td>
+              <td>27881 (8.02%)</td>
+            </tr>
+            
+            <tr style="font-weight: 700;">
+              <td>Total</td>
+              <td>126</td>
+              <td>78900</td>
+              <td>329</td>
+              <td>5272 (6.68%)</td>
+              <td>27881 (8.02%)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    
+    
+    <div class="card">
+      <section class="clone-section">
+        <a name="dart-clones"></a>
+        <h2>dart</h2>
+        <div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              core\design_system\app_theme.dart (Line 499:11 - Line 509:57),
+              core\design_system\app_theme.dart (Line 561:11 - Line 571:57)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-1')">Show code</button>
+            </div>
+            <pre id="code-dart-1" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              core\providers\auth_provider.dart (Line 332:7 - Line 341:4),
+              core\providers\auth_provider.dart (Line 382:7 - Line 391:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-2')">Show code</button>
+            </div>
+            <pre id="code-dart-2" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\ai\presentation\ai_explain_screen.dart (Line 282:23 - Line 290:67),
+              features\ai\presentation\ai_explain_screen.dart (Line 400:26 - Line 408:69)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-3')">Show code</button>
+            </div>
+            <pre id="code-dart-3" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\ai\presentation\ai_explain_screen.dart (Line 282:23 - Line 291:30),
+              features\ai\presentation\ai_explain_screen.dart (Line 568:24 - Line 577:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-4')">Show code</button>
+            </div>
+            <pre id="code-dart-4" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\ai\presentation\ai_explain_screen.dart (Line 660:27 - Line 673:38),
+              features\ai\presentation\ai_explain_screen.dart (Line 795:19 - Line 808:36)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-5')">Show code</button>
+            </div>
+            <pre id="code-dart-5" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 66:22 - Line 83:15),
+              features\settings\presentation\profile_setup_screen.dart (Line 101:21 - Line 116:55)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-6')">Show code</button>
+            </div>
+            <pre id="code-dart-6" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 67:5 - Line 87:8),
+              features\auth\presentation\register_screen.dart (Line 153:5 - Line 173:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-7')">Show code</button>
+            </div>
+            <pre id="code-dart-7" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 73:14 - Line 87:8),
+              features\settings\presentation\permission_screen.dart (Line 141:20 - Line 155:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-8')">Show code</button>
+            </div>
+            <pre id="code-dart-8" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 76:5 - Line 87:6),
+              features\auth\presentation\verify_otp_screen.dart (Line 131:5 - Line 143:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-9')">Show code</button>
+            </div>
+            <pre id="code-dart-9" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 76:5 - Line 87:8),
+              features\settings\presentation\language_selection_screen.dart (Line 118:5 - Line 129:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-10')">Show code</button>
+            </div>
+            <pre id="code-dart-10" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 90:5 - Line 101:6),
+              features\auth\presentation\verify_otp_screen.dart (Line 89:5 - Line 101:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-11')">Show code</button>
+            </div>
+            <pre id="code-dart-11" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 140:3 - Line 148:4),
+              features\auth\presentation\login_screen.dart (Line 160:3 - Line 168:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-12')">Show code</button>
+            </div>
+            <pre id="code-dart-12" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 140:3 - Line 161:22),
+              features\auth\presentation\register_screen.dart (Line 252:3 - Line 270:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-13')">Show code</button>
+            </div>
+            <pre id="code-dart-13" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 212:9 - Line 224:45),
+              features\auth\presentation\login_screen.dart (Line 237:56 - Line 249:45)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-14')">Show code</button>
+            </div>
+            <pre id="code-dart-14" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 278:26 - Line 295:21),
+              features\auth\presentation\login_screen.dart (Line 357:20 - Line 374:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-15')">Show code</button>
+            </div>
+            <pre id="code-dart-15" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 363:9 - Line 379:43),
+              features\auth\presentation\verify_otp_screen.dart (Line 517:9 - Line 533:43)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-16')">Show code</button>
+            </div>
+            <pre id="code-dart-16" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 414:7 - Line 440:11),
+              features\auth\presentation\register_screen.dart (Line 444:7 - Line 470:11)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-17')">Show code</button>
+            </div>
+            <pre id="code-dart-17" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 416:9 - Line 440:11),
+              features\auth\presentation\verify_otp_screen.dart (Line 553:9 - Line 577:11)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-18')">Show code</button>
+            </div>
+            <pre id="code-dart-18" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 416:9 - Line 440:11),
+              features\settings\presentation\profile_setup_screen.dart (Line 686:9 - Line 710:11)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-19')">Show code</button>
+            </div>
+            <pre id="code-dart-19" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 454:20 - Line 472:15),
+              features\settings\presentation\profile_setup_screen.dart (Line 766:28 - Line 784:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-20')">Show code</button>
+            </div>
+            <pre id="code-dart-20" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 502:18 - Line 514:24),
+              features\auth\presentation\verify_otp_screen.dart (Line 1207:18 - Line 1219:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-21')">Show code</button>
+            </div>
+            <pre id="code-dart-21" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 616:9 - Line 631:21),
+              features\auth\presentation\verify_otp_screen.dart (Line 1023:26 - Line 1038:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-22')">Show code</button>
+            </div>
+            <pre id="code-dart-22" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 619:36 - Line 630:57),
+              features\settings\presentation\permission_screen.dart (Line 598:38 - Line 609:59)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-23')">Show code</button>
+            </div>
+            <pre id="code-dart-23" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 659:3 - Line 684:24),
+              features\auth\presentation\verify_otp_screen.dart (Line 760:3 - Line 785:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-24')">Show code</button>
+            </div>
+            <pre id="code-dart-24" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 659:3 - Line 684:24),
+              features\settings\presentation\profile_setup_screen.dart (Line 892:3 - Line 917:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-25')">Show code</button>
+            </div>
+            <pre id="code-dart-25" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 661:25 - Line 685:30),
+              features\auth\presentation\login_screen.dart (Line 488:60 - Line 511:52)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-26')">Show code</button>
+            </div>
+            <pre id="code-dart-26" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 661:24 - Line 672:24),
+              features\settings\presentation\profile_setup_screen.dart (Line 1266:32 - Line 1277:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-27')">Show code</button>
+            </div>
+            <pre id="code-dart-27" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 667:55 - Line 677:37),
+              features\auth\presentation\login_screen.dart (Line 1134:23 - Line 1144:39)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-28')">Show code</button>
+            </div>
+            <pre id="code-dart-28" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 672:15 - Line 683:25),
+              features\auth\presentation\forgot_password_screen.dart (Line 950:15 - Line 961:25)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-29')">Show code</button>
+            </div>
+            <pre id="code-dart-29" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 719:32 - Line 770:13),
+              features\auth\presentation\login_screen.dart (Line 552:46 - Line 603:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-30')">Show code</button>
+            </div>
+            <pre id="code-dart-30" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 722:9 - Line 776:132),
+              features\auth\presentation\verify_otp_screen.dart (Line 888:59 - Line 942:132)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-31')">Show code</button>
+            </div>
+            <pre id="code-dart-31" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 758:23 - Line 777:24),
+              features\auth\presentation\verify_otp_screen.dart (Line 924:23 - Line 943:19)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-32')">Show code</button>
+            </div>
+            <pre id="code-dart-32" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 825:15 - Line 875:132),
+              features\auth\presentation\login_screen.dart (Line 679:15 - Line 729:132)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-33')">Show code</button>
+            </div>
+            <pre id="code-dart-33" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 825:15 - Line 875:132),
+              features\auth\presentation\login_screen.dart (Line 794:15 - Line 844:132)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-34')">Show code</button>
+            </div>
+            <pre id="code-dart-34" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 881:54 - Line 910:75),
+              features\auth\presentation\verify_otp_screen.dart (Line 948:47 - Line 978:35)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-35')">Show code</button>
+            </div>
+            <pre id="code-dart-35" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 883:52 - Line 917:41),
+              features\settings\presentation\profile_setup_screen.dart (Line 1436:35 - Line 1472:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-36')">Show code</button>
+            </div>
+            <pre id="code-dart-36" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 887:15 - Line 904:17),
+              features\auth\presentation\login_screen.dart (Line 941:17 - Line 958:19)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-37')">Show code</button>
+            </div>
+            <pre id="code-dart-37" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 893:15 - Line 903:15),
+              features\auth\presentation\forgot_password_screen.dart (Line 1128:23 - Line 1138:19)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-38')">Show code</button>
+            </div>
+            <pre id="code-dart-38" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1274:34 - Line 1306:22),
+              features\auth\presentation\register_screen.dart (Line 1353:34 - Line 1392:14)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-39')">Show code</button>
+            </div>
+            <pre id="code-dart-39" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1274:34 - Line 1306:22),
+              features\settings\presentation\profile_setup_screen.dart (Line 1523:34 - Line 1562:14)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-40')">Show code</button>
+            </div>
+            <pre id="code-dart-40" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1276:27 - Line 1289:20),
+              features\auth\presentation\login_screen.dart (Line 1242:27 - Line 1255:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-41')">Show code</button>
+            </div>
+            <pre id="code-dart-41" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1276:27 - Line 1288:12),
+              features\settings\presentation\language_selection_screen.dart (Line 760:27 - Line 772:12)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-42')">Show code</button>
+            </div>
+            <pre id="code-dart-42" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1276:27 - Line 1281:43),
+              features\splash\presentation\splash_screen.dart (Line 743:27 - Line 746:65)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-43')">Show code</button>
+            </div>
+            <pre id="code-dart-43" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1280:7 - Line 1287:55),
+              features\onboarding\presentation\onboarding_screen.dart (Line 926:7 - Line 933:55)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-44')">Show code</button>
+            </div>
+            <pre id="code-dart-44" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1291:60 - Line 1298:60),
+              features\auth\presentation\login_screen.dart (Line 1255:66 - Line 1262:60)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-45')">Show code</button>
+            </div>
+            <pre id="code-dart-45" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1291:60 - Line 1315:37),
+              features\settings\presentation\language_selection_screen.dart (Line 771:57 - Line 796:14)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-46')">Show code</button>
+            </div>
+            <pre id="code-dart-46" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1292:55 - Line 1303:63),
+              features\splash\presentation\splash_screen.dart (Line 752:55 - Line 763:63)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-47')">Show code</button>
+            </div>
+            <pre id="code-dart-47" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\forgot_password_screen.dart (Line 1300:7 - Line 1315:14),
+              features\auth\presentation\login_screen.dart (Line 1265:7 - Line 1280:14)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-48')">Show code</button>
+            </div>
+            <pre id="code-dart-48" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 130:5 - Line 138:8),
+              features\auth\presentation\register_screen.dart (Line 140:5 - Line 147:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-49')">Show code</button>
+            </div>
+            <pre id="code-dart-49" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 160:11 - Line 180:135),
+              features\auth\presentation\register_screen.dart (Line 252:11 - Line 272:9)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-50')">Show code</button>
+            </div>
+            <pre id="code-dart-50" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 332:18 - Line 374:21),
+              features\auth\presentation\register_screen.dart (Line 385:18 - Line 427:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-51')">Show code</button>
+            </div>
+            <pre id="code-dart-51" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 354:31 - Line 374:21),
+              features\settings\presentation\permission_screen.dart (Line 395:31 - Line 415:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-52')">Show code</button>
+            </div>
+            <pre id="code-dart-52" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 414:65 - Line 426:24),
+              features\splash\presentation\splash_screen.dart (Line 393:75 - Line 405:34)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-53')">Show code</button>
+            </div>
+            <pre id="code-dart-53" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 475:44 - Line 517:17),
+              features\auth\presentation\register_screen.dart (Line 556:47 - Line 598:17)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-54')">Show code</button>
+            </div>
+            <pre id="code-dart-54" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 517:16 - Line 536:32),
+              features\auth\presentation\register_screen.dart (Line 615:52 - Line 634:32)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-55')">Show code</button>
+            </div>
+            <pre id="code-dart-55" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 552:36 - Line 729:132),
+              features\auth\presentation\register_screen.dart (Line 689:35 - Line 866:132)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-56')">Show code</button>
+            </div>
+            <pre id="code-dart-56" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 633:26 - Line 652:30),
+              features\auth\presentation\register_screen.dart (Line 880:45 - Line 899:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-57')">Show code</button>
+            </div>
+            <pre id="code-dart-57" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 634:48 - Line 644:34),
+              features\settings\presentation\profile_setup_screen.dart (Line 1025:32 - Line 1035:34)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-58')">Show code</button>
+            </div>
+            <pre id="code-dart-58" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 653:35 - Line 672:28),
+              features\auth\presentation\register_screen.dart (Line 900:29 - Line 919:28)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-59')">Show code</button>
+            </div>
+            <pre id="code-dart-59" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 657:38 - Line 719:13),
+              features\settings\presentation\profile_setup_screen.dart (Line 1044:35 - Line 1106:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-60')">Show code</button>
+            </div>
+            <pre id="code-dart-60" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 675:21 - Line 729:132),
+              features\auth\presentation\register_screen.dart (Line 930:32 - Line 984:132)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-61')">Show code</button>
+            </div>
+            <pre id="code-dart-61" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 938:11 - Line 970:28),
+              features\auth\presentation\register_screen.dart (Line 1254:9 - Line 1286:26)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-62')">Show code</button>
+            </div>
+            <pre id="code-dart-62" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 971:34 - Line 988:8),
+              features\auth\presentation\register_screen.dart (Line 1287:39 - Line 1304:6)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-63')">Show code</button>
+            </div>
+            <pre id="code-dart-63" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 971:34 - Line 987:10),
+              features\settings\presentation\language_selection_screen.dart (Line 723:25 - Line 739:6)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-64')">Show code</button>
+            </div>
+            <pre id="code-dart-64" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\login_screen.dart (Line 1256:55 - Line 1268:63),
+              features\onboarding\presentation\onboarding_screen.dart (Line 936:55 - Line 948:63)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-65')">Show code</button>
+            </div>
+            <pre id="code-dart-65" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\register_screen.dart (Line 347:11 - Line 359:61),
+              features\settings\presentation\profile_setup_screen.dart (Line 596:11 - Line 608:61)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-66')">Show code</button>
+            </div>
+            <pre id="code-dart-66" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\register_screen.dart (Line 380:38 - Line 427:21),
+              features\settings\presentation\profile_setup_screen.dart (Line 622:36 - Line 668:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-67')">Show code</button>
+            </div>
+            <pre id="code-dart-67" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\register_screen.dart (Line 473:9 - Line 491:34),
+              features\auth\presentation\verify_otp_screen.dart (Line 580:9 - Line 598:34)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-68')">Show code</button>
+            </div>
+            <pre id="code-dart-68" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\register_screen.dart (Line 473:9 - Line 492:29),
+              features\settings\presentation\profile_setup_screen.dart (Line 711:9 - Line 730:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-69')">Show code</button>
+            </div>
+            <pre id="code-dart-69" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\register_screen.dart (Line 475:38 - Line 488:24),
+              features\settings\presentation\language_selection_screen.dart (Line 350:40 - Line 363:26)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-70')">Show code</button>
+            </div>
+            <pre id="code-dart-70" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\verify_otp_screen.dart (Line 139:5 - Line 154:7),
+              features\settings\presentation\profile_setup_screen.dart (Line 116:55 - Line 131:7)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-71')">Show code</button>
+            </div>
+            <pre id="code-dart-71" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\verify_otp_screen.dart (Line 588:21 - Line 600:22),
+              features\settings\presentation\profile_setup_screen.dart (Line 719:21 - Line 731:22)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-72')">Show code</button>
+            </div>
+            <pre id="code-dart-72" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\auth\presentation\verify_otp_screen.dart (Line 648:13 - Line 666:32),
+              features\settings\presentation\permission_screen.dart (Line 520:14 - Line 538:26)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-73')">Show code</button>
+            </div>
+            <pre id="code-dart-73" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\calendar\presentation\islamic_calendar_screen.dart (Line 223:13 - Line 237:26),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 432:11 - Line 446:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-74')">Show code</button>
+            </div>
+            <pre id="code-dart-74" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\calendar\presentation\islamic_calendar_screen.dart (Line 280:12 - Line 302:20),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 78:11 - Line 99:15)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-75')">Show code</button>
+            </div>
+            <pre id="code-dart-75" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\calendar\presentation\islamic_calendar_screen.dart (Line 281:26 - Line 300:22),
+              features\prayer\presentation\prayer_statistics_screen.dart (Line 39:33 - Line 58:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-76')">Show code</button>
+            </div>
+            <pre id="code-dart-76" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\calendar\presentation\islamic_calendar_screen.dart (Line 339:14 - Line 349:23),
+              features\prayer\presentation\prayer_statistics_screen.dart (Line 70:60 - Line 80:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-77')">Show code</button>
+            </div>
+            <pre id="code-dart-77" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\calendar\presentation\islamic_calendar_screen.dart (Line 374:48 - Line 385:20),
+              features\duas\presentation\duas_home_screen.dart (Line 351:52 - Line 362:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-78')">Show code</button>
+            </div>
+            <pre id="code-dart-78" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\calendar\presentation\islamic_calendar_screen.dart (Line 934:7 - Line 943:19),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 180:17 - Line 189:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-79')">Show code</button>
+            </div>
+            <pre id="code-dart-79" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\duas\presentation\dua_detail_screen.dart (Line 53:15 - Line 70:17),
+              features\duas\presentation\duas_list_screen.dart (Line 53:13 - Line 70:15)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-80')">Show code</button>
+            </div>
+            <pre id="code-dart-80" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\hadith\data\services\hadith_api_service.dart (Line 201:47 - Line 217:24),
+              features\hadith\data\services\hadith_api_service.dart (Line 286:39 - Line 301:38)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-81')">Show code</button>
+            </div>
+            <pre id="code-dart-81" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\hadith\presentation\hadith_book_screen.dart (Line 344:21 - Line 356:30),
+              features\hadith\presentation\hadith_screen.dart (Line 632:60 - Line 644:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-82')">Show code</button>
+            </div>
+            <pre id="code-dart-82" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\hadith\presentation\hadith_screen.dart (Line 236:19 - Line 247:28),
+              features\hadith\presentation\hadith_screen.dart (Line 335:13 - Line 346:22)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-83')">Show code</button>
+            </div>
+            <pre id="code-dart-83" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\hadith\presentation\hadith_screen.dart (Line 236:19 - Line 247:28),
+              features\hadith\presentation\hadith_screen.dart (Line 389:16 - Line 400:18)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-84')">Show code</button>
+            </div>
+            <pre id="code-dart-84" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\hadith\presentation\hadith_screen.dart (Line 296:18 - Line 308:28),
+              features\hadith\presentation\hadith_screen.dart (Line 444:17 - Line 456:28)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-85')">Show code</button>
+            </div>
+            <pre id="code-dart-85" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\hadith\presentation\hadith_screen.dart (Line 515:30 - Line 540:42),
+              features\quran\presentation\mushaf_reader_screen.dart (Line 729:30 - Line 754:42)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-86')">Show code</button>
+            </div>
+            <pre id="code-dart-86" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\hadith\presentation\hadith_screen.dart (Line 525:13 - Line 539:38),
+              features\quran\presentation\mushaf_reader_screen.dart (Line 491:13 - Line 505:38)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-87')">Show code</button>
+            </div>
+            <pre id="code-dart-87" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\hadith\presentation\hadith_screen.dart (Line 729:20 - Line 740:18),
+              features\qibla\presentation\qibla_screen.dart (Line 198:25 - Line 209:18)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-88')">Show code</button>
+            </div>
+            <pre id="code-dart-88" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\home_screen.dart (Line 353:17 - Line 364:34),
+              features\home\presentation\home_screen.dart (Line 472:16 - Line 482:41)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-89')">Show code</button>
+            </div>
+            <pre id="code-dart-89" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\home_screen.dart (Line 355:11 - Line 364:34),
+              features\home\presentation\home_screen.dart (Line 459:20 - Line 467:39)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-90')">Show code</button>
+            </div>
+            <pre id="code-dart-90" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\home_screen.dart (Line 572:16 - Line 582:61),
+              features\home\presentation\home_screen.dart (Line 1246:60 - Line 1256:57)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-91')">Show code</button>
+            </div>
+            <pre id="code-dart-91" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\home_screen.dart (Line 575:54 - Line 590:36),
+              features\quran\presentation\quran_screen.dart (Line 379:50 - Line 394:32)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-92')">Show code</button>
+            </div>
+            <pre id="code-dart-92" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\home_screen.dart (Line 903:62 - Line 913:23),
+              features\home\presentation\home_screen.dart (Line 1330:38 - Line 1340:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-93')">Show code</button>
+            </div>
+            <pre id="code-dart-93" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\home_screen.dart (Line 1176:41 - Line 1185:28),
+              features\home\presentation\widgets\daily_progress_section.dart (Line 76:39 - Line 86:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-94')">Show code</button>
+            </div>
+            <pre id="code-dart-94" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\home_screen.dart (Line 1176:41 - Line 1186:32),
+              features\prayer\presentation\prayer_statistics_screen.dart (Line 511:39 - Line 523:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-95')">Show code</button>
+            </div>
+            <pre id="code-dart-95" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\home_screen.dart (Line 2001:12 - Line 2008:21),
+              features\home\presentation\widgets\hadith_card.dart (Line 28:14 - Line 35:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-96')">Show code</button>
+            </div>
+            <pre id="code-dart-96" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\home_screen.dart (Line 2046:79 - Line 2058:12),
+              features\home\presentation\widgets\hadith_card.dart (Line 91:19 - Line 103:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-97')">Show code</button>
+            </div>
+            <pre id="code-dart-97" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\widgets\error_empty_states.dart (Line 11:57 - Line 23:23),
+              features\home\presentation\widgets\error_empty_states.dart (Line 88:62 - Line 100:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-98')">Show code</button>
+            </div>
+            <pre id="code-dart-98" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\widgets\error_empty_states.dart (Line 43:62 - Line 51:49),
+              features\home\presentation\widgets\error_empty_states.dart (Line 126:51 - Line 134:49)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-99')">Show code</button>
+            </div>
+            <pre id="code-dart-99" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\widgets\error_empty_states.dart (Line 52:26 - Line 62:25),
+              features\home\presentation\widgets\error_empty_states.dart (Line 135:31 - Line 145:25)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-100')">Show code</button>
+            </div>
+            <pre id="code-dart-100" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\widgets\golden_watermark.dart (Line 15:14 - Line 37:24),
+              features\settings\presentation\settings_screen.dart (Line 675:12 - Line 697:22)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-101')">Show code</button>
+            </div>
+            <pre id="code-dart-101" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\home\presentation\widgets\golden_watermark.dart (Line 37:27 - Line 55:45),
+              features\settings\presentation\settings_screen.dart (Line 697:25 - Line 715:43)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-102')">Show code</button>
+            </div>
+            <pre id="code-dart-102" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\onboarding\presentation\onboarding_screen.dart (Line 935:64 - Line 942:60),
+              features\splash\presentation\splash_screen.dart (Line 751:66 - Line 758:60)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-103')">Show code</button>
+            </div>
+            <pre id="code-dart-103" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 51:5 - Line 65:21),
+              features\prayer\presentation\prayer_times_screen.dart (Line 128:5 - Line 143:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-104')">Show code</button>
+            </div>
+            <pre id="code-dart-104" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 90:13 - Line 122:33),
+              features\prayer\presentation\prayer_times_screen.dart (Line 166:13 - Line 198:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-105')">Show code</button>
+            </div>
+            <pre id="code-dart-105" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 137:20 - Line 150:67),
+              features\prayer\presentation\prayer_times_screen.dart (Line 208:54 - Line 220:67)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-106')">Show code</button>
+            </div>
+            <pre id="code-dart-106" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 200:14 - Line 235:24),
+              features\prayer\presentation\prayer_times_screen.dart (Line 273:12 - Line 308:22)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-107')">Show code</button>
+            </div>
+            <pre id="code-dart-107" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 238:16 - Line 273:8),
+              features\prayer\presentation\prayer_times_screen.dart (Line 308:65 - Line 343:6)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-108')">Show code</button>
+            </div>
+            <pre id="code-dart-108" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 281:3 - Line 310:4),
+              features\prayer\presentation\prayer_times_screen.dart (Line 346:3 - Line 375:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-109')">Show code</button>
+            </div>
+            <pre id="code-dart-109" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 321:5 - Line 357:13),
+              features\prayer\presentation\prayer_times_screen.dart (Line 381:5 - Line 417:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-110')">Show code</button>
+            </div>
+            <pre id="code-dart-110" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 389:9 - Line 407:21),
+              features\prayer\presentation\prayer_times_screen.dart (Line 430:67 - Line 446:71)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-111')">Show code</button>
+            </div>
+            <pre id="code-dart-111" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 408:7 - Line 420:20),
+              features\prayer\presentation\prayer_times_screen.dart (Line 446:71 - Line 458:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-112')">Show code</button>
+            </div>
+            <pre id="code-dart-112" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 422:11 - Line 431:37),
+              features\prayer\presentation\prayer_times_screen.dart (Line 459:11 - Line 468:37)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-113')">Show code</button>
+            </div>
+            <pre id="code-dart-113" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 440:44 - Line 452:38),
+              features\prayer\presentation\prayer_times_screen.dart (Line 476:46 - Line 487:55)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-114')">Show code</button>
+            </div>
+            <pre id="code-dart-114" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 453:25 - Line 483:13),
+              features\prayer\presentation\prayer_times_screen.dart (Line 487:55 - Line 517:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-115')">Show code</button>
+            </div>
+            <pre id="code-dart-115" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 515:43 - Line 539:29),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 1065:30 - Line 1089:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-116')">Show code</button>
+            </div>
+            <pre id="code-dart-116" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 539:38 - Line 553:9),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 1089:38 - Line 1103:9)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-117')">Show code</button>
+            </div>
+            <pre id="code-dart-117" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_settings_screen.dart (Line 623:17 - Line 637:4),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 1036:17 - Line 1050:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-118')">Show code</button>
+            </div>
+            <pre id="code-dart-118" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_statistics_screen.dart (Line 38:13 - Line 61:27),
+              features\prayer\presentation\tahajjud_details_screen.dart (Line 29:11 - Line 52:25)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-119')">Show code</button>
+            </div>
+            <pre id="code-dart-119" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_statistics_screen.dart (Line 62:36 - Line 80:29),
+              features\prayer\presentation\tahajjud_details_screen.dart (Line 53:33 - Line 71:27)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-120')">Show code</button>
+            </div>
+            <pre id="code-dart-120" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_statistics_screen.dart (Line 69:17 - Line 79:27),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 151:15 - Line 161:25)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-121')">Show code</button>
+            </div>
+            <pre id="code-dart-121" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_statistics_screen.dart (Line 401:11 - Line 410:28),
+              features\prayer\presentation\tahajjud_details_screen.dart (Line 710:19 - Line 719:36)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-122')">Show code</button>
+            </div>
+            <pre id="code-dart-122" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_statistics_screen.dart (Line 509:27 - Line 523:23),
+              features\prayer\presentation\prayer_statistics_screen.dart (Line 669:32 - Line 683:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-123')">Show code</button>
+            </div>
+            <pre id="code-dart-123" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_times_screen.dart (Line 47:19 - Line 56:4),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 40:6 - Line 49:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-124')">Show code</button>
+            </div>
+            <pre id="code-dart-124" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_times_screen.dart (Line 117:71 - Line 126:107),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 62:75 - Line 71:107)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-125')">Show code</button>
+            </div>
+            <pre id="code-dart-125" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 62:19 - Line 77:50),
+              features\quran\presentation\bookmarks_screen.dart (Line 327:5 - Line 342:50)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-126')">Show code</button>
+            </div>
+            <pre id="code-dart-126" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 66:33 - Line 76:30),
+              features\quran\presentation\bookmarks_screen.dart (Line 219:71 - Line 230:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-127')">Show code</button>
+            </div>
+            <pre id="code-dart-127" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 67:15 - Line 78:21),
+              features\quran\presentation\bookmarks_screen.dart (Line 332:15 - Line 343:17)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-128')">Show code</button>
+            </div>
+            <pre id="code-dart-128" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 90:84 - Line 108:56),
+              features\quran\presentation\bookmarks_screen.dart (Line 353:91 - Line 371:52)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-129')">Show code</button>
+            </div>
+            <pre id="code-dart-129" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 94:12 - Line 108:24),
+              features\quran\presentation\bookmarks_screen.dart (Line 282:12 - Line 296:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-130')">Show code</button>
+            </div>
+            <pre id="code-dart-130" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 119:18 - Line 140:4),
+              features\quran\presentation\bookmarks_screen.dart (Line 376:39 - Line 397:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-131')">Show code</button>
+            </div>
+            <pre id="code-dart-131" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 178:15 - Line 189:59),
+              features\quran\presentation\surah_list_screen.dart (Line 216:15 - Line 227:59)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-132')">Show code</button>
+            </div>
+            <pre id="code-dart-132" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 218:23 - Line 233:20),
+              features\quran\presentation\bookmarks_screen.dart (Line 548:37 - Line 563:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-133')">Show code</button>
+            </div>
+            <pre id="code-dart-133" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 218:3 - Line 233:20),
+              features\quran\presentation\surah_list_screen.dart (Line 281:3 - Line 296:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-134')">Show code</button>
+            </div>
+            <pre id="code-dart-134" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 219:12 - Line 233:20),
+              features\quran\presentation\quran_search_screen.dart (Line 281:11 - Line 295:26)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-135')">Show code</button>
+            </div>
+            <pre id="code-dart-135" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 221:22 - Line 231:58),
+              features\quran\presentation\surah_reader_screen.dart (Line 241:30 - Line 251:66)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-136')">Show code</button>
+            </div>
+            <pre id="code-dart-136" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 451:5 - Line 461:18),
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 534:5 - Line 544:18)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-137')">Show code</button>
+            </div>
+            <pre id="code-dart-137" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 779:80 - Line 792:42),
+              features\quran\presentation\bookmarks_screen.dart (Line 860:93 - Line 873:42)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-138')">Show code</button>
+            </div>
+            <pre id="code-dart-138" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 794:41 - Line 815:13),
+              features\quran\presentation\bookmarks_screen.dart (Line 875:36 - Line 896:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-139')">Show code</button>
+            </div>
+            <pre id="code-dart-139" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 847:22 - Line 865:33),
+              features\quran\presentation\bookmarks_screen.dart (Line 1499:18 - Line 1517:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-140')">Show code</button>
+            </div>
+            <pre id="code-dart-140" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 1018:1 - Line 1057:64),
+              features\quran\presentation\bookmarks_screen.dart (Line 1550:1 - Line 1589:64)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-141')">Show code</button>
+            </div>
+            <pre id="code-dart-141" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\prayer_tracker_screen.dart (Line 1027:21 - Line 1043:21),
+              features\quran\presentation\quran_search_screen.dart (Line 1237:27 - Line 1253:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-142')">Show code</button>
+            </div>
+            <pre id="code-dart-142" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 123:66 - Line 135:29),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 152:57 - Line 164:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-143')">Show code</button>
+            </div>
+            <pre id="code-dart-143" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 178:64 - Line 192:31),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 897:19 - Line 911:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-144')">Show code</button>
+            </div>
+            <pre id="code-dart-144" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 178:63 - Line 189:29),
+              features\prayer\presentation\tahajjud_details_screen.dart (Line 166:62 - Line 177:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-145')">Show code</button>
+            </div>
+            <pre id="code-dart-145" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 516:27 - Line 525:23),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 592:28 - Line 601:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-146')">Show code</button>
+            </div>
+            <pre id="code-dart-146" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 521:18 - Line 544:20),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 801:25 - Line 824:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-147')">Show code</button>
+            </div>
+            <pre id="code-dart-147" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 527:9 - Line 544:20),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 602:9 - Line 619:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-148')">Show code</button>
+            </div>
+            <pre id="code-dart-148" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 527:16 - Line 543:42),
+              features\prayer\presentation\tahajjud_details_screen.dart (Line 347:20 - Line 363:46)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-149')">Show code</button>
+            </div>
+            <pre id="code-dart-149" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 601:20 - Line 619:20),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 719:43 - Line 737:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-150')">Show code</button>
+            </div>
+            <pre id="code-dart-150" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 708:31 - Line 717:23),
+              features\prayer\presentation\salah_schedule_screen.dart (Line 796:27 - Line 805:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-151')">Show code</button>
+            </div>
+            <pre id="code-dart-151" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\salah_schedule_screen.dart (Line 893:13 - Line 911:23),
+              features\prayer\presentation\tahajjud_details_screen.dart (Line 822:21 - Line 840:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-152')">Show code</button>
+            </div>
+            <pre id="code-dart-152" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\tahajjud_details_screen.dart (Line 85:49 - Line 96:59),
+              features\prayer\presentation\widgets\night_worship_card.dart (Line 36:54 - Line 47:53)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-153')">Show code</button>
+            </div>
+            <pre id="code-dart-153" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\presentation\widgets\night_worship_card.dart (Line 22:61 - Line 37:37),
+              features\prayer\presentation\widgets\night_worship_card.dart (Line 203:40 - Line 218:37)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-154')">Show code</button>
+            </div>
+            <pre id="code-dart-154" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\prayer\providers\prayer_provider.dart (Line 498:51 - Line 504:56),
+              features\prayer\providers\prayer_provider.dart (Line 553:50 - Line 558:56)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-155')">Show code</button>
+            </div>
+            <pre id="code-dart-155" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\data\repository\quran_repository.dart (Line 107:69 - Line 117:55),
+              features\quran\data\repository\quran_repository.dart (Line 131:72 - Line 141:55)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-156')">Show code</button>
+            </div>
+            <pre id="code-dart-156" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\data\repository\quran_repository.dart (Line 169:31 - Line 177:41),
+              features\quran\data\repository\quran_repository.dart (Line 193:32 - Line 201:41)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-157')">Show code</button>
+            </div>
+            <pre id="code-dart-157" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\data\repository\quran_repository.dart (Line 353:33 - Line 358:20),
+              features\tafseer\presentation\tafseer_home_screen.dart (Line 144:18 - Line 149:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-158')">Show code</button>
+            </div>
+            <pre id="code-dart-158" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\ayah_options_sheet.dart (Line 573:5 - Line 582:30),
+              features\quran\presentation\mushaf_reader_screen.dart (Line 642:5 - Line 651:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-159')">Show code</button>
+            </div>
+            <pre id="code-dart-159" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\ayah_options_sheet.dart (Line 609:12 - Line 627:26),
+              features\quran\presentation\mushaf_reader_screen.dart (Line 918:12 - Line 936:26)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-160')">Show code</button>
+            </div>
+            <pre id="code-dart-160" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\ayah_options_sheet.dart (Line 710:36 - Line 726:2),
+              features\quran\presentation\mushaf_reader_screen.dart (Line 972:34 - Line 988:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-161')">Show code</button>
+            </div>
+            <pre id="code-dart-161" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 716:25 - Line 724:55),
+              features\quran\presentation\surah_list_screen.dart (Line 471:27 - Line 479:55)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-162')">Show code</button>
+            </div>
+            <pre id="code-dart-162" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 717:48 - Line 726:63),
+              features\quran\presentation\quran_search_screen.dart (Line 325:45 - Line 334:63)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-163')">Show code</button>
+            </div>
+            <pre id="code-dart-163" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 724:54 - Line 733:15),
+              features\quran\presentation\surah_list_screen.dart (Line 480:37 - Line 489:15)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-164')">Show code</button>
+            </div>
+            <pre id="code-dart-164" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 733:14 - Line 746:42),
+              features\quran\presentation\surah_list_screen.dart (Line 496:14 - Line 509:42)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-165')">Show code</button>
+            </div>
+            <pre id="code-dart-165" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 920:46 - Line 932:18),
+              features\quran\presentation\quran_search_screen.dart (Line 718:25 - Line 730:18)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-166')">Show code</button>
+            </div>
+            <pre id="code-dart-166" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 991:44 - Line 1019:39),
+              features\quran\presentation\quran_search_screen.dart (Line 861:42 - Line 889:39)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-167')">Show code</button>
+            </div>
+            <pre id="code-dart-167" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 1002:42 - Line 1014:29),
+              features\quran\presentation\surah_reader_screen.dart (Line 405:46 - Line 417:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-168')">Show code</button>
+            </div>
+            <pre id="code-dart-168" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 1105:27 - Line 1117:17),
+              features\quran\presentation\quran_search_screen.dart (Line 967:25 - Line 979:17)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-169')">Show code</button>
+            </div>
+            <pre id="code-dart-169" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 1190:30 - Line 1206:20),
+              features\quran\presentation\bookmarks_screen.dart (Line 1380:50 - Line 1396:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-170')">Show code</button>
+            </div>
+            <pre id="code-dart-170" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 1192:3 - Line 1201:59),
+              features\quran\presentation\font_size_selector.dart (Line 208:3 - Line 217:59)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-171')">Show code</button>
+            </div>
+            <pre id="code-dart-171" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\bookmarks_screen.dart (Line 1208:11 - Line 1216:49),
+              features\quran\presentation\bookmarks_screen.dart (Line 1397:11 - Line 1405:49)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-172')">Show code</button>
+            </div>
+            <pre id="code-dart-172" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\mushaf_reader_screen.dart (Line 446:24 - Line 456:7),
+              features\quran\presentation\mushaf_reader_screen.dart (Line 460:18 - Line 470:7)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-173')">Show code</button>
+            </div>
+            <pre id="code-dart-173" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\mushaf_reader_screen.dart (Line 585:16 - Line 593:9),
+              features\quran\presentation\quran_screen.dart (Line 1928:11 - Line 1936:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-174')">Show code</button>
+            </div>
+            <pre id="code-dart-174" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\quran_screen.dart (Line 1785:22 - Line 1796:42),
+              features\quran\presentation\quran_screen.dart (Line 1859:26 - Line 1870:42)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-175')">Show code</button>
+            </div>
+            <pre id="code-dart-175" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\quran_search_screen.dart (Line 1230:1 - Line 1256:67),
+              features\quran\presentation\surah_list_screen.dart (Line 1111:1 - Line 1140:41)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-176')">Show code</button>
+            </div>
+            <pre id="code-dart-176" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_list_screen.dart (Line 655:27 - Line 663:63),
+              features\quran\presentation\surah_list_screen.dart (Line 1252:36 - Line 1260:63)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-177')">Show code</button>
+            </div>
+            <pre id="code-dart-177" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_list_screen.dart (Line 710:18 - Line 723:40),
+              features\quran\presentation\surah_list_screen.dart (Line 1312:35 - Line 1325:40)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-178')">Show code</button>
+            </div>
+            <pre id="code-dart-178" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_reader_screen.dart (Line 222:39 - Line 240:26),
+              features\tafseer\presentation\tafseer_home_screen.dart (Line 152:23 - Line 170:26)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-179')">Show code</button>
+            </div>
+            <pre id="code-dart-179" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_reader_screen.dart (Line 753:19 - Line 761:55),
+              features\tasbih\presentation\tasbih_screen.dart (Line 284:14 - Line 292:61)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-180')">Show code</button>
+            </div>
+            <pre id="code-dart-180" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_reader_screen.dart (Line 775:18 - Line 793:39),
+              features\tafseer\presentation\tafseer_home_screen.dart (Line 731:18 - Line 749:39)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-181')">Show code</button>
+            </div>
+            <pre id="code-dart-181" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_reader_screen.dart (Line 795:63 - Line 813:2),
+              features\tafseer\presentation\tafseer_home_screen.dart (Line 751:63 - Line 769:2)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-182')">Show code</button>
+            </div>
+            <pre id="code-dart-182" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_reader_screen.dart (Line 824:58 - Line 849:16),
+              features\quran\presentation\surah_reader_screen.dart (Line 926:51 - Line 951:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-183')">Show code</button>
+            </div>
+            <pre id="code-dart-183" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_reader_screen.dart (Line 832:9 - Line 849:16),
+              features\tasbih\presentation\tasbih_screen.dart (Line 1127:70 - Line 1144:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-184')">Show code</button>
+            </div>
+            <pre id="code-dart-184" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_reader_screen.dart (Line 834:7 - Line 849:16),
+              features\tasbih\presentation\tasbih_screen.dart (Line 993:9 - Line 1008:18)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-185')">Show code</button>
+            </div>
+            <pre id="code-dart-185" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\surah_reader_screen.dart (Line 863:68 - Line 875:30),
+              features\tasbih\presentation\tasbih_screen.dart (Line 1026:64 - Line 1039:34)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-186')">Show code</button>
+            </div>
+            <pre id="code-dart-186" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\widgets\premium_continue_reading_card.dart (Line 41:8 - Line 50:33),
+              features\quran\presentation\widgets\premium_continue_reading_card.dart (Line 425:19 - Line 434:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-187')">Show code</button>
+            </div>
+            <pre id="code-dart-187" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\widgets\premium_continue_reading_card.dart (Line 286:20 - Line 296:31),
+              features\quran\presentation\widgets\premium_continue_reading_card.dart (Line 477:35 - Line 487:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-188')">Show code</button>
+            </div>
+            <pre id="code-dart-188" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\widgets\quran_audio_player_sheet.dart (Line 70:63 - Line 81:45),
+              features\tools\screens\asma_ul_husna_screen.dart (Line 131:7 - Line 142:39)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-189')">Show code</button>
+            </div>
+            <pre id="code-dart-189" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\quran\presentation\widgets\quran_audio_player_sheet.dart (Line 74:45 - Line 81:45),
+              features\quran\presentation\widgets\quran_audio_player_sheet.dart (Line 95:52 - Line 102:45)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-190')">Show code</button>
+            </div>
+            <pre id="code-dart-190" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\language_selection_screen.dart (Line 138:5 - Line 152:31),
+              features\settings\presentation\permission_screen.dart (Line 164:5 - Line 178:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-191')">Show code</button>
+            </div>
+            <pre id="code-dart-191" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\language_selection_screen.dart (Line 294:42 - Line 314:20),
+              features\settings\presentation\permission_screen.dart (Line 416:56 - Line 436:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-192')">Show code</button>
+            </div>
+            <pre id="code-dart-192" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\language_selection_screen.dart (Line 316:11 - Line 364:22),
+              features\settings\presentation\permission_screen.dart (Line 438:11 - Line 486:22)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-193')">Show code</button>
+            </div>
+            <pre id="code-dart-193" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\language_selection_screen.dart (Line 365:22 - Line 389:21),
+              features\settings\presentation\permission_screen.dart (Line 487:22 - Line 511:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-194')">Show code</button>
+            </div>
+            <pre id="code-dart-194" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\language_selection_screen.dart (Line 389:45 - Line 403:20),
+              features\settings\presentation\permission_screen.dart (Line 511:21 - Line 525:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-195')">Show code</button>
+            </div>
+            <pre id="code-dart-195" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\language_selection_screen.dart (Line 504:13 - Line 512:26),
+              features\settings\presentation\permission_screen.dart (Line 652:60 - Line 660:26)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-196')">Show code</button>
+            </div>
+            <pre id="code-dart-196" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\language_selection_screen.dart (Line 758:34 - Line 765:43),
+              features\settings\presentation\permission_screen.dart (Line 1013:34 - Line 1020:43)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-197')">Show code</button>
+            </div>
+            <pre id="code-dart-197" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 86:50 - Line 92:42),
+              features\tools\screens\asma_ul_husna_screen.dart (Line 92:41 - Line 97:40)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-198')">Show code</button>
+            </div>
+            <pre id="code-dart-198" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 86:50 - Line 94:6),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 128:41 - Line 135:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-199')">Show code</button>
+            </div>
+            <pre id="code-dart-199" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 86:50 - Line 101:8),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 148:53 - Line 162:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-200')">Show code</button>
+            </div>
+            <pre id="code-dart-200" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 86:50 - Line 93:8),
+              features\tools\screens\ramadan_timer_screen.dart (Line 660:51 - Line 668:12)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-201')">Show code</button>
+            </div>
+            <pre id="code-dart-201" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 87:50 - Line 93:8),
+              features\tools\screens\tools_hub_screen.dart (Line 389:9 - Line 395:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-202')">Show code</button>
+            </div>
+            <pre id="code-dart-202" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 115:5 - Line 129:50),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 656:6 - Line 670:50)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-203')">Show code</button>
+            </div>
+            <pre id="code-dart-203" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 115:5 - Line 129:50),
+              features\tools\screens\ramadan_timer_screen.dart (Line 129:19 - Line 143:50)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-204')">Show code</button>
+            </div>
+            <pre id="code-dart-204" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 116:3 - Line 129:50),
+              features\tools\screens\zakat_calculator_screen.dart (Line 132:3 - Line 145:50)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-205')">Show code</button>
+            </div>
+            <pre id="code-dart-205" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 118:3 - Line 129:50),
+              features\tools\screens\hajj_guide_screen.dart (Line 162:3 - Line 173:50)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-206')">Show code</button>
+            </div>
+            <pre id="code-dart-206" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 246:3 - Line 266:13),
+              features\tools\screens\habit_tracker_screen.dart (Line 177:3 - Line 200:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-207')">Show code</button>
+            </div>
+            <pre id="code-dart-207" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 248:26 - Line 255:81),
+              features\tools\screens\dhikr_counter_screen.dart (Line 248:26 - Line 256:35)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-208')">Show code</button>
+            </div>
+            <pre id="code-dart-208" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 248:26 - Line 266:13),
+              features\tools\screens\hajj_guide_screen.dart (Line 203:26 - Line 224:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-209')">Show code</button>
+            </div>
+            <pre id="code-dart-209" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 248:26 - Line 257:45),
+              features\tools\screens\zakat_calculator_screen.dart (Line 225:26 - Line 238:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-210')">Show code</button>
+            </div>
+            <pre id="code-dart-210" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 255:81 - Line 265:32),
+              features\tools\screens\dhikr_counter_screen.dart (Line 257:11 - Line 266:38)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-211')">Show code</button>
+            </div>
+            <pre id="code-dart-211" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 265:57 - Line 273:30),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 786:57 - Line 794:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-212')">Show code</button>
+            </div>
+            <pre id="code-dart-212" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 265:57 - Line 273:30),
+              features\tools\screens\umrah_guide_screen.dart (Line 190:42 - Line 198:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-213')">Show code</button>
+            </div>
+            <pre id="code-dart-213" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 356:29 - Line 371:9),
+              features\tools\screens\hajj_guide_screen.dart (Line 343:28 - Line 358:9)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-214')">Show code</button>
+            </div>
+            <pre id="code-dart-214" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 371:60 - Line 377:65),
+              features\tools\screens\dhikr_counter_screen.dart (Line 523:27 - Line 529:65)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-215')">Show code</button>
+            </div>
+            <pre id="code-dart-215" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 372:5 - Line 379:13),
+              features\tools\screens\habit_tracker_screen.dart (Line 327:5 - Line 334:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-216')">Show code</button>
+            </div>
+            <pre id="code-dart-216" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 373:39 - Line 379:30),
+              features\tools\screens\halal_scanner_screen.dart (Line 427:47 - Line 434:26)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-217')">Show code</button>
+            </div>
+            <pre id="code-dart-217" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 373:39 - Line 380:6),
+              features\tools\screens\sadaqah_tracker_screen.dart (Line 407:39 - Line 415:22)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-218')">Show code</button>
+            </div>
+            <pre id="code-dart-218" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 418:22 - Line 438:6),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1311:24 - Line 1331:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-219')">Show code</button>
+            </div>
+            <pre id="code-dart-219" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 564:5 - Line 572:34),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1056:5 - Line 1065:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-220')">Show code</button>
+            </div>
+            <pre id="code-dart-220" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 565:39 - Line 571:21),
+              features\tools\screens\halal_scanner_screen.dart (Line 930:39 - Line 936:21)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-221')">Show code</button>
+            </div>
+            <pre id="code-dart-221" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 565:7 - Line 573:17),
+              features\tools\screens\ramadan_timer_screen.dart (Line 770:17 - Line 779:26)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-222')">Show code</button>
+            </div>
+            <pre id="code-dart-222" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 611:31 - Line 618:36),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1662:23 - Line 1669:36)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-223')">Show code</button>
+            </div>
+            <pre id="code-dart-223" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 639:47 - Line 654:15),
+              features\tools\screens\halal_scanner_screen.dart (Line 1156:24 - Line 1171:15)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-224')">Show code</button>
+            </div>
+            <pre id="code-dart-224" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 672:15 - Line 683:48),
+              features\tools\screens\hajj_guide_screen.dart (Line 557:19 - Line 568:48)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-225')">Show code</button>
+            </div>
+            <pre id="code-dart-225" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 672:16 - Line 683:48),
+              features\tools\screens\nikah_guide_screen.dart (Line 550:10 - Line 561:48)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-226')">Show code</button>
+            </div>
+            <pre id="code-dart-226" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 673:7 - Line 683:48),
+              features\tools\screens\umrah_guide_screen.dart (Line 492:17 - Line 502:48)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-227')">Show code</button>
+            </div>
+            <pre id="code-dart-227" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\notification_settings_screen.dart (Line 677:3 - Line 683:48),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1689:3 - Line 1696:44)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-228')">Show code</button>
+            </div>
+            <pre id="code-dart-228" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\profile_setup_screen.dart (Line 205:55 - Line 216:25),
+              features\settings\presentation\profile_setup_screen.dart (Line 420:54 - Line 431:25)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-229')">Show code</button>
+            </div>
+            <pre id="code-dart-229" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\profile_setup_screen.dart (Line 218:13 - Line 228:53),
+              features\settings\presentation\profile_setup_screen.dart (Line 432:13 - Line 442:53)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-230')">Show code</button>
+            </div>
+            <pre id="code-dart-230" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\profile_setup_screen.dart (Line 1128:19 - Line 1138:15),
+              features\settings\presentation\profile_setup_screen.dart (Line 1368:19 - Line 1378:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-231')">Show code</button>
+            </div>
+            <pre id="code-dart-231" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\profile_setup_screen.dart (Line 1271:16 - Line 1279:27),
+              features\settings\presentation\settings_screen.dart (Line 421:12 - Line 429:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-232')">Show code</button>
+            </div>
+            <pre id="code-dart-232" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\settings\presentation\settings_screen.dart (Line 533:30 - Line 545:71),
+              features\splash\presentation\splash_screen.dart (Line 608:30 - Line 620:71)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-233')">Show code</button>
+            </div>
+            <pre id="code-dart-233" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tafseer\presentation\tafseer_home_screen.dart (Line 168:13 - Line 183:42),
+              features\tasbih\presentation\tasbih_screen.dart (Line 277:50 - Line 292:36)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-234')">Show code</button>
+            </div>
+            <pre id="code-dart-234" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tafseer\presentation\tafseer_home_screen.dart (Line 183:48 - Line 196:66),
+              features\tasbih\presentation\tasbih_screen.dart (Line 292:43 - Line 305:60)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-235')">Show code</button>
+            </div>
+            <pre id="code-dart-235" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tafseer\presentation\tafseer_home_screen.dart (Line 402:48 - Line 415:30),
+              features\tafseer\presentation\tafseer_home_screen.dart (Line 462:22 - Line 475:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-236')">Show code</button>
+            </div>
+            <pre id="code-dart-236" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tafseer\presentation\tafseer_screen.dart (Line 172:14 - Line 182:23),
+              features\tafseer\presentation\tafseer_screen.dart (Line 201:38 - Line 211:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-237')">Show code</button>
+            </div>
+            <pre id="code-dart-237" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tafseer\presentation\tafseer_screen.dart (Line 172:14 - Line 182:23),
+              features\tafseer\presentation\tafseer_screen.dart (Line 220:44 - Line 230:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-238')">Show code</button>
+            </div>
+            <pre id="code-dart-238" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tafseer\presentation\tafseer_screen.dart (Line 564:24 - Line 575:52),
+              features\tafseer\presentation\tafseer_screen.dart (Line 779:19 - Line 790:52)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-239')">Show code</button>
+            </div>
+            <pre id="code-dart-239" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tafseer\presentation\tafseer_screen.dart (Line 575:50 - Line 586:20),
+              features\tafseer\presentation\tafseer_screen.dart (Line 791:63 - Line 802:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-240')">Show code</button>
+            </div>
+            <pre id="code-dart-240" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tasbih\presentation\tasbih_screen.dart (Line 287:25 - Line 296:23),
+              features\tasbih\presentation\tasbih_screen.dart (Line 333:54 - Line 342:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-241')">Show code</button>
+            </div>
+            <pre id="code-dart-241" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tasbih\presentation\tasbih_screen.dart (Line 329:35 - Line 342:23),
+              features\tasbih\presentation\tasbih_screen.dart (Line 350:32 - Line 363:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-242')">Show code</button>
+            </div>
+            <pre id="code-dart-242" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tasbih\presentation\tasbih_screen.dart (Line 1120:40 - Line 1144:16),
+              features\tasbih\presentation\tasbih_screen.dart (Line 1201:49 - Line 1225:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-243')">Show code</button>
+            </div>
+            <pre id="code-dart-243" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tasbih\presentation\tasbih_screen.dart (Line 1174:30 - Line 1191:64),
+              features\tasbih\presentation\tasbih_screen.dart (Line 1266:28 - Line 1283:64)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-244')">Show code</button>
+            </div>
+            <pre id="code-dart-244" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 29:19 - Line 42:24),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 34:20 - Line 47:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-245')">Show code</button>
+            </div>
+            <pre id="code-dart-245" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 44:39 - Line 53:27),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 49:50 - Line 58:27)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-246')">Show code</button>
+            </div>
+            <pre id="code-dart-246" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 92:79 - Line 101:4),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 128:79 - Line 137:7)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-247')">Show code</button>
+            </div>
+            <pre id="code-dart-247" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 107:23 - Line 123:16),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 164:29 - Line 180:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-248')">Show code</button>
+            </div>
+            <pre id="code-dart-248" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 129:36 - Line 151:22),
+              features\tools\screens\halal_scanner_screen.dart (Line 251:36 - Line 273:22)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-249')">Show code</button>
+            </div>
+            <pre id="code-dart-249" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 136:18 - Line 144:15),
+              features\tools\screens\dhikr_counter_screen.dart (Line 252:13 - Line 260:11)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-250')">Show code</button>
+            </div>
+            <pre id="code-dart-250" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 195:70 - Line 214:28),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 297:70 - Line 316:28)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-251')">Show code</button>
+            </div>
+            <pre id="code-dart-251" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 196:14 - Line 210:47),
+              features\tools\screens\halal_scanner_screen.dart (Line 562:11 - Line 576:51)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-252')">Show code</button>
+            </div>
+            <pre id="code-dart-252" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 214:59 - Line 259:74),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 316:62 - Line 361:74)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-253')">Show code</button>
+            </div>
+            <pre id="code-dart-253" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 242:9 - Line 250:33),
+              features\tools\screens\halal_scanner_screen.dart (Line 322:7 - Line 330:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-254')">Show code</button>
+            </div>
+            <pre id="code-dart-254" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 638:59 - Line 647:26),
+              features\tools\screens\hajj_guide_screen.dart (Line 568:57 - Line 577:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-255')">Show code</button>
+            </div>
+            <pre id="code-dart-255" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 638:59 - Line 647:26),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1696:53 - Line 1705:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-256')">Show code</button>
+            </div>
+            <pre id="code-dart-256" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 638:59 - Line 650:39),
+              features\tools\screens\nikah_guide_screen.dart (Line 561:57 - Line 573:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-257')">Show code</button>
+            </div>
+            <pre id="code-dart-257" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\asma_ul_husna_screen.dart (Line 638:59 - Line 650:39),
+              features\tools\screens\umrah_guide_screen.dart (Line 502:57 - Line 513:37)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-258')">Show code</button>
+            </div>
+            <pre id="code-dart-258" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\dhikr_counter_screen.dart (Line 259:44 - Line 269:31),
+              features\tools\screens\zakat_calculator_screen.dart (Line 239:11 - Line 249:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-259')">Show code</button>
+            </div>
+            <pre id="code-dart-259" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\dhikr_counter_screen.dart (Line 269:40 - Line 278:24),
+              features\tools\screens\habit_tracker_screen.dart (Line 200:40 - Line 209:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-260')">Show code</button>
+            </div>
+            <pre id="code-dart-260" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\dhikr_counter_screen.dart (Line 269:40 - Line 278:24),
+              features\tools\screens\sadaqah_tracker_screen.dart (Line 216:40 - Line 225:24)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-261')">Show code</button>
+            </div>
+            <pre id="code-dart-261" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\dhikr_counter_screen.dart (Line 471:77 - Line 477:24),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1665:57 - Line 1671:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-262')">Show code</button>
+            </div>
+            <pre id="code-dart-262" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\dhikr_counter_screen.dart (Line 523:26 - Line 532:27),
+              features\tools\screens\hajj_guide_screen.dart (Line 500:29 - Line 509:18)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-263')">Show code</button>
+            </div>
+            <pre id="code-dart-263" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\habit_tracker_screen.dart (Line 164:47 - Line 200:31),
+              features\tools\screens\sadaqah_tracker_screen.dart (Line 180:47 - Line 216:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-264')">Show code</button>
+            </div>
+            <pre id="code-dart-264" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\habit_tracker_screen.dart (Line 420:37 - Line 436:49),
+              features\tools\screens\sadaqah_tracker_screen.dart (Line 394:41 - Line 410:49)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-265')">Show code</button>
+            </div>
+            <pre id="code-dart-265" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\habit_tracker_screen.dart (Line 472:39 - Line 483:13),
+              features\tools\screens\sadaqah_tracker_screen.dart (Line 445:39 - Line 456:13)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-266')">Show code</button>
+            </div>
+            <pre id="code-dart-266" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\habit_tracker_screen.dart (Line 601:9 - Line 617:24),
+              features\tools\screens\sadaqah_tracker_screen.dart (Line 540:13 - Line 557:28)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-267')">Show code</button>
+            </div>
+            <pre id="code-dart-267" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 159:46 - Line 175:39),
+              features\tools\screens\nikah_guide_screen.dart (Line 172:70 - Line 188:39)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-268')">Show code</button>
+            </div>
+            <pre id="code-dart-268" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 159:46 - Line 175:44),
+              features\tools\screens\umrah_guide_screen.dart (Line 127:69 - Line 143:44)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-269')">Show code</button>
+            </div>
+            <pre id="code-dart-269" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 165:47 - Line 176:34),
+              features\tools\screens\umrah_guide_screen.dart (Line 133:47 - Line 144:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-270')">Show code</button>
+            </div>
+            <pre id="code-dart-270" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 189:36 - Line 224:30),
+              features\tools\screens\umrah_guide_screen.dart (Line 157:31 - Line 190:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-271')">Show code</button>
+            </div>
+            <pre id="code-dart-271" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 190:42 - Line 224:31),
+              features\tools\screens\nikah_guide_screen.dart (Line 197:42 - Line 231:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-272')">Show code</button>
+            </div>
+            <pre id="code-dart-272" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 201:3 - Line 222:39),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 766:3 - Line 786:48)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-273')">Show code</button>
+            </div>
+            <pre id="code-dart-273" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 224:40 - Line 233:30),
+              features\tools\screens\nikah_guide_screen.dart (Line 231:40 - Line 240:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-274')">Show code</button>
+            </div>
+            <pre id="code-dart-274" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 224:40 - Line 233:30),
+              features\tools\screens\ramadan_timer_screen.dart (Line 188:40 - Line 197:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-275')">Show code</button>
+            </div>
+            <pre id="code-dart-275" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 243:47 - Line 260:29),
+              features\tools\screens\umrah_guide_screen.dart (Line 208:38 - Line 225:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-276')">Show code</button>
+            </div>
+            <pre id="code-dart-276" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 245:84 - Line 260:29),
+              features\tools\screens\nikah_guide_screen.dart (Line 262:19 - Line 277:27)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-277')">Show code</button>
+            </div>
+            <pre id="code-dart-277" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 314:45 - Line 321:27),
+              features\tools\screens\ramadan_timer_screen.dart (Line 672:41 - Line 678:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-278')">Show code</button>
+            </div>
+            <pre id="code-dart-278" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 339:17 - Line 358:9),
+              features\tools\screens\umrah_guide_screen.dart (Line 299:7 - Line 318:9)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-279')">Show code</button>
+            </div>
+            <pre id="code-dart-279" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 343:3 - Line 356:4),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1039:3 - Line 1052:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-280')">Show code</button>
+            </div>
+            <pre id="code-dart-280" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 358:36 - Line 371:16),
+              features\tools\screens\nikah_guide_screen.dart (Line 370:49 - Line 383:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-281')">Show code</button>
+            </div>
+            <pre id="code-dart-281" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 358:36 - Line 371:16),
+              features\tools\screens\umrah_guide_screen.dart (Line 318:40 - Line 331:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-282')">Show code</button>
+            </div>
+            <pre id="code-dart-282" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 376:24 - Line 388:29),
+              features\tools\screens\umrah_guide_screen.dart (Line 336:25 - Line 348:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-283')">Show code</button>
+            </div>
+            <pre id="code-dart-283" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\hajj_guide_screen.dart (Line 463:53 - Line 471:30),
+              features\tools\screens\nikah_guide_screen.dart (Line 512:53 - Line 520:30)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-284')">Show code</button>
+            </div>
+            <pre id="code-dart-284" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 123:68 - Line 145:20),
+              features\tools\screens\halal_scanner_screen.dart (Line 160:69 - Line 182:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-285')">Show code</button>
+            </div>
+            <pre id="code-dart-285" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 212:32 - Line 230:12),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 645:24 - Line 663:12)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-286')">Show code</button>
+            </div>
+            <pre id="code-dart-286" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 218:24 - Line 223:6),
+              features\tools\screens\sadaqah_tracker_screen.dart (Line 116:30 - Line 121:8)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-287')">Show code</button>
+            </div>
+            <pre id="code-dart-287" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 221:14 - Line 232:27),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 152:14 - Line 163:23)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-288')">Show code</button>
+            </div>
+            <pre id="code-dart-288" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 241:26 - Line 273:22),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 174:22 - Line 206:22)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-289')">Show code</button>
+            </div>
+            <pre id="code-dart-289" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 322:22 - Line 339:29),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 344:24 - Line 362:15)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-290')">Show code</button>
+            </div>
+            <pre id="code-dart-290" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 426:13 - Line 434:28),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1608:12 - Line 1616:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-291')">Show code</button>
+            </div>
+            <pre id="code-dart-291" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 498:13 - Line 513:9),
+              features\tools\screens\halal_scanner_screen.dart (Line 627:13 - Line 642:9)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-292')">Show code</button>
+            </div>
+            <pre id="code-dart-292" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 716:47 - Line 724:62),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 736:44 - Line 744:58)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-293')">Show code</button>
+            </div>
+            <pre id="code-dart-293" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 929:5 - Line 941:32),
+              features\tools\screens\halal_scanner_screen.dart (Line 1000:5 - Line 1012:32)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-294')">Show code</button>
+            </div>
+            <pre id="code-dart-294" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 929:5 - Line 936:13),
+              features\tools\screens\ramadan_timer_screen.dart (Line 507:7 - Line 514:15)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-295')">Show code</button>
+            </div>
+            <pre id="code-dart-295" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\halal_scanner_screen.dart (Line 1209:3 - Line 1216:4),
+              features\tools\screens\sadaqah_tracker_screen.dart (Line 135:3 - Line 142:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-296')">Show code</button>
+            </div>
+            <pre id="code-dart-296" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 757:16 - Line 787:13),
+              features\tools\screens\ramadan_timer_screen.dart (Line 156:17 - Line 188:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-297')">Show code</button>
+            </div>
+            <pre id="code-dart-297" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 897:10 - Line 907:79),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 264:39 - Line 272:77)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-298')">Show code</button>
+            </div>
+            <pre id="code-dart-298" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 907:79 - Line 920:34),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 274:13 - Line 285:32)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-299')">Show code</button>
+            </div>
+            <pre id="code-dart-299" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 941:78 - Line 950:50),
+              features\tools\screens\sadaqah_tracker_screen.dart (Line 595:70 - Line 605:58)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-300')">Show code</button>
+            </div>
+            <pre id="code-dart-300" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 985:7 - Line 992:20),
+              features\tools\screens\islamic_name_finder_screen.dart (Line 740:7 - Line 747:20)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-301')">Show code</button>
+            </div>
+            <pre id="code-dart-301" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1055:29 - Line 1066:16),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1097:30 - Line 1108:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-302')">Show code</button>
+            </div>
+            <pre id="code-dart-302" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1055:29 - Line 1066:16),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1138:31 - Line 1149:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-303')">Show code</button>
+            </div>
+            <pre id="code-dart-303" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1055:29 - Line 1066:16),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1176:31 - Line 1187:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-304')">Show code</button>
+            </div>
+            <pre id="code-dart-304" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1055:29 - Line 1066:16),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1203:35 - Line 1214:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-305')">Show code</button>
+            </div>
+            <pre id="code-dart-305" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1055:29 - Line 1066:16),
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1263:28 - Line 1274:16)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-306')">Show code</button>
+            </div>
+            <pre id="code-dart-306" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1606:67 - Line 1613:65),
+              features\tools\screens\zakat_calculator_screen.dart (Line 687:60 - Line 694:65)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-307')">Show code</button>
+            </div>
+            <pre id="code-dart-307" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1652:23 - Line 1669:72),
+              features\tools\screens\zakat_calculator_screen.dart (Line 767:13 - Line 785:55)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-308')">Show code</button>
+            </div>
+            <pre id="code-dart-308" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1681:49 - Line 1696:44),
+              features\tools\screens\zakat_calculator_screen.dart (Line 804:13 - Line 819:31)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-309')">Show code</button>
+            </div>
+            <pre id="code-dart-309" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\inheritance_calculator_screen.dart (Line 1684:8 - Line 1707:37),
+              features\tools\screens\ramadan_timer_screen.dart (Line 804:8 - Line 827:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-310')">Show code</button>
+            </div>
+            <pre id="code-dart-310" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\ramadan_timer_screen.dart (Line 769:57 - Line 779:69),
+              features\tools\screens\umrah_guide_screen.dart (Line 468:62 - Line 478:63)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-311')">Show code</button>
+            </div>
+            <pre id="code-dart-311" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\tools_hub_screen.dart (Line 39:46 - Line 51:50),
+              features\tools\screens\zakat_calculator_screen.dart (Line 242:7 - Line 254:50)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-312')">Show code</button>
+            </div>
+            <pre id="code-dart-312" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\tools_hub_screen.dart (Line 303:28 - Line 311:39),
+              features\tools\screens\tools_hub_screen.dart (Line 320:27 - Line 328:39)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-313')">Show code</button>
+            </div>
+            <pre id="code-dart-313" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              features\tools\screens\zakat_calculator_screen.dart (Line 66:5 - Line 71:61),
+              features\tools\screens\zakat_calculator_screen.dart (Line 682:5 - Line 687:61)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-314')">Show code</button>
+            </div>
+            <pre id="code-dart-314" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 104:25 - Line 116:9),
+              shared\widgets\buttons\app_button.dart (Line 271:27 - Line 283:9)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-315')">Show code</button>
+            </div>
+            <pre id="code-dart-315" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 104:25 - Line 116:9),
+              shared\widgets\buttons\app_button.dart (Line 431:22 - Line 443:9)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-316')">Show code</button>
+            </div>
+            <pre id="code-dart-316" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 119:60 - Line 148:33),
+              shared\widgets\buttons\app_button.dart (Line 286:64 - Line 315:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-317')">Show code</button>
+            </div>
+            <pre id="code-dart-317" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 119:60 - Line 187:33),
+              shared\widgets\buttons\app_button.dart (Line 446:54 - Line 509:33)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-318')">Show code</button>
+            </div>
+            <pre id="code-dart-318" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 119:60 - Line 133:11),
+              shared\widgets\buttons\app_button.dart (Line 680:48 - Line 694:11)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-319')">Show code</button>
+            </div>
+            <pre id="code-dart-319" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 119:60 - Line 133:11),
+              shared\widgets\buttons\app_button.dart (Line 825:58 - Line 839:11)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-320')">Show code</button>
+            </div>
+            <pre id="code-dart-320" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 162:3 - Line 183:37),
+              shared\widgets\buttons\app_button.dart (Line 324:3 - Line 345:37)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-321')">Show code</button>
+            </div>
+            <pre id="code-dart-321" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 193:66 - Line 213:25),
+              shared\widgets\buttons\app_button.dart (Line 353:14 - Line 373:25)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-322')">Show code</button>
+            </div>
+            <pre id="code-dart-322" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 193:66 - Line 213:25),
+              shared\widgets\buttons\app_button.dart (Line 515:63 - Line 535:25)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-323')">Show code</button>
+            </div>
+            <pre id="code-dart-323" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 213:30 - Line 228:29),
+              shared\widgets\buttons\app_button.dart (Line 373:32 - Line 388:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-324')">Show code</button>
+            </div>
+            <pre id="code-dart-324" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 213:30 - Line 228:29),
+              shared\widgets\buttons\app_button.dart (Line 535:35 - Line 550:29)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-325')">Show code</button>
+            </div>
+            <pre id="code-dart-325" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 694:16 - Line 711:10),
+              shared\widgets\buttons\app_button.dart (Line 839:16 - Line 856:10)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-326')">Show code</button>
+            </div>
+            <pre id="code-dart-326" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 694:16 - Line 710:39),
+              shared\widgets\navigation\app_bottom_nav.dart (Line 317:16 - Line 333:39)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-327')">Show code</button>
+            </div>
+            <pre id="code-dart-327" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 736:5 - Line 750:15),
+              shared\widgets\buttons\app_button.dart (Line 858:5 - Line 872:15)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-328')">Show code</button>
+            </div>
+            <pre id="code-dart-328" class="code-block"></pre>
+          </div>
+          
+          <div class="clone-item">
+            <div class="clone-info">
+              shared\widgets\buttons\app_button.dart (Line 1005:27 - Line 1014:6),
+              shared\widgets\buttons\app_button.dart (Line 1016:28 - Line 1024:4)
+            </div>
+            <div>
+              <button class="toggle-btn" onclick="toggle('code-dart-329')">Show code</button>
+            </div>
+            <pre id="code-dart-329" class="code-block"></pre>
+          </div>
+          
+        </div>
+      </section>
+    </div>
+    
+    
+  </div>
+
+  <div class="footer">
+    <p>Generated by <a href="https://jscpd.dev" target="_blank">jscpd</a> v0.1.7 by <a href="https://github.com/kucherenko" target="_blank">Andrey Kucherenko</a></p>
+    <p><a href="https://www.npmjs.com/package/jscpd" target="_blank"><img src="https://img.shields.io/npm/dw/jscpd.svg?style=flat-square" alt="npm weekly downloads" style="vertical-align: middle;"></a></p>
+  </div>
+
+  <script>
+    function toggle(id) {
+      var el = document.getElementById(id);
+      if (el) { el.classList.toggle('visible'); }
+    }
+  </script>
+</body>
+</html>

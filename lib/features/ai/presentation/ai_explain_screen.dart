@@ -42,7 +42,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
   bool _isListening = false;
   bool _isSpeaking = false;
-  bool _voiceMode = false;
+  final bool _voiceMode = false;
   bool _autoSpeak = true;
   String _partialText = '';
 

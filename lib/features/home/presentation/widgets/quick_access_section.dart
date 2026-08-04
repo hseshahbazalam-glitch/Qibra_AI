@@ -30,7 +30,7 @@ const List<_QuickItem> _items = [
     route: AppRoutes.quran,
   ),
   _QuickItem(
-    icon: Icons.collections_bookmark_rounded,
+    icon: Icons.import_contacts_rounded,
     label: 'Hadith',
     color: Color(0xFFB45309),
     route: AppRoutes.hadith,
@@ -42,7 +42,7 @@ const List<_QuickItem> _items = [
     route: AppRoutes.qibla,
   ),
   _QuickItem(
-    icon: Icons.grain_rounded,
+    icon: Icons.blur_circular_rounded,
     label: 'Tasbih',
     color: AppColors.accent,
     route: AppRoutes.tasbih,
@@ -54,9 +54,9 @@ const List<_QuickItem> _items = [
     route: AppRoutes.dua,
   ),
   _QuickItem(
-    icon: Icons.apps_rounded,
+    icon: Icons.grid_view_rounded,
     label: 'More',
-    color: Color(0xFF6B7280),
+    color: Color(0xFF9CA3AF),
     route: AppRoutes.settings,
   ),
 ];
@@ -73,33 +73,41 @@ class HomeQuickAccessSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Row(
             children: [
-              Container(
-                width: 3,
-                height: 14,
-                decoration: BoxDecoration(
-                  gradient: AppGradients.gold,
-                  borderRadius: AppRadius.pillRadius,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              const Icon(
-                Icons.grid_view_rounded,
-                color: AppColors.accent,
-                size: 16,
-              ),
-              const SizedBox(width: 4),
               Text(
                 'QUICK ACCESS',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.accent,
-                  letterSpacing: 2.0,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 1.5,
                   fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Edit',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: const Color(0xFF00E676),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    const Icon(Icons.arrow_forward_ios_rounded,
+                        color: Color(0xFF00E676), size: 10),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Row(
@@ -121,31 +129,24 @@ class HomeQuickAccessSection extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 54,
-            height: 54,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  item.color.withValues(alpha: 0.20),
-                  item.color.withValues(alpha: 0.08),
-                ],
-              ),
-              shape: BoxShape.circle,
+              color: item.color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: item.color.withValues(alpha: 0.35),
-                width: 1.5,
+                color: item.color.withValues(alpha: 0.30),
+                width: 1.2,
               ),
             ),
-            child: Icon(item.icon, color: item.color, size: 24),
+            child: Icon(item.icon, color: item.color, size: 22),
           ),
           const SizedBox(height: 6),
           Text(
             item.label,
             style: AppTextStyles.labelSmall.copyWith(
               color: AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               fontSize: 10,
             ),
             maxLines: 1,

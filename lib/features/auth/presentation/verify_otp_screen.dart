@@ -19,6 +19,8 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
+import 'package:qibra_ai/features/auth/presentation/widgets/auth_header.dart';
 
 // ============================================================
 // PREMIUM OTP SCREEN
@@ -546,74 +548,12 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Back button (glass)
-        GestureDetector(
-          onTap: () => context.go(AppRoutes.login),
-          child: ClipOval(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.10),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    width: 1,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Step indicator badge
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.10),
-            borderRadius: AppRadius.pillRadius,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppGradients.gold.createShader(bounds),
-                child: Text(
-                  '2',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              Text(
-                ' / 3 · Verify',
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return AuthHeader(
+      onBackTap: () => context.go(AppRoutes.login),
+      stepNumber: 2,
+      totalSteps: 3,
+      stepLabel: 'Verify',
+      stepGradient: AppGradients.gold,
     );
   }
 
@@ -944,62 +884,11 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildVerifyButton() {
-    return GestureDetector(
-      onTap: _isLoading ? null : _handleVerify,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: _isLoading
-              ? LinearGradient(
-                  colors: [
-                    AppColors.primary.withValues(alpha: 0.60),
-                    AppColors.primaryDark.withValues(alpha: 0.60),
-                  ],
-                )
-              : AppGradients.emerald,
-          borderRadius: AppRadius.buttonRadiusLg,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.50),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Center(
-          child: _isLoading
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white,
-                    ),
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.check_circle_outline_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      'Verify Code',
-                      style: AppTextStyles.buttonLarge.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
+    return AuthButton(
+      label: 'Verify Code',
+      onTap: _handleVerify,
+      isLoading: _isLoading,
+      leadingIcon: Icons.check_circle_outline_rounded,
     );
   }
 

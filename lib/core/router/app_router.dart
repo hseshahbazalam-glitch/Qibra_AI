@@ -315,13 +315,34 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => AppShellScaffold(
           location: state.matchedLocation,
           notificationCount: 3,
-          onHomeTap: () => context.go(AppRoutes.home),
-          onQuranTap: () => context.go(AppRoutes.quran),
-          onPrayerTap: () => context.go(AppRoutes.prayer),
-          onHadithTap: () => context.go(AppRoutes.hadith),
-          onAiTap: () => context.go(AppRoutes.aiChat),
-          onSettingsTap: () => context.go(AppRoutes.settings),
-          onCenterFabTap: () => context.go(AppRoutes.quran),
+          onHomeTap: () {
+            debugPrint('🏠 HOME TAP → ${AppRoutes.home}');
+            context.go(AppRoutes.home);
+          },
+          onQuranTap: () {
+            debugPrint('📖 QURAN TAP → ${AppRoutes.quran}');
+            context.go(AppRoutes.quran);
+          },
+          onPrayerTap: () {
+            debugPrint('🕐 PRAYER TAP → ${AppRoutes.prayer}');
+            context.go(AppRoutes.prayer);
+          },
+          onHadithTap: () {
+            debugPrint('📚 HADITH TAP → ${AppRoutes.hadith}');
+            context.go(AppRoutes.hadith);
+          },
+          onAiTap: () {
+            debugPrint('🤖 AI TAP → ${AppRoutes.aiChat}');
+            context.go(AppRoutes.aiChat);
+          },
+          onSettingsTap: () {
+            debugPrint('⚙️ SETTINGS TAP → ${AppRoutes.settings}');
+            context.go(AppRoutes.settings);
+          },
+          onCenterFabTap: () {
+            debugPrint('🕌 FAB TAP');
+            context.go(AppRoutes.quran);
+          },
           child: child,
         ),
         routes: [

@@ -13,7 +13,8 @@ class _ProgressStat {
   final String value;
   final IconData icon;
   final Color color;
-  final double progress;
+  final double? progress;
+  final String caption;
   final String route;
 
   const _ProgressStat({
@@ -21,8 +22,9 @@ class _ProgressStat {
     required this.value,
     required this.icon,
     required this.color,
-    required this.progress,
+    required this.caption,
     required this.route,
+    this.progress,
   });
 }
 
@@ -31,24 +33,25 @@ const List<_ProgressStat> _stats = [
     label: 'Prayer',
     value: '4/5',
     icon: Icons.mosque_rounded,
-    color: AppColors.primary,
-    progress: 0.80,
+    color: Color(0xFF00E676),
+    caption: 'On Track',
     route: AppRoutes.prayer,
   ),
   _ProgressStat(
     label: 'Quran',
     value: '20 min',
     icon: Icons.menu_book_rounded,
-    color: AppColors.accent,
-    progress: 0.66,
+    color: Color(0xFFF59E0B),
+    caption: 'On Track',
     route: AppRoutes.quran,
   ),
   _ProgressStat(
     label: 'Tasbih',
     value: '66/200',
-    icon: Icons.grain_rounded,
-    color: Color(0xFF7C3AED),
-    progress: 0.33,
+    icon: Icons.blur_circular_rounded,
+    color: Color(0xFF8B5CF6),
+    caption: 'Daily Goal',
+    progress: 66 / 200,
     route: AppRoutes.tasbih,
   ),
   _ProgressStat(
@@ -56,43 +59,37 @@ const List<_ProgressStat> _stats = [
     value: '12/40',
     icon: Icons.volunteer_activism_rounded,
     color: Color(0xFFEF4444),
-    progress: 0.30,
+    caption: 'Daily Goal',
+    progress: 12 / 40,
     route: AppRoutes.dua,
   ),
 ];
 
+/// Left card only: header + 2x2 grid of progress tiles.
+/// Meant to be placed inside an Expanded/Row alongside a streak card.
 class HomeDailyProgressSection extends StatelessWidget {
   const HomeDailyProgressSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Row(
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.cardRadiusLarge,
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Container(
-                width: 3,
-                height: 14,
-                decoration: BoxDecoration(
-                  gradient: AppGradients.gold,
-                  borderRadius: AppRadius.pillRadius,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              const Icon(
-                Icons.insights_rounded,
-                color: AppColors.accent,
-                size: 16,
-              ),
-              const SizedBox(width: 4),
               Text(
                 "TODAY'S PROGRESS",
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.accent,
-                  letterSpacing: 2.0,
+                  color: AppColors.textSecondary,
+                  fontSize: 10,
+                  letterSpacing: 1.0,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -105,32 +102,32 @@ class HomeDailyProgressSection extends StatelessWidget {
                 child: Text(
                   'View All',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.accent,
+                    color: const Color(0xFF00E676),
                     fontWeight: FontWeight.w700,
-                    fontSize: 10,
+                    fontSize: 9,
                   ),
                 ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Row(
-            children: List.generate(_stats.length, (index) {
-              final stat = _stats[index];
-              final isLast = index == _stats.length - 1;
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(right: isLast ? 0 : AppSpacing.sm),
-                  child: _buildTile(context, stat),
-                ),
-              );
-            }),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: _buildTile(context, _stats[0])),
+              const SizedBox(width: 8),
+              Expanded(child: _buildTile(context, _stats[1])),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(child: _buildTile(context, _stats[2])),
+              const SizedBox(width: 8),
+              Expanded(child: _buildTile(context, _stats[3])),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -141,66 +138,54 @@ class HomeDailyProgressSection extends StatelessWidget {
         context.go(stat.route);
       },
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.sm),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppRadius.cardRadius,
-          border: Border.all(color: stat.color.withValues(alpha: 0.25)),
-          boxShadow: [
-            BoxShadow(
-              color: stat.color.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: const Color(0xFF0D1826),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(stat.icon, color: stat.color, size: 16),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               stat.label,
-              style: AppTextStyles.labelSmall.copyWith(
-                color: stat.color,
-                fontWeight: FontWeight.w700,
-                fontSize: 10,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 2),
             Text(
               stat.value,
-              style: AppTextStyles.titleSmall.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w800,
+              style: const TextStyle(
+                color: Colors.white,
                 fontSize: 13,
-                height: 1.0,
+                fontWeight: FontWeight.w800,
+                height: 1.2,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              stat.progress >= 1.0
-                  ? 'Completed'
-                  : stat.progress >= 0.5
-                      ? 'On Track'
-                      : 'Daily Goal',
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.textTertiary,
-                fontSize: 8,
-                fontWeight: FontWeight.w500,
+            const SizedBox(height: 3),
+            if (stat.progress != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: stat.progress!.clamp(0.0, 1.0),
+                  minHeight: 3,
+                  backgroundColor: Colors.white.withValues(alpha: 0.10),
+                  valueColor: AlwaysStoppedAnimation<Color>(stat.color),
+                ),
+              )
+            else
+              Text(
+                stat.caption,
+                style: TextStyle(
+                  color: stat.color,
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: stat.progress.clamp(0.0, 1.0),
-                backgroundColor: stat.color.withValues(alpha: 0.15),
-                valueColor: AlwaysStoppedAnimation<Color>(stat.color),
-                minHeight: 3,
-              ),
-            ),
           ],
         ),
       ),

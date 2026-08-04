@@ -1,7 +1,6 @@
 // lib/shared/widgets/navigation/app_bottom_nav.dart
-
 // ============================================================
-// QIBRA AI — PREMIUM BOTTOM NAVIGATION (v3.0 — Better UI)
+// QIBRA AI — PREMIUM BOTTOM NAVIGATION (v3.0 — Original Working)
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -289,7 +288,7 @@ class _NavBadge extends StatelessWidget {
 }
 
 // ============================================================
-// CENTER FAB (Smaller & Cleaner)
+// CENTER FAB
 // ============================================================
 
 class _CenterFab extends StatefulWidget {
@@ -444,7 +443,6 @@ class AppShellScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      // FIX: extendBody false = content bottom navbar ke upar nahi jayega
       extendBody: false,
       body: child,
       bottomNavigationBar: AppBottomNav(
