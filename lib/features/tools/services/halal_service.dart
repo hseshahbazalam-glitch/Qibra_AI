@@ -59,7 +59,6 @@ class HalalService {
   // ─── MASTER ANALYSIS ENGINE ─────────────────────────────────
   static HalalVerdict analyzeProduct(ProductData product) {
     final ingredients = product.ingredients.toLowerCase();
-    final labels = product.labels.toLowerCase();
     final name = product.name.toLowerCase();
     final brand = product.brand.toLowerCase();
 
