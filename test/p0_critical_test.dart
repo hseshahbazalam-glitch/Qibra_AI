@@ -8,45 +8,83 @@ import 'package:qibra_ai/features/prayer/data/models/prayer_models.dart';
 
 // Mock secure storage for tests
 class MockSecureStorage extends FlutterSecureStorage {
-  MockSecureStorage() : super();
+  MockSecureStorage();
   final Map<String, String> _store = {};
+
   @override
-  Future<String?> read(
-          {required String key,
-          AndroidOptions? aOptions,
-          IOSOptions? iOptions}) async =>
+  Future<String?> read({
+    required String key,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async =>
       _store[key];
+
   @override
-  Future<void> write(
-      {required String key,
-      required String? value,
-      AndroidOptions? aOptions,
-      IOSOptions? iOptions}) async {
-    if (value == null)
+  Future<void> write({
+    required String key,
+    required String? value,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    if (value == null) {
       _store.remove(key);
-    else
+    } else {
       _store[key] = value;
+    }
   }
 
   @override
-  Future<void> delete(
-          {required String key,
-          AndroidOptions? aOptions,
-          IOSOptions? iOptions}) async =>
+  Future<void> delete({
+    required String key,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async =>
       _store.remove(key);
+
   @override
-  Future<bool> containsKey(
-          {required String key,
-          AndroidOptions? aOptions,
-          IOSOptions? iOptions}) async =>
+  Future<bool> containsKey({
+    required String key,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async =>
       _store.containsKey(key);
+
   @override
-  Future<Map<String, String>> readAll(
-          {AndroidOptions? aOptions, IOSOptions? iOptions}) async =>
+  Future<Map<String, String>> readAll({
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async =>
       Map.from(_store);
+
   @override
-  Future<void> deleteAll(
-          {AndroidOptions? aOptions, IOSOptions? iOptions}) async =>
+  Future<void> deleteAll({
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async =>
       _store.clear();
 }
 
@@ -56,7 +94,7 @@ void main() {
         () async {
       expect(AppApi.isBackendEnabled, isFalse);
       final storage = MockSecureStorage();
-      final notifier = AuthNotifier(storage as FlutterSecureStorage);
+      final notifier = AuthNotifier(storage);
       await Future.delayed(const Duration(milliseconds: 150));
       expect(notifier.state.isUnauthenticated, isTrue);
       final success = await notifier.login(
@@ -69,7 +107,7 @@ void main() {
 
     test('continueAsGuest clears error', () async {
       final storage = MockSecureStorage();
-      final notifier = AuthNotifier(storage as FlutterSecureStorage);
+      final notifier = AuthNotifier(storage);
       await Future.delayed(const Duration(milliseconds: 100));
       await notifier.login(email: 'a@b.co', password: '12345678');
       expect(notifier.state.hasError, isTrue);
