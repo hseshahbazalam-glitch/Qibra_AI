@@ -621,6 +621,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
               // Register button
               _buildRegisterButton(isLoading),
+
+              const SizedBox(height: AppSpacing.md),
+
+              // Continue as Guest button (PREMIUM OFF-LINE BYPASS)
+              AuthButton(
+                label: 'Continue as Guest',
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  ref.read(authProvider.notifier).continueAsGuest();
+                  context.go(AppRoutes.home);
+                },
+                isLoading: false,
+                height: 48,
+                gradient: const LinearGradient(
+                    colors: [Color(0xFF00E676), Color(0xFF00A86B)]),
+              ),
             ],
           ),
         ),

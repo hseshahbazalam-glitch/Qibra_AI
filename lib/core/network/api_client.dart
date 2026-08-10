@@ -68,12 +68,13 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onError: (DioException e, handler) async {
-          if (_shouldRetry(e) && e.requestOptions.extra['retries'] as int? != AppApi.maxRetries) {
-            final retries = (e.requestOptions.extra['retries'] as int? ?? 0) + 1;
+          final retriesValue = e.requestOptions.extra['retries'] as int?;
+          if (_shouldRetry(e) && retriesValue != AppApi.maxRetries) {
+            final retries = (retriesValue ?? 0) + 1;
             e.requestOptions.extra['retries'] = retries;
-            await Future.delayed(AppApi.retryDelay * retries);
+            await Future<void>.delayed(AppApi.retryDelay * retries);
             try {
-              final resp = await _dio.fetch(e.requestOptions);
+              final resp = await _dio.fetch<dynamic>(e.requestOptions);
               return handler.resolve(resp);
             } catch (_) {}
           }
@@ -98,11 +99,11 @@ class ApiClient {
   Future<void> _ensureOnline() async {
     try {
       final result = await Connectivity().checkConnectivity();
-      if (result.contains(ConnectivityResult.none) ||
-          (result.isEmpty)) {
+      if (result.contains(ConnectivityResult.none) || (result.isEmpty)) {
         // Double-check via DNS to avoid false offline on some devices
         // but connectivity_plus is sufficient for guard
-        throw const ApiException(ApiErrorType.offline, 'No internet connection. Please check your network.');
+        throw const ApiException(ApiErrorType.offline,
+            'No internet connection. Please check your network.');
       }
     } catch (e) {
       if (e is ApiException) rethrow;
@@ -124,7 +125,8 @@ class ApiClient {
           .timeout(AppApi.receiveTimeout);
       return resp;
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Request timed out. Please try again.');
+      throw const ApiException(
+          ApiErrorType.timeout, 'Request timed out. Please try again.');
     } on DioException catch (e) {
       throw _mapDioError(e);
     } on SocketException {
@@ -142,11 +144,13 @@ class ApiClient {
     if (requireOnline) await _ensureOnline();
     try {
       final resp = await _dio
-          .post<T>(path, data: data, queryParameters: queryParameters, options: options)
+          .post<T>(path,
+              data: data, queryParameters: queryParameters, options: options)
           .timeout(AppApi.receiveTimeout);
       return resp;
     } on TimeoutException {
-      throw const ApiException(ApiErrorType.timeout, 'Request timed out. Please try again.');
+      throw const ApiException(
+          ApiErrorType.timeout, 'Request timed out. Please try again.');
     } on DioException catch (e) {
       throw _mapDioError(e);
     } on SocketException {
@@ -158,21 +162,30 @@ class ApiClient {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.sendTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
-      return const ApiException(ApiErrorType.timeout, 'Connection timed out. Please try again.');
+      return const ApiException(
+          ApiErrorType.timeout, 'Connection timed out. Please try again.');
     }
     if (e.type == DioExceptionType.connectionError) {
-      return const ApiException(ApiErrorType.offline, 'Cannot reach server. Check internet.');
+      return const ApiException(
+          ApiErrorType.offline, 'Cannot reach server. Check internet.');
     }
     final code = e.response?.statusCode;
     if (code == 401 || code == 403) {
-      return ApiException(ApiErrorType.unauthorized, 'Session expired. Please sign in again.', statusCode: code);
+      return ApiException(
+          ApiErrorType.unauthorized, 'Session expired. Please sign in again.',
+          statusCode: code);
     }
     if (code == 404) {
-      return ApiException(ApiErrorType.notFound, 'Requested resource not found.', statusCode: 404);
+      return ApiException(
+          ApiErrorType.notFound, 'Requested resource not found.',
+          statusCode: 404);
     }
     if (code != null && code >= 500) {
-      return ApiException(ApiErrorType.serverError, 'Server error. Please try later.', statusCode: code);
+      return ApiException(
+          ApiErrorType.serverError, 'Server error. Please try later.',
+          statusCode: code);
     }
-    return ApiException(ApiErrorType.unknown, e.message ?? 'Network error', statusCode: code);
+    return ApiException(ApiErrorType.unknown, e.message ?? 'Network error',
+        statusCode: code);
   }
 }

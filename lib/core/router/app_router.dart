@@ -49,51 +49,6 @@ import 'package:qibra_ai/features/tools/screens/islamic_name_finder_screen.dart'
 import 'package:qibra_ai/features/tools/screens/inheritance_calculator_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/notification_settings_screen.dart';
 import 'package:qibra_ai/features/home/presentation/home_screen.dart';
-// ===== THE ONLY CHANGE NEEDED IS HERE =====
-// We are importing the NEW modular home screen
-
-// ===========================================
-
-// ============================================================
-// PLACEHOLDER SCREENS (No changes here)
-// ============================================================
-class _QuranPlaceholder extends StatelessWidget {
-  const _QuranPlaceholder();
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: AppGradients.emerald,
-                shape: BoxShape.circle,
-                boxShadow: AppShadows.emeraldGlow,
-              ),
-              child: const Icon(
-                Icons.menu_book,
-                color: AppColors.white,
-                size: 40,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text('Quran Screen', style: AppTextStyles.headlineLarge),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Coming in Phase 2',
-              style: AppTextStyles.bodyMedium.secondary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _MosquesPlaceholder extends StatelessWidget {
   const _MosquesPlaceholder();
@@ -202,12 +157,8 @@ class _ErrorScreen extends StatelessWidget {
   }
 }
 
-// P1.4: Keep placeholders only for truly unimplemented features, now with disclaimer
-// _QuranPlaceholder kept for legacy but no longer routed; kept to avoid breaking deep links that still reference it
-// _MosquesPlaceholder now shows proper unavailable state with guidance
-
 // ============================================================
-// ROUTER PROVIDER (No changes here)
+// ROUTER PROVIDER
 // ============================================================
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = _RouterRefreshNotifier(ref);
@@ -321,14 +272,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: child,
         ),
         routes: [
-          // ===== THE ROUTE BUILDER IS NOW CORRECT =====
           GoRoute(
             path: AppRoutes.home,
             name: 'home',
-            builder: (context, state) =>
-                const HomeScreen(), // Uses the new screen
+            builder: (context, state) => const HomeScreen(),
           ),
-          // ============================================
           GoRoute(
             path: AppRoutes.quran,
             name: 'quran',
@@ -485,7 +433,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 });
 
 // ============================================================
-// ROUTER REFRESH NOTIFIER (No changes here)
+// ROUTER REFRESH NOTIFIER
 // ============================================================
 class _RouterRefreshNotifier extends ChangeNotifier {
   _RouterRefreshNotifier(Ref ref) {

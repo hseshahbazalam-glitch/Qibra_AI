@@ -51,8 +51,9 @@ class RagService {
         final searchResults = await _quranRepo.search(query);
         for (final r in searchResults.take(topK)) {
           results.add(RetrievedPassage(
-            source: r.reference, // e.g., Quran 2:255
-            text: '${r.arabicText} — ${r.translation ?? ''}'.trim(),
+            source:
+                'Quran ${r.surahNumber}:${r.ayahNumber}', // e.g., Quran 2:255
+            text: '${r.ayahText} — ${r.translation ?? ''}'.trim(),
             relevance: 0.9,
             collection: 'quran',
           ));

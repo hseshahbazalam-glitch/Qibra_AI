@@ -307,7 +307,8 @@ class TasbihNotifier extends StateNotifier<TasbihState> {
       final history = historyJson
           .map((e) {
             try {
-              return TasbihHistoryEntry.fromJson(jsonDecode(e));
+              return TasbihHistoryEntry.fromJson(
+                  jsonDecode(e) as Map<String, dynamic>);
             } catch (_) {
               return null;
             }

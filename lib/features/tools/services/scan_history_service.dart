@@ -10,7 +10,9 @@ class ScanHistoryService {
     final data = prefs.getString(_key);
     if (data == null) return [];
     final list = jsonDecode(data) as List;
-    return list.map((e) => ScanHistoryItem.fromJson(e)).toList();
+    return list
+        .map((e) => ScanHistoryItem.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   static Future<void> addScan(ScanHistoryItem item) async {
@@ -93,14 +95,14 @@ class ScanHistoryItem {
 
   factory ScanHistoryItem.fromJson(Map<String, dynamic> json) =>
       ScanHistoryItem(
-        barcode: json['barcode'] ?? '',
-        productName: json['productName'] ?? '',
-        brand: json['brand'] ?? '',
-        status: json['status'] ?? '',
-        verdictText: json['verdictText'] ?? '',
-        confidence: json['confidence'] ?? 0,
-        imageUrl: json['imageUrl'] ?? '',
-        scannedAt: DateTime.parse(json['scannedAt']),
-        isFavorite: json['isFavorite'] ?? false,
+        barcode: (json['barcode'] ?? '') as String,
+        productName: (json['productName'] ?? '') as String,
+        brand: (json['brand'] ?? '') as String,
+        status: (json['status'] ?? '') as String,
+        verdictText: (json['verdictText'] ?? '') as String,
+        confidence: (json['confidence'] ?? 0) as int,
+        imageUrl: (json['imageUrl'] ?? '') as String,
+        scannedAt: DateTime.parse((json['scannedAt'] ?? '') as String),
+        isFavorite: (json['isFavorite'] ?? false) as bool,
       );
 }

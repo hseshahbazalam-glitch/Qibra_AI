@@ -59,9 +59,11 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString(_storageKey);
     if (data != null) {
-      final List<dynamic> list = jsonDecode(data);
+      final List<dynamic> list = jsonDecode(data) as List<dynamic>;
       setState(() {
-        _entries = list.map((e) => _SadaqahEntry.fromJson(e)).toList();
+        _entries = list
+            .map((e) => _SadaqahEntry.fromJson(e as Map<String, dynamic>))
+            .toList();
         _totalAmount = _entries.fold(0, (sum, e) => sum + e.amount);
       });
     }

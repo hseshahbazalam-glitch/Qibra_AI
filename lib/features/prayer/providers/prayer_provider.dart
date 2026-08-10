@@ -10,8 +10,6 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:qibra_ai/core/providers/app_providers.dart'
-    show sharedPreferencesProvider;
 
 import '../data/models/prayer_models.dart';
 import '../data/services/prayer_calculation_service.dart';

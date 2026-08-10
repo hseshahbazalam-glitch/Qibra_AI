@@ -29,13 +29,13 @@ class VoiceService {
   String _currentLocale = 'en_US';
 
   // Callbacks
-  Function(String)? onResult;
-  Function(String)? onPartialResult;
-  Function()? onListeningStart;
-  Function()? onListeningStop;
-  Function()? onSpeakingStart;
-  Function()? onSpeakingStop;
-  Function(String)? onError;
+  void Function(String)? onResult;
+  void Function(String)? onPartialResult;
+  void Function()? onListeningStart;
+  void Function()? onListeningStop;
+  void Function()? onSpeakingStart;
+  void Function()? onSpeakingStop;
+  void Function(String)? onError;
 
   // Getters
   bool get isInitialized => _isInitialized;
@@ -139,8 +139,6 @@ class VoiceService {
       _isListening = true;
       onListeningStart?.call();
 
-      // ✅ FIX: Sab options SpeechListenOptions mein dalo
-      // listenFor, pauseFor, localeId — deprecated hain directly listen() mein
       await _speech.listen(
         onResult: (SpeechRecognitionResult result) {
           if (result.finalResult) {
@@ -262,9 +260,13 @@ class VoiceService {
 
   Future<List<dynamic>> getTTSLanguages() async {
     try {
-      return await _tts.getLanguages;
+      final dynamic langs = await _tts.getLanguages;
+      if (langs is List<dynamic>) {
+        return langs;
+      }
+      return <dynamic>[];
     } catch (e) {
-      return [];
+      return <dynamic>[];
     }
   }
 

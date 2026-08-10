@@ -43,9 +43,11 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString(_storageKey);
     if (data != null) {
-      final List<dynamic> list = jsonDecode(data);
+      final List<dynamic> list = jsonDecode(data) as List<dynamic>;
       setState(() {
-        _habits = list.map((e) => _IslamicHabit.fromJson(e)).toList();
+        _habits = list
+            .map((e) => _IslamicHabit.fromJson(e as Map<String, dynamic>))
+            .toList();
         _cleanOldDays();
       });
     } else {

@@ -72,7 +72,6 @@ enum AppThemeMode {
 class ThemeNotifier extends StateNotifier<AppThemeMode> {
   final Ref _ref;
   SharedPreferences? _prefs;
-  bool _initialized = false;
 
   ThemeNotifier(this._ref) : super(AppThemeMode.dark) {
     _init();
@@ -85,7 +84,6 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
       if (savedMode != null) {
         state = AppThemeMode.fromStorageString(savedMode);
       }
-      _initialized = true;
     } catch (_) {}
   }
 
@@ -93,7 +91,8 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
     if (state == mode) return;
     state = mode;
     try {
-      final prefs = _prefs ?? await _ref.read(sharedPreferencesProvider.future);
+      final SharedPreferences prefs =
+          _prefs ?? await _ref.read(sharedPreferencesProvider.future);
       _prefs = prefs;
       await prefs.setString(AppStorageKeys.appTheme, mode.toStorageString());
     } catch (e) {
@@ -142,7 +141,8 @@ class LocaleNotifier extends StateNotifier<Locale> {
     if (state.languageCode == languageCode) return;
     state = Locale(languageCode);
     try {
-      final prefs = _prefs ?? await _ref.read(sharedPreferencesProvider.future);
+      final SharedPreferences prefs =
+          _prefs ?? await _ref.read(sharedPreferencesProvider.future);
       _prefs = prefs;
       await prefs.setString(AppStorageKeys.appLanguage, languageCode);
     } catch (e) {
@@ -188,7 +188,8 @@ class OnboardingNotifier extends StateNotifier<bool> {
   Future<void> markComplete() async {
     state = true;
     try {
-      final prefs = _prefs ?? await _ref.read(sharedPreferencesProvider.future);
+      final SharedPreferences prefs =
+          _prefs ?? await _ref.read(sharedPreferencesProvider.future);
       _prefs = prefs;
       await prefs.setBool(AppStorageKeys.hasSeenOnboarding, true);
       await prefs.setString(
@@ -201,7 +202,8 @@ class OnboardingNotifier extends StateNotifier<bool> {
   Future<void> reset() async {
     state = false;
     try {
-      final prefs = _prefs ?? await _ref.read(sharedPreferencesProvider.future);
+      final SharedPreferences prefs =
+          _prefs ?? await _ref.read(sharedPreferencesProvider.future);
       _prefs = prefs;
       await prefs.remove(AppStorageKeys.hasSeenOnboarding);
       await prefs.remove(AppStorageKeys.onboardingDate);
