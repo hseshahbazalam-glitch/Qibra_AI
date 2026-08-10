@@ -15,7 +15,7 @@ import 'dart:math' as math;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz_data;
 
-import '../../../core/constants/app_constants.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../models/prayer_models.dart';
 
 class PrayerCalculationService {
