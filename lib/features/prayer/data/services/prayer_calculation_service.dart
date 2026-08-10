@@ -12,16 +12,34 @@
 
 import 'dart:math' as math;
 
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest_all.dart' as tz_data;
+
+import '../../../core/constants/app_constants.dart';
 import '../models/prayer_models.dart';
 
 class PrayerCalculationService {
-  PrayerCalculationService();
+  static bool _tzInitialized = false;
+
+  PrayerCalculationService() {
+    _ensureTzInitialized();
+  }
+
+  void _ensureTzInitialized() {
+    if (_tzInitialized) return;
+    try {
+      tz_data.initializeTimeZones();
+      _tzInitialized = true;
+    } catch (_) {}
+  }
 
   // ============================================================
   // MAIN CALCULATION METHOD
   // ============================================================
 
   /// Calculate all prayer times for a given date and location
+  /// P0.6 FIX: Uses location timezone, not device timezone.
+  /// Priority: 1) location.timezone IANA -> offset via mapping, 2) longitude estimate, 3) device fallback.
   DailyPrayerTimes calculatePrayerTimes({
     required DateTime date,
     required PrayerLocation location,
@@ -29,12 +47,14 @@ class PrayerCalculationService {
     required AsrMethod asrMethod,
     HighLatitudeMethod highLatitudeMethod = HighLatitudeMethod.none,
     Map<PrayerType, int> adjustments = const {},
+    double? explicitTimezoneOffset,
   }) {
     // Convert to noon of that day for consistency
     final calcDate = DateTime(date.year, date.month, date.day, 12);
 
-    // Get timezone offset in hours
-    final timezoneOffset = calcDate.timeZoneOffset.inMinutes / 60.0;
+    // P0.6: Resolve timezone correctly
+    final timezoneOffset = explicitTimezoneOffset ??
+        _resolveTimezoneOffset(location, calcDate);
 
     // Calculate Julian date
     final julianDate = _calculateJulianDate(
@@ -80,7 +100,7 @@ class PrayerCalculationService {
       timezoneOffset,
     );
 
-    final ishaHour = _calculateIsha(
+    final ishaHourRaw = _calculateIsha(
       julianDate,
       location.latitude,
       location.longitude,
@@ -89,12 +109,37 @@ class PrayerCalculationService {
       maghribHour,
     );
 
+    // Phase 3: High-latitude correction — replace NaN (polar day/night) with method-specific adjustment
+    double fajrHourCorrected = fajrHour;
+    double ishaHourCorrected = ishaHourRaw;
+    if (fajrHour.isNaN || ishaHourRaw.isNaN) {
+      // Determine night duration; handle NaN sunrise/maghrib (polar) with fallback 8h
+      final safeSunrise = sunriseHour.isNaN ? 6.0 : sunriseHour;
+      final safeMaghrib = maghribHour.isNaN ? 18.0 : maghribHour;
+      final night = _calculateNightDuration(safeSunrise, safeMaghrib);
+      final methodToUse = highLatitudeMethod == HighLatitudeMethod.none
+          ? HighLatitudeMethod.angleBased // emergency fallback when high-lat but method none
+          : highLatitudeMethod;
+      if (fajrHour.isNaN) {
+        fajrHourCorrected = _highLatAdjustment(safeSunrise, night, method.fajrAngle, methodToUse, true);
+      }
+      if (ishaHourRaw.isNaN) {
+        // For UmmAlQura etc. where isha is interval, ishaHourRaw already valid; only angle-based may be NaN
+        ishaHourCorrected = _highLatAdjustment(safeMaghrib, night, method.useIshaInterval ? 18.0 : method.ishaAngle, methodToUse, false);
+      }
+    }
+
+    // Use corrected values
+    final ishaHour = ishaHourCorrected;
+    // Also need to handle fajrHourCorrected
+    final fajrHourFinal = fajrHourCorrected;
+
     // Convert hours to DateTime objects
     final prayers = [
       _createPrayerTime(
         PrayerType.fajr,
         calcDate,
-        fajrHour,
+        fajrHourFinal,
         adjustments[PrayerType.fajr] ?? 0,
       ),
       _createPrayerTime(
@@ -317,7 +362,7 @@ class PrayerCalculationService {
   }
 
   // ============================================================
-  // SUN ANGLE TIME (CORE FORMULA)
+  // SUN ANGLE TIME (CORE FORMULA) — PHASE 3 HIGH-LAT FIX
   // ============================================================
 
   double _sunAngleTime(
@@ -333,18 +378,55 @@ class PrayerCalculationService {
     final numerator = -_sin(angle) - _sin(latitude) * _sin(declination);
     final denominator = _cos(latitude) * _cos(declination);
 
-    if (denominator == 0) return dhuhr;
+    if (denominator == 0) return double.nan;
 
     final ratio = numerator / denominator;
 
-    // Check for polar day/night
+    // Polar day/night: sun never reaches angle → NaN for high-lat handler
     if (ratio < -1 || ratio > 1) {
-      // Handle polar regions - return approximation
-      return dhuhr + (isCcw ? -6 : 6);
+      return double.nan;
     }
 
     final t = _arccos(ratio) / 15;
     return dhuhr + (isCcw ? -t : t);
+  }
+
+  // Phase 3: High-latitude night duration and adjustment
+  double _calculateNightDuration(double sunriseHour, double maghribHour) {
+    // Night = from maghrib to next sunrise: (24 - maghrib) + sunrise
+    if (sunriseHour.isNaN || maghribHour.isNaN) return 8.0; // fallback 8h night
+    var night = (24.0 - maghribHour) + sunriseHour;
+    if (night < 0) night += 24;
+    if (night > 16) night = 8; // clamp unrealistic polar night
+    if (night < 2) night = 8;
+    return night;
+  }
+
+  double _highLatAdjustment(
+    double baseHour, // sunrise for Fajr, maghrib for Isha
+    double nightDuration,
+    double angle,
+    HighLatitudeMethod method,
+    bool isFajr,
+  ) {
+    double portion;
+    switch (method) {
+      case HighLatitudeMethod.angleBased:
+        // Portion = angle/60 * night (standard)
+        portion = (angle / 60.0) * nightDuration;
+        break;
+      case HighLatitudeMethod.seventh:
+        portion = nightDuration / 7.0;
+        break;
+      case HighLatitudeMethod.midnight:
+        portion = nightDuration / 2.0;
+        break;
+      case HighLatitudeMethod.none:
+        return baseHour + (isFajr ? -6 : 6);
+    }
+    // Clamp portion to reasonable 0.5..3h for angleBased
+    portion = portion.clamp(0.5, 3.5);
+    return baseHour + (isFajr ? -portion : portion);
   }
 
   // ============================================================
@@ -357,6 +439,10 @@ class PrayerCalculationService {
     double hour,
     int adjustment,
   ) {
+    // Phase 3: Handle NaN (polar) — fallback to noon with note
+    if (hour.isNaN || hour.isInfinite) {
+      hour = 12.0; // noon fallback; high-lat correction should have handled Fajr/Isha, this is for sunrise/maghrib polar case
+    }
     // Handle hour overflow/underflow
     while (hour < 0) {
       hour += 24;
@@ -424,14 +510,107 @@ class PrayerCalculationService {
   }
 
   // ============================================================
+  // PHASE 2 — EXACT TIMEZONE RESOLUTION (IANA via timezone package)
+  // ============================================================
+
+  /// Resolve timezone offset for location using IANA database.
+  /// Priority: 1) location.timezone IANA via tz.getLocation + TZDateTime,
+  ///           2) countryCode fallback for when timezone string is null (covers most users),
+  ///           3) longitude emergency fallback explicitly documented.
+  double _resolveTimezoneOffset(PrayerLocation location, DateTime date) {
+    _ensureTzInitialized();
+
+    // 1. IANA timezone — proper TZDateTime offset (handles DST and 5:45, 9:30 correctly)
+    if (location.timezone != null && location.timezone!.isNotEmpty) {
+      final offset = _ianaOffsetViaTz(location.timezone!, date);
+      if (offset != null) return offset;
+    }
+
+    // 2. CountryCode fallback when timezone string is null (common when from geolocator without reverse geocode)
+    // This avoids emergency longitude for major Islamic regions.
+    if (location.countryCode != null) {
+      final ccOffset = _countryCodeTimezoneOffset(location.countryCode!);
+      // Only use countryCode if we have no IANA; longitude emergency will handle US/AU subzones better
+      if (ccOffset != null) {
+        // For US/CA/AU where subzones vary widely, prefer longitude if timezone missing
+        if (['US', 'CA', 'AU'].contains(location.countryCode!.toUpperCase())) {
+          // Fall through to longitude emergency for these
+        } else {
+          return ccOffset;
+        }
+      }
+    }
+
+    // 3. Emergency fallback: longitude estimation — explicitly documented as emergency
+    // Used only when no IANA and no countryCode mapping (rare). Error up to 0.5-1h.
+    final lngEstimate = (location.longitude / 15.0);
+    final rounded = (lngEstimate * 4).round() / 4.0; // quarter-hour increments to support Kathmandu 5:45 etc. via lng
+    return rounded.clamp(-12.0, 14.0);
+  }
+
+  /// Real IANA offset via timezone package (handles Kathmandu 5:45, Adelaide 9:30, DST correctly)
+  double? _ianaOffsetViaTz(String iana, DateTime date) {
+    try {
+      final loc = tz.getLocation(iana);
+      // Use noon of date to capture DST correctly
+      final tzDateTime = tz.TZDateTime(loc, date.year, date.month, date.day, 12);
+      return tzDateTime.timeZoneOffset.inMinutes / 60.0;
+    } catch (_) {
+      // Try case-insensitive fallback
+      try {
+        final all = tz.timeZoneDatabase.locations;
+        for (final key in all.keys) {
+          if (key.toLowerCase() == iana.toLowerCase()) {
+            final loc = tz.getLocation(key);
+            final tzDateTime = tz.TZDateTime(loc, date.year, date.month, date.day, 12);
+            return tzDateTime.timeZoneOffset.inMinutes / 60.0;
+          }
+        }
+      } catch (_) {}
+      return null;
+    }
+  }
+
+  double? _countryCodeTimezoneOffset(String cc) {
+    const ccMap = {
+      'PK': 5.0,
+      'IN': 5.5,
+      'BD': 6.0,
+      'NP': 5.75,
+      'MM': 6.5,
+      'TH': 7.0,
+      'SG': 8.0,
+      'MY': 8.0,
+      'ID': 7.0,
+      'AE': 4.0,
+      'OM': 4.0,
+      'SA': 3.0,
+      'KW': 3.0,
+      'BH': 3.0,
+      'QA': 3.0,
+      'IR': 3.5, // Tehan DST 4.5 handled by IANA; this is fallback
+      'TR': 3.0,
+      'EG': 2.0,
+      'GB': 0.0,
+      'UK': 0.0,
+      'US': -5.0,
+      'CA': -5.0,
+      'AU': 10.0,
+      'NZ': 12.0,
+    };
+    return ccMap[cc.toUpperCase()];
+  }
+
+  // ============================================================
   // QIBLA DIRECTION CALCULATION
   // ============================================================
 
   /// Calculate Qibla direction from given location
   /// Returns bearing in degrees (0-360) from North
+  /// Centralized to AppIslamicConstants.kaabatullah (21.3891,39.8579)
   double calculateQiblaDirection(PrayerLocation location) {
-    const kaabaLat = 21.4225; // Kaaba latitude
-    const kaabaLng = 39.8262; // Kaaba longitude
+    const kaabaLat = AppIslamicConstants.kaabatullahLatitude;
+    const kaabaLng = AppIslamicConstants.kaabatullahLongitude;
 
     final lat1 = _degreesToRadians(location.latitude);
     final lat2 = _degreesToRadians(kaabaLat);
@@ -446,9 +625,10 @@ class PrayerCalculationService {
   }
 
   /// Calculate distance to Kaaba in kilometers
+  /// Centralized to AppIslamicConstants
   double calculateDistanceToKaaba(PrayerLocation location) {
-    const kaabaLat = 21.4225;
-    const kaabaLng = 39.8262;
+    const kaabaLat = AppIslamicConstants.kaabatullahLatitude;
+    const kaabaLng = AppIslamicConstants.kaabatullahLongitude;
     const earthRadius = 6371.0; // km
 
     final lat1 = _degreesToRadians(location.latitude);

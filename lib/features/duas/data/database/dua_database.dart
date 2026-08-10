@@ -78,13 +78,12 @@ class DuaDatabase {
     return allDuas[dayOfYear % allDuas.length];
   }
 
-  /// Get category by id
+  /// Get category by id — safe, no StateError
   static DuaCategoryModel? getCategoryById(String id) {
-    try {
-      return categories.firstWhere((c) => c.id == id);
-    } catch (_) {
-      return null;
+    for (final c in categories) {
+      if (c.id == id) return c;
     }
+    return null;
   }
 
   /// Get categories with dua count

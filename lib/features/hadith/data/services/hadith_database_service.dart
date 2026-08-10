@@ -194,6 +194,14 @@ class HadithDatabaseService {
       final arabicHadiths = arabicData?['hadiths'] as List<dynamic>? ?? [];
       final urduHadiths = urduData?['hadiths'] as List<dynamic>? ?? [];
 
+      // P0.5: Explicit unavailable handling — do not fake
+      if (arabicData == null) {
+        debugPrint('[HADITH_DB] ⚠️ Arabic data unavailable for $slug — showing "Arabic unavailable" for this book');
+      }
+      if (urduData == null) {
+        debugPrint('[HADITH_DB] ⚠️ Urdu data unavailable for $slug — showing "Urdu unavailable" for this book');
+      }
+
       // Build lookup maps (handles String/int hadith numbers)
       final arabicMap = <int, String>{};
       for (final h in arabicHadiths) {
@@ -297,11 +305,10 @@ class HadithDatabaseService {
 
   LocalHadith? getHadith(String bookSlug, int hadithNumber) {
     final hadiths = _bookData[bookSlug] ?? [];
-    try {
-      return hadiths.firstWhere((h) => h.hadithNumber == hadithNumber);
-    } catch (_) {
-      return null;
+    for (final h in hadiths) {
+      if (h.hadithNumber == hadithNumber) return h;
     }
+    return null;
   }
 
   LocalBookInfo? getBookInfo(String bookSlug) {

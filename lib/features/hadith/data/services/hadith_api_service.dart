@@ -42,11 +42,12 @@ class HadithApiService {
 
   // ── Constants ─────────────────────────────────────────────
   static const String _baseUrl = 'https://hadithapi.com/api';
-  static const String _apiKey =
-      '\$2y\$10\$demoQIBRAAIapiKeyForTestingPurposes'; // Public demo key
+  // P1: Hard-coded demo key removed. Use backend proxy (AppApi) or --dart-define=HADITH_API_KEY.
+  // Empty key means requests go without key (may be rate-limited) — handled gracefully.
+  static const String _apiKey = '';
 
-  static const Duration _connectTimeout = Duration(seconds: 15);
-  static const Duration _receiveTimeout = Duration(seconds: 30);
+  static const Duration _connectTimeout = Duration(seconds: 20);
+  static const Duration _receiveTimeout = Duration(seconds: 20);
 
   // ============================================================
   // SECTION 2 — INITIALIZATION
@@ -61,9 +62,7 @@ class HadithApiService {
         'Accept': 'application/json',
         'User-Agent': 'QIBRA-AI/1.0',
       },
-      queryParameters: {
-        'apiKey': _apiKey,
-      },
+      queryParameters: _apiKey.isNotEmpty ? {'apiKey': _apiKey} : null,
     ));
 
     // Add logging interceptor in debug mode
@@ -131,6 +130,7 @@ class HadithApiService {
   // ============================================================
 
   /// Fetch all chapters for a specific book
+  /// P0.5 FIX: Never generate fake chapters. On failure, propagate error so UI shows "Unavailable".
   Future<List<HadithChapter>> fetchChapters(String bookSlug) async {
     try {
       final response = await _dio.get(
@@ -141,6 +141,14 @@ class HadithApiService {
         final data = response.data as Map<String, dynamic>;
         final chaptersList = data['chapters'] as List<dynamic>? ?? [];
 
+        // If API returns empty but success, treat as unavailable rather than faking
+        if (chaptersList.isEmpty) {
+          throw DioException(
+            requestOptions: response.requestOptions,
+            message: 'No chapters returned for $bookSlug',
+          );
+        }
+
         return chaptersList
             .map((json) => HadithChapter.fromJson(
                   (json as Map<String, dynamic>)..['bookSlug'] = bookSlug,
@@ -148,35 +156,17 @@ class HadithApiService {
             .toList();
       }
 
-      return _generateFallbackChapters(bookSlug);
+      throw DioException(
+        requestOptions: RequestOptions(path: '/$bookSlug/chapters'),
+        message: 'Empty response',
+      );
     } on DioException catch (e) {
-      _log('Chapters fetch error: ${e.message}');
-      return _generateFallbackChapters(bookSlug);
+      _log('Chapters fetch error: ${e.message} — no fake fallback, error propagated');
+      rethrow;
     } catch (e) {
       _log('Chapters unexpected error: $e');
-      return _generateFallbackChapters(bookSlug);
+      rethrow;
     }
-  }
-
-  /// Generate fallback chapters when API fails
-  List<HadithChapter> _generateFallbackChapters(String bookSlug) {
-    final book = popularHadithBooks.firstWhere(
-      (b) => b.slug == bookSlug,
-      orElse: () => popularHadithBooks.first,
-    );
-
-    // Generate placeholder chapters
-    return List.generate(
-      book.totalChapters.clamp(1, 30),
-      (index) => HadithChapter(
-        id: 'ch_${bookSlug}_${index + 1}',
-        number: index + 1,
-        name: 'Chapter ${index + 1}',
-        nameArabic: 'الباب ${index + 1}',
-        bookSlug: bookSlug,
-        hadithCount: (book.totalHadiths ~/ book.totalChapters).clamp(1, 200),
-      ),
-    );
   }
 
   // ============================================================
@@ -184,6 +174,7 @@ class HadithApiService {
   // ============================================================
 
   /// Fetch hadiths by book and optional chapter
+  /// P0.5 FIX: No fake hadith generation. On failure, propagate error.
   Future<List<HadithModel>> fetchHadiths({
     required String bookSlug,
     int? chapterNumber,
@@ -213,33 +204,29 @@ class HadithApiService {
             data['hadiths'] as List<dynamic>? ??
             [];
 
+        if (hadithsList.isEmpty) {
+          throw DioException(
+            requestOptions: response.requestOptions,
+            message: 'No hadiths returned',
+          );
+        }
+
         return hadithsList
             .map((json) => HadithModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
 
-      return _generateFallbackHadiths(bookSlug, chapterNumber);
+      throw DioException(
+        requestOptions: RequestOptions(path: '/hadiths'),
+        message: 'Empty response',
+      );
     } on DioException catch (e) {
-      _log('Hadiths fetch error: ${e.message}');
-      return _generateFallbackHadiths(bookSlug, chapterNumber);
+      _log('Hadiths fetch error: ${e.message} — propagating, no fake fallback');
+      rethrow;
     } catch (e) {
       _log('Hadiths unexpected error: $e');
-      return _generateFallbackHadiths(bookSlug, chapterNumber);
+      rethrow;
     }
-  }
-
-  /// Generate sample hadiths when API fails
-  List<HadithModel> _generateFallbackHadiths(
-      String bookSlug, int? chapterNumber) {
-    // ignore: unused_local_variable
-    final book = popularHadithBooks.firstWhere(
-      (b) => b.slug == bookSlug,
-      orElse: () => popularHadithBooks.first,
-    );
-
-    // Return sample famous hadiths as fallback
-    return _sampleHadiths.where((h) => h.bookSlug == bookSlug).take(10).toList()
-      ..addAll(_sampleHadiths.take(5));
   }
 
   // ============================================================

@@ -1,4 +1,4 @@
-﻿// lib/core/router/app_router.dart
+// lib/core/router/app_router.dart
 // ============================================================
 // QIBRA AI – APP ROUTER (Complete)
 // Version: 9.0.0 – Islamic Tools Hub Added
@@ -26,6 +26,9 @@ import 'package:qibra_ai/features/onboarding/presentation/onboarding_screen.dart
 import 'package:qibra_ai/features/prayer/presentation/prayer_times_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/quran_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/mushaf_reader_screen.dart';
+import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
+import 'package:qibra_ai/features/quran/presentation/quran_search_screen.dart';
+import 'package:qibra_ai/features/quran/presentation/surah_list_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/profile_setup_screen.dart';
 import 'package:qibra_ai/features/splash/presentation/splash_screen.dart';
 import 'package:qibra_ai/shared/widgets/navigation/app_bottom_nav.dart';
@@ -189,7 +192,7 @@ class _ErrorScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xl3),
             ElevatedButton(
-              onPressed: () => context.go(AppRoutes.splash),
+              onPressed: () => context.go(AppRoutes.home),
               child: const Text('Go to Home'),
             ),
           ],
@@ -198,6 +201,10 @@ class _ErrorScreen extends StatelessWidget {
     );
   }
 }
+
+// P1.4: Keep placeholders only for truly unimplemented features, now with disclaimer
+// _QuranPlaceholder kept for legacy but no longer routed; kept to avoid breaking deep links that still reference it
+// _MosquesPlaceholder now shows proper unavailable state with guidance
 
 // ============================================================
 // ROUTER PROVIDER (No changes here)
@@ -328,14 +335,25 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const QuranScreen(),
             routes: [
               GoRoute(
-                path: 'surah',
+                path: 'surah/:surahNumber',
                 name: 'quran-surah',
-                builder: (context, state) => const _QuranPlaceholder(),
+                builder: (context, state) {
+                  final idStr = state.pathParameters['surahNumber'] ?? '1';
+                  final surahNum = int.tryParse(idStr) ?? 1;
+                  final ayahStr = state.uri.queryParameters['ayah'];
+                  final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
+                  return SurahReaderScreen(surahNumber: surahNum, initialAyah: ayah);
+                },
+              ),
+              GoRoute(
+                path: 'surahs',
+                name: 'quran-surah-list',
+                builder: (context, state) => const SurahListScreen(),
               ),
               GoRoute(
                 path: 'search',
                 name: 'quran-search',
-                builder: (context, state) => const _QuranPlaceholder(),
+                builder: (context, state) => const QuranSearchScreen(),
               ),
             ],
           ),
