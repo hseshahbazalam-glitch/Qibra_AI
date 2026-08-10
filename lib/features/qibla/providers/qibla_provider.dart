@@ -36,10 +36,19 @@ class QiblaState {
     );
   }
 
-  // Qibla needle angle = qiblaAngle - compassHeading
+  // Qibla needle angle = qiblaAngle - (magneticHeading + declination)
+  // P0.7: Correct magnetic heading to true north using declination
   double get needleAngle {
     if (result == null) return 0.0;
-    return result!.qiblaAngle - compassHeading;
+    final decl = result!.magneticDeclination;
+    final trueHeading = compassHeading + decl;
+    return result!.qiblaAngle - trueHeading;
+  }
+
+  // True heading after declination correction
+  double get trueHeading {
+    if (result == null) return compassHeading;
+    return compassHeading + result!.magneticDeclination;
   }
 }
 

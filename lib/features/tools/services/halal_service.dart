@@ -10,7 +10,7 @@ class HalalService {
     try {
       final url = '$_openFoodFactsBase/$barcode.json';
       final response = await http.get(Uri.parse(url)).timeout(
-            const Duration(seconds: 10),
+            const Duration(seconds: 20),
           );
 
       if (response.statusCode != 200) return null;
@@ -74,13 +74,30 @@ class HalalService {
     }
 
     // ── Step 2: Check Haram Ingredients ──
+    // P0.3/ Halal fix: avoid false positive for vegetable gelatin
+    bool isVegetableGelatin(String ing) {
+      return ing.contains('vegetable gelatin') ||
+          ing.contains('agar') ||
+          ing.contains('pectin') ||
+          ing.contains('carrageenan') ||
+          ing.contains('vegetarian gelatin');
+    }
+
     for (final item in _haramDatabase) {
+      // Skip gelatin if plant-based alternative explicitly mentioned
+      if (item.name == 'Gelatin' && isVegetableGelatin(ingredients)) {
+        halalFound.add('Contains vegetable/agar gelatin — plant-based, not haram pork gelatin');
+        continue;
+      }
       if (ingredients.contains(item.name.toLowerCase()) ||
           name.contains(item.name.toLowerCase())) {
+        // Double-check gelatin case inside generic match too
+        if (item.name == 'Gelatin' && isVegetableGelatin(ingredients)) continue;
         haramFound.add('${item.name}: ${item.reason}');
       }
       for (final alias in item.aliases) {
         if (ingredients.contains(alias.toLowerCase())) {
+          if (item.name == 'Gelatin' && isVegetableGelatin(ingredients)) continue;
           haramFound.add('${item.name} (as $alias): ${item.reason}');
         }
       }
@@ -89,6 +106,8 @@ class HalalService {
     // ── Step 3: Check E-Codes ──
     for (final ecode in _eCodeDatabase) {
       if (ingredients.contains(ecode.code.toLowerCase())) {
+        // E441 gelatin — check vegetable alternative
+        if (ecode.code == 'e441' && ingredients.contains('vegetable')) continue;
         if (ecode.status == 'haram') {
           haramFound.add('${ecode.code} (${ecode.name}): ${ecode.reason}');
         } else if (ecode.status == 'doubtful') {
@@ -123,11 +142,18 @@ class HalalService {
     }
 
     // ── Step 7: Generate Warnings ──
+    // Persistent disclaimer (Phase 5): heuristic does not replace certification
+    warnings.add('Ingredient analysis is heuristic and does not replace certification from a trusted Halal authority.');
+    // Structured tags preferred: OFF provides ingredients_tags (e.g., en:gelatin) which are exact; fallback to text substring is less precise.
+    // TODO: Prefer product.ingredientsTags where available (exact match) over substring on ingredients_text.
     if (ingredients.isEmpty) {
-      warnings.add('No ingredients data available — verify manually');
+      warnings.add('No ingredients data available — verify manually with manufacturer');
     }
     if (!product.hasHalalCertification) {
       warnings.add('No Halal certification found on this product');
+    } else {
+      // Certification priority: if certified halal, heuristic haram findings are less certain (possible labeling error but cert takes precedence for confidence)
+      warnings.add('Halal certification found — certification takes priority over ingredient heuristics, but verify cert validity.');
     }
     if (product.allergens.toLowerCase().contains('milk') ||
         product.allergens.toLowerCase().contains('eggs')) {
@@ -147,29 +173,40 @@ class HalalService {
       recommendations.add('Ingredients can change — re-verify periodically');
     }
 
-    // ── Step 9: Determine Final Verdict ──
+    // ── Step 9: Determine Final Verdict (Phase 5: certification priority, reduced heuristic confidence) ──
     HalalStatus status;
     String verdictText;
     int confidence;
 
     if (haramFound.isNotEmpty) {
       status = HalalStatus.haram;
-      verdictText = 'Contains Haram Ingredients';
-      confidence = 95;
+      // Distinguish: confirmed haram (certified haram label or pork/alcohol) vs heuristic substring
+      // For now, haram via heuristic substring without certification → lower confidence (65)
+      // If hasHalalCertification but haram found, it's conflicting → lower confidence and warn
+      if (product.hasHalalCertification) {
+        verdictText = 'Conflicting: Halal Certified but Haram Ingredients Detected — Verify Cert';
+        confidence = 65;
+        warnings.add('Product claims Halal certification but ingredients analysis flagged Haram — verify certification with authority.');
+      } else {
+        verdictText = 'Contains Haram Ingredients (Heuristic)';
+        // Heuristic-only: 65 (not 95 definitive). 95 only if OFF explicitly tags haram or lab confirmed.
+        confidence = ingredients.isNotEmpty ? 65 : 45;
+      }
     } else if (doubtfulFound.isNotEmpty) {
       status = HalalStatus.doubtful;
       verdictText = 'Contains Doubtful Ingredients';
-      confidence = 70;
+      confidence = 60; // reduced from 70 for heuristic
     } else if (product.hasHalalCertification) {
       status = HalalStatus.halal;
       verdictText = 'Halal Certified';
-      confidence = 95;
+      confidence = 92; // high but not 100 — cert could be expired/forged, still heuristic ingredient check passed
     } else if (ingredients.isNotEmpty &&
         haramFound.isEmpty &&
         doubtfulFound.isEmpty) {
       status = HalalStatus.likelyHalal;
-      verdictText = 'Likely Halal';
-      confidence = 75;
+      verdictText = 'Likely Halal (Heuristic)';
+      confidence = 55; // reduced from 75 — heuristic only, no cert
+      warnings.add('No Haram/Doubtful ingredients detected via heuristic, but without Halal certification this is not a guarantee.');
     } else {
       status = HalalStatus.unknown;
       verdictText = 'Unable to Determine';

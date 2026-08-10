@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- P0.2/P3: Enforce HTTPS only — no cleartext -->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="true">
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
-            <certificates src="user" />
         </trust-anchors>
     </base-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">cdn.islamic.network</domain>
-        <domain includeSubdomains="true">everyayah.com</domain>
-        <domain includeSubdomains="true">islamic.network</domain>
-    </domain-config>
+    <!-- Quran audio CDN is HTTPS — no cleartext needed -->
 </network-security-config>

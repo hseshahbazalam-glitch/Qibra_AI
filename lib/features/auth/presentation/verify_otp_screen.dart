@@ -10,6 +10,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -234,11 +235,32 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   }
 
   // ── VERIFY OTP HANDLER ───────────────────────────────
+  // Phase 1 Security: OTP is backend-gated. When isBackendEnabled==false, OTP is not available; guide to Guest.
   Future<void> _handleVerify() async {
     // Validate OTP length
     if (_currentOtp.length != 6) {
       HapticFeedback.heavyImpact();
       setState(() => _errorMessage = 'Please enter all 6 digits');
+      return;
+    }
+
+    // Backend gate — do not accept demo OTP in production without backend
+    if (!AppApi.isBackendEnabled) {
+      HapticFeedback.heavyImpact();
+      setState(() => _errorMessage = 'OTP verification not available in this build — please continue as Guest (backend not configured).');
+      // Also show guest guidance: after short delay, allow navigation to home
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Guest mode: Your Quran, Prayer, and Duas work fully offline.'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: AppRadius.cardRadius),
+            ),
+          );
+        }
+      });
       return;
     }
 
@@ -250,11 +272,23 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
     });
 
     try {
-      // Simulate API call (2 seconds)
-      await Future.delayed(const Duration(seconds: 2));
+      // Phase 4 P1: OTP verification via backend when enabled, no demo bypass in production.
+      // When isBackendEnabled is true, this would be: POST AppApi.endpointVerifyOtp via ApiClient.
+      // Since backend is currently unavailable (isBackendEnabled false), the guard above already returned.
+      // For isBackendEnabled true builds, we attempt backend but never accept hard-coded 123456 in release.
+      if (AppApi.isBackendEnabled) {
+        // Backend path — would call ApiClient.instance.post(AppApi.endpointVerifyOtp, data: {email: widget.email, otp: _currentOtp})
+        // For this build, backend is still proxied; simulate failure if no real backend response
+        // To avoid fake success, we do not accept demo OTP in production code path.
+        // For now, show not implemented and treat as failure (tests should mock backend)
+        await Future.delayed(const Duration(milliseconds: 500));
+        throw Exception('OTP backend not yet implemented in this build');
+      }
 
-      // Check OTP (test OTP is 123456)
-      if (_currentOtp == '123456') {
+      // Fallback: should not be reached when isBackendEnabled false (already returned above)
+      // Keep demo OTP only for debug local testing when explicitly allowed via kDebugMode and test flag
+      // In release, this branch will not execute due to earlier guard
+      if (kDebugMode && _currentOtp == '123456') {
         // Success!
         setState(() {
           _isLoading = false;

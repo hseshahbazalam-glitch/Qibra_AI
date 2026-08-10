@@ -18,6 +18,9 @@ class _InheritanceCalculatorScreenState
   String _currency = 'PKR';
   String _deceasedGender = 'male';
   bool _showResult = false;
+  // Phase 4 — Fara'id safety gate
+  bool _understood = false;
+  String _school = 'Hanafi'; // Sunni / Hanafi reference calculation
 
   // Family members
   bool _hasHusband = false;
@@ -75,6 +78,11 @@ class _InheritanceCalculatorScreenState
   }
 
   void _calculate() {
+    if (!_understood) {
+      _showSnackbar('Please confirm: I understand this is an educational estimate and I will consult a qualified scholar.');
+      HapticFeedback.heavyImpact();
+      return;
+    }
     HapticFeedback.heavyImpact();
     final estate = double.tryParse(_estateController.text) ?? 0;
     final debt = double.tryParse(_debtController.text) ?? 0;
@@ -85,6 +93,42 @@ class _InheritanceCalculatorScreenState
       return;
     }
 
+    // Validate heir selection
+    if (!_hasHusband &&
+        !_hasWife &&
+        !_hasFather &&
+        !_hasMother &&
+        !_hasGrandfather &&
+        !_hasGrandmother &&
+        _sons == 0 &&
+        _daughters == 0 &&
+        _grandsons == 0 &&
+        _granddaughters == 0 &&
+        _brothers == 0 &&
+        _sisters == 0 &&
+        _halfBrothersFather == 0 &&
+        _halfSistersFather == 0 &&
+        _halfBrothersMother == 0 &&
+        _halfSistersMother == 0 &&
+        !_hasUncle) {
+      _showSnackbar('Please select at least one heir');
+      return;
+    }
+
+    // Invalid spouse combinations (spouse + spouse, or mismatched gender)
+    if (_hasHusband && _hasWife) {
+      _showSnackbar('Cannot have both husband and wife as heirs — invalid combination');
+      return;
+    }
+    if (_deceasedGender == 'male' && _hasHusband) {
+      _showSnackbar('Deceased is male — husband cannot be an heir');
+      return;
+    }
+    if (_deceasedGender == 'female' && _hasWife) {
+      _showSnackbar('Deceased is female — wife cannot be an heir');
+      return;
+    }
+
     double remaining = estate - debt;
     if (remaining <= 0) {
       _showSnackbar('Debts exceed estate — no inheritance to distribute');
@@ -92,13 +136,29 @@ class _InheritanceCalculatorScreenState
     }
 
     final maxWasiyyah = remaining / 3;
-    final actualWasiyyah = wasiyyah > maxWasiyyah ? maxWasiyyah : wasiyyah;
+    double actualWasiyyah = wasiyyah;
+    if (wasiyyah > maxWasiyyah) {
+      actualWasiyyah = maxWasiyyah;
+      _showSnackbar(
+        'Wasiyyah (will) cannot exceed 1/3 of remaining estate per Sharia. Capped to ${_formatAmount(maxWasiyyah)} (requires heirs\' consent to exceed).',
+      );
+    }
     remaining -= actualWasiyyah;
 
     _totalEstate = estate;
     _netEstate = remaining;
 
     _results = _calculateShares(remaining);
+
+    // Validation: total fractions must sum to 1.0 ± 0.005, total amount == _netEstate
+    final totalFrac = _results.fold<double>(0, (sum, r) => sum + r.fraction);
+    final totalAmt = _results.fold<double>(0, (sum, r) => sum + r.amount);
+    if ((totalFrac - 1.0).abs() > 0.005) {
+      _showSnackbar('Warning: shares sum to ${(totalFrac * 100).toStringAsFixed(1)}% — please verify heirs selection.');
+    }
+    if ((totalAmt - _netEstate).abs() > 1) {
+      _showSnackbar('Calculation mismatch — please double-check inputs or consult a scholar.');
+    }
 
     setState(() => _showResult = true);
   }
@@ -625,6 +685,8 @@ class _InheritanceCalculatorScreenState
     setState(() {
       _showResult = false;
       _results = [];
+      _understood = false;
+      _school = 'Hanafi';
       _hasHusband = false;
       _hasWife = false;
       _wifeCount = 1;
@@ -692,7 +754,9 @@ class _InheritanceCalculatorScreenState
                 _buildHalfSiblingsSection(),
                 const SizedBox(height: 12),
                 _buildOtherSection(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+                _buildSafetyGate(),
+                const SizedBox(height: 16),
                 _buildCalculateButton(),
                 const SizedBox(height: 16),
                 if (_showResult) ...[
@@ -752,6 +816,111 @@ class _InheritanceCalculatorScreenState
                     color: Colors.orange.withValues(alpha: 0.8),
                     fontSize: 11,
                     height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Safety Gate — Phase 4: Mandatory confirmation ─────────────
+  Widget _buildSafetyGate() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFA78BFA).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color: _understood
+                ? const Color(0xFF52B788).withValues(alpha: 0.4)
+                : Colors.orange.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text('Calculation Method',
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8)),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _school,
+                    isDense: true,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600),
+                    dropdownColor: const Color(0xFF141926),
+                    icon: const Icon(Icons.arrow_drop_down_rounded,
+                        color: Colors.white54, size: 18),
+                    items: const [
+                      DropdownMenuItem(value: 'Hanafi', child: Text('Sunni / Hanafi (reference)')),
+                      DropdownMenuItem(value: 'Shafi', child: Text('Sunni / Shafi\'i')),
+                      DropdownMenuItem(value: 'Maliki', child: Text('Sunni / Maliki')),
+                      DropdownMenuItem(value: 'Hanbali', child: Text('Sunni / Hanbali')),
+                    ],
+                    onChanged: (v) {
+                      if (v == null) return;
+                      setState(() => _school = v);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (_school != 'Hanafi') ...[
+            const SizedBox(height: 8),
+            Text(
+              'Note: This calculator implements Sunni/Hanafi reference logic. Other schools may differ for some cases (e.g., Radd, grandfather). Result is for educational reference.',
+              style: TextStyle(
+                  color: Colors.orange.withValues(alpha: 0.7),
+                  fontSize: 10,
+                  height: 1.3),
+            ),
+          ],
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () => setState(() => _understood = !_understood),
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Checkbox(
+                  value: _understood,
+                  onChanged: (v) => setState(() => _understood = v ?? false),
+                  activeColor: const Color(0xFF52B788),
+                  checkColor: Colors.white,
+                  side: BorderSide(
+                      color: _understood
+                          ? const Color(0xFF52B788)
+                          : Colors.orange.withValues(alpha: 0.5)),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      'I understand this is an educational estimate and I will consult a qualified Islamic scholar before distributing inheritance.',
+                      style: TextStyle(
+                          color: _understood
+                              ? Colors.white.withValues(alpha: 0.8)
+                              : Colors.white.withValues(alpha: 0.5),
+                          fontSize: 11,
+                          height: 1.4),
+                    ),
                   ),
                 ),
               ],
@@ -1397,33 +1566,49 @@ class _InheritanceCalculatorScreenState
 
   // ─── Calculate Button ───────────────────────────────────────
   Widget _buildCalculateButton() {
+    final enabled = _understood;
     return GestureDetector(
-      onTap: _calculate,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFFA78BFA), Color(0xFF7C3AED)]),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: const Color(0xFFA78BFA).withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6))
-          ],
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.calculate_rounded, color: Colors.white, size: 22),
-            SizedBox(width: 10),
-            Text('Calculate Shares',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700)),
-          ],
+      onTap: enabled ? _calculate : () {
+        HapticFeedback.heavyImpact();
+        _showSnackbar('Please confirm the disclaimer above before calculating.');
+      },
+      child: Opacity(
+        opacity: enabled ? 1.0 : 0.5,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: enabled
+                    ? [const Color(0xFFA78BFA), const Color(0xFF7C3AED)]
+                    : [Colors.grey.withValues(alpha: 0.3), Colors.grey.withValues(alpha: 0.2)]),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: enabled
+                ? [
+                    BoxShadow(
+                        color: const Color(0xFFA78BFA).withValues(alpha: 0.3),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6))
+                  ]
+                : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.calculate_rounded,
+                  color: enabled ? Colors.white : Colors.white54, size: 22),
+              const SizedBox(width: 10),
+              Text('Calculate Shares',
+                  style: TextStyle(
+                      color: enabled ? Colors.white : Colors.white54,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700)),
+              if (!enabled) ...[
+                const SizedBox(width: 8),
+                const Icon(Icons.lock_rounded, color: Colors.white30, size: 16),
+              ],
+            ],
+          ),
         ),
       ),
     );

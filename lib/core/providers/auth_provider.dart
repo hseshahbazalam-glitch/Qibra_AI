@@ -1,11 +1,17 @@
 // lib/core/providers/auth_provider.dart
 
 // ============================================================
-// QIBRA AI — AUTHENTICATION PROVIDER
-// Version: 1.0.0
-// Description: Complete auth state management using Riverpod.
-//              Login, logout, register, token management,
-//              user info tracking — all reactive.
+// QIBRA AI — AUTHENTICATION PROVIDER (v2.0 — Anonymous-First)
+// P0.1 FIX: No fake JWT, backend-gated, anonymous-first
+// ============================================================
+// Design:
+// - App is anonymous-first when AppApi.isBackendEnabled == false
+// - Login/Register return clear "backend not available" error, do NOT
+//   create fake tokens. User can continue as Guest (unauthenticated).
+// - When backend enabled, real Dio calls would go via AuthRepository.
+// - SecureStorage only used for real tokens, never fake.
+// - Session restoration checks token existence but validates format,
+//   does not create dummy user if token is fake/legacy.
 // ============================================================
 
 import 'package:flutter/foundation.dart';
@@ -17,55 +23,34 @@ import 'package:qibra_ai/core/providers/app_providers.dart';
 // ============================================================
 // SECTION 1: AUTH STATE ENUM
 // ============================================================
-// Auth ki 4 possible states — clear aur type-safe
-// ============================================================
 
 enum AuthStatus {
-  /// Initial state — abhi check nahi kiya
+  /// Initial state — not yet checked
   initial,
 
-  /// Currently checking auth state (splash pe)
+  /// Currently checking auth state (splash)
   loading,
 
-  /// User authenticated hai — logged in
+  /// User authenticated (requires backend)
   authenticated,
 
-  /// User authenticated nahi hai — logged out
+  /// Anonymous/guest — default when backend disabled or logged out
   unauthenticated,
 }
 
 // ============================================================
 // SECTION 2: USER MODEL
 // ============================================================
-// User ki basic info hold karne ke liye
-// Baad mein real backend user model se replace hoga
-// ============================================================
 
-/// User information model
 @immutable
 class AppUser {
-  /// User ka unique ID
   final String id;
-
-  /// User ka email
   final String email;
-
-  /// User ka full name
   final String name;
-
-  /// Profile picture URL (optional)
   final String? avatarUrl;
-
-  /// Phone number (optional)
   final String? phoneNumber;
-
-  /// Account created date
   final DateTime? createdAt;
-
-  /// Is email verified?
   final bool isEmailVerified;
-
-  /// Is premium user?
   final bool isPremium;
 
   const AppUser({
@@ -79,8 +64,6 @@ class AppUser {
     this.isPremium = false,
   });
 
-  /// Copy karo with new values
-  /// State update ke liye zaroori
   AppUser copyWith({
     String? id,
     String? email,
@@ -103,7 +86,6 @@ class AppUser {
     );
   }
 
-  /// JSON se AppUser banao
   factory AppUser.fromJson(Map<String, dynamic> json) {
     return AppUser(
       id: json['id']?.toString() ?? '',
@@ -119,7 +101,6 @@ class AppUser {
     );
   }
 
-  /// AppUser ko JSON mein convert karo
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -152,21 +133,12 @@ class AppUser {
 // ============================================================
 // SECTION 3: AUTH STATE MODEL
 // ============================================================
-// Complete auth state — status + user + error
-// ============================================================
 
 @immutable
 class AuthState {
-  /// Current auth status
   final AuthStatus status;
-
-  /// Logged in user (null agar logged out)
   final AppUser? user;
-
-  /// Error message (null agar koi error nahi)
   final String? errorMessage;
-
-  /// Loading flag for async operations
   final bool isLoading;
 
   const AuthState({
@@ -176,12 +148,10 @@ class AuthState {
     this.isLoading = false,
   });
 
-  /// Initial state factory
   factory AuthState.initial() {
     return const AuthState(status: AuthStatus.initial);
   }
 
-  /// Loading state factory
   factory AuthState.loading() {
     return const AuthState(
       status: AuthStatus.loading,
@@ -189,7 +159,6 @@ class AuthState {
     );
   }
 
-  /// Authenticated state factory
   factory AuthState.authenticated(AppUser user) {
     return AuthState(
       status: AuthStatus.authenticated,
@@ -197,7 +166,6 @@ class AuthState {
     );
   }
 
-  /// Unauthenticated state factory
   factory AuthState.unauthenticated({String? error}) {
     return AuthState(
       status: AuthStatus.unauthenticated,
@@ -205,7 +173,6 @@ class AuthState {
     );
   }
 
-  /// Copy karo with new values
   AuthState copyWith({
     AuthStatus? status,
     AppUser? user,
@@ -222,65 +189,153 @@ class AuthState {
     );
   }
 
-  /// Convenience getters
   bool get isAuthenticated =>
       status == AuthStatus.authenticated && user != null;
   bool get isUnauthenticated => status == AuthStatus.unauthenticated;
+  bool get isGuest => status == AuthStatus.unauthenticated;
   bool get hasError => errorMessage != null;
 }
 
 // ============================================================
-// SECTION 4: AUTH NOTIFIER (State Manager)
+// SECTION 4: AUTH REPOSITORY ABSTRACTION
 // ============================================================
-// StateNotifier = state ko update karne wali class
-// UI se calls aayenge yahan
-// Yeh state update karega
+// Future backend integration point.
+// When AppApi.isBackendEnabled == true, implement real HTTP calls
+// via Dio to AppApi.apiUrl + endpoints. When false, repository
+// is no-op and Notifier surfaces friendly "continue as guest".
+
+abstract class AuthRepository {
+  Future<AuthResult> login(
+      {required String email, required String password});
+  Future<AuthResult> register(
+      {required String email, required String password, required String name});
+  Future<void> logout();
+  Future<AppUser?> getCurrentUser();
+}
+
+class AuthResult {
+  final bool success;
+  final AppUser? user;
+  final String? token;
+  final String? refreshToken;
+  final String? error;
+  const AuthResult.success(this.user, this.token, this.refreshToken)
+      : success = true,
+        error = null;
+  const AuthResult.failure(this.error)
+      : success = false,
+        user = null,
+        token = null,
+        refreshToken = null;
+}
+
+// Stub implementation — backend disabled.
+// Replace with RealAuthRepository when backend deployed.
+class StubAuthRepository implements AuthRepository {
+  @override
+  Future<AuthResult> login(
+      {required String email, required String password}) async {
+    return const AuthResult.failure(
+      'Authentication service is not available in this build. '
+      'Please continue as Guest — your Quran, Prayer, and Duas work fully offline. '
+      'Sign-in will be enabled when the Qibra backend is deployed.',
+    );
+  }
+
+  @override
+  Future<AuthResult> register(
+      {required String email,
+      required String password,
+      required String name}) async {
+    return const AuthResult.failure(
+      'Registration is not available in this build. '
+      'Please continue as Guest. Your progress is saved locally.',
+    );
+  }
+
+  @override
+  Future<void> logout() async {}
+
+  @override
+  Future<AppUser?> getCurrentUser() async => null;
+}
+
+// ============================================================
+// SECTION 5: AUTH NOTIFIER (Anonymous-First)
 // ============================================================
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final FlutterSecureStorage _secureStorage;
+  final AuthRepository _repository;
 
-  AuthNotifier(this._secureStorage) : super(AuthState.initial()) {
-    // Constructor mein automatically check karo login state
+  AuthNotifier(this._secureStorage, {AuthRepository? repository})
+      : _repository = repository ?? StubAuthRepository(),
+        super(AuthState.initial()) {
     _checkAuthStatus();
   }
 
   // ── AUTH CHECK ─────────────────────────────────────────
-  /// App startup pe check karo — token hai ya nahi
+  // Only restores session if backend enabled AND token looks real
+  // Legacy fake tokens (fake_jwt_*) are purged as compromised.
+
   Future<void> _checkAuthStatus() async {
     state = AuthState.loading();
-
     try {
-      // Secure storage se token nikalo
-      final token = await _secureStorage.read(
-        key: AppStorageKeys.accessToken,
-      );
+      // If backend disabled, immediately go to guest — no token check needed
+      if (!AppApi.isBackendEnabled) {
+        // Clean up any legacy fake tokens if present
+        await _purgeLegacyFakeTokens();
+        state = AuthState.unauthenticated();
+        return;
+      }
 
-      if (token != null && token.isNotEmpty) {
-        // Token hai — user logged in
-        // Real app mein yahan token verify + user fetch hoga
-        // Abhi ke liye dummy user banao
-        final user = AppUser(
-          id: '1',
-          email: 'user@qibra.ai',
-          name: 'QIBRA User',
-          createdAt: DateTime.now(),
-          isEmailVerified: true,
+      final token = await _secureStorage.read(key: AppStorageKeys.accessToken);
+      if (token == null || token.isEmpty) {
+        state = AuthState.unauthenticated();
+        return;
+      }
+
+      // Reject legacy fake tokens that were stored by v1.0
+      if (_isLegacyFakeToken(token)) {
+        await _purgeLegacyFakeTokens();
+        state = AuthState.unauthenticated(
+          error: 'Previous session was demo-only and has been cleared. Please sign in again.',
         );
+        return;
+      }
+
+      // Backend enabled + token looks real → try to fetch user
+      final user = await _repository.getCurrentUser();
+      if (user != null) {
         state = AuthState.authenticated(user);
       } else {
-        // Token nahi hai — logged out
+        // Token present but user fetch failed → treat as guest
         state = AuthState.unauthenticated();
       }
     } catch (e) {
-      state = AuthState.unauthenticated(
-        error: 'Auth check failed: ${e.toString()}',
-      );
+      state = AuthState.unauthenticated();
     }
   }
 
+  bool _isLegacyFakeToken(String token) {
+    return token.startsWith('fake_') ||
+        token == 'fake_jwt_token_xyz123' ||
+        token == 'fake_jwt_token_new_user' ||
+        token == 'refreshed_fake_token';
+  }
+
+  Future<void> _purgeLegacyFakeTokens() async {
+    try {
+      final t = await _secureStorage.read(key: AppStorageKeys.accessToken);
+      if (t != null && _isLegacyFakeToken(t)) {
+        await _secureStorage.delete(key: AppStorageKeys.accessToken);
+        await _secureStorage.delete(key: AppStorageKeys.refreshToken);
+        await _secureStorage.delete(key: AppStorageKeys.userId);
+      }
+    } catch (_) {}
+  }
+
   // ── LOGIN ──────────────────────────────────────────────
-  /// Email/Password se login karo
   Future<bool> login({
     required String email,
     required String password,
@@ -288,48 +343,48 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      // Real app mein yahan API call hogi
-      // Abhi ke liye simulate karte hain
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Basic validation
+      // Local validation first (shared)
       if (email.isEmpty || password.isEmpty) {
         throw Exception('Email and password required');
       }
-
-      if (!email.contains('@')) {
+      if (!AppValidation.emailRegex.hasMatch(email)) {
         throw Exception('Invalid email format');
       }
-
-      if (password.length < 6) {
-        throw Exception('Password too short');
+      if (password.length < AppValidation.passwordMinLength) {
+        throw Exception(
+            'Password must be at least ${AppValidation.passwordMinLength} characters');
       }
 
-      // Simulate successful login
-      const fakeToken = 'fake_jwt_token_xyz123';
-      const fakeRefreshToken = 'fake_refresh_token_abc456';
+      // Backend gate
+      if (!AppApi.isBackendEnabled) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage:
+              'Sign-in is not available in this build. Please tap "Continue as Guest" — '
+              'all Islamic features work offline. Authentication will be enabled with the backend.',
+        );
+        return false;
+      }
 
-      // Tokens save karo secure storage mein
-      await _secureStorage.write(
-        key: AppStorageKeys.accessToken,
-        value: fakeToken,
-      );
-      await _secureStorage.write(
-        key: AppStorageKeys.refreshToken,
-        value: fakeRefreshToken,
-      );
+      final result = await _repository.login(email: email, password: password);
+      if (!result.success || result.user == null) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: result.error ?? 'Login failed',
+        );
+        return false;
+      }
 
-      // User info banao
-      final user = AppUser(
-        id: '1',
-        email: email,
-        name: email.split('@').first,
-        createdAt: DateTime.now(),
-        isEmailVerified: true,
-      );
+      if (result.token != null) {
+        await _secureStorage.write(
+            key: AppStorageKeys.accessToken, value: result.token);
+      }
+      if (result.refreshToken != null) {
+        await _secureStorage.write(
+            key: AppStorageKeys.refreshToken, value: result.refreshToken);
+      }
 
-      // State update karo
-      state = AuthState.authenticated(user);
+      state = AuthState.authenticated(result.user!);
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -341,7 +396,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   // ── REGISTER ───────────────────────────────────────────
-  /// New user register karo
   Future<bool> register({
     required String email,
     required String password,
@@ -350,36 +404,42 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (name.length < 2) {
+      if (name.trim().length < AppValidation.nameMinLength) {
         throw Exception('Name too short');
       }
-
-      if (!email.contains('@')) {
+      if (!AppValidation.emailRegex.hasMatch(email)) {
         throw Exception('Invalid email format');
       }
-
-      if (password.length < 8) {
-        throw Exception('Password must be at least 8 characters');
+      if (password.length < AppValidation.passwordMinLength) {
+        throw Exception(
+            'Password must be at least ${AppValidation.passwordMinLength} characters');
       }
 
-      // Simulate registration
-      const fakeToken = 'fake_jwt_token_new_user';
-      await _secureStorage.write(
-        key: AppStorageKeys.accessToken,
-        value: fakeToken,
-      );
+      if (!AppApi.isBackendEnabled) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage:
+              'Registration is not available in this build. Please continue as Guest.',
+        );
+        return false;
+      }
 
-      final user = AppUser(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        email: email,
-        name: name,
-        createdAt: DateTime.now(),
-        isEmailVerified: false,
-      );
+      final result = await _repository.register(
+          email: email, password: password, name: name);
+      if (!result.success || result.user == null) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: result.error ?? 'Registration failed',
+        );
+        return false;
+      }
 
-      state = AuthState.authenticated(user);
+      if (result.token != null) {
+        await _secureStorage.write(
+            key: AppStorageKeys.accessToken, value: result.token);
+      }
+
+      state = AuthState.authenticated(result.user!);
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -390,33 +450,32 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  // ── CONTINUE AS GUEST ──────────────────────────────────
+  // Explicit guest mode — clears any error and ensures unauthenticated
+  void continueAsGuest() {
+    state = AuthState.unauthenticated();
+  }
+
   // ── LOGOUT ─────────────────────────────────────────────
-  /// Current user ko logout karo
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
-
     try {
-      // Secure storage clear karo
-      await _secureStorage.delete(
-        key: AppStorageKeys.accessToken,
-      );
-      await _secureStorage.delete(
-        key: AppStorageKeys.refreshToken,
-      );
-      await _secureStorage.delete(
-        key: AppStorageKeys.userId,
-      );
-
-      // State reset karo
+      if (AppApi.isBackendEnabled) {
+        try {
+          await _repository.logout();
+        } catch (_) {}
+      }
+      await _secureStorage.delete(key: AppStorageKeys.accessToken);
+      await _secureStorage.delete(key: AppStorageKeys.refreshToken);
+      await _secureStorage.delete(key: AppStorageKeys.userId);
+      await _secureStorage.delete(key: AppStorageKeys.tokenExpiry);
       state = AuthState.unauthenticated();
     } catch (e) {
-      // Even if error — force logout
       state = AuthState.unauthenticated();
     }
   }
 
   // ── UPDATE USER ────────────────────────────────────────
-  /// User info update karo (profile edit ke baad)
   void updateUser(AppUser updatedUser) {
     if (state.isAuthenticated) {
       state = state.copyWith(user: updatedUser);
@@ -424,36 +483,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   // ── CLEAR ERROR ────────────────────────────────────────
-  /// Error message clear karo
   void clearError() {
     state = state.copyWith(clearError: true);
   }
 
   // ── REFRESH TOKEN ──────────────────────────────────────
-  /// Token expire ho gaya to refresh karo
+  // Only meaningful when backend enabled
+
   Future<bool> refreshToken() async {
+    if (!AppApi.isBackendEnabled) return false;
     try {
       final refreshToken = await _secureStorage.read(
         key: AppStorageKeys.refreshToken,
       );
-
       if (refreshToken == null || refreshToken.isEmpty) {
-        // Refresh token nahi hai — logout karo
         await logout();
         return false;
       }
-
-      // Real app mein API call hogi
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Simulate new token
-      const newToken = 'refreshed_fake_token';
-      await _secureStorage.write(
-        key: AppStorageKeys.accessToken,
-        value: newToken,
-      );
-
-      return true;
+      // Real implementation would call AppApi.endpointRefreshToken
+      // Stub returns false to force re-login
+      await logout();
+      return false;
     } catch (e) {
       await logout();
       return false;
@@ -462,85 +512,44 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 // ============================================================
-// SECTION 5: AUTH PROVIDER
-// ============================================================
-// Main provider jo AuthNotifier ko expose karta hai
-// UI mein iske through auth state access hoga
+// SECTION 6: AUTH PROVIDER
 // ============================================================
 
-/// Auth state provider
-/// StateNotifierProvider = notifier ka result state hai
-///
-/// Usage:
-///   final authState = ref.watch(authProvider);
-///   final auth = ref.read(authProvider.notifier);
-///
-///   // State access
-///   if (authState.isAuthenticated) { ... }
-///
-///   // Actions
-///   await auth.login(email: '...', password: '...');
-///   await auth.logout();
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final secureStorage = ref.watch(secureStorageProvider);
   return AuthNotifier(secureStorage);
 });
 
 // ============================================================
-// SECTION 6: CONVENIENCE PROVIDERS
-// ============================================================
-// Alag alag auth data ke liye specific providers
-// UI mein specific value chahiye — poori state nahi
+// SECTION 7: CONVENIENCE PROVIDERS
 // ============================================================
 
-/// Is user authenticated? (boolean)
-///
-/// Usage:
-///   final isAuth = ref.watch(isAuthenticatedProvider);
 final isAuthenticatedProvider = Provider<bool>((ref) {
   return ref.watch(authProvider).isAuthenticated;
 });
 
-/// Current logged in user (null if not logged in)
-///
-/// Usage:
-///   final user = ref.watch(currentUserProvider);
-///   Text(user?.name ?? 'Guest');
 final currentUserProvider = Provider<AppUser?>((ref) {
   return ref.watch(authProvider).user;
 });
 
-/// Is auth loading?
-///
-/// Usage:
-///   final isLoading = ref.watch(authLoadingProvider);
-///   if (isLoading) return CircularProgressIndicator();
 final authLoadingProvider = Provider<bool>((ref) {
   return ref.watch(authProvider).isLoading;
 });
 
-/// Current auth error message (null if no error)
-///
-/// Usage:
-///   final error = ref.watch(authErrorProvider);
-///   if (error != null) return Text(error);
 final authErrorProvider = Provider<String?>((ref) {
   return ref.watch(authProvider).errorMessage;
 });
 
-/// User's display name (fallback: "Guest")
-///
-/// Usage:
-///   final name = ref.watch(userDisplayNameProvider);
 final userDisplayNameProvider = Provider<String>((ref) {
   final user = ref.watch(currentUserProvider);
   return user?.name ?? 'Guest';
 });
 
-/// Is current user premium?
-///
-/// Usage:
-///   final isPremium = ref.watch(isPremiumUserProvider);
 final isPremiumUserProvider = Provider<bool>((ref) {
   return ref.watch(currentUserProvider)?.isPremium ?? false;
+});
+
+// Is the app in guest mode (backend disabled or not logged in)
+final isGuestModeProvider = Provider<bool>((ref) {
+  return !ref.watch(isAuthenticatedProvider);
 });

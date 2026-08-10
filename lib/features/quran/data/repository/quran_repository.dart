@@ -9,10 +9,14 @@
 // ============================================================
 
 import 'dart:convert';
+import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../models/quran_models.dart';
+
+// Top-level helpers for Isolate (must be top-level for compute/Isolate.run)
+dynamic _parseJsonIsolate(String jsonString) => jsonDecode(jsonString);
 
 // ============================================================
 // SECTION 1 — QURAN REPOSITORY
@@ -88,7 +92,8 @@ class QuranRepository {
   Future<void> _loadSurahInfo() async {
     try {
       final jsonString = await rootBundle.loadString(_surahInfoFilePath);
-      final decoded = json.decode(jsonString);
+      // Phase 4 QURAN PERFORMANCE: parsing off main isolate (Isolate.run, ~27K file, still benefits)
+      final decoded = await Isolate.run(() => _parseJsonIsolate(jsonString));
 
       final List<dynamic> surahsList = decoded is Map<String, dynamic>
           ? (decoded['data'] as List<dynamic>? ?? [])
@@ -105,7 +110,8 @@ class QuranRepository {
   Future<void> _loadArabicQuran() async {
     try {
       final jsonString = await rootBundle.loadString(_arabicFilePath);
-      final decoded = json.decode(jsonString);
+      // Phase 4: Heavy 4.5M JSON off main isolate
+      final decoded = await Isolate.run(() => _parseJsonIsolate(jsonString));
 
       final Map<String, dynamic> data =
           decoded is Map<String, dynamic> ? decoded : {'data': decoded};
@@ -129,7 +135,7 @@ class QuranRepository {
   Future<void> _loadTranslationsEnglish() async {
     try {
       final jsonString = await rootBundle.loadString(_translationEnPath);
-      final decoded = json.decode(jsonString);
+      final decoded = await Isolate.run(() => _parseJsonIsolate(jsonString));
 
       final Map<String, dynamic> data =
           decoded is Map<String, dynamic> ? decoded : {'data': decoded};
@@ -163,7 +169,7 @@ class QuranRepository {
   Future<void> _loadTranslationsUrdu() async {
     try {
       final jsonString = await rootBundle.loadString(_translationUrPath);
-      final decoded = json.decode(jsonString) as Map<String, dynamic>;
+      final decoded = await Isolate.run(() => _parseJsonIsolate(jsonString)) as Map<String, dynamic>;
       final List<dynamic> ayahs = decoded['quran'] as List<dynamic>? ?? [];
 
       _cachedTranslationsUrdu = {};
@@ -187,7 +193,7 @@ class QuranRepository {
   Future<void> _loadTranslationsRoman() async {
     try {
       final jsonString = await rootBundle.loadString(_translationRomanPath);
-      final decoded = json.decode(jsonString) as Map<String, dynamic>;
+      final decoded = await Isolate.run(() => _parseJsonIsolate(jsonString)) as Map<String, dynamic>;
       final List<dynamic> ayahs = decoded['quran'] as List<dynamic>? ?? [];
 
       _cachedTranslationsRoman = {};
@@ -298,6 +304,12 @@ class QuranRepository {
 
     await _ensureInitialized();
 
+    // Phase 4 P1-4: Heavy Quran search off main isolate where safe (6236 ayahs + translations)
+    // Use Isolate.run for queries >2 chars (non-trivial) to avoid jank
+    if (query.trim().length > 2) {
+      return _searchInIsolate(query);
+    }
+
     final results = <SearchResultModel>[];
     final lowerQuery = query.toLowerCase().trim();
 
@@ -341,6 +353,53 @@ class QuranRepository {
     }
 
     return results;
+  }
+
+  // Isolate helper for heavy search (Phase 4 P1-4)
+  Future<List<SearchResultModel>> _searchInIsolate(String query) async {
+    // Snapshot needed data for isolate (avoid capturing entire repo which is not transferable)
+    final surahsSnapshot = _cachedSurahsMap;
+    final translationsSnapshot = _cachedTranslationsEn;
+    if (surahsSnapshot == null) return [];
+    // Use Isolate.run with simple serializable data
+    // For now, delegate to main isolate search but wrapped in Isolate.run via helper
+    // To keep Arabic matching correct, we run the loop in isolate with copied data
+    return Isolate.run(() {
+      final results = <SearchResultModel>[];
+      final lowerQuery = query.toLowerCase().trim();
+      for (final entry in surahsSnapshot.entries) {
+        final surah = entry.value;
+        for (final ayah in surah.ayahs) {
+          if (ayah.text.contains(query)) {
+            final trans = translationsSnapshot?[ayah.numberInQuran];
+            results.add(SearchResultModel(
+              surahNumber: surah.number,
+              surahName: surah.name,
+              ayahNumber: ayah.number,
+              ayahText: ayah.text,
+              translation: trans,
+              matchedText: query,
+              matchType: 0,
+            ));
+            continue;
+          }
+          final trans = translationsSnapshot?[ayah.numberInQuran];
+          if (trans != null && trans.toLowerCase().contains(lowerQuery)) {
+            results.add(SearchResultModel(
+              surahNumber: surah.number,
+              surahName: surah.name,
+              ayahNumber: ayah.number,
+              ayahText: ayah.text,
+              translation: trans,
+              matchedText: query,
+              matchType: 1,
+            ));
+          }
+          if (results.length >= 100) return results;
+        }
+      }
+      return results;
+    });
   }
 
   Future<List<SurahInfoModel>> searchSurahs(String query) async {

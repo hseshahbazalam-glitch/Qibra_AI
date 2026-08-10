@@ -110,13 +110,12 @@ class SurahModel extends Equatable {
   String get displayName => '$number. $name';
   String get formattedName => '$name ($nameArabic)';
 
-  /// Get ayah by number (1-based)
+  /// Get ayah by number (1-based) — safe
   AyahModel? getAyahByNumber(int ayahNumber) {
-    try {
-      return ayahs.firstWhere((ayah) => ayah.number == ayahNumber);
-    } catch (e) {
-      return null;
+    for (final ayah in ayahs) {
+      if (ayah.number == ayahNumber) return ayah;
     }
+    return null;
   }
 
   /// Get first ayah

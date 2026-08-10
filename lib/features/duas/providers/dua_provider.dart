@@ -143,12 +143,10 @@ final favoriteDuasProvider = Provider<List<DuaModel>>((ref) {
 
 final duaByIdProvider = Provider.family<DuaModel?, String>((ref, id) {
   final favorites = ref.watch(favoriteDuaIdsProvider);
-  try {
-    final dua = DuaDatabase.duas.firstWhere((d) => d.id == id);
-    return dua.copyWith(isFavorite: favorites.contains(dua.id));
-  } catch (_) {
-    return null;
+  for (final dua in DuaDatabase.duas) {
+    if (dua.id == id) return dua.copyWith(isFavorite: favorites.contains(dua.id));
   }
+  return null;
 });
 
 // ============================================================

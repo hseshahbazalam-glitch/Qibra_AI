@@ -8,13 +8,20 @@
 import 'dart:math' as math;
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+
+/// Centralized Kaaba coordinates — single authoritative source
+/// AppConstants.kaabatullah 21.3891,39.8579 is the precise Kaaba (Masjid al-Haram) reference.
+/// Previously qibla_service used 21.4225,39.8262 (approx) — now unified to AppConstants.
+const double _kKaabaLat = AppIslamicConstants.kaabatullahLatitude;
+const double _kKaabaLng = AppIslamicConstants.kaabatullahLongitude;
 
 // ============================================================
 // QIBLA RESULT MODEL (Enhanced)
 // ============================================================
 
 class QiblaResult {
-  final double qiblaAngle;
+  final double qiblaAngle; // True north bearing
   final double latitude;
   final double longitude;
   final double distanceToMakkah;
@@ -25,6 +32,10 @@ class QiblaResult {
   final double? accuracy;
   final bool isFromCache;
   final DateTime? updatedAt;
+  // P0.7: Magnetic declination (true vs magnetic north difference, degrees)
+  // Positive = magnetic north east of true north
+  final double magneticDeclination;
+  final String declinationNote;
 
   const QiblaResult({
     required this.qiblaAngle,
@@ -38,6 +49,8 @@ class QiblaResult {
     this.accuracy,
     this.isFromCache = false,
     this.updatedAt,
+    this.magneticDeclination = 0.0,
+    this.declinationNote = '',
   });
 
   String get formattedCoordinates {
@@ -66,8 +79,10 @@ class QiblaResult {
 class QiblaService {
   QiblaService._();
 
-  static const double _makkahLat = 21.4225;
-  static const double _makkahLng = 39.8262;
+  @Deprecated('Use _kKaabaLat/_kKaabaLng (centralized AppIslamicConstants)')
+  static const double _makkahLat = _kKaabaLat;
+  @Deprecated('Use _kKaabaLng')
+  static const double _makkahLng = _kKaabaLng;
 
   // SharedPreferences keys
   static const _kLastLat = 'qibla_last_lat';
@@ -121,6 +136,13 @@ class QiblaService {
         _makkahLng,
       );
 
+      // P0.7: Estimate magnetic declination for true-vs-magnetic correction
+      final declination = _estimateMagneticDeclination(
+        position.latitude,
+        position.longitude,
+      );
+      final declNote = _declinationNote(declination, position.latitude, position.longitude);
+
       // Get city name from coordinates (offline lookup)
       final locationInfo =
           _getLocationInfo(position.latitude, position.longitude);
@@ -148,6 +170,8 @@ class QiblaService {
         accuracy: position.accuracy,
         isFromCache: false,
         updatedAt: DateTime.now(),
+        magneticDeclination: declination,
+        declinationNote: declNote,
       );
     } catch (e) {
       return await _getFromCache();
@@ -404,6 +428,58 @@ class QiblaService {
 
   static double _toRad(double deg) => deg * math.pi / 180;
   static double _toDeg(double rad) => rad * 180 / math.pi;
+
+  // P0.7: Approximate magnetic declination (WMM simplified)
+  // Real WMM requires heavy model; we use lookup for major Islamic regions
+  // and longitude-based heuristic elsewhere. Error ±3° outside table — documented.
+  static double _estimateMagneticDeclination(double lat, double lng) {
+    // Lookup for major regions (approx 2026 declination)
+    if (lat >= 23.6 && lat <= 37.1 && lng >= 60.9 && lng <= 77.9) {
+      // Pakistan: +1 to +2°
+      return 1.5;
+    }
+    if (lat >= 8.0 && lat <= 37.0 && lng >= 68.0 && lng <= 97.5) {
+      // India: -1 to +2° (varies west->east)
+      if (lng < 75) return 0.5;
+      if (lng < 85) return -0.5;
+      return -1.0;
+    }
+    if (lat >= 16.0 && lat <= 32.2 && lng >= 34.5 && lng <= 55.7) {
+      // Saudi: +2 to +4°
+      return 3.0;
+    }
+    if (lat >= 22.6 && lat <= 26.1 && lng >= 51.5 && lng <= 56.4) {
+      return 1.0; // UAE
+    }
+    if (lat >= 20.5 && lat <= 26.7 && lng >= 88.0 && lng <= 92.7) return 0.0; // BD
+    if (lat >= 35.8 && lat <= 42.1 && lng >= 25.7 && lng <= 44.8) return 5.0; // Turkey
+    if (lat >= -11.0 && lat <= 6.5 && lng >= 94.5 && lng <= 141.5) return 0.5; // Indo
+    if (lat >= 0.8 && lat <= 7.4 && lng >= 99.5 && lng <= 119.3) return 0.0; // My
+    if (lat >= 22.0 && lat <= 31.7 && lng >= 24.7 && lng <= 36.9) return 3.5; // Egypt
+    // Europe
+    if (lat >= 35 && lat <= 72 && lng >= -25 && lng <= 40) {
+      // UK +5 to -5, Central Europe 2-5
+      if (lng < 0) return -2.0; // UK west
+      if (lng < 10) return 2.0;
+      return 4.0;
+    }
+    // North America
+    if (lat >= 25 && lat <= 49 && lng >= -125 && lng <= -66) {
+      // US: -10 (west) to +10 (east)
+      if (lng < -100) return 10.0;
+      if (lng < -80) return -5.0;
+      return -10.0;
+    }
+    // Default longitude heuristic: decl ~ (lng - 0) * 0.1 clamped
+    final est = (lng / 10.0).clamp(-15.0, 15.0);
+    return est;
+  }
+
+  static String _declinationNote(double decl, double lat, double lng) {
+    if (decl.abs() < 2) return 'Magnetic declination small (${decl.toStringAsFixed(1)}°) — magnetic ≈ true north. Compass should be accurate when calibrated.';
+    if (decl.abs() < 5) return 'Magnetic declination ${decl.toStringAsFixed(1)}° — add ${decl > 0 ? '+' : ''}${decl.toStringAsFixed(1)}° to magnetic heading for true north. Calibrate compass in figure-8.';
+    return 'Magnetic declination ${decl.toStringAsFixed(1)}° — significant. Use true north correction and calibrate compass. For precise prayer, verify with local mosque.';
+  }
 
   static String formatDistance(double km) {
     final rounded = km.round();

@@ -281,12 +281,12 @@ class DailyPrayerTimes extends Equatable {
     }
   }
 
-  PrayerTime get fajr => getPrayer(PrayerType.fajr)!;
-  PrayerTime get sunrise => getPrayer(PrayerType.sunrise)!;
-  PrayerTime get dhuhr => getPrayer(PrayerType.dhuhr)!;
-  PrayerTime get asr => getPrayer(PrayerType.asr)!;
-  PrayerTime get maghrib => getPrayer(PrayerType.maghrib)!;
-  PrayerTime get isha => getPrayer(PrayerType.isha)!;
+  PrayerTime get fajr => getPrayer(PrayerType.fajr) ?? PrayerTime(type: PrayerType.fajr, time: date.add(const Duration(hours: 5)));
+  PrayerTime get sunrise => getPrayer(PrayerType.sunrise) ?? PrayerTime(type: PrayerType.sunrise, time: date.add(const Duration(hours: 6)));
+  PrayerTime get dhuhr => getPrayer(PrayerType.dhuhr) ?? PrayerTime(type: PrayerType.dhuhr, time: date.add(const Duration(hours: 12)));
+  PrayerTime get asr => getPrayer(PrayerType.asr) ?? PrayerTime(type: PrayerType.asr, time: date.add(const Duration(hours: 15, minutes: 30)));
+  PrayerTime get maghrib => getPrayer(PrayerType.maghrib) ?? PrayerTime(type: PrayerType.maghrib, time: date.add(const Duration(hours: 18, minutes: 30)));
+  PrayerTime get isha => getPrayer(PrayerType.isha) ?? PrayerTime(type: PrayerType.isha, time: date.add(const Duration(hours: 19, minutes: 45)));
 
   /// Get the next prayer after given time
   PrayerTime? getNextPrayer(DateTime now) {

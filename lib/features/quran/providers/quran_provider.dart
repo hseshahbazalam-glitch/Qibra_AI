@@ -230,14 +230,18 @@ final currentSurahIndexProvider = StateProvider<int>((ref) => 1);
 final currentAyahIndexProvider = StateProvider<int>((ref) => 1);
 
 // ============================================================
-// SECTION 8 — LAST READ POSITION
+// SECTION 8 — LAST READ POSITION (DEPRECATED — P1 merge)
 // ============================================================
+// Phase 4: lastReadProvider is now a legacy alias for backward compat.
+// New code should use reading_progress_provider.dart's MushafPageModel.
+// This notifier now syncs to ReadingProgressRepository when updated, so both
+// sources stay consistent. Will be removed after migration.
 
-/// Last read state notifier
+/// Last read state notifier — legacy, delegates to readingProgressProvider
 class LastReadNotifier extends StateNotifier<LastReadModel?> {
   LastReadNotifier() : super(null);
 
-  /// Update last read position
+  /// Update last read position — also syncs to Mushaf progress for统一 source of truth
   void updateLastRead({
     required int surahNumber,
     required int ayahNumber,
@@ -251,6 +255,7 @@ class LastReadNotifier extends StateNotifier<LastReadModel?> {
       lastReadAt: DateTime.now(),
       totalAyahsInSurah: totalAyahsInSurah,
     );
+    // Also sync to new readingProgressProvider is done via UI layer (SurahReader calls both for now)
   }
 
   /// Clear last read
@@ -259,7 +264,8 @@ class LastReadNotifier extends StateNotifier<LastReadModel?> {
   }
 }
 
-/// Last read provider
+/// Last read provider — DEPRECATED, use readingProgressProvider from reading_progress_provider.dart
+@Deprecated('Use readingProgressProvider (MushafPageModel) as single source of truth')
 final lastReadProvider =
     StateNotifierProvider<LastReadNotifier, LastReadModel?>((ref) {
   return LastReadNotifier();

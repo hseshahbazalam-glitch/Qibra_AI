@@ -76,6 +76,11 @@ abstract final class AppInfo {
 // ============================================================
 
 abstract final class AppApi {
+  // --- Backend availability ---
+  // When false, app runs anonymous-first (no server auth required).
+  // Set to true only when api.qibra.ai is deployed and ready.
+  static const bool isBackendEnabled = false;
+
   // --- Base URLs ---
 
   /// Production API base URL
@@ -96,15 +101,16 @@ abstract final class AppApi {
   static const String apiUrl = '$baseUrl$apiVersion';
 
   // --- Timeouts ---
+  // P0.2: unified 20s timeout per audit (was 30s, too long for mobile)
 
   /// Connection timeout — server se connect hone ka max time
-  static const Duration connectTimeout = Duration(seconds: 30);
+  static const Duration connectTimeout = Duration(seconds: 20);
 
   /// Receive timeout — data receive karne ka max time
-  static const Duration receiveTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 20);
 
   /// Send timeout — data bhejne ka max time
-  static const Duration sendTimeout = Duration(seconds: 30);
+  static const Duration sendTimeout = Duration(seconds: 20);
 
   // --- Retry Configuration ---
 

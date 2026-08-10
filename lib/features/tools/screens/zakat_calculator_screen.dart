@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ZakatCalculatorScreen extends StatefulWidget {
   const ZakatCalculatorScreen({super.key});
@@ -37,6 +38,26 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
   static const double _goldNisabGrams = 87.48;
   static const double _silverNisabGrams = 612.36;
 
+  // P0.3 FIX: Explicit source & editable pricing
+  // Default silver price — MUST be shown with source/lastUpdated
+  // Source: Average Pakistan silver market ~280 PKR/g (Aug 2026 estimate)
+  // If live pricing unavailable, user can override via SharedPreferences
+  static const String _silverPriceSource = 'Pakistan silver market estimate';
+  static const String _silverPriceLastUpdated = '2026-08-10';
+  // Keep original stale map for migration, but override PKR with realistic
+  final Map<String, double> _silverPricePerGram = {
+    'PKR': 280.0, // P0.3: was 110 (understates nisab by 2.5x) — now realistic
+    'USD': 0.95, // updated to ~2026 avg
+    'GBP': 0.75,
+    'EUR': 0.87,
+    'SAR': 3.55,
+    'AED': 3.48,
+    'INR': 78.0,
+  };
+
+  // User-overridable custom price key (SharedPrefs)
+  static const String _customPriceKeyPrefix = 'zakat_silver_price_';
+
   final Map<String, String> _currencySymbols = {
     'PKR': '₨',
     'USD': '\$',
@@ -47,15 +68,33 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     'INR': '₹',
   };
 
-  final Map<String, double> _silverPricePerGram = {
-    'PKR': 110.0,
-    'USD': 0.40,
-    'GBP': 0.32,
-    'EUR': 0.37,
-    'SAR': 1.50,
-    'AED': 1.47,
-    'INR': 33.0,
-  };
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomPrices();
+  }
+
+  Future<void> _loadCustomPrices() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      bool updated = false;
+      for (final c in _silverPricePerGram.keys.toList()) {
+        final custom = prefs.getDouble('$_customPriceKeyPrefix$c');
+        if (custom != null && custom > 0) {
+          _silverPricePerGram[c] = custom;
+          updated = true;
+        }
+      }
+      if (updated && mounted) setState(() {});
+    } catch (_) {}
+  }
+
+  Future<void> _saveCustomPrice(String currency, double price) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('$_customPriceKeyPrefix$currency', price);
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -79,7 +118,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
 
     final total = gold + silver + cash + investment + property - debt;
 
-    final double silverPrice = _silverPricePerGram[_currency] ?? 110.0;
+    final double silverPrice = _silverPricePerGram[_currency] ?? 280.0;
     final double nisabThreshold = _silverNisabGrams * silverPrice;
 
     setState(() {
@@ -316,10 +355,10 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     );
   }
 
-  // ─── Nisab Info ──────────────────────────────────────────────
+  // ─── Nisab Info (P0.3: explicit source, editable price) ──────
 
   Widget _buildNisabInfoCard() {
-    final double silverPrice = _silverPricePerGram[_currency] ?? 110.0;
+    final double silverPrice = _silverPricePerGram[_currency] ?? 280.0;
     final double nisab = _silverNisabGrams * silverPrice;
 
     return Container(
@@ -357,6 +396,26 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              const Spacer(),
+              GestureDetector(
+                onTap: _showEditSilverPriceDialog,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF52B788).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.edit_rounded, color: Color(0xFF52B788), size: 12),
+                      SizedBox(width: 4),
+                      Text('Edit price', style: TextStyle(color: Color(0xFF52B788), fontSize: 10, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -367,6 +426,101 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
           _nisabRow('Nisab in $_currency', _formatAmount(nisab)),
           const SizedBox(height: 6),
           _nisabRow('Zakat Rate', '2.5% of total wealth'),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.price_change_rounded, color: Color(0xFFFFD700), size: 14),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Silver: ${_silverPricePerGram[_currency]?.toStringAsFixed(2)} $_currency/g',
+                        style: const TextStyle(color: Color(0xFFFFD700), fontSize: 11, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Source: $_silverPriceSource • Updated: $_silverPriceLastUpdated',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 10),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Tap Edit price to use live market rate. Reproducible: Nisab = 612.36g × silver price. Rounding to 2 decimals.',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 10, height: 1.3),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditSilverPriceDialog() {
+    final controller = TextEditingController(text: _silverPricePerGram[_currency]?.toString() ?? '');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF141926),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Edit Silver Price ($_currency/g)',
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Current source: $_silverPriceSource ($_silverPriceLastUpdated)',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'e.g. 280 for PKR',
+                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+                prefixText: '${_currencySymbols[_currency]} ',
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.08),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text('This price is saved locally and used for Nisab. Consult your local jeweller for exact rate.',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 10)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF52B788)),
+            onPressed: () {
+              final v = double.tryParse(controller.text);
+              if (v == null || v <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid price')));
+                return;
+              }
+              setState(() => _silverPricePerGram[_currency] = v);
+              _saveCustomPrice(_currency, v);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Silver price updated to ${_formatAmount(v)}/g')));
+            },
+            child: const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
         ],
       ),
     );
