@@ -222,9 +222,11 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       // RAG — retrieve verified passages before LLM (keyword, local offline)
       String ragContext = '';
       try {
-        ragContext = await RagService.instance.buildContextForQuery(userMessage);
+        ragContext =
+            await RagService.instance.buildContextForQuery(userMessage);
         // Also store passages for citation verification (Phase 7)
-        _lastRetrieved = await RagService.instance.retrieve(userMessage, topK: 3);
+        _lastRetrieved =
+            await RagService.instance.retrieve(userMessage, topK: 3);
       } catch (_) {
         _lastRetrieved = [];
       }
@@ -274,7 +276,8 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         String aiResponse = '';
         if (data is Map<String, dynamic>) {
           if (data['choices'] is List && (data['choices'] as List).isNotEmpty) {
-            aiResponse = (data['choices'][0]['message']['content'] as String?) ?? '';
+            aiResponse =
+                (data['choices'][0]['message']['content'] as String?) ?? '';
           } else if (data['reply'] is String) {
             aiResponse = data['reply'] as String;
           } else if (data['content'] is String) {
@@ -295,22 +298,28 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         if (e.type == ApiErrorType.offline) {
           addAIMessage('No internet connection. AI requires internet.');
         } else if (e.type == ApiErrorType.timeout) {
-          addAIMessage('AI request timed out. Please check your connection and try again.');
+          addAIMessage(
+              'AI request timed out. Please check your connection and try again.');
         } else {
-          addAIMessage('AI service unavailable via Qibra backend (${e.statusCode ?? ''}). Please try later.');
+          addAIMessage(
+              'AI service unavailable via Qibra backend (${e.statusCode ?? ''}). Please try later.');
         }
         debugPrint('AI Backend Error: $e');
         return;
       }
     } on TimeoutException catch (e) {
       removeTypingIndicator();
-      addAIMessage('AI request timed out. Please check your connection and try again.');
+      addAIMessage(
+          'AI request timed out. Please check your connection and try again.');
       debugPrint('AI Timeout: $e');
     } catch (e) {
       removeTypingIndicator();
       final msg = e.toString().toLowerCase();
-      if (msg.contains('socket') || msg.contains('failed host') || msg.contains('network is unreachable')) {
-        addAIMessage('No internet connection. AI requires internet. Please try when online.');
+      if (msg.contains('socket') ||
+          msg.contains('failed host') ||
+          msg.contains('network is unreachable')) {
+        addAIMessage(
+            'No internet connection. AI requires internet. Please try when online.');
       } else {
         addAIMessage('Something went wrong. Please try again.');
       }
@@ -381,9 +390,14 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 
     // Islamic safety: verify citations if we had retrieved passages
     if (_lastRetrieved.isNotEmpty) {
-      final hasCitation = RagService.instance.verifyCitations(response, _lastRetrieved);
-      if (!hasCitation && (response.contains('Quran') || response.contains('Hadith') || response.contains('Sahih'))) {
-        debugPrint('AI response contains Islamic claim without verified citation — retrieved: ${_lastRetrieved.map((e) => e.source).join(', ')}');
+      final hasCitation =
+          RagService.instance.verifyCitations(response, _lastRetrieved);
+      if (!hasCitation &&
+          (response.contains('Quran') ||
+              response.contains('Hadith') ||
+              response.contains('Sahih'))) {
+        debugPrint(
+            'AI response contains Islamic claim without verified citation — retrieved: ${_lastRetrieved.map((e) => e.source).join(', ')}');
       }
     }
     // If _lastRetrieved empty and answer is Islamic, system prompt already instructs to say "couldn't find verified source"

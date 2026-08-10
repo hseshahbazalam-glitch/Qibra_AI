@@ -172,8 +172,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
             decoration: BoxDecoration(
               color: const Color(0xFFA78BFA).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
-              border:
-                  Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
             ),
             child: const Text(
               '99',
@@ -249,7 +249,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           indicator: BoxDecoration(
             color: const Color(0xFFA78BFA).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.4)),
+            border: Border.all(
+                color: const Color(0xFFA78BFA).withValues(alpha: 0.4)),
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
@@ -331,7 +332,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                       decoration: BoxDecoration(
                         color: name.color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: name.color.withValues(alpha: 0.2)),
+                        border: Border.all(
+                            color: name.color.withValues(alpha: 0.2)),
                       ),
                       child: Center(
                         child: Text(
@@ -412,7 +414,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                     decoration: BoxDecoration(
                       color: name.color.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: name.color.withValues(alpha: 0.15)),
+                      border:
+                          Border.all(color: name.color.withValues(alpha: 0.15)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,7 +439,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                       color: const Color(0xFFFFD700).withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                          color: const Color(0xFFFFD700).withValues(alpha: 0.15)),
+                          color:
+                              const Color(0xFFFFD700).withValues(alpha: 0.15)),
                     ),
                     child: Row(
                       children: [
@@ -516,8 +520,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
             const SizedBox(height: 6),
             Text(
               'Tap ❤️ on any name to save it',
-              style:
-                  TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13),
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.4), fontSize: 13),
             ),
           ],
         ),
@@ -612,8 +616,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                 colors: [Color(0xFF1A0D35), Color(0xFF2D1B69)],
               ),
               borderRadius: BorderRadius.circular(20),
-              border:
-                  Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -634,8 +638,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
             decoration: BoxDecoration(
               color: const Color(0xFF141926),
               borderRadius: BorderRadius.circular(16),
-              border:
-                  Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.15)),
+              border: Border.all(
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.15)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

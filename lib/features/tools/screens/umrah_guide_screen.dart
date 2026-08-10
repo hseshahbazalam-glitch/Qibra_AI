@@ -175,7 +175,8 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
+              color: Colors.white.withValues(alpha: 0.1),
+              shape: BoxShape.circle),
           child: const Icon(Icons.arrow_back_rounded,
               color: Colors.white, size: 20),
         ),
@@ -207,7 +208,8 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                           fontWeight: FontWeight.bold)),
                   Text('Step-by-Step',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontSize: 12)),
                 ],
               ),
             ),
@@ -224,7 +226,8 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
         gradient: const LinearGradient(
             colors: [Color(0xFF0D2137), Color(0xFF152E4A)]),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF74C0FC).withValues(alpha: 0.3)),
+        border:
+            Border.all(color: const Color(0xFF74C0FC).withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,8 +282,8 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF141926),
               borderRadius: BorderRadius.circular(14),
-              border:
-                  Border.all(color: const Color(0xFF74C0FC).withValues(alpha: 0.12)),
+              border: Border.all(
+                  color: const Color(0xFF74C0FC).withValues(alpha: 0.12)),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -423,7 +426,8 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                   decoration: BoxDecoration(
                     color: step.color.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: step.color.withValues(alpha: 0.15)),
+                    border:
+                        Border.all(color: step.color.withValues(alpha: 0.15)),
                   ),
                   child: Column(
                     children: [
@@ -484,7 +488,8 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                       fontWeight: FontWeight.w700)),
               Text(tip.subtitle,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.35), fontSize: 10),
+                      color: Colors.white.withValues(alpha: 0.35),
+                      fontSize: 10),
                   maxLines: 2),
             ],
           ),
@@ -499,7 +504,8 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF74C0FC).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFF74C0FC).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

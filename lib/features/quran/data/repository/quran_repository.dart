@@ -169,7 +169,8 @@ class QuranRepository {
   Future<void> _loadTranslationsUrdu() async {
     try {
       final jsonString = await rootBundle.loadString(_translationUrPath);
-      final decoded = await Isolate.run(() => _parseJsonIsolate(jsonString)) as Map<String, dynamic>;
+      final decoded = await Isolate.run(() => _parseJsonIsolate(jsonString))
+          as Map<String, dynamic>;
       final List<dynamic> ayahs = decoded['quran'] as List<dynamic>? ?? [];
 
       _cachedTranslationsUrdu = {};
@@ -193,7 +194,8 @@ class QuranRepository {
   Future<void> _loadTranslationsRoman() async {
     try {
       final jsonString = await rootBundle.loadString(_translationRomanPath);
-      final decoded = await Isolate.run(() => _parseJsonIsolate(jsonString)) as Map<String, dynamic>;
+      final decoded = await Isolate.run(() => _parseJsonIsolate(jsonString))
+          as Map<String, dynamic>;
       final List<dynamic> ayahs = decoded['quran'] as List<dynamic>? ?? [];
 
       _cachedTranslationsRoman = {};

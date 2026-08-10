@@ -400,18 +400,25 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
               GestureDetector(
                 onTap: _showEditSilverPriceDialog,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFF52B788).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: const Color(0xFF52B788).withValues(alpha: 0.3)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.edit_rounded, color: Color(0xFF52B788), size: 12),
+                      Icon(Icons.edit_rounded,
+                          color: Color(0xFF52B788), size: 12),
                       SizedBox(width: 4),
-                      Text('Edit price', style: TextStyle(color: Color(0xFF52B788), fontSize: 10, fontWeight: FontWeight.w700)),
+                      Text('Edit price',
+                          style: TextStyle(
+                              color: Color(0xFF52B788),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),
@@ -439,12 +446,16 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.price_change_rounded, color: Color(0xFFFFD700), size: 14),
+                    const Icon(Icons.price_change_rounded,
+                        color: Color(0xFFFFD700), size: 14),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         'Silver: ${_silverPricePerGram[_currency]?.toStringAsFixed(2)} $_currency/g',
-                        style: const TextStyle(color: Color(0xFFFFD700), fontSize: 11, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                            color: Color(0xFFFFD700),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700),
                       ),
                     ),
                   ],
@@ -452,12 +463,17 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Source: $_silverPriceSource • Updated: $_silverPriceLastUpdated',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 10),
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.45),
+                      fontSize: 10),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Tap Edit price to use live market rate. Reproducible: Nisab = 612.36g × silver price. Rounding to 2 decimals.',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 10, height: 1.3),
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.35),
+                      fontSize: 10,
+                      height: 1.3),
                 ),
               ],
             ),
@@ -468,58 +484,77 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
   }
 
   void _showEditSilverPriceDialog() {
-    final controller = TextEditingController(text: _silverPricePerGram[_currency]?.toString() ?? '');
+    final controller = TextEditingController(
+        text: _silverPricePerGram[_currency]?.toString() ?? '');
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF141926),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text('Edit Silver Price ($_currency/g)',
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Current source: $_silverPriceSource ($_silverPriceLastUpdated)',
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
+            Text(
+                'Current source: $_silverPriceSource ($_silverPriceLastUpdated)',
+                style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'e.g. 280 for PKR',
-                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+                hintStyle:
+                    TextStyle(color: Colors.white.withValues(alpha: 0.3)),
                 prefixText: '${_currencySymbols[_currency]} ',
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: 0.08),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none),
               ),
             ),
             const SizedBox(height: 8),
-            Text('This price is saved locally and used for Nisab. Consult your local jeweller for exact rate.',
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 10)),
+            Text(
+                'This price is saved locally and used for Nisab. Consult your local jeweller for exact rate.',
+                style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.35), fontSize: 10)),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
+            child: Text('Cancel',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF52B788)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF52B788)),
             onPressed: () {
               final v = double.tryParse(controller.text);
               if (v == null || v <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter valid price')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Enter valid price')));
                 return;
               }
               setState(() => _silverPricePerGram[_currency] = v);
               _saveCustomPrice(_currency, v);
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Silver price updated to ${_formatAmount(v)}/g')));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content:
+                      Text('Silver price updated to ${_formatAmount(v)}/g')));
             },
-            child: const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: const Text('Save',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ],
       ),

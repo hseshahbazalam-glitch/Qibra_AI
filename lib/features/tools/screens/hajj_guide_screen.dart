@@ -242,7 +242,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                           fontWeight: FontWeight.bold)),
                   Text('Complete Step-by-Step',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontSize: 12)),
                 ],
               ),
             ),
@@ -259,7 +260,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
         gradient: const LinearGradient(
             colors: [Color(0xFF3D2B00), Color(0xFF2B1F00)]),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.3)),
+        border:
+            Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,8 +317,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF141926),
               borderRadius: BorderRadius.circular(14),
-              border:
-                  Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.12)),
+              border: Border.all(
+                  color: const Color(0xFFFFD166).withValues(alpha: 0.12)),
             ),
             child: Column(
               children: [
@@ -329,7 +331,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                         fontWeight: FontWeight.w700)),
                 Text(p.desc,
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.35), fontSize: 8),
+                        color: Colors.white.withValues(alpha: 0.35),
+                        fontSize: 8),
                     textAlign: TextAlign.center,
                     maxLines: 1),
               ],
@@ -565,7 +568,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

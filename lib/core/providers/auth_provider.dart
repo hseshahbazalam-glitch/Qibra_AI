@@ -205,8 +205,7 @@ class AuthState {
 // is no-op and Notifier surfaces friendly "continue as guest".
 
 abstract class AuthRepository {
-  Future<AuthResult> login(
-      {required String email, required String password});
+  Future<AuthResult> login({required String email, required String password});
   Future<AuthResult> register(
       {required String email, required String password, required String name});
   Future<void> logout();
@@ -299,7 +298,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (_isLegacyFakeToken(token)) {
         await _purgeLegacyFakeTokens();
         state = AuthState.unauthenticated(
-          error: 'Previous session was demo-only and has been cleared. Please sign in again.',
+          error:
+              'Previous session was demo-only and has been cleared. Please sign in again.',
         );
         return;
       }

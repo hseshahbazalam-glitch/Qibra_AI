@@ -242,7 +242,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           colors: [Color(0xFF1A0D35), Color(0xFF2D1B69)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
+        border:
+            Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFA78BFA).withValues(alpha: 0.1),
@@ -263,7 +264,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 CircularProgressIndicator(
                   value: progress,
                   strokeWidth: 6,
-                  backgroundColor: const Color(0xFFA78BFA).withValues(alpha: 0.15),
+                  backgroundColor:
+                      const Color(0xFFA78BFA).withValues(alpha: 0.15),
                   valueColor: const AlwaysStoppedAnimation(Color(0xFFA78BFA)),
                 ),
                 Text(
@@ -486,8 +488,9 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color:
-                todayDone ? color.withValues(alpha: 0.08) : const Color(0xFF141926),
+            color: todayDone
+                ? color.withValues(alpha: 0.08)
+                : const Color(0xFF141926),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: todayDone

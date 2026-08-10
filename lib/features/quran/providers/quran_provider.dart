@@ -265,7 +265,8 @@ class LastReadNotifier extends StateNotifier<LastReadModel?> {
 }
 
 /// Last read provider — DEPRECATED, use readingProgressProvider from reading_progress_provider.dart
-@Deprecated('Use readingProgressProvider (MushafPageModel) as single source of truth')
+@Deprecated(
+    'Use readingProgressProvider (MushafPageModel) as single source of truth')
 final lastReadProvider =
     StateNotifierProvider<LastReadNotifier, LastReadModel?>((ref) {
   return LastReadNotifier();

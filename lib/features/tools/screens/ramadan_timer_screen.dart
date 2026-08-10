@@ -403,7 +403,9 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
         color: bgColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isActive ? color.withValues(alpha: 0.4) : color.withValues(alpha: 0.15),
+          color: isActive
+              ? color.withValues(alpha: 0.4)
+              : color.withValues(alpha: 0.15),
           width: isActive ? 1.5 : 1,
         ),
         boxShadow: isActive
@@ -554,7 +556,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
           colors: [Color(0xFF1B4332), Color(0xFF0A2422)],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.3)),
+        border:
+            Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -673,7 +676,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF141926),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.12)),
+          border: Border.all(
+              color: const Color(0xFFFFD166).withValues(alpha: 0.12)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -771,7 +775,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xFF141926),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -812,7 +817,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

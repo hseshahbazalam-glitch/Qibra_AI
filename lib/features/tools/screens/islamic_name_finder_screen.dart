@@ -266,7 +266,9 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected ? color.withValues(alpha: 0.15) : const Color(0xFF141926),
+            color: selected
+                ? color.withValues(alpha: 0.15)
+                : const Color(0xFF141926),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: selected ? color : Colors.white.withValues(alpha: 0.05),
@@ -280,7 +282,8 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
               const SizedBox(width: 6),
               Text(label,
                   style: TextStyle(
-                    color: selected ? color : Colors.white.withValues(alpha: 0.4),
+                    color:
+                        selected ? color : Colors.white.withValues(alpha: 0.4),
                     fontSize: 12,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   )),
@@ -351,7 +354,8 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
           indicator: BoxDecoration(
             color: const Color(0xFF52B788).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.4)),
+            border: Border.all(
+                color: const Color(0xFF52B788).withValues(alpha: 0.4)),
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
@@ -523,10 +527,14 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [color.withValues(alpha: 0.12), color.withValues(alpha: 0.04)],
+                colors: [
+                  color.withValues(alpha: 0.12),
+                  color.withValues(alpha: 0.04)
+                ],
               ),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: color.withValues(alpha: 0.35), width: 2),
+              border:
+                  Border.all(color: color.withValues(alpha: 0.35), width: 2),
               boxShadow: [
                 BoxShadow(
                     color: color.withValues(alpha: 0.1),
@@ -607,8 +615,8 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                gradient:
-                    LinearGradient(colors: [color, color.withValues(alpha: 0.7)]),
+                gradient: LinearGradient(
+                    colors: [color, color.withValues(alpha: 0.7)]),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -798,12 +806,14 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                 ),
                 Text(name.meaning,
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5), fontSize: 11),
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: 11),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
                 Text(name.urduMeaning,
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.35), fontSize: 10),
+                        color: Colors.white.withValues(alpha: 0.35),
+                        fontSize: 10),
                     maxLines: 1),
               ],
             ),

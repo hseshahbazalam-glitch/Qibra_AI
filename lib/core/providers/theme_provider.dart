@@ -102,7 +102,8 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
   }
 
   Future<void> toggleTheme() async {
-    final newMode = state == AppThemeMode.dark ? AppThemeMode.light : AppThemeMode.dark;
+    final newMode =
+        state == AppThemeMode.dark ? AppThemeMode.light : AppThemeMode.dark;
     await setThemeMode(newMode);
   }
 
@@ -190,7 +191,8 @@ class OnboardingNotifier extends StateNotifier<bool> {
       final prefs = _prefs ?? await _ref.read(sharedPreferencesProvider.future);
       _prefs = prefs;
       await prefs.setBool(AppStorageKeys.hasSeenOnboarding, true);
-      await prefs.setString(AppStorageKeys.onboardingDate, DateTime.now().toIso8601String());
+      await prefs.setString(
+          AppStorageKeys.onboardingDate, DateTime.now().toIso8601String());
     } catch (e) {
       debugPrint('Onboarding save failed: $e');
     }
@@ -221,7 +223,8 @@ final localeProvider = StateNotifierProvider<LocaleNotifier, Locale>((ref) {
   return LocaleNotifier(ref);
 });
 
-final onboardingProvider = StateNotifierProvider<OnboardingNotifier, bool>((ref) {
+final onboardingProvider =
+    StateNotifierProvider<OnboardingNotifier, bool>((ref) {
   return OnboardingNotifier(ref);
 });
 

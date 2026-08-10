@@ -247,13 +247,15 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
     // Backend gate — do not accept demo OTP in production without backend
     if (!AppApi.isBackendEnabled) {
       HapticFeedback.heavyImpact();
-      setState(() => _errorMessage = 'OTP verification not available in this build — please continue as Guest (backend not configured).');
+      setState(() => _errorMessage =
+          'OTP verification not available in this build — please continue as Guest (backend not configured).');
       // Also show guest guidance: after short delay, allow navigation to home
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Guest mode: Your Quran, Prayer, and Duas work fully offline.'),
+              content: const Text(
+                  'Guest mode: Your Quran, Prayer, and Duas work fully offline.'),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: AppRadius.cardRadius),

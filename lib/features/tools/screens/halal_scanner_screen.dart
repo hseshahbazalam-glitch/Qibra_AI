@@ -329,7 +329,8 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
         indicator: BoxDecoration(
           color: const Color(0xFF52B788).withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.4)),
+          border:
+              Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.4)),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
@@ -579,7 +580,8 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                     decoration: InputDecoration(
                       hintText: 'Search product, ingredient, or E-code...',
                       hintStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.2), fontSize: 13),
+                          color: Colors.white.withValues(alpha: 0.2),
+                          fontSize: 13),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     ),
@@ -653,8 +655,8 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Text(text,
-            style:
-                TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
+            style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
       ),
     );
   }
@@ -695,7 +697,8 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
               children: [
                 Text('${_history.length} scans',
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
+                        color: Colors.white.withValues(alpha: 0.4),
+                        fontSize: 12)),
                 GestureDetector(
                   onTap: () async {
                     await ScanHistoryService.clearHistory();
@@ -888,8 +891,10 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-            colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)]),
+        gradient: LinearGradient(colors: [
+          color.withValues(alpha: 0.15),
+          color.withValues(alpha: 0.05)
+        ]),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.4), width: 2),
         boxShadow: [
@@ -1066,7 +1071,8 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
       decoration: BoxDecoration(
         color: const Color(0xFFFFD166).withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1113,7 +1119,8 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
       decoration: BoxDecoration(
         color: const Color(0xFF52B788).withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

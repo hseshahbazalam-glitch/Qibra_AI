@@ -277,7 +277,8 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
           colors: [Color(0xFF2D0A1A), Color(0xFF3D1528)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFF9EBC).withValues(alpha: 0.3)),
+        border:
+            Border.all(color: const Color(0xFFFF9EBC).withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -558,7 +559,8 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFF9EBC).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFFFF9EBC).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

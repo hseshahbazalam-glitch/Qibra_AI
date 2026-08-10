@@ -90,12 +90,14 @@ class RagService {
     final passages = await retrieve(query, topK: 3);
     if (passages.isEmpty) return '';
     final buffer = StringBuffer();
-    buffer.writeln('Verified Qibra sources for this question (use these first, cite them):');
+    buffer.writeln(
+        'Verified Qibra sources for this question (use these first, cite them):');
     for (int i = 0; i < passages.length; i++) {
       final p = passages[i];
       buffer.writeln('[${i + 1}] ${p.source}: ${p.text}');
     }
-    buffer.writeln('If no relevant passage above, say: "I couldn\'t find a verified source — please consult a scholar."');
+    buffer.writeln(
+        'If no relevant passage above, say: "I couldn\'t find a verified source — please consult a scholar."');
     return buffer.toString();
   }
 

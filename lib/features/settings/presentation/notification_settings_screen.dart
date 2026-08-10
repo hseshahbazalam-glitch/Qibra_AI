@@ -252,7 +252,8 @@ class _NotificationSettingsScreenState
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
+              color: Colors.white.withValues(alpha: 0.1),
+              shape: BoxShape.circle),
           child: const Icon(Icons.arrow_back_rounded,
               color: Colors.white, size: 20),
         ),
@@ -282,7 +283,8 @@ class _NotificationSettingsScreenState
                           fontWeight: FontWeight.bold)),
                   Text('Prayer alerts & reminders',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontSize: 12)),
                 ],
               ),
             ),
@@ -317,7 +319,8 @@ class _NotificationSettingsScreenState
         decoration: BoxDecoration(
           color: const Color(0xFF52B788).withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.25)),
+          border: Border.all(
+              color: const Color(0xFF52B788).withValues(alpha: 0.25)),
         ),
         child: Row(
           children: [
@@ -398,13 +401,15 @@ class _NotificationSettingsScreenState
             children: [
               Text(title,
                   style: TextStyle(
-                      color:
-                          value ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                      color: value
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.5),
                       fontSize: 13,
                       fontWeight: FontWeight.w600)),
               Text(subtitle,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.3), fontSize: 10)),
+                      color: Colors.white.withValues(alpha: 0.3),
+                      fontSize: 10)),
             ],
           ),
         ),
@@ -615,7 +620,8 @@ class _NotificationSettingsScreenState
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.3)),
+          border:
+              Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.3)),
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -680,7 +686,8 @@ class _NotificationSettingsScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.15)),
+        border:
+            Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.15)),
       ),
       child: Text(
         '"Guard strictly your prayers, especially the middle prayer (Asr). And stand before Allah with obedience." — Quran 2:238',

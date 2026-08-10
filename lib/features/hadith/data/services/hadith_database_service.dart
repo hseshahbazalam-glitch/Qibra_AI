@@ -196,10 +196,12 @@ class HadithDatabaseService {
 
       // P0.5: Explicit unavailable handling — do not fake
       if (arabicData == null) {
-        debugPrint('[HADITH_DB] ⚠️ Arabic data unavailable for $slug — showing "Arabic unavailable" for this book');
+        debugPrint(
+            '[HADITH_DB] ⚠️ Arabic data unavailable for $slug — showing "Arabic unavailable" for this book');
       }
       if (urduData == null) {
-        debugPrint('[HADITH_DB] ⚠️ Urdu data unavailable for $slug — showing "Urdu unavailable" for this book');
+        debugPrint(
+            '[HADITH_DB] ⚠️ Urdu data unavailable for $slug — showing "Urdu unavailable" for this book');
       }
 
       // Build lookup maps (handles String/int hadith numbers)

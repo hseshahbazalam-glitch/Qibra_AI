@@ -342,7 +342,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final surahNum = int.tryParse(idStr) ?? 1;
                   final ayahStr = state.uri.queryParameters['ayah'];
                   final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
-                  return SurahReaderScreen(surahNumber: surahNum, initialAyah: ayah);
+                  return SurahReaderScreen(
+                      surahNumber: surahNum, initialAyah: ayah);
                 },
               ),
               GoRoute(

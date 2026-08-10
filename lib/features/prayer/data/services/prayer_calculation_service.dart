@@ -53,8 +53,8 @@ class PrayerCalculationService {
     final calcDate = DateTime(date.year, date.month, date.day, 12);
 
     // P0.6: Resolve timezone correctly
-    final timezoneOffset = explicitTimezoneOffset ??
-        _resolveTimezoneOffset(location, calcDate);
+    final timezoneOffset =
+        explicitTimezoneOffset ?? _resolveTimezoneOffset(location, calcDate);
 
     // Calculate Julian date
     final julianDate = _calculateJulianDate(
@@ -118,14 +118,21 @@ class PrayerCalculationService {
       final safeMaghrib = maghribHour.isNaN ? 18.0 : maghribHour;
       final night = _calculateNightDuration(safeSunrise, safeMaghrib);
       final methodToUse = highLatitudeMethod == HighLatitudeMethod.none
-          ? HighLatitudeMethod.angleBased // emergency fallback when high-lat but method none
+          ? HighLatitudeMethod
+              .angleBased // emergency fallback when high-lat but method none
           : highLatitudeMethod;
       if (fajrHour.isNaN) {
-        fajrHourCorrected = _highLatAdjustment(safeSunrise, night, method.fajrAngle, methodToUse, true);
+        fajrHourCorrected = _highLatAdjustment(
+            safeSunrise, night, method.fajrAngle, methodToUse, true);
       }
       if (ishaHourRaw.isNaN) {
         // For UmmAlQura etc. where isha is interval, ishaHourRaw already valid; only angle-based may be NaN
-        ishaHourCorrected = _highLatAdjustment(safeMaghrib, night, method.useIshaInterval ? 18.0 : method.ishaAngle, methodToUse, false);
+        ishaHourCorrected = _highLatAdjustment(
+            safeMaghrib,
+            night,
+            method.useIshaInterval ? 18.0 : method.ishaAngle,
+            methodToUse,
+            false);
       }
     }
 
@@ -441,7 +448,8 @@ class PrayerCalculationService {
   ) {
     // Phase 3: Handle NaN (polar) — fallback to noon with note
     if (hour.isNaN || hour.isInfinite) {
-      hour = 12.0; // noon fallback; high-lat correction should have handled Fajr/Isha, this is for sunrise/maghrib polar case
+      hour =
+          12.0; // noon fallback; high-lat correction should have handled Fajr/Isha, this is for sunrise/maghrib polar case
     }
     // Handle hour overflow/underflow
     while (hour < 0) {
@@ -544,7 +552,8 @@ class PrayerCalculationService {
     // 3. Emergency fallback: longitude estimation — explicitly documented as emergency
     // Used only when no IANA and no countryCode mapping (rare). Error up to 0.5-1h.
     final lngEstimate = (location.longitude / 15.0);
-    final rounded = (lngEstimate * 4).round() / 4.0; // quarter-hour increments to support Kathmandu 5:45 etc. via lng
+    final rounded = (lngEstimate * 4).round() /
+        4.0; // quarter-hour increments to support Kathmandu 5:45 etc. via lng
     return rounded.clamp(-12.0, 14.0);
   }
 
@@ -553,7 +562,8 @@ class PrayerCalculationService {
     try {
       final loc = tz.getLocation(iana);
       // Use noon of date to capture DST correctly
-      final tzDateTime = tz.TZDateTime(loc, date.year, date.month, date.day, 12);
+      final tzDateTime =
+          tz.TZDateTime(loc, date.year, date.month, date.day, 12);
       return tzDateTime.timeZoneOffset.inMinutes / 60.0;
     } catch (_) {
       // Try case-insensitive fallback
@@ -562,7 +572,8 @@ class PrayerCalculationService {
         for (final key in all.keys) {
           if (key.toLowerCase() == iana.toLowerCase()) {
             final loc = tz.getLocation(key);
-            final tzDateTime = tz.TZDateTime(loc, date.year, date.month, date.day, 12);
+            final tzDateTime =
+                tz.TZDateTime(loc, date.year, date.month, date.day, 12);
             return tzDateTime.timeZoneOffset.inMinutes / 60.0;
           }
         }

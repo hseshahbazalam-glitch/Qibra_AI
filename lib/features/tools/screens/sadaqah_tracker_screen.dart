@@ -258,7 +258,8 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
           colors: [Color(0xFF0A2422), Color(0xFF1A3D38)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF4ECDC4).withValues(alpha: 0.3)),
+        border:
+            Border.all(color: const Color(0xFF4ECDC4).withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF4ECDC4).withValues(alpha: 0.1),

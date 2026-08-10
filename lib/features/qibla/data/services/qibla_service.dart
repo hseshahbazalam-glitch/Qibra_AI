@@ -141,7 +141,8 @@ class QiblaService {
         position.latitude,
         position.longitude,
       );
-      final declNote = _declinationNote(declination, position.latitude, position.longitude);
+      final declNote =
+          _declinationNote(declination, position.latitude, position.longitude);
 
       // Get city name from coordinates (offline lookup)
       final locationInfo =
@@ -451,11 +452,16 @@ class QiblaService {
     if (lat >= 22.6 && lat <= 26.1 && lng >= 51.5 && lng <= 56.4) {
       return 1.0; // UAE
     }
-    if (lat >= 20.5 && lat <= 26.7 && lng >= 88.0 && lng <= 92.7) return 0.0; // BD
-    if (lat >= 35.8 && lat <= 42.1 && lng >= 25.7 && lng <= 44.8) return 5.0; // Turkey
-    if (lat >= -11.0 && lat <= 6.5 && lng >= 94.5 && lng <= 141.5) return 0.5; // Indo
-    if (lat >= 0.8 && lat <= 7.4 && lng >= 99.5 && lng <= 119.3) return 0.0; // My
-    if (lat >= 22.0 && lat <= 31.7 && lng >= 24.7 && lng <= 36.9) return 3.5; // Egypt
+    if (lat >= 20.5 && lat <= 26.7 && lng >= 88.0 && lng <= 92.7)
+      return 0.0; // BD
+    if (lat >= 35.8 && lat <= 42.1 && lng >= 25.7 && lng <= 44.8)
+      return 5.0; // Turkey
+    if (lat >= -11.0 && lat <= 6.5 && lng >= 94.5 && lng <= 141.5)
+      return 0.5; // Indo
+    if (lat >= 0.8 && lat <= 7.4 && lng >= 99.5 && lng <= 119.3)
+      return 0.0; // My
+    if (lat >= 22.0 && lat <= 31.7 && lng >= 24.7 && lng <= 36.9)
+      return 3.5; // Egypt
     // Europe
     if (lat >= 35 && lat <= 72 && lng >= -25 && lng <= 40) {
       // UK +5 to -5, Central Europe 2-5
@@ -476,8 +482,10 @@ class QiblaService {
   }
 
   static String _declinationNote(double decl, double lat, double lng) {
-    if (decl.abs() < 2) return 'Magnetic declination small (${decl.toStringAsFixed(1)}°) — magnetic ≈ true north. Compass should be accurate when calibrated.';
-    if (decl.abs() < 5) return 'Magnetic declination ${decl.toStringAsFixed(1)}° — add ${decl > 0 ? '+' : ''}${decl.toStringAsFixed(1)}° to magnetic heading for true north. Calibrate compass in figure-8.';
+    if (decl.abs() < 2)
+      return 'Magnetic declination small (${decl.toStringAsFixed(1)}°) — magnetic ≈ true north. Compass should be accurate when calibrated.';
+    if (decl.abs() < 5)
+      return 'Magnetic declination ${decl.toStringAsFixed(1)}° — add ${decl > 0 ? '+' : ''}${decl.toStringAsFixed(1)}° to magnetic heading for true north. Calibrate compass in figure-8.';
     return 'Magnetic declination ${decl.toStringAsFixed(1)}° — significant. Use true north correction and calibrate compass. For precise prayer, verify with local mosque.';
   }
 

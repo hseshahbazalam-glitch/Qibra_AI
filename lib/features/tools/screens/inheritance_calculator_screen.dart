@@ -79,7 +79,8 @@ class _InheritanceCalculatorScreenState
 
   void _calculate() {
     if (!_understood) {
-      _showSnackbar('Please confirm: I understand this is an educational estimate and I will consult a qualified scholar.');
+      _showSnackbar(
+          'Please confirm: I understand this is an educational estimate and I will consult a qualified scholar.');
       HapticFeedback.heavyImpact();
       return;
     }
@@ -117,7 +118,8 @@ class _InheritanceCalculatorScreenState
 
     // Invalid spouse combinations (spouse + spouse, or mismatched gender)
     if (_hasHusband && _hasWife) {
-      _showSnackbar('Cannot have both husband and wife as heirs — invalid combination');
+      _showSnackbar(
+          'Cannot have both husband and wife as heirs — invalid combination');
       return;
     }
     if (_deceasedGender == 'male' && _hasHusband) {
@@ -154,10 +156,12 @@ class _InheritanceCalculatorScreenState
     final totalFrac = _results.fold<double>(0, (sum, r) => sum + r.fraction);
     final totalAmt = _results.fold<double>(0, (sum, r) => sum + r.amount);
     if ((totalFrac - 1.0).abs() > 0.005) {
-      _showSnackbar('Warning: shares sum to ${(totalFrac * 100).toStringAsFixed(1)}% — please verify heirs selection.');
+      _showSnackbar(
+          'Warning: shares sum to ${(totalFrac * 100).toStringAsFixed(1)}% — please verify heirs selection.');
     }
     if ((totalAmt - _netEstate).abs() > 1) {
-      _showSnackbar('Calculation mismatch — please double-check inputs or consult a scholar.');
+      _showSnackbar(
+          'Calculation mismatch — please double-check inputs or consult a scholar.');
     }
 
     setState(() => _showResult = true);
@@ -851,7 +855,8 @@ class _InheritanceCalculatorScreenState
                         fontWeight: FontWeight.w700)),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8)),
@@ -867,10 +872,15 @@ class _InheritanceCalculatorScreenState
                     icon: const Icon(Icons.arrow_drop_down_rounded,
                         color: Colors.white54, size: 18),
                     items: const [
-                      DropdownMenuItem(value: 'Hanafi', child: Text('Sunni / Hanafi (reference)')),
-                      DropdownMenuItem(value: 'Shafi', child: Text('Sunni / Shafi\'i')),
-                      DropdownMenuItem(value: 'Maliki', child: Text('Sunni / Maliki')),
-                      DropdownMenuItem(value: 'Hanbali', child: Text('Sunni / Hanbali')),
+                      DropdownMenuItem(
+                          value: 'Hanafi',
+                          child: Text('Sunni / Hanafi (reference)')),
+                      DropdownMenuItem(
+                          value: 'Shafi', child: Text('Sunni / Shafi\'i')),
+                      DropdownMenuItem(
+                          value: 'Maliki', child: Text('Sunni / Maliki')),
+                      DropdownMenuItem(
+                          value: 'Hanbali', child: Text('Sunni / Hanbali')),
                     ],
                     onChanged: (v) {
                       if (v == null) return;
@@ -1568,10 +1578,13 @@ class _InheritanceCalculatorScreenState
   Widget _buildCalculateButton() {
     final enabled = _understood;
     return GestureDetector(
-      onTap: enabled ? _calculate : () {
-        HapticFeedback.heavyImpact();
-        _showSnackbar('Please confirm the disclaimer above before calculating.');
-      },
+      onTap: enabled
+          ? _calculate
+          : () {
+              HapticFeedback.heavyImpact();
+              _showSnackbar(
+                  'Please confirm the disclaimer above before calculating.');
+            },
       child: Opacity(
         opacity: enabled ? 1.0 : 0.5,
         child: Container(
@@ -1581,7 +1594,10 @@ class _InheritanceCalculatorScreenState
             gradient: LinearGradient(
                 colors: enabled
                     ? [const Color(0xFFA78BFA), const Color(0xFF7C3AED)]
-                    : [Colors.grey.withValues(alpha: 0.3), Colors.grey.withValues(alpha: 0.2)]),
+                    : [
+                        Colors.grey.withValues(alpha: 0.3),
+                        Colors.grey.withValues(alpha: 0.2)
+                      ]),
             borderRadius: BorderRadius.circular(16),
             boxShadow: enabled
                 ? [

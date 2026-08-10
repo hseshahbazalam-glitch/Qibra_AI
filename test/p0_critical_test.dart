@@ -11,30 +11,56 @@ class MockSecureStorage extends FlutterSecureStorage {
   MockSecureStorage() : super();
   final Map<String, String> _store = {};
   @override
-  Future<String?> read({required String key, AndroidOptions? aOptions, IOSOptions? iOptions}) async => _store[key];
+  Future<String?> read(
+          {required String key,
+          AndroidOptions? aOptions,
+          IOSOptions? iOptions}) async =>
+      _store[key];
   @override
-  Future<void> write({required String key, required String? value, AndroidOptions? aOptions, IOSOptions? iOptions}) async {
-    if (value == null) _store.remove(key); else _store[key] = value;
+  Future<void> write(
+      {required String key,
+      required String? value,
+      AndroidOptions? aOptions,
+      IOSOptions? iOptions}) async {
+    if (value == null)
+      _store.remove(key);
+    else
+      _store[key] = value;
   }
+
   @override
-  Future<void> delete({required String key, AndroidOptions? aOptions, IOSOptions? iOptions}) async => _store.remove(key);
+  Future<void> delete(
+          {required String key,
+          AndroidOptions? aOptions,
+          IOSOptions? iOptions}) async =>
+      _store.remove(key);
   @override
-  Future<bool> containsKey({required String key, AndroidOptions? aOptions, IOSOptions? iOptions}) async => _store.containsKey(key);
+  Future<bool> containsKey(
+          {required String key,
+          AndroidOptions? aOptions,
+          IOSOptions? iOptions}) async =>
+      _store.containsKey(key);
   @override
-  Future<Map<String, String>> readAll({AndroidOptions? aOptions, IOSOptions? iOptions}) async => Map.from(_store);
+  Future<Map<String, String>> readAll(
+          {AndroidOptions? aOptions, IOSOptions? iOptions}) async =>
+      Map.from(_store);
   @override
-  Future<void> deleteAll({AndroidOptions? aOptions, IOSOptions? iOptions}) async => _store.clear();
+  Future<void> deleteAll(
+          {AndroidOptions? aOptions, IOSOptions? iOptions}) async =>
+      _store.clear();
 }
 
 void main() {
   group('P0.1 Auth Anonymous-First', () {
-    test('backend disabled -> login fails with guest error, no fake token', () async {
+    test('backend disabled -> login fails with guest error, no fake token',
+        () async {
       expect(AppApi.isBackendEnabled, isFalse);
       final storage = MockSecureStorage();
       final notifier = AuthNotifier(storage as FlutterSecureStorage);
       await Future.delayed(const Duration(milliseconds: 150));
       expect(notifier.state.isUnauthenticated, isTrue);
-      final success = await notifier.login(email: 'test@example.com', password: 'password123');
+      final success = await notifier.login(
+          email: 'test@example.com', password: 'password123');
       expect(success, isFalse);
       expect(notifier.state.errorMessage, contains('not available'));
       final token = await storage.read(key: AppStorageKeys.accessToken);
@@ -62,13 +88,14 @@ void main() {
       final newNisab = silverGrams * newPrice;
       expect(oldNisab, closeTo(67359, 1));
       expect(newNisab, closeTo(171460, 1));
-      expect(100000 < newNisab, isTrue, reason: '100k should be below realistic nisab');
+      expect(100000 < newNisab, isTrue,
+          reason: '100k should be below realistic nisab');
     });
   });
 
   group('P0.4 Inheritance Validation', () {
     test('Awl reduces proportionally when >1', () {
-      double total = 1/2 + 1/3 + 2/3;
+      double total = 1 / 2 + 1 / 3 + 2 / 3;
       expect(total, greaterThan(1.0));
       final factor = 1.0 / total;
       expect(total * factor, closeTo(1.0, 0.001));
@@ -84,7 +111,8 @@ void main() {
   });
 
   group('P0.6 Prayer Timezone', () {
-    test('Karachi vs London produce different fajr times (location timezone)', () {
+    test('Karachi vs London produce different fajr times (location timezone)',
+        () {
       final service = PrayerCalculationService();
       final karachi = PrayerLocation.karachi();
       final london = const PrayerLocation(
@@ -96,11 +124,20 @@ void main() {
         timezone: 'Europe/London',
       );
       final date = DateTime(2026, 6, 15, 12);
-      final kTimes = service.calculatePrayerTimes(date: date, location: karachi, method: CalculationMethod.karachi, asrMethod: AsrMethod.hanafi);
-      final lTimes = service.calculatePrayerTimes(date: date, location: london, method: CalculationMethod.muslimWorldLeague, asrMethod: AsrMethod.standard);
+      final kTimes = service.calculatePrayerTimes(
+          date: date,
+          location: karachi,
+          method: CalculationMethod.karachi,
+          asrMethod: AsrMethod.hanafi);
+      final lTimes = service.calculatePrayerTimes(
+          date: date,
+          location: london,
+          method: CalculationMethod.muslimWorldLeague,
+          asrMethod: AsrMethod.standard);
       final kFajr = kTimes.fajr.adjustedTime;
       final lFajr = lTimes.fajr.adjustedTime;
-      expect(kFajr.hour != lFajr.hour || kFajr.minute != lFajr.minute, isTrue, reason: 'Timezone must affect prayer time');
+      expect(kFajr.hour != lFajr.hour || kFajr.minute != lFajr.minute, isTrue,
+          reason: 'Timezone must affect prayer time');
     });
   });
 
@@ -116,7 +153,8 @@ void main() {
       final kaabaLngRad = toRad(kaabaLng);
       final dLng = kaabaLngRad - lngRad;
       final y = math.sin(dLng) * math.cos(kaabaLatRad);
-      final x = math.cos(latRad) * math.sin(kaabaLatRad) - math.sin(latRad) * math.cos(kaabaLatRad) * math.cos(dLng);
+      final x = math.cos(latRad) * math.sin(kaabaLatRad) -
+          math.sin(latRad) * math.cos(kaabaLatRad) * math.cos(dLng);
       var bearing = toDeg(math.atan2(y, x));
       bearing = (bearing + 360) % 360;
       return bearing;

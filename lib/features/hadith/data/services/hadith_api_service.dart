@@ -161,7 +161,8 @@ class HadithApiService {
         message: 'Empty response',
       );
     } on DioException catch (e) {
-      _log('Chapters fetch error: ${e.message} — no fake fallback, error propagated');
+      _log(
+          'Chapters fetch error: ${e.message} — no fake fallback, error propagated');
       rethrow;
     } catch (e) {
       _log('Chapters unexpected error: $e');

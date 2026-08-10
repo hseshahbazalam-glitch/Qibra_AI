@@ -322,14 +322,16 @@ class _DhikrCounterScreenState extends State<DhikrCounterScreen>
                     : const Color(0xFF141926),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: selected ? d.color : Colors.white.withValues(alpha: 0.08),
+                  color:
+                      selected ? d.color : Colors.white.withValues(alpha: 0.08),
                   width: selected ? 1.5 : 1,
                 ),
               ),
               child: Text(
                 d.name,
                 style: TextStyle(
-                  color: selected ? d.color : Colors.white.withValues(alpha: 0.5),
+                  color:
+                      selected ? d.color : Colors.white.withValues(alpha: 0.5),
                   fontSize: 12,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
@@ -532,9 +534,11 @@ class _DhikrCounterScreenState extends State<DhikrCounterScreen>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _statItem('📿', 'Session', '$_count'),
-          Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
+          Container(
+              width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
           _statItem('🌟', 'Total', '$_totalCount'),
-          Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
+          Container(
+              width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
           _statItem('🎯', 'Target', '$_targetCount'),
         ],
       ),
