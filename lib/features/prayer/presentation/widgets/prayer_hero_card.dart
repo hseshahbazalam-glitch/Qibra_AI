@@ -13,6 +13,7 @@ class PrayerHeroCard extends StatelessWidget {
   final String? temperature;
   final String? qiblaDirection;
   final String? gregorianDate;
+  final String? locationName;
   final VoidCallback? onTap;
 
   const PrayerHeroCard({
@@ -23,20 +24,27 @@ class PrayerHeroCard extends StatelessWidget {
     this.temperature,
     this.qiblaDirection,
     this.gregorianDate,
+    this.locationName,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final safeCountdown = countdown.split(':');
+    final hours = safeCountdown.isNotEmpty ? safeCountdown[0] : '00';
+    final minutes = safeCountdown.length > 1 ? safeCountdown[1] : '00';
+    final seconds = safeCountdown.length > 2 ? safeCountdown[2] : '00';
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        height: 286,
         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         decoration: BoxDecoration(
           borderRadius: AppRadius.cardRadiusLarge,
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.35),
+              color: AppColors.primary.withValues(alpha: 0.28),
               blurRadius: 24,
               offset: const Offset(0, 10),
             ),
@@ -44,195 +52,152 @@ class PrayerHeroCard extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: AppRadius.cardRadiusLarge,
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF0F4A2E),
-                  Color(0xFF0A3822),
-                  Color(0xFF061A10),
-                ],
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                'assets/images/hero/mosque_night.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF103A2A), Color(0xFF061A10)],
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: Stack(
-              children: [
-                // Mountain silhouette background
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: CustomPaint(
-                    size: const Size(double.infinity, 100),
-                    painter: _MountainPainter(),
-                  ),
-                ),
-
-                // Moon decoration
-                Positioned(
-                  top: 20,
-                  right: 30,
-                  child: Icon(
-                    Icons.nightlight_round,
-                    size: 40,
-                    color: const Color(0xFFFFD700).withValues(alpha: 0.5),
-                  ),
-                ),
-
-                // Star decorations
-                Positioned(
-                  top: 40,
-                  right: 100,
-                  child: Icon(
-                    Icons.star_rounded,
-                    size: 8,
-                    color: const Color(0xFFFFD700).withValues(alpha: 0.6),
-                  ),
-                ),
-                Positioned(
-                  top: 70,
-                  left: 50,
-                  child: Icon(
-                    Icons.star_rounded,
-                    size: 6,
-                    color: const Color(0xFFFFD700).withValues(alpha: 0.4),
-                  ),
-                ),
-
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // NEXT PRAYER label centered
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withValues(alpha: 0.15),
-                            borderRadius: AppRadius.pillRadius,
-                            border: Border.all(
-                              color: AppColors.white.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Text(
-                            'NEXT PRAYER',
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.white,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 10,
-                              letterSpacing: 2.0,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Prayer Name (English)
-                      Center(
-                        child: Text(
-                          prayerName,
-                          style: AppTextStyles.displayLarge.copyWith(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 48,
-                            height: 1.0,
-                            letterSpacing: -1.0,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      // Prayer Name (Arabic)
-                      Center(
-                        child: Text(
-                          prayerNameArabic,
-                          style: const TextStyle(
-                            fontFamily: 'Amiri',
-                            fontSize: 24,
-                            color: Color(0xFFFFD700),
-                            fontWeight: FontWeight.w700,
-                          ),
-                          textDirection: TextDirection.rtl,
-                        ),
-                      ),
-
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Countdown timer BIG
-                      Center(
-                        child: Text(
-                          countdown,
-                          style: TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 40,
-                            color: AppColors.white,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2,
-                            shadows: [
-                              Shadow(
-                                color: AppColors.accent.withValues(alpha: 0.6),
-                                blurRadius: 12,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      Center(
-                        child: Text(
-                          'Remaining',
-                          style: AppTextStyles.labelMedium.copyWith(
-                            color: AppColors.white.withValues(alpha: 0.7),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Info chips row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildInfoChip(
-                              icon: Icons.calendar_today_rounded,
-                              label: gregorianDate ?? 'Today',
-                              iconColor: const Color(0xFF10B981),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildInfoChip(
-                              icon: Icons.wb_sunny_rounded,
-                              label: temperature ?? '25°C',
-                              iconColor: const Color(0xFFFBBF24),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildInfoChip(
-                              icon: Icons.explore_rounded,
-                              label: qiblaDirection ?? 'Qibla',
-                              iconColor: const Color(0xFF00A86B),
-                            ),
-                          ),
-                        ],
-                      ),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      const Color(0xFF04120D).withValues(alpha: 0.28),
+                      const Color(0xFF04120D).withValues(alpha: 0.88),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                top: 14,
+                left: 14,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.location_on_rounded,
+                        color: Color(0xFF00E676), size: 16),
+                    const SizedBox(width: 4),
+                    SizedBox(
+                      width: 118,
+                      child: Text(
+                        locationName ?? 'Location unavailable',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Positioned(
+                top: 14,
+                right: 18,
+                child: Icon(Icons.nightlight_round,
+                    color: Color(0xFFFFD166), size: 30),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 53, 18, 14),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('NEXT PRAYER',
+                                    style: AppTextStyles.labelSmall.copyWith(
+                                      color: const Color(0xFF00E676),
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.1,
+                                    )),
+                                const SizedBox(height: 7),
+                                Text(prayerName,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 34,
+                                      fontWeight: FontWeight.w900,
+                                      height: 1,
+                                    )),
+                                Text(prayerNameArabic,
+                                    textDirection: TextDirection.rtl,
+                                    style: const TextStyle(
+                                      color: Color(0xFF00E676),
+                                      fontFamily: 'Amiri',
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.w700,
+                                    )),
+                                const SizedBox(height: 12),
+                                Text('Starts in',
+                                    style: AppTextStyles.labelSmall.copyWith(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.6),
+                                    )),
+                                const SizedBox(height: 3),
+                                Text('$hours : $minutes : $seconds',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: 'monospace',
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w900,
+                                    )),
+                                Text('Hrs       Mins      Secs',
+                                    style: AppTextStyles.labelXSmall.copyWith(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.5),
+                                    )),
+                              ],
+                            ),
+                          ),
+                          _PrayerCountdownRing(countdown: countdown),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                            child: _buildInfoChip(
+                          icon: Icons.calendar_month_rounded,
+                          label: gregorianDate ?? 'Today',
+                          iconColor: const Color(0xFF00E676),
+                        )),
+                        const SizedBox(width: 7),
+                        Expanded(
+                            child: _buildInfoChip(
+                          icon: Icons.wb_sunny_rounded,
+                          label: temperature ?? 'Weather unavailable',
+                          iconColor: const Color(0xFFFBBF24),
+                        )),
+                        const SizedBox(width: 7),
+                        Expanded(
+                            child: _buildInfoChip(
+                          icon: Icons.explore_rounded,
+                          label: qiblaDirection ?? 'Qibla',
+                          iconColor: const Color(0xFF00E676),
+                        )),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -271,6 +236,59 @@ class PrayerHeroCard extends StatelessWidget {
               ),
               overflow: TextOverflow.ellipsis,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrayerCountdownRing extends StatelessWidget {
+  const _PrayerCountdownRing({required this.countdown});
+
+  final String countdown;
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = countdown.split(':').map(int.tryParse).toList();
+    final hours = parts.isNotEmpty ? (parts[0] ?? 0) : 0;
+    final minutes = parts.length > 1 ? (parts[1] ?? 0) : 0;
+    final seconds = parts.length > 2 ? (parts[2] ?? 0) : 0;
+    final remainingSeconds = hours * 3600 + minutes * 60 + seconds;
+    const maxIntervalSeconds = 6 * 3600;
+    final progress =
+        (1 - remainingSeconds / maxIntervalSeconds).clamp(0.0, 1.0);
+
+    return SizedBox(
+      width: 102,
+      height: 102,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 96,
+            height: 96,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 6,
+              backgroundColor: const Color(0x3348E6A1),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF00E676)),
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('${(progress * 100).round()}%',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                  )),
+              Text('until prayer',
+                  style: AppTextStyles.labelXSmall.copyWith(
+                    color: Colors.white.withValues(alpha: 0.55),
+                  )),
+            ],
           ),
         ],
       ),

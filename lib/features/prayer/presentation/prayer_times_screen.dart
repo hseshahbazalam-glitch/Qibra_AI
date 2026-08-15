@@ -19,6 +19,9 @@ import 'salah_schedule_screen.dart';
 import 'widgets/prayer_hero_card.dart';
 import 'widgets/prayer_quick_action.dart';
 import 'widgets/night_worship_card.dart';
+import 'widgets/prayer_timeline_card.dart';
+import 'widgets/prayer_insight_cards.dart';
+import 'widgets/prayer_dashboard_section.dart';
 import 'package:qibra_ai/core/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -111,6 +114,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
   Widget build(BuildContext context) {
     final nextPrayerInfo = ref.watch(nextPrayerProvider);
     final dailyTimes = ref.watch(dailyPrayerTimesProvider);
+    final locationName = ref.watch(locationProvider).location?.displayName;
+    final qiblaDirection = ref.watch(qiblaDirectionProvider);
 
     final displayName = nextPrayerInfo?.prayer.type.uiDisplayName ?? 'Fajr';
     final displayArabic =
@@ -152,10 +157,15 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                   prayerName: displayName,
                   prayerNameArabic: displayArabic,
                   countdown: formattedCountdown,
-                  temperature: '25°C',
-                  qiblaDirection: 'Qibla 287°',
+                  // Weather and Qibla are shown only when a live provider is
+                  // connected; do not present hard-coded values as real data.
+                  temperature: null,
+                  qiblaDirection: qiblaDirection == null
+                      ? null
+                      : 'Qibla ${qiblaDirection.round()}°',
                   gregorianDate:
                       '${now.day} ${_getMonthShort(now.month)} ${now.year}',
+                  locationName: locationName,
                   onTap: () {
                     HapticFeedback.mediumImpact();
                     _openSchedule(context);
@@ -174,27 +184,38 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                     onTap: () => context.go(AppRoutes.qibla),
                   ),
                   QuickActionItem(
-                    icon: Icons.grain_rounded,
-                    label: 'Tasbeeh',
-                    color: const Color(0xFFF59E0B),
-                    onTap: () => context.go(AppRoutes.tasbih),
-                  ),
-                  QuickActionItem(
-                    icon: Icons.volunteer_activism_rounded,
-                    label: 'Duas',
-                    color: const Color(0xFF7C3AED),
-                    onTap: () => context.go(AppRoutes.dua),
+                    icon: Icons.notifications_active_rounded,
+                    label: 'Adhan',
+                    color: const Color(0xFF10B981),
+                    onTap: () => context.push('/settings/notifications'),
                   ),
                   QuickActionItem(
                     icon: Icons.calendar_month_rounded,
                     label: 'Calendar',
-                    color: const Color(0xFF0891B2),
+                    color: const Color(0xFF10B981),
                     onTap: () => context.go(AppRoutes.islamicCalendar),
+                  ),
+                  QuickActionItem(
+                    icon: Icons.nightlight_round,
+                    label: 'Tahajjud',
+                    color: const Color(0xFFFBBF24),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TahajjudDetailsScreen(),
+                      ),
+                    ),
+                  ),
+                  QuickActionItem(
+                    icon: Icons.volunteer_activism_rounded,
+                    label: 'Duas',
+                    color: const Color(0xFF10B981),
+                    onTap: () => context.go(AppRoutes.dua),
                   ),
                   QuickActionItem(
                     icon: Icons.more_horiz_rounded,
                     label: 'More',
-                    color: const Color(0xFF6B7280),
+                    color: const Color(0xFF94A3B8),
                     onTap: () => _openSchedule(context),
                   ),
                 ],
@@ -202,61 +223,283 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
             SliverToBoxAdapter(
-              child: _buildSectionHeader(
-                "TODAY'S SCHEDULE",
-                trailing: GestureDetector(
-                  onTap: () => _openSchedule(context),
-                  child: Text(
-                    'View All',
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            SliverToBoxAdapter(
-              child: _buildCompactSchedule(dailyTimes, nextPrayerInfo),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            SliverToBoxAdapter(child: _buildSectionHeader('NIGHT WORSHIP')),
-            const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            SliverToBoxAdapter(
-              child: NightWorshipCard(
-                startsIn: '02:15:30',
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const TahajjudDetailsScreen(),
-                    ),
-                  );
-                },
-              ),
+              child: _buildPrayerDashboard(dailyTimes, nextPrayerInfo),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
             SliverToBoxAdapter(
-              child: PrayerStreakCard(
-                streakDays: 12,
-                completedDaysThisWeek: 5,
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const PrayerStatisticsScreen(),
-                    ),
-                  );
-                },
-              ),
+              child: _buildPrayerBottomInsights(dailyTimes),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 120)),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPrayerDashboard(
+    DailyPrayerTimes? dailyTimes,
+    NextPrayerInfo? nextPrayerInfo,
+  ) {
+    final nextType = nextPrayerInfo?.prayer.type;
+    final statistics = ref.watch(prayerStatisticsProvider);
+    final records = ref.watch(prayerRecordsProvider);
+    final now = DateTime.now();
+    final completedToday = records.where((record) {
+      final isToday = record.date.year == now.year &&
+          record.date.month == now.month &&
+          record.date.day == now.day;
+      return isToday &&
+          (record.status == PrayerStatus.prayed ||
+              record.status == PrayerStatus.prayedInMosque ||
+              record.status == PrayerStatus.makeup);
+    }).length;
+
+    final items = [
+      PrayerTimelineItemData(
+          label: 'Fajr',
+          arabicLabel: 'الفجر',
+          time: dailyTimes?.fajr.formattedTime ?? '—',
+          icon: Icons.wb_twilight_rounded,
+          color: const Color(0xFF7C3AED),
+          isNext: nextType == PrayerType.fajr),
+      PrayerTimelineItemData(
+          label: 'Sunrise',
+          arabicLabel: 'الشروق',
+          time: dailyTimes?.sunrise.formattedTime ?? '—',
+          icon: Icons.wb_sunny_outlined,
+          color: const Color(0xFFFBBF24)),
+      PrayerTimelineItemData(
+          label: 'Dhuhr',
+          arabicLabel: 'الظهر',
+          time: dailyTimes?.dhuhr.formattedTime ?? '—',
+          icon: Icons.wb_sunny_rounded,
+          color: const Color(0xFFFFB703),
+          isNext: nextType == PrayerType.dhuhr),
+      PrayerTimelineItemData(
+          label: 'Asr',
+          arabicLabel: 'العصر',
+          time: dailyTimes?.asr.formattedTime ?? '—',
+          icon: Icons.cloud_rounded,
+          color: const Color(0xFFEF4444),
+          isNext: nextType == PrayerType.asr),
+      PrayerTimelineItemData(
+          label: 'Maghrib',
+          arabicLabel: 'المغرب',
+          time: dailyTimes?.maghrib.formattedTime ?? '—',
+          icon: Icons.nights_stay_rounded,
+          color: const Color(0xFF8B5CF6),
+          isNext: nextType == PrayerType.maghrib),
+      PrayerTimelineItemData(
+          label: 'Isha',
+          arabicLabel: 'العشاء',
+          time: dailyTimes?.isha.formattedTime ?? '—',
+          icon: Icons.brightness_2_rounded,
+          color: const Color(0xFF38BDF8),
+          isNext: nextType == PrayerType.isha),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: PrayerDashboardSection(
+        items: items,
+        streakDays: statistics.currentStreak,
+        weekCompleted: statistics.currentStreak,
+        ishaTime: dailyTimes?.isha.formattedTime ?? '—',
+        completedToday: completedToday,
+        onViewSchedule: () => _openSchedule(context),
+        onTahajjud: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const TahajjudDetailsScreen())),
+        onStatistics: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const PrayerStatisticsScreen())),
+      ),
+    );
+  }
+
+  Widget _buildPrayerBottomInsights(DailyPrayerTimes? dailyTimes) {
+    final sunrise = dailyTimes?.sunrise.formattedTime ?? '—';
+    final sunset = dailyTimes?.maghrib.formattedTime ?? '—';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final sunMoon = _buildSunMoonCard(sunrise, sunset);
+              final mosque = _buildNearestMosqueCard();
+
+              if (constraints.maxWidth >= 390) {
+                return Row(
+                  children: [
+                    Expanded(child: sunMoon),
+                    const SizedBox(width: 12),
+                    Expanded(child: mosque),
+                  ],
+                );
+              }
+
+              return Column(
+                children: [
+                  sunMoon,
+                  const SizedBox(height: 12),
+                  mosque,
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildTodayDuaCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSunMoonCard(String sunrise, String sunset) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.cardRadiusLarge,
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('SUN & MOON',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: const Color(0xFFFBBF24),
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.1,
+              )),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(Icons.wb_sunny_rounded,
+                  color: Color(0xFFFBBF24), size: 30),
+              Expanded(
+                child: Container(
+                  height: 2,
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  color: const Color(0xFFFBBF24).withValues(alpha: 0.45),
+                ),
+              ),
+              const Icon(Icons.nightlight_round,
+                  color: Color(0xFF818CF8), size: 30),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _timeLabel('Sunrise', sunrise),
+              _timeLabel('Sunset', sunset, alignEnd: true),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _timeLabel(String label, String time, {bool alignEnd = false}) {
+    return Column(
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.labelSmall.secondary),
+        Text(time,
+            style: AppTextStyles.titleSmall.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
+            )),
+      ],
+    );
+  }
+
+  Widget _buildNearestMosqueCard() {
+    return GestureDetector(
+      onTap: () => context.go(AppRoutes.mosques),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0A3822), Color(0xFF061A10)],
+          ),
+          borderRadius: AppRadius.cardRadiusLarge,
+          border: Border.all(
+            color: const Color(0xFF00E676).withValues(alpha: 0.25),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('NEAREST MOSQUE',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: const Color(0xFF00E676),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.1,
+                )),
+            const SizedBox(height: 18),
+            const Icon(Icons.mosque_rounded,
+                color: Color(0xFF00E676), size: 30),
+            const SizedBox(height: 8),
+            Text('Find mosques near you',
+                style: AppTextStyles.titleSmall.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                )),
+            Text('Location-based search',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: Colors.white.withValues(alpha: 0.65),
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTodayDuaCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.cardRadiusLarge,
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.menu_book_rounded,
+              color: Color(0xFF00E676), size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("TODAY'S DUA",
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: const Color(0xFF00E676),
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.1,
+                    )),
+                const SizedBox(height: 4),
+                const Text('رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً',
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(
+                      fontFamily: 'Amiri',
+                      fontSize: 18,
+                      color: Colors.white,
+                    )),
+                Text(
+                    'Our Lord, grant us good in this world and the Hereafter. — Quran 2:201',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.labelSmall.secondary),
+              ],
+            ),
+          ),
+          const Icon(Icons.favorite_border_rounded,
+              color: AppColors.textSecondary),
+        ],
       ),
     );
   }
@@ -304,6 +547,17 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
               ],
             ),
           ),
+          _topAction(
+            icon: Icons.calendar_month_rounded,
+            onTap: () => context.go(AppRoutes.islamicCalendar),
+          ),
+          const SizedBox(width: 8),
+          _topAction(
+            icon: Icons.location_on_outlined,
+            onTap: () =>
+                ref.read(locationProvider.notifier).fetchCurrentLocation(),
+          ),
+          const SizedBox(width: 8),
           GestureDetector(
             onTap: () => context.push('/settings/notifications'),
             child: Container(
@@ -339,6 +593,25 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _topAction({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.borderSubtle),
+        ),
+        child: Icon(icon, color: AppColors.textPrimary, size: 20),
       ),
     );
   }

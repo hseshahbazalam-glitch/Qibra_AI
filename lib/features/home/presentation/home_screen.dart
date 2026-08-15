@@ -330,17 +330,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   const SizedBox(height: AppSpacing.md),
                   _buildHeroSection(userName),
                   const SizedBox(height: AppSpacing.md),
-                  // Quran-first home flow: resume the user's reading before
-                  // secondary dashboard information and shortcuts.
-                  _buildContinueReadingCard(),
-                  const SizedBox(height: AppSpacing.lg),
-                  _buildVerseAndHadithRow(),
+                  // Primary daily dashboard flow: prayer overview first,
+                  // followed by quick actions and Quran progress.
+                  const _PrayerTimesCard(),
                   const SizedBox(height: AppSpacing.lg),
                   _buildQuickAccessSection(),
                   const SizedBox(height: AppSpacing.lg),
-                  const _PrayerTimesCard(),
-                  const SizedBox(height: AppSpacing.lg),
                   _buildProgressAndStreakRow(),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildContinueReadingCard(),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildVerseAndHadithRow(),
                   const SizedBox(height: AppSpacing.lg),
                   _buildRamadanQiblaMosqueRow(),
                   const SizedBox(height: AppSpacing.lg),
@@ -621,7 +621,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         child: SlideTransition(
           position: _headerSlideAnimation,
           child: Container(
-            height: 280,
+            // Keeps the next-prayer card fully inside the hero on compact phones.
+            height: 320,
             decoration: BoxDecoration(
               borderRadius: AppRadius.cardRadiusLarge,
               boxShadow: [
