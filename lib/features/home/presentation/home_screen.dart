@@ -94,8 +94,8 @@ class _RamadanCalculator {
         isRamadanActive: true,
         daysRemaining: (30 - currentDay).clamp(0, 30),
         currentRamadanDay: currentDay,
-        sehriTime: sehri ?? '4:22 AM',
-        iftarTime: iftar ?? '6:52 PM',
+        sehriTime: sehri ?? 'Unavailable',
+        iftarTime: iftar ?? 'Unavailable',
         hijriRamadanDate: '$currentDay Ramadan ${hijriNow.hYear} AH',
       );
     }
@@ -116,8 +116,8 @@ class _RamadanCalculator {
       isRamadanActive: false,
       daysRemaining: daysUntil > 0 ? daysUntil : 0,
       currentRamadanDay: 0,
-      sehriTime: sehri ?? '4:22 AM',
-      iftarTime: iftar ?? '6:52 PM',
+      sehriTime: sehri ?? 'Unavailable',
+      iftarTime: iftar ?? 'Unavailable',
       hijriRamadanDate: '1 Ramadan $targetYear AH',
     );
   }
@@ -196,9 +196,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             .fetchCurrentLocation()
             .timeout(const Duration(seconds: 20));
       } catch (_) {
-        if (mounted) {
-          await ref.read(locationProvider.notifier).resetToDefault();
-        }
+        // LocationNotifier already stores an honest denied/disabled/error state.
+        // Never replace an unavailable location with a fabricated default city.
       }
     }
   }
@@ -210,7 +209,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     setState(() => _hasLoadingError = false);
 
     // FIX: Invalidate providers only when mounted
-    ref.invalidate(autoRotatingAyahProvider);
+    ref.invalidate(dailyAyahProvider);
     ref.invalidate(dailyPrayerTimesProvider);
     ref.invalidate(nextPrayerProvider);
     ref.invalidate(readingProgressProvider);
@@ -2467,7 +2466,7 @@ class _DailyVerseCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ayahAsync = ref.watch(autoRotatingAyahProvider);
+    final ayahAsync = ref.watch(dailyAyahProvider);
 
     return ayahAsync.when(
       data: (ayah) => ayah == null

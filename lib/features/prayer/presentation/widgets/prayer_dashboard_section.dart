@@ -46,7 +46,7 @@ class PrayerDashboardSection extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth >= 390) {
+        if (constraints.maxWidth >= 560) {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

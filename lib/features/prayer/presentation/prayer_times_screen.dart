@@ -329,7 +329,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
               final sunMoon = _buildSunMoonCard(sunrise, sunset);
               final mosque = _buildNearestMosqueCard();
 
-              if (constraints.maxWidth >= 390) {
+              if (constraints.maxWidth >= 560) {
                 return Row(
                   children: [
                     Expanded(child: sunMoon),

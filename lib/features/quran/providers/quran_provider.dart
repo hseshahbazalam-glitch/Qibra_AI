@@ -119,9 +119,23 @@ final randomAyahProvider = FutureProvider<AyahModel?>((ref) async {
   return await repository.getRandomAyah();
 });
 
-/// Auto-refreshing random ayah (changes every N seconds)
-///
-/// Use this for auto-rotating daily verse
+/// Deterministic local verse for the current calendar day.
+/// The same device date returns the same verified offline ayah without storing
+/// a random choice or making a network request.
+final dailyAyahProvider = FutureProvider<AyahModel?>((ref) async {
+  final repository = ref.read(quranRepositoryProvider);
+  final today = DateTime.now();
+  final dayKey = DateTime(today.year, today.month, today.day)
+      .difference(DateTime(2000, 1, 1))
+      .inDays;
+  final surahNumber = (dayKey % 114) + 1;
+  final surah = await repository.getSurah(surahNumber);
+  if (surah == null || surah.ayahs.isEmpty) return null;
+  return surah.ayahs[dayKey % surah.ayahs.length];
+});
+
+/// Auto-refreshing random ayah (changes every N seconds).
+/// Keep for explicitly rotating Quran experiences; do not use for "Daily Ayah".
 final autoRotatingAyahProvider =
     StreamProvider.autoDispose<AyahModel?>((ref) async* {
   final repository = ref.read(quranRepositoryProvider);
