@@ -1512,7 +1512,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
+  String _bearingLabel(double bearing) {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    return directions[((bearing % 360 + 22.5) ~/ 45) % 8];
+  }
+
   Widget _buildQiblaDirectionCard() {
+    final bearing = ref.watch(qiblaDirectionProvider);
+    final bearingLabel = bearing == null
+        ? 'Set location'
+        : '${bearing.round()}° ${_bearingLabel(bearing)}';
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.mediumImpact();
@@ -1556,16 +1566,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      RepaintBoundary(
-                        child: CustomPaint(
-                          size: const Size(62, 62),
-                          painter: _CircularProgressPainter(
-                            progress: 1.0,
-                            color: const Color(0xFF00E676),
-                          ),
-                        ),
+                      Icon(
+                        bearing == null
+                            ? Icons.location_off_rounded
+                            : Icons.explore_rounded,
+                        color: bearing == null
+                            ? AppColors.textTertiary
+                            : const Color(0xFF00E676),
+                        size: 30,
                       ),
-                      const Text('🕋', style: TextStyle(fontSize: 22)),
                     ],
                   ),
                 ),
@@ -1573,9 +1582,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
             Center(
               child: Text(
-                '293° NW',
-                style: const TextStyle(
-                  color: Color(0xFF00E676),
+                bearingLabel,
+                style: TextStyle(
+                  color: bearing == null
+                      ? AppColors.textTertiary
+                      : const Color(0xFF00E676),
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                 ),
@@ -1591,13 +1602,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return GestureDetector(
       onTap: () {
         HapticFeedback.mediumImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nearby Mosques feature coming soon!'),
-            backgroundColor: Color(0xFF00A86B),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.go(AppRoutes.mosques);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -1642,7 +1647,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            'NEARBY MOSQUES',
+                            'MOSQUE FINDER',
                             style: AppTextStyles.labelSmall.copyWith(
                               color: Colors.white,
                               fontSize: 7.5,
