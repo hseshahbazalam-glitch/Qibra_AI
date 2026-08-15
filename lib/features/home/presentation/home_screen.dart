@@ -147,17 +147,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // FIX: Made ScrollController nullable and disposed properly
   final ScrollController _scrollController = ScrollController();
 
-  static const int _streakDays = 12;
-  static const List<bool> _weekDone = [
-    true,
-    true,
-    true,
-    true,
-    true,
-    true,
-    false,
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -1048,12 +1037,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Widget _buildPrayerStreakCard() {
-    final progressState = ref.watch(readingProgressProvider);
-    final streak = progressState.streak;
+    final prayerStatistics = ref.watch(prayerStatisticsProvider);
+    final records = ref.watch(prayerRecordsProvider);
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday % 7));
+    const requiredPrayers = {
+      PrayerType.fajr,
+      PrayerType.dhuhr,
+      PrayerType.asr,
+      PrayerType.maghrib,
+      PrayerType.isha,
+    };
 
-    // FIX: Cleaned up ternary for clarity
-    final displayStreak =
-        streak.currentStreak > 0 ? streak.currentStreak : _streakDays;
+    bool isCompletedStatus(PrayerStatus status) =>
+        status == PrayerStatus.prayed ||
+        status == PrayerStatus.prayedInMosque ||
+        status == PrayerStatus.makeup;
+
+    final weekDone = List<bool>.generate(7, (index) {
+      final day = DateTime(
+        weekStart.year,
+        weekStart.month,
+        weekStart.day + index,
+      );
+      final completed = records
+          .where((record) =>
+              record.date.year == day.year &&
+              record.date.month == day.month &&
+              record.date.day == day.day &&
+              isCompletedStatus(record.status))
+          .map((record) => record.type)
+          .toSet();
+      return completed.containsAll(requiredPrayers);
+    });
+
+    final displayStreak = prayerStatistics.currentStreak;
 
     return GestureDetector(
       onTap: () {
@@ -1118,7 +1136,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(7, (i) {
-                final done = _weekDone[i];
+                final done = weekDone[i];
                 return Column(
                   children: [
                     Text(
@@ -1156,7 +1174,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
             const SizedBox(height: 6),
             Text(
-              "Keep it up! You're on fire! 🔥",
+              displayStreak > 0
+                  ? "Keep it up! You're building consistency."
+                  : 'Complete all five daily prayers to begin your streak.',
               style: TextStyle(
                 color: const Color(0xFFF97316).withValues(alpha: 0.9),
                 fontSize: 8,
@@ -2450,21 +2470,35 @@ class _DailyVerseCard extends ConsumerWidget {
     final ayahAsync = ref.watch(autoRotatingAyahProvider);
 
     return ayahAsync.when(
-      data: (ayah) => _verseCard(
-        ayah?.text ?? 'إِنَّ مَعَ الْعُسْرِ يُسْرًا',
-        ayah?.translation ?? 'Indeed, with hardship [will] be ease.',
-        // FIX: Null-safe reference number
-        ayah != null ? 'Quran ${ayah.number}' : 'Quran 94:6',
+      data: (ayah) => ayah == null
+          ? _verseStatusCard('No verified verse is available right now.')
+          : _verseCard(
+              ayah.text,
+              ayah.translation ?? 'Translation unavailable',
+              'Quran • Ayah ${ayah.numberInQuran}',
+            ),
+      loading: () => _verseStatusCard('Loading verified daily verse…'),
+      error: (_, __) =>
+          _verseStatusCard('Unable to load a verified daily verse.'),
+    );
+  }
+
+  Widget _verseStatusCard(String message) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.cardRadiusLarge,
+        border: Border.all(color: AppColors.borderSubtle),
       ),
-      loading: () => _verseCard(
-        'إِنَّ مَعَ الْعُسْرِ يُسْرًا',
-        'Indeed, with hardship [will] be ease.',
-        'Quran 94:6',
-      ),
-      error: (_, __) => _verseCard(
-        'إِنَّ مَعَ الْعُسْرِ يُسْرًا',
-        'Indeed, with hardship [will] be ease.',
-        'Quran 94:6',
+      child: Center(
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.labelSmall.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
       ),
     );
   }

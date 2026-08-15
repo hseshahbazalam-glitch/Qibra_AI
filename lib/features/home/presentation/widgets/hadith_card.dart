@@ -2,23 +2,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
 
-class HomeHadithCard extends StatelessWidget {
+class HomeHadithCard extends ConsumerWidget {
   const HomeHadithCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const String collection = 'Sahih al-Bukhari 6477';
-    const String hadithBody =
-        'Whoever believes in Allah and the Last Day should speak good or remain silent.';
-    const String hadithArabic =
-        'مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ';
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dailyHadith = ref.watch(dailyHadithProvider);
     const accent = Color(0xFFF59E0B);
+    final hadith = dailyHadith.valueOrNull;
+    final collection = hadith?.reference ?? 'Verified Hadith unavailable';
+    final hadithBody = hadith?.textEnglish ??
+        'A verified hadith will appear after the local collection is ready.';
+    final hadithArabic = hadith?.textArabic ?? '';
 
     return GestureDetector(
       onTap: () {
@@ -53,20 +56,22 @@ class HomeHadithCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
-              hadithArabic,
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontSize: 15,
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
-                height: 1.5,
+            if (hadithArabic.isNotEmpty) ...[
+              Text(
+                hadithArabic,
+                style: const TextStyle(
+                  fontFamily: 'Amiri',
+                  fontSize: 15,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  height: 1.5,
+                ),
+                textDirection: TextDirection.rtl,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
-              textDirection: TextDirection.rtl,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 6),
+              const SizedBox(height: 6),
+            ],
             Text(
               hadithBody,
               style: AppTextStyles.bodySmall.copyWith(
