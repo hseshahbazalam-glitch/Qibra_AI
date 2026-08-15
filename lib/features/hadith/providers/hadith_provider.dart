@@ -3,21 +3,20 @@
 // ============================================================
 // QIBRA AI — HADITH PROVIDER
 // Version: 2.0.0 — Local Database Integration
-// Description: Uses local database (34,395 hadiths).
-//              API service as fallback for future features.
+// Description: Uses the verified local Sahih al-Bukhari dataset.
+//              Additional collections require reviewed bundled data or a backend.
 // ============================================================
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/models/hadith_models.dart';
-import '../data/services/hadith_api_service.dart';
 import '../data/services/hadith_database_service.dart';
 
 // ============================================================
 // SECTION 1: DATABASE SERVICE PROVIDER
 // ============================================================
 
-/// Local hadith database — 34,395 authentic hadiths
+/// Local hadith database — bundled Sahih al-Bukhari collection only
 final hadithDatabaseProvider = Provider<HadithDatabaseService>((ref) {
   final service = HadithDatabaseService();
 
@@ -28,17 +27,12 @@ final hadithDatabaseProvider = Provider<HadithDatabaseService>((ref) {
   return service;
 });
 
-/// API service provider (fallback for future features)
-final hadithApiServiceProvider = Provider<HadithApiService>((ref) {
-  return HadithApiService();
-});
-
 // ============================================================
 // SECTION 2: DATABASE INITIALIZATION
 // ============================================================
 
-/// Initialize database on app start
-/// Loads all 6 books from local JSON files
+/// Initialize the bundled local database.
+/// Only collections present in [HadithDatabaseService] are loaded.
 final hadithDatabaseInitProvider = FutureProvider<bool>((ref) async {
   final db = ref.watch(hadithDatabaseProvider);
   await db.initialize();

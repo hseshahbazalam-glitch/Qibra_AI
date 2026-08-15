@@ -74,32 +74,24 @@ class HalalService {
     }
 
     // ── Step 2: Check Haram Ingredients ──
-    // P0.3/ Halal fix: avoid false positive for vegetable gelatin
-    bool isVegetableGelatin(String ing) {
-      return ing.contains('vegetable gelatin') ||
-          ing.contains('agar') ||
-          ing.contains('pectin') ||
-          ing.contains('carrageenan') ||
-          ing.contains('vegetarian gelatin');
-    }
+    // A plant qualifier must describe gelatin/E441 itself. Ingredients such as
+    // pectin, agar, or carrageenan elsewhere in a list do not establish the
+    // source of a separate gelatin ingredient.
+    final hasExplicitPlantBasedGelatin =
+        _hasExplicitPlantBasedGelatin(ingredients);
 
     for (final item in _haramDatabase) {
-      // Skip gelatin if plant-based alternative explicitly mentioned
-      if (item.name == 'Gelatin' && isVegetableGelatin(ingredients)) {
+      if (item.name == 'Gelatin' && hasExplicitPlantBasedGelatin) {
         halalFound.add(
-            'Contains vegetable/agar gelatin — plant-based, not haram pork gelatin');
+            'Contains explicitly labelled plant-based gelatin — verify packaging/certification');
         continue;
       }
       if (ingredients.contains(item.name.toLowerCase()) ||
           name.contains(item.name.toLowerCase())) {
-        // Double-check gelatin case inside generic match too
-        if (item.name == 'Gelatin' && isVegetableGelatin(ingredients)) continue;
         haramFound.add('${item.name}: ${item.reason}');
       }
       for (final alias in item.aliases) {
         if (ingredients.contains(alias.toLowerCase())) {
-          if (item.name == 'Gelatin' && isVegetableGelatin(ingredients))
-            continue;
           haramFound.add('${item.name} (as $alias): ${item.reason}');
         }
       }
@@ -108,8 +100,8 @@ class HalalService {
     // ── Step 3: Check E-Codes ──
     for (final ecode in _eCodeDatabase) {
       if (ingredients.contains(ecode.code.toLowerCase())) {
-        // E441 gelatin — check vegetable alternative
-        if (ecode.code == 'e441' && ingredients.contains('vegetable')) continue;
+        // E441 is only exempt when its own declaration is explicitly plant-based.
+        if (ecode.code == 'e441' && hasExplicitPlantBasedGelatin) continue;
         if (ecode.status == 'haram') {
           haramFound.add('${ecode.code} (${ecode.name}): ${ecode.reason}');
         } else if (ecode.status == 'doubtful') {
@@ -236,6 +228,26 @@ class HalalService {
           _eCodeDatabase.length +
           _doubtfulDatabase.length,
     );
+  }
+
+  /// Returns true only when a plant qualifier appears in the same ingredient
+  /// declaration as gelatin (or E441). It intentionally does not treat agar,
+  /// pectin, or carrageenan elsewhere in a list as evidence about gelatin.
+  static bool _hasExplicitPlantBasedGelatin(String ingredients) {
+    const qualifier = r'(?:vegetable|vegetarian|plant[- ]based)';
+    const gelatin = r'(?:gelatin|gelatine|e\s*[- ]?\s*441)';
+    final normalized = ingredients.toLowerCase();
+
+    final qualifierBefore = RegExp(
+      '\b$qualifier\b[^,;]{0,32}\b$gelatin\b',
+      caseSensitive: false,
+    );
+    final qualifierAfter = RegExp(
+      '\b$gelatin\b[^,;]{0,32}\b$qualifier\b',
+      caseSensitive: false,
+    );
+    return qualifierBefore.hasMatch(normalized) ||
+        qualifierAfter.hasMatch(normalized);
   }
 
   // ─── Analyze Text (OCR / Manual) ───────────────────────────

@@ -10,11 +10,15 @@ class AuthSocialButtons extends StatelessWidget {
     required this.onGoogleTap,
     required this.onAppleTap,
     this.isLoading = false,
+    this.googleAvailable = true,
+    this.appleAvailable = true,
   });
 
   final VoidCallback? onGoogleTap;
   final VoidCallback? onAppleTap;
   final bool isLoading;
+  final bool googleAvailable;
+  final bool appleAvailable;
 
   @override
   Widget build(BuildContext context) {
@@ -22,19 +26,21 @@ class AuthSocialButtons extends StatelessWidget {
       children: [
         Expanded(
           child: _AuthSocialButton(
-            label: 'Google',
+            label: googleAvailable ? 'Google' : 'Google (soon)',
             color: const Color(0xFF4285F4),
             icon: 'G',
-            onTap: isLoading ? null : onGoogleTap,
+            isEnabled: !isLoading && googleAvailable,
+            onTap: isLoading || !googleAvailable ? null : onGoogleTap,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: _AuthSocialButton(
-            label: 'Apple',
+            label: appleAvailable ? 'Apple' : 'Apple (soon)',
             color: Colors.white,
             iconData: Icons.apple,
-            onTap: isLoading ? null : onAppleTap,
+            isEnabled: !isLoading && appleAvailable,
+            onTap: isLoading || !appleAvailable ? null : onAppleTap,
           ),
         ),
       ],
@@ -49,6 +55,7 @@ class _AuthSocialButton extends StatelessWidget {
     this.icon,
     this.iconData,
     this.onTap,
+    required this.isEnabled,
   });
 
   final String label;
@@ -56,69 +63,78 @@ class _AuthSocialButton extends StatelessWidget {
   final String? icon;
   final IconData? iconData;
   final VoidCallback? onTap;
+  final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: AppRadius.buttonRadiusLg,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            height: 52,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: 0.08),
-                  Colors.white.withValues(alpha: 0.03),
-                ],
-              ),
-              borderRadius: AppRadius.buttonRadiusLg,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon != null)
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                    ),
-                    child: Center(
-                      child: Text(
-                        icon!,
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  )
-                else if (iconData != null)
-                  Icon(
-                    iconData,
-                    color: color,
-                    size: 24,
+    return Semantics(
+      button: true,
+      enabled: isEnabled,
+      label: isEnabled ? '$label sign in' : '$label is unavailable',
+      child: Opacity(
+        opacity: isEnabled ? 1 : 0.45,
+        child: GestureDetector(
+          onTap: onTap,
+          child: ClipRRect(
+            borderRadius: AppRadius.buttonRadiusLg,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                height: 52,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.08),
+                      Colors.white.withValues(alpha: 0.03),
+                    ],
                   ),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  label,
-                  style: AppTextStyles.buttonMedium.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+                  borderRadius: AppRadius.buttonRadiusLg,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 1,
                   ),
                 ),
-              ],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null)
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                        child: Center(
+                          child: Text(
+                            icon!,
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      )
+                    else if (iconData != null)
+                      Icon(
+                        iconData,
+                        color: color,
+                        size: 24,
+                      ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      label,
+                      style: AppTextStyles.buttonMedium.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

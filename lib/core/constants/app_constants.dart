@@ -1026,6 +1026,7 @@ abstract final class AppRoutes {
   static const String duaDetail = '/dua/detail';
 
   static const String tasbih = '/tasbih';
+  static const String tools = '/tools';
   static const String islamicCalendar = '/calendar';
 
   // --- User Routes ---

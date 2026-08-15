@@ -79,3 +79,11 @@ pubspec.yaml.backup
 # APK/AAB
 *.apk
 *.aab
+
+# Generated diagnostics, reports, and local backups
+android/build/
+android/.kotlin/
+coverage/
+
+# Generated duplicate-code reports (recreate with `npx jscpd --config jscpd.json`)
+reports/duplicates/generated/

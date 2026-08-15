@@ -103,8 +103,18 @@ class AuthButton extends StatelessWidget {
       ),
     );
 
+    final visiblyDisabled = !enabled && !isLoading;
+    final accessibleButton = Semantics(
+      button: true,
+      enabled: enabled && !isLoading,
+      child: Opacity(
+        opacity: visiblyDisabled ? 0.45 : 1,
+        child: button,
+      ),
+    );
+
     if (pulseAnimation == null) {
-      return button;
+      return accessibleButton;
     }
 
     return AnimatedBuilder(
@@ -115,7 +125,7 @@ class AuthButton extends StatelessWidget {
           child: child,
         );
       },
-      child: button,
+      child: accessibleButton,
     );
   }
 }

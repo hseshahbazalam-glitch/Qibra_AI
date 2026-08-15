@@ -5,6 +5,7 @@
 // Updated: 2026 + Shahbaz Alam credit
 // ============================================================
 
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -41,6 +42,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late AnimationController _taglineController;
   late Animation<double> _taglineFade;
   late AnimationController _loadingController;
+
+  // Timers are tracked so widget tests and rapid navigation never leave
+  // delayed callbacks alive after this screen is disposed.
+  final List<Timer> _pendingTimers = [];
 
   @override
   void initState() {
@@ -126,42 +131,57 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _scheduleNavigation();
   }
 
-  Future<void> _startAnimationSequence() async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    if (!mounted) return;
-    _bismillahController.forward();
-
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
-    _logoController.forward();
-
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    _nameController.forward();
-
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    _taglineController.forward();
+  void _scheduleTimer(Duration delay, VoidCallback callback) {
+    late final Timer timer;
+    timer = Timer(delay, () {
+      _pendingTimers.remove(timer);
+      if (!mounted) return;
+      callback();
+    });
+    _pendingTimers.add(timer);
   }
 
-  Future<void> _scheduleNavigation() async {
-    await Future.delayed(const Duration(milliseconds: 3500));
-    if (!mounted) return;
+  void _startAnimationSequence() {
+    _scheduleTimer(
+      const Duration(milliseconds: 200),
+      () => _bismillahController.forward(),
+    );
+    _scheduleTimer(
+      const Duration(milliseconds: 700),
+      () => _logoController.forward(),
+    );
+    _scheduleTimer(
+      const Duration(milliseconds: 1500),
+      () => _nameController.forward(),
+    );
+    _scheduleTimer(
+      const Duration(milliseconds: 2100),
+      () => _taglineController.forward(),
+    );
+  }
 
-    final authState = ref.read(authProvider);
-    final hasSeenOnboarding = ref.read(onboardingProvider);
+  void _scheduleNavigation() {
+    _scheduleTimer(const Duration(milliseconds: 3500), () {
+      final authState = ref.read(authProvider);
+      final hasSeenOnboarding = ref.read(onboardingProvider);
 
-    if (!hasSeenOnboarding) {
-      context.go(AppRoutes.onboarding);
-    } else if (!authState.isAuthenticated) {
-      context.go(AppRoutes.login);
-    } else {
-      context.go(AppRoutes.home);
-    }
+      if (!hasSeenOnboarding) {
+        context.go(AppRoutes.onboarding);
+      } else if (!authState.isAuthenticated) {
+        context.go(AppRoutes.login);
+      } else {
+        context.go(AppRoutes.home);
+      }
+    });
   }
 
   @override
   void dispose() {
+    for (final timer in _pendingTimers) {
+      timer.cancel();
+    }
+    _pendingTimers.clear();
+
     _patternController.dispose();
     _particleController.dispose();
     _logoController.dispose();

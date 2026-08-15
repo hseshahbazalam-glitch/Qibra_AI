@@ -266,8 +266,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             context.go(AppRoutes.settings);
           },
           onCenterFabTap: () {
-            debugPrint('🕌 FAB TAP');
-            context.go(AppRoutes.quran);
+            debugPrint('🕌 MOSQUE FAB TAP → ${AppRoutes.mosques}');
+            context.go(AppRoutes.mosques);
           },
           child: child,
         ),

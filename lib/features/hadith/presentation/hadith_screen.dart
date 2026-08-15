@@ -92,7 +92,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                 children: [
                   Text('Hadith', style: AppTextStyles.headlineSmall),
                   Text(
-                    'Words of Prophet ﷺ',
+                    'Offline collection: Sahih al-Bukhari',
                     style: AppTextStyles.bodySmall.secondary,
                   ),
                 ],
@@ -179,7 +179,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
               ref.read(hadithSearchQueryProvider.notifier).state = value;
             },
             decoration: InputDecoration(
-              hintText: 'Search 34,000+ hadiths...',
+              hintText: 'Search Sahih al-Bukhari...',
               hintStyle: AppTextStyles.bodyMedium.secondary,
               prefixIcon: const Icon(
                 Icons.search,

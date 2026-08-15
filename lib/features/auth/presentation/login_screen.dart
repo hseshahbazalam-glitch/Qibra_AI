@@ -203,49 +203,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
-  // ── BIOMETRIC LOGIN ──────────────────────────────────
-  Future<void> _handleBiometric() async {
-    HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Biometric login coming soon'),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.cardRadius,
-        ),
-      ),
-    );
-  }
-
-  // ── SOCIAL AUTH ──────────────────────────────────────
-  Future<void> _handleGoogleAuth() async {
-    HapticFeedback.selectionClick();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Google Sign-In coming soon'),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.cardRadius,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _handleAppleAuth() async {
-    HapticFeedback.selectionClick();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Apple Sign-In coming soon'),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.cardRadius,
-        ),
-      ),
-    );
-  }
+  // Biometric, Google, and Apple authentication are not implemented in this
+  // build. Their controls remain visible but explicitly disabled so no button
+  // appears to sign a user in when it cannot do so.
 
   @override
   Widget build(BuildContext context) {
@@ -792,8 +752,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Widget _buildBiometricButton(bool isLoading) {
     return AuthButton(
-      label: 'Use Biometric',
-      onTap: _handleBiometric,
+      label: 'Biometric (coming soon)',
+      onTap: null,
       isLoading: isLoading,
       height: 48,
       gradient: null,
@@ -801,7 +761,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       borderColor: AppColors.accent.withValues(alpha: 0.30),
       leadingIcon: Icons.fingerprint_rounded,
       textColor: AppColors.accent,
-      enabled: !isLoading,
+      enabled: false,
     );
   }
 
@@ -861,8 +821,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Widget _buildSocialButtons(bool isLoading) {
     return AuthSocialButtons(
-      onGoogleTap: _handleGoogleAuth,
-      onAppleTap: _handleAppleAuth,
+      onGoogleTap: null,
+      onAppleTap: null,
+      googleAvailable: false,
+      appleAvailable: false,
       isLoading: isLoading,
     );
   }

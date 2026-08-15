@@ -6,14 +6,12 @@
 // Features:
 //   ✅ 3 Tabs (Translation / Tafsir / Word by Word)
 //   ✅ Multiple translations (English + Urdu + Roman)
-//   ✅ Ibn Kathir Urdu Tafsir
+//   ⚪ Tafsir tab clearly reports when a verified tafsir dataset is unavailable
 //   ✅ Beautiful reference-match design
 //   ✅ Ayah navigation (prev/next)
 //   ✅ Font size control
 //   ✅ Copy & Share
 // ============================================================
-
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,27 +25,10 @@ import '../../quran/providers/quran_provider.dart';
 // PROVIDERS
 // ============================================================
 
-// Load tafsir JSON for a surah
-final tafsirProvider =
-    FutureProvider.family<Map<int, String>, int>((ref, surahNumber) async {
-  try {
-    final jsonString = await rootBundle.loadString(
-      'assets/data/tafseer/ibn_kathir_urdu/$surahNumber.json',
-    );
-    final data = jsonDecode(jsonString) as Map<String, dynamic>;
-    final ayahs = data['ayahs'] as List<dynamic>;
-
-    final Map<int, String> tafsirMap = {};
-    for (var item in ayahs) {
-      final ayahNum = item['ayah'] as int;
-      final text = item['text'] as String;
-      tafsirMap[ayahNum] = text;
-    }
-    return tafsirMap;
-  } catch (e) {
-    return {};
-  }
-});
+// Tafsir content is intentionally not loaded from a guessed asset path.
+// This repository does not currently bundle a licensed Ibn Kathir Urdu dataset.
+// Do not substitute a translation for tafsir: they are different kinds of
+// Islamic content and must be labelled accurately.
 
 // Font size
 final _tafsirFontSizeProvider =
@@ -788,7 +769,6 @@ class _TafsirTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fontSize = ref.watch(_tafsirFontSizeProvider);
     final ayah = surah.getAyahByNumber(ayahNumber);
-    final tafsirAsync = ref.watch(tafsirProvider(surah.number));
 
     if (ayah == null) {
       return const Center(child: Text('Ayah not found'));
@@ -831,115 +811,77 @@ class _TafsirTab extends ConsumerWidget {
 
           const SizedBox(height: 16),
 
-          // Tafsir Ibn Kathir label
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.accent],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.menu_book_rounded,
-                        color: Colors.white, size: 14),
-                    SizedBox(width: 6),
-                    Text(
-                      'Tafsir Ibn Kathir',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Tafsir content (Urdu)
-          tafsirAsync.when(
-            data: (tafsirMap) {
-              final tafsir = tafsirMap[ayahNumber];
-              if (tafsir == null || tafsir.isEmpty) {
-                return _buildEmptyTafsir();
-              }
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceElevated,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.borderSubtle),
-                ),
-                child: Text(
-                  tafsir,
-                  textDirection: TextDirection.rtl,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
-                    fontSize: fontSize + 2,
-                    color: AppColors.textPrimary,
-                    height: 2.0,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              );
-            },
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(40),
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
-            ),
-            error: (e, _) => _buildEmptyTafsir(),
-          ),
+          // The app does not currently include a verified tafsir dataset.
+          // Keep this state explicit rather than presenting a broken loader or
+          // incorrectly presenting a translation as tafsir.
+          _buildTafsirUnavailable(ayah),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyTafsir() {
+  Widget _buildTafsirUnavailable(AyahModel ayah) {
     return Container(
-      padding: const EdgeInsets.all(30),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surfaceElevated,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.borderSubtle),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.menu_book_outlined,
-            size: 60,
+            size: 52,
             color: AppColors.textTertiary,
           ),
-          SizedBox(height: 12),
-          Text(
-            'Tafsir not available',
+          const SizedBox(height: 12),
+          const Text(
+            'Verified tafsir is not included in this build',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: 4),
-          Text(
-            'for this ayah',
+          const SizedBox(height: 6),
+          const Text(
+            'A translation is shown below, but it is not a tafsir.',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textTertiary,
               fontSize: 12,
             ),
           ),
+          if ((ayah.translationUrdu ?? '').isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const Divider(color: AppColors.borderSubtle),
+            const SizedBox(height: 12),
+            const Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                'اردو ترجمہ',
+                textDirection: TextDirection.rtl,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              ayah.translationUrdu!,
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontFamily: 'Amiri',
+                fontSize: 18,
+                color: AppColors.textPrimary,
+                height: 1.8,
+              ),
+            ),
+          ],
         ],
       ),
     );

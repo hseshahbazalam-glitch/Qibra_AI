@@ -331,45 +331,49 @@ class _CenterFabState extends State<_CenterFab>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        if (widget.onTap != null) _controller.forward();
-      },
-      onTapUp: (_) => _controller.reverse(),
-      onTapCancel: () => _controller.reverse(),
-      onTap: () {
-        HapticFeedback.mediumImpact();
-        widget.onTap?.call();
-      },
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: AppGradients.gold,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.accent.withValues(alpha: 0.40),
-                blurRadius: 12,
-                spreadRadius: 1,
+    return Semantics(
+      button: true,
+      label: 'Mosque finder',
+      child: GestureDetector(
+        onTapDown: (_) {
+          if (widget.onTap != null) _controller.forward();
+        },
+        onTapUp: (_) => _controller.reverse(),
+        onTapCancel: () => _controller.reverse(),
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          widget.onTap?.call();
+        },
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppGradients.gold,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.accent.withValues(alpha: 0.40),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+                BoxShadow(
+                  color: AppColors.black.withValues(alpha: 0.30),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+              border: Border.all(
+                color: AppColors.navBackground,
+                width: 3,
               ),
-              BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.30),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-            ],
-            border: Border.all(
-              color: AppColors.navBackground,
-              width: 3,
             ),
-          ),
-          child: const Icon(
-            Icons.mosque_rounded,
-            color: AppColors.background,
-            size: 24,
+            child: const Icon(
+              Icons.mosque_rounded,
+              color: AppColors.background,
+              size: 24,
+            ),
           ),
         ),
       ),

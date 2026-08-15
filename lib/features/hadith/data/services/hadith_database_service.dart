@@ -99,13 +99,13 @@ class LocalSearchResult {
 class HadithDatabaseService {
   HadithDatabaseService();
 
+  /// Local collections that are actually bundled with this build.
+  ///
+  /// Do not add a collection here until all of its reviewed asset files have
+  /// been included. Previously this listed six collections while only Bukhari
+  /// existed on disk, leading to misleading loading attempts and product claims.
   static const Map<String, String> _bookNames = {
     'bukhari': 'Sahih al-Bukhari',
-    'muslim': 'Sahih Muslim',
-    'abudawud': 'Sunan Abu Dawud',
-    'tirmidhi': 'Jami at-Tirmidhi',
-    'nasai': "Sunan an-Nasa'i",
-    'ibnmajah': 'Sunan Ibn Majah',
   };
 
   final Map<String, List<LocalHadith>> _bookData = {};

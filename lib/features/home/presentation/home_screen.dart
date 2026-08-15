@@ -330,15 +330,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   const SizedBox(height: AppSpacing.md),
                   _buildHeroSection(userName),
                   const SizedBox(height: AppSpacing.md),
-                  const _PrayerTimesCard(),
-                  const SizedBox(height: AppSpacing.lg),
-                  _buildQuickAccessSection(),
-                  const SizedBox(height: AppSpacing.lg),
-                  _buildProgressAndStreakRow(),
-                  const SizedBox(height: AppSpacing.lg),
+                  // Quran-first home flow: resume the user's reading before
+                  // secondary dashboard information and shortcuts.
                   _buildContinueReadingCard(),
                   const SizedBox(height: AppSpacing.lg),
                   _buildVerseAndHadithRow(),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildQuickAccessSection(),
+                  const SizedBox(height: AppSpacing.lg),
+                  const _PrayerTimesCard(),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildProgressAndStreakRow(),
                   const SizedBox(height: AppSpacing.lg),
                   _buildRamadanQiblaMosqueRow(),
                   const SizedBox(height: AppSpacing.lg),
@@ -610,7 +612,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     // FIX: Resolve display name once
     final displayName =
-        (userName.isEmpty || userName == 'QIBRA User') ? 'Shahbaz' : userName;
+        (userName.isEmpty || userName == 'QIBRA User') ? 'Guest' : userName;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -619,7 +621,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         child: SlideTransition(
           position: _headerSlideAnimation,
           child: Container(
-            height: 320,
+            height: 280,
             decoration: BoxDecoration(
               borderRadius: AppRadius.cardRadiusLarge,
               boxShadow: [
@@ -771,6 +773,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final hijri = HijriCalendar.fromDate(DateTime.now());
     final hijriStr =
         '${hijri.hDay} ${_hijriMonthAbbr(hijri.hMonth)} ${hijri.hYear} AH';
+    final quranProgress =
+        ref.watch(readingProgressProvider).overallProgress.clamp(0.0, 1.0);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -793,7 +797,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  locationName ?? 'Bangalore, India',
+                  locationName ?? 'Location unavailable',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -803,7 +807,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Auto-detected',
+                  locationName == null
+                      ? 'Set location for accurate times'
+                      : 'Auto-detected',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.55),
                     fontSize: 8,
@@ -815,8 +821,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
           _divider(),
           const Icon(
-            Icons.wb_sunny_rounded,
-            color: Color(0xFFFFD700),
+            Icons.menu_book_rounded,
+            color: Color(0xFF00E676),
             size: 14,
           ),
           const SizedBox(width: 4),
@@ -824,16 +830,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                '21°C',
-                style: TextStyle(
+              Text(
+                '${(quranProgress * 100).round()}%',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
-                'Clear',
+                'Quran goal',
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.55),
                   fontSize: 8,
@@ -903,19 +909,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         Icons.radio_button_checked_rounded,
         'Tasbih',
         const Color(0xFF00E676),
-        AppRoutes.prayer, // ← temp
+        AppRoutes.tasbih,
       ),
       (
         Icons.volunteer_activism_rounded,
         'Duas',
         const Color(0xFF74C0FC),
-        AppRoutes.hadith, // ← temp
+        AppRoutes.dua,
       ),
       (
         Icons.apps_rounded,
         'More',
         Colors.white.withValues(alpha: 0.7),
-        AppRoutes.aiChat, // ← temp
+        AppRoutes.tools,
       ),
     ];
     return Padding(
@@ -946,11 +952,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
+                    context.go(AppRoutes.tools);
                   },
                   child: Row(
                     children: [
                       Text(
-                        'Edit',
+                        'See all',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: const Color(0xFF00E676),
                           fontSize: 10,
@@ -979,12 +986,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   child: GestureDetector(
                     onTap: () {
                       HapticFeedback.selectionClick();
-                      try {
-                        context.go(item.$4);
-                      } catch (_) {
-                        // route not available yet
-                      }
+                      context.go(item.$4);
                     },
+                    behavior: HitTestBehavior.opaque,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -1172,15 +1176,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final ps = ref.watch(readingProgressProvider);
     final cp = ps.currentPage;
 
-    final surahName = cp?.surahName ?? 'Al-Baqarah';
-    final juz = cp?.juzNumber ?? 2;
-    final page = cp?.pageNumber ?? 35;
+    final hasReadingProgress = cp != null;
+    final surahName = cp?.surahName ?? 'Start your Quran journey';
+    final juz = cp?.juzNumber;
+    final page = cp?.pageNumber ?? 1;
 
-    // FIX: Clamp progress between 0.0 and 1.0 defensively
-    final progress = (ps.overallProgress > 0 ? ps.overallProgress : 0.35).clamp(
-      0.0,
-      1.0,
-    );
+    // Do not display fabricated reading progress to a new user.
+    final progress =
+        hasReadingProgress ? ps.overallProgress.clamp(0.0, 1.0) : 0.0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -1242,7 +1245,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           ),
                         ),
                         Text(
-                          'Juz $juz • Page $page',
+                          hasReadingProgress
+                              ? 'Juz $juz • Page $page'
+                              : 'Open the Quran and choose where to begin',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.65),
                             fontSize: 11,
@@ -1264,7 +1269,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Continue',
+                          hasReadingProgress ? 'Continue' : 'Start',
                           style: AppTextStyles.labelSmall.copyWith(
                             color: const Color(0xFF04231A),
                             fontWeight: FontWeight.w800,
@@ -1306,7 +1311,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget _buildVerseAndHadithRow() {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Text(
+            'DAILY REFLECTIONS',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: IntrinsicHeight(
@@ -1320,25 +1339,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ),
         ),
-        const SizedBox(height: 10),
-        // Page dots
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(3, (i) {
-            final active = i == 0;
-            return Container(
-              width: active ? 16 : 6,
-              height: 6,
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(
-                color: active
-                    ? const Color(0xFF00E676)
-                    : Colors.white.withValues(alpha: 0.20),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            );
-          }),
-        ),
       ],
     );
   }
@@ -1351,20 +1351,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // FIX: Calculate once and pass down
     final data = _RamadanCalculator.calculate();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: SizedBox(
-        height: 175,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(flex: 40, child: _buildRamadanCountdownCard(data)),
-            const SizedBox(width: 8),
-            Expanded(flex: 30, child: _buildQiblaDirectionCard()),
-            const SizedBox(width: 8),
-            Expanded(flex: 30, child: _buildNearbyMosquesCard()),
-          ],
-        ),
+    // These information-dense cards were previously forced into three narrow
+    // columns. A horizontal rail preserves readable labels and tap targets on
+    // compact phones while still showing the next card as an affordance.
+    return SizedBox(
+      height: 175,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        children: [
+          SizedBox(width: 196, child: _buildRamadanCountdownCard(data)),
+          const SizedBox(width: 10),
+          SizedBox(width: 156, child: _buildQiblaDirectionCard()),
+          const SizedBox(width: 10),
+          SizedBox(width: 156, child: _buildNearbyMosquesCard()),
+        ],
       ),
     );
   }
@@ -1693,6 +1695,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // ============================================================
 
   Widget _buildAIAssistantBanner() {
+    final aiAvailable = AppApi.isBackendEnabled;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: GestureDetector(
@@ -1734,7 +1737,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     Row(
                       children: [
                         Text(
-                          'AI ISLAMIC ASSISTANT',
+                          aiAvailable
+                              ? 'AI ISLAMIC ASSISTANT'
+                              : 'AI ASSISTANT — PREVIEW',
                           style: AppTextStyles.labelSmall.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
@@ -1748,7 +1753,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Ask anything about Islam, Quran, Hadith\nand get instant answers.',
+                      aiAvailable
+                          ? 'Ask about Islam, Quran, and Hadith with verified-source guidance.'
+                          : 'AI chat is being prepared. Quran, Prayer, Duas, and Hadith remain available offline.',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.70),
                         fontSize: 10,
@@ -1770,9 +1777,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Text(
-                      'Ask Now',
+                      aiAvailable ? 'Ask now' : 'View status',
                       style: TextStyle(
                         color: Color(0xFF04231A),
                         fontSize: 11,
