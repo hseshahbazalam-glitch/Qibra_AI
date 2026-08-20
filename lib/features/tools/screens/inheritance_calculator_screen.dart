@@ -1948,8 +1948,10 @@ class _PieChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (total <= 0 || results.isEmpty) return;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width, size.height) / 2 - 10;
+    if (radius <= 0) return;
     double startAngle = -pi / 2;
 
     for (final r in results) {

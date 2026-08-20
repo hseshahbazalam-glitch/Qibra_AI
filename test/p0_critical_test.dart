@@ -122,8 +122,8 @@ void main() {
       const silverGrams = 612.36;
       const oldPrice = 110.0;
       const newPrice = 280.0;
-      final oldNisab = silverGrams * oldPrice;
-      final newNisab = silverGrams * newPrice;
+      const oldNisab = silverGrams * oldPrice;
+      const newNisab = silverGrams * newPrice;
       expect(oldNisab, closeTo(67359, 1));
       expect(newNisab, closeTo(171460, 1));
       expect(100000 < newNisab, isTrue,
@@ -140,7 +140,7 @@ void main() {
     });
     test('Wasiyyah capped at 1/3', () {
       const estate = 300000.0;
-      final maxW = estate / 3;
+      const maxW = estate / 3;
       expect(maxW, 100000.0);
       const wasiyyah = 150000.0;
       final actual = wasiyyah > maxW ? maxW : wasiyyah;
@@ -153,7 +153,7 @@ void main() {
         () {
       final service = PrayerCalculationService();
       final karachi = PrayerLocation.karachi();
-      final london = const PrayerLocation(
+      const london = PrayerLocation(
         latitude: 51.5074,
         longitude: -0.1278,
         city: 'London',

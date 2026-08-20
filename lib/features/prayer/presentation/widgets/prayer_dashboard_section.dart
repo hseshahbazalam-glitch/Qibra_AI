@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qibra_ai/features/prayer/data/models/prayer_models.dart';
 import 'package:qibra_ai/features/prayer/presentation/widgets/prayer_insight_cards.dart';
 import 'package:qibra_ai/features/prayer/presentation/widgets/prayer_timeline_card.dart';
 

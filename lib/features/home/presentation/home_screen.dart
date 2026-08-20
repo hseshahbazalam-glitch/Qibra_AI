@@ -387,10 +387,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: const [
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
+                children: [
                   Text(
                     'QIBRA',
                     style: TextStyle(
@@ -671,9 +671,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                                  children: const [
                                     Row(
-                                      children: const [
+                                      children: [
                                         Text(
                                           'Assalamu Alaikum',
                                           style: TextStyle(
@@ -1720,7 +1720,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // ============================================================
 
   Widget _buildAIAssistantBanner() {
-    final aiAvailable = AppApi.isBackendEnabled;
+    const aiAvailable = AppApi.isBackendEnabled;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: GestureDetector(
@@ -1802,7 +1802,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: const [
                     Text(
                       aiAvailable ? 'Ask now' : 'View status',
                       style: TextStyle(
@@ -2601,7 +2601,7 @@ class _StarsPainterWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: _StarsPainter());
+    return const CustomPaint(painter: _StarsPainter());
   }
 }
 

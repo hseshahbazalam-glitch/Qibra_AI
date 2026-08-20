@@ -168,6 +168,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
       // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
 
+      if (!mounted) return;
       final email = _emailController.text.trim();
 
       setState(() {
@@ -179,6 +180,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
       HapticFeedback.heavyImpact();
       _successController.forward();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = 'Failed to send reset link. Please try again.';

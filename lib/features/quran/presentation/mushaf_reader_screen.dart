@@ -53,9 +53,13 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
 
   Future<void> _loadBookmarks() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     final bookmarks = prefs.getStringList('mushaf_bookmarked_pages') ?? [];
     setState(() {
-      _bookmarkedPages = bookmarks.map((e) => int.parse(e)).toSet();
+      _bookmarkedPages = bookmarks
+          .map((e) => int.tryParse(e))
+          .whereType<int>()
+          .toSet();
     });
   }
 
@@ -63,6 +67,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     HapticFeedback.mediumImpact();
     final prefs = await SharedPreferences.getInstance();
 
+    if (!mounted) return;
     setState(() {
       if (_bookmarkedPages.contains(page)) {
         _bookmarkedPages.remove(page);
@@ -76,6 +81,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       _bookmarkedPages.map((e) => e.toString()).toList(),
     );
 
+    if (!mounted) return;
     _showToast(
       _bookmarkedPages.contains(page)
           ? '🔖 Page $page bookmarked'
