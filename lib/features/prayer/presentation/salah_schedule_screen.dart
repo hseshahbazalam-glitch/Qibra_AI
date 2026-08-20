@@ -573,7 +573,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                     await ref
                         .read(prayerSettingsProvider.notifier)
                         .setCalculationMethod(method);
-                    if (mounted) Navigator.pop(ctx);
+                    if (ctx.mounted) Navigator.pop(ctx);
                   },
                 );
               }),

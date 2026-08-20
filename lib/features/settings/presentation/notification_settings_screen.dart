@@ -35,6 +35,7 @@ class _NotificationSettingsScreenState
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _prayerNotifications = prefs.getBool('prayer_notifications') ?? true;
       _prePrayerAlert = prefs.getBool('pre_prayer_alert') ?? true;
@@ -79,19 +80,18 @@ class _NotificationSettingsScreenState
       );
     }
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Settings saved! ✅',
-            style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF1B4332),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-      ));
-    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: const Text('Settings saved! ✅',
+          style: TextStyle(color: Colors.white)),
+      backgroundColor: const Color(0xFF1B4332),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.all(16),
+      duration: const Duration(seconds: 2),
+    ));
   }
 
   Future<void> _testNotification() async {

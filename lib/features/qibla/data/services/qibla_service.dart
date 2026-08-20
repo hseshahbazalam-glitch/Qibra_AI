@@ -192,12 +192,15 @@ class QiblaService {
       String city = 'Pakistan';
       if (lat >= 24.7 && lat <= 25.1 && lng >= 66.9 && lng <= 67.3) {
         city = 'Karachi';
-      } else if (lat >= 33.5 && lat <= 33.8 && lng >= 72.9 && lng <= 73.3)
+      } else if (lat >= 33.5 && lat <= 33.8 && lng >= 72.9 && lng <= 73.3) {
         city = 'Islamabad';
-      else if (lat >= 31.4 && lat <= 31.7 && lng >= 74.2 && lng <= 74.5)
+      }
+      else if (lat >= 31.4 && lat <= 31.7 && lng >= 74.2 && lng <= 74.5) {
         city = 'Lahore';
-      else if (lat >= 34.0 && lat <= 34.2 && lng >= 71.4 && lng <= 71.7)
+      }
+      else if (lat >= 34.0 && lat <= 34.2 && lng >= 71.4 && lng <= 71.7) {
         city = 'Peshawar';
+      }
       return {'city': city, 'country': 'Pakistan'};
     }
 
@@ -206,14 +209,18 @@ class QiblaService {
       String city = 'India';
       if (lat >= 28.4 && lat <= 28.9 && lng >= 76.8 && lng <= 77.4) {
         city = 'Delhi';
-      } else if (lat >= 18.9 && lat <= 19.3 && lng >= 72.8 && lng <= 73.0)
+      } else if (lat >= 18.9 && lat <= 19.3 && lng >= 72.8 && lng <= 73.0) {
         city = 'Mumbai';
-      else if (lat >= 12.9 && lat <= 13.1 && lng >= 77.4 && lng <= 77.8)
+      }
+      else if (lat >= 12.9 && lat <= 13.1 && lng >= 77.4 && lng <= 77.8) {
         city = 'Bangalore';
-      else if (lat >= 13.0 && lat <= 13.2 && lng >= 80.1 && lng <= 80.3)
+      }
+      else if (lat >= 13.0 && lat <= 13.2 && lng >= 80.1 && lng <= 80.3) {
         city = 'Chennai';
-      else if (lat >= 22.4 && lat <= 22.7 && lng >= 88.2 && lng <= 88.5)
+      }
+      else if (lat >= 22.4 && lat <= 22.7 && lng >= 88.2 && lng <= 88.5) {
         city = 'Kolkata';
+      }
       return {'city': city, 'country': 'India'};
     }
 
@@ -222,12 +229,15 @@ class QiblaService {
       String city = 'Saudi Arabia';
       if (lat >= 21.3 && lat <= 21.5 && lng >= 39.7 && lng <= 39.9) {
         city = 'Makkah';
-      } else if (lat >= 24.4 && lat <= 24.6 && lng >= 39.5 && lng <= 39.7)
+      } else if (lat >= 24.4 && lat <= 24.6 && lng >= 39.5 && lng <= 39.7) {
         city = 'Madinah';
-      else if (lat >= 24.6 && lat <= 24.8 && lng >= 46.6 && lng <= 46.8)
+      }
+      else if (lat >= 24.6 && lat <= 24.8 && lng >= 46.6 && lng <= 46.8) {
         city = 'Riyadh';
-      else if (lat >= 21.4 && lat <= 21.6 && lng >= 39.1 && lng <= 39.3)
+      }
+      else if (lat >= 21.4 && lat <= 21.6 && lng >= 39.1 && lng <= 39.3) {
         city = 'Jeddah';
+      }
       return {'city': city, 'country': 'Saudi Arabia'};
     }
 
@@ -236,8 +246,9 @@ class QiblaService {
       String city = 'UAE';
       if (lat >= 25.0 && lat <= 25.4 && lng >= 55.1 && lng <= 55.4) {
         city = 'Dubai';
-      } else if (lat >= 24.3 && lat <= 24.6 && lng >= 54.3 && lng <= 54.6)
+      } else if (lat >= 24.3 && lat <= 24.6 && lng >= 54.3 && lng <= 54.6) {
         city = 'Abu Dhabi';
+      }
       return {'city': city, 'country': 'UAE'};
     }
 
@@ -255,8 +266,9 @@ class QiblaService {
       String city = 'Turkey';
       if (lat >= 40.9 && lat <= 41.2 && lng >= 28.7 && lng <= 29.3) {
         city = 'Istanbul';
-      } else if (lat >= 39.8 && lat <= 40.0 && lng >= 32.7 && lng <= 32.9)
+      } else if (lat >= 39.8 && lat <= 40.0 && lng >= 32.7 && lng <= 32.9) {
         city = 'Ankara';
+      }
       return {'city': city, 'country': 'Turkey'};
     }
 
@@ -452,16 +464,21 @@ class QiblaService {
     if (lat >= 22.6 && lat <= 26.1 && lng >= 51.5 && lng <= 56.4) {
       return 1.0; // UAE
     }
-    if (lat >= 20.5 && lat <= 26.7 && lng >= 88.0 && lng <= 92.7)
+    if (lat >= 20.5 && lat <= 26.7 && lng >= 88.0 && lng <= 92.7) {
       return 0.0; // BD
-    if (lat >= 35.8 && lat <= 42.1 && lng >= 25.7 && lng <= 44.8)
+    }
+    if (lat >= 35.8 && lat <= 42.1 && lng >= 25.7 && lng <= 44.8) {
       return 5.0; // Turkey
-    if (lat >= -11.0 && lat <= 6.5 && lng >= 94.5 && lng <= 141.5)
+    }
+    if (lat >= -11.0 && lat <= 6.5 && lng >= 94.5 && lng <= 141.5) {
       return 0.5; // Indo
-    if (lat >= 0.8 && lat <= 7.4 && lng >= 99.5 && lng <= 119.3)
+    }
+    if (lat >= 0.8 && lat <= 7.4 && lng >= 99.5 && lng <= 119.3) {
       return 0.0; // My
-    if (lat >= 22.0 && lat <= 31.7 && lng >= 24.7 && lng <= 36.9)
+    }
+    if (lat >= 22.0 && lat <= 31.7 && lng >= 24.7 && lng <= 36.9) {
       return 3.5; // Egypt
+    }
     // Europe
     if (lat >= 35 && lat <= 72 && lng >= -25 && lng <= 40) {
       // UK +5 to -5, Central Europe 2-5
@@ -482,10 +499,12 @@ class QiblaService {
   }
 
   static String _declinationNote(double decl, double lat, double lng) {
-    if (decl.abs() < 2)
+    if (decl.abs() < 2) {
       return 'Magnetic declination small (${decl.toStringAsFixed(1)}°) — magnetic ≈ true north. Compass should be accurate when calibrated.';
-    if (decl.abs() < 5)
+    }
+    if (decl.abs() < 5) {
       return 'Magnetic declination ${decl.toStringAsFixed(1)}° — add ${decl > 0 ? '+' : ''}${decl.toStringAsFixed(1)}° to magnetic heading for true north. Calibrate compass in figure-8.';
+    }
     return 'Magnetic declination ${decl.toStringAsFixed(1)}° — significant. Use true north correction and calibrate compass. For precise prayer, verify with local mosque.';
   }
 

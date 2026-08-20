@@ -326,6 +326,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = 'Verification failed. Please try again.';
@@ -353,35 +354,35 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
       // Simulate resend API
       await Future.delayed(const Duration(seconds: 1));
 
+      if (!mounted) return;
       // Restart timer
       _startTimer();
 
       setState(() => _isLoading = false);
 
       // Show success snackbar
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                SizedBox(width: AppSpacing.sm),
-                Text('OTP sent successfully!'),
-              ],
-            ),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: AppRadius.cardRadius,
-            ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: Colors.white,
+                size: 20,
+              ),
+              SizedBox(width: AppSpacing.sm),
+              Text('OTP sent successfully!'),
+            ],
           ),
-        );
-      }
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.cardRadius,
+          ),
+        ),
+      );
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = 'Failed to resend OTP. Please try again.';

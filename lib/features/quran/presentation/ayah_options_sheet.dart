@@ -64,6 +64,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
 
   Future<void> _loadState() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     final key = 'ayah_${widget.surahNumber}_${widget.ayahNumber}';
     setState(() {
       _isFavorite = prefs.getBool('${key}_fav') ?? false;
@@ -627,11 +628,11 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
             onPressed: () async {
               if (controller.text.trim().isEmpty) {
                 await prefs.remove(noteKey);
-                if (mounted) Navigator.pop(ctx);
+                if (ctx.mounted) Navigator.pop(ctx);
                 _showToast('Note removed');
               } else {
                 await prefs.setString(noteKey, controller.text.trim());
-                if (mounted) Navigator.pop(ctx);
+                if (ctx.mounted) Navigator.pop(ctx);
                 _showToast('📝 Note saved');
               }
             },

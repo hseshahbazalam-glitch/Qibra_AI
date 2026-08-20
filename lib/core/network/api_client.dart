@@ -69,7 +69,7 @@ class ApiClient {
       InterceptorsWrapper(
         onError: (DioException e, handler) async {
           final retriesValue = e.requestOptions.extra['retries'] as int?;
-          if (_shouldRetry(e) && retriesValue != AppApi.maxRetries) {
+          if (_shouldRetry(e) && (retriesValue ?? 0) < AppApi.maxRetries) {
             final retries = (retriesValue ?? 0) + 1;
             e.requestOptions.extra['retries'] = retries;
             await Future<void>.delayed(AppApi.retryDelay * retries);
@@ -176,7 +176,7 @@ class ApiClient {
           statusCode: code);
     }
     if (code == 404) {
-      return ApiException(
+      return const ApiException(
           ApiErrorType.notFound, 'Requested resource not found.',
           statusCode: 404);
     }
