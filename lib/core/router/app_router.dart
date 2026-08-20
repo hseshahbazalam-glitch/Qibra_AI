@@ -4,6 +4,7 @@
 // Version: 9.0.0 – Islamic Tools Hub Added
 // THIS VERSION IS CORRECTED TO USE THE NEW HOME SCREEN
 // ============================================================
+import 'package:qibra_ai/features/prayer/presentation/mosque_finder_screen.dart';
 import 'package:qibra_ai/features/calendar/presentation/islamic_calendar_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/settings_screen.dart';
 import 'package:qibra_ai/features/qibla/presentation/qibla_screen.dart';
@@ -344,7 +345,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.mosques,
             name: 'mosques',
-            builder: (context, state) => const _MosquesPlaceholder(),
+            builder: (context, state) => const MosqueFinderScreen(), // ✅ Updated
           ),
           GoRoute(
             path: AppRoutes.profile,
@@ -441,3 +442,4 @@ class _RouterRefreshNotifier extends ChangeNotifier {
     ref.listen<bool>(onboardingProvider, (_, __) => notifyListeners());
   }
 }
+

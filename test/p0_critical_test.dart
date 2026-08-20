@@ -143,7 +143,7 @@ void main() {
       const maxW = estate / 3;
       expect(maxW, 100000.0);
       const wasiyyah = 150000.0;
-      final actual = wasiyyah > maxW ? maxW : wasiyyah;
+      const actual = wasiyyah > maxW ? maxW : wasiyyah;
       expect(actual, 100000.0);
     });
   });
