@@ -1,14 +1,9 @@
 // lib/features/home/presentation/home_screen.dart
-// ============================================================
-// QIBRA AI — HOME DASHBOARD (Pixel-Perfect Flagship UI)
-// ============================================================
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hijri/hijri_calendar.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -31,25 +26,18 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   Timer? _ticker;
-  late final AnimationController _pulseController;
 
   @override
   void initState() {
     super.initState();
-    // Live ticking timer
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
-    _pulseController.dispose();
     super.dispose();
   }
 
@@ -65,29 +53,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final user = ref.watch(currentUserProvider);
 
     final userName = user?.name.isNotEmpty == true ? user!.name : 'Shahbaz';
-    final cityName = locationInfo.location?.city ?? 'Bangalore';
-    final countryName = locationInfo.location?.country ?? 'India';
-    final fullLocation = '$cityName, $countryName';
+    final cityName = locationInfo.location?.city ?? 'My Location';
 
-    // Dates
-    final now = DateTime.now();
     final hijri = HijriCalendar.now();
     final hijriStr = '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH';
-    final gregDateStr = DateFormat('EEE, d MMM yyyy').format(now);
 
-    // Countdown
     final countdown = nextPrayerInfo?.countdown ??
-        const Duration(hours: 1, minutes: 34, seconds: 56);
+        const Duration(hours: 1, minutes: 41, seconds: 9);
     final totalSecs = countdown.inSeconds.abs();
     final h = (totalSecs ~/ 3600).toString().padLeft(2, '0');
     final m = ((totalSecs % 3600) ~/ 60).toString().padLeft(2, '0');
     final s = (totalSecs % 60).toString().padLeft(2, '0');
-    final nextName = nextPrayerInfo?.prayer.type.name ?? 'Fajr';
-    final nextArabic = nextPrayerInfo?.prayer.type.arabicName ?? 'الفجر';
-    final nextTime = nextPrayerInfo?.prayer.formattedTime ?? '04:55 AM';
+    final nextName = nextPrayerInfo?.prayer.type.name ?? 'Dhuhr';
+    final nextArabic = nextPrayerInfo?.prayer.type.arabicName ?? 'الظهر';
+    final nextTime = nextPrayerInfo?.prayer.formattedTime ?? '11:57 AM';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF020A08),
+      backgroundColor: const Color(0xFF000000),
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
@@ -102,19 +84,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           },
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. TOP APP BAR
-                _buildTopAppBar(context, hijriStr, gregDateStr),
+                _buildTopAppBar(context, hijriStr),
                 const SizedBox(height: 14),
-
-                // 2. HERO GREETING & NEXT PRAYER BANNER
                 _buildHeroBanner(
                   context,
                   userName: userName,
-                  location: fullLocation,
+                  cityName: cityName,
                   hijriStr: hijriStr,
                   nextName: nextName,
                   nextArabic: nextArabic,
@@ -124,43 +103,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   seconds: s,
                 ),
                 const SizedBox(height: 18),
-
-                // 3. TODAY'S PRAYER TIMES HORIZONTAL BAR
                 _buildPrayerTimesStrip(context, dailyTimes, nextName),
                 const SizedBox(height: 18),
-
-                // 4. QUICK ACCESS GRID (6 ITEMS)
                 _buildQuickAccessSection(context),
                 const SizedBox(height: 18),
-
-                // 5. TODAY'S PROGRESS & PRAYER STREAK (TWO-COLUMN)
                 _buildProgressAndStreakRow(
                   context,
                   completedPrayers: 4,
-                  tasbihCount: tasbih.todayCount,
+                  tasbihCount: tasbih.todayCount > 0 ? tasbih.todayCount : 66,
                   streakDays: statistics.currentStreak > 0
                       ? statistics.currentStreak
                       : 12,
                 ),
                 const SizedBox(height: 18),
-
-                // 6. CONTINUE READING BANNER
                 _buildContinueReadingBanner(context, readingProgress),
                 const SizedBox(height: 18),
-
-                // 7. DAILY VERSE & HADITH OF THE DAY (TWO CARDS)
                 _buildVerseAndHadithRow(context),
                 const SizedBox(height: 18),
-
-                // 8. RAMADAN COUNTDOWN + QIBLA DIRECTION + NEARBY MOSQUES (3 CARDS)
                 _buildThreeCardsRow(context, qiblaDirection),
                 const SizedBox(height: 18),
-
-                // 9. AI ISLAMIC ASSISTANT BANNER
                 _buildAIAssistantBanner(context),
                 const SizedBox(height: 20),
-
-                // 10. ALL FEATURES GRID
                 _buildAllFeaturesSection(context),
                 const SizedBox(height: 110),
               ],
@@ -171,14 +134,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
   // 1. TOP APP BAR
-  // ============================================================
-  Widget _buildTopAppBar(
-      BuildContext context, String hijriStr, String gregDateStr) {
+  Widget _buildTopAppBar(BuildContext context, String hijriStr) {
     return Row(
       children: [
-        // Menu Button
         InkWell(
           onTap: () => context.go(AppRoutes.tools),
           borderRadius: BorderRadius.circular(10),
@@ -186,16 +145,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: const Color(0xFF071E16),
+              color: const Color(0xFF0C100E),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF143B2C)),
+              border: Border.all(color: const Color(0xFF1E2620)),
             ),
-            child: const Icon(Icons.menu_rounded, color: Colors.white, size: 20),
+            child:
+                const Icon(Icons.menu_rounded, color: Colors.white, size: 20),
           ),
         ),
-        const SizedBox(width: 8),
-
-        // Brand Logo
+        const SizedBox(width: 10),
         const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -203,77 +161,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'QIBRA ',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                Text(
-                  'AI',
-                  style: TextStyle(
-                    color: Color(0xFF00E676),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
-                ),
+                Text('QIBRA ',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5)),
+                Text('AI',
+                    style: TextStyle(
+                        color: Color(0xFF00E676),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5)),
               ],
             ),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Your Islamic Companion ',
-                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 8),
-                ),
-                Text('✦',
-                    style: TextStyle(color: Color(0xFFFFD700), fontSize: 8)),
+                Text('Your Islamic Companion ',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 8)),
+                Text('💛', style: TextStyle(fontSize: 8)),
               ],
             ),
           ],
         ),
         const SizedBox(width: 8),
-
-        // Center Date Pill
         Expanded(
           child: InkWell(
             onTap: () => context.go(AppRoutes.islamicCalendar),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF071E16),
+                color: const Color(0xFF0C100E),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF143B2C)),
+                border: Border.all(color: const Color(0xFF1E2620)),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.calendar_month_rounded,
-                      color: Color(0xFFFFD700), size: 14),
+                      color: Color(0xFFFFB703), size: 14),
                   const SizedBox(width: 5),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          hijriStr,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          gregDateStr,
-                          style: const TextStyle(
-                              color: Color(0xFF94A3B8), fontSize: 7.5),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                    child: Text(
+                      hijriStr,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -282,31 +217,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
         const SizedBox(width: 6),
-
-        // Search Icon Button
         InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const QuranSearchScreen()),
-            );
-          },
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const QuranSearchScreen())),
           borderRadius: BorderRadius.circular(20),
           child: Container(
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: const Color(0xFF071E16),
+              color: const Color(0xFF0C100E),
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF143B2C)),
+              border: Border.all(color: const Color(0xFF1E2620)),
             ),
-            child: const Icon(Icons.search_rounded,
-                color: Colors.white, size: 17),
+            child:
+                const Icon(Icons.search_rounded, color: Colors.white, size: 17),
           ),
         ),
         const SizedBox(width: 6),
-
-        // Notification Button with Dot
         InkWell(
           onTap: () => context.push('/settings/notifications'),
           borderRadius: BorderRadius.circular(20),
@@ -314,34 +241,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: const Color(0xFF071E16),
+              color: const Color(0xFF0C100E),
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF143B2C)),
+              border: Border.all(color: const Color(0xFF1E2620)),
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const Icon(Icons.notifications_none_rounded,
-                    color: Colors.white, size: 17),
-                Positioned(
-                  top: 7,
-                  right: 7,
-                  child: Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF00E676),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: const Icon(Icons.notifications_none_rounded,
+                color: Colors.white, size: 17),
           ),
         ),
         const SizedBox(width: 6),
-
-        // Profile Kaaba Avatar
+        // Real Kaaba Image Avatar
         InkWell(
           onTap: () => context.go(AppRoutes.profile),
           child: Container(
@@ -349,11 +258,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             height: 36,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFFFD700), width: 1.5),
+              border: Border.all(color: const Color(0xFFFFB703), width: 1.5),
             ),
-            child: const ClipOval(
-              child: Center(
-                child: Text('🕋', style: TextStyle(fontSize: 18)),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/hero/kaaba_3d.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Center(
+                    child: Text('🕋', style: TextStyle(fontSize: 18))),
               ),
             ),
           ),
@@ -362,13 +274,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
-  // 2. HERO GREETING & NEXT PRAYER BANNER
-  // ============================================================
+  // 2. HERO GREETING & NEXT PRAYER BANNER (Visible Mosque Background)
   Widget _buildHeroBanner(
     BuildContext context, {
     required String userName,
-    required String location,
+    required String cityName,
     required String hijriStr,
     required String nextName,
     required String nextArabic,
@@ -379,33 +289,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF071B14),
+        color: const Color(0xFF080C0A),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF143B2C)),
+        border: Border.all(color: const Color(0xFF1A221C)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
         child: Stack(
           children: [
-            Positioned(
-              left: 40,
-              bottom: 25,
+            // Vibrant Mosque Background Image
+            Positioned.fill(
               child: Opacity(
-                opacity: 0.35,
+                opacity: 0.75,
                 child: Image.asset(
                   'assets/images/hero/mosque_night.png',
-                  height: 170,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => const SizedBox(),
                 ),
               ),
             ),
             Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xD9051812), Color(0xF2020B08)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF040A07).withValues(alpha: 0.40),
+                    const Color(0xFF020503).withValues(alpha: 0.85),
+                  ],
                 ),
               ),
               padding: const EdgeInsets.all(14),
@@ -414,14 +325,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Left Greeting Section
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Row(
                               children: [
-                                Text('Assalamu Alaikum ',
+                                Text('Assalamu Alikum ',
                                     style: TextStyle(
                                         color: Color(0xFF00E676),
                                         fontSize: 11,
@@ -430,26 +340,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               ],
                             ),
                             const SizedBox(height: 4),
-                            const Text(
-                              'Good Morning,',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.1),
-                            ),
+                            const Text('Good Morning,',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.1)),
                             Row(
                               children: [
-                                Text(
-                                  userName,
-                                  style: const TextStyle(
-                                      color: Color(0xFF00E676),
-                                      fontSize: 19,
-                                      fontWeight: FontWeight.bold,
-                                      height: 1.1),
-                                ),
+                                Text(userName,
+                                    style: const TextStyle(
+                                        color: Color(0xFFFFB703),
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.bold,
+                                        height: 1.1)),
                                 const SizedBox(width: 4),
-                                const Text('💚',
+                                const Text('💛',
                                     style: TextStyle(fontSize: 14)),
                               ],
                             ),
@@ -467,8 +373,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                       ),
                       const SizedBox(width: 10),
-
-                      // Right Glassmorphic Next Prayer Card
                       InkWell(
                         onTap: () => context.go(AppRoutes.prayer),
                         borderRadius: BorderRadius.circular(16),
@@ -477,12 +381,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF061A13)
-                                .withValues(alpha: 0.9),
+                            color:
+                                const Color(0xFF0B100D).withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                                color: const Color(0xFF00E676)
-                                    .withValues(alpha: 0.4)),
+                            border: Border.all(color: const Color(0xFF1E2822)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -500,7 +402,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                       fontWeight: FontWeight.bold)),
                               Text(nextArabic,
                                   style: const TextStyle(
-                                      color: Color(0xFF00E676),
+                                      color: Color(0xFFFFB703),
                                       fontSize: 13,
                                       fontFamily: 'Amiri')),
                               const SizedBox(height: 6),
@@ -508,15 +410,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 alignment: Alignment.center,
                                 children: [
                                   const SizedBox(
-                                    width: 70,
-                                    height: 70,
+                                    width: 72,
+                                    height: 72,
                                     child: CircularProgressIndicator(
-                                      value: 0.72,
+                                      value: 0.76,
                                       strokeWidth: 5,
-                                      backgroundColor: Color(0xFF0D2A20),
-                                      valueColor:
-                                          AlwaysStoppedAnimation<Color>(
-                                              Color(0xFF00E676)),
+                                      backgroundColor: Color(0xFF161F1A),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Color(0xFF00E676)),
                                     ),
                                   ),
                                   Column(
@@ -565,15 +466,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ],
                   ),
                   const SizedBox(height: 14),
-
-                  // Bottom Info Strip
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0A241C).withValues(alpha: 0.8),
+                      color: const Color(0xFF0C120F),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF134533)),
+                      border: Border.all(color: const Color(0xFF1C2620)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -581,19 +480,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         Row(
                           children: [
                             const Icon(Icons.location_on,
-                                color: Color(0xFF00E676), size: 13),
+                                color: Color(0xFFFFB703), size: 13),
                             const SizedBox(width: 4),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(location,
+                                Text(cityName,
                                     style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 9.5,
                                         fontWeight: FontWeight.bold)),
                                 const Text('Auto-detected',
                                     style: TextStyle(
-                                        color: Color(0xFF64748B), fontSize: 7.5)),
+                                        color: Color(0xFF64748B),
+                                        fontSize: 7.5)),
                               ],
                             ),
                           ],
@@ -603,7 +503,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             Icon(Icons.wb_sunny_outlined,
                                 color: Color(0xFFFFB703), size: 13),
                             SizedBox(width: 4),
-                            Text('21°C Clear',
+                            Text('29°C Clear',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 9.5)),
                           ],
@@ -632,50 +532,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
-  // 3. TODAY'S PRAYER TIMES HORIZONTAL BAR
-  // ============================================================
+  // 3. TODAY'S PRAYER TIMES
   Widget _buildPrayerTimesStrip(
       BuildContext context, DailyPrayerTimes? dailyTimes, String nextName) {
     final prayers = [
       {
         'name': 'Fajr',
-        'time': dailyTimes?.fajr.formattedTime ?? '04:55 AM',
+        'time': dailyTimes?.fajr.formattedTime ?? '04:38 AM',
         'icon': Icons.wb_twilight_rounded,
-        'isNext': nextName == 'Fajr',
+        'isNext': nextName == 'Fajr'
       },
       {
         'name': 'Dhuhr',
-        'time': dailyTimes?.dhuhr.formattedTime ?? '12:30 PM',
+        'time': dailyTimes?.dhuhr.formattedTime ?? '11:57 AM',
         'icon': Icons.wb_sunny_rounded,
-        'isNext': nextName == 'Dhuhr',
+        'isNext': nextName == 'Dhuhr'
       },
       {
         'name': 'Asr',
-        'time': dailyTimes?.asr.formattedTime ?? '03:46 PM',
+        'time': dailyTimes?.asr.formattedTime ?? '03:21 PM',
         'icon': Icons.cloud_rounded,
-        'isNext': nextName == 'Asr',
+        'isNext': nextName == 'Asr'
       },
       {
         'name': 'Maghrib',
-        'time': dailyTimes?.maghrib.formattedTime ?? '06:49 PM',
+        'time': dailyTimes?.maghrib.formattedTime ?? '06:11 PM',
         'icon': Icons.nights_stay_rounded,
-        'isNext': nextName == 'Maghrib',
+        'isNext': nextName == 'Maghrib'
       },
       {
         'name': 'Isha',
-        'time': dailyTimes?.isha.formattedTime ?? '08:00 PM',
+        'time': dailyTimes?.isha.formattedTime ?? '07:32 PM',
         'icon': Icons.brightness_2_rounded,
-        'isNext': nextName == 'Isha',
+        'isNext': nextName == 'Isha'
       },
     ];
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF061A13),
+        color: const Color(0xFF080C0A),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF143B2C)),
+        border: Border.all(color: const Color(0xFF1A221C)),
       ),
       child: Column(
         children: [
@@ -685,33 +583,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const Row(
                 children: [
                   Icon(Icons.access_time_filled,
-                      color: Color(0xFF00E676), size: 14),
+                      color: Color(0xFFFFB703), size: 14),
                   SizedBox(width: 5),
                   Text("TODAY'S PRAYER TIMES",
                       style: TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFFFFB703),
                           fontSize: 10,
                           fontWeight: FontWeight.bold)),
                 ],
               ),
               InkWell(
-                onTap: () {
-                  Navigator.push(
+                onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const SalahScheduleScreen()),
-                  );
-                },
+                        builder: (_) => const SalahScheduleScreen())),
                 child: const Row(
                   children: [
                     Text('View All',
                         style: TextStyle(
-                            color: Color(0xFF00E676),
+                            color: Color(0xFFFFB703),
                             fontSize: 10,
                             fontWeight: FontWeight.bold)),
                     SizedBox(width: 2),
                     Icon(Icons.arrow_forward_ios,
-                        color: Color(0xFF00E676), size: 9),
+                        color: Color(0xFFFFB703), size: 9),
                   ],
                 ),
               ),
@@ -729,14 +624,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                   decoration: BoxDecoration(
                     color: isNext
-                        ? const Color(0xFF0B2E21)
-                        : const Color(0xFF03100B),
+                        ? const Color(0xFF0A2217)
+                        : const Color(0xFF050806),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isNext
-                          ? const Color(0xFF00E676)
-                          : const Color(0xFF103023),
-                    ),
+                        color: isNext
+                            ? const Color(0xFF00E676)
+                            : const Color(0xFF16201A)),
                   ),
                   child: Column(
                     children: [
@@ -761,10 +655,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 4, vertical: 1),
                           decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF00E676).withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+                              color: const Color(0xFF00E676)
+                                  .withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4)),
                           child: const Text('Upcoming',
                               style: TextStyle(
                                   color: Color(0xFF00E676),
@@ -783,78 +676,83 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
-  // 4. QUICK ACCESS GRID (6 ITEMS)
-  // ============================================================
+  // 4. QUICK ACCESS
   Widget _buildQuickAccessSection(BuildContext context) {
     final items = [
       {
         'title': 'Quran',
         'icon': Icons.menu_book_rounded,
         'color': const Color(0xFF00E676),
-        'route': AppRoutes.quran,
+        'route': AppRoutes.quran
       },
       {
         'title': 'Hadith',
         'icon': Icons.import_contacts_rounded,
         'color': const Color(0xFFFFB703),
-        'route': AppRoutes.hadith,
+        'route': AppRoutes.hadith
       },
       {
         'title': 'Qibla',
         'icon': Icons.explore_rounded,
-        'color': const Color(0xFFC084FC),
-        'route': AppRoutes.qibla,
+        'color': const Color(0xFFFFB703),
+        'route': AppRoutes.qibla
       },
       {
         'title': 'Tasbih',
         'icon': Icons.radio_button_checked,
-        'color': const Color(0xFF00E676),
-        'route': AppRoutes.tasbih,
+        'color': const Color(0xFFFFB703),
+        'route': AppRoutes.tasbih
       },
       {
         'title': 'Duas',
         'icon': Icons.volunteer_activism_rounded,
-        'color': const Color(0xFF38BDF8),
-        'route': AppRoutes.dua,
+        'color': const Color(0xFFFFB703),
+        'route': AppRoutes.dua
       },
       {
         'title': 'More',
         'icon': Icons.grid_view_rounded,
-        'color': const Color(0xFF94A3B8),
-        'route': AppRoutes.tools,
+        'color': const Color(0xFFCBD5E1),
+        'route': AppRoutes.tools
       },
     ];
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF061A13),
+        color: const Color(0xFF080C0A),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF143B2C)),
+        border: Border.all(color: const Color(0xFF1A221C)),
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('QUICK ACCESS',
-                  style: TextStyle(
-                      color: Color(0xFF94A3B8),
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold)),
+              const Row(
+                children: [
+                  Icon(Icons.search_rounded,
+                      color: Color(0xFFFFB703), size: 14),
+                  SizedBox(width: 4),
+                  Text('QUICK ACCESS',
+                      style: TextStyle(
+                          color: Color(0xFFFFB703),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold)),
+                ],
+              ),
               InkWell(
                 onTap: () => context.go(AppRoutes.tools),
                 child: const Row(
                   children: [
                     Text('Edit',
                         style: TextStyle(
-                            color: Color(0xFF00E676),
+                            color: Color(0xFFFFB703),
                             fontSize: 10,
                             fontWeight: FontWeight.bold)),
                     SizedBox(width: 2),
                     Icon(Icons.arrow_forward_ios,
-                        color: Color(0xFF00E676), size: 9),
+                        color: Color(0xFFFFB703), size: 9),
                   ],
                 ),
               ),
@@ -899,9 +797,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
-  // 5. TODAY'S PROGRESS & PRAYER STREAK (TWO-COLUMN)
-  // ============================================================
+  // 5. TODAY'S PROGRESS & PRAYER STREAK
   Widget _buildProgressAndStreakRow(
     BuildContext context, {
     required int completedPrayers,
@@ -911,15 +807,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left: Today's Progress Card
         Expanded(
           flex: 58,
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF061A13),
+              color: const Color(0xFF080C0A),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFF143B2C)),
+              border: Border.all(color: const Color(0xFF1A221C)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -933,14 +828,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             fontSize: 9,
                             fontWeight: FontWeight.bold)),
                     InkWell(
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const PrayerStatisticsScreen()),
-                        );
-                      },
-                      child: const Text('View All',
+                              builder: (_) => const PrayerStatisticsScreen())),
+                      child: const Text('View All >',
                           style: TextStyle(
                               color: Color(0xFF00E676),
                               fontSize: 9,
@@ -954,10 +846,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   children: [
                     _buildMiniMetric(
                         Icons.mosque_rounded, 'Prayer', '4/5', 'On Track'),
-                    _buildMiniMetric(Icons.menu_book_rounded, 'Quran', '20 min',
-                        'On Track'),
+                    _buildMiniMetric(
+                        Icons.menu_book_rounded, 'Quran', '20 min', '2+ Track'),
                     _buildMiniMetric(Icons.radio_button_checked, 'Tasbih',
-                        '66/200', 'Daily Goal'),
+                        '$tasbihCount/200', 'Daily Goal'),
                     _buildMiniMetric(Icons.volunteer_activism_rounded, 'Duas',
                         '12/40', 'Daily Goal'),
                   ],
@@ -967,16 +859,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
         const SizedBox(width: 10),
-
-        // Right: Prayer Streak Card
         Expanded(
           flex: 42,
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF061A13),
+              color: const Color(0xFF080C0A),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFF143B2C)),
+              border: Border.all(color: const Color(0xFF1A221C)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1007,23 +897,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             fontWeight: FontWeight.bold)),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) {
+                  children: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d) {
+                    final isStar = d == 'S';
                     return Column(
                       children: [
                         Text(d,
                             style: const TextStyle(
                                 color: Color(0xFF64748B), fontSize: 7.5)),
                         const SizedBox(height: 2),
-                        const Icon(Icons.check_circle,
-                            color: Color(0xFF00E676), size: 10),
+                        Icon(isStar ? Icons.star_rounded : Icons.check_circle,
+                            color: isStar
+                                ? const Color(0xFFFFB703)
+                                : const Color(0xFF00E676),
+                            size: 10),
                       ],
                     );
                   }).toList(),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 const Text("Keep it up! You're on fire! 🔥",
                     style: TextStyle(color: Color(0xFFFFB703), fontSize: 7.5)),
               ],
@@ -1053,14 +947,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
-  // 6. CONTINUE READING BANNER
-  // ============================================================
+  // 6. CONTINUE READING BANNER (Quran Cover Image)
   Widget _buildContinueReadingBanner(
       BuildContext context, ReadingProgressState progress) {
     final surahName = progress.currentPage?.surahName ?? 'Al-Baqarah';
     final juzNumber = progress.currentPage?.juzNumber ?? 2;
-    final pageNumber = progress.currentPage?.pageNumber ?? 35;
+    final pageNumber = progress.currentPage?.pageNumber ?? 36;
     final surahNumber = progress.currentPage?.surahNumber ?? 2;
 
     return InkWell(
@@ -1069,8 +961,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           context,
           MaterialPageRoute(
             builder: (_) => SurahReaderScreen(
-                surahNumber: surahNumber,
-                initialAyah: progress.currentPage?.ayahNumber),
+              surahNumber: surahNumber,
+              initialAyah: progress.currentPage?.ayahNumber,
+            ),
           ),
         );
       },
@@ -1078,21 +971,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF061A13),
+          color: const Color(0xFF080C0A),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFF143B2C)),
+          border: Border.all(color: const Color(0xFF1A221C)),
         ),
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 48,
+              height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFF00E676).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFFD700), width: 1.2),
               ),
-              child: const Center(
-                child: Text('📖', style: TextStyle(fontSize: 22)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/quran_cover.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Center(
+                      child: Text('📖', style: TextStyle(fontSize: 26))),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -1120,9 +1019,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF0B2E21),
+                color: const Color(0xFF072418),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF16543D)),
+                border: Border.all(color: const Color(0xFF144D34)),
               ),
               child: const Row(
                 children: [
@@ -1142,27 +1041,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
   // 7. DAILY VERSE & HADITH OF THE DAY
-  // ============================================================
   Widget _buildVerseAndHadithRow(BuildContext context) {
     return Row(
       children: [
-        // Daily Verse Card
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF061A13),
+              color: const Color(0xFF080C0A),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFF143B2C)),
+              border: Border.all(color: const Color(0xFF1A221C)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Row(
                   children: [
-                    Text('🏮', style: TextStyle(fontSize: 13)),
+                    Text('❝',
+                        style:
+                            TextStyle(color: Color(0xFFFFB703), fontSize: 13)),
                     SizedBox(width: 4),
                     Text('DAILY VERSE',
                         style: TextStyle(
@@ -1176,19 +1074,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'إِنَّ مَعَ الْعُسْرِ يُسْرًا',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Amiri',
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold),
-                ),
+                const Text('إِنَّ مَعَ الْعُسْرِ يُسْرًا',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Amiri',
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                const Text(
-                  'Indeed, with hardship [will] be ease.',
-                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5),
-                ),
+                const Text('Indeed, with hardship [will] be ease.',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5)),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1210,22 +1104,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
         const SizedBox(width: 10),
-
-        // Hadith of the Day Card
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF061A13),
+              color: const Color(0xFF080C0A),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFF143B2C)),
+              border: Border.all(color: const Color(0xFF1A221C)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Row(
                   children: [
-                    Text('❞',
+                    Text('❝',
                         style:
                             TextStyle(color: Color(0xFFFFB703), fontSize: 12)),
                     SizedBox(width: 4),
@@ -1235,27 +1127,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             fontSize: 8.5,
                             fontWeight: FontWeight.w900)),
                     Spacer(),
-                    Text('🏮', style: TextStyle(fontSize: 13)),
+                    Text('❝',
+                        style:
+                            TextStyle(color: Color(0xFFFFB703), fontSize: 12)),
                   ],
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Amiri',
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.bold),
-                ),
+                    'مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Amiri',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 const Text(
-                  'Whoever believes in Allah should speak good or remain silent.',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5),
-                ),
+                    'Whoever believes in Allah should speak good or remain silent.',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9.5)),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1280,13 +1172,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
-  // 8. RAMADAN + QIBLA + MOSQUES (3 CARDS)
-  // ============================================================
+  // 8. RAMADAN + QIBLA + MOSQUES
   Widget _buildThreeCardsRow(BuildContext context, double? qiblaDirection) {
     return Row(
       children: [
-        // 1. Ramadan Countdown Card
+        // 1. Ramadan
         Expanded(
           child: InkWell(
             onTap: () => context.push('/tools/ramadan'),
@@ -1294,49 +1184,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF061A13),
+                color: const Color(0xFF080C0A),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF143B2C)),
+                border: Border.all(color: const Color(0xFF1A221C)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
+                children: const [
+                  Row(
                     children: [
                       Text('🌙', style: TextStyle(fontSize: 10)),
                       SizedBox(width: 3),
                       Flexible(
-                        child: Text('RAMADAN',
-                            style: TextStyle(
-                                color: Color(0xFFFFB703),
-                                fontSize: 7.5,
-                                fontWeight: FontWeight.w900)),
-                      ),
+                          child: Text('RAMADAN',
+                              style: TextStyle(
+                                  color: Color(0xFFFFB703),
+                                  fontSize: 7.5,
+                                  fontWeight: FontWeight.w900))),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  const Text('189',
+                  SizedBox(height: 4),
+                  Text('189',
                       style: TextStyle(
                           color: Color(0xFFFFB703),
                           fontSize: 18,
                           fontWeight: FontWeight.bold)),
-                  const Text('days remaining',
+                  Text('Days Remaining',
                       style:
                           TextStyle(color: Color(0xFF94A3B8), fontSize: 7.5)),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0B2E21),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text('View ➔',
-                        style: TextStyle(
-                            color: Color(0xFF00E676),
-                            fontSize: 7.5,
-                            fontWeight: FontWeight.bold)),
-                  ),
+                  SizedBox(height: 6),
+                  Text('View ➔',
+                      style: TextStyle(
+                          color: Color(0xFF00E676),
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -1344,7 +1225,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
         const SizedBox(width: 8),
 
-        // 2. Qibla Direction Card
+        // 2. Qibla Compass Image
         Expanded(
           child: InkWell(
             onTap: () => context.go(AppRoutes.qibla),
@@ -1352,9 +1233,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF061A13),
+                color: const Color(0xFF080C0A),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF143B2C)),
+                border: Border.all(color: const Color(0xFF1A221C)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1365,22 +1246,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           color: Color(0xFF00E676), size: 10),
                       SizedBox(width: 3),
                       Flexible(
-                        child: Text('QIBLA',
-                            style: TextStyle(
-                                color: Color(0xFF00E676),
-                                fontSize: 7.5,
-                                fontWeight: FontWeight.w900)),
-                      ),
+                          child: Text('QIBLA',
+                              style: TextStyle(
+                                  color: Color(0xFF00E676),
+                                  fontSize: 7.5,
+                                  fontWeight: FontWeight.w900))),
                     ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Center(
-                    child: Text('🧭', style: TextStyle(fontSize: 22)),
                   ),
                   const SizedBox(height: 4),
                   Center(
-                    child: Text(
-                        '${qiblaDirection?.round() ?? 293}° NW',
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: const Color(0xFFFFD700), width: 1.2),
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/hero/compass_qibla.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Center(
+                              child:
+                                  Text('🧭', style: TextStyle(fontSize: 22))),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Center(
+                    child: Text('${qiblaDirection?.round() ?? 260}° NW',
                         style: const TextStyle(
                             color: Color(0xFF00E676),
                             fontSize: 9,
@@ -1393,7 +1289,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
         const SizedBox(width: 8),
 
-        // 3. Nearby Mosques Card
+        // 3. Nearby Mosques
         Expanded(
           child: InkWell(
             onTap: () => context.go(AppRoutes.mosques),
@@ -1401,44 +1297,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF061A13),
+                color: const Color(0xFF080C0A),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF143B2C)),
+                border: Border.all(color: const Color(0xFF1A221C)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
+                children: const [
+                  Row(
                     children: [
                       Icon(Icons.mosque_rounded,
                           color: Color(0xFF00E676), size: 10),
                       SizedBox(width: 3),
                       Flexible(
-                        child: Text('MOSQUES',
-                            style: TextStyle(
-                                color: Color(0xFF00E676),
-                                fontSize: 7.5,
-                                fontWeight: FontWeight.w900)),
-                      ),
+                          child: Text('MOSQUES',
+                              style: TextStyle(
+                                  color: Color(0xFF00E676),
+                                  fontSize: 7.5,
+                                  fontWeight: FontWeight.w900))),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  const Text('Find mosques near you',
+                  SizedBox(height: 4),
+                  Text('Find mosques near you',
                       style: TextStyle(color: Colors.white, fontSize: 8)),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0B2E21),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text('View ➔',
-                        style: TextStyle(
-                            color: Color(0xFF00E676),
-                            fontSize: 7.5,
-                            fontWeight: FontWeight.bold)),
-                  ),
+                  SizedBox(height: 6),
+                  Text('View ➔',
+                      style: TextStyle(
+                          color: Color(0xFF00E676),
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -1448,9 +1335,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
-  // 9. AI ISLAMIC ASSISTANT BANNER
-  // ============================================================
+  // 9. AI ISLAMIC ASSISTANT
   Widget _buildAIAssistantBanner(BuildContext context) {
     return InkWell(
       onTap: () => context.go(AppRoutes.aiChat),
@@ -1458,23 +1343,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF053826), Color(0xFF021B12)]),
+          color: const Color(0xFF080C0A),
           borderRadius: BorderRadius.circular(18),
-          border:
-              Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.4)),
+          border: Border.all(color: const Color(0xFF1A221C)),
         ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF00E676).withValues(alpha: 0.15),
-                shape: BoxShape.circle,
+              width: 38,
+              height: 38,
+              decoration: const BoxDecoration(shape: BoxShape.circle),
+              child: Image.asset(
+                'assets/images/hero/ai_robot_3d.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(
+                    Icons.smart_toy_rounded,
+                    color: Color(0xFF00E676),
+                    size: 20),
               ),
-              child: const Icon(Icons.smart_toy_rounded,
-                  color: Color(0xFF00E676), size: 22),
             ),
             const SizedBox(width: 12),
             const Expanded(
@@ -1490,7 +1376,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               fontWeight: FontWeight.bold)),
                       Text('✦',
                           style: TextStyle(
-                              color: Color(0xFFFFD700), fontSize: 10)),
+                              color: Color(0xFFFFB703), fontSize: 10)),
                     ],
                   ),
                   SizedBox(height: 2),
@@ -1502,9 +1388,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF00E676),
-                borderRadius: BorderRadius.circular(20),
-              ),
+                  color: const Color(0xFF00E676),
+                  borderRadius: BorderRadius.circular(20)),
               child: const Row(
                 children: [
                   Text('Ask Now',
@@ -1514,8 +1399,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           fontWeight: FontWeight.bold)),
                   SizedBox(width: 2),
                   Text('✦',
-                      style: TextStyle(
-                          color: Color(0xFF020A08), fontSize: 9)),
+                      style: TextStyle(color: Color(0xFF020A08), fontSize: 9)),
                 ],
               ),
             ),
@@ -1525,61 +1409,80 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // ============================================================
-  // 10. ALL FEATURES GRID
-  // ============================================================
+  // 10. ALL FEATURES 3x3 GRID
   Widget _buildAllFeaturesSection(BuildContext context) {
     final features = [
       {
         'title': 'Prayer Times',
-        'subtitle': 'Accurate timings with countdown',
+        'subtitle': 'Accurate timings with notifications',
         'icon': Icons.access_time_rounded,
         'color': const Color(0xFFFFB703),
-        'route': AppRoutes.prayer,
+        'route': AppRoutes.prayer
       },
       {
         'title': 'Quran',
-        'subtitle': 'Read & understand the Holy Quran',
+        'subtitle': 'Read, understand and reflect',
         'icon': Icons.menu_book_rounded,
         'color': const Color(0xFF00E676),
-        'route': AppRoutes.quran,
+        'route': AppRoutes.quran
       },
       {
         'title': 'Hadith',
         'subtitle': 'Authentic hadith collections',
         'icon': Icons.import_contacts_rounded,
         'color': const Color(0xFFFFB703),
-        'route': AppRoutes.hadith,
+        'route': AppRoutes.hadith
       },
       {
-        'title': 'Islamic Tools',
-        'subtitle': 'Zakat, Hajj, Ramadan & more',
-        'icon': Icons.calculate_rounded,
+        'title': 'Qibla Finder',
+        'subtitle': 'Accurate qibla direction',
+        'icon': Icons.explore_rounded,
         'color': const Color(0xFF00E676),
-        'route': AppRoutes.tools,
+        'route': AppRoutes.qibla
       },
       {
-        'title': 'Translations',
-        'subtitle': '50+ languages available',
-        'icon': Icons.translate_rounded,
-        'color': const Color(0xFF38BDF8),
-        'route': AppRoutes.quran,
+        'title': 'Islamic Calendar',
+        'subtitle': 'Hijri dates & important events',
+        'icon': Icons.calendar_month_rounded,
+        'color': const Color(0xFFC084FC),
+        'route': AppRoutes.islamicCalendar
       },
       {
         'title': 'Bookmarks',
-        'subtitle': 'Save your favorite verses',
+        'subtitle': 'Save your favorite verses & hadith',
         'icon': Icons.bookmark_rounded,
         'color': const Color(0xFFC084FC),
-        'route': AppRoutes.quran,
+        'route': AppRoutes.quran
+      },
+      {
+        'title': 'Islamic Tools',
+        'subtitle': 'Zakat, Dua, Tasbih & more',
+        'icon': Icons.calculate_rounded,
+        'color': const Color(0xFF38BDF8),
+        'route': AppRoutes.tools
+      },
+      {
+        'title': 'Translations',
+        'subtitle': 'Multilanguage translations',
+        'icon': Icons.translate_rounded,
+        'color': const Color(0xFF38BDF8),
+        'route': AppRoutes.quran
+      },
+      {
+        'title': 'More Apps',
+        'subtitle': 'Explore more Islamic apps',
+        'icon': Icons.apps_rounded,
+        'color': const Color(0xFFC084FC),
+        'route': AppRoutes.tools
       },
     ];
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF061A13),
+        color: const Color(0xFF080C0A),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF143B2C)),
+        border: Border.all(color: const Color(0xFF1A221C)),
       ),
       child: Column(
         children: [
@@ -1589,20 +1492,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const Row(
                 children: [
                   Icon(Icons.grid_view_rounded,
-                      color: Color(0xFF00E676), size: 14),
+                      color: Color(0xFFFFB703), size: 14),
                   SizedBox(width: 5),
                   Text('ALL FEATURES',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFFFFB703),
                           fontSize: 10,
                           fontWeight: FontWeight.bold)),
                 ],
               ),
               InkWell(
                 onTap: () => context.go(AppRoutes.tools),
-                child: const Text('View All',
+                child: const Text('View All >',
                     style: TextStyle(
-                        color: Color(0xFF00E676),
+                        color: Color(0xFFFFB703),
                         fontSize: 10,
                         fontWeight: FontWeight.bold)),
               ),
@@ -1617,7 +1520,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               crossAxisCount: 3,
               mainAxisSpacing: 8,
               crossAxisSpacing: 8,
-              childAspectRatio: 0.85,
+              childAspectRatio: 0.82,
             ),
             itemBuilder: (context, i) {
               final f = features[i];
@@ -1628,7 +1531,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF03100B),
+                    color: const Color(0xFF040605),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: color.withValues(alpha: 0.3)),
                   ),
@@ -1639,11 +1542,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         width: 26,
                         height: 26,
                         decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Icon(f['icon'] as IconData,
-                            color: color, size: 14),
+                            color: color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6)),
+                        child:
+                            Icon(f['icon'] as IconData, color: color, size: 14),
                       ),
                       const Spacer(),
                       Text(f['title'] as String,
