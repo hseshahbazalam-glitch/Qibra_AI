@@ -610,7 +610,7 @@ class _PrayerStatisticsScreenState
                       colors: isToday
                           ? [
                               const Color(0xFFFFD700),
-                              const Color(0xFFF59E0B),
+                              const Color(0xFFFFB703),
                             ]
                           : [
                               AppColors.primary,

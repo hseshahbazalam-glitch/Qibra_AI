@@ -205,7 +205,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
               children: [
                 Text('أَسْمَاء',
                     style: TextStyle(
-                        color: Color(0xFF52B788),
+                        color: Color(0xFF00E676),
                         fontSize: 18,
                         fontFamily: 'Amiri')),
                 Text('Islamic Names',
@@ -219,13 +219,13 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: const Color(0xFF52B788).withValues(alpha: 0.15),
+              color: const Color(0xFF00E676).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               '${_allNames.length}+',
               style: const TextStyle(
-                  color: Color(0xFF52B788),
+                  color: Color(0xFF00E676),
                   fontSize: 14,
                   fontWeight: FontWeight.w800),
             ),
@@ -257,7 +257,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
         ? const Color(0xFF74C0FC)
         : value == 'girl'
             ? const Color(0xFFFF9EBC)
-            : const Color(0xFF52B788);
+            : const Color(0xFF00E676);
 
     return Expanded(
       child: GestureDetector(
@@ -352,14 +352,14 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
         child: TabBar(
           controller: _tabController,
           indicator: BoxDecoration(
-            color: const Color(0xFF52B788).withValues(alpha: 0.2),
+            color: const Color(0xFF00E676).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: const Color(0xFF52B788).withValues(alpha: 0.4)),
+                color: const Color(0xFF00E676).withValues(alpha: 0.4)),
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
-          labelColor: const Color(0xFF52B788),
+          labelColor: const Color(0xFF00E676),
           unselectedLabelColor: Colors.white.withValues(alpha: 0.35),
           labelStyle:
               const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
@@ -448,14 +448,14 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                   height: 40,
                   decoration: BoxDecoration(
                     color: selected
-                        ? const Color(0xFF52B788).withValues(alpha: 0.2)
+                        ? const Color(0xFF00E676).withValues(alpha: 0.2)
                         : count > 0
                             ? const Color(0xFF141926)
                             : Colors.white.withValues(alpha: 0.02),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: selected
-                          ? const Color(0xFF52B788)
+                          ? const Color(0xFF00E676)
                           : count > 0
                               ? Colors.white.withValues(alpha: 0.08)
                               : Colors.transparent,
@@ -467,7 +467,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                       Text(l,
                           style: TextStyle(
                             color: selected
-                                ? const Color(0xFF52B788)
+                                ? const Color(0xFF00E676)
                                 : count > 0
                                     ? Colors.white
                                     : Colors.white.withValues(alpha: 0.15),
@@ -478,7 +478,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                         Text('$count',
                             style: TextStyle(
                               color: selected
-                                  ? const Color(0xFF52B788)
+                                  ? const Color(0xFF00E676)
                                   : Colors.white.withValues(alpha: 0.3),
                               fontSize: 7,
                             )),

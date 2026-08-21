@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 // ============================================================
 
 enum PrayerType {
-  fajr('Fajr', 'الفجر', 'Dawn', 'assets/icons/prayer.svg', Color(0xFF3F51B5)),
+  fajr('Fajr', 'الفجر', 'Dawn', 'assets/icons/prayer.svg', Color(0xFF064E3B)),
   sunrise('Sunrise', 'الشروق', 'Sunrise', 'assets/icons/prayer.svg',
       Color(0xFFFFA726)),
   dhuhr('Dhuhr', 'الظهر', 'Noon', 'assets/icons/prayer.svg', Color(0xFFFDD835)),
@@ -21,7 +21,7 @@ enum PrayerType {
       Color(0xFFFF7043)),
   maghrib('Maghrib', 'المغرب', 'Sunset', 'assets/icons/prayer.svg',
       Color(0xFFE53935)),
-  isha('Isha', 'العشاء', 'Night', 'assets/icons/prayer.svg', Color(0xFF1A237E));
+  isha('Isha', 'العشاء', 'Night', 'assets/icons/prayer.svg', Color(0xFF0A130E));
 
   const PrayerType(
     this.name,
@@ -432,7 +432,7 @@ class PrayerLocation extends Equatable {
 enum PrayerStatus {
   pending('Pending', Icons.schedule_rounded, Color(0xFF9E9E9E)),
   prayed('Prayed', Icons.check_circle_rounded, Color(0xFF4CAF50)),
-  prayedInMosque('In Mosque', Icons.mosque_rounded, Color(0xFF00A86B)),
+  prayedInMosque('In Mosque', Icons.mosque_rounded, Color(0xFF00E676)),
   missed('Missed', Icons.cancel_rounded, Color(0xFFEF5350)),
   makeup('Made Up', Icons.autorenew_rounded, Color(0xFFFFA726));
 

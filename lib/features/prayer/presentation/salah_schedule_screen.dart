@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import '../../../shared/widgets/controls/app_switch_tile.dart';
 
 import '../providers/prayer_provider.dart';
 import '../data/models/prayer_models.dart';
@@ -420,7 +421,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
               child: _buildInfoCard(
                 icon: Icons.location_on_rounded,
-                iconColor: const Color(0xFF7C3AED),
+                iconColor: const Color(0xFFD4AF37),
                 title: 'My Location',
                 subtitle: location.location?.displayName ?? 'Auto-detected',
                 onTap: _showLocationOptions,
@@ -750,7 +751,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                   ),
                   const SizedBox(height: 20),
                   ..._notifications.entries.map((entry) {
-                    return SwitchListTile(
+                    return AppSwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
                         _getName(entry.key),
@@ -769,7 +770,6 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                         textDirection: TextDirection.rtl,
                       ),
                       value: entry.value,
-                      activeThumbColor: _getColor(entry.key),
                       onChanged: (val) {
                         HapticFeedback.selectionClick();
                         setModalState(() {
@@ -829,7 +829,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              SwitchListTile(
+              AppSwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Enable Adhan',
                     style: TextStyle(color: AppColors.textPrimary)),
@@ -837,14 +837,14 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                     style: TextStyle(
                         color: AppColors.textSecondary, fontSize: 12)),
                 value: settings.enableAdhan,
-                activeThumbColor: AppColors.primary,
+                activeColor: AppColors.primary,
                 onChanged: (v) async {
                   await ref
                       .read(prayerSettingsProvider.notifier)
                       .toggleAdhan(v);
                 },
               ),
-              SwitchListTile(
+              AppSwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Show Sunrise',
                     style: TextStyle(color: AppColors.textPrimary)),
@@ -852,14 +852,14 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                     style: TextStyle(
                         color: AppColors.textSecondary, fontSize: 12)),
                 value: settings.showSunrise,
-                activeThumbColor: AppColors.primary,
+                activeColor: AppColors.primary,
                 onChanged: (v) async {
                   await ref
                       .read(prayerSettingsProvider.notifier)
                       .toggleSunrise(v);
                 },
               ),
-              SwitchListTile(
+              AppSwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('24-Hour Format',
                     style: TextStyle(color: AppColors.textPrimary)),
@@ -867,7 +867,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                     style: TextStyle(
                         color: AppColors.textSecondary, fontSize: 12)),
                 value: settings.use24HourFormat,
-                activeThumbColor: AppColors.primary,
+                activeColor: AppColors.primary,
                 onChanged: (v) async {
                   await ref
                       .read(prayerSettingsProvider.notifier)
@@ -1088,13 +1088,13 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
       case PrayerType.fajr:
         return const Color(0xFF3B82F6);
       case PrayerType.sunrise:
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFFFB703);
       case PrayerType.dhuhr:
         return const Color(0xFFFBBF24);
       case PrayerType.asr:
         return const Color(0xFFEF4444);
       case PrayerType.maghrib:
-        return const Color(0xFF7C3AED);
+        return const Color(0xFFD4AF37);
       case PrayerType.isha:
         return const Color(0xFF0891B2);
     }

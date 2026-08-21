@@ -592,6 +592,78 @@ abstract final class AppIslamicConstants {
     'Musnad Ahmad',
   ];
 
+  // --- Juz (Para) Start Boundaries (1-indexed, surah:ayah) ---
+  /// Standard Uthmani mushaf Juz start points.
+  /// Index 0 = Juz 1, length = 30. Each entry: [surahNumber, ayahNumber].
+  static const List<List<int>> juzBoundaries = [
+    [1, 1],
+    [2, 142],
+    [2, 253],
+    [3, 93],
+    [4, 24],
+    [4, 148],
+    [5, 83],
+    [6, 111],
+    [7, 88],
+    [8, 41],
+    [9, 93],
+    [11, 6],
+    [12, 53],
+    [15, 2],
+    [17, 1],
+    [18, 75],
+    [21, 1],
+    [23, 1],
+    [25, 21],
+    [27, 56],
+    [29, 46],
+    [33, 28],
+    [36, 28],
+    [39, 32],
+    [41, 47],
+    [46, 1],
+    [51, 31],
+    [58, 1],
+    [67, 1],
+    [78, 1],
+  ];
+
+  // --- Sajdah (Prostration) Points ---
+  /// The 15 agreed-upon sajdah verses (14 wājib + 1 mustahab in Hanafi fiqh).
+  /// Format: {surah: ayah}.
+  static const Map<int, List<int>> sajdahPoints = {
+    7: [206],
+    13: [15],
+    16: [50],
+    17: [109],
+    19: [58],
+    22: [18, 77],
+    25: [60],
+    27: [26],
+    32: [15],
+    38: [24],
+    41: [38],
+    53: [62],
+    84: [21],
+    96: [19],
+  };
+
+  /// Total sajdah points in the Quran.
+  static const int totalSajdahPoints = 15;
+
+  // --- Revelation Order of Surahs ---
+  /// Traditional chronological revelation order of all 114 surahs
+  /// (surah numbers in the order they were revealed).
+  static const List<int> revelationOrder = [
+    96, 68, 73, 74, 1, 111, 81, 87, 92, 89, 93, 94, 103, 100, 108, 102, 107,
+    109, 105, 113, 114, 112, 53, 80, 97, 91, 85, 95, 106, 101, 75, 104, 77,
+    50, 90, 86, 54, 38, 7, 72, 36, 25, 35, 19, 20, 56, 26, 27, 28, 17, 10,
+    11, 12, 15, 6, 37, 31, 34, 39, 40, 41, 42, 43, 44, 45, 46, 51, 88, 18,
+    16, 71, 14, 21, 23, 32, 52, 67, 69, 70, 78, 79, 82, 84, 30, 29, 83, 2,
+    8, 3, 33, 60, 4, 99, 57, 47, 13, 55, 76, 65, 98, 59, 24, 22, 63, 58, 49,
+    66, 64, 61, 62, 48, 5, 9, 110,
+  ];
+
   // --- Common Duas ---
 
   /// Bismillah

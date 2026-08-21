@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/design_system/app_colors.dart';
+import '../../../shared/widgets/media/safe_image.dart';
 import '../../tafseer/presentation/tafseer_screen.dart';
 import 'surah_reader_screen.dart';
 
@@ -233,18 +234,40 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 3,
-                      activeTrackColor: AppColors.accent,
-                      inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
-                      thumbColor: AppColors.accent,
-                      overlayColor: AppColors.accent.withValues(alpha: 0.2),
+                      // Flutter 3.27+: use WidgetStateProperty for trackColor
+                      // (activeTrackColor / inactiveTrackColor are deprecated).
+                      trackColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.disabled)) {
+                          return Colors.white.withValues(alpha: 0.1);
+                        }
+                        if (states.contains(WidgetState.selected)) {
+                          return AppColors.accent; // active (filled) track
+                        }
+                        return Colors.white.withValues(alpha: 0.2);
+                      }),
+                      // Explicitly null deprecated fields to silence any
+                      // fall-through to inherited (old) theme values.
+                      activeTrackColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+                      inactiveTrackColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+                      thumbColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.disabled)) {
+                          return AppColors.accent.withValues(alpha: 0.4);
+                        }
+                        return AppColors.accent;
+                      }),
+                      overlayColor: WidgetStatePropertyAll<Color>(
+                        AppColors.accent.withValues(alpha: 0.2),
+                      ),
                       thumbShape: const RoundSliderThumbShape(
                         enabledThumbRadius: 8,
                       ),
                     ),
                     child: Slider(
-                      value: currentPage.toDouble(),
+                      value: currentPage.toDouble().clamp(1, 604),
                       min: 1,
                       max: 604,
+                      activeColor: AppColors.accent,
+                      inactiveColor: Colors.white.withValues(alpha: 0.2),
                       onChanged: (value) {
                         ref.read(_currentPageProvider.notifier).state =
                             value.toInt();
@@ -548,7 +571,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 label: _bookmarkedPages.contains(currentPage)
                     ? 'Remove Bookmark'
                     : 'Bookmark Page',
-                color: const Color(0xFFEC4899),
+                color: const Color(0xFFD4AF37),
                 onTap: () {
                   Navigator.pop(context);
                   _toggleBookmark(currentPage);
@@ -557,7 +580,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               _menuOption(
                 icon: Icons.list_alt_rounded,
                 label: 'View All Bookmarks',
-                color: const Color(0xFFF59E0B),
+                color: const Color(0xFFFFB703),
                 onTap: () {
                   Navigator.pop(context);
                   _showBookmarksList();
@@ -566,7 +589,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               _menuOption(
                 icon: Icons.info_outline_rounded,
                 label: 'Page Info',
-                color: const Color(0xFF8B5CF6),
+                color: const Color(0xFFFFB703),
                 onTap: () {
                   Navigator.pop(context);
                   _showPageInfo(currentPage);
@@ -1061,19 +1084,10 @@ class _MushafPage extends StatelessWidget {
                     1,
                     0,
                   ]),
-            child: Image.asset(
-              'assets/mushaf_pages/$pageNumber.png',
+            child: SafeImage(
+              assetPath: 'assets/mushaf_pages/$pageNumber.png',
               fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
-              isAntiAlias: true,
-              errorBuilder: (context, error, stackTrace) {
-                return Center(
-                  child: Text(
-                    'Page $pageNumber',
-                    style: const TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                );
-              },
+              fallback: SafeImageFallback.quran,
             ),
           ),
         ),

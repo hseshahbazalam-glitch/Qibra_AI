@@ -26,7 +26,7 @@ class _DhikrCounterScreenState extends State<DhikrCounterScreen>
       arabic: 'سُبْحَانَ اللَّهِ',
       meaning: 'Glory be to Allah',
       target: 33,
-      color: Color(0xFF52B788),
+      color: Color(0xFF00E676),
     ),
     _DhikrItem(
       name: 'Alhamdulillah',
@@ -132,7 +132,7 @@ class _DhikrCounterScreenState extends State<DhikrCounterScreen>
             Text(
               'MashaAllah!',
               style: TextStyle(
-                color: Color(0xFF52B788),
+                color: Color(0xFF00E676),
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
               ),
@@ -156,7 +156,7 @@ class _DhikrCounterScreenState extends State<DhikrCounterScreen>
             child: const Text(
               'Continue',
               style: TextStyle(
-                color: Color(0xFF52B788),
+                color: Color(0xFF00E676),
                 fontWeight: FontWeight.w700,
               ),
             ),

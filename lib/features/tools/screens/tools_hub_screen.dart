@@ -61,17 +61,17 @@ class ToolsHubScreen extends StatelessWidget {
                           color: const Color(0xFF2D6A4F).withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                              color: const Color(0xFF52B788), width: 1),
+                              color: const Color(0xFF00E676), width: 1),
                         ),
                         child: const Row(
                           children: [
                             Icon(Icons.apps_rounded,
-                                color: Color(0xFF52B788), size: 14),
+                                color: Color(0xFF00E676), size: 14),
                             SizedBox(width: 4),
                             Text(
                               'Islamic Tools',
                               style: TextStyle(
-                                color: Color(0xFF52B788),
+                                color: Color(0xFF00E676),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -85,7 +85,7 @@ class ToolsHubScreen extends StatelessWidget {
                   const Text(
                     'اَلأَدَوَات',
                     style: TextStyle(
-                      color: Color(0xFF52B788),
+                      color: Color(0xFF00E676),
                       fontSize: 22,
                       fontFamily: 'Amiri',
                     ),
@@ -135,7 +135,7 @@ const List<IslamicTool> _tools = [
     title: 'Zakat\nCalculator',
     subtitle: 'Calculate your Zakat',
     emoji: '💚',
-    color: Color(0xFF52B788),
+    color: Color(0xFF00E676),
     bgColor: Color(0xFF1B4332),
     route: '/tools/zakat',
     isReady: true,

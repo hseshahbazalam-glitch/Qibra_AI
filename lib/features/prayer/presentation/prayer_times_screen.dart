@@ -7,13 +7,14 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/media/safe_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/app_constants.dart';
+import '../../../core/constants/app_constants.dart';
 import '../data/models/prayer_models.dart';
 import '../providers/prayer_provider.dart';
 import 'prayer_statistics_screen.dart';
@@ -259,10 +260,10 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
             Positioned.fill(
               child: Opacity(
                 opacity: 0.75,
-                child: Image.asset(
-                  'assets/images/hero/mosque_night.png',
+                child: SafeImage(
+                  assetPath: 'assets/images/hero/mosque_night.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox(),
+                  fallback: SafeImageFallback.mosque,
                 ),
               ),
             ),
@@ -514,7 +515,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         'arabic': 'المغرب',
         'time': dailyTimes?.maghrib.formattedTime ?? '06:11 PM',
         'icon': Icons.nights_stay_rounded,
-        'color': const Color(0xFFA855F7),
+        'color': const Color(0xFFFFB703),
         'isNext': nextName == 'Maghrib',
       },
       {
@@ -880,11 +881,10 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                 border: Border.all(color: const Color(0xFFFFB703), width: 1.5),
               ),
               child: ClipOval(
-                child: Image.asset(
-                  'assets/images/hero/compass_qibla.png',
+                child: SafeImage(
+                  assetPath: 'assets/images/hero/compass_qibla.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Center(
-                      child: Text('🧭', style: TextStyle(fontSize: 26))),
+                  fallback: SafeImageFallback.mosque,
                 ),
               ),
             ),

@@ -55,7 +55,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 3,
       title: 'Tawaf (7 Rounds)',
       emoji: '🕋',
-      color: Color(0xFF52B788),
+      color: Color(0xFF00E676),
       description:
           'Perform 7 rounds (circuits) around the Ka\'bah in anti-clockwise direction, starting from Hajar al-Aswad (Black Stone).',
       details: [

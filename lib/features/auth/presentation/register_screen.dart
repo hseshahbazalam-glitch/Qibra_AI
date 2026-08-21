@@ -406,8 +406,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             center: Alignment.topCenter,
             radius: 1.5,
             colors: [
-              Color(0xFF0D3320),
-              Color(0xFF0A1628),
+              Color(0xFF0A130E),
+              Color(0xFF050806),
               AppColors.background,
             ],
             stops: [0.0, 0.5, 1.0],
@@ -635,7 +635,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                 isLoading: false,
                 height: 48,
                 gradient: const LinearGradient(
-                    colors: [Color(0xFF00E676), Color(0xFF00A86B)]),
+                    colors: [Color(0xFF00E676), Color(0xFF00E676)]),
               ),
             ],
           ),

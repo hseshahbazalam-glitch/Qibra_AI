@@ -89,8 +89,8 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.smart_toy_rounded,
     arabicText: 'الْحِكْمَة',
     arabicTranslation: 'Wisdom',
-    primaryColor: Color(0xFF7C3AED),
-    secondaryColor: Color(0xFF8B5CF6),
+    primaryColor: Color(0xFFD4AF37),
+    secondaryColor: Color(0xFFFFB703),
     backgroundGradient: [
       Color(0xFF0A1628),
       Color(0xFF1F1B3D),

@@ -5,7 +5,10 @@ publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
+  # Flutter 3.22+ / Dart 3.4+ is required for `WidgetStateProperty`
+  # (the modern replacement for the deprecated `MaterialStateProperty`
+  # and `activeTrackColor` / `inactiveTrackColor` on Switch/Slider).
+  sdk: ">=3.4.0 <4.0.0"
 
 dependencies:
   flutter:

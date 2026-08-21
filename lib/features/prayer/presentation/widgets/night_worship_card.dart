@@ -236,7 +236,7 @@ class PrayerStreakCard extends StatelessWidget {
                 children: [
                   const Icon(
                     Icons.local_fire_department_rounded,
-                    color: Color(0xFFF59E0B),
+                    color: Color(0xFFFFB703),
                     size: 22,
                   ),
                   const SizedBox(width: 8),

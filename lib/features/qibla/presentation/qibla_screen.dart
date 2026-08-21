@@ -32,6 +32,13 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   late Animation<double> _shineAnim;
   late Animation<double> _floatAnim;
 
+  // Exponential moving-average low-pass filter to dampen compass jitter.
+  // α (0..1) — smaller = smoother but slower response.  0.18 ≈ 82% weight on past.
+  static const double _compassSmoothingAlpha = 0.18;
+  // Reject updates that jump > 45° instantaneously (magnetic spikes).
+  static const double _maxDeltaPerSampleDeg = 45.0;
+  double? _smoothedHeading;
+
   @override
   void initState() {
     super.initState();
@@ -66,9 +73,25 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     });
 
     FlutterCompass.events?.listen((event) {
-      if (event.heading != null && mounted) {
-        ref.read(qiblaProvider.notifier).updateCompassHeading(event.heading!);
+      if (!mounted || event.heading == null) return;
+      final raw = event.heading!;
+      final double filtered;
+      if (_smoothedHeading == null) {
+        filtered = raw;
+      } else {
+        final prev = _smoothedHeading!;
+        // Compute shortest angular delta (handles wrap-around 0/360).
+        double delta = raw - prev;
+        delta = (delta + 180) % 360 - 180;
+        if (delta > _maxDeltaPerSampleDeg) {
+          delta = _maxDeltaPerSampleDeg;
+        } else if (delta < -_maxDeltaPerSampleDeg) {
+          delta = -_maxDeltaPerSampleDeg;
+        }
+        filtered = (prev + _compassSmoothingAlpha * delta + 360) % 360;
       }
+      _smoothedHeading = filtered;
+      ref.read(qiblaProvider.notifier).updateCompassHeading(filtered);
     });
   }
 
@@ -90,7 +113,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
         title: Row(
           children: [
             const Icon(Icons.compass_calibration_rounded,
-                color: Color(0xFF8B5CF6), size: 24),
+                color: Color(0xFFFFB703), size: 24),
             const SizedBox(width: 8),
             Text('Calibrate Compass',
                 style: AppTextStyles.titleMedium
@@ -116,19 +139,19 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                color: const Color(0xFFFFB703).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.info_outline,
-                      color: Color(0xFFF59E0B), size: 16),
+                      color: Color(0xFFFFB703), size: 16),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Move phone slowly for best results',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: const Color(0xFFF59E0B),
+                        color: const Color(0xFFFFB703),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -142,7 +165,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Got it',
-                style: TextStyle(color: Color(0xFF8B5CF6))),
+                style: TextStyle(color: Color(0xFFFFB703))),
           ),
         ],
       ),
@@ -159,7 +182,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             width: 20,
             height: 20,
             decoration: const BoxDecoration(
-              color: Color(0xFF8B5CF6),
+              color: Color(0xFFFFB703),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -317,7 +340,7 @@ Shared via Qibra AI 🌙''';
                       Text(
                         'القبلة',
                         style: AppTextStyles.arabicLarge.copyWith(
-                          color: const Color(0xFF8B5CF6),
+                          color: const Color(0xFFFFB703),
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
                         ),
@@ -349,12 +372,12 @@ Shared via Qibra AI 🌙''';
                       color: AppColors.surface.withValues(alpha: 0.6),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                        color: const Color(0xFFFFB703).withValues(alpha: 0.3),
                       ),
                     ),
                     child: const Icon(
                       Icons.share_rounded,
-                      color: Color(0xFF8B5CF6),
+                      color: Color(0xFFFFB703),
                       size: 20,
                     ),
                   ),
@@ -371,17 +394,17 @@ Shared via Qibra AI 🌙''';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+        color: const Color(0xFFFFB703).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+          color: const Color(0xFFFFB703).withValues(alpha: 0.3),
         ),
       ),
       child: Row(
         children: [
           const Icon(
             Icons.info_outline_rounded,
-            color: Color(0xFFF59E0B),
+            color: Color(0xFFFFB703),
             size: 18,
           ),
           const SizedBox(width: 10),
@@ -389,7 +412,7 @@ Shared via Qibra AI 🌙''';
             child: Text(
               'Using cached location. Tap refresh for accuracy.',
               style: AppTextStyles.labelSmall.copyWith(
-                color: const Color(0xFFF59E0B),
+                color: const Color(0xFFFFB703),
               ),
             ),
           ),
@@ -411,13 +434,13 @@ Shared via Qibra AI 🌙''';
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+            const Color(0xFFFFB703).withValues(alpha: 0.15),
             const Color(0xFF6D28D9).withValues(alpha: 0.10),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+          color: const Color(0xFFFFB703).withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -427,12 +450,12 @@ Shared via Qibra AI 🌙''';
             height: 48,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                colors: [Color(0xFFFFB703), Color(0xFF6D28D9)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                  color: const Color(0xFFFFB703).withValues(alpha: 0.4),
                   blurRadius: 12,
                 ),
               ],
@@ -509,7 +532,7 @@ Shared via Qibra AI 🌙''';
   Color _getAccuracyColor(double accuracy) {
     if (accuracy < 5) return const Color(0xFF10B981);
     if (accuracy < 15) return const Color(0xFF3B82F6);
-    if (accuracy < 30) return const Color(0xFFF59E0B);
+    if (accuracy < 30) return const Color(0xFFFFB703);
     return const Color(0xFFEF4444);
   }
 
@@ -569,17 +592,17 @@ Shared via Qibra AI 🌙''';
                         AppColors.primary,
                       ]
                     : [
-                        const Color(0xFF8B5CF6),
+                        const Color(0xFFFFB703),
                         const Color(0xFF6D28D9),
                         const Color(0xFF4C1D95),
                         const Color(0xFF6D28D9),
-                        const Color(0xFF8B5CF6),
+                        const Color(0xFFFFB703),
                       ],
               ),
               boxShadow: [
                 BoxShadow(
                   color:
-                      (isAligned ? AppColors.primary : const Color(0xFF8B5CF6))
+                      (isAligned ? AppColors.primary : const Color(0xFFFFB703))
                           .withValues(alpha: 0.4),
                   blurRadius: 40,
                   spreadRadius: 4,
@@ -734,7 +757,7 @@ Shared via Qibra AI 🌙''';
               gradient: LinearGradient(
                 colors: [
                   Color(0xFFFBBF24),
-                  Color(0xFFF59E0B),
+                  Color(0xFFFFB703),
                   Color(0xFFFBBF24),
                 ],
               ),
@@ -763,7 +786,7 @@ Shared via Qibra AI 🌙''';
                 ]
               : [
                   const Color(0xFFA78BFA),
-                  const Color(0xFF8B5CF6),
+                  const Color(0xFFFFB703),
                   const Color(0xFF6D28D9),
                   const Color(0xFF4C1D95),
                 ],
@@ -771,7 +794,7 @@ Shared via Qibra AI 🌙''';
         ),
         boxShadow: [
           BoxShadow(
-            color: (isAligned ? AppColors.primary : const Color(0xFF8B5CF6))
+            color: (isAligned ? AppColors.primary : const Color(0xFFFFB703))
                 .withValues(alpha: 0.7),
             blurRadius: 20,
             spreadRadius: 2,
@@ -856,7 +879,7 @@ Shared via Qibra AI 🌙''';
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                    const Color(0xFFFFB703).withValues(alpha: 0.3),
                     Colors.transparent,
                   ],
                 ),
@@ -866,7 +889,7 @@ Shared via Qibra AI 🌙''';
                   width: 50,
                   height: 50,
                   child: CircularProgressIndicator(
-                    color: Color(0xFF8B5CF6),
+                    color: Color(0xFFFFB703),
                     strokeWidth: 3,
                   ),
                 ),
@@ -962,21 +985,21 @@ Shared via Qibra AI 🌙''';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+        color: const Color(0xFFFFB703).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+          color: const Color(0xFFFFB703).withValues(alpha: 0.4),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.explore_rounded, color: Color(0xFF8B5CF6), size: 18),
+          const Icon(Icons.explore_rounded, color: Color(0xFFFFB703), size: 18),
           const SizedBox(width: 8),
           Text(
             '${state.result!.qiblaAngle.toStringAsFixed(1)}° from North',
             style: AppTextStyles.titleSmall.copyWith(
-              color: const Color(0xFF8B5CF6),
+              color: const Color(0xFFFFB703),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1011,7 +1034,7 @@ Shared via Qibra AI 🌙''';
             value: result != null
                 ? '${result.qiblaAngle.toStringAsFixed(1)}°'
                 : '--',
-            color: const Color(0xFF8B5CF6),
+            color: const Color(0xFFFFB703),
           ),
         ),
       ],
@@ -1175,12 +1198,12 @@ Shared via Qibra AI 🌙''';
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                  colors: [Color(0xFFFFB703), Color(0xFF6D28D9)],
                 ),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                    color: const Color(0xFFFFB703).withValues(alpha: 0.4),
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -1215,7 +1238,7 @@ Shared via Qibra AI 🌙''';
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                  color: const Color(0xFFFFB703).withValues(alpha: 0.4),
                   width: 1.5,
                 ),
               ),
@@ -1223,12 +1246,12 @@ Shared via Qibra AI 🌙''';
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.compass_calibration_rounded,
-                      color: Color(0xFF8B5CF6), size: 18),
+                      color: Color(0xFFFFB703), size: 18),
                   const SizedBox(width: 8),
                   Text(
                     'Calibrate',
                     style: AppTextStyles.labelLarge.copyWith(
-                      color: const Color(0xFF8B5CF6),
+                      color: const Color(0xFFFFB703),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1285,7 +1308,7 @@ Shared via Qibra AI 🌙''';
             height: 22,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                colors: [Color(0xFFFFB703), Color(0xFF6D28D9)],
               ),
               shape: BoxShape.circle,
             ),
@@ -1408,7 +1431,7 @@ class _Premium3DNeedlePainter extends CustomPainter {
     final leftPoint = Offset(center.dx - needleWidth / 2, center.dy);
     final rightPoint = Offset(center.dx + needleWidth / 2, center.dy);
 
-    final color = isAligned ? AppColors.primary : const Color(0xFF8B5CF6);
+    final color = isAligned ? AppColors.primary : const Color(0xFFFFB703);
     final colorLight =
         isAligned ? const Color(0xFF34D399) : const Color(0xFFA78BFA);
     final colorDark =

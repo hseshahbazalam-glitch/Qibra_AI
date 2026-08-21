@@ -67,7 +67,7 @@ class SettingsScreen extends ConsumerWidget {
                   _buildSettingsGroup([
                     _SettingsTile(
                       icon: isDark ? Icons.dark_mode : Icons.light_mode,
-                      iconColor: const Color(0xFF7C3AED),
+                      iconColor: const Color(0xFFD4AF37),
                       title: 'Dark Mode',
                       subtitle: isDark ? 'Enabled' : 'Disabled',
                       trailing: Switch(
@@ -126,7 +126,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _SettingsTile(
                       icon: Icons.explore_rounded,
-                      iconColor: const Color(0xFF7C3AED),
+                      iconColor: const Color(0xFFD4AF37),
                       title: 'Qibla Direction',
                       subtitle: 'Auto-detect',
                       onTap: () => context.go(AppRoutes.qibla),
@@ -148,7 +148,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _SettingsTile(
                       icon: Icons.notification_add_rounded,
-                      iconColor: const Color(0xFFF59E0B),
+                      iconColor: const Color(0xFFFFB703),
                       title: 'Daily Reminders',
                       subtitle: 'Adhkar, Quran & Jummah',
                       onTap: () => context.push('/settings/notifications'),
@@ -235,7 +235,7 @@ class SettingsScreen extends ConsumerWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF00A86B),
+            Color(0xFF00E676),
             Color(0xFF007A4D),
           ],
         ),

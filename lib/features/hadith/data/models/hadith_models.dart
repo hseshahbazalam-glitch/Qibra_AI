@@ -26,9 +26,9 @@ import 'package:flutter/material.dart';
 // ============================================================
 
 enum HadithGrade {
-  sahih('Sahih', 'صحيح', 'Authentic', Color(0xFF00A86B)),
+  sahih('Sahih', 'صحيح', 'Authentic', Color(0xFF00E676)),
   hasan('Hasan', 'حسن', 'Good', Color(0xFF0891B2)),
-  daif('Daif', 'ضعيف', 'Weak', Color(0xFFF59E0B)),
+  daif('Daif', 'ضعيف', 'Weak', Color(0xFFFFB703)),
   mawdu('Mawdu', 'موضوع', 'Fabricated', Color(0xFFEF4444)),
   unknown('Unknown', 'غير معروف', 'Unknown grade', Color(0xFF6B7280));
 
@@ -196,13 +196,13 @@ class HadithBook extends Equatable {
       ];
 
   static Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return const Color(0xFF00A86B);
+    if (hex == null || hex.isEmpty) return const Color(0xFF00E676);
     try {
       final cleanHex = hex.replaceAll('#', '');
       final value = int.parse('FF$cleanHex', radix: 16);
       return Color(value);
     } catch (_) {
-      return const Color(0xFF00A86B);
+      return const Color(0xFF00E676);
     }
   }
 }
@@ -659,7 +659,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 97,
     description:
         'The most authentic book after the Holy Quran. Compiled by Imam Muhammad al-Bukhari.',
-    color: Color(0xFF00A86B),
+    color: Color(0xFF00E676),
     compiledYear: '846 CE',
   ),
   HadithBook(
@@ -701,7 +701,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 49,
     description:
         'Comprehensive collection with commentary on the strength of each hadith.',
-    color: Color(0xFF7C3AED),
+    color: Color(0xFFD4AF37),
     compiledYear: '892 CE',
   ),
   HadithBook(
@@ -715,7 +715,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 51,
     description:
         'Known for its strict criteria in accepting hadiths, focusing on chains.',
-    color: Color(0xFFF59E0B),
+    color: Color(0xFFFFB703),
     compiledYear: '915 CE',
   ),
   HadithBook(
@@ -729,7 +729,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 37,
     description:
         'Sixth of the Kutub al-Sittah, containing many unique hadiths.',
-    color: Color(0xFFEC4899),
+    color: Color(0xFFD4AF37),
     compiledYear: '887 CE',
   ),
 ];

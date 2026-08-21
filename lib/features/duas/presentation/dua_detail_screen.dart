@@ -130,7 +130,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showTransliteration)
                       _buildInfoCard(
                         icon: Icons.translate_rounded,
-                        iconColor: const Color(0xFF3B82F6),
+                        iconColor: const Color(0xFF00E676),
                         label: 'Transliteration',
                         content: dua.transliteration,
                         isItalic: true,
@@ -138,7 +138,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showUrdu)
                       _buildInfoCard(
                         icon: Icons.language_rounded,
-                        iconColor: const Color(0xFF8B5CF6),
+                        iconColor: const Color(0xFFFFB703),
                         label: 'Urdu Translation',
                         content: dua.translationUrdu,
                         isRtl: true,
@@ -465,10 +465,10 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         gradeColor = AppColors.primary;
         break;
       case 'hasan':
-        gradeColor = const Color(0xFF3B82F6);
+        gradeColor = const Color(0xFF00E676);
         break;
       case 'quran':
-        gradeColor = const Color(0xFF7C3AED);
+        gradeColor = const Color(0xFFD4AF37);
         break;
       default:
         gradeColor = AppColors.textSecondary;
@@ -671,7 +671,7 @@ Shared via QIBRA AI''';
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF3B82F6),
+        backgroundColor: const Color(0xFF00E676),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

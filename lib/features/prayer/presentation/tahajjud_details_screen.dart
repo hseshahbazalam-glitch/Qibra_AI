@@ -229,7 +229,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: _buildInfoTile(
                 icon: Icons.menu_book_rounded,
-                iconColor: const Color(0xFFF59E0B),
+                iconColor: const Color(0xFFFFB703),
                 title: 'Recommended Surahs',
                 subtitle: 'Al-Mulk, Al-Insan, Al-Jinn, Al-Muzzammil',
                 onTap: _showSurahsSheet,
@@ -243,7 +243,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: _buildInfoTile(
                 icon: Icons.volunteer_activism_rounded,
-                iconColor: const Color(0xFF7C3AED),
+                iconColor: const Color(0xFFD4AF37),
                 title: 'Recommended Duas',
                 subtitle: 'Dua Qunoot, Istighfar, Any Dua',
                 onTap: _showDuasSheet,
@@ -400,7 +400,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
             'Middle of Night',
             '11:30 PM - 01:45 AM',
             'Good time for reflection',
-            const Color(0xFF7C3AED),
+            const Color(0xFFD4AF37),
           ),
           const SizedBox(height: 12),
           _buildTimeSection(
@@ -523,12 +523,12 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                      color: const Color(0xFFFFB703).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.menu_book_rounded,
-                      color: Color(0xFFF59E0B),
+                      color: Color(0xFFFFB703),
                       size: 18,
                     ),
                   ),
@@ -628,7 +628,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                 color: AppColors.background,
                 borderRadius: AppRadius.cardRadius,
                 border: Border.all(
-                  color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                  color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -637,7 +637,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                   Text(
                     d['name']!,
                     style: AppTextStyles.titleSmall.copyWith(
-                      color: const Color(0xFF7C3AED),
+                      color: const Color(0xFFD4AF37),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -746,7 +746,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           const SizedBox(height: 24),
           _buildStatRow('Longest Streak', '15 Days', const Color(0xFFFFD700)),
           _buildStatRow('Total Tahajjud', '42 Prayers', AppColors.primary),
-          _buildStatRow('This Month', '20 Days', const Color(0xFF7C3AED)),
+          _buildStatRow('This Month', '20 Days', const Color(0xFFD4AF37)),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(14),
