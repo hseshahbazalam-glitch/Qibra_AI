@@ -245,7 +245,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isRamadan
-              ? const Color(0xFF52B788).withValues(alpha: 0.3)
+              ? const Color(0xFF00E676).withValues(alpha: 0.3)
               : const Color(0xFFFFD166).withValues(alpha: 0.3),
         ),
       ),
@@ -274,7 +274,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                   const Text(
                     'Ramadan Mubarak!',
                     style: TextStyle(
-                      color: Color(0xFF52B788),
+                      color: Color(0xFF00E676),
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
@@ -293,9 +293,9 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                       value: ramadanDay / 30,
                       minHeight: 5,
                       backgroundColor:
-                          const Color(0xFF52B788).withValues(alpha: 0.15),
+                          const Color(0xFF00E676).withValues(alpha: 0.15),
                       valueColor:
-                          const AlwaysStoppedAnimation(Color(0xFF52B788)),
+                          const AlwaysStoppedAnimation(Color(0xFF00E676)),
                     ),
                   ),
                 ] else if (daysLeft > 0) ...[
@@ -367,7 +367,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             time: _suhoorTime,
             countdown: _suhoorCountdown,
             emoji: '🌅',
-            color: const Color(0xFFF59E0B),
+            color: const Color(0xFFFFB703),
             bgColor: const Color(0xFF3D2B00),
             isActive: !_isFasting,
           ),
@@ -379,7 +379,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             time: _iftarTime,
             countdown: _iftarCountdown,
             emoji: '🌙',
-            color: const Color(0xFF7C3AED),
+            color: const Color(0xFFD4AF37),
             bgColor: const Color(0xFF1A0D35),
             isActive: _isFasting,
           ),
@@ -557,7 +557,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
         ),
         borderRadius: BorderRadius.circular(18),
         border:
-            Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.3)),
+            Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -571,7 +571,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                   Text(
                     'FASTING NOW',
                     style: TextStyle(
-                      color: Color(0xFF52B788),
+                      color: Color(0xFF00E676),
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 2.0,
@@ -582,7 +582,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
               Text(
                 '${(progress * 100).toInt()}%',
                 style: const TextStyle(
-                  color: Color(0xFF52B788),
+                  color: Color(0xFF00E676),
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
                 ),
@@ -595,8 +595,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             child: LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
               minHeight: 8,
-              backgroundColor: const Color(0xFF52B788).withValues(alpha: 0.15),
-              valueColor: const AlwaysStoppedAnimation(Color(0xFF52B788)),
+              backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.15),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF00E676)),
             ),
           ),
           const SizedBox(height: 8),

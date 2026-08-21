@@ -138,7 +138,7 @@ class _NotificationSettingsScreenState
                     '🕌',
                     _prayerNotifications,
                     (v) => setState(() => _prayerNotifications = v),
-                    const Color(0xFF52B788),
+                    const Color(0xFF00E676),
                   ),
                   if (_prayerNotifications) ...[
                     const Divider(color: Color(0xFF1E2535), height: 20),
@@ -168,7 +168,7 @@ class _NotificationSettingsScreenState
                     '🌙',
                     _tahajjudNotification,
                     (v) => setState(() => _tahajjudNotification = v),
-                    const Color(0xFF7C3AED),
+                    const Color(0xFFD4AF37),
                   ),
                   if (_tahajjudNotification) ...[
                     const Divider(color: Color(0xFF1E2535), height: 20),
@@ -180,7 +180,7 @@ class _NotificationSettingsScreenState
                         _tahajjudHour = h;
                         _tahajjudMinute = m;
                       }),
-                      const Color(0xFF7C3AED),
+                      const Color(0xFFD4AF37),
                     ),
                   ],
                 ]),
@@ -203,7 +203,7 @@ class _NotificationSettingsScreenState
                     '🌇',
                     _eveningAdhkar,
                     (v) => setState(() => _eveningAdhkar = v),
-                    const Color(0xFF7C3AED),
+                    const Color(0xFFD4AF37),
                   ),
                 ]),
                 const SizedBox(height: 20),
@@ -216,7 +216,7 @@ class _NotificationSettingsScreenState
                     '🕋',
                     _jummahNotification,
                     (v) => setState(() => _jummahNotification = v),
-                    const Color(0xFF52B788),
+                    const Color(0xFF00E676),
                   ),
                   const Divider(color: Color(0xFF1E2535), height: 20),
                   _settingToggle(
@@ -273,7 +273,7 @@ class _NotificationSettingsScreenState
                 children: [
                   const Text('الإِشْعَارَات',
                       style: TextStyle(
-                          color: Color(0xFF52B788),
+                          color: Color(0xFF00E676),
                           fontSize: 22,
                           fontFamily: 'Amiri')),
                   const Text('Notification Settings',
@@ -317,21 +317,21 @@ class _NotificationSettingsScreenState
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF52B788).withValues(alpha: 0.08),
+          color: const Color(0xFF00E676).withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: const Color(0xFF52B788).withValues(alpha: 0.25)),
+              color: const Color(0xFF00E676).withValues(alpha: 0.25)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF52B788).withValues(alpha: 0.12),
+                color: const Color(0xFF00E676).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.notifications_active_rounded,
-                  color: Color(0xFF52B788), size: 22),
+                  color: Color(0xFF00E676), size: 22),
             ),
             const SizedBox(width: 14),
             const Expanded(
@@ -344,12 +344,12 @@ class _NotificationSettingsScreenState
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
                   Text('Tap to grant notification permission',
-                      style: TextStyle(color: Color(0xFF52B788), fontSize: 11)),
+                      style: TextStyle(color: Color(0xFF00E676), fontSize: 11)),
                 ],
               ),
             ),
             const Icon(Icons.arrow_forward_ios_rounded,
-                color: Color(0xFF52B788), size: 14),
+                color: Color(0xFF00E676), size: 14),
           ],
         ),
       ),
@@ -521,7 +521,7 @@ class _NotificationSettingsScreenState
           builder: (ctx, child) => Theme(
             data: ThemeData.dark().copyWith(
               colorScheme: const ColorScheme.dark(
-                primary: Color(0xFF52B788),
+                primary: Color(0xFF00E676),
                 surface: Color(0xFF141926),
               ),
             ),
@@ -559,10 +559,10 @@ class _NotificationSettingsScreenState
 
   Widget _buildPrayersList() {
     final prayers = [
-      const _PrayerItem('Fajr', '🌅', 'Dawn prayer', Color(0xFFF59E0B)),
+      const _PrayerItem('Fajr', '🌅', 'Dawn prayer', Color(0xFFFFB703)),
       const _PrayerItem('Dhuhr', '☀️', 'Midday prayer', Color(0xFFFBBF24)),
-      const _PrayerItem('Asr', '🌤️', 'Afternoon prayer', Color(0xFF52B788)),
-      const _PrayerItem('Maghrib', '🌇', 'Sunset prayer', Color(0xFF7C3AED)),
+      const _PrayerItem('Asr', '🌤️', 'Afternoon prayer', Color(0xFF00E676)),
+      const _PrayerItem('Maghrib', '🌇', 'Sunset prayer', Color(0xFFD4AF37)),
       const _PrayerItem('Isha', '🌙', 'Night prayer', Color(0xFF0891B2)),
     ];
 
@@ -621,17 +621,17 @@ class _NotificationSettingsScreenState
           color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14),
           border:
-              Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.3)),
+              Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.3)),
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.notifications_rounded,
-                color: Color(0xFF52B788), size: 18),
+                color: Color(0xFF00E676), size: 18),
             SizedBox(width: 8),
             Text('Test Azan + Notification',
                 style: TextStyle(
-                    color: Color(0xFF52B788),
+                    color: Color(0xFF00E676),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
           ],
@@ -648,11 +648,11 @@ class _NotificationSettingsScreenState
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-              colors: [Color(0xFF52B788), Color(0xFF2D6A4F)]),
+              colors: [Color(0xFF00E676), Color(0xFF2D6A4F)]),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: const Color(0xFF52B788).withValues(alpha: 0.3),
+                color: const Color(0xFF00E676).withValues(alpha: 0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 6))
           ],
@@ -687,7 +687,7 @@ class _NotificationSettingsScreenState
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFF52B788).withValues(alpha: 0.15)),
+            Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.15)),
       ),
       child: Text(
         '"Guard strictly your prayers, especially the middle prayer (Asr). And stand before Allah with obedience." — Quran 2:238',

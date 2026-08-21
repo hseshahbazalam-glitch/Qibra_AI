@@ -45,7 +45,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '9th Dhul Hijjah',
       title: 'Yawm al-Arafah',
       emoji: '⛰️',
-      color: Color(0xFF52B788),
+      color: Color(0xFF00E676),
       steps: [
         _HajjStep(
           'Go to Arafah',
@@ -117,7 +117,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '11th-13th Dhul Hijjah',
       title: 'Ayyam al-Tashreeq',
       emoji: '🏕️',
-      color: Color(0xFF7C3AED),
+      color: Color(0xFFD4AF37),
       steps: [
         _HajjStep(
           'Stay in Mina',
@@ -526,12 +526,12 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                     height: 24,
                     decoration: BoxDecoration(
                       color: item.isDone
-                          ? const Color(0xFF52B788)
+                          ? const Color(0xFF00E676)
                           : Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                           color: item.isDone
-                              ? const Color(0xFF52B788)
+                              ? const Color(0xFF00E676)
                               : Colors.white.withValues(alpha: 0.15)),
                     ),
                     child: item.isDone

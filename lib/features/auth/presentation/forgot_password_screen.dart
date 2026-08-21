@@ -272,12 +272,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             colors: _emailSent
                 ? [
                     AppColors.success.withValues(alpha: 0.20),
-                    const Color(0xFF0A1628),
+                    const Color(0xFF050806),
                     AppColors.background,
                   ]
                 : [
-                    const Color(0xFF0D3320),
-                    const Color(0xFF0A1628),
+                    const Color(0xFF0A130E),
+                    const Color(0xFF050806),
                     AppColors.background,
                   ],
             stops: const [0.0, 0.5, 1.0],

@@ -1,6 +1,7 @@
 // lib/features/home/presentation/home_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/media/safe_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hijri/hijri_calendar.dart';
@@ -261,11 +262,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               border: Border.all(color: const Color(0xFFFFB703), width: 1.5),
             ),
             child: ClipOval(
-              child: Image.asset(
-                'assets/images/hero/kaaba_3d.png',
+              child: SafeImage(
+                assetPath: 'assets/images/hero/kaaba_3d.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Center(
-                    child: Text('🕋', style: TextStyle(fontSize: 18))),
+                fallback: SafeImageFallback.mosque,
               ),
             ),
           ),
@@ -301,10 +301,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             Positioned.fill(
               child: Opacity(
                 opacity: 0.75,
-                child: Image.asset(
-                  'assets/images/hero/mosque_night.png',
+                child: SafeImage(
+                  assetPath: 'assets/images/hero/mosque_night.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox(),
+                  fallback: SafeImageFallback.mosque,
                 ),
               ),
             ),
@@ -986,11 +986,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/images/quran_cover.png',
+                child: SafeImage(
+                  assetPath: 'assets/images/quran_cover.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Center(
-                      child: Text('📖', style: TextStyle(fontSize: 26))),
+                  fallback: SafeImageFallback.quran,
                 ),
               ),
             ),
@@ -1264,12 +1263,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             color: const Color(0xFFFFD700), width: 1.2),
                       ),
                       child: ClipOval(
-                        child: Image.asset(
-                          'assets/images/hero/compass_qibla.png',
+                        child: SafeImage(
+                          assetPath: 'assets/images/hero/compass_qibla.png',
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Center(
-                              child:
-                                  Text('🧭', style: TextStyle(fontSize: 22))),
+                          fallback: SafeImageFallback.mosque,
                         ),
                       ),
                     ),
@@ -1353,13 +1350,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               width: 38,
               height: 38,
               decoration: const BoxDecoration(shape: BoxShape.circle),
-              child: Image.asset(
-                'assets/images/hero/ai_robot_3d.png',
+              child: SafeImage(
+                assetPath: 'assets/images/hero/ai_robot_3d.png',
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                    Icons.smart_toy_rounded,
-                    color: Color(0xFF00E676),
-                    size: 20),
+                fallback: SafeImageFallback.mosque,
               ),
             ),
             const SizedBox(width: 12),

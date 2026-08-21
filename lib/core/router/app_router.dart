@@ -30,7 +30,7 @@ import 'package:qibra_ai/features/quran/presentation/mushaf_reader_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/quran_search_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_list_screen.dart';
-import 'package:qibra_ai/features/quran/presentation/tafseer_screen.dart';
+import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/profile_setup_screen.dart';
 import 'package:qibra_ai/features/splash/presentation/splash_screen.dart';
 import 'package:qibra_ai/shared/widgets/navigation/app_bottom_nav.dart';
@@ -233,7 +233,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                       totalHadiths: bookInfo?.totalHadiths ?? 0,
                       totalChapters: bookInfo?.sections.length ?? 0,
                       description: 'Authentic Hadith Collection',
-                      color: const Color(0xFF00A86B),
+                      color: const Color(0xFF00E676),
                     ),
                   );
                 },

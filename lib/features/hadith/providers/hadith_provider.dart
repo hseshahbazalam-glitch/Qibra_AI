@@ -53,7 +53,7 @@ final hadithBooksProvider = FutureProvider<List<HadithBook>>((ref) async {
         totalHadiths: info.totalHadiths,
         totalChapters: info.sections.length,
         description: 'Authentic Hadith collection',
-        color: const Color(0xFF00A86B),
+        color: const Color(0xFF00E676),
       ),
     );
 
@@ -80,6 +80,13 @@ final hadithBookProvider =
 // SECTION 4: CONVERTERS & HELPERS
 // ============================================================
 
+/// Maps a [LocalHadith] to its canonical [HadithGrade].
+///
+/// Books of the Kutub al-Sittah + Muwatta' contain a mix of grades, so we
+/// never blanket-label everything as Sahih. Only Sahih al-Bukhari and Sahih
+/// Muslim are universally graded Sahih across their entire collections; all
+/// other books default to [HadithGrade.unknown] when the per-hadith tag is
+/// absent, so the UI can show "Not graded" instead of a misleading label.
 HadithGrade gradeForLocalHadith(LocalHadith local) {
   final rawGrade = local.grade.trim();
 
@@ -87,11 +94,12 @@ HadithGrade gradeForLocalHadith(LocalHadith local) {
     return HadithGrade.fromString(rawGrade);
   }
 
+  // Only the two "Sahih" collections are authentic by consensus.
   if (local.bookSlug == 'bukhari' || local.bookSlug == 'muslim') {
     return HadithGrade.sahih;
   }
 
-  return HadithGrade.sahih;
+  return HadithGrade.unknown;
 }
 
 HadithModel localToHadithModel(LocalHadith local) {

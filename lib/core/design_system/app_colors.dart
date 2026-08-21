@@ -33,17 +33,17 @@ abstract final class AppEmerald {
   /// #3DDEA0 — Soft emerald (secondary actions)
   static const Color s300 = Color(0xFF3DDEA0);
 
-  /// #00CF82 — Medium emerald (active states)
+  /// #00CF82 — Medium emerald (pressed states)
   static const Color s400 = Color(0xFF00CF82);
 
-  /// #00A86B — Standard emerald ← PRIMARY BRAND COLOR
-  static const Color s500 = Color(0xFF00A86B);
+  /// #00E676 — Flagship emerald ← PRIMARY BRAND COLOR (Material A400)
+  static const Color s500 = Color(0xFF00E676);
 
-  /// #008A58 — Medium dark emerald (pressed states)
-  static const Color s600 = Color(0xFF008A58);
+  /// #00B85F — Medium dark emerald (deep active)
+  static const Color s600 = Color(0xFF00B85F);
 
-  /// #006B45 — Dark emerald (deep accents)
-  static const Color s700 = Color(0xFF006B45);
+  /// #008F49 — Dark emerald (deep accents)
+  static const Color s700 = Color(0xFF008F49);
 
   /// #004D32 — Very dark emerald (borders on light bg)
   static const Color s800 = Color(0xFF004D32);
@@ -103,11 +103,14 @@ abstract final class AppGold {
   /// #FFE53D — Bright yellow-gold
   static const Color s300 = Color(0xFFFFE53D);
 
-  /// #FFD700 — Pure gold ← CLASSIC GOLD
+  /// #FFD700 — Pure gold (classic)
   static const Color s400 = Color(0xFFFFD700);
 
-  /// #D4AF37 — Royal gold ← PRIMARY ACCENT COLOR
-  static const Color s500 = Color(0xFFD4AF37);
+  /// #FFB703 — Flagship amber-gold ← PRIMARY ACCENT COLOR
+  static const Color s500 = Color(0xFFFFB703);
+
+  /// #D4AF37 — Royal (antique) gold, for premium text/borders
+  static const Color royal = Color(0xFFD4AF37);
 
   /// #B8960C — Dark gold (pressed states)
   static const Color s600 = Color(0xFFB8960C);
@@ -123,7 +126,7 @@ abstract final class AppGold {
 
   // --- Convenience getters ---
 
-  /// Primary accent gold (#D4AF37 — Royal Gold)
+  /// Primary accent gold (#FFB703 — Flagship amber-gold)
   static const Color primary = s500;
 
   /// Bright gold (#FFD700 — Pure Gold)
@@ -254,36 +257,36 @@ abstract final class AppSemanticColors {
 abstract final class AppSurface {
   // --- Primary Backgrounds ---
 
-  /// #020A08 — Deepest background (almost pure black with green tint)
-  static const Color background = Color(0xFF020A08);
+  /// #000000 — True black (deepest background, for OLED-friendly luxury feel)
+  static const Color background = Color(0xFF000000);
 
-  /// #050D14 — Main app background (deep navy-black)
-  static const Color backgroundPrimary = Color(0xFF050D14);
+  /// #050806 — Flagship deep onyx-green background (main app background)
+  static const Color backgroundPrimary = Color(0xFF050806);
 
-  /// #0A1628 — Secondary background (dark navy)
-  static const Color backgroundSecondary = Color(0xFF0A1628);
+  /// #0A130E — Secondary surface (cards, lists) — deep green-tinted black
+  static const Color backgroundSecondary = Color(0xFF0A130E);
 
-  /// #0D1F2D — Tertiary background (dark teal-navy)
-  static const Color backgroundTertiary = Color(0xFF0D1F2D);
+  /// #0F1B15 — Tertiary surface (subtle elevation)
+  static const Color backgroundTertiary = Color(0xFF0F1B15);
 
   // --- Card Surfaces ---
 
-  /// #0F1E2E — Base card surface (just above background)
-  static const Color card = Color(0xFF0F1E2E);
+  /// #0A130E — Base card surface
+  static const Color card = Color(0xFF0A130E);
 
-  /// #162234 — Standard card (main content cards)
-  static const Color cardElevated = Color(0xFF162234);
+  /// #101C16 — Standard card (main content cards)
+  static const Color cardElevated = Color(0xFF101C16);
 
-  /// #1A2940 — Higher card (modal cards, dropdowns)
-  static const Color cardHigh = Color(0xFF1A2940);
+  /// #16251D — Higher card (modal cards, dropdowns)
+  static const Color cardHigh = Color(0xFF16251D);
 
-  /// #1E3352 — Highest card (tooltips, popovers)
-  static const Color cardHighest = Color(0xFF1E3352);
+  /// #1A221C — Highest card (tooltips, popovers) — matches spec #1A221C border
+  static const Color cardHighest = Color(0xFF1A221C);
 
   // --- Overlay Surfaces ---
 
   /// Bottom sheet, dialog background
-  static const Color sheet = Color(0xFF132030);
+  static const Color sheet = Color(0xFF0F1B15);
 
   /// Modal overlay background
   static const Color modal = Color(0xFF0E1C2C);
@@ -344,11 +347,14 @@ abstract final class AppTextColors {
   static const Color hint = Color(0xFF334155);
 
   // --- Brand Colors in Text ---
-  /// Emerald text (links, active states, success messages)
-  static const Color emerald = Color(0xFF00A86B);
+  /// Emerald text (links, active states, success messages) — #00E676
+  static const Color emerald = Color(0xFF00E676);
 
-  /// Gold text (premium labels, highlights, prices)
-  static const Color gold = Color(0xFFD4AF37);
+  /// Gold text (premium labels, highlights, prices) — flagship #FFB703
+  static const Color gold = Color(0xFFFFB703);
+
+  /// Royal gold text (antique/traditional feel) — #D4AF37
+  static const Color goldRoyal = Color(0xFFD4AF37);
 
   /// Bright gold text (most prominent gold text)
   static const Color goldBright = Color(0xFFFFD700);
@@ -358,17 +364,17 @@ abstract final class AppTextColors {
   static const Color error = Color(0xFFEF4444);
 
   /// Success message text
-  static const Color success = Color(0xFF10B981);
+  static const Color success = Color(0xFF00E676);
 
   /// Warning message text
-  static const Color warning = Color(0xFFF59E0B);
+  static const Color warning = Color(0xFFFFB703);
 
   /// Info message text
-  static const Color info = Color(0xFF3B82F6);
+  static const Color info = Color(0xFF60A5FA);
 
   // --- Inverse (for light backgrounds) ---
   /// Dark text for light-colored buttons/surfaces
-  static const Color inverse = Color(0xFF0A1628);
+  static const Color inverse = Color(0xFF050806);
 
   /// Dark text for gold buttons
   static const Color onGold = Color(0xFF1A0A00);
@@ -389,7 +395,7 @@ abstract final class AppIconColors {
   static const Color secondary = Color(0xFF64748B);
 
   /// Emerald icons (feature icons, active states)
-  static const Color emerald = Color(0xFF00A86B);
+  static const Color emerald = Color(0xFF00E676);
 
   /// Gold icons (premium features, highlights)
   static const Color gold = Color(0xFFD4AF37);
@@ -409,36 +415,39 @@ abstract final class AppIconColors {
 // ============================================================
 
 abstract final class AppBorderColors {
-  /// Subtle border (most cards, dividers)
-  static const Color subtle = Color(0xFF1A2940);
+  /// Subtle border (most cards, dividers) — spec #1A221C (green-tinted)
+  static const Color subtle = Color(0xFF1A221C);
 
   /// Standard border (input fields unfocused)
-  static const Color standard = Color(0xFF243552);
+  static const Color standard = Color(0xFF1E2A23);
 
   /// Strong border (highlighted sections)
-  static const Color strong = Color(0xFF2D4A6E);
+  static const Color strong = Color(0xFF26362C);
 
-  /// Emerald border (focused inputs, active)
-  static const Color emerald = Color(0xFF00A86B);
+  /// Emerald border (focused inputs, active) — flagship #00E676
+  static const Color emerald = Color(0xFF00E676);
 
   // withValues(alpha:) — Flutter 3.27+ compatible
 
   /// Emerald subtle border (35% opacity)
   static Color get emeraldSubtle =>
-      const Color(0xFF00A86B).withValues(alpha: 0.35);
+      const Color(0xFF00E676).withValues(alpha: 0.35);
 
-  /// Gold border (premium cards, highlights)
-  static const Color gold = Color(0xFFD4AF37);
+  /// Gold border (premium cards, highlights) — flagship #FFB703
+  static const Color gold = Color(0xFFFFB703);
+
+  /// Royal gold border (for premium text/frames) — #D4AF37
+  static const Color royalGold = Color(0xFFD4AF37);
 
   /// Gold subtle border (35% opacity)
   static Color get goldSubtle =>
-      const Color(0xFFD4AF37).withValues(alpha: 0.35);
+      const Color(0xFFFFB703).withValues(alpha: 0.35);
 
   /// Error border (invalid inputs)
   static const Color error = Color(0xFFEF4444);
 
   /// Focus border (active input fields)
-  static const Color focus = Color(0xFF00A86B);
+  static const Color focus = Color(0xFF00E676);
 
   /// Transparent
   static const Color transparent = Colors.transparent;

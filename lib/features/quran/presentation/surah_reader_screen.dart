@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../shared/widgets/controls/app_switch_tile.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_provider.dart' hide readingProgressProvider;
 
@@ -53,20 +54,46 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               _buildTopModeTabs(),
               _buildControlPillsBar(),
               Expanded(
-                child: ListView(
+                // ListView.builder with SliverChildBuilderDelegate semantics
+                // for O(1) per-frame construction → 60fps on 286-ayah surahs.
+                child: ListView.builder(
                   physics: const BouncingScrollPhysics(),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  children: [
-                    _buildSurahTitleHeader(surah),
-                    const SizedBox(height: 16),
-                    if (widget.surahNumber != 9 && widget.surahNumber != 1)
-                      _buildBismillahHeader(),
-                    ...surah.ayahs.map((ayah) => _buildAyahCard(ayah, surah)),
-                    const SizedBox(height: 16),
-                    _buildMultiTranslationComparisonCard(surah.ayahs.first),
-                    const SizedBox(height: 120),
-                  ],
+                  itemCount: surah.ayahs.length + 4,
+                  itemBuilder: (context, index) {
+                    // 0: title header
+                    // 1: bismillah (when applicable)
+                    // 2..2+N-1: ayahs
+                    // 2+N: multi-translation comparison
+                    // last: bottom spacer
+                    final bool showBismillah =
+                        widget.surahNumber != 9 && widget.surahNumber != 1;
+                    final int bismillahOffset = showBismillah ? 1 : 0;
+                    if (index == 0) return _buildSurahTitleHeader(surah);
+                    if (index == 1 && showBismillah) {
+                      return Column(
+                        children: [
+                          const SizedBox(height: 16),
+                          _buildBismillahHeader(),
+                        ],
+                      );
+                    }
+                    final int ayahIndex = index - 1 - bismillahOffset;
+                    if (ayahIndex >= 0 && ayahIndex < surah.ayahs.length) {
+                      return _buildAyahCard(surah.ayahs[ayahIndex], surah);
+                    }
+                    if (ayahIndex == surah.ayahs.length) {
+                      return Column(
+                        children: [
+                          const SizedBox(height: 16),
+                          _buildMultiTranslationComparisonCard(
+                              surah.ayahs.first),
+                        ],
+                      );
+                    }
+                    return const SizedBox(height: 120);
+                  },
                 ),
               ),
               _buildFloatingAudioPlayer(surah),
@@ -638,7 +665,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                       fontSize: 16,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              SwitchListTile(
+              AppSwitchListTile(
                 title: const Text('Show Translation',
                     style: TextStyle(color: Colors.white, fontSize: 13)),
                 subtitle: const Text('Display translation below Arabic',
@@ -647,7 +674,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                 activeColor: const Color(0xFF00E676),
                 onChanged: (val) {},
               ),
-              SwitchListTile(
+              AppSwitchListTile(
                 title: const Text('Auto Scroll',
                     style: TextStyle(color: Colors.white, fontSize: 13)),
                 subtitle: const Text('Scroll to next ayah automatically',

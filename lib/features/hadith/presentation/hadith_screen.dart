@@ -5,6 +5,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/media/safe_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -280,10 +281,10 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
               Positioned.fill(
                 child: Opacity(
                   opacity: 0.50,
-                  child: Image.asset(
-                    'assets/images/hero/mosque_night.png',
+                  child: SafeImage(
+                    assetPath: 'assets/images/hero/mosque_night.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox(),
+                    fallback: SafeImageFallback.mosque,
                   ),
                 ),
               ),
@@ -1162,11 +1163,10 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/images/quran_cover.png',
+              child: SafeImage(
+                assetPath: 'assets/images/quran_cover.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Center(
-                    child: Text('📖', style: TextStyle(fontSize: 22))),
+                fallback: SafeImageFallback.quran,
               ),
             ),
           ),
@@ -1238,7 +1238,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
       totalHadiths: bookInfo?.totalHadiths ?? 0,
       totalChapters: bookInfo?.sections.length ?? 0,
       description: 'Authentic prophetic hadiths and narrations.',
-      color: const Color(0xFF00A86B),
+      color: const Color(0xFF00E676),
     );
 
     Navigator.of(context).push(

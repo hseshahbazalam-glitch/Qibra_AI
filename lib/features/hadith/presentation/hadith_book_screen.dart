@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../shared/widgets/controls/app_switch_tile.dart';
 import '../data/models/hadith_models.dart';
 import '../providers/hadith_provider.dart';
 
@@ -443,30 +444,30 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SwitchListTile(
+                  AppSwitchListTile(
+                    activeColor: const Color(0xFF00E676),
                     title: const Text('Arabic Text (عربي)',
                         style: TextStyle(color: Colors.white, fontSize: 14)),
-                    activeTrackColor: const Color(0xFF00E676),
                     value: _showArabic,
                     onChanged: (v) {
                       setDialogState(() => _showArabic = v);
                       setState(() => _showArabic = v);
                     },
                   ),
-                  SwitchListTile(
+                  AppSwitchListTile(
+                    activeColor: const Color(0xFF00E676),
                     title: const Text('Urdu Translation (اردو)',
                         style: TextStyle(color: Colors.white, fontSize: 14)),
-                    activeTrackColor: const Color(0xFF00E676),
                     value: _showUrdu,
                     onChanged: (v) {
                       setDialogState(() => _showUrdu = v);
                       setState(() => _showUrdu = v);
                     },
                   ),
-                  SwitchListTile(
+                  AppSwitchListTile(
+                    activeColor: const Color(0xFF00E676),
                     title: const Text('English Translation',
                         style: TextStyle(color: Colors.white, fontSize: 14)),
-                    activeTrackColor: const Color(0xFF00E676),
                     value: _showEnglish,
                     onChanged: (v) {
                       setDialogState(() => _showEnglish = v);

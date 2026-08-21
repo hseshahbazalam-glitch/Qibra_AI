@@ -252,13 +252,13 @@ abstract final class AppShadows {
   // --- Emerald Glow Shadow (primary action elements) ---
   static List<BoxShadow> get emeraldGlow => [
         BoxShadow(
-          color: const Color(0xFF00A86B).withValues(alpha: 0.35),
+          color: const Color(0xFF00E676).withValues(alpha: 0.35),
           blurRadius: 20,
           spreadRadius: 0,
           offset: const Offset(0, 4),
         ),
         BoxShadow(
-          color: const Color(0xFF00A86B).withValues(alpha: 0.15),
+          color: const Color(0xFF00E676).withValues(alpha: 0.15),
           blurRadius: 40,
           spreadRadius: 0,
           offset: const Offset(0, 8),
@@ -502,7 +502,7 @@ abstract final class AppGradients {
     end: Alignment.bottomRight,
     colors: [
       Color(0xFF00C87A), // Bright Emerald
-      Color(0xFF00A86B), // Standard Emerald
+      Color(0xFF00E676), // Standard Emerald
       Color(0xFF007A4D), // Deep Emerald
     ],
     stops: [0.0, 0.5, 1.0],
@@ -551,7 +551,7 @@ abstract final class AppGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF00A86B), // Emerald
+      Color(0xFF00E676), // Emerald
       Color(0xFF006B45), // Deep Emerald
     ],
     stops: [0.0, 1.0],
@@ -642,13 +642,13 @@ abstract final class AppBorders {
 
   // --- Emerald Border ---
   static Border get emerald => Border.all(
-        color: const Color(0xFF00A86B).withValues(alpha: 0.6),
+        color: const Color(0xFF00E676).withValues(alpha: 0.6),
         width: 1.0,
       );
 
   // --- Emerald Border Bold ---
   static Border get emeraldBold =>
-      Border.all(color: const Color(0xFF00A86B), width: 1.5);
+      Border.all(color: const Color(0xFF00E676), width: 1.5);
 
   // --- Error Border ---
   static Border get error =>
@@ -656,7 +656,7 @@ abstract final class AppBorders {
 
   // --- Focus Border (text fields) ---
   static Border get focus =>
-      Border.all(color: const Color(0xFF00A86B), width: 2.0);
+      Border.all(color: const Color(0xFF00E676), width: 2.0);
 
   // --- None ---
   static Border get none => Border.all(color: Colors.transparent, width: 0);

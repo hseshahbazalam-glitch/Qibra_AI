@@ -15,10 +15,10 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   static const String _storageKey = 'islamic_habits';
 
   final List<_HabitTemplate> _templates = const [
-    _HabitTemplate('Fajr on Time', '🌅', Color(0xFFF59E0B)),
-    _HabitTemplate('Read Quran', '📖', Color(0xFF52B788)),
+    _HabitTemplate('Fajr on Time', '🌅', Color(0xFFFFB703)),
+    _HabitTemplate('Read Quran', '📖', Color(0xFF00E676)),
     _HabitTemplate('Morning Adhkar', '🌤️', Color(0xFFFFD700)),
-    _HabitTemplate('Evening Adhkar', '🌙', Color(0xFF7C3AED)),
+    _HabitTemplate('Evening Adhkar', '🌙', Color(0xFFD4AF37)),
     _HabitTemplate('Tahajjud', '🕌', Color(0xFF0891B2)),
     _HabitTemplate('Give Sadaqah', '💚', Color(0xFF4ECDC4)),
     _HabitTemplate('Fast Monday', '🗓️', Color(0xFFFF8C42)),
@@ -29,7 +29,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     _HabitTemplate('Istighfar 100x', '🤲', Color(0xFF74C0FC)),
     _HabitTemplate('No Backbiting', '🤐', Color(0xFFEF4444)),
     _HabitTemplate('Lower Gaze', '👁️', Color(0xFF6B7280)),
-    _HabitTemplate('Help Someone', '🤝', Color(0xFF52B788)),
+    _HabitTemplate('Help Someone', '🤝', Color(0xFF00E676)),
     _HabitTemplate('Learn 1 Hadith', '📚', Color(0xFFA78BFA)),
   ];
 
@@ -54,11 +54,11 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
       // Default habits
       setState(() {
         _habits = [
-          _IslamicHabit(name: 'Fajr on Time', emoji: '🌅', color: 0xFFF59E0B),
-          _IslamicHabit(name: 'Read Quran', emoji: '📖', color: 0xFF52B788),
+          _IslamicHabit(name: 'Fajr on Time', emoji: '🌅', color: 0xFFFFB703),
+          _IslamicHabit(name: 'Read Quran', emoji: '📖', color: 0xFF00E676),
           _IslamicHabit(
               name: 'Morning Adhkar', emoji: '🌤️', color: 0xFFFFD700),
-          _IslamicHabit(name: 'Evening Adhkar', emoji: '🌙', color: 0xFF7C3AED),
+          _IslamicHabit(name: 'Evening Adhkar', emoji: '🌙', color: 0xFFD4AF37),
           _IslamicHabit(name: 'Tahajjud', emoji: '🕌', color: 0xFF0891B2),
         ];
       });

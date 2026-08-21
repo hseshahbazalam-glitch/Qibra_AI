@@ -458,12 +458,12 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             colors: _isVerified
                 ? [
                     AppColors.success.withValues(alpha: 0.20),
-                    const Color(0xFF0A1628),
+                    const Color(0xFF050806),
                     AppColors.background,
                   ]
                 : [
                     const Color(0xFF2D2410),
-                    const Color(0xFF0A1628),
+                    const Color(0xFF050806),
                     AppColors.background,
                   ],
             stops: const [0.0, 0.5, 1.0],

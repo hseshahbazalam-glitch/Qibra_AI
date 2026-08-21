@@ -1117,7 +1117,7 @@ class _TargetSelectorSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentTarget = ref.watch(tasbihProvider).target;
-    final presets = [33, 100, 500, 1000];
+    final presets = [33, 99, 100, 500, 1000];
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),

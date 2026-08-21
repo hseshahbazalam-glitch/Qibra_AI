@@ -1,4 +1,4 @@
-﻿// lib/features/prayer/data/services/mosque_service.dart
+// lib/features/prayer/data/services/mosque_service.dart
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -104,6 +104,21 @@ out center;
             final lon = (el['lon'] ?? el['center']?['lon'] ?? longitude) as double;
             final dist = Mosque.calculateDistance(latitude, longitude, lat, lon);
 
+            String? _cleanTime(Object? v) {
+              if (v == null) return null;
+              final s = v.toString().trim();
+              if (s.isEmpty) return null;
+              // OSM prayer_times often like "05:15"; normalize to "hh:mm AM/PM".
+              final m = RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(s);
+              if (m == null) return s;
+              var h = int.parse(m.group(1)!);
+              final min = m.group(2)!;
+              final period = h < 12 ? 'AM' : 'PM';
+              if (h == 0) h = 12;
+              if (h > 12) h -= 12;
+              return '${h.toString().padLeft(2, '0')}:$min $period';
+            }
+
             liveList.add(
               Mosque(
                 id: el['id'].toString(),
@@ -113,10 +128,25 @@ out center;
                 latitude: lat,
                 longitude: lon,
                 distanceKm: dist,
-                hasWuduArea: tags['wudu'] == 'yes' || true,
-                hasParking: tags['parking'] != 'no',
-                hasWomenSection: tags['female'] == 'yes' || true,
-                isWheelchairAccessible: tags['wheelchair'] != 'no',
+                rating:
+                    double.tryParse(tags['rating']?.toString() ?? '') ?? 4.7,
+                // OSM doesn't always tag wudu/female explicitly. Default true
+                // only when tag is absent; an explicit 'no' tag is respected.
+                hasWuduArea: (tags['wudu'] as String? ?? 'yes') != 'no',
+                hasParking: (tags['parking'] as String? ?? 'yes') != 'no',
+                hasWomenSection: (tags['female'] as String? ?? 'yes') != 'no',
+                isWheelchairAccessible:
+                    (tags['wheelchair'] as String? ?? 'yes') != 'no',
+                // Jama'at timetable from OSM prayer_times tags when present.
+                fajrJamaat: _cleanTime(tags['prayer:fajr'] ?? tags['fajr']),
+                dhuhrJamaat:
+                    _cleanTime(tags['prayer:dhuhr'] ?? tags['dhuhr']),
+                asrJamaat: _cleanTime(tags['prayer:asr'] ?? tags['asr']),
+                maghribJamaat:
+                    _cleanTime(tags['prayer:maghrib'] ?? tags['maghrib']),
+                ishaJamaat: _cleanTime(tags['prayer:isha'] ?? tags['isha']),
+                jummahJamaat: _cleanTime(
+                    tags['prayer:jummah'] ?? tags['jummah'] ?? tags['jumma']),
               ),
             );
           }

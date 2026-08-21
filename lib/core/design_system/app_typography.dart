@@ -32,6 +32,14 @@ abstract final class AppFontFamily {
   /// Supports full Arabic Unicode
   static const String arabic = 'Amiri';
 
+  /// Noto Nastaliq Urdu — Urdu font (RTL, calligraphic Naskh/Nastaliq)
+  /// Traditional Urdu publishing style. Selected automatically when
+  /// app locale is Urdu (ur_PK / ur_IN) or user overrides.
+  static const String urdu = 'NotoNastaliqUrdu';
+
+  /// Inter — Alternative English/Latin font (for dense UI)
+  static const String inter = 'Inter';
+
   /// Monospace — for code/technical text (system font)
   static const String mono = 'monospace';
 }
@@ -476,6 +484,52 @@ abstract final class AppTextStyles {
         color: AppColors.textPrimary,
         height: AppLineHeight.arabicLoose,
       );
+
+  // ─── URDU TEXT STYLES (Noto Nastaliq Urdu) ─────────────────────
+  // Nastaliq is a calligraphic, diagonal-shaping naskh used for Urdu,
+  // Persian, and Shahmukhi Punjabi. We apply increased line-height so
+  // tall vertical ascenders don't collide between lines.
+  // Note: Google Fonts package exposes Noto Nastaliq Urdu as
+  // `notoNastaliqUrdu`. If the font ever fails to download at runtime,
+  // Flutter falls back to a platform Urdu typeface automatically.
+
+  static TextStyle _nastaliq({
+    required double fontSize,
+    FontWeight fontWeight = FontWeight.w400,
+    Color color = _onSurface,
+    double? height,
+  }) {
+    try {
+      // ignore: prefer_const_constructors
+      return GoogleFonts.notoNastaliqUrdu(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+        height: height ?? 2.2, // Nastaliq needs generous leading
+      );
+    } catch (_) {
+      return TextStyle(
+        fontFamily: AppFonts.urdu,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+        height: height ?? 2.2,
+      );
+    }
+  }
+
+  /// Urdu body text (14px)
+  static TextStyle get urduBody => _nastaliq(fontSize: AppFontSize.bodyMedium);
+
+  /// Urdu small body (12px)
+  static TextStyle get urduSmall => _nastaliq(fontSize: AppFontSize.bodySmall);
+
+  /// Urdu large (18px, surah/ayat translation)
+  static TextStyle get urduLarge => _nastaliq(fontSize: AppFontSize.titleMedium);
+
+  /// Urdu display (24px, headings, bismillah)
+  static TextStyle get urduDisplay =>
+      _nastaliq(fontSize: AppFontSize.headlineSmall, fontWeight: FontWeight.w700);
 
   // ══════════════════════════════════════════
   // SPECIAL PURPOSE STYLES

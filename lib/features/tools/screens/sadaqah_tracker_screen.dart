@@ -31,7 +31,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   final List<_SadaqahCategory> _categories = const [
     _SadaqahCategory(
-        'General', Icons.volunteer_activism_rounded, Color(0xFF52B788)),
+        'General', Icons.volunteer_activism_rounded, Color(0xFF00E676)),
     _SadaqahCategory('Food', Icons.restaurant_rounded, Color(0xFFFFD700)),
     _SadaqahCategory('Education', Icons.school_rounded, Color(0xFF74C0FC)),
     _SadaqahCategory(

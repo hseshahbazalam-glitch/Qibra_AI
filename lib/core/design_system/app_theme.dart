@@ -956,10 +956,33 @@ abstract final class AppTheme {
   // ══════════════════════════════════════════
 
   static SliderThemeData get _sliderTheme => SliderThemeData(
-        activeTrackColor: AppColors.primary,
-        inactiveTrackColor: AppColors.surfaceHigh,
-        thumbColor: AppColors.primary,
-        overlayColor: AppColors.primary.withValues(alpha: 0.12),
+        // Flutter 3.27+ uses trackColor (WidgetStateProperty) instead of the
+        // deprecated activeTrackColor / inactiveTrackColor.
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          final disabled = states.contains(WidgetState.disabled);
+          final selected = states.contains(WidgetState.selected);
+          if (disabled && selected) {
+            return AppColors.primary.withValues(alpha: 0.3);
+          }
+          if (disabled) {
+            return AppColors.surfaceHigh.withValues(alpha: 0.5);
+          }
+          if (selected) return AppColors.primary;
+          return AppColors.surfaceHigh;
+        }),
+        // Explicitly set deprecated fields to transparent so they don't
+        // override the new trackColor in older or newer Flutter builds.
+        activeTrackColor: Colors.transparent,
+        inactiveTrackColor: Colors.transparent,
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return AppColors.primary.withValues(alpha: 0.4);
+          }
+          return AppColors.primary;
+        }),
+        overlayColor: WidgetStatePropertyAll<Color>(
+          AppColors.primary.withValues(alpha: 0.12),
+        ),
         valueIndicatorColor: AppColors.surfaceHigh,
         valueIndicatorTextStyle: AppTextStyles.labelSmall,
         trackHeight: 4.0,

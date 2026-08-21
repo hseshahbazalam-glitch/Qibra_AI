@@ -38,7 +38,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Day of Ashura',
       nameArabic: 'يوم عاشوراء',
       description: 'Day of fasting & remembrance. Prophet Musa was saved.',
-      color: const Color(0xFF7C3AED),
+      color: const Color(0xFFFFB703),
       icon: Icons.mosque_rounded,
       category: 'Fasting',
       importance: 3,
@@ -48,7 +48,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Mawlid an-Nabi',
       nameArabic: 'المولد النبوي',
       description: 'Birth of Prophet Muhammad ﷺ',
-      color: const Color(0xFFF59E0B),
+      color: const Color(0xFFFFB703),
       icon: Icons.favorite_rounded,
       category: 'Holiday',
       importance: 3,
@@ -69,7 +69,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Shab-e-Barat',
       nameArabic: 'ليلة النصف من شعبان',
       description: 'Night of forgiveness. Records are transferred.',
-      color: const Color(0xFF8B5CF6),
+      color: const Color(0xFFFFB703),
       icon: Icons.auto_awesome,
       category: 'Special Night',
       importance: 2,
@@ -109,7 +109,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Day of Arafah',
       nameArabic: 'يوم عرفة',
       description: 'Best day for fasting. Sins of 2 years forgiven.',
-      color: const Color(0xFF3B82F6),
+      color: const Color(0xFF00E676),
       icon: Icons.terrain_rounded,
       category: 'Fasting',
       importance: 3,
@@ -119,7 +119,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Eid al-Adha',
       nameArabic: 'عيد الأضحى',
       description: 'Festival of Sacrifice. Remember Ibrahim\'s devotion.',
-      color: const Color(0xFFF59E0B),
+      color: const Color(0xFFFFB703),
       icon: Icons.celebration_rounded,
       category: 'Holiday',
       importance: 3,
@@ -149,7 +149,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Ayyam al-Beedh',
       nameArabic: 'أيام البيض',
       description: 'White days fasting (13th, 14th, 15th of each Hijri month)',
-      color: const Color(0xFFEC4899),
+      color: const Color(0xFFD4AF37),
       icon: Icons.brightness_3_rounded,
       category: 'Sunnah',
       importance: 1,
@@ -507,7 +507,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             title: 'Eid al-Adha',
             daysLeft: 220,
             icon: Icons.celebration_rounded,
-            color: const Color(0xFFF59E0B),
+            color: const Color(0xFFFFB703),
             subtitle: '10 Dhul Hijjah',
           ),
           const SizedBox(width: 12),
@@ -626,7 +626,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       specialInfo = isMonday
           ? 'Monday — Sunnah fasting day. Prophet ﷺ used to fast.'
           : 'Thursday — Sunnah fasting day. Deeds are presented to Allah.';
-      specialColor = const Color(0xFF3B82F6);
+      specialColor = const Color(0xFF00E676);
       specialIcon = Icons.restaurant_rounded;
     } else {
       specialInfo =

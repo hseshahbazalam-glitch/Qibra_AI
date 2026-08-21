@@ -610,7 +610,7 @@ class _TranslationTab extends ConsumerWidget {
             _buildLanguageCard(
               label: 'اردو',
               icon: Icons.translate_rounded,
-              color: const Color(0xFF00A86B),
+              color: const Color(0xFF00E676),
               content: Text(
                 ayah.translationUrdu!,
                 textDirection: TextDirection.rtl,

@@ -4,6 +4,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/media/safe_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -227,11 +228,11 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
               bottom: 10,
               child: Opacity(
                 opacity: 0.35,
-                child: Image.asset(
-                  'assets/images/hero/mosque_night.png',
-                  height: 160,
+                child: SafeImage(
+                  assetPath: 'assets/images/hero/mosque_night.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox(),
+                  height: 160,
+                  fallback: SafeImageFallback.mosque,
                 ),
               ),
             ),
@@ -1314,11 +1315,11 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
               bottom: 0,
               child: Opacity(
                 opacity: 0.35,
-                child: Image.asset(
-                  'assets/images/hero/mosque_night.png',
-                  height: 100,
+                child: SafeImage(
+                  assetPath: 'assets/images/hero/mosque_night.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox(),
+                  height: 100,
+                  fallback: SafeImageFallback.mosque,
                 ),
               ),
             ),

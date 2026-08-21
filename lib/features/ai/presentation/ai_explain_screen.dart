@@ -282,7 +282,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             height: 44,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
@@ -400,7 +400,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 120,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                  colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
@@ -568,7 +568,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             height: 100,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
@@ -663,7 +663,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 32,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                  colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
                 ),
                 shape: BoxShape.circle,
               ),
@@ -798,7 +798,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             height: 32,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
               ),
               shape: BoxShape.circle,
             ),
@@ -904,7 +904,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                       ? [Colors.red, Colors.redAccent]
                       : (_isSpeaking
                           ? [Colors.orange, Colors.deepOrange]
-                          : [const Color(0xFF3B82F6), const Color(0xFF8B5CF6)]),
+                          : [const Color(0xFF3B82F6), const Color(0xFFFFB703)]),
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [

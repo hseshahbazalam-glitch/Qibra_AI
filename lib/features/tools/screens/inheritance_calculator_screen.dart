@@ -233,7 +233,7 @@ class _InheritanceCalculatorScreenState
           1 / 6,
           1,
           '1/6 fixed share + may get residual',
-          Color(0xFF52B788),
+          Color(0xFF00E676),
           Icons.man_rounded,
         );
       }
@@ -454,7 +454,7 @@ class _InheritanceCalculatorScreenState
           remainder,
           1,
           'Residual — no male children (Asabah)',
-          const Color(0xFF52B788),
+          const Color(0xFF00E676),
           Icons.man_rounded,
         );
         remainder = 0;
@@ -471,7 +471,7 @@ class _InheritanceCalculatorScreenState
           newF,
           1,
           '1/6 fixed + residual after daughters',
-          const Color(0xFF52B788),
+          const Color(0xFF00E676),
           Icons.man_rounded,
         );
         remainder = 0;
@@ -839,7 +839,7 @@ class _InheritanceCalculatorScreenState
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
             color: _understood
-                ? const Color(0xFF52B788).withValues(alpha: 0.4)
+                ? const Color(0xFF00E676).withValues(alpha: 0.4)
                 : Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Column(
@@ -911,11 +911,11 @@ class _InheritanceCalculatorScreenState
                 Checkbox(
                   value: _understood,
                   onChanged: (v) => setState(() => _understood = v ?? false),
-                  activeColor: const Color(0xFF52B788),
+                  activeColor: const Color(0xFF00E676),
                   checkColor: Colors.white,
                   side: BorderSide(
                       color: _understood
-                          ? const Color(0xFF52B788)
+                          ? const Color(0xFF00E676)
                           : Colors.orange.withValues(alpha: 0.5)),
                 ),
                 const SizedBox(width: 4),
@@ -1142,7 +1142,7 @@ class _InheritanceCalculatorScreenState
             'Total Estate Value',
             'Total wealth of deceased',
             _estateController,
-            const Color(0xFF52B788),
+            const Color(0xFF00E676),
             Icons.account_balance_rounded),
         const SizedBox(height: 10),
         _inputField('Debts & Loans', 'Outstanding debts (deducted first)',
@@ -1291,7 +1291,7 @@ class _InheritanceCalculatorScreenState
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _toggleRow('Father', '👨', _hasFather,
-              (v) => setState(() => _hasFather = v), const Color(0xFF52B788)),
+              (v) => setState(() => _hasFather = v), const Color(0xFF00E676)),
           _toggleRow('Mother', '👩', _hasMother,
               (v) => setState(() => _hasMother = v), const Color(0xFFA78BFA)),
           if (!_hasFather)
@@ -1593,7 +1593,7 @@ class _InheritanceCalculatorScreenState
           decoration: BoxDecoration(
             gradient: LinearGradient(
                 colors: enabled
-                    ? [const Color(0xFFA78BFA), const Color(0xFF7C3AED)]
+                    ? [const Color(0xFFA78BFA), const Color(0xFFD4AF37)]
                     : [
                         Colors.grey.withValues(alpha: 0.3),
                         Colors.grey.withValues(alpha: 0.2)
@@ -1665,7 +1665,7 @@ class _InheritanceCalculatorScreenState
                 const Color(0xFFFFD166)),
           const Divider(color: Color(0xFF4A3F6B), height: 20),
           _summaryRow('Net Distributable', _formatAmount(_netEstate),
-              const Color(0xFF52B788)),
+              const Color(0xFF00E676)),
           _summaryRow('Heirs', '${_results.length}', const Color(0xFFA78BFA)),
         ],
       ),

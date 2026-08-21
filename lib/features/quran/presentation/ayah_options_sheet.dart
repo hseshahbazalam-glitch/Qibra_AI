@@ -259,13 +259,13 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
           _actionButton(
             icon: Icons.menu_book_rounded,
             label: 'Tafsir',
-            color: const Color(0xFFF59E0B),
+            color: const Color(0xFFFFB703),
             onTap: _openTafsir,
           ),
           _actionButton(
             icon: Icons.copy_rounded,
             label: 'Copy',
-            color: const Color(0xFF8B5CF6),
+            color: const Color(0xFFFFB703),
             onTap: _copyAyah,
           ),
           _actionButton(
@@ -287,7 +287,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
           _actionButton(
             icon: Icons.play_arrow_rounded,
             label: 'Play',
-            color: const Color(0xFFEC4899),
+            color: const Color(0xFFD4AF37),
             onTap: _playAudio,
           ),
           _actionButton(
@@ -419,7 +419,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                   icon: Icons.article_rounded,
                   title: 'Read Full Surah',
                   subtitle: widget.surahName,
-                  color: const Color(0xFFF59E0B),
+                  color: const Color(0xFFFFB703),
                   onTap: _openFullSurah,
                 ),
               ),

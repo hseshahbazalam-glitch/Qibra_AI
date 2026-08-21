@@ -16,7 +16,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       title: 'Before Nikah',
       subtitle: 'Preparation & Selection',
       emoji: '💚',
-      color: Color(0xFF52B788),
+      color: Color(0xFF00E676),
       items: [
         _NikahItem(
           'Istikhara Prayer',
@@ -166,7 +166,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
   ];
 
   final List<_QuickFact> _quickFacts = const [
-    _QuickFact('Wali', 'Guardian required', '👨', Color(0xFF52B788)),
+    _QuickFact('Wali', 'Guardian required', '👨', Color(0xFF00E676)),
     _QuickFact('Mahr', 'Bride\'s right', '💎', Color(0xFFFFD166)),
     _QuickFact('Witnesses', '2 males needed', '👥', Color(0xFF74C0FC)),
     _QuickFact('Consent', 'Both must agree', '✅', Color(0xFFA78BFA)),

@@ -2,6 +2,7 @@
 // Premium Prayer Hero Card with mountain background
 
 import 'package:flutter/material.dart';
+import '../../../../shared/widgets/media/safe_image.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
@@ -55,18 +56,10 @@ class PrayerHeroCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
-                'assets/images/hero/mosque_night.png',
+              SafeImage(
+                assetPath: 'assets/images/hero/mosque_night.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF103A2A), Color(0xFF061A10)],
-                    ),
-                  ),
-                ),
+                fallback: SafeImageFallback.mosque,
               ),
               DecoratedBox(
                 decoration: BoxDecoration(
