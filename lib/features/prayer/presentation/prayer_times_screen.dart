@@ -1,10 +1,13 @@
 // lib/features/prayer/presentation/prayer_times_screen.dart
 // ============================================================
 // QIBRA AI — FLAGSHIP PRAYER SCREEN (Exact Gold & Emerald UI)
+// Fully interactive: Live Countdown, Calculation Method Selector,
+// Prayer Tracking, Tahajjud Hub, Streak Analytics & Mosque Finder
 // ============================================================
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hijri/hijri_calendar.dart';
@@ -13,9 +16,9 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../data/models/prayer_models.dart';
 import '../providers/prayer_provider.dart';
+import 'prayer_statistics_screen.dart';
 import 'salah_schedule_screen.dart';
 import 'tahajjud_details_screen.dart';
-import 'prayer_statistics_screen.dart';
 
 class PrayerTimesScreen extends ConsumerStatefulWidget {
   const PrayerTimesScreen({super.key});
@@ -26,6 +29,7 @@ class PrayerTimesScreen extends ConsumerStatefulWidget {
 
 class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
   Timer? _timer;
+  final Set<String> _completedPrayers = {'Fajr', 'Sunrise'};
 
   @override
   void initState() {
@@ -47,12 +51,15 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     final dailyTimes = ref.watch(dailyPrayerTimesProvider);
     final qiblaDirection = ref.watch(qiblaDirectionProvider);
     final statistics = ref.watch(prayerStatisticsProvider);
+    final settings = ref.watch(prayerSettingsProvider);
 
+    // Dates
     final now = DateTime.now();
     final hijri = HijriCalendar.now();
     final hijriStr = '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH';
     final gregDateStr = DateFormat('EEEE, d MMM yyyy').format(now);
 
+    // Countdown
     final countdown = nextPrayerInfo?.countdown ??
         const Duration(hours: 1, minutes: 41, seconds: 9);
     final totalSecs = countdown.inSeconds.abs();
@@ -85,7 +92,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                 _buildTopAppBar(context),
                 const SizedBox(height: 14),
 
-                // 2. HERO ILLUMINATED MOSQUE CARD WITH 72% RADIAL RING
+                // 2. HERO ILLUMINATED MOSQUE CARD WITH RADIAL RING
                 _buildHeroPrayerCard(
                   context,
                   hijriStr: hijriStr,
@@ -100,7 +107,12 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                 const SizedBox(height: 16),
 
                 // 3. TODAY'S PRAYER TIMES LIST CARD WITH STATUS CHECKMARKS
-                _buildTodayPrayerTimesCard(context, dailyTimes, nextName),
+                _buildTodayPrayerTimesCard(
+                  context,
+                  dailyTimes: dailyTimes,
+                  nextName: nextName,
+                  methodName: settings.method.name,
+                ),
                 const SizedBox(height: 16),
 
                 // 4. TAHAJJUD & PRAYER STREAK (TWO-COLUMN)
@@ -123,7 +135,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
 
                 // 7. DUA BEFORE PRAYER BANNER
                 _buildDuaBeforePrayerBanner(context),
-                const SizedBox(height: 110),
+                const SizedBox(height: 110), // Bottom navigation spacing
               ],
             ),
           ),
@@ -132,10 +144,13 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     );
   }
 
+  // ============================================================
   // 1. TOP APP BAR
+  // ============================================================
   Widget _buildTopAppBar(BuildContext context) {
     return Row(
       children: [
+        // Menu Button
         InkWell(
           onTap: () => context.go(AppRoutes.tools),
           borderRadius: BorderRadius.circular(10),
@@ -152,6 +167,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
           ),
         ),
         const SizedBox(width: 12),
+
+        // Title
         const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,6 +194,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
             ],
           ),
         ),
+
+        // 3 Emerald Action Buttons
         _buildTopIconBtn(
           icon: Icons.calendar_month_rounded,
           onTap: () => context.go(AppRoutes.islamicCalendar),
@@ -213,7 +232,9 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     );
   }
 
-  // 2. HERO PRAYER CARD
+  // ============================================================
+  // 2. HERO PRAYER CARD (Illuminated Mosque + Radial Ring)
+  // ============================================================
   Widget _buildHeroPrayerCard(
     BuildContext context, {
     required String hijriStr,
@@ -235,25 +256,25 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         borderRadius: BorderRadius.circular(22),
         child: Stack(
           children: [
-            Positioned(
-              left: 30,
-              bottom: 25,
+            Positioned.fill(
               child: Opacity(
-                opacity: 0.35,
+                opacity: 0.75,
                 child: Image.asset(
                   'assets/images/hero/mosque_night.png',
-                  height: 170,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => const SizedBox(),
                 ),
               ),
             ),
             Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xEA050806), Color(0xFA020302)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF040A07).withValues(alpha: 0.40),
+                    const Color(0xFF020503).withValues(alpha: 0.85),
+                  ],
                 ),
               ),
               padding: const EdgeInsets.all(16),
@@ -262,6 +283,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Left Prayer Details & Digital Timer
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,6 +361,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                           ],
                         ),
                       ),
+
+                      // Right Radial Progress Ring
                       Stack(
                         alignment: Alignment.center,
                         children: [
@@ -373,6 +397,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
+
+                  // Bottom Info Strip
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -441,9 +467,15 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     );
   }
 
-  // 3. TODAY'S PRAYER TIMES
+  // ============================================================
+  // 3. TODAY'S PRAYER TIMES LIST CARD WITH STATUS CHECKMARKS
+  // ============================================================
   Widget _buildTodayPrayerTimesCard(
-      BuildContext context, DailyPrayerTimes? dailyTimes, String nextName) {
+    BuildContext context, {
+    required DailyPrayerTimes? dailyTimes,
+    required String nextName,
+    required String methodName,
+  }) {
     final prayers = [
       {
         'name': 'Fajr',
@@ -451,8 +483,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         'time': dailyTimes?.fajr.formattedTime ?? '04:30 AM',
         'icon': Icons.wb_twilight_rounded,
         'color': const Color(0xFF00E676),
-        'isNext': false,
-        'isDone': true,
+        'isNext': nextName == 'Fajr',
       },
       {
         'name': 'Sunrise',
@@ -461,7 +492,6 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         'icon': Icons.wb_sunny_outlined,
         'color': const Color(0xFFFFB703),
         'isNext': false,
-        'isDone': true,
       },
       {
         'name': 'Dhuhr',
@@ -469,8 +499,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         'time': dailyTimes?.dhuhr.formattedTime ?? '11:57 AM',
         'icon': Icons.wb_sunny_rounded,
         'color': const Color(0xFFFFB703),
-        'isNext': true,
-        'isDone': false,
+        'isNext': nextName == 'Dhuhr',
       },
       {
         'name': 'Asr',
@@ -478,8 +507,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         'time': dailyTimes?.asr.formattedTime ?? '03:01 PM',
         'icon': Icons.cloud_rounded,
         'color': const Color(0xFFEF4444),
-        'isNext': false,
-        'isDone': false,
+        'isNext': nextName == 'Asr',
       },
       {
         'name': 'Maghrib',
@@ -487,8 +515,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         'time': dailyTimes?.maghrib.formattedTime ?? '06:11 PM',
         'icon': Icons.nights_stay_rounded,
         'color': const Color(0xFFA855F7),
-        'isNext': false,
-        'isDone': false,
+        'isNext': nextName == 'Maghrib',
       },
       {
         'name': 'Isha',
@@ -496,8 +523,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         'time': dailyTimes?.isha.formattedTime ?? '07:19 PM',
         'icon': Icons.brightness_2_rounded,
         'color': const Color(0xFF38BDF8),
-        'isNext': false,
-        'isDone': false,
+        'isNext': nextName == 'Isha',
       },
     ];
 
@@ -512,8 +538,8 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Row(
+            children: [
+              const Row(
                 children: [
                   Icon(Icons.access_time_filled,
                       color: Color(0xFFFFB703), size: 14),
@@ -525,8 +551,14 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                           fontWeight: FontWeight.bold)),
                 ],
               ),
-              Text('Juristic Method: Hanafi ⓘ',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 9.5)),
+              InkWell(
+                onTap: () => _showCalculationMethodSheet(context),
+                child: const Text('Method: Karachi (Hanafi) ⓘ',
+                    style: TextStyle(
+                        color: Color(0xFF00E676),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold)),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -539,145 +571,174 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
   Widget _buildPrayerTimelineTile(
       BuildContext context, Map<String, dynamic> p) {
     final isNext = p['isNext'] as bool;
-    final isDone = p['isDone'] as bool;
+    final name = p['name'] as String;
+    final isDone = _completedPrayers.contains(name);
     final color = p['color'] as Color;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 7),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isNext ? const Color(0xFF0A2217) : const Color(0xFF050806),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isNext ? const Color(0xFF00E676) : const Color(0xFF16201A),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(p['icon'] as IconData, color: color, size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(p['name'] as String,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold)),
-                    if (isNext) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF00E676).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text('NEXT',
-                            style: TextStyle(
-                                color: Color(0xFF00E676),
-                                fontSize: 7,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ],
-                ),
-                Text(p['arabic'] as String,
-                    style: TextStyle(
-                        color: isNext
-                            ? const Color(0xFF00E676)
-                            : const Color(0xFF64748B),
-                        fontSize: 9.5,
-                        fontFamily: 'Amiri')),
-              ],
-            ),
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        setState(() {
+          if (isDone) {
+            _completedPrayers.remove(name);
+          } else {
+            _completedPrayers.add(name);
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isDone
+                ? '$name prayer unmarked'
+                : '$name marked as completed! MashaAllah 💚'),
+            backgroundColor: const Color(0xFF0B2E21),
+            duration: const Duration(seconds: 1),
           ),
-          Text(p['time'] as String,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700)),
-          const SizedBox(width: 10),
-          if (isDone)
-            const Icon(Icons.check_circle_rounded,
-                color: Color(0xFF00E676), size: 16)
-          else if (isNext)
-            Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF00E676)),
-              ),
-              child: const Icon(Icons.arrow_forward_ios_rounded,
-                  color: Color(0xFF00E676), size: 10),
-            )
-          else
-            const Icon(Icons.hourglass_empty_rounded,
-                color: Color(0xFF64748B), size: 16),
-        ],
-      ),
-    );
-  }
-
-  // 4. TAHAJJUD & PRAYER STREAK
-  Widget _buildTahajjudAndStreakRow(BuildContext context,
-      {required int streakDays}) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 54,
-          child: InkWell(
-            onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const TahajjudDetailsScreen())),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [Color(0xFF231640), Color(0xFF0F0B1E)]),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFF452D75)),
-              ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isNext ? const Color(0xFF0A2217) : const Color(0xFF050806),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isNext ? const Color(0xFF00E676) : const Color(0xFF16201A),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(p['icon'] as IconData, color: color, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text('🌙 TAHAJJUD',
-                          style: TextStyle(
-                              color: Color(0xFFC084FC),
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w900)),
-                      Text('🌙', style: TextStyle(fontSize: 14)),
+                    children: [
+                      Text(name,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold)),
+                      if (isNext) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color:
+                                const Color(0xFF00E676).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('NEXT',
+                              style: TextStyle(
+                                  color: Color(0xFF00E676),
+                                  fontSize: 7,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  const Text('قيام الليل',
+                  Text(p['arabic'] as String,
                       style: TextStyle(
-                          color: Color(0xFFFFB703),
-                          fontSize: 13,
-                          fontFamily: 'Amiri',
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  const Text('Starts in',
-                      style:
-                          TextStyle(color: Color(0xFF94A3B8), fontSize: 8.5)),
-                  const Text('02 : 15 : 30',
+                          color: isNext
+                              ? const Color(0xFF00E676)
+                              : const Color(0xFF64748B),
+                          fontSize: 9.5,
+                          fontFamily: 'Amiri')),
+                ],
+              ),
+            ),
+            Text(p['time'] as String,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(width: 10),
+            Icon(
+              isDone
+                  ? Icons.check_circle_rounded
+                  : (isNext
+                      ? Icons.radio_button_unchecked_rounded
+                      : Icons.circle_outlined),
+              color: isDone
+                  ? const Color(0xFF00E676)
+                  : (isNext
+                      ? const Color(0xFFFFB703)
+                      : const Color(0xFF64748B)),
+              size: 18,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 4. TAHAJJUD & PRAYER STREAK (TWO-COLUMN)
+  // ============================================================
+  Widget _buildTahajjudAndStreakRow(BuildContext context,
+      {required int streakDays}) {
+    return Row(
+      children: [
+        // Left: Tahajjud Card (Purple Theme)
+        Expanded(
+          flex: 54,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const TahajjudDetailsScreen()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF261B40), Color(0xFF130E20)],
+                ),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFF4C367C)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Row(
+                    children: [
+                      Icon(Icons.nightlight_round,
+                          color: Color(0xFFFFB703), size: 12),
+                      SizedBox(width: 4),
+                      Text('TAHAJJUD HUB',
+                          style: TextStyle(
+                              color: Color(0xFFFFB703),
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900)),
+                    ],
+                  ),
+                  SizedBox(height: 6),
+                  Text('Tahajjud',
                       style: TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
+                  Text('قيام الليل',
+                      style: TextStyle(
+                          color: Color(0xFFFFB703),
+                          fontSize: 11,
+                          fontFamily: 'Amiri')),
+                  SizedBox(height: 6),
+                  Text('Starts in 04:32:15',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11.5,
                           fontFamily: 'monospace',
                           fontWeight: FontWeight.bold)),
-                  const Text('Hrs        Mins       Secs',
+                  Text('Hrs        Mins       Secs',
                       style:
                           TextStyle(color: Color(0xFF64748B), fontSize: 7.5)),
-                  const SizedBox(height: 4),
-                  const Text('Best time: Last third of the night',
+                  SizedBox(height: 4),
+                  Text('Best time: Last third of the night',
                       style:
                           TextStyle(color: Color(0xFF94A3B8), fontSize: 7.5)),
                 ],
@@ -686,68 +747,80 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
           ),
         ),
         const SizedBox(width: 10),
+
+        // Right: Prayer Streak Card
         Expanded(
           flex: 46,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF080C0A),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFF1A221C)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Text('🔥', style: TextStyle(fontSize: 11)),
-                    SizedBox(width: 4),
-                    Text('PRAYER STREAK',
-                        style: TextStyle(
-                            color: Color(0xFFFFB703),
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.w900)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Text('$streakDays',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold)),
-                    const Text(' Days',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) {
-                    final isStar = d == 'S';
-                    return Column(
-                      children: [
-                        Icon(isStar ? Icons.star_rounded : Icons.check_circle,
-                            color: isStar
-                                ? const Color(0xFFFFB703)
-                                : const Color(0xFF00E676),
-                            size: 10),
-                        const SizedBox(height: 2),
-                        Text(d,
-                            style: const TextStyle(
-                                color: Color(0xFF64748B), fontSize: 7.5)),
-                      ],
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 8),
-                const Text("Keep it up! You're on fire! 🔥",
-                    style: TextStyle(color: Color(0xFFFFB703), fontSize: 7.5)),
-              ],
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const PrayerStatisticsScreen()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF080C0A),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFF1A221C)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Text('🔥', style: TextStyle(fontSize: 11)),
+                      SizedBox(width: 4),
+                      Text('PRAYER STREAK',
+                          style: TextStyle(
+                              color: Color(0xFFFFB703),
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('$streakDays',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold)),
+                      const Text(' Days',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) {
+                      final isStar = d == 'S';
+                      return Column(
+                        children: [
+                          Icon(isStar ? Icons.star_rounded : Icons.check_circle,
+                              color: isStar
+                                  ? const Color(0xFFFFB703)
+                                  : const Color(0xFF00E676),
+                              size: 10),
+                          const SizedBox(height: 2),
+                          Text(d,
+                              style: const TextStyle(
+                                  color: Color(0xFF64748B), fontSize: 7.5)),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text("Keep it up! You're on fire! 🔥",
+                      style:
+                          TextStyle(color: Color(0xFFFFB703), fontSize: 7.5)),
+                ],
+              ),
             ),
           ),
         ),
@@ -755,7 +828,9 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     );
   }
 
+  // ============================================================
   // 5. QIBLA DIRECTION TRAJECTORY CARD
+  // ============================================================
   Widget _buildQiblaTrajectoryCard(BuildContext context, int angle) {
     return InkWell(
       onTap: () => context.go(AppRoutes.qibla),
@@ -798,14 +873,19 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                 style: TextStyle(color: Color(0xFFFFB703), fontSize: 12)),
             const SizedBox(width: 8),
             Container(
-              width: 52,
-              height: 52,
+              width: 54,
+              height: 54,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: const Color(0xFFFFB703), width: 1.5),
               ),
-              child: const Center(
-                child: Text('🧭', style: TextStyle(fontSize: 26)),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/hero/compass_qibla.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Center(
+                      child: Text('🧭', style: TextStyle(fontSize: 26))),
+                ),
               ),
             ),
           ],
@@ -814,7 +894,9 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     );
   }
 
-  // 6. NEAREST MOSQUE CARD
+  // ============================================================
+  // 6. NEAREST MOSQUE CARD WITH MAP PREVIEW
+  // ============================================================
   Widget _buildNearestMosqueCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -847,7 +929,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                         color: Colors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.bold)),
-                const Text('0.8 km away',
+                const Text('0.8 km away • Women area, Parking',
                     style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10)),
                 const SizedBox(height: 8),
                 InkWell(
@@ -863,7 +945,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('View on Map',
+                        Text('Find Mosques >',
                             style: TextStyle(
                                 color: Color(0xFF00E676),
                                 fontSize: 9.5,
@@ -905,7 +987,9 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
     );
   }
 
+  // ============================================================
   // 7. DUA BEFORE PRAYER BANNER
+  // ============================================================
   Widget _buildDuaBeforePrayerBanner(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -961,6 +1045,83 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showCalculationMethodSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          padding: const EdgeInsets.all(18),
+          decoration: const BoxDecoration(
+            color: Color(0xFF080C0A),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            border:
+                Border(top: BorderSide(color: Color(0xFF1E3A2B), width: 1.5)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Calculation Method & Juristic School',
+                  style: TextStyle(
+                      color: Color(0xFFFFB703),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              ListTile(
+                leading: const Icon(Icons.check_circle_rounded,
+                    color: Color(0xFF00E676)),
+                title: const Text('University of Karachi (Hanafi)',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
+                subtitle: const Text('Standard method for Indian Subcontinent',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                onTap: () {
+                  ref
+                      .read(prayerSettingsProvider.notifier)
+                      .setCalculationMethod(CalculationMethod.karachi);
+                  Navigator.pop(sheetContext);
+                },
+              ),
+              ListTile(
+                leading:
+                    const Icon(Icons.circle_outlined, color: Color(0xFF64748B)),
+                title: const Text('Muslim World League (MWL)',
+                    style: TextStyle(color: Colors.white, fontSize: 13)),
+                subtitle: const Text(
+                    'Standard method for Europe, Far East, parts of US',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                onTap: () {
+                  ref
+                      .read(prayerSettingsProvider.notifier)
+                      .setCalculationMethod(
+                          CalculationMethod.muslimWorldLeague);
+                  Navigator.pop(sheetContext);
+                },
+              ),
+              ListTile(
+                leading:
+                    const Icon(Icons.circle_outlined, color: Color(0xFF64748B)),
+                title: const Text('Umm al-Qura (Makkah)',
+                    style: TextStyle(color: Colors.white, fontSize: 13)),
+                subtitle: const Text('Standard method for Arabian Peninsula',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                onTap: () {
+                  ref
+                      .read(prayerSettingsProvider.notifier)
+                      .setCalculationMethod(CalculationMethod.ummAlQura);
+                  Navigator.pop(sheetContext);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
