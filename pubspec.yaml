@@ -10,9 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  intl: ^0.19.0 
-    
-    
+  intl: ^0.19.0
 
   # --- UI & FONTS ---
   cupertino_icons: ^1.0.8
@@ -39,7 +37,7 @@ dependencies:
   # --- AUDIO ---
   audioplayers: ^6.1.0
   path_provider: ^2.1.3
-  
+
   # --- PERMISSIONS ---
   permission_handler: ^11.3.1
 
@@ -74,8 +72,6 @@ dev_dependencies:
   flutter_native_splash: ^2.4.8
   flutter_launcher_icons: ^0.14.4
 
-# --- JNI FIX (Gradle 9.1 compatibility) ---
-
 # ============================================================
 # FLUTTER CONFIGURATION
 # ============================================================
@@ -83,8 +79,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    # NOTE: .env is NOT bundled — secrets must NOT be in APK.
-    # Use --dart-define or backend proxy for API keys (see docs/security.md)
+    # Images & Icons
     - assets/images/
     - assets/images/hero/
     - assets/images/calligraphy/
@@ -95,12 +90,21 @@ flutter:
     - assets/images/patterns/
     - assets/images/quran/
     - assets/icons/
-    - assets/data/quran/
-    - assets/data/hadith/
-    - assets/data/hadith/bukhari/
     - assets/animations/
     - assets/lottie/
     - assets/audio/
+
+    # Quran & Hadith Datasets
+    - assets/data/quran/
+    - assets/data/hadith/
+    - assets/data/hadith/bukhari/
+    - assets/data/hadith/muslim/
+    - assets/data/hadith/nasai/
+    - assets/data/hadith/abudawud/
+    - assets/data/hadith/tirmidhi/
+    - assets/data/hadith/ibnmajah/
+    - assets/data/hadith/malik/
+
 # ============================================================
 # APP ICON CONFIGURATION
 # ============================================================

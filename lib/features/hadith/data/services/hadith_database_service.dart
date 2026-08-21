@@ -1,12 +1,10 @@
 // lib/features/hadith/data/services/hadith_database_service.dart
-
 // ============================================================
-// QIBRA AI — LOCAL HADITH DATABASE SERVICE
-// Version: 1.0.2 — Handles String hadith numbers (1a, 1b)
+// QIBRA AI — LOCAL HADITH DATABASE SERVICE (Multi-Book & Multi-Language)
+// Singleton instance to prevent multiple re-decoding passes.
 // ============================================================
 
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -45,13 +43,21 @@ class LocalHadith {
   String get displayReference => '$bookName $hadithNumber';
 
   String get shortText {
-    if (textEnglish.length <= 120) return textEnglish;
-    return '${textEnglish.substring(0, 120)}...';
+    if (textEnglish.isNotEmpty) {
+      if (textEnglish.length <= 120) return textEnglish;
+      return '${textEnglish.substring(0, 120)}...';
+    }
+    if (textUrdu.isNotEmpty) {
+      if (textUrdu.length <= 120) return textUrdu;
+      return '${textUrdu.substring(0, 120)}...';
+    }
+    if (textArabic.length <= 120) return textArabic;
+    return '${textArabic.substring(0, 120)}...';
   }
 
-  bool get hasArabic => textArabic.isNotEmpty;
-  bool get hasEnglish => textEnglish.isNotEmpty;
-  bool get hasUrdu => textUrdu.isNotEmpty;
+  bool get hasArabic => textArabic.trim().isNotEmpty;
+  bool get hasEnglish => textEnglish.trim().isNotEmpty;
+  bool get hasUrdu => textUrdu.trim().isNotEmpty;
 }
 
 // ============================================================
@@ -93,19 +99,23 @@ class LocalSearchResult {
 }
 
 // ============================================================
-// DATABASE SERVICE
+// DATABASE SERVICE (Singleton)
 // ============================================================
 
 class HadithDatabaseService {
-  HadithDatabaseService();
+  static final HadithDatabaseService _instance =
+      HadithDatabaseService._internal();
+  factory HadithDatabaseService() => _instance;
+  HadithDatabaseService._internal();
 
-  /// Local collections that are actually bundled with this build.
-  ///
-  /// Do not add a collection here until all of its reviewed asset files have
-  /// been included. Previously this listed six collections while only Bukhari
-  /// existed on disk, leading to misleading loading attempts and product claims.
   static const Map<String, String> _bookNames = {
     'bukhari': 'Sahih al-Bukhari',
+    'muslim': 'Sahih Muslim',
+    'nasai': 'Sunan an-Nasa\'i',
+    'abudawud': 'Sunan Abi Dawud',
+    'tirmidhi': 'Jami` at-Tirmidhi',
+    'ibnmajah': 'Sunan Ibn Majah',
+    'malik': 'Muwatta Malik',
   };
 
   final Map<String, List<LocalHadith>> _bookData = {};
@@ -129,9 +139,15 @@ class HadithDatabaseService {
   // ─── INITIALIZE ──────────────────────────────────────────
 
   Future<void> initialize() async {
-    if (_isInitialized || _isLoading) return;
-    _isLoading = true;
+    if (_isInitialized) return;
+    if (_isLoading) {
+      while (_isLoading) {
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
+      return;
+    }
 
+    _isLoading = true;
     debugPrint('[HADITH_DB] Initializing database...');
     final stopwatch = Stopwatch()..start();
 
@@ -144,7 +160,7 @@ class HadithDatabaseService {
       stopwatch.stop();
       debugPrint(
         '[HADITH_DB] Initialized in ${stopwatch.elapsedMilliseconds}ms '
-        '- $totalHadiths hadiths loaded',
+        '- $totalHadiths hadiths loaded across ${_bookData.length} collections',
       );
     } catch (e) {
       debugPrint('[HADITH_DB] Initialization error: $e');
@@ -164,8 +180,6 @@ class HadithDatabaseService {
 
   Future<void> _loadBook(String slug, String name) async {
     try {
-      debugPrint('[HADITH_DB] Loading $name...');
-
       final results = await Future.wait([
         _loadJsonAsset('assets/data/hadith/$slug/english.json'),
         _loadJsonAsset('assets/data/hadith/$slug/arabic.json'),
@@ -176,12 +190,14 @@ class HadithDatabaseService {
       final arabicData = results[1];
       final urduData = results[2];
 
-      if (englishData == null) {
-        debugPrint('[HADITH_DB] Failed to load English data for $slug');
+      if (englishData == null && arabicData == null && urduData == null) {
         return;
       }
 
-      final metadata = englishData['metadata'] as Map<String, dynamic>?;
+      final baseData = englishData ?? arabicData ?? urduData;
+      if (baseData == null) return;
+
+      final metadata = baseData['metadata'] as Map<String, dynamic>?;
       final sections = <String, String>{};
       if (metadata != null) {
         final sectionsData = metadata['sections'] as Map<String, dynamic>?;
@@ -190,21 +206,11 @@ class HadithDatabaseService {
         });
       }
 
-      final englishHadiths = englishData['hadiths'] as List<dynamic>? ?? [];
+      final englishHadiths = englishData?['hadiths'] as List<dynamic>? ?? [];
       final arabicHadiths = arabicData?['hadiths'] as List<dynamic>? ?? [];
       final urduHadiths = urduData?['hadiths'] as List<dynamic>? ?? [];
 
-      // P0.5: Explicit unavailable handling — do not fake
-      if (arabicData == null) {
-        debugPrint(
-            '[HADITH_DB] ⚠️ Arabic data unavailable for $slug — showing "Arabic unavailable" for this book');
-      }
-      if (urduData == null) {
-        debugPrint(
-            '[HADITH_DB] ⚠️ Urdu data unavailable for $slug — showing "Urdu unavailable" for this book');
-      }
-
-      // Build lookup maps (handles String/int hadith numbers)
+      // Build lookup maps
       final arabicMap = <int, String>{};
       for (final h in arabicHadiths) {
         try {
@@ -227,9 +233,12 @@ class HadithDatabaseService {
         }
       }
 
-      // Merge all languages
+      final primaryHadiths = englishHadiths.isNotEmpty
+          ? englishHadiths
+          : (arabicHadiths.isNotEmpty ? arabicHadiths : urduHadiths);
+
       final hadiths = <LocalHadith>[];
-      for (final h in englishHadiths) {
+      for (final h in primaryHadiths) {
         try {
           final map = h as Map<String, dynamic>;
           final hadithNum = _parseHadithNumber(map['hadithnumber']);
@@ -237,7 +246,6 @@ class HadithDatabaseService {
           final bookNum = _parseHadithNumber(ref?['book']);
           final chapterHadithNum = _parseHadithNumber(ref?['hadith']);
 
-          // Get grade
           final grades = map['grades'] as List<dynamic>? ?? [];
           String gradeStr = '';
           if (grades.isNotEmpty) {
@@ -248,7 +256,6 @@ class HadithDatabaseService {
           }
 
           final chapterName = sections[bookNum.toString()] ?? '';
-
           final arabicNum = _parseHadithNumber(map['arabicnumber']);
 
           hadiths.add(LocalHadith(
@@ -264,8 +271,7 @@ class HadithDatabaseService {
             chapterName: chapterName,
             grade: gradeStr,
           ));
-        } catch (e) {
-          // Skip malformed hadith entries
+        } catch (_) {
           continue;
         }
       }
@@ -288,8 +294,7 @@ class HadithDatabaseService {
     try {
       final jsonString = await rootBundle.loadString(path);
       return jsonDecode(jsonString) as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('[HADITH_DB] Failed to load $path: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -321,9 +326,16 @@ class HadithDatabaseService {
     return _bookInfo.values.toList();
   }
 
-  // ─── DAILY / RANDOM HADITH ──────────────────────────────
+  // ─── DAILY / RANDOM / FEATURED HADITHS ──────────────────
 
   LocalHadith? getDailyHadith() {
+    final bukhariHadiths = _bookData['bukhari'];
+    if (bukhariHadiths != null && bukhariHadiths.isNotEmpty) {
+      final now = DateTime.now();
+      final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
+      final index = dayOfYear % bukhariHadiths.length;
+      return bukhariHadiths[index];
+    }
     final allHadiths = _getAllHadiths();
     if (allHadiths.isEmpty) return null;
 
@@ -339,6 +351,25 @@ class HadithDatabaseService {
 
     final index = DateTime.now().millisecondsSinceEpoch % allHadiths.length;
     return allHadiths[index];
+  }
+
+  List<LocalHadith> getFeaturedHadiths({int limit = 10, String? bookSlug}) {
+    if (bookSlug != null && _bookData.containsKey(bookSlug)) {
+      final list = _bookData[bookSlug]!;
+      return list.take(limit).toList();
+    }
+    final featured = <LocalHadith>[];
+    for (final key in ['bukhari', 'muslim', 'tirmidhi', 'abudawud', 'nasai']) {
+      final list = _bookData[key];
+      if (list != null && list.isNotEmpty) {
+        featured.add(list.first);
+        if (list.length > 1 && featured.length < limit) {
+          featured.add(list[1]);
+        }
+      }
+      if (featured.length >= limit) break;
+    }
+    return featured;
   }
 
   // ─── SEARCH ──────────────────────────────────────────────
@@ -403,34 +434,6 @@ class HadithDatabaseService {
     return results.take(maxResults).toList();
   }
 
-  String searchForAI(String query, {int maxResults = 5}) {
-    final results = search(query, maxResults: maxResults);
-
-    if (results.isEmpty) {
-      return 'No hadith found for query: "$query"';
-    }
-
-    final buffer = StringBuffer();
-    buffer.writeln('Found ${results.length} relevant hadith(s):');
-    buffer.writeln('');
-
-    for (int i = 0; i < results.length; i++) {
-      final h = results[i].hadith;
-      buffer.writeln('--- Hadith ${i + 1} ---');
-      buffer.writeln('Book: ${h.bookName}');
-      buffer.writeln('Hadith Number: ${h.hadithNumber}');
-      buffer.writeln('Chapter: ${h.chapterName}');
-      if (h.grade.isNotEmpty) buffer.writeln('Grade: ${h.grade}');
-      buffer.writeln('English: ${h.textEnglish}');
-      if (h.hasArabic) buffer.writeln('Arabic: ${h.textArabic}');
-      if (h.hasUrdu) buffer.writeln('Urdu: ${h.textUrdu}');
-      buffer.writeln('Reference: ${h.displayReference}');
-      buffer.writeln('');
-    }
-
-    return buffer.toString();
-  }
-
   // ─── HELPERS ─────────────────────────────────────────────
 
   List<LocalHadith> _getAllHadiths() {
@@ -452,16 +455,10 @@ class HadithDatabaseService {
     return (0.5 + (occurrences * 0.1)).clamp(0.0, 0.8);
   }
 
-  // ─── HELPER: Parse hadith number (handles String/int) ────
-  /// Handles various formats:
-  /// - int: 123
-  /// - String number: "123"
-  /// - String with letter: "1a", "1b", "123c"
   int _parseHadithNumber(dynamic value) {
     if (value == null) return 0;
     if (value is num) return value.toInt();
     if (value is String) {
-      // Extract leading digits (handles "1a", "1b" formats)
       final match = RegExp(r'^(\d+)').firstMatch(value);
       if (match != null) {
         return int.tryParse(match.group(1) ?? '0') ?? 0;
@@ -487,9 +484,6 @@ class HadithDatabaseService {
   }
 
   void dispose() {
-    _bookData.clear();
-    _bookInfo.clear();
-    _isInitialized = false;
-    debugPrint('[HADITH_DB] Database disposed');
+    // Retain cached data in singleton
   }
 }

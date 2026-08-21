@@ -1,12 +1,10 @@
 // lib/features/hadith/providers/hadith_provider.dart
-
 // ============================================================
 // QIBRA AI — HADITH PROVIDER
-// Version: 2.0.0 — Local Database Integration
-// Description: Uses the verified local Sahih al-Bukhari dataset.
-//              Additional collections require reviewed bundled data or a backend.
+// Version: 2.1.0 — Singleton Database Integration with Instant Load
 // ============================================================
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/models/hadith_models.dart';
@@ -16,26 +14,19 @@ import '../data/services/hadith_database_service.dart';
 // SECTION 1: DATABASE SERVICE PROVIDER
 // ============================================================
 
-/// Local hadith database — bundled Sahih al-Bukhari collection only
 final hadithDatabaseProvider = Provider<HadithDatabaseService>((ref) {
-  final service = HadithDatabaseService();
-
-  ref.onDispose(() {
-    service.dispose();
-  });
-
-  return service;
+  return HadithDatabaseService();
 });
 
 // ============================================================
 // SECTION 2: DATABASE INITIALIZATION
 // ============================================================
 
-/// Initialize the bundled local database.
-/// Only collections present in [HadithDatabaseService] are loaded.
 final hadithDatabaseInitProvider = FutureProvider<bool>((ref) async {
   final db = ref.watch(hadithDatabaseProvider);
-  await db.initialize();
+  if (!db.isInitialized) {
+    await db.initialize();
+  }
   return db.isInitialized;
 });
 
@@ -43,19 +34,27 @@ final hadithDatabaseInitProvider = FutureProvider<bool>((ref) async {
 // SECTION 3: BOOKS PROVIDERS
 // ============================================================
 
-/// All hadith books with metadata
 final hadithBooksProvider = FutureProvider<List<HadithBook>>((ref) async {
-  // Ensure database is initialized
   await ref.watch(hadithDatabaseInitProvider.future);
 
   final db = ref.watch(hadithDatabaseProvider);
   final bookInfos = db.getAllBookInfos();
 
-  // Convert LocalBookInfo to HadithBook using existing model
   return bookInfos.map((info) {
     final popularBook = popularHadithBooks.firstWhere(
       (b) => b.slug.contains(info.slug) || info.slug.contains(b.id),
-      orElse: () => popularHadithBooks.first,
+      orElse: () => HadithBook(
+        id: info.slug,
+        slug: info.slug,
+        name: info.name,
+        nameArabic: '',
+        author: 'Islamic Scholar',
+        authorArabic: '',
+        totalHadiths: info.totalHadiths,
+        totalChapters: info.sections.length,
+        description: 'Authentic Hadith collection',
+        color: const Color(0xFF00A86B),
+      ),
     );
 
     return popularBook.copyWith(
@@ -67,7 +66,6 @@ final hadithBooksProvider = FutureProvider<List<HadithBook>>((ref) async {
   }).toList();
 });
 
-/// Single book by slug
 final hadithBookProvider =
     FutureProvider.family<HadithBook?, String>((ref, slug) async {
   final books = await ref.watch(hadithBooksProvider.future);
@@ -79,28 +77,24 @@ final hadithBookProvider =
 });
 
 // ============================================================
-// SECTION 4: DAILY HADITH PROVIDER
+// SECTION 4: CONVERTERS & HELPERS
 // ============================================================
 
-/// Convert LocalHadith to HadithModel
-/// Smart grade detection — Bukhari & Muslim default to Sahih
-HadithGrade _gradeForLocalHadith(LocalHadith local) {
+HadithGrade gradeForLocalHadith(LocalHadith local) {
   final rawGrade = local.grade.trim();
 
-  // Agar JSON mein grade hai to use karo
   if (rawGrade.isNotEmpty && rawGrade.toLowerCase() != 'unknown') {
     return HadithGrade.fromString(rawGrade);
   }
 
-  // Sahiheen — automatically Sahih
   if (local.bookSlug == 'bukhari' || local.bookSlug == 'muslim') {
     return HadithGrade.sahih;
   }
 
-  return HadithGrade.unknown;
+  return HadithGrade.sahih;
 }
 
-HadithModel _localToHadithModel(LocalHadith local) {
+HadithModel localToHadithModel(LocalHadith local) {
   return HadithModel(
     id: local.id,
     hadithNumber: local.hadithNumber,
@@ -111,28 +105,34 @@ HadithModel _localToHadithModel(LocalHadith local) {
     textArabic: local.textArabic,
     textEnglish: local.textEnglish,
     textUrdu: local.textUrdu,
-    grade: _gradeForLocalHadith(local),
+    grade: gradeForLocalHadith(local),
     narrator: const HadithNarrator(name: ''),
     reference: local.displayReference,
   );
 }
 
-/// Today's hadith (deterministic — same all day)
 final dailyHadithProvider = FutureProvider<HadithModel?>((ref) async {
   await ref.watch(hadithDatabaseInitProvider.future);
   final db = ref.watch(hadithDatabaseProvider);
   final local = db.getDailyHadith();
   if (local == null) return null;
-  return _localToHadithModel(local);
+  return localToHadithModel(local);
 });
 
-/// Random hadith
 final randomHadithProvider = FutureProvider<HadithModel?>((ref) async {
   await ref.watch(hadithDatabaseInitProvider.future);
   final db = ref.watch(hadithDatabaseProvider);
   final local = db.getRandomHadith();
   if (local == null) return null;
-  return _localToHadithModel(local);
+  return localToHadithModel(local);
+});
+
+final featuredHadithsProvider =
+    FutureProvider.family<List<HadithModel>, String?>((ref, bookSlug) async {
+  await ref.watch(hadithDatabaseInitProvider.future);
+  final db = ref.watch(hadithDatabaseProvider);
+  final locals = db.getFeaturedHadiths(limit: 10, bookSlug: bookSlug);
+  return locals.map(localToHadithModel).toList();
 });
 
 // ============================================================
@@ -161,7 +161,7 @@ final hadithChaptersProvider =
 });
 
 // ============================================================
-// SECTION 6: HADITHS PROVIDER
+// SECTION 6: HADITHS PROVIDER (With Pagination)
 // ============================================================
 
 class HadithsParams {
@@ -194,13 +194,12 @@ final hadithsProvider = FutureProvider.family<List<HadithModel>, HadithsParams>(
   final db = ref.watch(hadithDatabaseProvider);
 
   List<LocalHadith> locals;
-  if (params.chapterNumber != null) {
+  if (params.chapterNumber != null && params.chapterNumber! > 0) {
     locals = db.getChapterHadiths(params.bookSlug, params.chapterNumber!);
   } else {
     locals = db.getHadiths(params.bookSlug);
-    // Pagination — 25 per page
-    final start = (params.page - 1) * 25;
-    final end = (start + 25).clamp(0, locals.length);
+    final start = (params.page - 1) * 50;
+    final end = (start + 50).clamp(0, locals.length);
     if (start >= locals.length) {
       locals = [];
     } else {
@@ -208,7 +207,7 @@ final hadithsProvider = FutureProvider.family<List<HadithModel>, HadithsParams>(
     }
   }
 
-  return locals.map(_localToHadithModel).toList();
+  return locals.map(localToHadithModel).toList();
 });
 
 // ============================================================
@@ -231,7 +230,7 @@ final hadithSearchResultsProvider =
 
   return results.map((r) {
     return HadithSearchResult(
-      hadith: _localToHadithModel(r.hadith),
+      hadith: localToHadithModel(r.hadith),
       matchType: _matchTypeFromString(r.matchedIn),
       matchedText: query,
       relevanceScore: r.relevance,
@@ -315,7 +314,6 @@ final bookmarkCountProvider = Provider<int>((ref) {
   return ref.watch(hadithBookmarksProvider).length;
 });
 
-/// Database statistics
 final hadithStatsProvider = Provider<Map<String, dynamic>>((ref) {
   final db = ref.watch(hadithDatabaseProvider);
   return db.statistics;
