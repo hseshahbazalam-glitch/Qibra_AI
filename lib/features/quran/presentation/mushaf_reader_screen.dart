@@ -57,10 +57,8 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     if (!mounted) return;
     final bookmarks = prefs.getStringList('mushaf_bookmarked_pages') ?? [];
     setState(() {
-      _bookmarkedPages = bookmarks
-          .map((e) => int.tryParse(e))
-          .whereType<int>()
-          .toSet();
+      _bookmarkedPages =
+          bookmarks.map((e) => int.tryParse(e)).whereType<int>().toSet();
     });
   }
 
@@ -234,40 +232,18 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 3,
-                      // Flutter 3.27+: use WidgetStateProperty for trackColor
-                      // (activeTrackColor / inactiveTrackColor are deprecated).
-                      trackColor: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.disabled)) {
-                          return Colors.white.withValues(alpha: 0.1);
-                        }
-                        if (states.contains(WidgetState.selected)) {
-                          return AppColors.accent; // active (filled) track
-                        }
-                        return Colors.white.withValues(alpha: 0.2);
-                      }),
-                      // Explicitly null deprecated fields to silence any
-                      // fall-through to inherited (old) theme values.
-                      activeTrackColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
-                      inactiveTrackColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
-                      thumbColor: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.disabled)) {
-                          return AppColors.accent.withValues(alpha: 0.4);
-                        }
-                        return AppColors.accent;
-                      }),
-                      overlayColor: WidgetStatePropertyAll<Color>(
-                        AppColors.accent.withValues(alpha: 0.2),
-                      ),
+                      activeTrackColor: AppColors.accent,
+                      inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
+                      thumbColor: AppColors.accent,
+                      overlayColor: AppColors.accent.withValues(alpha: 0.2),
                       thumbShape: const RoundSliderThumbShape(
                         enabledThumbRadius: 8,
                       ),
                     ),
                     child: Slider(
-                      value: currentPage.toDouble().clamp(1, 604),
+                      value: currentPage.toDouble(),
                       min: 1,
                       max: 604,
-                      activeColor: AppColors.accent,
-                      inactiveColor: Colors.white.withValues(alpha: 0.2),
                       onChanged: (value) {
                         ref.read(_currentPageProvider.notifier).state =
                             value.toInt();

@@ -112,7 +112,7 @@ class _PrayerTimesScreenState extends ConsumerState<PrayerTimesScreen> {
                   context,
                   dailyTimes: dailyTimes,
                   nextName: nextName,
-                  methodName: settings.method.name,
+                  methodName: settings.calculationMethod.name,
                 ),
                 const SizedBox(height: 16),
 
