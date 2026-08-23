@@ -109,7 +109,7 @@ class SchedulePrayerTile extends StatelessWidget {
                   style: const TextStyle(
                     fontFamily: 'Amiri',
                     fontSize: 13,
-                    color: Color(0xFFFFD700),
+                    color: Color(0xFFC6A15B),
                     fontWeight: FontWeight.w600,
                   ),
                   textDirection: TextDirection.rtl,

@@ -143,8 +143,8 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF0C1A0E),
-                Color(0xFF0F2012),
+                Color(0xFFEEF1EA),
+                Color(0xFFF5F3EC),
                 AppColors.background,
               ],
             ),
@@ -343,9 +343,8 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF064E3B),
-                Color(0xFF065F46),
-                Color(0xFF047857),
+                AppColors.primaryLight,
+                AppColors.primary,
               ],
             ),
             borderRadius: BorderRadius.circular(20),
@@ -555,13 +554,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
 
   Widget _buildCategoryCard(DuaCategoryModel category) {
     // Parse hex color
-    Color cardColor;
-    try {
-      final hex = category.colorHex.replaceAll('#', '');
-      cardColor = Color(int.parse('FF$hex', radix: 16));
-    } catch (_) {
-      cardColor = AppColors.primary;
-    }
+    const cardColor = AppColors.primary;
 
     return GestureDetector(
       onTap: () {
@@ -667,14 +660,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
 
   Widget _buildDuaListTile(DuaModel dua) {
     // Category color
-    Color tileColor = AppColors.primary;
-    try {
-      final cat = ref
-          .read(duaCategoriesProvider)
-          .firstWhere((c) => c.id == dua.category);
-      final hex = cat.colorHex.replaceAll('#', '');
-      tileColor = Color(int.parse('FF$hex', radix: 16));
-    } catch (_) {}
+    const tileColor = AppColors.primary;
 
     return GestureDetector(
       onTap: () {

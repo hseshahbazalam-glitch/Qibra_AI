@@ -260,7 +260,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               child: Text(
                 '$ayahNumber',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: const Color(0xFF19312C),
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
                 ),
@@ -591,7 +591,7 @@ class _TranslationTab extends ConsumerWidget {
             _buildLanguageCard(
               label: 'English',
               icon: Icons.language_rounded,
-              color: const Color(0xFF10B981),
+              color: const Color(0xFF2F6B5D),
               content: Text(
                 ayah.translation!,
                 style: TextStyle(
@@ -610,7 +610,7 @@ class _TranslationTab extends ConsumerWidget {
             _buildLanguageCard(
               label: 'اردو',
               icon: Icons.translate_rounded,
-              color: const Color(0xFF00E676),
+              color: const Color(0xFF123F36),
               content: Text(
                 ayah.translationUrdu!,
                 textDirection: TextDirection.rtl,
@@ -735,12 +735,12 @@ class _TranslationTab extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 18),
+            Icon(icon, color: const Color(0xFF19312C), size: 18),
             const SizedBox(width: 8),
             Text(
               label,
               style: const TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
               ),

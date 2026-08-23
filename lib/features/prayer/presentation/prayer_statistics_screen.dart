@@ -1,13 +1,17 @@
-﻿// lib/features/prayer/presentation/prayer_statistics_screen.dart
-// Premium Prayer Statistics with charts, streak, achievements
+// lib/features/prayer/presentation/prayer_statistics_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+
+import '../data/models/prayer_models.dart';
+import '../providers/prayer_provider.dart';
 
 enum StatsPeriod { thisWeek, thisMonth, allTime }
 
@@ -23,18 +27,20 @@ class _PrayerStatisticsScreenState
     extends ConsumerState<PrayerStatisticsScreen> {
   StatsPeriod _selectedPeriod = StatsPeriod.thisWeek;
 
-  final List<double> _weeklyData = [4, 5, 3, 5, 5, 4, 3];
-  final double _dailyGoal = 5;
-
   @override
   Widget build(BuildContext context) {
+    final records = ref.watch(prayerRecordsProvider);
+    final lifetime = ref.watch(prayerStatisticsProvider);
+    final filtered = _recordsForPeriod(records);
+    final periodStats = _statsFrom(filtered);
+    final weekly = _weeklyCounts(records);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // APP BAR
             SliverAppBar(
               expandedHeight: 80,
               pinned: true,
@@ -55,7 +61,13 @@ class _PrayerStatisticsScreenState
                     color: AppColors.textPrimary,
                   ),
                 ),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go(AppRoutes.prayerSchedule);
+                  }
+                },
               ),
               centerTitle: true,
               title: Text(
@@ -65,44 +77,19 @@ class _PrayerStatisticsScreenState
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.borderSubtle),
-                    ),
-                    child: const Icon(
-                      Icons.share_rounded,
-                      color: AppColors.textPrimary,
-                      size: 18,
-                    ),
-                  ),
-                ),
-              ],
             ),
-
-            // PERIOD SELECTOR
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 child: _buildPeriodSelector(),
               ),
             ),
-
-            // COMPLETION CARD
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: _buildCompletionCard(),
+                child: _buildCompletionCard(periodStats),
               ),
             ),
-
-            // STATS GRID
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -110,19 +97,19 @@ class _PrayerStatisticsScreenState
                   children: [
                     Expanded(
                       child: _buildStatCard(
-                        icon: Icons.mosque_rounded,
-                        label: 'Total Prayers',
-                        value: '42',
+                        icon: Icons.check_circle_rounded,
+                        label: 'Prayed',
+                        value: '${periodStats.prayedCount}',
                         color: AppColors.primary,
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: _buildStatCard(
-                        icon: Icons.check_circle_rounded,
-                        label: 'On Time',
-                        value: '38',
-                        color: const Color(0xFF10B981),
+                        icon: Icons.mosque_rounded,
+                        label: 'In mosque',
+                        value: '${periodStats.inMosqueCount}',
+                        color: const Color(0xFF2F6B5D),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -130,39 +117,32 @@ class _PrayerStatisticsScreenState
                       child: _buildStatCard(
                         icon: Icons.cancel_rounded,
                         label: 'Missed',
-                        value: '4',
-                        color: const Color(0xFFEF4444),
+                        value: '${periodStats.missedCount}',
+                        color: const Color(0xFFB42318),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-
-            // PRAYER STREAK
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: _buildStreakCard(),
+                child: _buildStreakCard(lifetime),
               ),
             ),
-
-            // WEEKLY CHART
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: _buildWeeklyChart(),
+                child: _buildWeeklyChart(weekly),
               ),
             ),
-
-            // ACHIEVEMENTS
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: _buildAchievementsCard(),
+                child: _buildAchievementsCard(lifetime),
               ),
             ),
-
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
@@ -170,9 +150,73 @@ class _PrayerStatisticsScreenState
     );
   }
 
-  // ============================================================
-  // PERIOD SELECTOR
-  // ============================================================
+  List<PrayerRecord> _recordsForPeriod(List<PrayerRecord> records) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    switch (_selectedPeriod) {
+      case StatsPeriod.thisWeek:
+        final start = today.subtract(const Duration(days: 6));
+        return records.where((record) => !record.date.isBefore(start)).toList();
+      case StatsPeriod.thisMonth:
+        return records
+            .where((record) =>
+                record.date.year == now.year && record.date.month == now.month)
+            .toList();
+      case StatsPeriod.allTime:
+        return records;
+    }
+  }
+
+  PrayerStatistics _statsFrom(List<PrayerRecord> records) {
+    if (records.isEmpty) return PrayerStatistics.empty();
+    var prayed = 0;
+    var missed = 0;
+    var inMosque = 0;
+    final byType = <PrayerType, int>{};
+    for (final record in records) {
+      switch (record.status) {
+        case PrayerStatus.prayed:
+        case PrayerStatus.makeup:
+          prayed++;
+          byType[record.type] = (byType[record.type] ?? 0) + 1;
+        case PrayerStatus.prayedInMosque:
+          prayed++;
+          inMosque++;
+          byType[record.type] = (byType[record.type] ?? 0) + 1;
+        case PrayerStatus.missed:
+          missed++;
+        case PrayerStatus.pending:
+          break;
+      }
+    }
+    return PrayerStatistics(
+      totalPrayers: records.length,
+      prayedCount: prayed,
+      missedCount: missed,
+      inMosqueCount: inMosque,
+      currentStreak: 0,
+      longestStreak: 0,
+      byType: byType,
+    );
+  }
+
+  List<_DayCount> _weeklyCounts(List<PrayerRecord> records) {
+    final now = DateTime.now();
+    return List.generate(7, (index) {
+      final day = DateTime(now.year, now.month, now.day)
+          .subtract(Duration(days: 6 - index));
+      final count = records.where((record) {
+        return record.date.year == day.year &&
+            record.date.month == day.month &&
+            record.date.day == day.day &&
+            (record.status == PrayerStatus.prayed ||
+                record.status == PrayerStatus.prayedInMosque ||
+                record.status == PrayerStatus.makeup);
+      }).length;
+      const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return _DayCount(label: labels[day.weekday - 1], count: count);
+    });
+  }
 
   Widget _buildPeriodSelector() {
     return Container(
@@ -222,13 +266,8 @@ class _PrayerStatisticsScreenState
     );
   }
 
-  // ============================================================
-  // COMPLETION CARD
-  // ============================================================
-
-  Widget _buildCompletionCard() {
-    const percentage = 90;
-
+  Widget _buildCompletionCard(PrayerStatistics stats) {
+    final percentage = stats.consistencyPercentage.round();
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -257,7 +296,7 @@ class _PrayerStatisticsScreenState
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '$percentage',
+                          stats.totalPrayers == 0 ? '—' : '$percentage',
                           style: AppTextStyles.displayLarge.copyWith(
                             color: AppColors.textPrimary,
                             fontWeight: FontWeight.w900,
@@ -265,72 +304,39 @@ class _PrayerStatisticsScreenState
                             fontSize: 48,
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Text(
-                            '%',
-                            style: AppTextStyles.titleLarge.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w900,
+                        if (stats.totalPrayers > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Text(
+                              '%',
+                              style: AppTextStyles.titleLarge.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ],
                 ),
               ),
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFFFFD700),
-                      Color(0xFFB8860B),
-                    ],
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFD700).withValues(alpha: 0.5),
-                      blurRadius: 15,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.emoji_events_rounded,
-                  color: AppColors.white,
-                  size: 40,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(
-                Icons.check_circle_rounded,
-                color: Color(0xFF10B981),
-                size: 16,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Well done! Keep it consistent.',
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          Text(
+            stats.totalPrayers == 0
+                ? 'Mark prayers on the Prayer tab to see completion here.'
+                : '${stats.prayedCount} of ${stats.totalPrayers} recorded prayers were marked prayed.',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: percentage / 100,
+              value: stats.totalPrayers == 0 ? 0 : percentage / 100,
               backgroundColor: AppColors.primary.withValues(alpha: 0.15),
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppColors.primary),
@@ -341,10 +347,6 @@ class _PrayerStatisticsScreenState
       ),
     );
   }
-
-  // ============================================================
-  // STAT CARD
-  // ============================================================
 
   Widget _buildStatCard({
     required IconData icon,
@@ -387,30 +389,12 @@ class _PrayerStatisticsScreenState
     );
   }
 
-  // ============================================================
-  // STREAK CARD
-  // ============================================================
-
-  Widget _buildStreakCard() {
+  Widget _buildStreakCard(PrayerStatistics stats) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFEF4444),
-            Color(0xFFDC2626),
-          ],
-        ),
+        color: const Color(0xFF123F36),
         borderRadius: AppRadius.cardRadiusLarge,
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFEF4444).withValues(alpha: 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -418,7 +402,7 @@ class _PrayerStatisticsScreenState
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.25),
+              color: AppColors.white.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -444,7 +428,7 @@ class _PrayerStatisticsScreenState
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '12',
+                      '${stats.currentStreak}',
                       style: AppTextStyles.displayMedium.copyWith(
                         color: AppColors.white,
                         fontWeight: FontWeight.w900,
@@ -455,7 +439,7 @@ class _PrayerStatisticsScreenState
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
-                        'Days',
+                        stats.currentStreak == 1 ? 'Day' : 'Days',
                         style: AppTextStyles.titleSmall.copyWith(
                           color: AppColors.white.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w800,
@@ -467,206 +451,122 @@ class _PrayerStatisticsScreenState
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 8,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.2),
-              borderRadius: AppRadius.cardRadius,
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'Best',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.white.withValues(alpha: 0.85),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 10,
-                  ),
-                ),
-                Text(
-                  '28 Days',
-                  style: AppTextStyles.titleSmall.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // WEEKLY CHART
-  // ============================================================
-
-  Widget _buildWeeklyChart() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.cardRadiusLarge,
-        border: Border.all(color: AppColors.borderSubtle),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+          Column(
             children: [
-              const Icon(
-                Icons.bar_chart_rounded,
-                color: AppColors.accent,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
               Text(
-                'Weekly Progress',
-                style: AppTextStyles.titleSmall.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w800,
+                'Best',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.white.withValues(alpha: 0.85),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
                 ),
               ),
-              const Spacer(),
-              Container(
-                width: 12,
-                height: 2,
-                color: const Color(0xFFFFD700),
-              ),
-              const SizedBox(width: 4),
               Text(
-                'Goal',
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
+                '${stats.longestStreak} Days',
+                style: AppTextStyles.titleSmall.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 140,
-            child: _buildChart(),
-          ),
-          const SizedBox(height: 12),
-          _buildDayLabels(),
         ],
       ),
     );
   }
 
-  Widget _buildChart() {
-    return Stack(
-      children: [
-        // Goal line
-        Positioned(
-          top: 20,
-          left: 0,
-          right: 0,
-          child: Container(
-            height: 1.5,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFD700).withValues(alpha: 0.5),
+  Widget _buildWeeklyChart(List<_DayCount> weekly) {
+    const goal = 5.0;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.cardRadiusLarge,
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Last 7 days',
+            style: AppTextStyles.titleSmall.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
             ),
           ),
-        ),
-
-        // Bars
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(_weeklyData.length, (index) {
-            final value = _weeklyData[index];
-            final heightPercent = value / _dailyGoal;
-            final isToday = index == _weeklyData.length - 3;
-
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.end,
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 140,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text(
-                  value.toInt().toString(),
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: isToday
-                        ? const Color(0xFFFFD700)
-                        : AppColors.textSecondary,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 10,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  width: 24,
-                  height: 100 * heightPercent,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: isToday
-                          ? [
-                              const Color(0xFFFFD700),
-                              const Color(0xFFFFB703),
-                            ]
-                          : [
-                              AppColors.primary,
-                              AppColors.primary.withValues(alpha: 0.7),
-                            ],
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(6),
-                      topRight: Radius.circular(6),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: (isToday
-                                ? const Color(0xFFFFD700)
-                                : AppColors.primary)
-                            .withValues(alpha: 0.3),
-                        blurRadius: 6,
+                for (var i = 0; i < weekly.length; i++)
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${weekly[i].count}',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: i == weekly.length - 1
+                              ? const Color(0xFFC6A15B)
+                              : AppColors.textSecondary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 10,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 24,
+                        height: (100 * (weekly[i].count / goal)).clamp(4, 100),
+                        decoration: BoxDecoration(
+                          color: i == weekly.length - 1
+                              ? const Color(0xFFC6A15B)
+                              : AppColors.primary,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(6),
+                            topRight: Radius.circular(6),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
               ],
-            );
-          }),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDayLabels() {
-    const days = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: days.map((day) {
-        final isToday = day == 'Tue';
-        return SizedBox(
-          width: 30,
-          child: Text(
-            day,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: isToday ? const Color(0xFFFFD700) : AppColors.textTertiary,
-              fontWeight: FontWeight.w700,
-              fontSize: 10,
             ),
-            textAlign: TextAlign.center,
           ),
-        );
-      }).toList(),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              for (final day in weekly)
+                SizedBox(
+                  width: 30,
+                  child: Text(
+                    day.label,
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.textTertiary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 10,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  // ============================================================
-  // ACHIEVEMENTS
-  // ============================================================
-
-  Widget _buildAchievementsCard() {
+  Widget _buildAchievementsCard(PrayerStatistics stats) {
+    final badges = [
+      _Badge('7 Days', stats.longestStreak >= 7),
+      _Badge('30 Days', stats.longestStreak >= 30),
+      _Badge('First prayer', stats.prayedCount > 0),
+      _Badge('100 Days', stats.longestStreak >= 100),
+    ];
+    final unlocked = badges.where((badge) => badge.unlocked).length;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -679,14 +579,8 @@ class _PrayerStatisticsScreenState
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.military_tech_rounded,
-                color: Color(0xFFFFD700),
-                size: 20,
-              ),
-              const SizedBox(width: 8),
               Text(
-                'Achievements',
+                'Milestones',
                 style: AppTextStyles.titleSmall.copyWith(
                   color: AppColors.textPrimary,
                   fontWeight: FontWeight.w800,
@@ -694,7 +588,7 @@ class _PrayerStatisticsScreenState
               ),
               const Spacer(),
               Text(
-                '3/10',
+                '$unlocked/${badges.length}',
                 style: AppTextStyles.labelSmall.copyWith(
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w700,
@@ -705,94 +599,51 @@ class _PrayerStatisticsScreenState
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildAchievement(
-                icon: Icons.emoji_events_rounded,
-                label: '7 Days',
-                color: const Color(0xFFFFD700),
-                unlocked: true,
-              ),
-              const SizedBox(width: 12),
-              _buildAchievement(
-                icon: Icons.local_fire_department_rounded,
-                label: '30 Days',
-                color: const Color(0xFFEF4444),
-                unlocked: true,
-              ),
-              const SizedBox(width: 12),
-              _buildAchievement(
-                icon: Icons.star_rounded,
-                label: 'On Time',
-                color: const Color(0xFF10B981),
-                unlocked: true,
-              ),
-              const SizedBox(width: 12),
-              _buildAchievement(
-                icon: Icons.lock_rounded,
-                label: '100 Days',
-                color: AppColors.textTertiary,
-                unlocked: false,
-              ),
+              for (var i = 0; i < badges.length; i++) ...[
+                if (i > 0) const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Icon(
+                        badges[i].unlocked
+                            ? Icons.emoji_events_rounded
+                            : Icons.lock_outline_rounded,
+                        color: badges[i].unlocked
+                            ? const Color(0xFFC6A15B)
+                            : AppColors.textTertiary,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        badges[i].label,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: badges[i].unlocked
+                              ? AppColors.textPrimary
+                              : AppColors.textTertiary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 9,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildAchievement({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required bool unlocked,
-  }) {
-    return Expanded(
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              gradient: unlocked
-                  ? LinearGradient(
-                      colors: [
-                        color,
-                        color.withValues(alpha: 0.7),
-                      ],
-                    )
-                  : null,
-              color: unlocked ? null : AppColors.surface,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: unlocked ? color : AppColors.borderSubtle,
-                width: 2,
-              ),
-              boxShadow: unlocked
-                  ? [
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.4),
-                        blurRadius: 10,
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Icon(
-              icon,
-              color: unlocked ? AppColors.white : color,
-              size: 24,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: unlocked ? AppColors.textPrimary : AppColors.textTertiary,
-              fontWeight: FontWeight.w700,
-              fontSize: 9,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
+class _DayCount {
+  const _DayCount({required this.label, required this.count});
+  final String label;
+  final int count;
+}
+
+class _Badge {
+  const _Badge(this.label, this.unlocked);
+  final String label;
+  final bool unlocked;
 }

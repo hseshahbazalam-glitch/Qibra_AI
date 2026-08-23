@@ -192,99 +192,72 @@ abstract final class AppElevation {
 }
 
 abstract final class AppShadows {
-  // --- Subtle Shadow (light cards) ---
   static List<BoxShadow> get subtle => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.08),
-          blurRadius: 8,
+          color: const Color(0xFF19312C).withValues(alpha: 0.04),
+          blurRadius: 10,
           spreadRadius: 0,
           offset: const Offset(0, 2),
         ),
       ];
 
-  // --- Small Shadow (standard cards) ---
   static List<BoxShadow> get small => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.12),
-          blurRadius: 12,
+          color: const Color(0xFF19312C).withValues(alpha: 0.06),
+          blurRadius: 16,
           spreadRadius: 0,
           offset: const Offset(0, 4),
         ),
       ];
 
-  // --- Medium Shadow (floating cards) ---
   static List<BoxShadow> get medium => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.16),
-          blurRadius: 20,
+          color: const Color(0xFF19312C).withValues(alpha: 0.08),
+          blurRadius: 24,
           spreadRadius: 0,
           offset: const Offset(0, 8),
         ),
       ];
 
-  // --- Large Shadow (modals, bottom sheets) ---
   static List<BoxShadow> get large => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.24),
+          color: const Color(0xFF19312C).withValues(alpha: 0.12),
           blurRadius: 32,
           spreadRadius: 0,
           offset: const Offset(0, 12),
         ),
       ];
 
-  // --- Gold Glow Shadow (premium elements, CTA buttons) ---
-  // Yeh QIBRA AI ka signature shadow hai — gold glow
   static List<BoxShadow> get goldGlow => [
         BoxShadow(
-          color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
-          blurRadius: 20,
+          color: const Color(0xFFC6A15B).withValues(alpha: 0.16),
+          blurRadius: 16,
           spreadRadius: 0,
           offset: const Offset(0, 4),
         ),
-        BoxShadow(
-          color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-          blurRadius: 40,
-          spreadRadius: 0,
-          offset: const Offset(0, 8),
-        ),
       ];
 
-  // --- Emerald Glow Shadow (primary action elements) ---
   static List<BoxShadow> get emeraldGlow => [
         BoxShadow(
-          color: const Color(0xFF00E676).withValues(alpha: 0.35),
-          blurRadius: 20,
+          color: const Color(0xFF123F36).withValues(alpha: 0.16),
+          blurRadius: 16,
           spreadRadius: 0,
           offset: const Offset(0, 4),
         ),
-        BoxShadow(
-          color: const Color(0xFF00E676).withValues(alpha: 0.15),
-          blurRadius: 40,
-          spreadRadius: 0,
-          offset: const Offset(0, 8),
-        ),
       ];
 
-  // --- Dark Card Shadow (for dark theme cards) ---
   static List<BoxShadow> get darkCard => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.40),
-          blurRadius: 24,
+          color: const Color(0xFF19312C).withValues(alpha: 0.06),
+          blurRadius: 18,
           spreadRadius: 0,
-          offset: const Offset(0, 8),
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.20),
-          blurRadius: 8,
-          spreadRadius: 0,
-          offset: const Offset(0, 2),
+          offset: const Offset(0, 6),
         ),
       ];
 
-  // --- Inset Shadow (for pressed button state) ---
   static List<BoxShadow> get inset => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.20),
+          color: const Color(0xFF19312C).withValues(alpha: 0.08),
           blurRadius: 4,
           spreadRadius: 0,
           offset: const Offset(0, 2),
@@ -483,133 +456,112 @@ abstract final class AppBreakpoints {
 // ============================================================
 
 abstract final class AppGradients {
-  // --- Primary Background Gradient ---
-  // Main app background — dark emerald se deep black tak
   static const LinearGradient primaryBackground = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF0A1628), // Deep Navy (Islamic night sky)
-      Color(0xFF0D1F2D), // Dark Teal-Black
-      Color(0xFF050D14), // Almost Black
+      Color(0xFFF5F3EC),
+      Color(0xFFEEF1EA),
+      Color(0xFFF5F3EC),
     ],
     stops: [0.0, 0.5, 1.0],
   );
 
-  // --- Emerald Gradient (primary brand color) ---
   static const LinearGradient emerald = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF00C87A), // Bright Emerald
-      Color(0xFF00E676), // Standard Emerald
-      Color(0xFF007A4D), // Deep Emerald
+      Color(0xFF2F6B5D),
+      Color(0xFF123F36),
     ],
-    stops: [0.0, 0.5, 1.0],
   );
 
-  // --- Gold Gradient (premium/royal accent) ---
   static const LinearGradient gold = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFFFD700), // Pure Gold
-      Color(0xFFD4AF37), // Royal Gold
-      Color(0xFFB8860B), // Dark Goldenrod
+      Color(0xFFD4B87A),
+      Color(0xFFC6A15B),
     ],
-    stops: [0.0, 0.5, 1.0],
   );
 
-  // --- Gold Shimmer Gradient (for shimmer animations) ---
   static const LinearGradient goldShimmer = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [
-      Color(0xFFB8860B), // Dark Gold
-      Color(0xFFFFD700), // Bright Gold
-      Color(0xFFFFEA70), // Light Gold
-      Color(0xFFFFD700), // Bright Gold
-      Color(0xFFB8860B), // Dark Gold
+      Color(0xFFA88748),
+      Color(0xFFC6A15B),
+      Color(0xFFD4B87A),
+      Color(0xFFC6A15B),
+      Color(0xFFA88748),
     ],
     stops: [0.0, 0.25, 0.5, 0.75, 1.0],
   );
 
-  // --- Premium Card Gradient ---
-  // Cards ke liye — dark surface with subtle emerald tint
   static const LinearGradient premiumCard = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF1A2940), // Dark navy with blue tint
-      Color(0xFF162234), // Deeper navy
+      Color(0xFFFEFDF9),
+      Color(0xFFF8F6EF),
     ],
-    stops: [0.0, 1.0],
   );
 
-  // --- Emerald Card Gradient ---
   static const LinearGradient emeraldCard = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF00E676), // Emerald
-      Color(0xFF006B45), // Deep Emerald
+      Color(0xFF2F6B5D),
+      Color(0xFF123F36),
     ],
-    stops: [0.0, 1.0],
   );
 
-  // --- Gold Card Gradient ---
   static const LinearGradient goldCard = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFD4AF37), // Royal Gold
-      Color(0xFF996515), // Dark Gold
+      Color(0xFFD4B87A),
+      Color(0xFFC6A15B),
     ],
-    stops: [0.0, 1.0],
   );
 
-  // --- Splash Screen Gradient ---
   static const RadialGradient splashGradient = RadialGradient(
     center: Alignment.center,
-    radius: 1.5,
+    radius: 1.4,
     colors: [
-      Color(0xFF0D3320), // Dark Emerald center
-      Color(0xFF071A14), // Deeper emerald
-      Color(0xFF020A08), // Almost black edge
+      Color(0xFFEEF1EA),
+      Color(0xFFF5F3EC),
+      Color(0xFFE8EBE3),
     ],
-    stops: [0.0, 0.5, 1.0],
+    stops: [0.0, 0.55, 1.0],
   );
 
-  // --- Onboarding Gradient ---
   static const LinearGradient onboarding = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF0A1A12), // Dark green-black top
-      Color(0xFF040D09), // Near black bottom
+      Color(0xFFF5F3EC),
+      Color(0xFFEEF1EA),
     ],
-    stops: [0.0, 1.0],
   );
 
-  // --- Transparent to Black (for image overlays) ---
   static const LinearGradient imageOverlay = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
       Colors.transparent,
-      Color(0xCC000000), // 80% black
+      Color(0x9912312C),
     ],
-    stops: [0.3, 1.0],
+    stops: [0.35, 1.0],
   );
 
-  // --- Shimmer Loading Gradient ---
   static const LinearGradient shimmerLoading = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [
-      Color(0xFF1A2940), // Dark base
-      Color(0xFF243552), // Slightly lighter
-      Color(0xFF1A2940), // Dark base again
+      Color(0xFFEEF1EA),
+      Color(0xFFFEFDF9),
+      Color(0xFFEEF1EA),
     ],
     stops: [0.0, 0.5, 1.0],
   );
@@ -624,41 +576,33 @@ abstract final class AppGradients {
 // ============================================================
 
 abstract final class AppBorders {
-  // --- Standard Border (subtle) ---
   static Border get subtle => Border.all(
-        color: const Color(0xFF1E3A5F).withValues(alpha: 0.5),
+        color: const Color(0xFFE4E0D5),
         width: 1.0,
       );
 
-  // --- Gold Border (premium) ---
   static Border get gold => Border.all(
-        color: const Color(0xFFD4AF37).withValues(alpha: 0.6),
+        color: const Color(0xFFC6A15B).withValues(alpha: 0.45),
         width: 1.0,
       );
 
-  // --- Gold Border Bold ---
   static Border get goldBold =>
-      Border.all(color: const Color(0xFFD4AF37), width: 1.5);
+      Border.all(color: const Color(0xFFC6A15B), width: 1.5);
 
-  // --- Emerald Border ---
   static Border get emerald => Border.all(
-        color: const Color(0xFF00E676).withValues(alpha: 0.6),
+        color: const Color(0xFF123F36).withValues(alpha: 0.28),
         width: 1.0,
       );
 
-  // --- Emerald Border Bold ---
   static Border get emeraldBold =>
-      Border.all(color: const Color(0xFF00E676), width: 1.5);
+      Border.all(color: const Color(0xFF123F36), width: 1.5);
 
-  // --- Error Border ---
   static Border get error =>
-      Border.all(color: const Color(0xFFE53E3E), width: 1.0);
+      Border.all(color: const Color(0xFFB42318), width: 1.0);
 
-  // --- Focus Border (text fields) ---
   static Border get focus =>
-      Border.all(color: const Color(0xFF00E676), width: 2.0);
+      Border.all(color: const Color(0xFF123F36), width: 1.5);
 
-  // --- None ---
   static Border get none => Border.all(color: Colors.transparent, width: 0);
 }
 

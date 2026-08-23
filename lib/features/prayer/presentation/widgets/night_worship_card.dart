@@ -39,9 +39,9 @@ class NightWorshipCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF1E1B4B),
+                Color(0xFFEEF1EA),
                 Color(0xFF312E81),
-                Color(0xFF1E1B4B),
+                Color(0xFFEEF1EA),
               ],
             ),
             borderRadius: AppRadius.cardRadiusLarge,
@@ -62,7 +62,7 @@ class NightWorshipCard extends StatelessWidget {
                 child: Icon(
                   Icons.nightlight_round,
                   size: 100,
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.1),
+                  color: const Color(0xFFC6A15B).withValues(alpha: 0.1),
                 ),
               ),
 
@@ -74,16 +74,16 @@ class NightWorshipCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                          color: const Color(0xFFC6A15B).withValues(alpha: 0.2),
                           borderRadius: AppRadius.buttonRadius,
                           border: Border.all(
                             color:
-                                const Color(0xFFFFD700).withValues(alpha: 0.4),
+                                const Color(0xFFC6A15B).withValues(alpha: 0.4),
                           ),
                         ),
                         child: const Icon(
                           Icons.nightlight_round,
-                          color: Color(0xFFFFD700),
+                          color: Color(0xFFC6A15B),
                           size: 14,
                         ),
                       ),
@@ -91,7 +91,7 @@ class NightWorshipCard extends StatelessWidget {
                       Text(
                         'NIGHT WORSHIP',
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: const Color(0xFFFFD700),
+                          color: const Color(0xFFC6A15B),
                           fontWeight: FontWeight.w800,
                           letterSpacing: 2.0,
                         ),
@@ -118,7 +118,7 @@ class NightWorshipCard extends StatelessWidget {
                               style: TextStyle(
                                 fontFamily: 'Amiri',
                                 fontSize: 16,
-                                color: Color(0xFFFFD700),
+                                color: Color(0xFFC6A15B),
                                 fontWeight: FontWeight.w600,
                               ),
                               textDirection: TextDirection.rtl,
@@ -139,7 +139,7 @@ class NightWorshipCard extends StatelessWidget {
                                 fontWeight: FontWeight.w900,
                                 shadows: [
                                   Shadow(
-                                    color: const Color(0xFFFFD700)
+                                    color: const Color(0xFFC6A15B)
                                         .withValues(alpha: 0.5),
                                     blurRadius: 10,
                                   ),
@@ -163,16 +163,16 @@ class NightWorshipCard extends StatelessWidget {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                          color: const Color(0xFFC6A15B).withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color:
-                                const Color(0xFFFFD700).withValues(alpha: 0.5),
+                                const Color(0xFFC6A15B).withValues(alpha: 0.5),
                           ),
                         ),
                         child: const Icon(
                           Icons.alarm_rounded,
-                          color: Color(0xFFFFD700),
+                          color: Color(0xFFC6A15B),
                           size: 22,
                         ),
                       ),
@@ -219,12 +219,12 @@ class PrayerStreakCard extends StatelessWidget {
             color: AppColors.surface,
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: const Color(0xFF10B981).withValues(alpha: 0.3),
+              color: const Color(0xFF2F6B5D).withValues(alpha: 0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                color: const Color(0xFF2F6B5D).withValues(alpha: 0.1),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -236,7 +236,7 @@ class PrayerStreakCard extends StatelessWidget {
                 children: [
                   const Icon(
                     Icons.local_fire_department_rounded,
-                    color: Color(0xFFFFB703),
+                    color: Color(0xFFC6A15B),
                     size: 22,
                   ),
                   const SizedBox(width: 8),
@@ -304,8 +304,8 @@ class PrayerStreakCard extends StatelessWidget {
                           gradient: completed
                               ? const LinearGradient(
                                   colors: [
-                                    Color(0xFF10B981),
-                                    Color(0xFF059669),
+                                    Color(0xFF2F6B5D),
+                                    Color(0xFF123F36),
                                   ],
                                 )
                               : null,
@@ -313,7 +313,7 @@ class PrayerStreakCard extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: completed
-                                ? const Color(0xFF10B981)
+                                ? const Color(0xFF2F6B5D)
                                 : AppColors.borderSubtle,
                           ),
                         ),
@@ -330,7 +330,7 @@ class PrayerStreakCard extends StatelessWidget {
                         days[index],
                         style: AppTextStyles.labelSmall.copyWith(
                           color: completed
-                              ? const Color(0xFF10B981)
+                              ? const Color(0xFF2F6B5D)
                               : AppColors.textTertiary,
                           fontWeight: FontWeight.w700,
                           fontSize: 9,

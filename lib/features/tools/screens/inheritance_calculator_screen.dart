@@ -193,7 +193,7 @@ class _InheritanceCalculatorScreenState
         f,
         1,
         rule,
-        const Color(0xFF74C0FC),
+        const Color(0xFF2F6B5D),
         Icons.man_rounded,
       );
     }
@@ -216,7 +216,7 @@ class _InheritanceCalculatorScreenState
           perWife,
           1,
           '$rule (shared among $_wifeCount wife${_wifeCount > 1 ? "s" : ""})',
-          const Color(0xFFFF9EBC),
+          const Color(0xFFC6A15B),
           Icons.woman_rounded,
         );
       }
@@ -233,7 +233,7 @@ class _InheritanceCalculatorScreenState
           1 / 6,
           1,
           '1/6 fixed share + may get residual',
-          Color(0xFF00E676),
+          Color(0xFF123F36),
           Icons.man_rounded,
         );
       }
@@ -265,7 +265,7 @@ class _InheritanceCalculatorScreenState
         f,
         1,
         rule,
-        const Color(0xFFA78BFA),
+        const Color(0xFF2F6B5D),
         Icons.woman_rounded,
       );
     }
@@ -280,7 +280,7 @@ class _InheritanceCalculatorScreenState
         1 / 6,
         1,
         '1/6 — takes father\'s place',
-        Color(0xFF4ECDC4),
+        Color(0xFF2F6B5D),
         Icons.elderly_rounded,
       );
     }
@@ -295,7 +295,7 @@ class _InheritanceCalculatorScreenState
         1 / 6,
         1,
         '1/6 — takes mother\'s place',
-        Color(0xFFFF8C42),
+        Color(0xFFC6A15B),
         Icons.elderly_woman_rounded,
       );
     }
@@ -314,7 +314,7 @@ class _InheritanceCalculatorScreenState
         f,
         _daughters,
         rule,
-        const Color(0xFFFF9EBC),
+        const Color(0xFFC6A15B),
         Icons.girl_rounded,
       );
     }
@@ -333,7 +333,7 @@ class _InheritanceCalculatorScreenState
         f,
         _granddaughters,
         _granddaughters == 1 ? '1/2' : '2/3',
-        const Color(0xFFFF9EBC),
+        const Color(0xFFC6A15B),
         Icons.girl_rounded,
       );
     }
@@ -349,7 +349,7 @@ class _InheritanceCalculatorScreenState
         f,
         _sisters,
         _sisters == 1 ? '1/2' : '2/3',
-        const Color(0xFFFF9EBC),
+        const Color(0xFFC6A15B),
         Icons.people_rounded,
       );
     }
@@ -369,7 +369,7 @@ class _InheritanceCalculatorScreenState
         f,
         maternalSiblings,
         rule,
-        const Color(0xFFFFD166),
+        const Color(0xFFC6A15B),
         Icons.people_rounded,
       );
     }
@@ -416,7 +416,7 @@ class _InheritanceCalculatorScreenState
             sonFraction * _sons,
             _sons,
             '2:1 ratio with daughters — each son: ${(sonFraction * 100).toStringAsFixed(1)}%',
-            const Color(0xFF74C0FC),
+            const Color(0xFF2F6B5D),
             Icons.boy_rounded,
           );
           sharesMap['Daughters'] = _ShareResult(
@@ -426,7 +426,7 @@ class _InheritanceCalculatorScreenState
             daughterFraction * _daughters,
             _daughters,
             '2:1 ratio with sons — each daughter: ${(daughterFraction * 100).toStringAsFixed(1)}%',
-            const Color(0xFFFF9EBC),
+            const Color(0xFFC6A15B),
             Icons.girl_rounded,
           );
         } else {
@@ -438,7 +438,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _sons,
             'Equal residual share among $_sons son${_sons > 1 ? "s" : ""} (Asabah)',
-            const Color(0xFF74C0FC),
+            const Color(0xFF2F6B5D),
             Icons.boy_rounded,
           );
         }
@@ -454,7 +454,7 @@ class _InheritanceCalculatorScreenState
           remainder,
           1,
           'Residual — no male children (Asabah)',
-          const Color(0xFF00E676),
+          const Color(0xFF123F36),
           Icons.man_rounded,
         );
         remainder = 0;
@@ -471,7 +471,7 @@ class _InheritanceCalculatorScreenState
           newF,
           1,
           '1/6 fixed + residual after daughters',
-          const Color(0xFF00E676),
+          const Color(0xFF123F36),
           Icons.man_rounded,
         );
         remainder = 0;
@@ -491,7 +491,7 @@ class _InheritanceCalculatorScreenState
             gsonF * _grandsons,
             _grandsons,
             '2:1 ratio (Asabah)',
-            const Color(0xFF74C0FC),
+            const Color(0xFF2F6B5D),
             Icons.boy_rounded,
           );
           sharesMap['Granddaughters'] = _ShareResult(
@@ -501,7 +501,7 @@ class _InheritanceCalculatorScreenState
             gdaughterF * _granddaughters,
             _granddaughters,
             '2:1 ratio (Asabah)',
-            const Color(0xFFFF9EBC),
+            const Color(0xFFC6A15B),
             Icons.girl_rounded,
           );
         } else {
@@ -513,7 +513,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _grandsons,
             'Equal residual (Asabah)',
-            const Color(0xFF74C0FC),
+            const Color(0xFF2F6B5D),
             Icons.boy_rounded,
           );
         }
@@ -534,7 +534,7 @@ class _InheritanceCalculatorScreenState
             brotherF * _brothers,
             _brothers,
             '2:1 ratio with sisters (Asabah)',
-            const Color(0xFF4ECDC4),
+            const Color(0xFF2F6B5D),
             Icons.people_rounded,
           );
           sharesMap['Sisters'] = _ShareResult(
@@ -544,7 +544,7 @@ class _InheritanceCalculatorScreenState
             sisterF * _sisters,
             _sisters,
             '2:1 ratio with brothers',
-            const Color(0xFFFF9EBC),
+            const Color(0xFFC6A15B),
             Icons.people_rounded,
           );
         } else {
@@ -556,7 +556,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _brothers,
             'Equal residual (Asabah)',
-            const Color(0xFF4ECDC4),
+            const Color(0xFF2F6B5D),
             Icons.people_rounded,
           );
         }
@@ -580,7 +580,7 @@ class _InheritanceCalculatorScreenState
             hbF * _halfBrothersFather,
             _halfBrothersFather,
             '2:1 ratio (Asabah)',
-            const Color(0xFF4ECDC4),
+            const Color(0xFF2F6B5D),
             Icons.people_rounded,
           );
           sharesMap['Half Sisters (Paternal)'] = _ShareResult(
@@ -590,7 +590,7 @@ class _InheritanceCalculatorScreenState
             hsF * _halfSistersFather,
             _halfSistersFather,
             '2:1 ratio',
-            const Color(0xFFFF9EBC),
+            const Color(0xFFC6A15B),
             Icons.people_rounded,
           );
         } else {
@@ -602,7 +602,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _halfBrothersFather,
             'Equal residual (Asabah)',
-            const Color(0xFF4ECDC4),
+            const Color(0xFF2F6B5D),
             Icons.people_rounded,
           );
         }
@@ -618,7 +618,7 @@ class _InheritanceCalculatorScreenState
           remainder,
           1,
           'Residual (Asabah)',
-          const Color(0xFF4ECDC4),
+          const Color(0xFF2F6B5D),
           Icons.man_rounded,
         );
         remainder = 0;
@@ -714,8 +714,8 @@ class _InheritanceCalculatorScreenState
 
   void _showSnackbar(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: const TextStyle(color: Colors.white)),
-      backgroundColor: const Color(0xFF1B4332),
+      content: Text(msg, style: const TextStyle(color: const Color(0xFF19312C))),
+      backgroundColor: const Color(0xFF123F36),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(16),
@@ -725,7 +725,7 @@ class _InheritanceCalculatorScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -835,11 +835,11 @@ class _InheritanceCalculatorScreenState
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFA78BFA).withValues(alpha: 0.08),
+        color: const Color(0xFF2F6B5D).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
             color: _understood
-                ? const Color(0xFF00E676).withValues(alpha: 0.4)
+                ? const Color(0xFF123F36).withValues(alpha: 0.4)
                 : Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Column(
@@ -850,7 +850,7 @@ class _InheritanceCalculatorScreenState
               Expanded(
                 child: Text('Calculation Method',
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: const Color(0xFF19312C).withValues(alpha: 0.7),
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
               ),
@@ -858,14 +858,14 @@ class _InheritanceCalculatorScreenState
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8)),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _school,
                     isDense: true,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 12,
                         fontWeight: FontWeight.w600),
                     dropdownColor: const Color(0xFF141926),
@@ -911,11 +911,11 @@ class _InheritanceCalculatorScreenState
                 Checkbox(
                   value: _understood,
                   onChanged: (v) => setState(() => _understood = v ?? false),
-                  activeColor: const Color(0xFF00E676),
+                  activeColor: const Color(0xFF123F36),
                   checkColor: Colors.white,
                   side: BorderSide(
                       color: _understood
-                          ? const Color(0xFF00E676)
+                          ? const Color(0xFF123F36)
                           : Colors.orange.withValues(alpha: 0.5)),
                 ),
                 const SizedBox(width: 4),
@@ -946,15 +946,15 @@ class _InheritanceCalculatorScreenState
     return SliverAppBar(
       expandedHeight: 130,
       pinned: true,
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: const Color(0xFF19312C).withValues(alpha: 0.1),
               shape: BoxShape.circle),
           child: const Icon(Icons.arrow_back_rounded,
-              color: Colors.white, size: 20),
+              color: const Color(0xFF19312C), size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
@@ -962,7 +962,7 @@ class _InheritanceCalculatorScreenState
         background: Container(
           decoration: const BoxDecoration(
             gradient:
-                LinearGradient(colors: [Color(0xFF1A0D35), Color(0xFF0A0E1A)]),
+                LinearGradient(colors: [Color(0xFFEEF1EA), Color(0xFFF5F3EC)]),
           ),
           child: SafeArea(
             child: Padding(
@@ -972,17 +972,17 @@ class _InheritanceCalculatorScreenState
                 children: [
                   const Text('فَرَائِض',
                       style: TextStyle(
-                          color: Color(0xFFA78BFA),
+                          color: Color(0xFF2F6B5D),
                           fontSize: 24,
                           fontFamily: 'Amiri')),
                   const Text('Inheritance Calculator',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
                   Text('Islamic Law of Succession',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4),
+                          color: const Color(0xFF19312C).withValues(alpha: 0.4),
                           fontSize: 12)),
                 ],
               ),
@@ -998,21 +998,21 @@ class _InheritanceCalculatorScreenState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFA78BFA).withValues(alpha: 0.06),
+        color: const Color(0xFF2F6B5D).withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
         border:
-            Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.2)),
+            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFA78BFA).withValues(alpha: 0.12),
+              color: const Color(0xFF2F6B5D).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.info_outline_rounded,
-                color: Color(0xFFA78BFA), size: 20),
+                color: Color(0xFF2F6B5D), size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1021,7 +1021,7 @@ class _InheritanceCalculatorScreenState
               children: [
                 const Text('How It Works',
                     style: TextStyle(
-                        color: Color(0xFFA78BFA),
+                        color: Color(0xFF2F6B5D),
                         fontSize: 13,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
@@ -1030,7 +1030,7 @@ class _InheritanceCalculatorScreenState
                   '2. Select family members\n'
                   '3. Calculate automatic Islamic shares',
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: const Color(0xFF19312C).withValues(alpha: 0.5),
                       fontSize: 11,
                       height: 1.5),
                 ),
@@ -1048,13 +1048,13 @@ class _InheritanceCalculatorScreenState
       children: [
         Text('Deceased:',
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: const Color(0xFF19312C).withValues(alpha: 0.5),
                 fontSize: 12,
                 fontWeight: FontWeight.w600)),
         const SizedBox(width: 12),
-        _genderChip('male', '👨', 'Male', const Color(0xFF74C0FC)),
+        _genderChip('male', '👨', 'Male', const Color(0xFF2F6B5D)),
         const SizedBox(width: 8),
-        _genderChip('female', '👩', 'Female', const Color(0xFFFF9EBC)),
+        _genderChip('female', '👩', 'Female', const Color(0xFFC6A15B)),
       ],
     );
   }
@@ -1117,7 +1117,7 @@ class _InheritanceCalculatorScreenState
               margin: const EdgeInsets.only(right: 6),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: sel ? const Color(0xFFA78BFA) : const Color(0xFF141926),
+                color: sel ? const Color(0xFF2F6B5D) : const Color(0xFF141926),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(c,
@@ -1142,7 +1142,7 @@ class _InheritanceCalculatorScreenState
             'Total Estate Value',
             'Total wealth of deceased',
             _estateController,
-            const Color(0xFF00E676),
+            const Color(0xFF123F36),
             Icons.account_balance_rounded),
         const SizedBox(height: 10),
         _inputField('Debts & Loans', 'Outstanding debts (deducted first)',
@@ -1152,7 +1152,7 @@ class _InheritanceCalculatorScreenState
             'Wasiyyah (Will)',
             'Max 1/3 of estate (optional)',
             _wasiyyahController,
-            const Color(0xFFFFD166),
+            const Color(0xFFC6A15B),
             Icons.description_rounded),
       ],
     );
@@ -1184,7 +1184,7 @@ class _InheritanceCalculatorScreenState
               children: [
                 Text(label,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 12,
                         fontWeight: FontWeight.w600)),
                 TextField(
@@ -1196,7 +1196,7 @@ class _InheritanceCalculatorScreenState
                   decoration: InputDecoration(
                     hintText: hint,
                     hintStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.15),
+                        color: const Color(0xFF19312C).withValues(alpha: 0.15),
                         fontSize: 11),
                     prefixText: '${_currencySymbols[_currency]} ',
                     prefixStyle: TextStyle(
@@ -1222,7 +1222,7 @@ class _InheritanceCalculatorScreenState
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: const Color(0xFF19312C).withValues(alpha: 0.5),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0)),
@@ -1237,14 +1237,14 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Spouse',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
@@ -1254,10 +1254,10 @@ class _InheritanceCalculatorScreenState
                 '👨',
                 _hasHusband,
                 (v) => setState(() => _hasHusband = v),
-                const Color(0xFF74C0FC)),
+                const Color(0xFF2F6B5D)),
           if (_deceasedGender == 'male') ...[
             _toggleRow('Wife', '👩', _hasWife,
-                (v) => setState(() => _hasWife = v), const Color(0xFFFF9EBC)),
+                (v) => setState(() => _hasWife = v), const Color(0xFFC6A15B)),
             if (_hasWife)
               _counterRow(
                   'Number of Wives',
@@ -1265,7 +1265,7 @@ class _InheritanceCalculatorScreenState
                   1,
                   4,
                   (v) => setState(() => _wifeCount = v),
-                  const Color(0xFFFF9EBC)),
+                  const Color(0xFFC6A15B)),
           ],
         ],
       ),
@@ -1279,35 +1279,35 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Parents & Grandparents',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _toggleRow('Father', '👨', _hasFather,
-              (v) => setState(() => _hasFather = v), const Color(0xFF00E676)),
+              (v) => setState(() => _hasFather = v), const Color(0xFF123F36)),
           _toggleRow('Mother', '👩', _hasMother,
-              (v) => setState(() => _hasMother = v), const Color(0xFFA78BFA)),
+              (v) => setState(() => _hasMother = v), const Color(0xFF2F6B5D)),
           if (!_hasFather)
             _toggleRow(
                 'Grandfather',
                 '👴',
                 _hasGrandfather,
                 (v) => setState(() => _hasGrandfather = v),
-                const Color(0xFF4ECDC4)),
+                const Color(0xFF2F6B5D)),
           if (!_hasMother)
             _toggleRow(
                 'Grandmother',
                 '👵',
                 _hasGrandmother,
                 (v) => setState(() => _hasGrandmother = v),
-                const Color(0xFFFF8C42)),
+                const Color(0xFFC6A15B)),
         ],
       ),
     );
@@ -1320,31 +1320,31 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Children & Grandchildren',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _counterRow('Sons', _sons, 0, 20, (v) => setState(() => _sons = v),
-              const Color(0xFF74C0FC)),
+              const Color(0xFF2F6B5D)),
           _counterRow('Daughters', _daughters, 0, 20,
-              (v) => setState(() => _daughters = v), const Color(0xFFFF9EBC)),
+              (v) => setState(() => _daughters = v), const Color(0xFFC6A15B)),
           if (_sons == 0 && _daughters == 0) ...[
             _counterRow('Grandsons', _grandsons, 0, 20,
-                (v) => setState(() => _grandsons = v), const Color(0xFF74C0FC)),
+                (v) => setState(() => _grandsons = v), const Color(0xFF2F6B5D)),
             _counterRow(
                 'Granddaughters',
                 _granddaughters,
                 0,
                 20,
                 (v) => setState(() => _granddaughters = v),
-                const Color(0xFFFF9EBC)),
+                const Color(0xFFC6A15B)),
           ],
         ],
       ),
@@ -1358,21 +1358,21 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Full Siblings',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _counterRow('Brothers', _brothers, 0, 20,
-              (v) => setState(() => _brothers = v), const Color(0xFF4ECDC4)),
+              (v) => setState(() => _brothers = v), const Color(0xFF2F6B5D)),
           _counterRow('Sisters', _sisters, 0, 20,
-              (v) => setState(() => _sisters = v), const Color(0xFFFF9EBC)),
+              (v) => setState(() => _sisters = v), const Color(0xFFC6A15B)),
         ],
       ),
     );
@@ -1385,20 +1385,20 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Half Siblings',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           Text('Paternal (same father)',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.3), fontSize: 10)),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.3), fontSize: 10)),
           const SizedBox(height: 8),
           _counterRow(
               'Paternal Half Brothers',
@@ -1406,18 +1406,18 @@ class _InheritanceCalculatorScreenState
               0,
               20,
               (v) => setState(() => _halfBrothersFather = v),
-              const Color(0xFF4ECDC4)),
+              const Color(0xFF2F6B5D)),
           _counterRow(
               'Paternal Half Sisters',
               _halfSistersFather,
               0,
               20,
               (v) => setState(() => _halfSistersFather = v),
-              const Color(0xFFFF9EBC)),
+              const Color(0xFFC6A15B)),
           const SizedBox(height: 8),
           Text('Maternal (same mother)',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.3), fontSize: 10)),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.3), fontSize: 10)),
           const SizedBox(height: 8),
           _counterRow(
               'Maternal Half Brothers',
@@ -1425,14 +1425,14 @@ class _InheritanceCalculatorScreenState
               0,
               20,
               (v) => setState(() => _halfBrothersMother = v),
-              const Color(0xFFFFD166)),
+              const Color(0xFFC6A15B)),
           _counterRow(
               'Maternal Half Sisters',
               _halfSistersMother,
               0,
               20,
               (v) => setState(() => _halfSistersMother = v),
-              const Color(0xFFFFD166)),
+              const Color(0xFFC6A15B)),
         ],
       ),
     );
@@ -1445,19 +1445,19 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Other Relatives',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _toggleRow('Paternal Uncle', '👨', _hasUncle,
-              (v) => setState(() => _hasUncle = v), const Color(0xFF4ECDC4)),
+              (v) => setState(() => _hasUncle = v), const Color(0xFF2F6B5D)),
         ],
       ),
     );
@@ -1501,7 +1501,7 @@ class _InheritanceCalculatorScreenState
                   height: 20,
                   margin: const EdgeInsets.symmetric(horizontal: 3),
                   decoration: const BoxDecoration(
-                      color: Colors.white, shape: BoxShape.circle),
+                      color: const Color(0xFF19312C), shape: BoxShape.circle),
                 ),
               ),
             ),
@@ -1537,10 +1537,10 @@ class _InheritanceCalculatorScreenState
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8)),
               child: Icon(Icons.remove_rounded,
-                  color: Colors.white.withValues(alpha: 0.3), size: 16),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.3), size: 16),
             ),
           ),
           Container(
@@ -1593,7 +1593,7 @@ class _InheritanceCalculatorScreenState
           decoration: BoxDecoration(
             gradient: LinearGradient(
                 colors: enabled
-                    ? [const Color(0xFFA78BFA), const Color(0xFFD4AF37)]
+                    ? [const Color(0xFF2F6B5D), const Color(0xFFC6A15B)]
                     : [
                         Colors.grey.withValues(alpha: 0.3),
                         Colors.grey.withValues(alpha: 0.2)
@@ -1602,7 +1602,7 @@ class _InheritanceCalculatorScreenState
             boxShadow: enabled
                 ? [
                     BoxShadow(
-                        color: const Color(0xFFA78BFA).withValues(alpha: 0.3),
+                        color: const Color(0xFF2F6B5D).withValues(alpha: 0.3),
                         blurRadius: 16,
                         offset: const Offset(0, 6))
                   ]
@@ -1641,16 +1641,16 @@ class _InheritanceCalculatorScreenState
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-            colors: [Color(0xFF1A0D35), Color(0xFF2D1B69)]),
+            colors: [Color(0xFFEEF1EA), Color(0xFF2D1B69)]),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
+            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           const Text('DISTRIBUTION SUMMARY',
               style: TextStyle(
-                  color: Color(0xFFA78BFA),
+                  color: Color(0xFF2F6B5D),
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2.0)),
@@ -1662,11 +1662,11 @@ class _InheritanceCalculatorScreenState
                 const Color(0xFFEF4444)),
           if (actualW > 0)
             _summaryRow('Wasiyyah (Will)', '- ${_formatAmount(actualW)}',
-                const Color(0xFFFFD166)),
+                const Color(0xFFC6A15B)),
           const Divider(color: Color(0xFF4A3F6B), height: 20),
           _summaryRow('Net Distributable', _formatAmount(_netEstate),
-              const Color(0xFF00E676)),
-          _summaryRow('Heirs', '${_results.length}', const Color(0xFFA78BFA)),
+              const Color(0xFF123F36)),
+          _summaryRow('Heirs', '${_results.length}', const Color(0xFF2F6B5D)),
         ],
       ),
     );
@@ -1680,7 +1680,7 @@ class _InheritanceCalculatorScreenState
         children: [
           Text(label,
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.5), fontSize: 12)),
           Text(value,
               style: TextStyle(
                   color: color, fontSize: 13, fontWeight: FontWeight.w700)),
@@ -1723,7 +1723,7 @@ class _InheritanceCalculatorScreenState
                           children: [
                             Text(r.label,
                                 style: const TextStyle(
-                                    color: Colors.white,
+                                    color: const Color(0xFF19312C),
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700)),
                             if (r.count > 1) ...[
@@ -1762,12 +1762,12 @@ class _InheritanceCalculatorScreenState
                               fontWeight: FontWeight.w900)),
                       Text('${(r.fraction * 100).toStringAsFixed(1)}%',
                           style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.4),
+                              color: const Color(0xFF19312C).withValues(alpha: 0.4),
                               fontSize: 10)),
                       if (r.count > 1)
                         Text('${_formatAmount(r.amount / r.count)} each',
                             style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.3),
+                                color: const Color(0xFF19312C).withValues(alpha: 0.3),
                                 fontSize: 9)),
                     ],
                   ),
@@ -1788,7 +1788,7 @@ class _InheritanceCalculatorScreenState
                     Expanded(
                         child: Text(r.rule,
                             style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.4),
+                                color: const Color(0xFF19312C).withValues(alpha: 0.4),
                                 fontSize: 10,
                                 height: 1.3))),
                   ],
@@ -1811,13 +1811,13 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         children: [
           Text('VISUAL BREAKDOWN',
               style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.4),
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2.0)),
@@ -1846,7 +1846,7 @@ class _InheritanceCalculatorScreenState
                   const SizedBox(width: 6),
                   Text('${r.label} ${(r.fraction * 100).toStringAsFixed(0)}%',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: const Color(0xFF19312C).withValues(alpha: 0.5),
                           fontSize: 10)),
                 ],
               );
@@ -1865,19 +1865,19 @@ class _InheritanceCalculatorScreenState
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: const Color(0xFF19312C).withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.1)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.refresh_rounded,
-                color: Colors.white.withValues(alpha: 0.5), size: 18),
+                color: const Color(0xFF19312C).withValues(alpha: 0.5), size: 18),
             const SizedBox(width: 8),
             Text('Reset All',
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.5),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
           ],
@@ -1894,7 +1894,7 @@ class _InheritanceCalculatorScreenState
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.15)),
+            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1905,7 +1905,7 @@ class _InheritanceCalculatorScreenState
               SizedBox(width: 8),
               Text('Quran Reference',
                   style: TextStyle(
-                      color: Color(0xFFA78BFA),
+                      color: Color(0xFF2F6B5D),
                       fontSize: 12,
                       fontWeight: FontWeight.w700)),
             ],
@@ -1916,7 +1916,7 @@ class _InheritanceCalculatorScreenState
             'and His Messenger, He will admit him into Gardens beneath '
             'which rivers flow." — Quran 4:13',
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: const Color(0xFF19312C).withValues(alpha: 0.6),
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
                 height: 1.5),
@@ -1927,7 +1927,7 @@ class _InheritanceCalculatorScreenState
             'Awl and Radd rules are applied automatically. '
             'For complex cases, always consult a qualified Islamic scholar.',
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.35),
+                color: const Color(0xFF19312C).withValues(alpha: 0.35),
                 fontSize: 10,
                 height: 1.4),
           ),
@@ -1969,7 +1969,7 @@ class _PieChartPainter extends CustomPainter {
       );
 
       final borderPaint = Paint()
-        ..color = const Color(0xFF0A0E1A)
+        ..color = const Color(0xFFF5F3EC)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
 
@@ -1985,7 +1985,7 @@ class _PieChartPainter extends CustomPainter {
     }
 
     final holePaint = Paint()
-      ..color = const Color(0xFF0A0E1A)
+      ..color = const Color(0xFFF5F3EC)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius * 0.5, holePaint);
   }

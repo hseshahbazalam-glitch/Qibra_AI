@@ -13,15 +13,15 @@ import 'package:flutter/material.dart';
 // ============================================================
 
 enum PrayerType {
-  fajr('Fajr', 'الفجر', 'Dawn', 'assets/icons/prayer.svg', Color(0xFF064E3B)),
+  fajr('Fajr', 'الفجر', 'Dawn', 'assets/icons/prayer.svg', Color(0xFF123F36)),
   sunrise('Sunrise', 'الشروق', 'Sunrise', 'assets/icons/prayer.svg',
-      Color(0xFFFFA726)),
-  dhuhr('Dhuhr', 'الظهر', 'Noon', 'assets/icons/prayer.svg', Color(0xFFFDD835)),
+      Color(0xFFC6A15B)),
+  dhuhr('Dhuhr', 'الظهر', 'Noon', 'assets/icons/prayer.svg', Color(0xFF2F6B5D)),
   asr('Asr', 'العصر', 'Afternoon', 'assets/icons/prayer.svg',
-      Color(0xFFFF7043)),
+      Color(0xFF8A6D38)),
   maghrib('Maghrib', 'المغرب', 'Sunset', 'assets/icons/prayer.svg',
-      Color(0xFFE53935)),
-  isha('Isha', 'العشاء', 'Night', 'assets/icons/prayer.svg', Color(0xFF0A130E));
+      Color(0xFF123F36)),
+  isha('Isha', 'العشاء', 'Night', 'assets/icons/prayer.svg', Color(0xFF19312C));
 
   const PrayerType(
     this.name,
@@ -281,33 +281,25 @@ class DailyPrayerTimes extends Equatable {
     }
   }
 
+  PrayerTime? get fajrOrNull => getPrayer(PrayerType.fajr);
+  PrayerTime? get sunriseOrNull => getPrayer(PrayerType.sunrise);
+  PrayerTime? get dhuhrOrNull => getPrayer(PrayerType.dhuhr);
+  PrayerTime? get asrOrNull => getPrayer(PrayerType.asr);
+  PrayerTime? get maghribOrNull => getPrayer(PrayerType.maghrib);
+  PrayerTime? get ishaOrNull => getPrayer(PrayerType.isha);
+
   PrayerTime get fajr =>
-      getPrayer(PrayerType.fajr) ??
-      PrayerTime(
-          type: PrayerType.fajr, time: date.add(const Duration(hours: 5)));
+      fajrOrNull ?? (throw StateError('Fajr time is not available'));
   PrayerTime get sunrise =>
-      getPrayer(PrayerType.sunrise) ??
-      PrayerTime(
-          type: PrayerType.sunrise, time: date.add(const Duration(hours: 6)));
+      sunriseOrNull ?? (throw StateError('Sunrise time is not available'));
   PrayerTime get dhuhr =>
-      getPrayer(PrayerType.dhuhr) ??
-      PrayerTime(
-          type: PrayerType.dhuhr, time: date.add(const Duration(hours: 12)));
+      dhuhrOrNull ?? (throw StateError('Dhuhr time is not available'));
   PrayerTime get asr =>
-      getPrayer(PrayerType.asr) ??
-      PrayerTime(
-          type: PrayerType.asr,
-          time: date.add(const Duration(hours: 15, minutes: 30)));
+      asrOrNull ?? (throw StateError('Asr time is not available'));
   PrayerTime get maghrib =>
-      getPrayer(PrayerType.maghrib) ??
-      PrayerTime(
-          type: PrayerType.maghrib,
-          time: date.add(const Duration(hours: 18, minutes: 30)));
+      maghribOrNull ?? (throw StateError('Maghrib time is not available'));
   PrayerTime get isha =>
-      getPrayer(PrayerType.isha) ??
-      PrayerTime(
-          type: PrayerType.isha,
-          time: date.add(const Duration(hours: 19, minutes: 45)));
+      ishaOrNull ?? (throw StateError('Isha time is not available'));
 
   /// Get the next prayer after given time
   PrayerTime? getNextPrayer(DateTime now) {
@@ -430,11 +422,11 @@ class PrayerLocation extends Equatable {
 // ============================================================
 
 enum PrayerStatus {
-  pending('Pending', Icons.schedule_rounded, Color(0xFF9E9E9E)),
-  prayed('Prayed', Icons.check_circle_rounded, Color(0xFF4CAF50)),
-  prayedInMosque('In Mosque', Icons.mosque_rounded, Color(0xFF00E676)),
-  missed('Missed', Icons.cancel_rounded, Color(0xFFEF5350)),
-  makeup('Made Up', Icons.autorenew_rounded, Color(0xFFFFA726));
+  pending('Pending', Icons.schedule_rounded, Color(0xFF71807A)),
+  prayed('Prayed', Icons.check_circle_rounded, Color(0xFF123F36)),
+  prayedInMosque('In Mosque', Icons.mosque_rounded, Color(0xFF2F6B5D)),
+  missed('Missed', Icons.cancel_rounded, Color(0xFFB42318)),
+  makeup('Made Up', Icons.autorenew_rounded, Color(0xFFC6A15B));
 
   const PrayerStatus(this.label, this.icon, this.color);
   final String label;

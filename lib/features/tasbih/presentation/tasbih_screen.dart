@@ -81,12 +81,12 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
         content: Row(
           children: [
             const Icon(Icons.check_circle_rounded,
-                color: Colors.white, size: 20),
+                color: const Color(0xFF19312C), size: 20),
             const SizedBox(width: AppSpacing.sm),
             Text(
               'MashaAllah! Target achieved 🎉',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -110,20 +110,20 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
         content: Row(
           children: [
             const Icon(Icons.emoji_events_rounded,
-                color: Colors.white, size: 24),
+                color: const Color(0xFF19312C), size: 24),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
                 '🏆 Daily Goal Complete! Barakallahu feek!',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: Colors.white,
+                  color: const Color(0xFF19312C),
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ),
           ],
         ),
-        backgroundColor: const Color(0xFFFFD700),
+        backgroundColor: const Color(0xFFC6A15B),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -413,13 +413,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFFFD700).withValues(alpha: 0.15),
+            const Color(0xFFC6A15B).withValues(alpha: 0.15),
             AppColors.accent.withValues(alpha: 0.10),
           ],
         ),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border:
-            Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.30)),
+            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.30)),
       ),
       child: Row(
         children: [
@@ -427,13 +427,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             padding: const EdgeInsets.all(8),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFFFFD700), Color(0xFFB8860B)],
+                colors: [Color(0xFFC6A15B), Color(0xFFB8860B)],
               ),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.emoji_events_rounded,
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               size: 20,
             ),
           ),
@@ -514,7 +514,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                 Icon(
                   Icons.flag_rounded,
                   color: state.isDailyGoalComplete
-                      ? const Color(0xFF10B981)
+                      ? const Color(0xFF2F6B5D)
                       : AppColors.primary,
                   size: 18,
                 ),
@@ -533,7 +533,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   style: AppTextStyles.titleSmall.copyWith(
                     fontWeight: FontWeight.w800,
                     color: state.isDailyGoalComplete
-                        ? const Color(0xFF10B981)
+                        ? const Color(0xFF2F6B5D)
                         : AppColors.textPrimary,
                   ),
                 ),
@@ -550,7 +550,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                 backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                 valueColor: AlwaysStoppedAnimation(
                   state.isDailyGoalComplete
-                      ? const Color(0xFF10B981)
+                      ? const Color(0xFF2F6B5D)
                       : AppColors.primary,
                 ),
                 minHeight: 6,
@@ -714,7 +714,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                             '${state.count}',
                             style: const TextStyle(
                               fontSize: 80,
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontWeight: FontWeight.w800,
                               height: 1,
                             ),
@@ -726,13 +726,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
+                              color: AppColors.white.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               '/ ${state.target}',
                               style: AppTextStyles.labelMedium.copyWith(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -767,7 +767,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   icon: Icons.refresh_rounded,
                   label: 'Rounds',
                   value: '${state.rounds}',
-                  color: const Color(0xFF4CAF50),
+                  color: const Color(0xFF2F6B5D),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -776,7 +776,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   icon: Icons.timer_outlined,
                   label: 'Remaining',
                   value: '${state.remaining}',
-                  color: const Color(0xFF7C4DFF),
+                  color: const Color(0xFF123F36),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -1315,7 +1315,7 @@ class _StatisticsScreen extends ConsumerWidget {
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFFFFD700), Color(0xFFB8860B)],
+                    colors: [Color(0xFFC6A15B), Color(0xFFB8860B)],
                   ),
                   borderRadius: BorderRadius.circular(AppRadius.xl2),
                 ),
@@ -1323,14 +1323,14 @@ class _StatisticsScreen extends ConsumerWidget {
                   children: [
                     const Icon(
                       Icons.emoji_events_rounded,
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       size: 48,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       state.achievementTitle,
                       style: AppTextStyles.titleLarge.copyWith(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -1338,7 +1338,7 @@ class _StatisticsScreen extends ConsumerWidget {
                     Text(
                       '${state.totalCount} total dhikr',
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: const Color(0xFF19312C).withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -1384,7 +1384,7 @@ class _StatisticsScreen extends ConsumerWidget {
                       icon: Icons.flag_rounded,
                       label: 'Daily Goal',
                       value: '${state.dailyGoal}',
-                      color: const Color(0xFF10B981),
+                      color: const Color(0xFF2F6B5D),
                     ),
                   ),
                 ],

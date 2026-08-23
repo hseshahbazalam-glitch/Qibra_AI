@@ -1089,6 +1089,9 @@ abstract final class AppRoutes {
   static const String prayerTimes = '/prayer/times';
   static const String qibla = '/prayer/qibla';
   static const String mosques = '/prayer/mosques';
+  static const String prayerSchedule = '/prayer/schedule';
+  static const String prayerStatistics = '/prayer/statistics';
+  static const String tahajjud = '/prayer/tahajjud';
 
   static const String hadithCollection = '/hadith/collection';
   static const String hadithDetail = '/hadith/detail';
@@ -1104,6 +1107,8 @@ abstract final class AppRoutes {
   // --- User Routes ---
   static const String profile = '/profile';
   static const String settings = '/settings';
+  static const String more = '/more';
+  static const String bookmarks = '/bookmarks';
   static const String notifications = '/notifications';
   static const String about = '/about';
   static const String zakat = '/tools/zakat';

@@ -238,9 +238,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             center: Alignment.center,
             radius: 1.5,
             colors: [
-              Color(0xFF0D3320),
-              Color(0xFF071A14),
-              Color(0xFF020A08),
+              Color(0xFFEEF1EA),
+              Color(0xFFF5F3EC),
+              Color(0xFFE8EBE3),
             ],
             stops: [0.0, 0.5, 1.0],
           ),
@@ -423,7 +423,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           child: const Icon(
                             Icons.mosque_rounded,
                             size: 64,
-                            color: Colors.white,
+                            color: const Color(0xFF19312C),
                           ),
                         ),
                       ),
@@ -461,7 +461,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   child: Text(
                     letters[index],
                     style: AppTextStyles.displaySmall.copyWith(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontWeight: FontWeight.w900,
                       letterSpacing: 6,
                       height: 1.0,
@@ -670,15 +670,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           ShaderMask(
             shaderCallback: (bounds) => const LinearGradient(
               colors: [
-                Color(0xFFFFD700),
+                Color(0xFFC6A15B),
                 Color(0xFFB8960C),
-                Color(0xFFFFD700),
+                Color(0xFFC6A15B),
               ],
             ).createShader(bounds),
             child: Text(
               'SHAHBAZ ALAM',
               style: AppTextStyles.labelSmall.copyWith(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontWeight: FontWeight.w900,
                 fontSize: 12,
                 letterSpacing: 2.5,

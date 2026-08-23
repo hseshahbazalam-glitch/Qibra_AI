@@ -367,7 +367,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             children: [
               Icon(
                 Icons.check_circle,
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 size: 20,
               ),
               SizedBox(width: AppSpacing.sm),
@@ -458,12 +458,12 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             colors: _isVerified
                 ? [
                     AppColors.success.withValues(alpha: 0.20),
-                    const Color(0xFF050806),
+                    const Color(0xFFF8F6EF),
                     AppColors.background,
                   ]
                 : [
-                    const Color(0xFF2D2410),
-                    const Color(0xFF050806),
+                    const Color(0xFFF8F1E3),
+                    const Color(0xFFF8F6EF),
                     AppColors.background,
                   ],
             stops: const [0.0, 0.5, 1.0],
@@ -656,7 +656,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                       AppGradients.gold.createShader(bounds),
                   child: const Icon(
                     Icons.security_rounded,
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     size: 48,
                   ),
                 ),
@@ -681,7 +681,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           child: Text(
             'VERIFICATION',
             style: AppTextStyles.labelSmall.copyWith(
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               letterSpacing: 3,
               fontWeight: FontWeight.w800,
             ),
@@ -754,7 +754,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -854,7 +854,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           FilteringTextInputFormatter.digitsOnly,
         ],
         style: AppTextStyles.headlineSmall.copyWith(
-          color: Colors.white,
+          color: const Color(0xFF19312C),
           fontWeight: FontWeight.w800,
         ),
         decoration: const InputDecoration(
@@ -1043,7 +1043,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             ),
             borderRadius: AppRadius.cardRadius,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
+              color: const Color(0xFF19312C).withValues(alpha: 0.08),
               width: 1,
             ),
           ),
@@ -1173,7 +1173,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           ),
           child: const Icon(
             Icons.check_rounded,
-            color: Colors.white,
+            color: const Color(0xFF19312C),
             size: 60,
           ),
         ),
@@ -1199,7 +1199,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           child: Text(
             'Verified!',
             style: AppTextStyles.displaySmall.copyWith(
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               fontWeight: FontWeight.w900,
               fontSize: 40,
               letterSpacing: -1,

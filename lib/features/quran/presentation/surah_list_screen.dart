@@ -136,8 +136,8 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   }
 
   Color _revelationColor(SurahInfoModel surah) {
-    if (surah.isMeccan) return const Color(0xFF7C4DFF);
-    if (surah.isMedinan) return const Color(0xFF1E88E5);
+    if (surah.isMeccan) return const Color(0xFF123F36);
+    if (surah.isMedinan) return const Color(0xFF2F6B5D);
     return AppColors.primary;
   }
 
@@ -572,7 +572,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               label: 'Meccan',
               count: meccanCount,
               isSelected: _selectedFilter == SurahFilterType.meccan,
-              color: const Color(0xFF7C4DFF),
+              color: const Color(0xFF123F36),
               onTap: () {
                 HapticFeedback.selectionClick();
                 setState(() => _selectedFilter = SurahFilterType.meccan);
@@ -582,7 +582,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               label: 'Medinan',
               count: medinanCount,
               isSelected: _selectedFilter == SurahFilterType.medinan,
-              color: const Color(0xFF1E88E5),
+              color: const Color(0xFF2F6B5D),
               onTap: () {
                 HapticFeedback.selectionClick();
                 setState(() => _selectedFilter = SurahFilterType.medinan);
@@ -724,7 +724,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                 label: Text(
                   'Clear Filters',
                   style: AppTextStyles.labelLarge.copyWith(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -935,7 +935,7 @@ class _NumberBadge extends StatelessWidget {
         child: Text(
           number.toString(),
           style: AppTextStyles.titleSmall.copyWith(
-            color: Colors.white,
+            color: AppColors.white,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -1326,7 +1326,7 @@ class _SurahListErrorState extends StatelessWidget {
                 label: Text(
                   'Retry',
                   style: AppTextStyles.labelLarge.copyWith(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

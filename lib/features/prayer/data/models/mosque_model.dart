@@ -1,4 +1,4 @@
-﻿// lib/features/prayer/data/models/mosque_model.dart
+// lib/features/prayer/data/models/mosque_model.dart
 import 'dart:math' as math;
 
 class Mosque {
@@ -31,20 +31,30 @@ class Mosque {
     required this.latitude,
     required this.longitude,
     required this.distanceKm,
-    this.rating = 4.8,
-    this.totalReviews = 120,
-    this.hasWuduArea = true,
-    this.hasParking = true,
-    this.hasWomenSection = true,
-    this.isWheelchairAccessible = true,
-    this.fajrJamaat = '05:15 AM',
-    this.dhuhrJamaat = '01:15 PM',
-    this.asrJamaat = '04:15 PM',
-    this.maghribJamaat = '06:55 PM',
-    this.ishaJamaat = '08:15 PM',
-    this.jummahJamaat = '01:30 PM',
+    this.rating = 0,
+    this.totalReviews = 0,
+    this.hasWuduArea = false,
+    this.hasParking = false,
+    this.hasWomenSection = false,
+    this.isWheelchairAccessible = false,
+    this.fajrJamaat,
+    this.dhuhrJamaat,
+    this.asrJamaat,
+    this.maghribJamaat,
+    this.ishaJamaat,
+    this.jummahJamaat,
     this.phone,
   });
+
+  bool get hasRating => rating > 0;
+  bool get hasAddress => address.trim().isNotEmpty;
+  bool get hasJamaatTimes =>
+      fajrJamaat != null ||
+      dhuhrJamaat != null ||
+      asrJamaat != null ||
+      maghribJamaat != null ||
+      ishaJamaat != null ||
+      jummahJamaat != null;
 
   String get formattedDistance {
     if (distanceKm < 1.0) {

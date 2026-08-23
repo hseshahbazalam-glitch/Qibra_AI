@@ -282,18 +282,18 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             height: 44,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
+                colors: [Color(0xFF2F6B5D), Color(0xFFC6A15B)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                  color: const Color(0xFF2F6B5D).withValues(alpha: 0.4),
                   blurRadius: 12,
                 ),
               ],
             ),
             child:
-                const Icon(Icons.auto_awesome, color: Colors.white, size: 22),
+                const Icon(Icons.auto_awesome, color: const Color(0xFF19312C), size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -318,7 +318,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                             ? Colors.orange
                             : (_isListening
                                 ? Colors.red
-                                : const Color(0xFF10B981)),
+                                : const Color(0xFF2F6B5D)),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -346,14 +346,14 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
                 color: _autoSpeak
-                    ? const Color(0xFF3B82F6).withValues(alpha: 0.2)
+                    ? const Color(0xFF2F6B5D).withValues(alpha: 0.2)
                     : AppColors.surfaceElevated,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 _autoSpeak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
                 color: _autoSpeak
-                    ? const Color(0xFF3B82F6)
+                    ? const Color(0xFF2F6B5D)
                     : AppColors.textPrimary,
                 size: 18,
               ),
@@ -392,7 +392,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           AvatarGlow(
-            glowColor: const Color(0xFF3B82F6),
+            glowColor: const Color(0xFF2F6B5D),
             duration: const Duration(milliseconds: 2000),
             repeat: true,
             child: Container(
@@ -400,12 +400,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 120,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
+                  colors: [Color(0xFF2F6B5D), Color(0xFFC6A15B)],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.6),
+                    color: const Color(0xFF2F6B5D).withValues(alpha: 0.6),
                     blurRadius: 30,
                     spreadRadius: 10,
                   ),
@@ -413,7 +413,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               ),
               child: const Icon(
                 Icons.mic_rounded,
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 size: 60,
               ),
             ),
@@ -568,19 +568,19 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             height: 100,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
+                colors: [Color(0xFF2F6B5D), Color(0xFFC6A15B)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                  color: const Color(0xFF2F6B5D).withValues(alpha: 0.4),
                   blurRadius: 24,
                   spreadRadius: 4,
                 ),
               ],
             ),
             child:
-                const Icon(Icons.auto_awesome, color: Colors.white, size: 48),
+                const Icon(Icons.auto_awesome, color: const Color(0xFF19312C), size: 48),
           ),
           const SizedBox(height: 20),
           const Text(
@@ -611,7 +611,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             ),
             child: const Row(
               children: [
-                Icon(Icons.mic_rounded, color: Color(0xFF3B82F6), size: 16),
+                Icon(Icons.mic_rounded, color: Color(0xFF2F6B5D), size: 16),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -663,12 +663,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 32,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
+                  colors: [Color(0xFF2F6B5D), Color(0xFFC6A15B)],
                 ),
                 shape: BoxShape.circle,
               ),
               child:
-                  const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
+                  const Icon(Icons.auto_awesome, color: const Color(0xFF19312C), size: 16),
             ),
             const SizedBox(width: 8),
           ],
@@ -685,7 +685,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 decoration: BoxDecoration(
                   gradient: isUser
                       ? const LinearGradient(
-                          colors: [Color(0xFF10B981), Color(0xFF059669)],
+                          colors: [Color(0xFF2F6B5D), Color(0xFF123F36)],
                         )
                       : null,
                   color: isUser ? null : AppColors.surfaceElevated,
@@ -744,12 +744,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 32,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF10B981), Color(0xFF059669)],
+                  colors: [Color(0xFF2F6B5D), Color(0xFF123F36)],
                 ),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.person_rounded,
-                  color: Colors.white, size: 18),
+                  color: const Color(0xFF19312C), size: 18),
             ),
           ],
         ],
@@ -798,12 +798,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             height: 32,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFFFFB703)],
+                colors: [Color(0xFF2F6B5D), Color(0xFFC6A15B)],
               ),
               shape: BoxShape.circle,
             ),
             child:
-                const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
+                const Icon(Icons.auto_awesome, color: const Color(0xFF19312C), size: 16),
           ),
           const SizedBox(width: 8),
           Container(
@@ -904,12 +904,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                       ? [Colors.red, Colors.redAccent]
                       : (_isSpeaking
                           ? [Colors.orange, Colors.deepOrange]
-                          : [const Color(0xFF3B82F6), const Color(0xFFFFB703)]),
+                          : [const Color(0xFF2F6B5D), const Color(0xFFC6A15B)]),
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: (_isListening ? Colors.red : const Color(0xFF3B82F6))
+                    color: (_isListening ? Colors.red : const Color(0xFF2F6B5D))
                         .withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
@@ -922,7 +922,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                     : (_isSpeaking
                         ? Icons.stop_rounded
                         : Icons.mic_none_rounded),
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 size: 22,
               ),
             ),
@@ -978,12 +978,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 48,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF10B981), Color(0xFF059669)],
+                  colors: [Color(0xFF2F6B5D), Color(0xFF123F36)],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                    color: const Color(0xFF2F6B5D).withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -991,7 +991,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               ),
               child: const Icon(
                 Icons.send_rounded,
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 size: 20,
               ),
             ),

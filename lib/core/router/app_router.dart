@@ -20,6 +20,9 @@ import 'package:qibra_ai/features/auth/presentation/register_screen.dart';
 import 'package:qibra_ai/features/auth/presentation/verify_otp_screen.dart';
 import 'package:qibra_ai/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:qibra_ai/features/prayer/presentation/prayer_times_screen.dart';
+import 'package:qibra_ai/features/prayer/presentation/salah_schedule_screen.dart';
+import 'package:qibra_ai/features/prayer/presentation/prayer_statistics_screen.dart';
+import 'package:qibra_ai/features/prayer/presentation/tahajjud_details_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/quran_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/mushaf_reader_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
@@ -35,7 +38,6 @@ import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 import 'package:qibra_ai/features/tasbih/presentation/tasbih_screen.dart';
 import 'package:qibra_ai/features/tools/screens/zakat_calculator_screen.dart';
-import 'package:qibra_ai/features/tools/screens/dhikr_counter_screen.dart';
 import 'package:qibra_ai/features/tools/screens/sadaqah_tracker_screen.dart';
 import 'package:qibra_ai/features/tools/screens/habit_tracker_screen.dart';
 import 'package:qibra_ai/features/tools/screens/ramadan_timer_screen.dart';
@@ -50,6 +52,9 @@ import 'package:qibra_ai/features/settings/presentation/notification_settings_sc
 import 'package:qibra_ai/features/home/presentation/home_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/user_profile_screen.dart';
 import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
+import 'package:qibra_ai/features/more/presentation/more_screen.dart';
+import 'package:qibra_ai/features/bookmarks/presentation/bookmarks_hub_screen.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 
 class _ErrorScreen extends StatelessWidget {
   final String? message;
@@ -151,14 +156,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => AppShellScaffold(
           location: state.matchedLocation,
-          notificationCount: 3,
           onHomeTap: () => context.go(AppRoutes.home),
           onQuranTap: () => context.go(AppRoutes.quran),
           onPrayerTap: () => context.go(AppRoutes.prayer),
           onHadithTap: () => context.go(AppRoutes.hadith),
           onAiTap: () => context.go(AppRoutes.aiChat),
-          onSettingsTap: () => context.go(AppRoutes.settings),
-          onCenterFabTap: () => context.go(AppRoutes.mosques),
+          onMoreTap: () => context.go(AppRoutes.more),
           child: child,
         ),
         routes: [
@@ -191,12 +194,28 @@ final routerProvider = Provider<GoRouter>((ref) {
                   path: 'search',
                   name: 'quran-search',
                   builder: (context, state) => const QuranSearchScreen()),
+              GoRoute(
+                  path: 'bookmarks',
+                  name: 'quran-bookmarks',
+                  builder: (context, state) => const BookmarksHubScreen()),
             ],
           ),
           GoRoute(
               path: AppRoutes.prayer,
               name: 'prayer',
               builder: (context, state) => const PrayerTimesScreen()),
+          GoRoute(
+              path: AppRoutes.prayerSchedule,
+              name: 'prayer-schedule',
+              builder: (context, state) => const SalahScheduleScreen()),
+          GoRoute(
+              path: AppRoutes.prayerStatistics,
+              name: 'prayer-statistics',
+              builder: (context, state) => const PrayerStatisticsScreen()),
+          GoRoute(
+              path: AppRoutes.tahajjud,
+              name: 'tahajjud',
+              builder: (context, state) => const TahajjudDetailsScreen()),
           GoRoute(
               path: AppRoutes.qibla,
               name: 'qibla',
@@ -228,7 +247,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                       totalHadiths: bookInfo?.totalHadiths ?? 0,
                       totalChapters: bookInfo?.sections.length ?? 0,
                       description: 'Authentic Hadith Collection',
-                      color: const Color(0xFF00A86B),
+                      color: QibraColors.of(context).primary,
                     ),
                   );
                 },
@@ -260,6 +279,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               name: 'tafseer',
               builder: (context, state) => const TafseerScreen(surahNumber: 1)),
           GoRoute(
+              path: AppRoutes.more,
+              name: 'more',
+              builder: (context, state) => const MoreScreen()),
+          GoRoute(
+              path: AppRoutes.bookmarks,
+              name: 'bookmarks',
+              builder: (context, state) => const BookmarksHubScreen()),
+          GoRoute(
               path: AppRoutes.settings,
               name: 'settings',
               builder: (context, state) => const SettingsScreen()),
@@ -274,7 +301,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
               path: '/tools/dhikr',
               name: 'tools-dhikr',
-              builder: (context, state) => const DhikrCounterScreen()),
+              builder: (context, state) => const TasbihScreen()),
           GoRoute(
               path: '/tools/sadaqah',
               name: 'tools-sadaqah',

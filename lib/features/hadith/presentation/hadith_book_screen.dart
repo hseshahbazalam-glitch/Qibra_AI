@@ -38,7 +38,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     final chaptersAsync = ref.watch(hadithChaptersProvider(widget.book.slug));
 
     return Scaffold(
-      backgroundColor: const Color(0xFF000000),
+      backgroundColor: const Color(0xFFF5F3EC),
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -73,7 +73,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         child: Text(
                           'No hadiths found.',
                           style:
-                              TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                              TextStyle(color: Color(0xFF71807A), fontSize: 14),
                         ),
                       ),
                     ),
@@ -107,7 +107,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                 child: Center(
                   child: Padding(
                     padding: EdgeInsets.all(48),
-                    child: CircularProgressIndicator(color: Color(0xFF00E676)),
+                    child: CircularProgressIndicator(color: Color(0xFF123F36)),
                   ),
                 ),
               ),
@@ -123,7 +123,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         const Text(
                           'Failed to load hadiths',
                           style: TextStyle(
-                              color: Colors.white,
+                              color: const Color(0xFF19312C),
                               fontSize: 16,
                               fontWeight: FontWeight.bold),
                         ),
@@ -131,7 +131,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Text(
                           error.toString(),
                           style: const TextStyle(
-                              color: Color(0xFF94A3B8), fontSize: 12),
+                              color: Color(0xFF71807A), fontSize: 12),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -152,18 +152,18 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   // ────────────────────────────────────────────────────────
   Widget _buildAppBar(BuildContext context) {
     return SliverAppBar(
-      backgroundColor: const Color(0xFF000000),
+      backgroundColor: const Color(0xFFF5F3EC),
       pinned: true,
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: Colors.white, size: 18),
+            color: const Color(0xFF19312C), size: 18),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text(
         widget.book.name,
         style: const TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF19312C),
             fontSize: 16,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.5),
@@ -172,7 +172,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       actions: [
         IconButton(
           icon: const Icon(Icons.display_settings_rounded,
-              color: Color(0xFFFFB703), size: 20),
+              color: Color(0xFFC6A15B), size: 20),
           onPressed: () => _showDisplaySettingsDialog(context),
         ),
       ],
@@ -189,9 +189,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF080C0A),
+            color: const Color(0xFFFEFDF9),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF1A221C)),
+            border: Border.all(color: const Color(0xFFE4E0D5)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,13 +202,13 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0B2E21),
+                      color: const Color(0xFFEEF1EA),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFF00E676)),
+                      border: Border.all(color: const Color(0xFF123F36)),
                     ),
                     child: const Center(
                       child: Icon(Icons.menu_book_rounded,
-                          color: Color(0xFF00E676), size: 24),
+                          color: Color(0xFF123F36), size: 24),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -219,7 +219,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Text(
                           widget.book.name,
                           style: const TextStyle(
-                              color: Colors.white,
+                              color: const Color(0xFF19312C),
                               fontSize: 16,
                               fontWeight: FontWeight.w900),
                         ),
@@ -227,7 +227,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Text(
                           widget.book.author,
                           style: const TextStyle(
-                              color: Color(0xFF94A3B8), fontSize: 11),
+                              color: Color(0xFF71807A), fontSize: 11),
                         ),
                       ],
                     ),
@@ -238,14 +238,14 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
               Row(
                 children: [
                   _buildStatChip(Icons.article_rounded, 'Hadiths',
-                      '${widget.book.totalHadiths}', const Color(0xFF00E676)),
+                      '${widget.book.totalHadiths}', const Color(0xFF123F36)),
                   const SizedBox(width: 8),
                   _buildStatChip(Icons.folder_rounded, 'Chapters',
-                      '${widget.book.totalChapters}', const Color(0xFFFFB703)),
+                      '${widget.book.totalChapters}', const Color(0xFFC6A15B)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: _buildStatChip(Icons.verified_rounded, 'Grade',
-                        'Authentic', const Color(0xFF38BDF8)),
+                        'Authentic', const Color(0xFF2F6B5D)),
                   ),
                 ],
               ),
@@ -278,7 +278,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       color: color, fontWeight: FontWeight.w800, fontSize: 11)),
               Text(label,
                   style:
-                      const TextStyle(color: Color(0xFF94A3B8), fontSize: 8)),
+                      const TextStyle(color: Color(0xFF71807A), fontSize: 8)),
             ],
           ),
         ],
@@ -296,19 +296,19 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         child: Column(
           children: [
             TextField(
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: const TextStyle(color: const Color(0xFF19312C), fontSize: 13),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: const Color(0xFF080C0A),
+                fillColor: const Color(0xFFFEFDF9),
                 hintText: 'Search hadith number or text in this book...',
                 hintStyle:
-                    const TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
+                    const TextStyle(color: Color(0xFF71807A), fontSize: 11.5),
                 prefixIcon: const Icon(Icons.search_rounded,
-                    color: Color(0xFFFFB703), size: 18),
+                    color: Color(0xFFC6A15B), size: 18),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear_rounded,
-                            color: Colors.white70, size: 16),
+                            color: const Color(0xFF71807A), size: 16),
                         onPressed: () => setState(() => _searchQuery = ''),
                       )
                     : null,
@@ -316,15 +316,15 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFF1A221C)),
+                  borderSide: const BorderSide(color: Color(0xFFE4E0D5)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFF1A221C)),
+                  borderSide: const BorderSide(color: Color(0xFFE4E0D5)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: Color(0xFF00E676)),
+                  borderSide: const BorderSide(color: Color(0xFF123F36)),
                 ),
               ),
               onChanged: (v) => setState(() => _searchQuery = v),
@@ -350,21 +350,21 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                                 horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF072418)
-                                  : const Color(0xFF080C0A),
+                                  ? const Color(0xFFEEF1EA)
+                                  : const Color(0xFFFEFDF9),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                   color: isSelected
-                                      ? const Color(0xFF00E676)
-                                      : const Color(0xFF1A221C)),
+                                      ? const Color(0xFF123F36)
+                                      : const Color(0xFFE4E0D5)),
                             ),
                             child: Center(
                               child: Text(
                                 'All Chapters',
                                 style: TextStyle(
                                   color: isSelected
-                                      ? const Color(0xFF00E676)
-                                      : const Color(0xFFCBD5E1),
+                                      ? const Color(0xFF123F36)
+                                      : const Color(0xFF71807A),
                                   fontSize: 10,
                                   fontWeight: isSelected
                                       ? FontWeight.bold
@@ -390,21 +390,21 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                               horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? const Color(0xFF072418)
-                                : const Color(0xFF080C0A),
+                                ? const Color(0xFFEEF1EA)
+                                : const Color(0xFFFEFDF9),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                                 color: isSelected
-                                    ? const Color(0xFF00E676)
-                                    : const Color(0xFF1A221C)),
+                                    ? const Color(0xFF123F36)
+                                    : const Color(0xFFE4E0D5)),
                           ),
                           child: Center(
                             child: Text(
                               'Ch ${ch.number}: ${ch.name}',
                               style: TextStyle(
                                 color: isSelected
-                                    ? const Color(0xFF00E676)
-                                    : const Color(0xFFCBD5E1),
+                                    ? const Color(0xFF123F36)
+                                    : const Color(0xFF71807A),
                                 fontSize: 10,
                                 fontWeight: isSelected
                                     ? FontWeight.bold
@@ -431,23 +431,23 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF080C0A),
+              backgroundColor: const Color(0xFFFEFDF9),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Color(0xFF1E3A2B)),
+                side: const BorderSide(color: Color(0xFFE4E0D5)),
               ),
               title: const Text('Display Languages',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontSize: 16,
                       fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AppSwitchListTile(
-                    activeColor: const Color(0xFF00E676),
+                    activeColor: const Color(0xFF123F36),
                     title: const Text('Arabic Text (عربي)',
-                        style: TextStyle(color: Colors.white, fontSize: 14)),
+                        style: TextStyle(color: const Color(0xFF19312C), fontSize: 14)),
                     value: _showArabic,
                     onChanged: (v) {
                       setDialogState(() => _showArabic = v);
@@ -455,9 +455,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     },
                   ),
                   AppSwitchListTile(
-                    activeColor: const Color(0xFF00E676),
+                    activeColor: const Color(0xFF123F36),
                     title: const Text('Urdu Translation (اردو)',
-                        style: TextStyle(color: Colors.white, fontSize: 14)),
+                        style: TextStyle(color: const Color(0xFF19312C), fontSize: 14)),
                     value: _showUrdu,
                     onChanged: (v) {
                       setDialogState(() => _showUrdu = v);
@@ -465,9 +465,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     },
                   ),
                   AppSwitchListTile(
-                    activeColor: const Color(0xFF00E676),
+                    activeColor: const Color(0xFF123F36),
                     title: const Text('English Translation',
-                        style: TextStyle(color: Colors.white, fontSize: 14)),
+                        style: TextStyle(color: const Color(0xFF19312C), fontSize: 14)),
                     value: _showEnglish,
                     onChanged: (v) {
                       setDialogState(() => _showEnglish = v);
@@ -481,7 +481,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   child: const Text('Done',
                       style: TextStyle(
-                          color: Color(0xFF00E676),
+                          color: Color(0xFF123F36),
                           fontWeight: FontWeight.bold)),
                 ),
               ],
@@ -503,10 +503,10 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
             maxHeight: MediaQuery.of(context).size.height * 0.85,
           ),
           decoration: const BoxDecoration(
-            color: Color(0xFF060B08),
+            color: Color(0xFFFEFDF9),
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             border: Border(
-              top: BorderSide(color: Color(0xFF1E3A2B), width: 1.5),
+              top: BorderSide(color: Color(0xFFE4E0D5), width: 1.5),
             ),
           ),
           child: Column(
@@ -518,7 +518,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF334155),
+                    color: const Color(0xFFD4CFC3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -532,14 +532,14 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0B2E21),
+                        color: const Color(0xFFEEF1EA),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF00E676)),
+                        border: Border.all(color: const Color(0xFF123F36)),
                       ),
                       child: Text(
                         '#${hadith.hadithNumber}',
                         style: const TextStyle(
-                            color: Color(0xFF00E676),
+                            color: Color(0xFF123F36),
                             fontWeight: FontWeight.bold,
                             fontSize: 12),
                       ),
@@ -548,14 +548,14 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     Text(
                       hadith.displayReference,
                       style: const TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontWeight: FontWeight.bold,
                           fontSize: 13),
                     ),
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.share_rounded,
-                          color: Colors.white70),
+                          color: const Color(0xFF71807A)),
                       onPressed: () {
                         final text =
                             '${hadith.textArabic}\n\n${hadith.textUrdu}\n\n"${hadith.textEnglish}"\n\n— ${hadith.displayReference}';
@@ -563,19 +563,19 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                               content: Text('Hadith copied! 📋'),
-                              backgroundColor: Color(0xFF0B2E21)),
+                              backgroundColor: Color(0xFFEEF1EA)),
                         );
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.close_rounded,
-                          color: Colors.white70),
+                          color: const Color(0xFF71807A)),
                       onPressed: () => Navigator.of(sheetContext).pop(),
                     ),
                   ],
                 ),
               ),
-              const Divider(color: Color(0xFF142018), height: 1),
+              const Divider(color: Color(0xFFE4E0D5), height: 1),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -587,15 +587,15 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0A140F),
+                            color: const Color(0xFFFEFDF9),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFF1E3A2B)),
+                            border: Border.all(color: const Color(0xFFE4E0D5)),
                           ),
                           child: SelectableText(
                             hadith.textArabic,
                             textAlign: TextAlign.right,
                             style: const TextStyle(
-                                color: Colors.white,
+                                color: const Color(0xFF19312C),
                                 fontFamily: 'Amiri',
                                 fontSize: 19,
                                 height: 1.8,
@@ -608,10 +608,10 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF081810),
+                            color: const Color(0xFFEEF1EA),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                                color: const Color(0xFF00E676)
+                                color: const Color(0xFF123F36)
                                     .withValues(alpha: 0.2)),
                           ),
                           child: SelectableText(
@@ -619,7 +619,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             textAlign: TextAlign.right,
                             textDirection: TextDirection.rtl,
                             style: const TextStyle(
-                                color: Color(0xFFD1FAE5),
+                                color: Color(0xFF19312C),
                                 fontSize: 15,
                                 height: 1.8),
                           ),
@@ -630,14 +630,14 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0B121C),
+                            color: const Color(0xFFFEFDF9),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFF1E3A5F)),
+                            border: Border.all(color: const Color(0xFFE4E0D5)),
                           ),
                           child: SelectableText(
                             hadith.textEnglish,
                             style: const TextStyle(
-                                color: Color(0xFFE2E8F0),
+                                color: Color(0xFF19312C),
                                 fontSize: 13.5,
                                 height: 1.6),
                           ),
@@ -686,9 +686,9 @@ class _HadithCard extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF080C0A),
+          color: const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFF1A221C)),
+          border: Border.all(color: const Color(0xFFE4E0D5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -699,14 +699,14 @@ class _HadithCard extends ConsumerWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B2E21),
+                    color: const Color(0xFFEEF1EA),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF00E676)),
+                    border: Border.all(color: const Color(0xFF123F36)),
                   ),
                   child: Text(
                     '#${hadith.hadithNumber}',
                     style: const TextStyle(
-                        color: Color(0xFF00E676),
+                        color: Color(0xFF123F36),
                         fontWeight: FontWeight.w800,
                         fontSize: 11),
                   ),
@@ -734,8 +734,8 @@ class _HadithCard extends ConsumerWidget {
                         ? Icons.bookmark_rounded
                         : Icons.bookmark_border_rounded,
                     color: isBookmarked
-                        ? const Color(0xFFFFB703)
-                        : const Color(0xFF64748B),
+                        ? const Color(0xFFC6A15B)
+                        : const Color(0xFF71807A),
                     size: 20,
                   ),
                   onPressed: () {
@@ -747,7 +747,7 @@ class _HadithCard extends ConsumerWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.share_rounded,
-                      color: Color(0xFF64748B), size: 18),
+                      color: Color(0xFF71807A), size: 18),
                   onPressed: () {
                     final shareText =
                         '${hadith.textArabic}\n\n${hadith.textUrdu}\n\n"${hadith.textEnglish}"\n\n— ${hadith.displayReference}';
@@ -755,7 +755,7 @@ class _HadithCard extends ConsumerWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                           content: Text('Hadith copied! 📋'),
-                          backgroundColor: Color(0xFF0B2E21),
+                          backgroundColor: Color(0xFFEEF1EA),
                           duration: Duration(seconds: 1)),
                     );
                   },
@@ -768,14 +768,14 @@ class _HadithCard extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0A140F),
+                  color: const Color(0xFFFEFDF9),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF1E3A2B)),
+                  border: Border.all(color: const Color(0xFFE4E0D5)),
                 ),
                 child: Text(
                   hadith.textArabic,
                   style: const TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontFamily: 'Amiri',
                       fontSize: 17,
                       height: 1.7,
@@ -790,10 +790,10 @@ class _HadithCard extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF081810),
+                  color: const Color(0xFFEEF1EA),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: const Color(0xFF00E676).withValues(alpha: 0.2)),
+                      color: const Color(0xFF123F36).withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -802,7 +802,7 @@ class _HadithCard extends ConsumerWidget {
                       alignment: Alignment.centerRight,
                       child: Text('اردو ترجمہ',
                           style: TextStyle(
-                              color: Color(0xFF00E676),
+                              color: Color(0xFF123F36),
                               fontSize: 9.5,
                               fontWeight: FontWeight.bold)),
                     ),
@@ -810,7 +810,7 @@ class _HadithCard extends ConsumerWidget {
                     Text(
                       hadith.textUrdu,
                       style: const TextStyle(
-                          color: Color(0xFFD1FAE5), fontSize: 14, height: 1.7),
+                          color: Color(0xFF19312C), fontSize: 14, height: 1.7),
                       textDirection: TextDirection.rtl,
                       textAlign: TextAlign.right,
                     ),
@@ -824,16 +824,16 @@ class _HadithCard extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0B121C),
+                  color: const Color(0xFFFEFDF9),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF1E3A5F)),
+                  border: Border.all(color: const Color(0xFFE4E0D5)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('ENGLISH',
                         style: TextStyle(
-                            color: Color(0xFF38BDF8),
+                            color: Color(0xFF2F6B5D),
                             fontSize: 8.5,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5)),
@@ -841,7 +841,7 @@ class _HadithCard extends ConsumerWidget {
                     Text(
                       hadith.textEnglish,
                       style: const TextStyle(
-                          color: Color(0xFFE2E8F0),
+                          color: Color(0xFF19312C),
                           fontSize: 12.5,
                           height: 1.5),
                     ),
@@ -853,7 +853,7 @@ class _HadithCard extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 'Chapter: ${hadith.chapterName}',
-                style: const TextStyle(color: Color(0xFF64748B), fontSize: 10),
+                style: const TextStyle(color: Color(0xFF71807A), fontSize: 10),
               ),
             ],
           ],

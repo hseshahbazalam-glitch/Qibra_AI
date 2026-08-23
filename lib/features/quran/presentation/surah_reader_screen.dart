@@ -47,7 +47,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
           if (surah == null) {
             return const Center(
                 child: Text('Surah not found',
-                    style: TextStyle(color: Colors.white)));
+                    style: TextStyle(color: const Color(0xFF19312C))));
           }
           return Column(
             children: [
@@ -102,10 +102,10 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
           );
         },
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF00E676))),
+            child: CircularProgressIndicator(color: Color(0xFF123F36))),
         error: (_, __) => const Center(
             child: Text('Error loading surah',
-                style: TextStyle(color: Colors.white))),
+                style: TextStyle(color: const Color(0xFF19312C)))),
       ),
     );
   }
@@ -116,11 +116,11 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
     final ayahsCount = surah?.numberOfAyahs ?? 7;
 
     return AppBar(
-      backgroundColor: const Color(0xFF071E16),
+      backgroundColor: const Color(0xFFEEF1EA),
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: Colors.white, size: 20),
+            color: const Color(0xFF19312C), size: 20),
         onPressed: () => Navigator.pop(context),
       ),
       title: Column(
@@ -128,25 +128,25 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
         children: [
           Text(title,
               style: const TextStyle(
-                  color: Colors.white,
+                  color: const Color(0xFF19312C),
                   fontSize: 16,
                   fontWeight: FontWeight.bold)),
           Text('Juz 1 • Page 1 • $ayahsCount Ayahs',
-              style: const TextStyle(color: Color(0xFF00E676), fontSize: 10.5)),
+              style: const TextStyle(color: Color(0xFF123F36), fontSize: 10.5)),
         ],
       ),
       actions: [
         IconButton(
             icon:
-                const Icon(Icons.search_rounded, color: Colors.white, size: 20),
+                const Icon(Icons.search_rounded, color: const Color(0xFF19312C), size: 20),
             onPressed: () {}),
         IconButton(
             icon: const Icon(Icons.bookmark_border_rounded,
-                color: Colors.white, size: 20),
+                color: const Color(0xFF19312C), size: 20),
             onPressed: () {}),
         IconButton(
             icon: const Icon(Icons.more_vert_rounded,
-                color: Colors.white, size: 20),
+                color: const Color(0xFF19312C), size: 20),
             onPressed: () => _showSettingsModal(context)),
       ],
     );
@@ -168,12 +168,12 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               tab,
               style: TextStyle(
                 color: isSelected
-                    ? const Color(0xFF00E676)
-                    : const Color(0xFF94A3B8),
+                    ? const Color(0xFF123F36)
+                    : const Color(0xFF71807A),
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 decoration: isSelected ? TextDecoration.underline : null,
-                decorationColor: const Color(0xFF00E676),
+                decorationColor: const Color(0xFF123F36),
                 decorationThickness: 2,
               ),
             ),
@@ -223,23 +223,23 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B2E21),
+          color: const Color(0xFFEEF1EA),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: const Color(0xFF16543D)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: const Color(0xFF00E676), size: 14),
+            Icon(icon, color: const Color(0xFF123F36), size: 14),
             if (label.isNotEmpty) ...[
               const SizedBox(width: 4),
               Text(label,
                   style: const TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontSize: 10,
                       fontWeight: FontWeight.w600)),
               const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: Colors.white70, size: 12),
+                  color: const Color(0xFF71807A), size: 12),
             ],
           ],
         ),
@@ -253,14 +253,14 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF061A13),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF143B2C)),
+        border: Border.all(color: const Color(0xFFE4E0D5)),
       ),
       child: Column(
         children: [
           Text(
             surah.nameArabic,
             style: const TextStyle(
-                color: Color(0xFFFFD700),
+                color: Color(0xFFC6A15B),
                 fontFamily: 'Amiri',
                 fontSize: 28,
                 fontWeight: FontWeight.bold),
@@ -268,7 +268,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
           const SizedBox(height: 4),
           Text('Surah ${surah.name}',
               style: const TextStyle(
-                  color: Colors.white70,
+                  color: const Color(0xFF71807A),
                   fontSize: 12,
                   fontWeight: FontWeight.bold)),
         ],
@@ -283,7 +283,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
         child: Text(
           'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
           style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               fontFamily: 'Amiri',
               fontSize: 22,
               fontWeight: FontWeight.bold),
@@ -305,8 +305,8 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
             color: isPlayingThis
-                ? const Color(0xFF00E676)
-                : const Color(0xFF143B2C)),
+                ? const Color(0xFF123F36)
+                : const Color(0xFFE4E0D5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -317,14 +317,14 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                 width: 26,
                 height: 26,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0B2E21),
+                  color: const Color(0xFFEEF1EA),
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFF16543D)),
                 ),
                 child: Center(
                   child: Text('${ayah.number}',
                       style: const TextStyle(
-                          color: Color(0xFF00E676),
+                          color: Color(0xFF123F36),
                           fontSize: 11,
                           fontWeight: FontWeight.bold)),
                 ),
@@ -336,12 +336,12 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                   _playingAyah = ayah.number;
                 }),
                 child: const Icon(Icons.play_circle_fill_rounded,
-                    color: Color(0xFF00E676), size: 22),
+                    color: Color(0xFF123F36), size: 22),
               ),
               const Spacer(),
               IconButton(
                   icon: const Icon(Icons.more_vert_rounded,
-                      color: Color(0xFF94A3B8), size: 18),
+                      color: Color(0xFF71807A), size: 18),
                   onPressed: () {}),
               InkWell(
                 onTap: () => setState(() {
@@ -356,8 +356,8 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                         ? Icons.bookmark_rounded
                         : Icons.bookmark_border_rounded,
                     color: isBookmarked
-                        ? const Color(0xFF00E676)
-                        : const Color(0xFF94A3B8),
+                        ? const Color(0xFF123F36)
+                        : const Color(0xFF71807A),
                     size: 20),
               ),
             ],
@@ -367,7 +367,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
             ayah.text,
             textAlign: TextAlign.right,
             style: TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontFamily: 'Amiri',
                 fontSize: _fontSize,
                 fontWeight: FontWeight.bold,
@@ -380,7 +380,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               child: Text(
                 ayah.translationRoman ?? 'Bismillāhir raḥmānir raḥīm',
                 style: const TextStyle(
-                    color: Color(0xFF00E676),
+                    color: Color(0xFF123F36),
                     fontSize: 11.5,
                     fontStyle: FontStyle.italic),
               ),
@@ -389,7 +389,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
             Text(
               ayah.translation ?? '',
               style: const TextStyle(
-                  color: Color(0xFFCBD5E1), fontSize: 12, height: 1.4),
+                  color: Color(0xFF71807A), fontSize: 12, height: 1.4),
             ),
         ],
       ),
@@ -402,7 +402,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF061A13),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF143B2C)),
+        border: Border.all(color: const Color(0xFFE4E0D5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,11 +413,11 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               const Row(
                 children: [
                   Icon(Icons.language_rounded,
-                      color: Color(0xFF00E676), size: 16),
+                      color: Color(0xFF123F36), size: 16),
                   SizedBox(width: 6),
                   Text('Translation Languages (3)',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 11,
                           fontWeight: FontWeight.bold)),
                 ],
@@ -431,7 +431,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                   _langChip('اردو', false),
                   const SizedBox(width: 4),
                   const Icon(Icons.add_circle_outline_rounded,
-                      color: Color(0xFF00E676), size: 16),
+                      color: Color(0xFF123F36), size: 16),
                 ],
               ),
             ],
@@ -471,7 +471,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF00E676) : const Color(0xFF0B2E21),
+        color: isSelected ? const Color(0xFF123F36) : const Color(0xFFEEF1EA),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -502,18 +502,18 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
             children: [
               Text(lang,
                   style: const TextStyle(
-                      color: Color(0xFFFFB703),
+                      color: Color(0xFFC6A15B),
                       fontSize: 9.5,
                       fontWeight: FontWeight.bold)),
               const Icon(Icons.volume_up_rounded,
-                  color: Color(0xFF00E676), size: 12),
+                  color: Color(0xFF123F36), size: 12),
             ],
           ),
           const SizedBox(height: 6),
           Text(text,
               textAlign: isRtl ? TextAlign.right : TextAlign.left,
               style: TextStyle(
-                  color: Colors.white70,
+                  color: const Color(0xFF71807A),
                   fontSize: 10,
                   fontFamily: isRtl ? 'Amiri' : null,
                   height: 1.4)),
@@ -527,7 +527,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: const BoxDecoration(
         color: Color(0xFF041710),
-        border: Border(top: BorderSide(color: Color(0xFF143B2C))),
+        border: Border(top: BorderSide(color: Color(0xFFE4E0D5))),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -540,7 +540,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border:
-                        Border.all(color: const Color(0xFFFFD700), width: 1.2)),
+                        Border.all(color: const Color(0xFFC6A15B), width: 1.2)),
                 child: const Center(
                     child: Text('🎙️', style: TextStyle(fontSize: 16))),
               ),
@@ -551,18 +551,18 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                   children: [
                     const Text('Mishary Rashid Alafasy',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: const Color(0xFF19312C),
                             fontSize: 11,
                             fontWeight: FontWeight.bold)),
                     Text('Surah ${surah.name}',
                         style: const TextStyle(
-                            color: Color(0xFF94A3B8), fontSize: 9.5)),
+                            color: Color(0xFF71807A), fontSize: 9.5)),
                   ],
                 ),
               ),
               IconButton(
                   icon: const Icon(Icons.skip_previous_rounded,
-                      color: Colors.white, size: 20),
+                      color: const Color(0xFF19312C), size: 20),
                   onPressed: () {}),
               InkWell(
                 onTap: () => setState(() => _isPlayingAudio = !_isPlayingAudio),
@@ -570,7 +570,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                   width: 32,
                   height: 32,
                   decoration: const BoxDecoration(
-                      color: Color(0xFF00E676), shape: BoxShape.circle),
+                      color: Color(0xFF123F36), shape: BoxShape.circle),
                   child: Icon(
                       _isPlayingAudio
                           ? Icons.pause_rounded
@@ -581,11 +581,11 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               ),
               IconButton(
                   icon: const Icon(Icons.skip_next_rounded,
-                      color: Colors.white, size: 20),
+                      color: const Color(0xFF19312C), size: 20),
                   onPressed: () {}),
               IconButton(
                   icon: const Icon(Icons.queue_music_rounded,
-                      color: Color(0xFF94A3B8), size: 18),
+                      color: Color(0xFF71807A), size: 18),
                   onPressed: () {}),
             ],
           ),
@@ -594,9 +594,9 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
               Text('00:09',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 8)),
+                  style: TextStyle(color: Color(0xFF71807A), fontSize: 8)),
               Text('01:01',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 8)),
+                  style: TextStyle(color: Color(0xFF71807A), fontSize: 8)),
             ],
           ),
         ],
@@ -625,7 +625,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content: Text('${a['label']} triggered'),
-                    backgroundColor: const Color(0xFF0B2E21),
+                    backgroundColor: const Color(0xFFEEF1EA),
                     duration: const Duration(seconds: 1)),
               );
             },
@@ -633,11 +633,11 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(a['icon'] as IconData,
-                    color: const Color(0xFF94A3B8), size: 18),
+                    color: const Color(0xFF71807A), size: 18),
                 const SizedBox(height: 3),
                 Text(a['label'] as String,
                     style:
-                        const TextStyle(color: Color(0xFF94A3B8), fontSize: 9)),
+                        const TextStyle(color: Color(0xFF71807A), fontSize: 9)),
               ],
             ),
           );
@@ -649,7 +649,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   void _showSettingsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF071E16),
+      backgroundColor: const Color(0xFFEEF1EA),
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
@@ -661,26 +661,26 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
             children: [
               const Text('Translation Settings',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontSize: 16,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               AppSwitchListTile(
                 title: const Text('Show Translation',
-                    style: TextStyle(color: Colors.white, fontSize: 13)),
+                    style: TextStyle(color: const Color(0xFF19312C), fontSize: 13)),
                 subtitle: const Text('Display translation below Arabic',
-                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10)),
+                    style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
                 value: true,
-                activeColor: const Color(0xFF00E676),
+                activeColor: const Color(0xFF123F36),
                 onChanged: (val) {},
               ),
               AppSwitchListTile(
                 title: const Text('Auto Scroll',
-                    style: TextStyle(color: Colors.white, fontSize: 13)),
+                    style: TextStyle(color: const Color(0xFF19312C), fontSize: 13)),
                 subtitle: const Text('Scroll to next ayah automatically',
-                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10)),
+                    style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
                 value: false,
-                activeColor: const Color(0xFF00E676),
+                activeColor: const Color(0xFF123F36),
                 onChanged: (val) {},
               ),
             ],

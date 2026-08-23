@@ -45,7 +45,7 @@ class PrayerTimelineCard extends StatelessWidget {
           Row(
             children: [
               const Icon(Icons.timelapse_rounded,
-                  color: Color(0xFF00E676), size: 17),
+                  color: Color(0xFF123F36), size: 17),
               const SizedBox(width: 7),
               Text("TODAY'S PRAYER TIMES",
                   style: AppTextStyles.labelSmall.copyWith(

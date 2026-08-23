@@ -33,7 +33,7 @@ const List<_ProgressStat> _stats = [
     label: 'Prayer',
     value: '4/5',
     icon: Icons.mosque_rounded,
-    color: Color(0xFF00E676),
+    color: Color(0xFF123F36),
     caption: 'On Track',
     route: AppRoutes.prayer,
   ),
@@ -41,7 +41,7 @@ const List<_ProgressStat> _stats = [
     label: 'Quran',
     value: '20 min',
     icon: Icons.menu_book_rounded,
-    color: Color(0xFFFFB703),
+    color: Color(0xFFC6A15B),
     caption: 'On Track',
     route: AppRoutes.quran,
   ),
@@ -49,7 +49,7 @@ const List<_ProgressStat> _stats = [
     label: 'Tasbih',
     value: '66/200',
     icon: Icons.blur_circular_rounded,
-    color: Color(0xFFFFB703),
+    color: Color(0xFFC6A15B),
     caption: 'Daily Goal',
     progress: 66 / 200,
     route: AppRoutes.tasbih,
@@ -102,7 +102,7 @@ class HomeDailyProgressSection extends StatelessWidget {
                 child: Text(
                   'View All',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: const Color(0xFF00E676),
+                    color: const Color(0xFF123F36),
                     fontWeight: FontWeight.w700,
                     fontSize: 9,
                   ),
@@ -140,7 +140,7 @@ class HomeDailyProgressSection extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF0D1826),
+          color: const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -152,7 +152,7 @@ class HomeDailyProgressSection extends StatelessWidget {
             Text(
               stat.label,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: const Color(0xFF19312C).withValues(alpha: 0.85),
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
               ),
@@ -160,7 +160,7 @@ class HomeDailyProgressSection extends StatelessWidget {
             Text(
               stat.value,
               style: const TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
                 height: 1.2,

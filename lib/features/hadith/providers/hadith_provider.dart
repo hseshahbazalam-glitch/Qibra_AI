@@ -53,7 +53,7 @@ final hadithBooksProvider = FutureProvider<List<HadithBook>>((ref) async {
         totalHadiths: info.totalHadiths,
         totalChapters: info.sections.length,
         description: 'Authentic Hadith collection',
-        color: const Color(0xFF00E676),
+        color: const Color(0xFF123F36),
       ),
     );
 

@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/design_system/app_typography.dart';
+import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/mosque_model.dart';
 import '../providers/mosque_provider.dart';
 import '../providers/prayer_provider.dart';
@@ -28,36 +31,49 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final mosquesAsync = ref.watch(nearbyMosquesProvider);
     final currentFilter = ref.watch(selectedMosqueFilterProvider);
     final locationState = ref.watch(locationProvider);
-    final cityName = locationState.location?.city ?? 'Bangalore';
+    final cityName = locationState.location?.city;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF020A08),
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF071E16),
+        backgroundColor: colors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
-          onPressed: () => context.go(AppRoutes.home),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: colors.textPrimary, size: 20),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.more);
+            }
+          },
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Nearby Mosques',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold)),
-            Text('Masjids near $cityName',
-                style: const TextStyle(color: Color(0xFF00E676), fontSize: 11)),
+            Text(
+              'Nearby Mosques',
+              style: AppTextStyles.titleSmall.copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              cityName == null || cityName.isEmpty
+                  ? 'Requires your location'
+                  : 'Near $cityName',
+              style: AppTextStyles.labelSmall.copyWith(color: colors.primary),
+            ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF00E676)),
+            icon: Icon(Icons.refresh_rounded, color: colors.primary),
             onPressed: () {
               HapticFeedback.lightImpact();
               ref.invalidate(nearbyMosquesProvider);
@@ -72,23 +88,23 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFF071E16),
+                color: colors.card,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF143B2C)),
+                border: Border.all(color: colors.border),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.search_rounded,
-                      color: Color(0xFF00E676), size: 20),
+                  Icon(Icons.search_rounded, color: colors.primary, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
                       controller: _searchController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: const InputDecoration(
-                        hintText: 'Search mosque by name or area...',
-                        hintStyle:
-                            TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: colors.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'Search by name or address',
+                        hintStyle: AppTextStyles.bodySmall
+                            .copyWith(color: colors.textTertiary),
                         border: InputBorder.none,
                       ),
                       onChanged: (val) => setState(
@@ -104,24 +120,48 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
           Expanded(
             child: mosquesAsync.when(
               data: (mosques) {
-                var filtered = mosques.where((m) {
+                if (!locationState.hasLocation) {
+                  return QibraEmptyState(
+                    icon: Icons.place_outlined,
+                    title: 'Location needed',
+                    message:
+                        'Set your location to look up nearby mosques from OpenStreetMap.',
+                    actionLabel: 'Use current location',
+                    onAction: () {
+                      ref.read(locationProvider.notifier).fetchCurrentLocation();
+                    },
+                  );
+                }
+
+                if (mosques.isEmpty) {
+                  return const QibraEmptyState(
+                    icon: Icons.mosque_outlined,
+                    title: 'No mosques found',
+                    message:
+                        'OpenStreetMap did not return mosques near this location.',
+                  );
+                }
+
+                final filtered = mosques.where((m) {
                   final matchesSearch = _searchQuery.isEmpty ||
                       m.name.toLowerCase().contains(_searchQuery) ||
                       m.address.toLowerCase().contains(_searchQuery);
                   if (!matchesSearch) return false;
-
-                  if (currentFilter == 'Nearest') { return m.distanceKm <= 1.0; }
-                  if (currentFilter == 'Women Area') { return m.hasWomenSection; }
-                  if (currentFilter == 'Parking') { return m.hasParking; }
-                  if (currentFilter == 'Accessible')
+                  if (currentFilter == 'Nearest') return m.distanceKm <= 1.0;
+                  if (currentFilter == 'Women Area') return m.hasWomenSection;
+                  if (currentFilter == 'Parking') return m.hasParking;
+                  if (currentFilter == 'Accessible') {
                     return m.isWheelchairAccessible;
+                  }
                   return true;
                 }).toList();
 
                 if (filtered.isEmpty) {
-                  return const Center(
-                    child: Text('No mosques match this filter',
-                        style: TextStyle(color: Colors.white70)),
+                  return const QibraEmptyState(
+                    icon: Icons.filter_alt_outlined,
+                    title: 'No matches',
+                    message:
+                        'No listed mosque has this tagged amenity or name.',
                   );
                 }
 
@@ -131,16 +171,18 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    final mosque = filtered[index];
-                    return _buildMosqueCard(context, mosque);
+                    return _buildMosqueCard(context, filtered[index]);
                   },
                 );
               },
-              loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF00E676))),
-              error: (err, _) => const Center(
-                  child: Text('Error loading mosques',
-                      style: TextStyle(color: Colors.white))),
+              loading: () => Center(
+                child: CircularProgressIndicator(color: colors.primary),
+              ),
+              error: (err, _) => const QibraEmptyState(
+                icon: Icons.error_outline,
+                title: 'Could not load mosques',
+                message: 'The map lookup failed. Try again later.',
+              ),
             ),
           ),
         ],
@@ -149,7 +191,8 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
   }
 
   Widget _buildFilterPills(WidgetRef ref, String currentFilter) {
-    final filters = ['All', 'Nearest', 'Women Area', 'Parking', 'Accessible'];
+    final colors = QibraColors.of(context);
+    const filters = ['All', 'Nearest', 'Women Area', 'Parking', 'Accessible'];
     return SizedBox(
       height: 38,
       child: ListView.builder(
@@ -173,22 +216,19 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF00E676)
-                      : const Color(0xFF071E16),
+                  color: isSelected ? colors.primary : colors.card,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFF00E676)
-                          : const Color(0xFF143B2C)),
+                    color: isSelected ? colors.primary : colors.border,
+                  ),
                 ),
                 child: Center(
                   child: Text(
                     filter,
                     style: TextStyle(
                       color: isSelected
-                          ? const Color(0xFF020A08)
-                          : const Color(0xFFCBD5E1),
+                          ? colors.onPrimary
+                          : colors.textSecondary,
                       fontSize: 11,
                       fontWeight:
                           isSelected ? FontWeight.bold : FontWeight.w600,
@@ -204,12 +244,13 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
   }
 
   Widget _buildMosqueCard(BuildContext context, Mosque mosque) {
+    final colors = QibraColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF061A13),
+        color: colors.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF143B2C)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,12 +263,12 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B2E21),
+                    color: colors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF16543D)),
+                    border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
                   ),
-                  child: const Center(
-                      child: Text('??', style: TextStyle(fontSize: 24))),
+                  child: Icon(Icons.mosque_rounded,
+                      color: colors.primary, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -235,118 +276,87 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Flexible(
                             child: Text(
                               mosque.name,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold),
+                              style: AppTextStyles.titleSmall.copyWith(
+                                color: colors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF00E676)
-                                  .withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: const Color(0xFF00E676)
-                                      .withValues(alpha: 0.3)),
-                            ),
-                            child: Text(
-                              mosque.formattedDistance,
-                              style: const TextStyle(
-                                  color: Color(0xFF00E676),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold),
+                          const SizedBox(width: 8),
+                          Text(
+                            mosque.formattedDistance,
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: colors.primary,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(mosque.address,
-                          style: const TextStyle(
-                              color: Color(0xFF94A3B8), fontSize: 11)),
+                      Text(
+                        mosque.hasAddress ? mosque.address : 'Address not available',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: colors.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-            child: Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _showJamaatTimetableModal(context, mosque),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 9),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0B2E21),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF16543D)),
-                      ),
-                      child: const Center(
-                        child: Text('Jama\'at Times',
-                            style: TextStyle(
-                                color: Color(0xFF00E676),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold)),
+          if (mosque.hasJamaatTimes)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              child: InkWell(
+                onTap: () => _showJamaatTimetableModal(context, mosque),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Jama'at Times",
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 9),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00E676),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.directions_rounded,
-                            color: Color(0xFF020A08), size: 15),
-                        SizedBox(width: 4),
-                        Text('Get Directions',
-                            style: TextStyle(
-                                color: Color(0xFF020A08),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
   void _showJamaatTimetableModal(BuildContext context, Mosque mosque) {
+    final colors = QibraColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF071E16),
+      backgroundColor: colors.card,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) {
         final jamaatList = [
-          {'name': 'Fajr', 'time': mosque.fajrJamaat ?? '05:15 AM'},
-          {'name': 'Dhuhr', 'time': mosque.dhuhrJamaat ?? '01:15 PM'},
-          {'name': 'Asr', 'time': mosque.asrJamaat ?? '04:15 PM'},
-          {'name': 'Maghrib', 'time': mosque.maghribJamaat ?? '06:55 PM'},
-          {'name': 'Isha', 'time': mosque.ishaJamaat ?? '08:15 PM'},
-          {'name': 'Jummah', 'time': mosque.jummahJamaat ?? '01:30 PM'},
+          {'name': 'Fajr', 'time': mosque.fajrJamaat ?? 'Not available'},
+          {'name': 'Dhuhr', 'time': mosque.dhuhrJamaat ?? 'Not available'},
+          {'name': 'Asr', 'time': mosque.asrJamaat ?? 'Not available'},
+          {'name': 'Maghrib', 'time': mosque.maghribJamaat ?? 'Not available'},
+          {'name': 'Isha', 'time': mosque.ishaJamaat ?? 'Not available'},
+          {'name': 'Jummah', 'time': mosque.jummahJamaat ?? 'Not available'},
         ];
 
         return Padding(
@@ -354,32 +364,44 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(mosque.name,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
+              Text(
+                mosque.name,
+                style: AppTextStyles.titleMedium.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 14),
-              ...jamaatList.map((j) => Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                        color: const Color(0xFF03100B),
-                        borderRadius: BorderRadius.circular(10)),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(j['name']!,
-                            style: const TextStyle(
-                                color: Color(0xFF00E676),
-                                fontWeight: FontWeight.bold)),
-                        Text(j['time']!,
-                            style: const TextStyle(
-                                color: Colors.white, fontFamily: 'monospace')),
-                      ],
-                    ),
-                  )),
+              ...jamaatList.map(
+                (j) => Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: colors.background,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        j['name']!,
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        j['time']!,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: colors.textPrimary,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         );

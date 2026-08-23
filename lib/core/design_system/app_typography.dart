@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 abstract final class AppFontFamily {
-  static const String primary = 'Poppins';
+  static const String primary = 'Inter';
   static const String arabic = 'Amiri';
   static const String mono = 'monospace';
 }
@@ -75,139 +75,139 @@ abstract final class AppLetterSpacing {
 }
 
 abstract final class AppTextStyles {
-  static TextStyle get displayLarge => GoogleFonts.poppins(
+  static TextStyle get displayLarge => GoogleFonts.inter(
       fontSize: AppFontSize.displayLarge,
       fontWeight: AppFontWeight.black,
       color: AppColors.textPrimary,
       height: AppLineHeight.snug,
       letterSpacing: AppLetterSpacing.tighter);
-  static TextStyle get displayMedium => GoogleFonts.poppins(
+  static TextStyle get displayMedium => GoogleFonts.inter(
       fontSize: AppFontSize.displayMedium,
       fontWeight: AppFontWeight.extraBold,
       color: AppColors.textPrimary,
       height: AppLineHeight.snug,
       letterSpacing: AppLetterSpacing.tighter);
-  static TextStyle get displaySmall => GoogleFonts.poppins(
+  static TextStyle get displaySmall => GoogleFonts.inter(
       fontSize: AppFontSize.displaySmall,
       fontWeight: AppFontWeight.bold,
       color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.tight);
-  static TextStyle get headlineLarge => GoogleFonts.poppins(
+  static TextStyle get headlineLarge => GoogleFonts.inter(
       fontSize: AppFontSize.headlineLarge,
       fontWeight: AppFontWeight.bold,
       color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.tight);
-  static TextStyle get headlineMedium => GoogleFonts.poppins(
+  static TextStyle get headlineMedium => GoogleFonts.inter(
       fontSize: AppFontSize.headlineMedium,
       fontWeight: AppFontWeight.bold,
       color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get headlineSmall => GoogleFonts.poppins(
+  static TextStyle get headlineSmall => GoogleFonts.inter(
       fontSize: AppFontSize.headlineSmall,
       fontWeight: AppFontWeight.semiBold,
       color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get titleLarge => GoogleFonts.poppins(
+  static TextStyle get titleLarge => GoogleFonts.inter(
       fontSize: AppFontSize.titleLarge,
       fontWeight: AppFontWeight.semiBold,
       color: AppColors.textPrimary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get titleMedium => GoogleFonts.poppins(
+  static TextStyle get titleMedium => GoogleFonts.inter(
       fontSize: AppFontSize.titleMedium,
       fontWeight: AppFontWeight.semiBold,
       color: AppColors.textPrimary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get titleSmall => GoogleFonts.poppins(
+  static TextStyle get titleSmall => GoogleFonts.inter(
       fontSize: AppFontSize.titleSmall,
       fontWeight: AppFontWeight.medium,
       color: AppColors.textPrimary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get bodyLarge => GoogleFonts.poppins(
+  static TextStyle get bodyLarge => GoogleFonts.inter(
       fontSize: AppFontSize.bodyLarge,
       fontWeight: AppFontWeight.regular,
       color: AppColors.textPrimary,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get bodyMedium => GoogleFonts.poppins(
+  static TextStyle get bodyMedium => GoogleFonts.inter(
       fontSize: AppFontSize.bodyMedium,
       fontWeight: AppFontWeight.regular,
       color: AppColors.textPrimary,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get bodySmall => GoogleFonts.poppins(
+  static TextStyle get bodySmall => GoogleFonts.inter(
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.regular,
       color: AppColors.textSecondary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get labelLarge => GoogleFonts.poppins(
+  static TextStyle get labelLarge => GoogleFonts.inter(
       fontSize: AppFontSize.labelLarge,
       fontWeight: AppFontWeight.semiBold,
       color: AppColors.textPrimary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get labelMedium => GoogleFonts.poppins(
+  static TextStyle get labelMedium => GoogleFonts.inter(
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.medium,
       color: AppColors.textPrimary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get labelSmall => GoogleFonts.poppins(
+  static TextStyle get labelSmall => GoogleFonts.inter(
       fontSize: AppFontSize.labelSmall,
       fontWeight: AppFontWeight.medium,
       color: AppColors.textSecondary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wider);
-  static TextStyle get labelXSmall => GoogleFonts.poppins(
+  static TextStyle get labelXSmall => GoogleFonts.inter(
       fontSize: AppFontSize.labelXSmall,
       fontWeight: AppFontWeight.regular,
       color: AppColors.textTertiary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.widest);
-  static TextStyle get buttonLarge => GoogleFonts.poppins(
+  static TextStyle get buttonLarge => GoogleFonts.inter(
       fontSize: AppFontSize.labelLarge,
       fontWeight: AppFontWeight.semiBold,
       color: AppColors.white,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get buttonMedium => GoogleFonts.poppins(
+  static TextStyle get buttonMedium => GoogleFonts.inter(
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.semiBold,
       color: AppColors.white,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get buttonSmall => GoogleFonts.poppins(
+  static TextStyle get buttonSmall => GoogleFonts.inter(
       fontSize: AppFontSize.labelSmall,
       fontWeight: AppFontWeight.medium,
       color: AppColors.white,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get inputText => GoogleFonts.poppins(
+  static TextStyle get inputText => GoogleFonts.inter(
       fontSize: AppFontSize.bodyLarge,
       fontWeight: AppFontWeight.regular,
       color: AppColors.textPrimary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get inputHint => GoogleFonts.poppins(
+  static TextStyle get inputHint => GoogleFonts.inter(
       fontSize: AppFontSize.bodyLarge,
       fontWeight: AppFontWeight.regular,
       color: AppColors.textDisabled,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get inputLabel => GoogleFonts.poppins(
+  static TextStyle get inputLabel => GoogleFonts.inter(
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.medium,
       color: AppColors.textSecondary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get inputError => GoogleFonts.poppins(
+  static TextStyle get inputError => GoogleFonts.inter(
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.regular,
       color: AppColors.error,
@@ -220,25 +220,25 @@ abstract final class AppTextStyles {
   static TextStyle get arabicLarge => AppArabicStyles.quranLarge;
   static TextStyle get arabicDisplay => AppArabicStyles.surahName;
 
-  static TextStyle get cardTitle => GoogleFonts.poppins(
+  static TextStyle get cardTitle => GoogleFonts.inter(
       fontSize: AppFontSize.titleMedium,
       fontWeight: AppFontWeight.semiBold,
       color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get cardSubtitle => GoogleFonts.poppins(
+  static TextStyle get cardSubtitle => GoogleFonts.inter(
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.regular,
       color: AppColors.textSecondary,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get badge => GoogleFonts.poppins(
+  static TextStyle get badge => GoogleFonts.inter(
       fontSize: AppFontSize.labelXSmall,
       fontWeight: AppFontWeight.bold,
       color: AppColors.white,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get chip => GoogleFonts.poppins(
+  static TextStyle get chip => GoogleFonts.inter(
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.medium,
       color: AppColors.textSecondary,
@@ -292,18 +292,18 @@ abstract final class AppArabicStyles {
       fontWeight: AppFontWeight.regular,
       color: AppColors.textEmerald,
       height: AppLineHeight.arabicLoose);
-  static TextStyle get ayahNumber => GoogleFonts.poppins(
+  static TextStyle get ayahNumber => GoogleFonts.inter(
       fontSize: AppFontSize.labelSmall,
       fontWeight: AppFontWeight.semiBold,
       color: AppColors.accent,
       height: AppLineHeight.tight);
-  static TextStyle get translation => GoogleFonts.poppins(
+  static TextStyle get translation => GoogleFonts.inter(
       fontSize: AppFontSize.bodyMedium,
       fontWeight: AppFontWeight.regular,
       color: AppColors.textSecondary,
       height: AppLineHeight.loose,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get transliteration => GoogleFonts.poppins(
+  static TextStyle get transliteration => GoogleFonts.inter(
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.light,
       color: AppColors.textTertiary,

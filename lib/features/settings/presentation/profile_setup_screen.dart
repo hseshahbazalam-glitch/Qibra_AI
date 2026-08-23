@@ -209,7 +209,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               top: Radius.circular(24),
             ),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -221,7 +221,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.30),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.30),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -352,7 +352,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           children: [
             const Icon(
               Icons.check_circle,
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               size: 20,
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -424,7 +424,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               top: Radius.circular(24),
             ),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -435,7 +435,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.30),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.30),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -554,7 +554,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               children: [
                 Icon(
                   Icons.check_circle,
-                  color: Colors.white,
+                  color: const Color(0xFF19312C),
                   size: 20,
                 ),
                 SizedBox(width: AppSpacing.sm),
@@ -644,8 +644,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             center: Alignment.topCenter,
             radius: 1.5,
             colors: [
-              Color(0xFF0D3320),
-              Color(0xFF0A1628),
+              Color(0xFFEEF1EA),
+              Color(0xFFF5F3EC),
               AppColors.background,
             ],
             stops: [0.0, 0.5, 1.0],
@@ -693,15 +693,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.10),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.10),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.15),
                     width: 1,
                   ),
                 ),
                 child: const Icon(
                   Icons.arrow_back_rounded,
-                  color: Colors.white,
+                  color: const Color(0xFF19312C),
                   size: 20,
                 ),
               ),
@@ -714,10 +714,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             vertical: AppSpacing.xs,
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.10),
+            color: const Color(0xFF19312C).withValues(alpha: 0.10),
             borderRadius: AppRadius.pillRadius,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: const Color(0xFF19312C).withValues(alpha: 0.15),
               width: 1,
             ),
           ),
@@ -730,7 +730,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 child: Text(
                   '3',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -795,7 +795,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                           ),
                           child: const Icon(
                             Icons.person_rounded,
-                            color: Colors.white,
+                            color: const Color(0xFF19312C),
                             size: 60,
                           ),
                         )
@@ -804,7 +804,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                               AppGradients.emerald.createShader(bounds),
                           child: const Icon(
                             Icons.person_add_alt_1_rounded,
-                            color: Colors.white,
+                            color: const Color(0xFF19312C),
                             size: 48,
                           ),
                         ),
@@ -858,7 +858,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           child: Text(
             'ALMOST THERE',
             style: AppTextStyles.labelSmall.copyWith(
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               letterSpacing: 3,
               fontWeight: FontWeight.w800,
             ),
@@ -909,7 +909,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -1043,7 +1043,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         validator: validator,
         keyboardType: keyboardType,
         style: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.white,
+          color: const Color(0xFF19312C),
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
@@ -1072,14 +1072,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           border: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -1128,10 +1128,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.02),
+          color: const Color(0xFF19312C).withValues(alpha: 0.02),
           borderRadius: AppRadius.cardRadius,
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.10),
+            color: const Color(0xFF19312C).withValues(alpha: 0.10),
             width: 1,
           ),
         ),
@@ -1368,10 +1368,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         horizontal: AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
+        color: const Color(0xFF19312C).withValues(alpha: 0.02),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.10),
+          color: const Color(0xFF19312C).withValues(alpha: 0.10),
           width: 1,
         ),
       ),
@@ -1385,7 +1385,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           color: AppColors.textSecondary,
         ),
         style: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.white,
+          color: const Color(0xFF19312C),
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
@@ -1412,7 +1412,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             child: Text(
               item,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
               ),
             ),
           );
@@ -1470,14 +1470,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                       children: [
                         const Icon(
                           Icons.check_circle_rounded,
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           size: 22,
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Text(
                           'Save & Continue',
                           style: AppTextStyles.buttonLarge.copyWith(
-                            color: Colors.white,
+                            color: const Color(0xFF19312C),
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.5,
                           ),

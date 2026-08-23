@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_typography.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../shared/widgets/media/safe_image.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
@@ -111,13 +112,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 icon: Icons.translate_rounded,
                 title: 'Language',
                 subtitle: 'English / العربية / اردو',
-                accent: const Color(0xFF38BDF8),
+                accent: AppColors.primaryLight,
               ),
               _buildTile(
                 icon: Icons.palette_rounded,
                 title: 'Appearance',
                 subtitle: 'Theme, font size',
-                accent: const Color(0xFFFFB703),
+                accent: AppColors.accent,
               ),
               _buildTile(
                 icon: Icons.shield_rounded,

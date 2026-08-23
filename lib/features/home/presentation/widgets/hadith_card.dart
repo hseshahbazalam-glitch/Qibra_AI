@@ -16,7 +16,7 @@ class HomeHadithCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dailyHadith = ref.watch(dailyHadithProvider);
-    const accent = Color(0xFFFFB703);
+    const accent = Color(0xFFC6A15B);
     final hadith = dailyHadith.valueOrNull;
     final collection = hadith?.reference ?? 'Verified Hadith unavailable';
     final hadithBody = hadith?.textEnglish ??

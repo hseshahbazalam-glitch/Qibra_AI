@@ -1,4 +1,4 @@
-﻿// lib/features/settings/presentation/settings_screen.dart
+// lib/features/settings/presentation/settings_screen.dart
 // ============================================================
 // QIBRA AI — Premium Settings Screen (FIXED)
 // ============================================================
@@ -67,7 +67,7 @@ class SettingsScreen extends ConsumerWidget {
                   _buildSettingsGroup([
                     _SettingsTile(
                       icon: isDark ? Icons.dark_mode : Icons.light_mode,
-                      iconColor: const Color(0xFFD4AF37),
+                      iconColor: AppColors.accent,
                       title: 'Dark Mode',
                       subtitle: isDark ? 'Enabled' : 'Disabled',
                       trailing: Switch(
@@ -81,7 +81,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _SettingsTile(
                       icon: Icons.language_rounded,
-                      iconColor: const Color(0xFF0891B2),
+                      iconColor: AppColors.primaryLight,
                       title: 'Language',
                       subtitle: 'English',
                       onTap: () =>
@@ -89,7 +89,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _SettingsTile(
                       icon: Icons.text_fields_rounded,
-                      iconColor: const Color(0xFFB45309),
+                      iconColor: AppColors.accentDark,
                       title: 'Font Size',
                       subtitle: 'Medium',
                       onTap: () => _showComingSoon(context, 'Font size'),
@@ -119,14 +119,14 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _SettingsTile(
                       icon: Icons.translate_rounded,
-                      iconColor: const Color(0xFF10B981),
+                      iconColor: AppColors.primaryLight,
                       title: 'Translation',
                       subtitle: 'English',
                       onTap: () => _showComingSoon(context, 'Translation'),
                     ),
                     _SettingsTile(
                       icon: Icons.explore_rounded,
-                      iconColor: const Color(0xFFD4AF37),
+                      iconColor: AppColors.accent,
                       title: 'Qibla Direction',
                       subtitle: 'Auto-detect',
                       onTap: () => context.go(AppRoutes.qibla),
@@ -148,7 +148,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _SettingsTile(
                       icon: Icons.notification_add_rounded,
-                      iconColor: const Color(0xFFFFB703),
+                      iconColor: AppColors.accent,
                       title: 'Daily Reminders',
                       subtitle: 'Adhkar, Quran & Jummah',
                       onTap: () => context.push('/settings/notifications'),
@@ -163,21 +163,21 @@ class SettingsScreen extends ConsumerWidget {
                   _buildSettingsGroup([
                     _SettingsTile(
                       icon: Icons.help_outline_rounded,
-                      iconColor: const Color(0xFF0891B2),
+                      iconColor: AppColors.primaryLight,
                       title: 'Help & FAQ',
                       subtitle: 'Get help',
                       onTap: () => _showComingSoon(context, 'Help center'),
                     ),
                     _SettingsTile(
                       icon: Icons.star_rounded,
-                      iconColor: const Color(0xFFFBBF24),
+                      iconColor: AppColors.accent,
                       title: 'Rate App',
                       subtitle: 'Share your feedback',
                       onTap: () => _showComingSoon(context, 'App rating'),
                     ),
                     _SettingsTile(
                       icon: Icons.share_rounded,
-                      iconColor: const Color(0xFF10B981),
+                      iconColor: AppColors.primaryLight,
                       title: 'Share App',
                       subtitle: 'Invite friends',
                       onTap: () => _showComingSoon(context, 'Share app'),
@@ -231,14 +231,7 @@ class SettingsScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF00E676),
-            Color(0xFF007A4D),
-          ],
-        ),
+        color: AppColors.primary,
         borderRadius: AppRadius.cardRadiusLarge,
         boxShadow: [
           BoxShadow(
@@ -716,7 +709,7 @@ class SettingsScreen extends ConsumerWidget {
         ShaderMask(
           shaderCallback: (bounds) => const LinearGradient(
             colors: [
-              Color(0xFFFFD700),
+              Color(0xFFC6A15B),
               Color(0xFFB8960C),
             ],
           ).createShader(bounds),
@@ -725,7 +718,7 @@ class SettingsScreen extends ConsumerWidget {
             style: TextStyle(
               fontFamily: 'Amiri',
               fontSize: 20,
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               fontWeight: FontWeight.w700,
             ),
             textDirection: TextDirection.rtl,

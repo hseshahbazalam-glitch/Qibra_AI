@@ -85,8 +85,8 @@ class _NotificationSettingsScreenState
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text('Settings saved! ✅',
-          style: TextStyle(color: Colors.white)),
-      backgroundColor: const Color(0xFF1B4332),
+          style: TextStyle(color: const Color(0xFF19312C))),
+      backgroundColor: const Color(0xFF123F36),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(16),
@@ -118,7 +118,7 @@ class _NotificationSettingsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -138,7 +138,7 @@ class _NotificationSettingsScreenState
                     '🕌',
                     _prayerNotifications,
                     (v) => setState(() => _prayerNotifications = v),
-                    const Color(0xFF00E676),
+                    const Color(0xFF123F36),
                   ),
                   if (_prayerNotifications) ...[
                     const Divider(color: Color(0xFF1E2535), height: 20),
@@ -148,7 +148,7 @@ class _NotificationSettingsScreenState
                       '⏰',
                       _prePrayerAlert,
                       (v) => setState(() => _prePrayerAlert = v),
-                      const Color(0xFFFFD166),
+                      const Color(0xFFC6A15B),
                     ),
                     if (_prePrayerAlert) ...[
                       const SizedBox(height: 10),
@@ -168,7 +168,7 @@ class _NotificationSettingsScreenState
                     '🌙',
                     _tahajjudNotification,
                     (v) => setState(() => _tahajjudNotification = v),
-                    const Color(0xFFD4AF37),
+                    const Color(0xFFC6A15B),
                   ),
                   if (_tahajjudNotification) ...[
                     const Divider(color: Color(0xFF1E2535), height: 20),
@@ -180,7 +180,7 @@ class _NotificationSettingsScreenState
                         _tahajjudHour = h;
                         _tahajjudMinute = m;
                       }),
-                      const Color(0xFFD4AF37),
+                      const Color(0xFFC6A15B),
                     ),
                   ],
                 ]),
@@ -194,7 +194,7 @@ class _NotificationSettingsScreenState
                     '🌅',
                     _morningAdhkar,
                     (v) => setState(() => _morningAdhkar = v),
-                    const Color(0xFFFFD166),
+                    const Color(0xFFC6A15B),
                   ),
                   const Divider(color: Color(0xFF1E2535), height: 20),
                   _settingToggle(
@@ -203,7 +203,7 @@ class _NotificationSettingsScreenState
                     '🌇',
                     _eveningAdhkar,
                     (v) => setState(() => _eveningAdhkar = v),
-                    const Color(0xFFD4AF37),
+                    const Color(0xFFC6A15B),
                   ),
                 ]),
                 const SizedBox(height: 20),
@@ -216,7 +216,7 @@ class _NotificationSettingsScreenState
                     '🕋',
                     _jummahNotification,
                     (v) => setState(() => _jummahNotification = v),
-                    const Color(0xFF00E676),
+                    const Color(0xFF123F36),
                   ),
                   const Divider(color: Color(0xFF1E2535), height: 20),
                   _settingToggle(
@@ -225,7 +225,7 @@ class _NotificationSettingsScreenState
                     '📖',
                     _quranReminder,
                     (v) => setState(() => _quranReminder = v),
-                    const Color(0xFF74C0FC),
+                    const Color(0xFF2F6B5D),
                   ),
                 ]),
                 const SizedBox(height: 24),
@@ -247,15 +247,15 @@ class _NotificationSettingsScreenState
     return SliverAppBar(
       expandedHeight: 120,
       pinned: true,
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: const Color(0xFF19312C).withValues(alpha: 0.1),
               shape: BoxShape.circle),
           child: const Icon(Icons.arrow_back_rounded,
-              color: Colors.white, size: 20),
+              color: const Color(0xFF19312C), size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
@@ -263,7 +263,7 @@ class _NotificationSettingsScreenState
         background: Container(
           decoration: const BoxDecoration(
             gradient:
-                LinearGradient(colors: [Color(0xFF1B4332), Color(0xFF0A0E1A)]),
+                LinearGradient(colors: [Color(0xFF123F36), Color(0xFFF5F3EC)]),
           ),
           child: SafeArea(
             child: Padding(
@@ -273,17 +273,17 @@ class _NotificationSettingsScreenState
                 children: [
                   const Text('الإِشْعَارَات',
                       style: TextStyle(
-                          color: Color(0xFF00E676),
+                          color: Color(0xFF123F36),
                           fontSize: 22,
                           fontFamily: 'Amiri')),
                   const Text('Notification Settings',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
                   Text('Prayer alerts & reminders',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4),
+                          color: const Color(0xFF19312C).withValues(alpha: 0.4),
                           fontSize: 12)),
                 ],
               ),
@@ -304,9 +304,9 @@ class _NotificationSettingsScreenState
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
                 granted ? 'Permission granted! ✅' : 'Permission denied ❌',
-                style: const TextStyle(color: Colors.white)),
+                style: const TextStyle(color: const Color(0xFF19312C))),
             backgroundColor:
-                granted ? const Color(0xFF1B4332) : const Color(0xFF7F1D1D),
+                granted ? const Color(0xFF123F36) : const Color(0xFF7F1D1D),
             behavior: SnackBarBehavior.floating,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -317,21 +317,21 @@ class _NotificationSettingsScreenState
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF00E676).withValues(alpha: 0.08),
+          color: const Color(0xFF123F36).withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: const Color(0xFF00E676).withValues(alpha: 0.25)),
+              color: const Color(0xFF123F36).withValues(alpha: 0.25)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF00E676).withValues(alpha: 0.12),
+                color: const Color(0xFF123F36).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.notifications_active_rounded,
-                  color: Color(0xFF00E676), size: 22),
+                  color: Color(0xFF123F36), size: 22),
             ),
             const SizedBox(width: 14),
             const Expanded(
@@ -340,16 +340,16 @@ class _NotificationSettingsScreenState
                 children: [
                   Text('Enable Notifications',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
                   Text('Tap to grant notification permission',
-                      style: TextStyle(color: Color(0xFF00E676), fontSize: 11)),
+                      style: TextStyle(color: Color(0xFF123F36), fontSize: 11)),
                 ],
               ),
             ),
             const Icon(Icons.arrow_forward_ios_rounded,
-                color: Color(0xFF00E676), size: 14),
+                color: Color(0xFF123F36), size: 14),
           ],
         ),
       ),
@@ -363,7 +363,7 @@ class _NotificationSettingsScreenState
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: const Color(0xFF19312C).withValues(alpha: 0.5),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0)),
@@ -377,7 +377,7 @@ class _NotificationSettingsScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(children: children),
     );
@@ -408,7 +408,7 @@ class _NotificationSettingsScreenState
                       fontWeight: FontWeight.w600)),
               Text(subtitle,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: const Color(0xFF19312C).withValues(alpha: 0.3),
                       fontSize: 10)),
             ],
           ),
@@ -434,7 +434,7 @@ class _NotificationSettingsScreenState
                 height: 20,
                 margin: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: const BoxDecoration(
-                    color: Colors.white, shape: BoxShape.circle),
+                    color: const Color(0xFF19312C), shape: BoxShape.circle),
               ),
             ),
           ),
@@ -450,7 +450,7 @@ class _NotificationSettingsScreenState
       children: [
         Text('Alert before prayer:',
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
+                color: const Color(0xFF19312C).withValues(alpha: 0.4),
                 fontSize: 11,
                 fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
@@ -468,12 +468,12 @@ class _NotificationSettingsScreenState
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     color: selected
-                        ? const Color(0xFFFFD166).withValues(alpha: 0.15)
+                        ? const Color(0xFFC6A15B).withValues(alpha: 0.15)
                         : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: selected
-                          ? const Color(0xFFFFD166)
+                          ? const Color(0xFFC6A15B)
                           : Colors.white.withValues(alpha: 0.05),
                     ),
                   ),
@@ -482,7 +482,7 @@ class _NotificationSettingsScreenState
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: selected
-                          ? const Color(0xFFFFD166)
+                          ? const Color(0xFFC6A15B)
                           : Colors.white.withValues(alpha: 0.3),
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -521,7 +521,7 @@ class _NotificationSettingsScreenState
           builder: (ctx, child) => Theme(
             data: ThemeData.dark().copyWith(
               colorScheme: const ColorScheme.dark(
-                primary: Color(0xFF00E676),
+                primary: Color(0xFF123F36),
                 surface: Color(0xFF141926),
               ),
             ),
@@ -539,7 +539,7 @@ class _NotificationSettingsScreenState
           Expanded(
             child: Text(label,
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6), fontSize: 13)),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.6), fontSize: 13)),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -559,11 +559,11 @@ class _NotificationSettingsScreenState
 
   Widget _buildPrayersList() {
     final prayers = [
-      const _PrayerItem('Fajr', '🌅', 'Dawn prayer', Color(0xFFFFB703)),
-      const _PrayerItem('Dhuhr', '☀️', 'Midday prayer', Color(0xFFFBBF24)),
-      const _PrayerItem('Asr', '🌤️', 'Afternoon prayer', Color(0xFF00E676)),
-      const _PrayerItem('Maghrib', '🌇', 'Sunset prayer', Color(0xFFD4AF37)),
-      const _PrayerItem('Isha', '🌙', 'Night prayer', Color(0xFF0891B2)),
+      const _PrayerItem('Fajr', '🌅', 'Dawn prayer', Color(0xFFC6A15B)),
+      const _PrayerItem('Dhuhr', '☀️', 'Midday prayer', Color(0xFFC6A15B)),
+      const _PrayerItem('Asr', '🌤️', 'Afternoon prayer', Color(0xFF123F36)),
+      const _PrayerItem('Maghrib', '🌇', 'Sunset prayer', Color(0xFFC6A15B)),
+      const _PrayerItem('Isha', '🌙', 'Night prayer', Color(0xFF2F6B5D)),
     ];
 
     return Container(
@@ -571,7 +571,7 @@ class _NotificationSettingsScreenState
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         children: prayers.map((p) {
@@ -587,12 +587,12 @@ class _NotificationSettingsScreenState
                     children: [
                       Text(p.name,
                           style: const TextStyle(
-                              color: Colors.white,
+                              color: const Color(0xFF19312C),
                               fontSize: 12,
                               fontWeight: FontWeight.w600)),
                       Text(p.subtitle,
                           style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.3),
+                              color: const Color(0xFF19312C).withValues(alpha: 0.3),
                               fontSize: 9)),
                     ],
                   ),
@@ -618,20 +618,20 @@ class _NotificationSettingsScreenState
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: const Color(0xFF19312C).withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14),
           border:
-              Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.3)),
+              Border.all(color: const Color(0xFF123F36).withValues(alpha: 0.3)),
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.notifications_rounded,
-                color: Color(0xFF00E676), size: 18),
+                color: Color(0xFF123F36), size: 18),
             SizedBox(width: 8),
             Text('Test Azan + Notification',
                 style: TextStyle(
-                    color: Color(0xFF00E676),
+                    color: Color(0xFF123F36),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
           ],
@@ -648,11 +648,11 @@ class _NotificationSettingsScreenState
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-              colors: [Color(0xFF00E676), Color(0xFF2D6A4F)]),
+              colors: [Color(0xFF123F36), Color(0xFF2F6B5D)]),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: const Color(0xFF00E676).withValues(alpha: 0.3),
+                color: const Color(0xFF123F36).withValues(alpha: 0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 6))
           ],
@@ -663,15 +663,15 @@ class _NotificationSettingsScreenState
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2)))
+                        color: const Color(0xFF19312C), strokeWidth: 2)))
             : const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.save_rounded, color: Colors.white, size: 20),
+                  Icon(Icons.save_rounded, color: const Color(0xFF19312C), size: 20),
                   SizedBox(width: 10),
                   Text('Save Settings',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 16,
                           fontWeight: FontWeight.w700)),
                 ],
@@ -687,12 +687,12 @@ class _NotificationSettingsScreenState
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.15)),
+            Border.all(color: const Color(0xFF123F36).withValues(alpha: 0.15)),
       ),
       child: Text(
         '"Guard strictly your prayers, especially the middle prayer (Asr). And stand before Allah with obedience." — Quran 2:238',
         style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
+            color: const Color(0xFF19312C).withValues(alpha: 0.5),
             fontSize: 11,
             fontStyle: FontStyle.italic,
             height: 1.5),
