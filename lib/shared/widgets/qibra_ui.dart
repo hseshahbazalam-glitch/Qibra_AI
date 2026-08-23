@@ -158,15 +158,21 @@ class QibraCard extends StatelessWidget {
     );
 
     if (onTap == null) return card;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap!();
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: card,
+    return Semantics(
+      button: true,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              onTap!();
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: card,
+          ),
+        ),
       ),
     );
   }
@@ -205,9 +211,8 @@ class QibraSectionHeader extends StatelessWidget {
               onPressed: onAction,
               style: TextButton.styleFrom(
                 foregroundColor: colors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                minimumSize: const Size(48, 48),
               ),
               child: Text(actionLabel!),
             ),
@@ -245,8 +250,8 @@ class QibraIconButton extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
-          width: 40,
-          height: 40,
+          width: 48,
+          height: 48,
           child: Icon(icon, size: 20, color: colors.textPrimary),
         ),
       ),

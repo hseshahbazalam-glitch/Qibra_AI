@@ -65,9 +65,10 @@ class QibraColors extends ThemeExtension<QibraColors> {
   );
 
   static const QibraColors dark = QibraColors(
-    background: Color(0xFF121916),
-    backgroundSecondary: Color(0xFF171F1B),
-    card: Color(0xFF1C2621),
+    // Midnight reading surfaces: intentionally not navy or pure black.
+    background: Color(0xFF0B1210),
+    backgroundSecondary: Color(0xFF15201C),
+    card: Color(0xFF15201C),
     cardMuted: Color(0xFF222E28),
     primary: Color(0xFF8FB8A8),
     primarySoft: Color(0xFF2F6B5D),
