@@ -54,6 +54,7 @@ import 'package:qibra_ai/features/settings/presentation/user_profile_screen.dart
 import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
 import 'package:qibra_ai/features/more/presentation/more_screen.dart';
 import 'package:qibra_ai/features/bookmarks/presentation/bookmarks_hub_screen.dart';
+import 'package:qibra_ai/features/family/presentation/family_accounts_screen.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 
 class _ErrorScreen extends StatelessWidget {
@@ -282,6 +283,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: AppRoutes.more,
               name: 'more',
               builder: (context, state) => const MoreScreen()),
+          GoRoute(
+              path: AppRoutes.family,
+              name: 'family',
+              builder: (context, state) => const FamilyAccountsScreen()),
           GoRoute(
               path: AppRoutes.bookmarks,
               name: 'bookmarks',

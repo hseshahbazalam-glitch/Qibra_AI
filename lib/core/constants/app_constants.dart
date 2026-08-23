@@ -274,6 +274,9 @@ abstract final class AppStorageKeys {
   /// Show translation in Quran?
   static const String showTranslation = 'show_translation';
 
+  /// Local-first Family space payload
+  static const String familySpace = 'family_space';
+
   // --- Location ---
 
   /// Last known latitude
@@ -1108,6 +1111,7 @@ abstract final class AppRoutes {
   static const String profile = '/profile';
   static const String settings = '/settings';
   static const String more = '/more';
+  static const String family = '/family';
   static const String bookmarks = '/bookmarks';
   static const String notifications = '/notifications';
   static const String about = '/about';

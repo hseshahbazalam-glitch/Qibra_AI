@@ -4,6 +4,22 @@ All notable changes to the Qibra AI codebase are documented in this file.
 
 ---
 
+## Phase 1–15 restore — existing project
+
+### Added
+- Added a FastAPI backend that implements `docs/api/API_CONTRACT.md` on `/api/v1` without changing that contract.
+- Mounted the same contract router at `/v1` for the current Flutter `AppApi` client.
+- Added backend tests for auth, profile, Quran, Hadith, duas, tafsir honesty, and retrieval-only AI.
+- Documented local Flutter + FastAPI development in `docs/architecture/DEVELOPMENT_GUIDE.md`.
+
+## Phase 15 — Family space
+
+### Added
+- Added a local-first Family space to the existing More → Account area.
+- Added family creation, rename, member management, local invite-code copying, and delete flows.
+- Persisted the family space with the existing encrypted FlutterSecureStorage provider.
+- Kept the offline boundary explicit: this build does not claim online invitations or cross-device sync while backend authentication is disabled.
+
 ## [1.0.0+1] — Production Release & Hardening
 
 ### Added

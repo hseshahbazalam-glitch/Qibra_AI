@@ -33,6 +33,10 @@ Premium Black + Emerald + Gold
 - Authentication UI
 - Navigation
 - Premium Theme
+- Duas
+- Qibla
+- Family space (local-first)
+- FastAPI contract backend (`/api/v1`)
 
 ## IN PROGRESS
 
@@ -45,8 +49,6 @@ Premium Black + Emerald + Gold
 
 ## PENDING
 
-- Duas
-- Qibla
 - Voice Assistant
 - Wear OS
 - Widgets

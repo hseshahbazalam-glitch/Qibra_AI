@@ -136,6 +136,12 @@ class MoreScreen extends ConsumerWidget {
             _MoreGroup(
               items: [
                 _MoreItem(
+                  icon: Icons.family_restroom_outlined,
+                  title: 'Family space',
+                  subtitle: 'A shared space for your household',
+                  route: AppRoutes.family,
+                ),
+                _MoreItem(
                   icon: Icons.person_outline_rounded,
                   title: 'Profile',
                   subtitle: 'Your account',
