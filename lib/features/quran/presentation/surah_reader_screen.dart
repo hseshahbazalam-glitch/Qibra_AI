@@ -28,7 +28,7 @@ class SurahReaderScreen extends ConsumerStatefulWidget {
 class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   String _activeTab = 'Arabic';
   final String _fontFamily = 'Uthmani';
-  double _fontSize = 24.0;
+  double _fontSize = 48.0;
   bool _isNightMode = true;
   bool _isPlayingAudio = false;
   int _playingAyah = 1;
@@ -198,7 +198,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               icon: Icons.text_fields_rounded,
               label: 'A^A',
               onTap: () =>
-                  setState(() => _fontSize = _fontSize == 24.0 ? 30.0 : 24.0)),
+                  setState(() => _fontSize = _fontSize == 48.0 ? 36.0 : 48.0)),
           const SizedBox(width: 8),
           _buildPill(icon: Icons.view_agenda_outlined, label: '', onTap: () {}),
           const Spacer(),
@@ -331,12 +331,22 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               ),
               const SizedBox(width: 8),
               InkWell(
-                onTap: () => setState(() {
-                  _isPlayingAudio = true;
-                  _playingAyah = ayah.number;
-                }),
-                child: const Icon(Icons.play_circle_fill_rounded,
-                    color: Color(0xFF123F36), size: 22),
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Recitation audio is not bundled in this build.',
+                      ),
+                    ),
+                  );
+                },
+                child: const SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Icon(Icons.play_circle_fill_rounded,
+                      color: Color(0xFF123F36), size: 22),
+                ),
               ),
               const Spacer(),
               IconButton(
@@ -549,9 +559,9 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Mishary Rashid Alafasy',
+                    const Text('Recitation not bundled',
                         style: TextStyle(
-                            color: const Color(0xFF19312C),
+                            color: Color(0xFF6B542B),
                             fontSize: 11,
                             fontWeight: FontWeight.bold)),
                     Text('Surah ${surah.name}',
@@ -565,7 +575,16 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                       color: const Color(0xFF19312C), size: 20),
                   onPressed: () {}),
               InkWell(
-                onTap: () => setState(() => _isPlayingAudio = !_isPlayingAudio),
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Recitation audio is not bundled in this build.',
+                      ),
+                    ),
+                  );
+                },
                 child: Container(
                   width: 32,
                   height: 32,

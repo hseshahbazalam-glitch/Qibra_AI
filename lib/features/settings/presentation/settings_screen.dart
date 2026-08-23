@@ -113,7 +113,7 @@ class SettingsScreen extends ConsumerWidget {
                       icon: Icons.headphones_rounded,
                       iconColor: AppColors.accent,
                       title: 'Quran Reciter',
-                      subtitle: 'Mishary Rashid',
+                      subtitle: 'Audio not bundled',
                       onTap: () =>
                           _showComingSoon(context, 'Reciter selection'),
                     ),

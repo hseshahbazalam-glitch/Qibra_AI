@@ -4,6 +4,16 @@ All notable changes to the Qibra AI codebase are documented in this file.
 
 ---
 
+## [0.6.0] — 2026-08-23 (this branch)
+
+- Shared `QibraPage` / `QibraAppBar`; gold fill `#C6A15B`, gold text `#6B542B`, forest `#123F36`.
+- Mushaf + Ayah: navy `#1A2438` / `#0A1F14` removed; 48dp ayah type; recitation not bundled.
+- Search chips stay on forest/gold. Hadith unknown author is `—`.
+- FastAPI 0.6.0: health, auth, users, bookmarks, sync, AI, billing.
+- Phase tests `test_phase3.py` … `test_phase15.py`. See `docs/PHASE15_AUDIT.md`.
+
+---
+
 ## [1.0.0+1] — Production Release & Hardening
 
 ### Added

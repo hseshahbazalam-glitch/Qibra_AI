@@ -19,10 +19,8 @@ class MoreScreen extends ConsumerWidget {
     final name = ref.watch(userDisplayNameProvider);
     final user = ref.watch(currentUserProvider);
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: ListView(
+    return QibraPage(
+      child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             QibraScreenHeader(
@@ -151,7 +149,6 @@ class MoreScreen extends ConsumerWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

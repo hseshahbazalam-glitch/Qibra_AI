@@ -8,6 +8,120 @@ import '../../core/design_system/app_design_system.dart';
 import '../../core/design_system/app_typography.dart';
 import '../../core/design_system/qibra_colors.dart';
 
+class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const QibraAppBar({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.actions = const [],
+    this.leading,
+    this.centerTitle = false,
+  });
+
+  final String title;
+  final String? subtitle;
+  final List<Widget> actions;
+  final Widget? leading;
+  final bool centerTitle;
+
+  @override
+  Size get preferredSize => Size.fromHeight(subtitle == null ? 56 : 72);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return AppBar(
+      backgroundColor: colors.background,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: centerTitle,
+      leading: leading,
+      title: subtitle == null
+          ? Text(
+              title,
+              style: AppTextStyles.titleLarge.copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            )
+          : Column(
+              crossAxisAlignment: centerTitle
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  subtitle!,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+      actions: actions,
+    );
+  }
+}
+
+class QibraPage extends StatelessWidget {
+  const QibraPage({
+    super.key,
+    required this.child,
+    this.title,
+    this.subtitle,
+    this.actions = const [],
+    this.leading,
+    this.showAppBar = false,
+    this.safeArea = true,
+    this.padding,
+    this.floatingActionButton,
+    this.resizeToAvoidBottomInset,
+  });
+
+  final Widget child;
+  final String? title;
+  final String? subtitle;
+  final List<Widget> actions;
+  final Widget? leading;
+  final bool showAppBar;
+  final bool safeArea;
+  final EdgeInsetsGeometry? padding;
+  final Widget? floatingActionButton;
+  final bool? resizeToAvoidBottomInset;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    Widget body = child;
+    if (padding != null) {
+      body = Padding(padding: padding!, child: body);
+    }
+    if (safeArea) {
+      body = SafeArea(child: body);
+    }
+    return Scaffold(
+      backgroundColor: colors.background,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+      appBar: showAppBar
+          ? QibraAppBar(
+              title: title ?? '',
+              subtitle: subtitle,
+              actions: actions,
+              leading: leading,
+            )
+          : null,
+      floatingActionButton: floatingActionButton,
+      body: body,
+    );
+  }
+}
+
 class QibraCard extends StatelessWidget {
   const QibraCard({
     super.key,
