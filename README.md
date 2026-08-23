@@ -1,6 +1,15 @@
-# qibra_ai
+# Qibra AI
 
-A new Flutter project.
+Existing Flutter app for Quran, Hadith, Prayer, Qibla, AI, Tools, and Auth.
+
+Ivory / forest / gold UI (`QibraColors`, `QibraPage`, `QibraAppBar`). Recitation audio is not bundled.
+
+Backend 0.6.0 lives in `backend/` (`/api/v1` and `/v1`). It is an in-memory FastAPI service, not a production deploy.
+
+```bash
+cd backend && python3 -m pip install -r requirements.txt
+python3 -m pytest backend/tests/test_phase3.py
+```
 
 ## Getting Started
 

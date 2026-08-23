@@ -43,10 +43,8 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     );
     final books = ref.watch(hadithBooksProvider);
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: ListView(
+    return QibraPage(
+      child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             QibraScreenHeader(
@@ -215,7 +213,6 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -224,7 +221,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     final info = db.getBookInfo(slug);
     final config = _collections.firstWhere(
       (c) => c['slug'] == slug,
-      orElse: () => {'name': 'Hadith Collection', 'author': 'Islamic Scholar'},
+      orElse: () => {'name': 'Hadith Collection', 'author': '—'},
     );
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -234,7 +231,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             slug: slug,
             name: info?.name ?? config['name']!,
             nameArabic: '',
-            author: config['author'] ?? 'Islamic Scholar',
+            author: config['author'] ?? '—',
             authorArabic: '',
             totalHadiths: info?.totalHadiths ?? 0,
             totalChapters: info?.sections.length ?? 0,

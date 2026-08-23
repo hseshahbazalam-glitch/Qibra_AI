@@ -48,7 +48,7 @@ final hadithBooksProvider = FutureProvider<List<HadithBook>>((ref) async {
         slug: info.slug,
         name: info.name,
         nameArabic: '',
-        author: 'Islamic Scholar',
+        author: '—',
         authorArabic: '',
         totalHadiths: info.totalHadiths,
         totalChapters: info.sections.length,

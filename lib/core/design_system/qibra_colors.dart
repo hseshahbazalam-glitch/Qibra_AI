@@ -15,6 +15,9 @@ class QibraColors extends ThemeExtension<QibraColors> {
     required this.primarySoft,
     required this.secondary,
     required this.accent,
+    required this.goldFill,
+    required this.goldText,
+    required this.forest,
     required this.textPrimary,
     required this.textSecondary,
     required this.textTertiary,
@@ -31,6 +34,9 @@ class QibraColors extends ThemeExtension<QibraColors> {
   final Color primarySoft;
   final Color secondary;
   final Color accent;
+  final Color goldFill;
+  final Color goldText;
+  final Color forest;
   final Color textPrimary;
   final Color textSecondary;
   final Color textTertiary;
@@ -47,6 +53,9 @@ class QibraColors extends ThemeExtension<QibraColors> {
     primarySoft: Color(0xFF2F6B5D),
     secondary: Color(0xFF2F6B5D),
     accent: Color(0xFFC6A15B),
+    goldFill: Color(0xFFC6A15B),
+    goldText: Color(0xFF6B542B),
+    forest: Color(0xFF123F36),
     textPrimary: Color(0xFF19312C),
     textSecondary: Color(0xFF71807A),
     textTertiary: Color(0xFF8A9691),
@@ -64,6 +73,9 @@ class QibraColors extends ThemeExtension<QibraColors> {
     primarySoft: Color(0xFF2F6B5D),
     secondary: Color(0xFF8FB8A8),
     accent: Color(0xFFC6A15B),
+    goldFill: Color(0xFFC6A15B),
+    goldText: Color(0xFF6B542B),
+    forest: Color(0xFF123F36),
     textPrimary: Color(0xFFF5F3EC),
     textSecondary: Color(0xFF9AA8A2),
     textTertiary: Color(0xFF7A8882),
@@ -88,6 +100,9 @@ class QibraColors extends ThemeExtension<QibraColors> {
     Color? primarySoft,
     Color? secondary,
     Color? accent,
+    Color? goldFill,
+    Color? goldText,
+    Color? forest,
     Color? textPrimary,
     Color? textSecondary,
     Color? textTertiary,
@@ -104,6 +119,9 @@ class QibraColors extends ThemeExtension<QibraColors> {
       primarySoft: primarySoft ?? this.primarySoft,
       secondary: secondary ?? this.secondary,
       accent: accent ?? this.accent,
+      goldFill: goldFill ?? this.goldFill,
+      goldText: goldText ?? this.goldText,
+      forest: forest ?? this.forest,
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
       textTertiary: textTertiary ?? this.textTertiary,
@@ -143,4 +161,6 @@ abstract final class QibraTokens {
   static const Color forest = AppColors.primary;
   static const Color sage = AppColors.primaryLight;
   static const Color gold = AppColors.accent;
+  static const Color goldFill = Color(0xFFC6A15B);
+  static const Color goldText = Color(0xFF6B542B);
 }

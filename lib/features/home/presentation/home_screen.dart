@@ -38,10 +38,8 @@ class HomeScreen extends ConsumerWidget {
     final hijri = HijriCalendar.now();
     final hijriLabel = '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH';
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: RefreshIndicator(
+    return QibraPage(
+      child: RefreshIndicator(
           color: colors.primary,
           onRefresh: () async {
             ref.invalidate(dailyPrayerTimesProvider);
@@ -365,7 +363,6 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
-        ),
       ),
     );
   }

@@ -26,10 +26,8 @@ class PrayerTimesScreen extends ConsumerWidget {
     final records = ref.watch(prayerRecordsProvider);
     final hijri = HijriCalendar.now();
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: RefreshIndicator(
+    return QibraPage(
+      child: RefreshIndicator(
           color: colors.primary,
           onRefresh: () async {
             await ref.read(locationProvider.notifier).fetchCurrentLocation();
@@ -239,7 +237,6 @@ class PrayerTimesScreen extends ConsumerWidget {
               ),
             ],
           ),
-        ),
       ),
     );
   }

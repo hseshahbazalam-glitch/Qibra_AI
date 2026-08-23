@@ -42,10 +42,8 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
     final dailyAyah = ref.watch(dailyAyahProvider);
     final page = progress.currentPage;
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: ListView(
+    return QibraPage(
+      child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             QibraScreenHeader(
@@ -246,7 +244,6 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
               ),
           ],
         ),
-      ),
     );
   }
 

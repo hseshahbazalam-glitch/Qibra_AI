@@ -87,8 +87,8 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF1A2438),
             Color(0xFFFEFDF9),
+            Color(0xFFF5F3EC),
           ],
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -548,7 +548,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
         ),
       ),
     );
-    _showToast('🎵 Opening audio player...');
+    _showToast('Recitation audio is not bundled in this build.');
   }
 
   // ✅ BOOKMARK (Real - saves to SharedPreferences)
@@ -574,7 +574,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2438),
+        backgroundColor: const Color(0xFFFEFDF9),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),

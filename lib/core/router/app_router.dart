@@ -242,7 +242,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                       slug: slug,
                       name: bookInfo?.name ?? 'Hadith Collection',
                       nameArabic: '',
-                      author: 'Islamic Scholar',
+                      author: '—',
                       authorArabic: '',
                       totalHadiths: bookInfo?.totalHadiths ?? 0,
                       totalChapters: bookInfo?.sections.length ?? 0,
