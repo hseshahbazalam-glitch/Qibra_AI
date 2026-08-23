@@ -169,7 +169,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 Text(
                   _getSurahName(currentPage),
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
@@ -177,7 +177,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 Text(
                   'Juz ${_getJuzForPage(currentPage)} • Page $currentPage',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.7),
                     fontSize: 12,
                   ),
                 ),
@@ -224,7 +224,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 Text(
                   '1',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.7),
                     fontSize: 11,
                   ),
                 ),
@@ -258,7 +258,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 Text(
                   '604',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.7),
                     fontSize: 11,
                   ),
                 ),
@@ -297,7 +297,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                         '$currentPage / 604',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
@@ -402,12 +402,12 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Colors.white, size: 22),
+            Icon(icon, color: const Color(0xFF19312C), size: 22),
             const SizedBox(height: 4),
             Text(
               label,
               style: const TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
@@ -513,7 +513,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                     Text(
                       'Page $currentPage Options',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
@@ -525,7 +525,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               _menuOption(
                 icon: Icons.copy_rounded,
                 label: 'Copy Page Info',
-                color: const Color(0xFF10B981),
+                color: const Color(0xFF2F6B5D),
                 onTap: () {
                   Navigator.pop(context);
                   _copyPageInfo(currentPage);
@@ -534,7 +534,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               _menuOption(
                 icon: Icons.share_rounded,
                 label: 'Share Page',
-                color: const Color(0xFF3B82F6),
+                color: const Color(0xFF2F6B5D),
                 onTap: () {
                   Navigator.pop(context);
                   _sharePage(currentPage);
@@ -547,7 +547,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 label: _bookmarkedPages.contains(currentPage)
                     ? 'Remove Bookmark'
                     : 'Bookmark Page',
-                color: const Color(0xFFD4AF37),
+                color: const Color(0xFFC6A15B),
                 onTap: () {
                   Navigator.pop(context);
                   _toggleBookmark(currentPage);
@@ -556,7 +556,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               _menuOption(
                 icon: Icons.list_alt_rounded,
                 label: 'View All Bookmarks',
-                color: const Color(0xFFFFB703),
+                color: const Color(0xFFC6A15B),
                 onTap: () {
                   Navigator.pop(context);
                   _showBookmarksList();
@@ -565,7 +565,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               _menuOption(
                 icon: Icons.info_outline_rounded,
                 label: 'Page Info',
-                color: const Color(0xFFFFB703),
+                color: const Color(0xFFC6A15B),
                 onTap: () {
                   Navigator.pop(context);
                   _showPageInfo(currentPage);
@@ -599,7 +599,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       title: Text(
         label,
         style: const TextStyle(
-          color: Colors.white,
+          color: const Color(0xFF19312C),
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
@@ -658,7 +658,7 @@ Join me on Qibra AI 🕌''';
             Text(
               'Page $page',
               style: const TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -700,14 +700,14 @@ Join me on Qibra AI 🕌''';
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
+              color: const Color(0xFF19312C).withValues(alpha: 0.7),
               fontSize: 13,
             ),
           ),
           Text(
             value,
             style: const TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
@@ -761,7 +761,7 @@ Join me on Qibra AI 🕌''';
                     const Text(
                       'Bookmarked Pages',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
@@ -770,7 +770,7 @@ Join me on Qibra AI 🕌''';
                     Text(
                       '${sortedBookmarks.length} pages',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: const Color(0xFF19312C).withValues(alpha: 0.6),
                         fontSize: 12,
                       ),
                     ),
@@ -788,7 +788,7 @@ Join me on Qibra AI 🕌''';
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
+                        color: const Color(0xFF19312C).withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
@@ -813,7 +813,7 @@ Join me on Qibra AI 🕌''';
                             child: Text(
                               '$page',
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: const Color(0xFF19312C),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -823,14 +823,14 @@ Join me on Qibra AI 🕌''';
                         title: Text(
                           'Page $page',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: const Color(0xFF19312C),
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         subtitle: Text(
                           '${_getSurahName(page)} • Juz ${_getJuzForPage(page)}',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: const Color(0xFF19312C).withValues(alpha: 0.6),
                             fontSize: 12,
                           ),
                         ),
@@ -875,7 +875,7 @@ Join me on Qibra AI 🕌''';
             Text(
               'Go to Page',
               style: TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -888,7 +888,7 @@ Join me on Qibra AI 🕌''';
             Text(
               'Enter page number (1 - 604)',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
+                color: const Color(0xFF19312C).withValues(alpha: 0.7),
                 fontSize: 13,
               ),
             ),
@@ -901,7 +901,7 @@ Join me on Qibra AI 🕌''';
                 FilteringTextInputFormatter.digitsOnly,
               ],
               style: const TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
               ),
@@ -909,7 +909,7 @@ Join me on Qibra AI 🕌''';
               decoration: InputDecoration(
                 hintText: 'e.g. 100',
                 hintStyle: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.3),
                 ),
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: 0.05),
@@ -927,7 +927,7 @@ Join me on Qibra AI 🕌''';
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+              style: TextStyle(color: const Color(0xFF19312C).withValues(alpha: 0.7)),
             ),
           ),
           ElevatedButton(

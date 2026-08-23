@@ -413,9 +413,9 @@ class _DuaCard extends ConsumerWidget {
       case 'sahih':
         return AppColors.primary;
       case 'hasan':
-        return const Color(0xFF3B82F6);
+        return const Color(0xFF2F6B5D);
       case 'quran':
-        return const Color(0xFFD4AF37);
+        return const Color(0xFFC6A15B);
       default:
         return AppColors.textSecondary;
     }

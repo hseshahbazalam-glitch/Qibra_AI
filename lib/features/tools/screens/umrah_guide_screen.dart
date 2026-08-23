@@ -16,7 +16,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 1,
       title: 'Enter Ihram',
       emoji: '🧕',
-      color: Color(0xFF74C0FC),
+      color: Color(0xFF2F6B5D),
       description:
           'Before reaching Meeqat, take a bath (ghusl), put on Ihram garments. Men wear two white unstitched cloths. Women wear regular modest clothing.',
       details: [
@@ -35,7 +35,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 2,
       title: 'Recite Talbiyah',
       emoji: '🗣️',
-      color: Color(0xFFFFD166),
+      color: Color(0xFFC6A15B),
       description:
           'Continuously recite the Talbiyah from the moment you enter Ihram until you begin Tawaf.',
       details: [
@@ -55,7 +55,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 3,
       title: 'Tawaf (7 Rounds)',
       emoji: '🕋',
-      color: Color(0xFF00E676),
+      color: Color(0xFF123F36),
       description:
           'Perform 7 rounds (circuits) around the Ka\'bah in anti-clockwise direction, starting from Hajar al-Aswad (Black Stone).',
       details: [
@@ -80,7 +80,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 4,
       title: 'Sa\'i (Safa & Marwah)',
       emoji: '🚶',
-      color: Color(0xFFA78BFA),
+      color: Color(0xFF2F6B5D),
       description:
           'Walk between the hills of Safa and Marwah 7 times. Start at Safa and end at Marwah.',
       details: [
@@ -101,7 +101,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 5,
       title: 'Halq or Taqsir',
       emoji: '✂️',
-      color: Color(0xFFFF8C42),
+      color: Color(0xFFC6A15B),
       description:
           'After completing Sa\'i, shave the head (Halq) or trim the hair (Taqsir) to exit the state of Ihram.',
       details: [
@@ -130,7 +130,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -170,15 +170,15 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
     return SliverAppBar(
       expandedHeight: 130,
       pinned: true,
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: const Color(0xFF19312C).withValues(alpha: 0.1),
               shape: BoxShape.circle),
           child: const Icon(Icons.arrow_back_rounded,
-              color: Colors.white, size: 20),
+              color: const Color(0xFF19312C), size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
@@ -188,7 +188,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
             gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF0D2137), Color(0xFF0A0E1A)]),
+                colors: [Color(0xFFEEF1EA), Color(0xFFF5F3EC)]),
           ),
           child: SafeArea(
             child: Padding(
@@ -198,17 +198,17 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                 children: [
                   const Text('عُمْرَة',
                       style: TextStyle(
-                          color: Color(0xFF74C0FC),
+                          color: Color(0xFF2F6B5D),
                           fontSize: 26,
                           fontFamily: 'Amiri')),
                   const Text('Umrah Guide',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 22,
                           fontWeight: FontWeight.bold)),
                   Text('Step-by-Step',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4),
+                          color: const Color(0xFF19312C).withValues(alpha: 0.4),
                           fontSize: 12)),
                 ],
               ),
@@ -224,10 +224,10 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-            colors: [Color(0xFF0D2137), Color(0xFF152E4A)]),
+            colors: [Color(0xFFEEF1EA), Color(0xFF152E4A)]),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFF74C0FC).withValues(alpha: 0.3)),
+            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,12 +241,12 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                 children: [
                   Text('The Minor Pilgrimage',
                       style: TextStyle(
-                          color: Color(0xFF74C0FC),
+                          color: Color(0xFF2F6B5D),
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
                   Text('Sunnah Mu\'akkadah',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 18,
                           fontWeight: FontWeight.w900)),
                 ],
@@ -257,7 +257,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
           Text(
             'Umrah can be performed any time of the year. It consists of 4 main rituals: Ihram, Tawaf, Sa\'i, and Halq/Taqsir.',
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: const Color(0xFF19312C).withValues(alpha: 0.6),
                 fontSize: 12,
                 height: 1.5),
           ),
@@ -283,7 +283,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               color: const Color(0xFF141926),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: const Color(0xFF74C0FC).withValues(alpha: 0.12)),
+                  color: const Color(0xFF2F6B5D).withValues(alpha: 0.12)),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -292,7 +292,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                 const SizedBox(height: 4),
                 Text(quickSteps[i],
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 10,
                         fontWeight: FontWeight.w600)),
               ],
@@ -310,7 +310,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: const Color(0xFF19312C).withValues(alpha: 0.5),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0)),
@@ -366,7 +366,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                               fontWeight: FontWeight.w700)),
                       Text(step.title,
                           style: const TextStyle(
-                              color: Colors.white,
+                              color: const Color(0xFF19312C),
                               fontSize: 16,
                               fontWeight: FontWeight.w800)),
                     ],
@@ -384,7 +384,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               const SizedBox(height: 8),
               Text(step.description,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.4), fontSize: 11),
+                      color: const Color(0xFF19312C).withValues(alpha: 0.4), fontSize: 11),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis),
             ],
@@ -392,7 +392,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               const SizedBox(height: 12),
               Text(step.description,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
+                      color: const Color(0xFF19312C).withValues(alpha: 0.6),
                       fontSize: 12,
                       height: 1.5)),
               const SizedBox(height: 14),
@@ -412,7 +412,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                         Expanded(
                             child: Text(d,
                                 style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.5),
+                                    color: const Color(0xFF19312C).withValues(alpha: 0.5),
                                     fontSize: 12,
                                     height: 1.4))),
                       ],
@@ -442,14 +442,14 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                       const SizedBox(height: 6),
                       Text(step.duaTransliteration,
                           style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.4),
+                              color: const Color(0xFF19312C).withValues(alpha: 0.4),
                               fontSize: 10,
                               fontStyle: FontStyle.italic),
                           textAlign: TextAlign.center),
                       const SizedBox(height: 4),
                       Text(step.duaTranslation,
                           style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: const Color(0xFF19312C).withValues(alpha: 0.5),
                               fontSize: 11),
                           textAlign: TextAlign.center),
                     ],
@@ -474,7 +474,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFF141926),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -483,12 +483,12 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               const SizedBox(height: 8),
               Text(tip.title,
                   style: const TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontSize: 12,
                       fontWeight: FontWeight.w700)),
               Text(tip.subtitle,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.35),
+                      color: const Color(0xFF19312C).withValues(alpha: 0.35),
                       fontSize: 10),
                   maxLines: 2),
             ],
@@ -505,7 +505,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFF74C0FC).withValues(alpha: 0.15)),
+            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,7 +516,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               SizedBox(width: 8),
               Text('Hadith',
                   style: TextStyle(
-                      color: Color(0xFF74C0FC),
+                      color: Color(0xFF2F6B5D),
                       fontSize: 12,
                       fontWeight: FontWeight.w700)),
             ],
@@ -525,7 +525,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
           Text(
             '"Umrah to Umrah is an expiation for the sins committed between them." — Bukhari & Muslim',
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: const Color(0xFF19312C).withValues(alpha: 0.6),
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
                 height: 1.5),

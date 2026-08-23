@@ -38,15 +38,15 @@ class AuthHeader extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.10),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.10),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.15),
                     width: 1,
                   ),
                 ),
                 child: const Icon(
                   Icons.arrow_back_rounded,
-                  color: Colors.white,
+                  color: const Color(0xFF19312C),
                   size: 20,
                 ),
               ),
@@ -60,10 +60,10 @@ class AuthHeader extends StatelessWidget {
               vertical: AppSpacing.xs,
             ),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               borderRadius: AppRadius.pillRadius,
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15),
+                color: const Color(0xFF19312C).withValues(alpha: 0.15),
                 width: 1,
               ),
             ),
@@ -76,7 +76,7 @@ class AuthHeader extends StatelessWidget {
                   child: Text(
                     '$stepNumber',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontWeight: FontWeight.w800,
                     ),
                   ),

@@ -16,7 +16,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '8th Dhul Hijjah',
       title: 'Yawm al-Tarwiyah',
       emoji: '🕋',
-      color: Color(0xFFFFD166),
+      color: Color(0xFFC6A15B),
       steps: [
         _HajjStep(
           'Enter Ihram',
@@ -45,7 +45,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '9th Dhul Hijjah',
       title: 'Yawm al-Arafah',
       emoji: '⛰️',
-      color: Color(0xFF00E676),
+      color: Color(0xFF123F36),
       steps: [
         _HajjStep(
           'Go to Arafah',
@@ -117,7 +117,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '11th-13th Dhul Hijjah',
       title: 'Ayyam al-Tashreeq',
       emoji: '🏕️',
-      color: Color(0xFFD4AF37),
+      color: Color(0xFFC6A15B),
       steps: [
         _HajjStep(
           'Stay in Mina',
@@ -162,7 +162,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -202,16 +202,16 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
     return SliverAppBar(
       expandedHeight: 130,
       pinned: true,
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: const Color(0xFF19312C).withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.arrow_back_rounded,
-              color: Colors.white, size: 20),
+              color: const Color(0xFF19312C), size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
@@ -221,7 +221,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF3D2B00), Color(0xFF0A0E1A)],
+              colors: [Color(0xFFF8F1E3), Color(0xFFF5F3EC)],
             ),
           ),
           child: SafeArea(
@@ -232,17 +232,17 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                 children: [
                   const Text('حَجّ',
                       style: TextStyle(
-                          color: Color(0xFFFFD166),
+                          color: Color(0xFFC6A15B),
                           fontSize: 26,
                           fontFamily: 'Amiri')),
                   const Text('Hajj Guide',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 22,
                           fontWeight: FontWeight.bold)),
                   Text('Complete Step-by-Step',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4),
+                          color: const Color(0xFF19312C).withValues(alpha: 0.4),
                           fontSize: 12)),
                 ],
               ),
@@ -258,10 +258,10 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-            colors: [Color(0xFF3D2B00), Color(0xFF2B1F00)]),
+            colors: [Color(0xFFF8F1E3), Color(0xFF2B1F00)]),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.3)),
+            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,12 +275,12 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                 children: [
                   Text('The Fifth Pillar',
                       style: TextStyle(
-                          color: Color(0xFFFFD166),
+                          color: Color(0xFFC6A15B),
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
                   Text('of Islam',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 18,
                           fontWeight: FontWeight.w900)),
                 ],
@@ -291,7 +291,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
           Text(
             'Hajj is obligatory once in a lifetime for every Muslim who is physically and financially able. It takes place during 8th-13th Dhul Hijjah.',
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: const Color(0xFF19312C).withValues(alpha: 0.6),
                 fontSize: 12,
                 height: 1.5),
           ),
@@ -318,7 +318,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
               color: const Color(0xFF141926),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: const Color(0xFFFFD166).withValues(alpha: 0.12)),
+                  color: const Color(0xFFC6A15B).withValues(alpha: 0.12)),
             ),
             child: Column(
               children: [
@@ -326,12 +326,12 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                 const SizedBox(height: 6),
                 Text(p.name,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 11,
                         fontWeight: FontWeight.w700)),
                 Text(p.desc,
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.35),
+                        color: const Color(0xFF19312C).withValues(alpha: 0.35),
                         fontSize: 8),
                     textAlign: TextAlign.center,
                     maxLines: 1),
@@ -350,7 +350,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: const Color(0xFF19312C).withValues(alpha: 0.5),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0)),
@@ -406,7 +406,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                               fontWeight: FontWeight.w700)),
                       Text(day.title,
                           style: const TextStyle(
-                              color: Colors.white,
+                              color: const Color(0xFF19312C),
                               fontSize: 16,
                               fontWeight: FontWeight.w800)),
                     ],
@@ -451,13 +451,13 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
               children: [
                 Text(step.title,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 13,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 3),
                 Text(step.description,
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: const Color(0xFF19312C).withValues(alpha: 0.5),
                         fontSize: 11,
                         height: 1.4)),
                 if (step.arabic.isNotEmpty) ...[
@@ -483,7 +483,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                           const SizedBox(height: 4),
                           Text(step.transliteration,
                               style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.4),
+                                  color: const Color(0xFF19312C).withValues(alpha: 0.4),
                                   fontSize: 10,
                                   fontStyle: FontStyle.italic),
                               textAlign: TextAlign.center),
@@ -506,7 +506,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         children: _checklist.asMap().entries.map((e) {
@@ -526,17 +526,17 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                     height: 24,
                     decoration: BoxDecoration(
                       color: item.isDone
-                          ? const Color(0xFF00E676)
+                          ? const Color(0xFF123F36)
                           : Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                           color: item.isDone
-                              ? const Color(0xFF00E676)
+                              ? const Color(0xFF123F36)
                               : Colors.white.withValues(alpha: 0.15)),
                     ),
                     child: item.isDone
                         ? const Icon(Icons.check_rounded,
-                            color: Colors.white, size: 16)
+                            color: const Color(0xFF19312C), size: 16)
                         : null,
                   ),
                   const SizedBox(width: 12),
@@ -569,7 +569,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
         color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFFFFD166).withValues(alpha: 0.15)),
+            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -580,7 +580,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
               SizedBox(width: 8),
               Text('Quran',
                   style: TextStyle(
-                      color: Color(0xFFFFD166),
+                      color: Color(0xFFC6A15B),
                       fontSize: 12,
                       fontWeight: FontWeight.w700)),
             ],
@@ -589,7 +589,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
           Text(
             '"And proclaim to the people the Hajj; they will come to you on foot and on every lean camel; they will come from every distant pass." — Quran 22:27',
             style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: const Color(0xFF19312C).withValues(alpha: 0.6),
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
                 height: 1.5),

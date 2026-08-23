@@ -26,11 +26,11 @@ import 'package:flutter/material.dart';
 // ============================================================
 
 enum HadithGrade {
-  sahih('Sahih', 'صحيح', 'Authentic', Color(0xFF00E676)),
-  hasan('Hasan', 'حسن', 'Good', Color(0xFF0891B2)),
-  daif('Daif', 'ضعيف', 'Weak', Color(0xFFFFB703)),
-  mawdu('Mawdu', 'موضوع', 'Fabricated', Color(0xFFEF4444)),
-  unknown('Unknown', 'غير معروف', 'Unknown grade', Color(0xFF6B7280));
+  sahih('Sahih', 'صحيح', 'Authentic', Color(0xFF123F36)),
+  hasan('Hasan', 'حسن', 'Good', Color(0xFF2F6B5D)),
+  daif('Daif', 'ضعيف', 'Weak', Color(0xFFC6A15B)),
+  mawdu('Mawdu', 'موضوع', 'Fabricated', Color(0xFFB42318)),
+  unknown('Unknown', 'غير معروف', 'Unknown grade', Color(0xFF71807A));
 
   const HadithGrade(this.label, this.arabicLabel, this.description, this.color);
 
@@ -196,13 +196,13 @@ class HadithBook extends Equatable {
       ];
 
   static Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return const Color(0xFF00E676);
+    if (hex == null || hex.isEmpty) return const Color(0xFF123F36);
     try {
       final cleanHex = hex.replaceAll('#', '');
       final value = int.parse('FF$cleanHex', radix: 16);
       return Color(value);
     } catch (_) {
-      return const Color(0xFF00E676);
+      return const Color(0xFF123F36);
     }
   }
 }
@@ -659,7 +659,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 97,
     description:
         'The most authentic book after the Holy Quran. Compiled by Imam Muhammad al-Bukhari.',
-    color: Color(0xFF00E676),
+    color: Color(0xFF123F36),
     compiledYear: '846 CE',
   ),
   HadithBook(
@@ -673,7 +673,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 56,
     description:
         'Second most authentic hadith collection. Compiled by Imam Muslim ibn al-Hajjaj.',
-    color: Color(0xFF0891B2),
+    color: Color(0xFF2F6B5D),
     compiledYear: '875 CE',
   ),
   HadithBook(
@@ -687,7 +687,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 43,
     description:
         'Collection of hadiths focusing on Islamic jurisprudence and rulings.',
-    color: Color(0xFFB45309),
+    color: Color(0xFF8A6D38),
     compiledYear: '888 CE',
   ),
   HadithBook(
@@ -701,7 +701,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 49,
     description:
         'Comprehensive collection with commentary on the strength of each hadith.',
-    color: Color(0xFFD4AF37),
+    color: Color(0xFFC6A15B),
     compiledYear: '892 CE',
   ),
   HadithBook(
@@ -715,7 +715,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 51,
     description:
         'Known for its strict criteria in accepting hadiths, focusing on chains.',
-    color: Color(0xFFFFB703),
+    color: Color(0xFFC6A15B),
     compiledYear: '915 CE',
   ),
   HadithBook(
@@ -729,7 +729,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 37,
     description:
         'Sixth of the Kutub al-Sittah, containing many unique hadiths.',
-    color: Color(0xFFD4AF37),
+    color: Color(0xFFC6A15B),
     compiledYear: '887 CE',
   ),
 ];

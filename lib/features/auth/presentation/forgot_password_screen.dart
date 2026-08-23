@@ -208,7 +208,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           children: [
             Icon(
               Icons.mail_rounded,
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               size: 20,
             ),
             SizedBox(width: AppSpacing.sm),
@@ -272,12 +272,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             colors: _emailSent
                 ? [
                     AppColors.success.withValues(alpha: 0.20),
-                    const Color(0xFF050806),
+                    const Color(0xFFF8F6EF),
                     AppColors.background,
                   ]
                 : [
-                    const Color(0xFF0A130E),
-                    const Color(0xFF050806),
+                    const Color(0xFFF5F3EC),
+                    const Color(0xFFF8F6EF),
                     AppColors.background,
                   ],
             stops: const [0.0, 0.5, 1.0],
@@ -461,7 +461,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                 AppGradients.emerald.createShader(bounds),
             child: const Icon(
               Icons.lock_reset_rounded,
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               size: 48,
             ),
           ),
@@ -515,7 +515,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           ),
           child: const Icon(
             Icons.mark_email_read_rounded,
-            color: Colors.white,
+            color: const Color(0xFF19312C),
             size: 48,
           ),
         ),
@@ -535,7 +535,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           child: Text(
             'PASSWORD RECOVERY',
             style: AppTextStyles.labelSmall.copyWith(
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               letterSpacing: 3,
               fontWeight: FontWeight.w800,
             ),
@@ -654,7 +654,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -804,7 +804,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -990,14 +990,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
               children: [
                 const Icon(
                   Icons.mail_rounded,
-                  color: Colors.white,
+                  color: const Color(0xFF19312C),
                   size: 22,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   'Open Email App',
                   style: AppTextStyles.buttonLarge.copyWith(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.5,
                   ),
@@ -1020,7 +1020,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                 width: double.infinity,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.05),
                   borderRadius: AppRadius.buttonRadiusLg,
                   border: Border.all(
                     color: AppColors.accent.withValues(alpha: 0.40),
@@ -1047,7 +1047,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                             AppGradients.gold.createShader(bounds),
                         child: const Icon(
                           Icons.refresh_rounded,
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           size: 20,
                         ),
                       ),
@@ -1058,7 +1058,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                       child: Text(
                         _isLoading ? 'Sending...' : 'Resend Link',
                         style: AppTextStyles.buttonMedium.copyWith(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1,
                         ),

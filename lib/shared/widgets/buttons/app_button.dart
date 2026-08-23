@@ -933,13 +933,13 @@ class _AppSocialButtonState extends State<AppSocialButton>
           height: 22,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
+            color: AppColors.surface,
           ),
           child: const Center(
             child: Text(
               'G',
               style: TextStyle(
-                color: Color(0xFF4285F4),
+                color: Color(0xFF123F36),
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -949,7 +949,7 @@ class _AppSocialButtonState extends State<AppSocialButton>
       case SocialButtonType.apple:
         return const Icon(
           Icons.apple,
-          color: AppColors.white,
+          color: AppColors.textPrimary,
           size: 22,
         );
     }

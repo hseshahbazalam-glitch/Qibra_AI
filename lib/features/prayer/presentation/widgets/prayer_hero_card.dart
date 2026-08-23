@@ -67,8 +67,8 @@ class PrayerHeroCard extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      const Color(0xFF04120D).withValues(alpha: 0.28),
-                      const Color(0xFF04120D).withValues(alpha: 0.88),
+                      const Color(0xFF123F36).withValues(alpha: 0.28),
+                      const Color(0xFF123F36).withValues(alpha: 0.88),
                     ],
                   ),
                 ),
@@ -80,7 +80,7 @@ class PrayerHeroCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.location_on_rounded,
-                        color: Color(0xFF00E676), size: 16),
+                        color: Color(0xFF123F36), size: 16),
                     const SizedBox(width: 4),
                     SizedBox(
                       width: 118,
@@ -89,7 +89,7 @@ class PrayerHeroCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -101,7 +101,7 @@ class PrayerHeroCard extends StatelessWidget {
                 top: 14,
                 right: 18,
                 child: Icon(Icons.nightlight_round,
-                    color: Color(0xFFFFD166), size: 30),
+                    color: Color(0xFFC6A15B), size: 30),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 53, 18, 14),
@@ -117,14 +117,14 @@ class PrayerHeroCard extends StatelessWidget {
                               children: [
                                 Text('NEXT PRAYER',
                                     style: AppTextStyles.labelSmall.copyWith(
-                                      color: const Color(0xFF00E676),
+                                      color: const Color(0xFF123F36),
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: 1.1,
                                     )),
                                 const SizedBox(height: 7),
                                 Text(prayerName,
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: const Color(0xFF19312C),
                                       fontSize: 34,
                                       fontWeight: FontWeight.w900,
                                       height: 1,
@@ -132,7 +132,7 @@ class PrayerHeroCard extends StatelessWidget {
                                 Text(prayerNameArabic,
                                     textDirection: TextDirection.rtl,
                                     style: const TextStyle(
-                                      color: Color(0xFF00E676),
+                                      color: Color(0xFF123F36),
                                       fontFamily: 'Amiri',
                                       fontSize: 19,
                                       fontWeight: FontWeight.w700,
@@ -140,21 +140,19 @@ class PrayerHeroCard extends StatelessWidget {
                                 const SizedBox(height: 12),
                                 Text('Starts in',
                                     style: AppTextStyles.labelSmall.copyWith(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.6),
+                                      color: const Color(0xFF19312C).withValues(alpha: 0.6),
                                     )),
                                 const SizedBox(height: 3),
                                 Text('$hours : $minutes : $seconds',
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: const Color(0xFF19312C),
                                       fontFamily: 'monospace',
                                       fontSize: 20,
                                       fontWeight: FontWeight.w900,
                                     )),
                                 Text('Hrs       Mins      Secs',
                                     style: AppTextStyles.labelXSmall.copyWith(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.5),
+                                      color: const Color(0xFF19312C).withValues(alpha: 0.5),
                                     )),
                               ],
                             ),
@@ -169,21 +167,21 @@ class PrayerHeroCard extends StatelessWidget {
                             child: _buildInfoChip(
                           icon: Icons.calendar_month_rounded,
                           label: gregorianDate ?? 'Today',
-                          iconColor: const Color(0xFF00E676),
+                          iconColor: const Color(0xFF123F36),
                         )),
                         const SizedBox(width: 7),
                         Expanded(
                             child: _buildInfoChip(
                           icon: Icons.wb_sunny_rounded,
                           label: temperature ?? 'Weather unavailable',
-                          iconColor: const Color(0xFFFBBF24),
+                          iconColor: const Color(0xFFC6A15B),
                         )),
                         const SizedBox(width: 7),
                         Expanded(
                             child: _buildInfoChip(
                           icon: Icons.explore_rounded,
                           label: qiblaDirection ?? 'Qibla',
-                          iconColor: const Color(0xFF00E676),
+                          iconColor: const Color(0xFF123F36),
                         )),
                       ],
                     ),
@@ -265,7 +263,7 @@ class _PrayerCountdownRing extends StatelessWidget {
               value: progress,
               strokeWidth: 6,
               backgroundColor: const Color(0x3348E6A1),
-              valueColor: const AlwaysStoppedAnimation(Color(0xFF00E676)),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF123F36)),
             ),
           ),
           Column(
@@ -273,13 +271,13 @@ class _PrayerCountdownRing extends StatelessWidget {
             children: [
               Text('${(progress * 100).round()}%',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
                   )),
               Text('until prayer',
                   style: AppTextStyles.labelXSmall.copyWith(
-                    color: Colors.white.withValues(alpha: 0.55),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.55),
                   )),
             ],
           ),

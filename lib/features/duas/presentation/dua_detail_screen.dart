@@ -130,7 +130,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showTransliteration)
                       _buildInfoCard(
                         icon: Icons.translate_rounded,
-                        iconColor: const Color(0xFF00E676),
+                        iconColor: const Color(0xFF123F36),
                         label: 'Transliteration',
                         content: dua.transliteration,
                         isItalic: true,
@@ -138,7 +138,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showUrdu)
                       _buildInfoCard(
                         icon: Icons.language_rounded,
-                        iconColor: const Color(0xFFFFB703),
+                        iconColor: const Color(0xFFC6A15B),
                         label: 'Urdu Translation',
                         content: dua.translationUrdu,
                         isRtl: true,
@@ -146,7 +146,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showEnglish)
                       _buildInfoCard(
                         icon: Icons.article_rounded,
-                        iconColor: const Color(0xFF10B981),
+                        iconColor: const Color(0xFF2F6B5D),
                         label: 'English Translation',
                         content: dua.translationEnglish,
                       ),
@@ -202,8 +202,8 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF064E3B),
-            Color(0xFF065F46),
+            Color(0xFF123F36),
+            Color(0xFF123F36),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -465,10 +465,10 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         gradeColor = AppColors.primary;
         break;
       case 'hasan':
-        gradeColor = const Color(0xFF00E676);
+        gradeColor = const Color(0xFF123F36);
         break;
       case 'quran':
-        gradeColor = const Color(0xFFD4AF37);
+        gradeColor = const Color(0xFFC6A15B);
         break;
       default:
         gradeColor = AppColors.textSecondary;
@@ -617,7 +617,7 @@ Reference: ${dua.reference} (${dua.grade})
         content: Row(
           children: [
             const Icon(Icons.check_circle_rounded,
-                color: Colors.white, size: 18),
+                color: const Color(0xFF19312C), size: 18),
             const SizedBox(width: 10),
             Text(
               'Dua copied to clipboard',
@@ -661,7 +661,7 @@ Shared via QIBRA AI''';
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.share_rounded, color: Colors.white, size: 18),
+            const Icon(Icons.share_rounded, color: const Color(0xFF19312C), size: 18),
             const SizedBox(width: 10),
             Text(
               'Copied — paste to share anywhere',
@@ -671,7 +671,7 @@ Shared via QIBRA AI''';
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF00E676),
+        backgroundColor: const Color(0xFF123F36),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

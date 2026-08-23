@@ -113,7 +113,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
         title: Row(
           children: [
             const Icon(Icons.compass_calibration_rounded,
-                color: Color(0xFFFFB703), size: 24),
+                color: Color(0xFFC6A15B), size: 24),
             const SizedBox(width: 8),
             Text('Calibrate Compass',
                 style: AppTextStyles.titleMedium
@@ -139,19 +139,19 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFB703).withValues(alpha: 0.1),
+                color: const Color(0xFFC6A15B).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.info_outline,
-                      color: Color(0xFFFFB703), size: 16),
+                      color: Color(0xFFC6A15B), size: 16),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Move phone slowly for best results',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: const Color(0xFFFFB703),
+                        color: const Color(0xFFC6A15B),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -165,7 +165,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Got it',
-                style: TextStyle(color: Color(0xFFFFB703))),
+                style: TextStyle(color: Color(0xFFC6A15B))),
           ),
         ],
       ),
@@ -182,14 +182,14 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             width: 20,
             height: 20,
             decoration: const BoxDecoration(
-              color: Color(0xFFFFB703),
+              color: Color(0xFFC6A15B),
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text(
                 num,
                 style: const TextStyle(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontSize: 11,
                     fontWeight: FontWeight.w800),
               ),
@@ -227,7 +227,7 @@ Shared via Qibra AI 🌙''';
       const SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 18),
+            Icon(Icons.check_circle, color: const Color(0xFF19312C), size: 18),
             SizedBox(width: 8),
             Text('📋 Qibla info copied - paste to share'),
           ],
@@ -307,8 +307,8 @@ Shared via Qibra AI 🌙''';
             center: Alignment.topCenter,
             radius: 1.5,
             colors: [
-              const Color(0xFF1E1B4B).withValues(alpha: 0.4),
-              const Color(0xFF0F172A).withValues(alpha: 0.6),
+              const Color(0xFFEEF1EA).withValues(alpha: 0.4),
+              const Color(0xFF19312C).withValues(alpha: 0.6),
               AppColors.background,
             ],
           ),
@@ -340,7 +340,7 @@ Shared via Qibra AI 🌙''';
                       Text(
                         'القبلة',
                         style: AppTextStyles.arabicLarge.copyWith(
-                          color: const Color(0xFFFFB703),
+                          color: const Color(0xFFC6A15B),
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
                         ),
@@ -348,14 +348,14 @@ Shared via Qibra AI 🌙''';
                       const SizedBox(height: 6),
                       ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(
-                          colors: [Colors.white, Color(0xFFA78BFA)],
+                          colors: [Colors.white, Color(0xFF2F6B5D)],
                         ).createShader(bounds),
                         child: Text(
                           'Qibla Direction',
                           style: AppTextStyles.displaySmall.copyWith(
                             fontWeight: FontWeight.w900,
                             fontSize: 32,
-                            color: Colors.white,
+                            color: const Color(0xFF19312C),
                           ),
                         ),
                       ),
@@ -372,12 +372,12 @@ Shared via Qibra AI 🌙''';
                       color: AppColors.surface.withValues(alpha: 0.6),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFFFFB703).withValues(alpha: 0.3),
+                        color: const Color(0xFFC6A15B).withValues(alpha: 0.3),
                       ),
                     ),
                     child: const Icon(
                       Icons.share_rounded,
-                      color: Color(0xFFFFB703),
+                      color: Color(0xFFC6A15B),
                       size: 20,
                     ),
                   ),
@@ -394,17 +394,17 @@ Shared via Qibra AI 🌙''';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFB703).withValues(alpha: 0.1),
+        color: const Color(0xFFC6A15B).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFFFB703).withValues(alpha: 0.3),
+          color: const Color(0xFFC6A15B).withValues(alpha: 0.3),
         ),
       ),
       child: Row(
         children: [
           const Icon(
             Icons.info_outline_rounded,
-            color: Color(0xFFFFB703),
+            color: Color(0xFFC6A15B),
             size: 18,
           ),
           const SizedBox(width: 10),
@@ -412,7 +412,7 @@ Shared via Qibra AI 🌙''';
             child: Text(
               'Using cached location. Tap refresh for accuracy.',
               style: AppTextStyles.labelSmall.copyWith(
-                color: const Color(0xFFFFB703),
+                color: const Color(0xFFC6A15B),
               ),
             ),
           ),
@@ -434,13 +434,13 @@ Shared via Qibra AI 🌙''';
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFFFFB703).withValues(alpha: 0.15),
-            const Color(0xFF6D28D9).withValues(alpha: 0.10),
+            const Color(0xFFC6A15B).withValues(alpha: 0.15),
+            const Color(0xFF2F6B5D).withValues(alpha: 0.10),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFFFB703).withValues(alpha: 0.3),
+          color: const Color(0xFFC6A15B).withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -450,19 +450,19 @@ Shared via Qibra AI 🌙''';
             height: 48,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFFFB703), Color(0xFF6D28D9)],
+                colors: [Color(0xFFC6A15B), Color(0xFF2F6B5D)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFFB703).withValues(alpha: 0.4),
+                  color: const Color(0xFFC6A15B).withValues(alpha: 0.4),
                   blurRadius: 12,
                 ),
               ],
             ),
             child: const Icon(
               Icons.location_on_rounded,
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               size: 26,
             ),
           ),
@@ -475,14 +475,14 @@ Shared via Qibra AI 🌙''';
                   result.city ?? 'Unknown',
                   style: AppTextStyles.titleMedium.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                   ),
                 ),
                 if (result.country != null && result.country!.isNotEmpty)
                   Text(
                     result.country!,
                     style: AppTextStyles.bodySmall.copyWith(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: const Color(0xFF19312C).withValues(alpha: 0.7),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -530,9 +530,9 @@ Shared via Qibra AI 🌙''';
   }
 
   Color _getAccuracyColor(double accuracy) {
-    if (accuracy < 5) return const Color(0xFF10B981);
-    if (accuracy < 15) return const Color(0xFF3B82F6);
-    if (accuracy < 30) return const Color(0xFFFFB703);
+    if (accuracy < 5) return const Color(0xFF2F6B5D);
+    if (accuracy < 15) return const Color(0xFF2F6B5D);
+    if (accuracy < 30) return const Color(0xFFC6A15B);
     return const Color(0xFFEF4444);
   }
 
@@ -592,17 +592,17 @@ Shared via Qibra AI 🌙''';
                         AppColors.primary,
                       ]
                     : [
-                        const Color(0xFFFFB703),
-                        const Color(0xFF6D28D9),
-                        const Color(0xFF4C1D95),
-                        const Color(0xFF6D28D9),
-                        const Color(0xFFFFB703),
+                        const Color(0xFFC6A15B),
+                        const Color(0xFF2F6B5D),
+                        const Color(0xFF123F36),
+                        const Color(0xFF2F6B5D),
+                        const Color(0xFFC6A15B),
                       ],
               ),
               boxShadow: [
                 BoxShadow(
                   color:
-                      (isAligned ? AppColors.primary : const Color(0xFFFFB703))
+                      (isAligned ? AppColors.primary : const Color(0xFFC6A15B))
                           .withValues(alpha: 0.4),
                   blurRadius: 40,
                   spreadRadius: 4,
@@ -617,8 +617,8 @@ Shared via Qibra AI 🌙''';
               shape: BoxShape.circle,
               gradient: const RadialGradient(
                 colors: [
-                  Color(0xFF1E293B),
-                  Color(0xFF0F172A),
+                  Color(0xFF2C3B36),
+                  Color(0xFF19312C),
                   Colors.black,
                 ],
                 stops: [0.0, 0.7, 1.0],
@@ -643,9 +643,9 @@ Shared via Qibra AI 🌙''';
                 gradient: RadialGradient(
                   center: Alignment(-0.3, -0.3),
                   colors: [
-                    Color(0xFF334155),
-                    Color(0xFF1E293B),
-                    Color(0xFF0F172A),
+                    Color(0xFFD4CFC3),
+                    Color(0xFF2C3B36),
+                    Color(0xFF19312C),
                   ],
                   stops: [0.0, 0.5, 1.0],
                 ),
@@ -728,13 +728,13 @@ Shared via Qibra AI 🌙''';
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1F2937), Color(0xFF111827), Colors.black],
+          colors: [Color(0xFF19312C), Color(0xFF19312C), Colors.black],
         ),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFFBBF24), width: 1.5),
+        border: Border.all(color: const Color(0xFFC6A15B), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: (isAligned ? AppColors.primary : const Color(0xFFFBBF24))
+            color: (isAligned ? AppColors.primary : const Color(0xFFC6A15B))
                 .withValues(alpha: 0.6),
             blurRadius: 20,
             spreadRadius: 2,
@@ -756,9 +756,9 @@ Shared via Qibra AI 🌙''';
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFFFBBF24),
-                  Color(0xFFFFB703),
-                  Color(0xFFFBBF24),
+                  Color(0xFFC6A15B),
+                  Color(0xFFC6A15B),
+                  Color(0xFFC6A15B),
                 ],
               ),
             ),
@@ -779,22 +779,22 @@ Shared via Qibra AI 🌙''';
           center: const Alignment(-0.4, -0.4),
           colors: isAligned
               ? [
-                  const Color(0xFF34D399),
+                  const Color(0xFF2F6B5D),
                   AppColors.primary,
-                  const Color(0xFF047857),
-                  const Color(0xFF064E3B),
+                  const Color(0xFF123F36),
+                  const Color(0xFF123F36),
                 ]
               : [
-                  const Color(0xFFA78BFA),
-                  const Color(0xFFFFB703),
-                  const Color(0xFF6D28D9),
-                  const Color(0xFF4C1D95),
+                  const Color(0xFF2F6B5D),
+                  const Color(0xFFC6A15B),
+                  const Color(0xFF2F6B5D),
+                  const Color(0xFF123F36),
                 ],
           stops: const [0.0, 0.4, 0.8, 1.0],
         ),
         boxShadow: [
           BoxShadow(
-            color: (isAligned ? AppColors.primary : const Color(0xFFFFB703))
+            color: (isAligned ? AppColors.primary : const Color(0xFFC6A15B))
                 .withValues(alpha: 0.7),
             blurRadius: 20,
             spreadRadius: 2,
@@ -813,10 +813,10 @@ Shared via Qibra AI 🌙''';
           height: 8,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha: 0.9),
+            color: const Color(0xFF19312C).withValues(alpha: 0.9),
             boxShadow: [
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: const Color(0xFF19312C).withValues(alpha: 0.6),
                 blurRadius: 4,
               ),
             ],
@@ -879,7 +879,7 @@ Shared via Qibra AI 🌙''';
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFFFB703).withValues(alpha: 0.3),
+                    const Color(0xFFC6A15B).withValues(alpha: 0.3),
                     Colors.transparent,
                   ],
                 ),
@@ -889,7 +889,7 @@ Shared via Qibra AI 🌙''';
                   width: 50,
                   height: 50,
                   child: CircularProgressIndicator(
-                    color: Color(0xFFFFB703),
+                    color: Color(0xFFC6A15B),
                     strokeWidth: 3,
                   ),
                 ),
@@ -968,12 +968,12 @@ Shared via Qibra AI 🌙''';
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.check_circle_rounded,
-                color: Colors.white, size: 20),
+                color: const Color(0xFF19312C), size: 20),
             const SizedBox(width: 10),
             Text(
               'You are facing Qibla! 🕋',
               style: AppTextStyles.titleSmall.copyWith(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -985,21 +985,21 @@ Shared via Qibra AI 🌙''';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFB703).withValues(alpha: 0.15),
+        color: const Color(0xFFC6A15B).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: const Color(0xFFFFB703).withValues(alpha: 0.4),
+          color: const Color(0xFFC6A15B).withValues(alpha: 0.4),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.explore_rounded, color: Color(0xFFFFB703), size: 18),
+          const Icon(Icons.explore_rounded, color: Color(0xFFC6A15B), size: 18),
           const SizedBox(width: 8),
           Text(
             '${state.result!.qiblaAngle.toStringAsFixed(1)}° from North',
             style: AppTextStyles.titleSmall.copyWith(
-              color: const Color(0xFFFFB703),
+              color: const Color(0xFFC6A15B),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1023,7 +1023,7 @@ Shared via Qibra AI 🌙''';
             value: result != null
                 ? QiblaService.formatDistance(result.distanceToMakkah)
                 : '--',
-            color: const Color(0xFFFBBF24),
+            color: const Color(0xFFC6A15B),
           ),
         ),
         const SizedBox(width: 12),
@@ -1034,7 +1034,7 @@ Shared via Qibra AI 🌙''';
             value: result != null
                 ? '${result.qiblaAngle.toStringAsFixed(1)}°'
                 : '--',
-            color: const Color(0xFFFFB703),
+            color: const Color(0xFFC6A15B),
           ),
         ),
       ],
@@ -1109,12 +1109,12 @@ Shared via Qibra AI 🌙''';
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+              color: const Color(0xFF2F6B5D).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
               Icons.gps_fixed_rounded,
-              color: Color(0xFF3B82F6),
+              color: Color(0xFF2F6B5D),
               size: 20,
             ),
           ),
@@ -1165,12 +1165,12 @@ Shared via Qibra AI 🌙''';
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                color: const Color(0xFF2F6B5D).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.copy_rounded,
-                color: Color(0xFF3B82F6),
+                color: Color(0xFF2F6B5D),
                 size: 16,
               ),
             ),
@@ -1198,12 +1198,12 @@ Shared via Qibra AI 🌙''';
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFFFB703), Color(0xFF6D28D9)],
+                  colors: [Color(0xFFC6A15B), Color(0xFF2F6B5D)],
                 ),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFFB703).withValues(alpha: 0.4),
+                    color: const Color(0xFFC6A15B).withValues(alpha: 0.4),
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -1213,12 +1213,12 @@ Shared via Qibra AI 🌙''';
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.my_location_rounded,
-                      color: Colors.white, size: 18),
+                      color: const Color(0xFF19312C), size: 18),
                   const SizedBox(width: 8),
                   Text(
                     'Refresh',
                     style: AppTextStyles.labelLarge.copyWith(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1238,7 +1238,7 @@ Shared via Qibra AI 🌙''';
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: const Color(0xFFFFB703).withValues(alpha: 0.4),
+                  color: const Color(0xFFC6A15B).withValues(alpha: 0.4),
                   width: 1.5,
                 ),
               ),
@@ -1246,12 +1246,12 @@ Shared via Qibra AI 🌙''';
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.compass_calibration_rounded,
-                      color: Color(0xFFFFB703), size: 18),
+                      color: Color(0xFFC6A15B), size: 18),
                   const SizedBox(width: 8),
                   Text(
                     'Calibrate',
                     style: AppTextStyles.labelLarge.copyWith(
-                      color: const Color(0xFFFFB703),
+                      color: const Color(0xFFC6A15B),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1308,7 +1308,7 @@ Shared via Qibra AI 🌙''';
             height: 22,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFFFFB703), Color(0xFF6D28D9)],
+                colors: [Color(0xFFC6A15B), Color(0xFF2F6B5D)],
               ),
               shape: BoxShape.circle,
             ),
@@ -1316,7 +1316,7 @@ Shared via Qibra AI 🌙''';
               child: Text(
                 num,
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: Colors.white,
+                  color: const Color(0xFF19312C),
                   fontWeight: FontWeight.w800,
                   fontSize: 11,
                 ),
@@ -1388,7 +1388,7 @@ class _CompassFacePainter extends CustomPainter {
         text: TextSpan(
           text: deg.toString(),
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
+            color: const Color(0xFF19312C).withValues(alpha: 0.5),
             fontSize: 10,
             fontWeight: FontWeight.w600,
           ),
@@ -1431,11 +1431,11 @@ class _Premium3DNeedlePainter extends CustomPainter {
     final leftPoint = Offset(center.dx - needleWidth / 2, center.dy);
     final rightPoint = Offset(center.dx + needleWidth / 2, center.dy);
 
-    final color = isAligned ? AppColors.primary : const Color(0xFFFFB703);
+    final color = isAligned ? AppColors.primary : const Color(0xFFC6A15B);
     final colorLight =
-        isAligned ? const Color(0xFF34D399) : const Color(0xFFA78BFA);
+        isAligned ? const Color(0xFF2F6B5D) : const Color(0xFF2F6B5D);
     final colorDark =
-        isAligned ? const Color(0xFF047857) : const Color(0xFF4C1D95);
+        isAligned ? const Color(0xFF123F36) : const Color(0xFF123F36);
 
     final shadowPath = Path()
       ..moveTo(topPoint.dx + 3, topPoint.dy + 5)

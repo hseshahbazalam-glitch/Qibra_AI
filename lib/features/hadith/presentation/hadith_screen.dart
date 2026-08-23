@@ -1,16 +1,14 @@
 // lib/features/hadith/presentation/hadith_screen.dart
-// ============================================================
-// QIBRA AI — HADITH HOME SCREEN (Pixel-Perfect Flagship Luxury UI)
-// Fully interactive: Real Database, Collections, Search, Bookmarks, Detail Sheets
-// ============================================================
 
 import 'package:flutter/material.dart';
-import '../../../shared/widgets/media/safe_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/design_system/app_typography.dart';
+import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
 import '../providers/hadith_provider.dart';
@@ -24,2197 +22,659 @@ class HadithScreen extends ConsumerStatefulWidget {
 }
 
 class _HadithScreenState extends ConsumerState<HadithScreen> {
-  String _selectedFilterPill = 'All Hadiths';
-  String _selectedCollectionSlug = 'bukhari';
+  String _filterSlug = '';
 
-  static const List<Map<String, String>> _collectionConfigs = [
-    {
-      'name': 'Sahih\nBukhari',
-      'fullName': 'Sahih al-Bukhari',
-      'hadiths': '7,589 Hadiths',
-      'icon': '⭐',
-      'slug': 'bukhari',
-      'author': 'Imam Muhammad al-Bukhari',
-    },
-    {
-      'name': 'Sahih\nMuslim',
-      'fullName': 'Sahih Muslim',
-      'hadiths': '7,563 Hadiths',
-      'icon': '📖',
-      'slug': 'muslim',
-      'author': 'Imam Muslim ibn al-Hajjaj',
-    },
-    {
-      'name': 'Sunan\nAn-Nasa\'i',
-      'fullName': 'Sunan an-Nasa\'i',
-      'hadiths': '5,765 Hadiths',
-      'icon': '🕋',
-      'slug': 'nasai',
-      'author': 'Imam Ahmad an-Nasa\'i',
-    },
-    {
-      'name': 'Sunan\nAbu Dawud',
-      'fullName': 'Sunan Abi Dawud',
-      'hadiths': '5,274 Hadiths',
-      'icon': '🕌',
-      'slug': 'abudawud',
-      'author': 'Imam Abu Dawud al-Sijistani',
-    },
-    {
-      'name': 'Jami\' At\nTirmidhi',
-      'fullName': 'Jami` at-Tirmidhi',
-      'hadiths': '3,998 Hadiths',
-      'icon': '📜',
-      'slug': 'tirmidhi',
-      'author': 'Imam Muhammad al-Tirmidhi',
-    },
-    {
-      'name': 'Sunan\nIbn Majah',
-      'fullName': 'Sunan Ibn Majah',
-      'hadiths': '4,343 Hadiths',
-      'icon': '📚',
-      'slug': 'ibnmajah',
-      'author': 'Imam Ibn Majah al-Qazwini',
-    },
-    {
-      'name': 'Muwatta\nMalik',
-      'fullName': 'Muwatta Malik',
-      'hadiths': '1,858 Hadiths',
-      'icon': '✨',
-      'slug': 'malik',
-      'author': 'Imam Malik ibn Anas',
-    },
+  static const _collections = [
+    {'name': 'Sahih al-Bukhari', 'slug': 'bukhari', 'author': 'Imam al-Bukhari'},
+    {'name': 'Sahih Muslim', 'slug': 'muslim', 'author': 'Imam Muslim'},
+    {'name': 'Sunan an-Nasa\'i', 'slug': 'nasai', 'author': 'Imam an-Nasa\'i'},
+    {'name': 'Sunan Abu Dawud', 'slug': 'abudawud', 'author': 'Imam Abu Dawud'},
+    {'name': 'Jami at-Tirmidhi', 'slug': 'tirmidhi', 'author': 'Imam al-Tirmidhi'},
+    {'name': 'Sunan Ibn Majah', 'slug': 'ibnmajah', 'author': 'Imam Ibn Majah'},
+    {'name': 'Muwatta Malik', 'slug': 'malik', 'author': 'Imam Malik'},
   ];
 
   @override
   Widget build(BuildContext context) {
-    final dailyHadithAsync = ref.watch(dailyHadithProvider);
-    final featuredHadithsAsync = ref.watch(
-      featuredHadithsProvider(
-        _selectedFilterPill == 'All Hadiths' ? null : _selectedCollectionSlug,
-      ),
+    final colors = QibraColors.of(context);
+    final daily = ref.watch(dailyHadithProvider);
+    final featured = ref.watch(
+      featuredHadithsProvider(_filterSlug.isEmpty ? null : _filterSlug),
     );
-    final bookmarks = ref.watch(hadithBookmarksProvider);
+    final books = ref.watch(hadithBooksProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF000000),
+      backgroundColor: colors.background,
       body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. TOP APP BAR
-              _buildTopAppBar(context),
-              const SizedBox(height: 14),
-
-              // 2. HERO TODAY'S HADITH CARD
-              dailyHadithAsync.when(
-                data: (hadith) => _buildTodaysHadithHero(context, hadith),
-                loading: () => _buildHeroPlaceholder(),
-                error: (_, __) => _buildTodaysHadithHero(context, null),
-              ),
-              const SizedBox(height: 16),
-
-              // 3. 4 METRIC CARDS ROW
-              _buildFourMetricsRow(context, bookmarks.length),
-              const SizedBox(height: 18),
-
-              // 4. BROWSE COLLECTIONS (7 KUTUB AL-HADITH CARDS)
-              _buildBrowseCollectionsSection(context),
-              const SizedBox(height: 18),
-
-              // 5. FILTER PILLS ROW
-              _buildFilterPillsRow(),
-              const SizedBox(height: 14),
-
-              // 6. RECENT / FEATURED HADITHS LIST
-              featuredHadithsAsync.when(
-                data: (hadiths) => _buildRecentHadithsSection(context, hadiths),
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(color: Color(0xFF00E676)),
-                  ),
-                ),
-                error: (_, __) => _buildFallbackRecentHadiths(context),
-              ),
-              const SizedBox(height: 18),
-
-              // 7. STUDY HADITH BANNER
-              _buildStudyHadithBanner(context),
-              const SizedBox(height: 110),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 1. TOP APP BAR
-  // ============================================================
-  Widget _buildTopAppBar(BuildContext context) {
-    return Row(
-      children: [
-        InkWell(
-          onTap: () => context.go(AppRoutes.tools),
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: const Color(0xFF0C100E),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF1E2620)),
-            ),
-            child:
-                const Icon(Icons.menu_rounded, color: Colors.white, size: 20),
-          ),
-        ),
-        const SizedBox(width: 12),
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'HADITH',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              Row(
-                children: [
-                  Text(
-                    'The Sayings of Prophet Muhammad ',
-                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5),
-                  ),
-                  Text('ﷺ',
-                      style: TextStyle(
-                          color: Color(0xFF00E676),
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ],
-          ),
-        ),
-        _buildTopActionBtn(
-          icon: Icons.search_rounded,
-          onTap: () => _showSearchSheet(context),
-        ),
-        const SizedBox(width: 8),
-        _buildTopActionBtn(
-          icon: Icons.bookmark_border_rounded,
-          onTap: () => _showBookmarksSheet(context),
-        ),
-        const SizedBox(width: 8),
-        _buildTopActionBtn(
-          icon: Icons.tune_rounded,
-          onTap: () => _showCollectionsSheet(context),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTopActionBtn(
-      {required IconData icon, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: const Color(0xFF0C100E),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFF1E2620)),
-        ),
-        child: Icon(icon, color: const Color(0xFFFFB703), size: 18),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 2. HERO TODAY'S HADITH CARD
-  // ============================================================
-  Widget _buildTodaysHadithHero(BuildContext context, HadithModel? hadith) {
-    final arabicText = hadith?.textArabic.isNotEmpty == true
-        ? hadith!.textArabic
-        : 'إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى';
-    final englishText = hadith?.textEnglish.isNotEmpty == true
-        ? hadith!.textEnglish
-        : 'Actions are but by intentions and every person shall have only that which he intended.';
-    final reference =
-        hadith?.displayReference ?? 'Sahih Bukhari 1 • Book of Revelation';
-    final numStr = hadith != null ? '${hadith.hadithNumber}' : '1';
-
-    final isBookmarked =
-        hadith != null && ref.watch(isHadithBookmarkedProvider(hadith.id));
-
-    return GestureDetector(
-      onTap: () {
-        if (hadith != null) {
-          _showHadithDetailSheet(context, hadith);
-        } else {
-          _openSpecificHadith(context, 'bukhari', 1);
-        }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF080C0A),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFF1A221C)),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(22),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Opacity(
-                  opacity: 0.50,
-                  child: SafeImage(
-                    assetPath: 'assets/images/hero/mosque_night.png',
-                    fit: BoxFit.cover,
-                    fallback: SafeImageFallback.mosque,
-                  ),
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      const Color(0xFF040A07).withValues(alpha: 0.40),
-                      const Color(0xFF020503).withValues(alpha: 0.88),
-                    ],
-                  ),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          '— TODAY\'S HADITH —',
-                          style: TextStyle(
-                            color: Color(0xFF00E676),
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0B2E21),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                                color: const Color(0xFF00E676)
-                                    .withValues(alpha: 0.4)),
-                          ),
-                          child: const Text(
-                            'Sahih / Authentic',
-                            style: TextStyle(
-                                color: Color(0xFF00E676),
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0B2E21),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFF00E676)),
-                          ),
-                          child: Center(
-                            child: Text(
-                              numStr,
-                              style: const TextStyle(
-                                  color: Color(0xFF00E676),
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            arabicText,
-                            textAlign: TextAlign.right,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'Amiri',
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              height: 1.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '"$englishText"',
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Color(0xFFCBD5E1),
-                          fontSize: 11.5,
-                          height: 1.4),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      reference,
-                      style: const TextStyle(
-                          color: Color(0xFF00E676),
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0C120E),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF1C2620)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildHeroActionButton(
-                            Icons.menu_book_rounded,
-                            'Read Full Hadith',
-                            () {
-                              if (hadith != null) {
-                                _showHadithDetailSheet(context, hadith);
-                              } else {
-                                _openSpecificHadith(context, 'bukhari', 1);
-                              }
-                            },
-                          ),
-                          _buildHeroActionButton(
-                            isBookmarked
-                                ? Icons.bookmark_rounded
-                                : Icons.bookmark_border_rounded,
-                            isBookmarked ? 'Bookmarked' : 'Bookmark',
-                            () {
-                              HapticFeedback.lightImpact();
-                              if (hadith != null) {
-                                ref
-                                    .read(hadithBookmarksProvider.notifier)
-                                    .toggleBookmark(hadith);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(isBookmarked
-                                        ? 'Hadith removed from bookmarks'
-                                        : 'Hadith saved to bookmarks! ⭐'),
-                                    backgroundColor: const Color(0xFF0B2E21),
-                                    duration: const Duration(seconds: 1),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          _buildHeroActionButton(
-                            Icons.share_outlined,
-                            'Share',
-                            () {
-                              HapticFeedback.lightImpact();
-                              final shareText =
-                                  '$arabicText\n\n"$englishText"\n\n— $reference';
-                              Clipboard.setData(ClipboardData(text: shareText));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text('Hadith copied to clipboard! 📋'),
-                                  backgroundColor: Color(0xFF0B2E21),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeroPlaceholder() {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: const Color(0xFF080C0A),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF1A221C)),
-      ),
-      child: const Center(
-        child: CircularProgressIndicator(color: Color(0xFF00E676)),
-      ),
-    );
-  }
-
-  Widget _buildHeroActionButton(
-      IconData icon, String label, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFFFFB703), size: 14),
-          const SizedBox(width: 4),
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // 3. 4 METRIC CARDS ROW
-  // ============================================================
-  Widget _buildFourMetricsRow(BuildContext context, int bookmarkCount) {
-    final metrics = [
-      {
-        'icon': Icons.menu_book_rounded,
-        'title': 'Collections',
-        'value': '7 Books',
-        'sub': 'Explore >',
-        'color': const Color(0xFF00E676),
-        'onTap': () => _showCollectionsSheet(context),
-      },
-      {
-        'icon': Icons.auto_stories_rounded,
-        'title': 'Hadiths',
-        'value': '36,390',
-        'sub': 'Browse >',
-        'color': const Color(0xFFFFB703),
-        'onTap': () => _openBookBySlug(context, 'bukhari'),
-      },
-      {
-        'icon': Icons.bookmark_rounded,
-        'title': 'Bookmarked',
-        'value': '$bookmarkCount',
-        'sub': 'View All >',
-        'color': const Color(0xFFC084FC),
-        'onTap': () => _showBookmarksSheet(context),
-      },
-      {
-        'icon': Icons.check_circle_outline_rounded,
-        'title': 'Authenticity',
-        'value': '100% Sahih',
-        'sub': 'Verified >',
-        'color': const Color(0xFF38BDF8),
-        'onTap': () => _showAuthenticityDialog(context),
-      },
-    ];
-
-    return Row(
-      children: metrics.map((m) {
-        final color = m['color'] as Color;
-        final onTap = m['onTap'] as VoidCallback;
-
-        return Expanded(
-          child: GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              onTap();
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF080C0A),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF1A221C)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(m['icon'] as IconData, color: color, size: 16),
-                  const SizedBox(height: 4),
-                  Text(m['title'] as String,
-                      style: const TextStyle(
-                          color: Color(0xFF64748B), fontSize: 7.5)),
-                  Text(m['value'] as String,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 2),
-                  Text(m['sub'] as String,
-                      style: TextStyle(
-                          color: color,
-                          fontSize: 7.5,
-                          fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  // ============================================================
-  // 4. BROWSE COLLECTIONS (7 KUTUB AL-HADITH CARDS)
-  // ============================================================
-  Widget _buildBrowseCollectionsSection(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            const Text('BROWSE COLLECTIONS',
-                style: TextStyle(
-                    color: Color(0xFFFFB703),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold)),
-            InkWell(
-              onTap: () => _showCollectionsSheet(context),
-              child: const Text('View All (7) >',
-                  style: TextStyle(
-                      color: Color(0xFF00E676),
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 115,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: _collectionConfigs.length,
-            itemBuilder: (context, index) {
-              final c = _collectionConfigs[index];
-              final isSelected = _selectedCollectionSlug == c['slug'];
-
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    setState(() {
-                      _selectedCollectionSlug = c['slug']!;
-                    });
-                    _openBookBySlug(context, c['slug']!);
-                  },
-                  child: Container(
-                    width: 96,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFF072418)
-                          : const Color(0xFF080C0A),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xFF00E676)
-                            : const Color(0xFF1A221C),
-                        width: isSelected ? 1.5 : 1.0,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(c['icon']!, style: const TextStyle(fontSize: 20)),
-                        const SizedBox(height: 6),
-                        Text(
-                          c['name']!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.bold,
-                              height: 1.1),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          c['hadiths']!,
-                          style: TextStyle(
-                              color: isSelected
-                                  ? const Color(0xFF00E676)
-                                  : const Color(0xFF64748B),
-                              fontSize: 7.5),
-                        ),
-                      ],
-                    ),
-                  ),
+            QibraScreenHeader(
+              title: 'Hadith',
+              subtitle: 'The sayings of the Prophet ﷺ',
+              actions: [
+                QibraIconButton(
+                  icon: Icons.search_rounded,
+                  tooltip: 'Search',
+                  onTap: () => _showSearchSheet(context),
                 ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ============================================================
-  // 5. FILTER PILLS ROW
-  // ============================================================
-  Widget _buildFilterPillsRow() {
-    final pills = [
-      {'label': 'All Hadiths', 'icon': Icons.grid_view_rounded, 'slug': ''},
-      {'label': 'Bukhari', 'icon': Icons.menu_book_rounded, 'slug': 'bukhari'},
-      {'label': 'Muslim', 'icon': Icons.menu_book_rounded, 'slug': 'muslim'},
-      {
-        'label': 'Tirmidhi',
-        'icon': Icons.auto_stories_rounded,
-        'slug': 'tirmidhi'
-      },
-      {
-        'label': 'Abu Dawud',
-        'icon': Icons.library_books_rounded,
-        'slug': 'abudawud'
-      },
-      {'label': 'Nasai', 'icon': Icons.book_outlined, 'slug': 'nasai'},
-      {
-        'label': 'Ibn Majah',
-        'icon': Icons.import_contacts_rounded,
-        'slug': 'ibnmajah'
-      },
-      {
-        'label': 'Malik',
-        'icon': Icons.collections_bookmark_rounded,
-        'slug': 'malik'
-      },
-    ];
-
-    return Row(
-      children: [
-        Expanded(
-          child: SizedBox(
-            height: 34,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              itemCount: pills.length,
-              itemBuilder: (context, index) {
-                final p = pills[index];
-                final isSelected = _selectedFilterPill == p['label'];
-
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      setState(() {
-                        _selectedFilterPill = p['label'] as String;
-                        final slug = p['slug'] as String;
-                        if (slug.isNotEmpty) {
-                          _selectedCollectionSlug = slug;
-                        }
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF072418)
-                            : const Color(0xFF080C0A),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isSelected
-                              ? const Color(0xFF00E676)
-                              : const Color(0xFF1E2620),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(p['icon'] as IconData,
-                              color: isSelected
-                                  ? const Color(0xFF00E676)
-                                  : const Color(0xFF94A3B8),
-                              size: 12),
-                          const SizedBox(width: 4),
-                          Text(
-                            p['label'] as String,
-                            style: TextStyle(
-                              color: isSelected
-                                  ? const Color(0xFF00E676)
-                                  : const Color(0xFFCBD5E1),
-                              fontSize: 10,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () => _showCollectionsSheet(context),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFF080C0A),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF1E2620)),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.filter_list_rounded,
-                    color: Color(0xFFFFB703), size: 12),
-                SizedBox(width: 3),
-                Text('Filter',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.bold)),
+                QibraIconButton(
+                  icon: Icons.bookmark_border_rounded,
+                  tooltip: 'Bookmarks',
+                  onTap: () => context.go(AppRoutes.bookmarks),
+                ),
               ],
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ============================================================
-  // 6. RECENT / FEATURED HADITHS SECTION
-  // ============================================================
-  Widget _buildRecentHadithsSection(
-      BuildContext context, List<HadithModel> hadiths) {
-    if (hadiths.isEmpty) {
-      return _buildFallbackRecentHadiths(context);
-    }
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              _selectedFilterPill == 'All Hadiths'
-                  ? 'FEATURED HADITHS'
-                  : 'HADITHS IN ${_selectedFilterPill.toUpperCase()}',
-              style: const TextStyle(
-                  color: Color(0xFFFFB703),
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold),
-            ),
-            InkWell(
-              onTap: () => _openBookBySlug(context, _selectedCollectionSlug),
-              child: const Text('View Full Book >',
-                  style: TextStyle(
-                      color: Color(0xFF00E676),
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        ...hadiths.map((h) => _buildHadithTile(context, h)),
-      ],
-    );
-  }
-
-  Widget _buildHadithTile(BuildContext context, HadithModel h) {
-    final isBookmarked = ref.watch(isHadithBookmarkedProvider(h.id));
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        _showHadithDetailSheet(context, h);
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF080C0A),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF1A221C)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: const Color(0xFF0A1410),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF163E2C)),
+            daily.when(
+              data: (hadith) => _TodaysHadithCard(
+                hadith: hadith,
+                onRead: () {
+                  if (hadith != null) _showDetail(context, hadith);
+                },
+                onBookmark: () {
+                  if (hadith == null) return;
+                  ref.read(hadithBookmarksProvider.notifier).toggleBookmark(hadith);
+                },
+                onShare: () {
+                  if (hadith == null) return;
+                  _copyHadith(context, hadith);
+                },
               ),
-              child: Center(
-                child: Text(
-                  '${h.hadithNumber}',
-                  style: const TextStyle(
-                      color: Color(0xFF00E676),
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold),
+              loading: () => const QibraCard(
+                child: SizedBox(
+                  height: 120,
+                  child: Center(child: CircularProgressIndicator()),
                 ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${h.bookName} • Hadith #${h.hadithNumber}',
-                          style: const TextStyle(
-                              color: Color(0xFF00E676),
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.bold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0B2E21),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          h.grade.label,
-                          style: const TextStyle(
-                              color: Color(0xFF00E676),
-                              fontSize: 8,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (h.hasArabic) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      h.textArabic,
-                      textAlign: TextAlign.right,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Amiri',
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
-                          height: 1.4),
-                    ),
-                  ],
-                  if (h.hasUrdu) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      h.textUrdu,
-                      textAlign: TextAlign.right,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Color(0xFF86EFAC),
-                          fontSize: 10.5,
-                          height: 1.3),
-                    ),
-                  ],
-                  if (h.hasEnglish) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      h.textEnglish,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Color(0xFF94A3B8), fontSize: 9.5, height: 1.3),
-                    ),
-                  ],
-                ],
+              error: (_, __) => const QibraEmptyState(
+                icon: Icons.menu_book_outlined,
+                title: 'Today\'s hadith is unavailable',
               ),
             ),
-            const SizedBox(width: 8),
-            Column(
-              children: [
-                InkWell(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    ref
-                        .read(hadithBookmarksProvider.notifier)
-                        .toggleBookmark(h);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(isBookmarked
-                            ? 'Removed from bookmarks'
-                            : 'Saved to bookmarks! ⭐'),
-                        backgroundColor: const Color(0xFF0B2E21),
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      isBookmarked
-                          ? Icons.bookmark_rounded
-                          : Icons.bookmark_border_rounded,
-                      color: isBookmarked
-                          ? const Color(0xFFFFB703)
-                          : const Color(0xFF64748B),
-                      size: 18,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Icon(Icons.arrow_forward_ios_rounded,
-                    color: Color(0xFF64748B), size: 12),
-              ],
+            const SizedBox(height: 24),
+            QibraSectionHeader(
+              title: 'Collections',
+              actionLabel: 'All',
+              onAction: () => _showCollectionsSheet(context),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFallbackRecentHadiths(BuildContext context) {
-    final recent = [
-      {
-        'num': 1,
-        'book': 'Sahih al-Bukhari',
-        'sub': 'Book of Revelation • Hadith 1',
-        'arabic':
-            'إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى',
-        'trans':
-            'Actions are but by intentions and every person shall have only that which he intended.',
-        'slug': 'bukhari',
-      },
-      {
-        'num': 8,
-        'book': 'Sahih Muslim',
-        'sub': 'Book of Faith • Hadith 8',
-        'arabic':
-            'مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ',
-        'trans':
-            'Whoever believes in Allah and the Last Day should speak good or remain silent.',
-        'slug': 'muslim',
-      },
-      {
-        'num': 73,
-        'book': 'Sahih al-Bukhari',
-        'sub': 'Book of Knowledge • Hadith 73',
-        'arabic': 'طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ',
-        'trans': 'Seeking knowledge is an obligation upon every Muslim.',
-        'slug': 'bukhari',
-      },
-      {
-        'num': 2398,
-        'book': 'Jami` at-Tirmidhi',
-        'sub': 'Book of Patience • Hadith 2398',
-        'arabic': 'الصَّبْرُ نُورٌ',
-        'trans': 'Patience is light.',
-        'slug': 'tirmidhi',
-      },
-    ];
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('RECENT HADITHS',
-                style: TextStyle(
-                    color: Color(0xFFFFB703),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold)),
-            InkWell(
-              onTap: () => _openBookBySlug(context, 'bukhari'),
-              child: const Text('View All >',
-                  style: TextStyle(
-                      color: Color(0xFF00E676),
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        ...recent.map((h) {
-          final slug = h['slug'] as String;
-          final num = h['num'] as int;
-
-          return GestureDetector(
-            onTap: () => _openSpecificHadith(context, slug, num),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF080C0A),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF1A221C)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0A1410),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF163E2C)),
-                    ),
-                    child: Center(
-                      child: Text('$num',
-                          style: const TextStyle(
-                              color: Color(0xFF00E676),
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${h['book']} • ${h['sub']}',
-                            style: const TextStyle(
-                                color: Color(0xFF00E676),
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 4),
-                        Text(
-                          h['arabic'] as String,
-                          textAlign: TextAlign.right,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'Amiri',
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(h['trans'] as String,
-                            style: const TextStyle(
-                                color: Color(0xFF94A3B8),
-                                fontSize: 9.5,
-                                height: 1.3)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_ios_rounded,
-                      color: Color(0xFF64748B), size: 12),
-                ],
-              ),
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  // ============================================================
-  // 7. STUDY HADITH BANNER
-  // ============================================================
-  Widget _buildStudyHadithBanner(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF080C0A),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF1A221C)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 52,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFFFD700), width: 1),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SafeImage(
-                assetPath: 'assets/images/quran_cover.png',
-                fit: BoxFit.cover,
-                fallback: SafeImageFallback.quran,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('STUDY HADITH',
-                    style: TextStyle(
-                        color: Color(0xFF00E676),
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w900)),
-                SizedBox(height: 2),
-                Text('Deepen your understanding of the Prophet\'s teachings',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              _openBookBySlug(context, 'bukhari');
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF072418),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF144D34)),
-              ),
-              child: const Row(
-                children: [
-                  Text('Start Learning',
-                      style: TextStyle(
-                          color: Color(0xFF00E676),
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold)),
-                  SizedBox(width: 4),
-                  Icon(Icons.menu_book_rounded,
-                      color: Color(0xFF00E676), size: 11),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // NAVIGATION & DETAIL SHEETS
-  // ============================================================
-
-  void _openBookBySlug(BuildContext context, String slug) {
-    final db = HadithDatabaseService();
-    final bookInfo = db.getBookInfo(slug);
-
-    final book = HadithBook(
-      id: slug,
-      slug: slug,
-      name: bookInfo?.name ?? _getCollectionFullName(slug),
-      nameArabic: '',
-      author: _getCollectionAuthor(slug),
-      authorArabic: '',
-      totalHadiths: bookInfo?.totalHadiths ?? 0,
-      totalChapters: bookInfo?.sections.length ?? 0,
-      description: 'Authentic prophetic hadiths and narrations.',
-      color: const Color(0xFF00E676),
-    );
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => HadithBookScreen(book: book),
-      ),
-    );
-  }
-
-  void _openSpecificHadith(
-      BuildContext context, String slug, int hadithNumber) {
-    final db = HadithDatabaseService();
-    final local = db.getHadith(slug, hadithNumber);
-    if (local != null) {
-      _showHadithDetailSheet(context, localToHadithModel(local));
-    } else {
-      _openBookBySlug(context, slug);
-    }
-  }
-
-  String _getCollectionFullName(String slug) {
-    for (final c in _collectionConfigs) {
-      if (c['slug'] == slug) return c['fullName']!;
-    }
-    return 'Hadith Collection';
-  }
-
-  String _getCollectionAuthor(String slug) {
-    for (final c in _collectionConfigs) {
-      if (c['slug'] == slug) return c['author']!;
-    }
-    return 'Islamic Scholar';
-  }
-
-  // ────────────────────────────────────────────────────────────
-  // 1. HADITH DETAIL BOTTOM SHEET
-  // ────────────────────────────────────────────────────────────
-  void _showHadithDetailSheet(BuildContext context, HadithModel hadith) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final isBookmarked =
-                ref.watch(isHadithBookmarkedProvider(hadith.id));
-
-            return Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.88,
-              ),
-              decoration: const BoxDecoration(
-                color: Color(0xFF060B08),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                border: Border(
-                  top: BorderSide(color: Color(0xFF1E3A2B), width: 1.5),
-                  left: BorderSide(color: Color(0xFF1E3A2B), width: 1.0),
-                  right: BorderSide(color: Color(0xFF1E3A2B), width: 1.0),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 10, bottom: 8),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF334155),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0B2E21),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFF00E676)),
+            books.when(
+              data: (bookList) {
+                final source = bookList.isEmpty
+                    ? _collections
+                        .map(
+                          (c) => HadithBook(
+                            id: c['slug']!,
+                            slug: c['slug']!,
+                            name: c['name']!,
+                            nameArabic: '',
+                            author: c['author']!,
+                            authorArabic: '',
+                            totalHadiths: 0,
+                            totalChapters: 0,
+                            description: '',
+                            color: colors.primary,
                           ),
-                          child: Text(
-                            '#${hadith.hadithNumber}',
-                            style: const TextStyle(
-                                color: Color(0xFF00E676),
-                                fontWeight: FontWeight.w900,
-                                fontSize: 12),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: hadith.grade.color.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                                color:
-                                    hadith.grade.color.withValues(alpha: 0.5)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                        )
+                        .toList()
+                    : bookList;
+                return SizedBox(
+                  height: 118,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: source.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (context, index) {
+                      final book = source[index];
+                      return SizedBox(
+                        width: 160,
+                        child: QibraCard(
+                          padding: const EdgeInsets.all(14),
+                          onTap: () => _openBook(context, book.slug),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(hadith.grade.icon,
-                                  color: hadith.grade.color, size: 12),
-                              const SizedBox(width: 4),
                               Text(
-                                hadith.grade.label,
-                                style: TextStyle(
-                                    color: hadith.grade.color,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold),
+                                book.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.titleSmall.copyWith(
+                                  color: colors.textPrimary,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                book.totalHadiths > 0
+                                    ? '${book.totalHadiths} hadiths'
+                                    : book.author,
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: colors.textSecondary,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        const Spacer(),
+                      );
+                    },
+                  ),
+                );
+              },
+              loading: () => const LinearProgressIndicator(minHeight: 2),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 20),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  QibraChip(
+                    label: 'All',
+                    selected: _filterSlug.isEmpty,
+                    onTap: () => setState(() => _filterSlug = ''),
+                  ),
+                  for (final collection in _collections)
+                    QibraChip(
+                      label: collection['name']!.split(' ').last,
+                      selected: _filterSlug == collection['slug'],
+                      onTap: () =>
+                          setState(() => _filterSlug = collection['slug']!),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            featured.when(
+              data: (hadiths) {
+                if (hadiths.isEmpty) {
+                  return const QibraEmptyState(
+                    icon: Icons.library_books_outlined,
+                    title: 'No hadiths to show',
+                    message: 'Open a collection to start reading.',
+                  );
+                }
+                return Column(
+                  children: [
+                    for (final hadith in hadiths)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _HadithTile(
+                          hadith: hadith,
+                          onTap: () => _showDetail(context, hadith),
+                        ),
+                      ),
+                  ],
+                );
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (_, __) => const QibraEmptyState(
+                icon: Icons.library_books_outlined,
+                title: 'Could not load hadiths',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openBook(BuildContext context, String slug) {
+    final db = HadithDatabaseService();
+    final info = db.getBookInfo(slug);
+    final config = _collections.firstWhere(
+      (c) => c['slug'] == slug,
+      orElse: () => {'name': 'Hadith Collection', 'author': 'Islamic Scholar'},
+    );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HadithBookScreen(
+          book: HadithBook(
+            id: slug,
+            slug: slug,
+            name: info?.name ?? config['name']!,
+            nameArabic: '',
+            author: config['author'] ?? 'Islamic Scholar',
+            authorArabic: '',
+            totalHadiths: info?.totalHadiths ?? 0,
+            totalChapters: info?.sections.length ?? 0,
+            description: 'Authentic Hadith collection',
+            color: QibraColors.of(context).primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _copyHadith(BuildContext context, HadithModel hadith) {
+    final text =
+        '${hadith.textArabic}\n\n${hadith.textEnglish}\n\n— ${hadith.displayReference}';
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Hadith copied')),
+    );
+  }
+
+  void _showDetail(BuildContext context, HadithModel hadith) {
+    final colors = QibraColors.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final bookmarked =
+                ref.watch(isHadithBookmarkedProvider(hadith.id));
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.82,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              builder: (_, controller) {
+                return ListView(
+                  controller: controller,
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: colors.border,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            hadith.displayReference,
+                            style: AppTextStyles.titleSmall.copyWith(
+                              color: colors.primary,
+                            ),
+                          ),
+                        ),
                         IconButton(
                           icon: Icon(
-                            isBookmarked
+                            bookmarked
                                 ? Icons.bookmark_rounded
                                 : Icons.bookmark_border_rounded,
-                            color: isBookmarked
-                                ? const Color(0xFFFFB703)
-                                : Colors.white70,
+                            color: colors.primary,
                           ),
                           onPressed: () {
-                            HapticFeedback.lightImpact();
                             ref
                                 .read(hadithBookmarksProvider.notifier)
                                 .toggleBookmark(hadith);
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.share_rounded,
-                              color: Colors.white70),
-                          onPressed: () {
-                            HapticFeedback.lightImpact();
-                            final text =
-                                '${hadith.textArabic}\n\n${hadith.textUrdu}\n\n"${hadith.textEnglish}"\n\n— ${hadith.displayReference}';
-                            Clipboard.setData(ClipboardData(text: text));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Hadith copied to clipboard! 📋'),
-                                  backgroundColor: Color(0xFF0B2E21),
-                                  duration: Duration(seconds: 1)),
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close_rounded,
-                              color: Colors.white70),
-                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          icon: Icon(Icons.copy_outlined, color: colors.primary),
+                          onPressed: () => _copyHadith(context, hadith),
                         ),
                       ],
                     ),
-                  ),
-                  const Divider(color: Color(0xFF142018), height: 1),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            hadith.displayReference,
-                            style: const TextStyle(
-                                color: Color(0xFFFFB703),
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          if (hadith.chapterName.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              'Chapter: ${hadith.chapterName}',
-                              style: const TextStyle(
-                                  color: Color(0xFF94A3B8), fontSize: 11),
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                          if (hadith.hasArabic) ...[
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0A140F),
-                                borderRadius: BorderRadius.circular(16),
-                                border:
-                                    Border.all(color: const Color(0xFF1E3A2B)),
-                              ),
-                              child: SelectableText(
-                                hadith.textArabic,
-                                textAlign: TextAlign.right,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'Amiri',
-                                  fontSize: 20,
-                                  height: 1.8,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                          ],
-                          if (hadith.hasUrdu) ...[
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF081810),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                    color: const Color(0xFF00E676)
-                                        .withValues(alpha: 0.25)),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.copy_rounded,
-                                            color: Color(0xFF00E676), size: 16),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () {
-                                          Clipboard.setData(ClipboardData(
-                                              text: hadith.textUrdu));
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                                content:
-                                                    Text('Urdu text copied!'),
-                                                backgroundColor:
-                                                    Color(0xFF0B2E21),
-                                                duration: Duration(seconds: 1)),
-                                          );
-                                        },
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF00E676)
-                                              .withValues(alpha: 0.15),
-                                          borderRadius:
-                                              BorderRadius.circular(6),
-                                        ),
-                                        child: const Text('اردو ترجمہ',
-                                            style: TextStyle(
-                                                color: Color(0xFF00E676),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold)),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  SelectableText(
-                                    hadith.textUrdu,
-                                    textAlign: TextAlign.right,
-                                    textDirection: TextDirection.rtl,
-                                    style: const TextStyle(
-                                      color: Color(0xFFD1FAE5),
-                                      fontSize: 16,
-                                      height: 1.8,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                          ],
-                          if (hadith.hasEnglish) ...[
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0B121C),
-                                borderRadius: BorderRadius.circular(16),
-                                border:
-                                    Border.all(color: const Color(0xFF1E3A5F)),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF38BDF8)
-                                              .withValues(alpha: 0.15),
-                                          borderRadius:
-                                              BorderRadius.circular(6),
-                                        ),
-                                        child: const Text('ENGLISH TRANSLATION',
-                                            style: TextStyle(
-                                                color: Color(0xFF38BDF8),
-                                                fontSize: 9.5,
-                                                fontWeight: FontWeight.bold)),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.copy_rounded,
-                                            color: Color(0xFF38BDF8), size: 16),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () {
-                                          Clipboard.setData(ClipboardData(
-                                              text: hadith.textEnglish));
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                                content: Text(
-                                                    'English translation copied!'),
-                                                backgroundColor:
-                                                    Color(0xFF0B2E21),
-                                                duration: Duration(seconds: 1)),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  SelectableText(
-                                    hadith.textEnglish,
-                                    style: const TextStyle(
-                                      color: Color(0xFFE2E8F0),
-                                      fontSize: 14,
-                                      height: 1.6,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 24),
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00E676),
-                              foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14)),
-                            ),
-                            icon: const Icon(Icons.menu_book_rounded, size: 18),
-                            label: Text(
-                              'Open ${hadith.bookName} Full Book',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                            onPressed: () {
-                              Navigator.of(sheetContext).pop();
-                              _openBookBySlug(context, hadith.bookSlug);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // ────────────────────────────────────────────────────────────
-  // 2. LIVE HADITH SEARCH SHEET
-  // ────────────────────────────────────────────────────────────
-  void _showSearchSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            final query = ref.watch(hadithSearchQueryProvider);
-            final searchResults = ref.watch(hadithSearchResultsProvider);
-
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.90,
-              decoration: const BoxDecoration(
-                color: Color(0xFF060B08),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                border: Border(
-                  top: BorderSide(color: Color(0xFF1E3A2B), width: 1.5),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 10, bottom: 8),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF334155),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: TextField(
-                      autofocus: true,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: const Color(0xFF0C1410),
-                        hintText:
-                            'Search 36,390 Hadiths (English, Urdu, Arabic)...',
-                        hintStyle: const TextStyle(
-                            color: Color(0xFF64748B), fontSize: 12.5),
-                        prefixIcon: const Icon(Icons.search_rounded,
-                            color: Color(0xFFFFB703), size: 20),
-                        suffixIcon: query.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear_rounded,
-                                    color: Colors.white70, size: 18),
-                                onPressed: () {
-                                  ref
-                                      .read(hadithSearchQueryProvider.notifier)
-                                      .state = '';
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide:
-                              const BorderSide(color: Color(0xFF1E3A2B)),
+                    if (hadith.grade != HadithGrade.unknown)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Chip(
+                          label: Text(hadith.grade.label),
+                          backgroundColor:
+                              colors.primary.withValues(alpha: 0.08),
+                          side: BorderSide(color: colors.border),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide:
-                              const BorderSide(color: Color(0xFF1E3A2B)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(
-                              color: Color(0xFF00E676), width: 1.5),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 16),
                       ),
-                      onChanged: (val) {
-                        ref.read(hadithSearchQueryProvider.notifier).state =
-                            val;
+                    if (hadith.chapterName.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        hadith.chapterName,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                    if (hadith.hasArabic) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        hadith.textArabic,
+                        textAlign: TextAlign.right,
+                        style: AppArabicStyles.hadithArabic.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ],
+                    if (hadith.hasUrdu) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        hadith.textUrdu,
+                        textAlign: TextAlign.right,
+                        textDirection: TextDirection.rtl,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ],
+                    if (hadith.hasEnglish) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        hadith.textEnglish,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: () {
+                        Navigator.pop(sheetContext);
+                        _openBook(context, hadith.bookSlug);
                       },
+                      child: Text('Open ${hadith.bookName}'),
                     ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          query.trim().isEmpty
-                              ? 'POPULAR SEARCHES'
-                              : 'SEARCH RESULTS',
-                          style: const TextStyle(
-                              color: Color(0xFFFFB703),
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        if (query.trim().isNotEmpty)
-                          searchResults.when(
-                            data: (res) => Text('${res.length} matches',
-                                style: const TextStyle(
-                                    color: Color(0xFF00E676), fontSize: 10)),
-                            loading: () => const Text('Searching...',
-                                style: TextStyle(
-                                    color: Color(0xFF94A3B8), fontSize: 10)),
-                            error: (_, __) => const SizedBox(),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: query.trim().isEmpty
-                        ? _buildSearchSuggestions(sheetContext)
-                        : searchResults.when(
-                            data: (results) {
-                              if (results.isEmpty) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(24),
-                                    child: Text(
-                                      'No hadiths found matching your query.\nTry keywords like "intention", "prayer", "fasting", "patience".',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          color: Color(0xFF94A3B8),
-                                          fontSize: 13),
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              return ListView.builder(
-                                physics: const BouncingScrollPhysics(),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                itemCount: results.length,
-                                itemBuilder: (context, index) {
-                                  final item = results[index];
-                                  final h = item.hadith;
-
-                                  return GestureDetector(
-                                    onTap: () {
-                                      _showHadithDetailSheet(context, h);
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF080C0A),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                            color: const Color(0xFF1A221C)),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                h.displayReference,
-                                                style: const TextStyle(
-                                                    color: Color(0xFF00E676),
-                                                    fontSize: 10,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 6,
-                                                        vertical: 1),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      const Color(0xFF0B2E21),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: Text(
-                                                  item.matchType.label,
-                                                  style: const TextStyle(
-                                                      color: Color(0xFF00E676),
-                                                      fontSize: 8,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          if (h.hasArabic) ...[
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              h.textArabic,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              textAlign: TextAlign.right,
-                                              style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontFamily: 'Amiri',
-                                                  fontSize: 13),
-                                            ),
-                                          ],
-                                          if (h.hasEnglish) ...[
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              h.textEnglish,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                  color: Color(0xFF94A3B8),
-                                                  fontSize: 10.5),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                            loading: () => const Center(
-                              child: CircularProgressIndicator(
-                                  color: Color(0xFF00E676)),
-                            ),
-                            error: (e, _) => Center(
-                              child: Text('Search error: $e',
-                                  style: const TextStyle(color: Colors.red)),
-                            ),
-                          ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildSearchSuggestions(BuildContext sheetContext) {
-    final suggestions = [
-      'Intention / Niyyah',
-      'Prayer / Salah',
-      'Charity / Sadaqah',
-      'Patience / Sabr',
-      'Knowledge / Ilm',
-      'Parents / Walidain',
-      'Repentance / Tawbah',
-      'Fasting / Sawm',
-    ];
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: suggestions.map((s) {
-            final query = s.split('/').first.trim();
-            return ActionChip(
-              backgroundColor: const Color(0xFF0A1410),
-              side: const BorderSide(color: Color(0xFF1E3A2B)),
-              label: Text(s,
-                  style:
-                      const TextStyle(color: Color(0xFFCBD5E1), fontSize: 11)),
-              onPressed: () {
-                ref.read(hadithSearchQueryProvider.notifier).state = query;
+                  ],
+                );
               },
             );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  // ────────────────────────────────────────────────────────────
-  // 3. SAVED BOOKMARKS SHEET
-  // ────────────────────────────────────────────────────────────
-  void _showBookmarksSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final bookmarks = ref.watch(hadithBookmarksProvider);
-
-            return Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.85,
-              ),
-              decoration: const BoxDecoration(
-                color: Color(0xFF060B08),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                border: Border(
-                  top: BorderSide(color: Color(0xFF1E3A2B), width: 1.5),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 10, bottom: 8),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF334155),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('BOOKMARKED HADITHS',
-                            style: TextStyle(
-                                color: Color(0xFFFFB703),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold)),
-                        if (bookmarks.isNotEmpty)
-                          Text('${bookmarks.length} saved',
-                              style: const TextStyle(
-                                  color: Color(0xFF00E676), fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                  const Divider(color: Color(0xFF142018), height: 1),
-                  Expanded(
-                    child: bookmarks.isEmpty
-                        ? const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(32),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.bookmark_border_rounded,
-                                      color: Color(0xFF64748B), size: 48),
-                                  SizedBox(height: 12),
-                                  Text(
-                                    'No saved hadiths yet',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Tap the bookmark icon on any hadith to save it here for quick access.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Color(0xFF94A3B8), fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            padding: const EdgeInsets.all(16),
-                            itemCount: bookmarks.length,
-                            itemBuilder: (context, index) {
-                              final bm = bookmarks[index];
-
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF080C0A),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                      color: const Color(0xFF1A221C)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '${bm.bookName} #${bm.hadithNumber}',
-                                            style: const TextStyle(
-                                                color: Color(0xFF00E676),
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            bm.textPreview,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                                color: Color(0xFFCBD5E1),
-                                                fontSize: 10.5),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                          Icons.delete_outline_rounded,
-                                          color: Colors.redAccent,
-                                          size: 18),
-                                      onPressed: () {
-                                        ref
-                                            .read(hadithBookmarksProvider
-                                                .notifier)
-                                            .removeBookmark(bm.hadithId);
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            );
           },
         );
       },
     );
   }
 
-  // ────────────────────────────────────────────────────────────
-  // 4. ALL COLLECTIONS MODAL SHEET
-  // ────────────────────────────────────────────────────────────
-  void _showCollectionsSheet(BuildContext context) {
-    showModalBottomSheet(
+  void _showSearchSheet(BuildContext context) {
+    final colors = QibraColors.of(context);
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (sheetContext) {
-        return Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.85,
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
           ),
-          decoration: const BoxDecoration(
-            color: Color(0xFF060B08),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border(
-              top: BorderSide(color: Color(0xFF1E3A2B), width: 1.5),
+          child: SizedBox(
+            height: MediaQuery.of(sheetContext).size.height * 0.88,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: TextField(
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Search hadiths',
+                      prefixIcon: Icon(Icons.search_rounded),
+                    ),
+                    onChanged: (value) {
+                      ref.read(hadithSearchQueryProvider.notifier).state =
+                          value;
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final query = ref.watch(hadithSearchQueryProvider);
+                      final results = ref.watch(hadithSearchResultsProvider);
+                      if (query.trim().isEmpty) {
+                        return const QibraEmptyState(
+                          icon: Icons.search_rounded,
+                          title: 'Search the collections',
+                          message: 'Try words such as prayer, patience, or charity.',
+                        );
+                      }
+                      return results.when(
+                        data: (items) {
+                          if (items.isEmpty) {
+                            return const QibraEmptyState(
+                              icon: Icons.search_off_rounded,
+                              title: 'No matches',
+                            );
+                          }
+                          return ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                            itemCount: items.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (context, index) {
+                              final hadith = items[index].hadith;
+                              return _HadithTile(
+                                hadith: hadith,
+                                onTap: () => _showDetail(context, hadith),
+                              );
+                            },
+                          );
+                        },
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        error: (error, _) => Center(child: Text('$error')),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        );
+      },
+    ).whenComplete(() {
+      ref.read(hadithSearchQueryProvider.notifier).state = '';
+    });
+  }
+
+  void _showCollectionsSheet(BuildContext context) {
+    final colors = QibraColors.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(8, 16, 8, 24),
+            shrinkWrap: true,
             children: [
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 10, bottom: 8),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF334155),
-                    borderRadius: BorderRadius.circular(2),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  'Collections',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('KUTUB AL-HADITH (7 COLLECTIONS)',
-                        style: TextStyle(
-                            color: Color(0xFFFFB703),
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold)),
-                    Text('Offline Ready ⚡',
-                        style:
-                            TextStyle(color: Color(0xFF00E676), fontSize: 11)),
-                  ],
-                ),
-              ),
-              const Divider(color: Color(0xFF142018), height: 1),
-              Expanded(
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _collectionConfigs.length,
-                  itemBuilder: (context, index) {
-                    final c = _collectionConfigs[index];
-
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                        _openBookBySlug(context, c['slug']!);
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF080C0A),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFF1A221C)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0B2E21),
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: const Color(0xFF00E676)),
-                              ),
-                              child: Center(
-                                child: Text(c['icon']!,
-                                    style: const TextStyle(fontSize: 18)),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    c['fullName']!,
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${c['author']} • ${c['hadiths']}',
-                                    style: const TextStyle(
-                                        color: Color(0xFF94A3B8),
-                                        fontSize: 10.5),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios_rounded,
-                                color: Color(0xFF00E676), size: 14),
-                          ],
-                        ),
-                      ),
-                    );
+              for (final collection in _collections)
+                ListTile(
+                  title: Text(collection['name']!),
+                  subtitle: Text(collection['author']!),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _openBook(context, collection['slug']!);
                   },
                 ),
-              ),
             ],
           ),
         );
       },
     );
   }
+}
 
-  void _showAuthenticityDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF080C0A),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Color(0xFF1E3A2B))),
-          title: const Row(
-            children: [
-              Icon(Icons.verified_rounded, color: Color(0xFF00E676), size: 22),
-              SizedBox(width: 8),
-              Text('Hadith Authenticity',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-            ],
+class _TodaysHadithCard extends ConsumerWidget {
+  const _TodaysHadithCard({
+    required this.hadith,
+    required this.onRead,
+    required this.onBookmark,
+    required this.onShare,
+  });
+
+  final HadithModel? hadith;
+  final VoidCallback onRead;
+  final VoidCallback onBookmark;
+  final VoidCallback onShare;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    if (hadith == null) {
+      return const QibraEmptyState(
+        icon: Icons.menu_book_outlined,
+        title: 'No hadith for today',
+      );
+    }
+    final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith!.id));
+    return QibraCard(
+      accentBorder: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Today\'s hadith',
+            style: AppTextStyles.labelMedium.copyWith(
+              color: colors.primary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          content: const Text(
-            'Qibra AI contains all 7 major authentic Hadith collections (Kutub al-Sittah + Muwatta Imam Malik) containing 36,390 narrations with Arabic text, Urdu, and English translations. All hadiths are verified for authenticity.',
-            style: TextStyle(
-                color: Color(0xFFCBD5E1), fontSize: 12.5, height: 1.5),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Close',
-                  style: TextStyle(
-                      color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
+          if (hadith!.hasArabic) ...[
+            const SizedBox(height: 12),
+            Text(
+              hadith!.textArabic,
+              textAlign: TextAlign.right,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: AppArabicStyles.hadithArabic.copyWith(
+                color: colors.textPrimary,
+              ),
             ),
           ],
-        );
-      },
+          if (hadith!.hasEnglish) ...[
+            const SizedBox(height: 10),
+            Text(
+              hadith!.textEnglish,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          Text(
+            hadith!.displayReference,
+            style: AppTextStyles.labelSmall.copyWith(
+              color: colors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              QibraSoftButton(
+                icon: Icons.menu_book_outlined,
+                label: 'Read',
+                onTap: onRead,
+              ),
+              QibraSoftButton(
+                icon: bookmarked
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_border_rounded,
+                label: bookmarked ? 'Saved' : 'Bookmark',
+                onTap: onBookmark,
+              ),
+              QibraSoftButton(
+                icon: Icons.ios_share_rounded,
+                label: 'Share',
+                onTap: onShare,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HadithTile extends ConsumerWidget {
+  const _HadithTile({required this.hadith, required this.onTap});
+
+  final HadithModel hadith;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
+    return QibraCard(
+      padding: const EdgeInsets.all(16),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  hadith.displayReference,
+                  style: AppTextStyles.labelLarge.copyWith(
+                    color: colors.primary,
+                  ),
+                ),
+              ),
+              if (hadith.grade != HadithGrade.unknown)
+                Text(
+                  hadith.grade.label,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              IconButton(
+                icon: Icon(
+                  bookmarked
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
+                  color: bookmarked ? colors.primary : colors.textTertiary,
+                ),
+                onPressed: () {
+                  ref
+                      .read(hadithBookmarksProvider.notifier)
+                      .toggleBookmark(hadith);
+                },
+              ),
+            ],
+          ),
+          if (hadith.hasArabic)
+            Text(
+              hadith.textArabic,
+              textAlign: TextAlign.right,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppArabicStyles.quranSmall.copyWith(
+                color: colors.textPrimary,
+              ),
+            ),
+          if (hadith.hasEnglish) ...[
+            const SizedBox(height: 6),
+            Text(
+              hadith.textEnglish,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

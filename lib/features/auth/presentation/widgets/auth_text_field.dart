@@ -66,7 +66,7 @@ class AuthTextField extends StatelessWidget {
         obscureText: obscureText,
         style: style ??
             AppTextStyles.bodyMedium.copyWith(
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               fontWeight: FontWeight.w500,
             ),
         decoration: InputDecoration(
@@ -108,14 +108,14 @@ class AuthTextField extends StatelessWidget {
           border: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),

@@ -15,22 +15,22 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   static const String _storageKey = 'islamic_habits';
 
   final List<_HabitTemplate> _templates = const [
-    _HabitTemplate('Fajr on Time', '🌅', Color(0xFFFFB703)),
-    _HabitTemplate('Read Quran', '📖', Color(0xFF00E676)),
-    _HabitTemplate('Morning Adhkar', '🌤️', Color(0xFFFFD700)),
-    _HabitTemplate('Evening Adhkar', '🌙', Color(0xFFD4AF37)),
-    _HabitTemplate('Tahajjud', '🕌', Color(0xFF0891B2)),
-    _HabitTemplate('Give Sadaqah', '💚', Color(0xFF4ECDC4)),
-    _HabitTemplate('Fast Monday', '🗓️', Color(0xFFFF8C42)),
-    _HabitTemplate('Fast Thursday', '🗓️', Color(0xFFFF8C42)),
-    _HabitTemplate('Surah Mulk', '📜', Color(0xFFA78BFA)),
-    _HabitTemplate('Surah Kahf (Fri)', '📜', Color(0xFF38BDF8)),
-    _HabitTemplate('Durood 100x', '💛', Color(0xFFFFD700)),
-    _HabitTemplate('Istighfar 100x', '🤲', Color(0xFF74C0FC)),
+    _HabitTemplate('Fajr on Time', '🌅', Color(0xFFC6A15B)),
+    _HabitTemplate('Read Quran', '📖', Color(0xFF123F36)),
+    _HabitTemplate('Morning Adhkar', '🌤️', Color(0xFFC6A15B)),
+    _HabitTemplate('Evening Adhkar', '🌙', Color(0xFFC6A15B)),
+    _HabitTemplate('Tahajjud', '🕌', Color(0xFF2F6B5D)),
+    _HabitTemplate('Give Sadaqah', '💚', Color(0xFF2F6B5D)),
+    _HabitTemplate('Fast Monday', '🗓️', Color(0xFFC6A15B)),
+    _HabitTemplate('Fast Thursday', '🗓️', Color(0xFFC6A15B)),
+    _HabitTemplate('Surah Mulk', '📜', Color(0xFF2F6B5D)),
+    _HabitTemplate('Surah Kahf (Fri)', '📜', Color(0xFF2F6B5D)),
+    _HabitTemplate('Durood 100x', '💛', Color(0xFFC6A15B)),
+    _HabitTemplate('Istighfar 100x', '🤲', Color(0xFF2F6B5D)),
     _HabitTemplate('No Backbiting', '🤐', Color(0xFFEF4444)),
     _HabitTemplate('Lower Gaze', '👁️', Color(0xFF6B7280)),
-    _HabitTemplate('Help Someone', '🤝', Color(0xFF00E676)),
-    _HabitTemplate('Learn 1 Hadith', '📚', Color(0xFFA78BFA)),
+    _HabitTemplate('Help Someone', '🤝', Color(0xFF123F36)),
+    _HabitTemplate('Learn 1 Hadith', '📚', Color(0xFF2F6B5D)),
   ];
 
   @override
@@ -54,12 +54,12 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
       // Default habits
       setState(() {
         _habits = [
-          _IslamicHabit(name: 'Fajr on Time', emoji: '🌅', color: 0xFFFFB703),
-          _IslamicHabit(name: 'Read Quran', emoji: '📖', color: 0xFF00E676),
+          _IslamicHabit(name: 'Fajr on Time', emoji: '🌅', color: 0xFFC6A15B),
+          _IslamicHabit(name: 'Read Quran', emoji: '📖', color: 0xFF123F36),
           _IslamicHabit(
-              name: 'Morning Adhkar', emoji: '🌤️', color: 0xFFFFD700),
-          _IslamicHabit(name: 'Evening Adhkar', emoji: '🌙', color: 0xFFD4AF37),
-          _IslamicHabit(name: 'Tahajjud', emoji: '🕌', color: 0xFF0891B2),
+              name: 'Morning Adhkar', emoji: '🌤️', color: 0xFFC6A15B),
+          _IslamicHabit(name: 'Evening Adhkar', emoji: '🌙', color: 0xFFC6A15B),
+          _IslamicHabit(name: 'Tahajjud', emoji: '🕌', color: 0xFF2F6B5D),
         ];
       });
       _saveHabits();
@@ -139,11 +139,11 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     final completed = _getCompletedToday();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddHabitSheet,
-        backgroundColor: const Color(0xFFA78BFA),
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+        backgroundColor: const Color(0xFF2F6B5D),
+        child: const Icon(Icons.add_rounded, color: const Color(0xFF19312C)),
       ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
@@ -180,16 +180,16 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     return SliverAppBar(
       expandedHeight: 120,
       pinned: true,
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: const Color(0xFF19312C).withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.arrow_back_rounded,
-              color: Colors.white, size: 20),
+              color: const Color(0xFF19312C), size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
@@ -199,7 +199,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF1A0D35), Color(0xFF0A0E1A)],
+              colors: [Color(0xFFEEF1EA), Color(0xFFF5F3EC)],
             ),
           ),
           child: const SafeArea(
@@ -211,7 +211,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   Text(
                     'عَادَات',
                     style: TextStyle(
-                      color: Color(0xFFA78BFA),
+                      color: Color(0xFF2F6B5D),
                       fontSize: 22,
                       fontFamily: 'Amiri',
                     ),
@@ -219,7 +219,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   Text(
                     'Islamic Habits',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -241,14 +241,14 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1A0D35), Color(0xFF2D1B69)],
+          colors: [Color(0xFFEEF1EA), Color(0xFF2D1B69)],
         ),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.3)),
+            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFA78BFA).withValues(alpha: 0.1),
+            color: const Color(0xFF2F6B5D).withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -267,13 +267,13 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   value: progress,
                   strokeWidth: 6,
                   backgroundColor:
-                      const Color(0xFFA78BFA).withValues(alpha: 0.15),
-                  valueColor: const AlwaysStoppedAnimation(Color(0xFFA78BFA)),
+                      const Color(0xFF2F6B5D).withValues(alpha: 0.15),
+                  valueColor: const AlwaysStoppedAnimation(Color(0xFF2F6B5D)),
                 ),
                 Text(
                   '${(progress * 100).toInt()}%',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
                   ),
@@ -289,7 +289,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 const Text(
                   "Today's Progress",
                   style: TextStyle(
-                    color: Color(0xFFA78BFA),
+                    color: Color(0xFF2F6B5D),
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -298,7 +298,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 Text(
                   '$completed of ${_habits.length} habits',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.6),
                     fontSize: 12,
                   ),
                 ),
@@ -310,7 +310,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           ? 'Almost there! Keep going 💪'
                           : 'Start your day right! 🌅',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.5),
                     fontSize: 11,
                     fontStyle: FontStyle.italic,
                   ),
@@ -333,7 +333,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF141926),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -358,7 +358,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 days[i],
                 style: TextStyle(
                   color: isToday
-                      ? const Color(0xFFA78BFA)
+                      ? const Color(0xFF2F6B5D)
                       : Colors.white.withValues(alpha: 0.3),
                   fontSize: 10,
                   fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
@@ -370,26 +370,26 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   color: allDone
-                      ? const Color(0xFFA78BFA)
+                      ? const Color(0xFF2F6B5D)
                       : someDone
-                          ? const Color(0xFFA78BFA).withValues(alpha: 0.2)
+                          ? const Color(0xFF2F6B5D).withValues(alpha: 0.2)
                           : isToday
-                              ? const Color(0xFFA78BFA).withValues(alpha: 0.1)
+                              ? const Color(0xFF2F6B5D).withValues(alpha: 0.1)
                               : Colors.white.withValues(alpha: 0.03),
                   shape: BoxShape.circle,
                   border: isToday
-                      ? Border.all(color: const Color(0xFFA78BFA), width: 1.5)
+                      ? Border.all(color: const Color(0xFF2F6B5D), width: 1.5)
                       : null,
                 ),
                 child: Center(
                   child: allDone
                       ? const Icon(Icons.check_rounded,
-                          color: Colors.white, size: 16)
+                          color: const Color(0xFF19312C), size: 16)
                       : Text(
                           '${day.day}',
                           style: TextStyle(
                             color: isToday
-                                ? const Color(0xFFA78BFA)
+                                ? const Color(0xFF2F6B5D)
                                 : Colors.white.withValues(alpha: 0.4),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -413,7 +413,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         Text(
           'YOUR HABITS',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
+            color: const Color(0xFF19312C).withValues(alpha: 0.5),
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 2.0,
@@ -423,7 +423,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         Text(
           '${_habits.length} habits',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.3),
+            color: const Color(0xFF19312C).withValues(alpha: 0.3),
             fontSize: 10,
           ),
         ),
@@ -446,7 +446,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           const Text(
             'No Habits Yet',
             style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -455,7 +455,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           Text(
             'Tap + to add Islamic habits',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
+              color: const Color(0xFF19312C).withValues(alpha: 0.4),
               fontSize: 12,
             ),
           ),
@@ -517,7 +517,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 ),
                 child: todayDone
                     ? const Icon(Icons.check_rounded,
-                        color: Colors.white, size: 20)
+                        color: const Color(0xFF19312C), size: 20)
                     : Center(
                         child: Text(habit.emoji,
                             style: const TextStyle(fontSize: 16)),
@@ -613,7 +613,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -622,7 +622,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             const Text(
               'Add Islamic Habit',
               style: TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
               ),
@@ -631,7 +631,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             Text(
               'Choose from templates or create your own',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
+                color: const Color(0xFF19312C).withValues(alpha: 0.4),
                 fontSize: 12,
               ),
             ),

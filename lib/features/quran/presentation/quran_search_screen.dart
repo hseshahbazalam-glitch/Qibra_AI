@@ -98,7 +98,7 @@ const _popularTopics = [
   PopularTopic(
     label: 'Faith',
     icon: Icons.light_mode_rounded,
-    color: Color(0xFFFFA726),
+    color: Color(0xFFC6A15B),
     searchQuery: 'faith',
   ),
   PopularTopic(
@@ -896,7 +896,7 @@ class _SearchResultCard extends StatelessWidget {
                         child: Text(
                           '${result.ayahNumber}',
                           style: AppTextStyles.labelSmall.copyWith(
-                            color: Colors.white,
+                            color: const Color(0xFF19312C),
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -932,12 +932,12 @@ class _SearchResultCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: result.isArabicMatch
                             ? AppColors.accent.withValues(alpha: 0.14)
-                            : const Color(0xFF1E88E5).withValues(alpha: 0.14),
+                            : const Color(0xFF2F6B5D).withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(AppRadius.full),
                         border: Border.all(
                           color: result.isArabicMatch
                               ? AppColors.accent.withValues(alpha: 0.24)
-                              : const Color(0xFF1E88E5).withValues(alpha: 0.24),
+                              : const Color(0xFF2F6B5D).withValues(alpha: 0.24),
                         ),
                       ),
                       child: Text(
@@ -945,7 +945,7 @@ class _SearchResultCard extends StatelessWidget {
                         style: AppTextStyles.labelSmall.copyWith(
                           color: result.isArabicMatch
                               ? AppColors.accent
-                              : const Color(0xFF1E88E5),
+                              : const Color(0xFF2F6B5D),
                           fontWeight: FontWeight.w800,
                           fontSize: 10,
                         ),

@@ -62,9 +62,9 @@ const List<_OnboardingSlide> _slides = [
     primaryColor: AppColors.primary,
     secondaryColor: AppColors.primaryLight,
     backgroundGradient: [
-      Color(0xFF0A1628),
-      Color(0xFF0D2E1A),
-      Color(0xFF050D14),
+      Color(0xFFF5F3EC),
+      Color(0xFFEEF1EA),
+      Color(0xFFE8EBE3),
     ],
   ),
   _OnboardingSlide(
@@ -77,9 +77,9 @@ const List<_OnboardingSlide> _slides = [
     primaryColor: AppColors.accent,
     secondaryColor: AppColors.accentBright,
     backgroundGradient: [
-      Color(0xFF0A1628),
-      Color(0xFF2D2410),
-      Color(0xFF050D14),
+      Color(0xFFF5F3EC),
+      Color(0xFFF8F1E3),
+      Color(0xFFE8EBE3),
     ],
   ),
   _OnboardingSlide(
@@ -89,12 +89,12 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.smart_toy_rounded,
     arabicText: 'الْحِكْمَة',
     arabicTranslation: 'Wisdom',
-    primaryColor: Color(0xFFD4AF37),
-    secondaryColor: Color(0xFFFFB703),
+    primaryColor: Color(0xFFC6A15B),
+    secondaryColor: Color(0xFFC6A15B),
     backgroundGradient: [
-      Color(0xFF0A1628),
-      Color(0xFF1F1B3D),
-      Color(0xFF050D14),
+      Color(0xFFF5F3EC),
+      Color(0xFFEEF1EA),
+      Color(0xFFE8EBE3),
     ],
   ),
   _OnboardingSlide(
@@ -107,9 +107,9 @@ const List<_OnboardingSlide> _slides = [
     primaryColor: AppColors.accent,
     secondaryColor: AppColors.primary,
     backgroundGradient: [
-      Color(0xFF0A1628),
-      Color(0xFF1A3D2A),
-      Color(0xFF050D14),
+      Color(0xFFF5F3EC),
+      Color(0xFFEEF1EA),
+      Color(0xFFE8EBE3),
     ],
   ),
 ];
@@ -398,7 +398,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 child: Text(
                   AppInfo.appName,
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontWeight: FontWeight.w800,
                     letterSpacing: 2,
                   ),
@@ -437,10 +437,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               vertical: AppSpacing.sm,
             ),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               borderRadius: AppRadius.pillRadius,
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.20),
+                color: const Color(0xFF19312C).withValues(alpha: 0.20),
                 width: 1,
               ),
             ),
@@ -592,7 +592,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                       child: Icon(
                         slide.icon,
                         size: 56,
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                       ),
                     ),
                   ),
@@ -631,7 +631,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 ),
                 borderRadius: AppRadius.cardRadiusLarge,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: const Color(0xFF19312C).withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -759,7 +759,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                     ],
                   )
                 : null,
-            color: isActive ? null : Colors.white.withValues(alpha: 0.20),
+            color: isActive ? null : const Color(0xFFD4CFC3),
             boxShadow: isActive
                 ? [
                     BoxShadow(
@@ -846,14 +846,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             Text(
               'Continue',
               style: AppTextStyles.buttonLarge.copyWith(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 letterSpacing: 1,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             const Icon(
               Icons.arrow_forward_rounded,
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               size: 22,
             ),
           ],
@@ -880,9 +880,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             height: 56,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.20),
+                color: const Color(0xFF19312C).withValues(alpha: 0.20),
                 width: 1,
               ),
             ),

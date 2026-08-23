@@ -27,7 +27,7 @@ class AuthSocialButtons extends StatelessWidget {
         Expanded(
           child: _AuthSocialButton(
             label: googleAvailable ? 'Google' : 'Google (soon)',
-            color: const Color(0xFF4285F4),
+            color: const Color(0xFF2F6B5D),
             icon: 'G',
             isEnabled: !isLoading && googleAvailable,
             onTap: isLoading || !googleAvailable ? null : onGoogleTap,
@@ -37,7 +37,7 @@ class AuthSocialButtons extends StatelessWidget {
         Expanded(
           child: _AuthSocialButton(
             label: appleAvailable ? 'Apple' : 'Apple (soon)',
-            color: Colors.white,
+            color: const Color(0xFF19312C),
             iconData: Icons.apple,
             isEnabled: !isLoading && appleAvailable,
             onTap: isLoading || !appleAvailable ? null : onAppleTap,
@@ -92,7 +92,7 @@ class _AuthSocialButton extends StatelessWidget {
                   ),
                   borderRadius: AppRadius.buttonRadiusLg,
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.15),
                     width: 1,
                   ),
                 ),
@@ -105,7 +105,7 @@ class _AuthSocialButton extends StatelessWidget {
                         height: 22,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                         ),
                         child: Center(
                           child: Text(
@@ -128,7 +128,7 @@ class _AuthSocialButton extends StatelessWidget {
                     Text(
                       label,
                       style: AppTextStyles.buttonMedium.copyWith(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontWeight: FontWeight.w700,
                       ),
                     ),

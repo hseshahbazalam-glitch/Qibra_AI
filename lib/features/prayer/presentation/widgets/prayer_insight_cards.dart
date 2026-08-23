@@ -14,34 +14,34 @@ class PrayerInsightCards {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.nightlight_round, color: Color(0xFFFFD166)),
+              const Icon(Icons.nightlight_round, color: Color(0xFFC6A15B)),
               const SizedBox(height: 10),
               const Text('TAHAJJUD COUNTDOWN',
                   style: TextStyle(
-                      color: Color(0xFFFFD166),
+                      color: Color(0xFFC6A15B),
                       fontSize: 10,
                       fontWeight: FontWeight.w800)),
               const SizedBox(height: 5),
               const Text('Tahajjud',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontSize: 20,
                       fontWeight: FontWeight.w900)),
               const Text('قيام الليل',
                   style: TextStyle(
-                      color: Color(0xFFFFD166),
+                      color: Color(0xFFC6A15B),
                       fontFamily: 'Amiri',
                       fontSize: 15)),
               const SizedBox(height: 12),
               Text(startsIn,
                   style: const TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF19312C),
                       fontFamily: 'monospace',
                       fontSize: 20,
                       fontWeight: FontWeight.w900)),
               Text('Available after Isha',
                   style: AppTextStyles.labelXSmall
-                      .copyWith(color: Colors.white70)),
+                      .copyWith(color: const Color(0xFF71807A))),
             ]),
       );
 
@@ -51,7 +51,7 @@ class PrayerInsightCards {
           required VoidCallback onTap}) =>
       _Card(
         onTap: onTap,
-        colors: const [Color(0xFF0C3329), Color(0xFF071B17)],
+        colors: const [Color(0xFF123F36), Color(0xFF2F6B5D)],
         child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,19 +62,19 @@ class PrayerInsightCards {
                 const SizedBox(width: 6),
                 Text('PRAYER STREAK',
                     style: AppTextStyles.labelSmall.copyWith(
-                        color: const Color(0xFF00E676),
+                        color: const Color(0xFF123F36),
                         fontWeight: FontWeight.w800)),
                 const Spacer(),
                 Text('$days',
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 27,
                         fontWeight: FontWeight.w900)),
-                const Text(' days', style: TextStyle(color: Colors.white70)),
+                const Text(' days', style: TextStyle(color: const Color(0xFF71807A))),
               ]),
               Text('Keep it up! May Allah accept.',
                   style: AppTextStyles.labelXSmall
-                      .copyWith(color: Colors.white70)),
+                      .copyWith(color: const Color(0xFF71807A))),
               const SizedBox(height: 14),
               Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -85,7 +85,7 @@ class PrayerInsightCards {
                                 ? Icons.check_circle_rounded
                                 : Icons.circle_outlined,
                             color: i < completed
-                                ? const Color(0xFF00E676)
+                                ? const Color(0xFF123F36)
                                 : Colors.white24,
                             size: 18,
                           ))),
@@ -96,7 +96,7 @@ class PrayerInsightCards {
           {required int completed, required VoidCallback onTap}) =>
       _Card(
         onTap: onTap,
-        colors: const [Color(0xFF083E31), Color(0xFF06261F)],
+        colors: const [Color(0xFF123F36), Color(0xFF2F6B5D)],
         child: Row(children: [
           SizedBox(
               width: 68,
@@ -105,11 +105,11 @@ class PrayerInsightCards {
                 CircularProgressIndicator(
                     value: (completed / 5).clamp(0, 1).toDouble(),
                     strokeWidth: 6,
-                    color: const Color(0xFF00E676),
+                    color: const Color(0xFF123F36),
                     backgroundColor: Colors.white12),
                 Text('$completed/5',
                     style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w900)),
+                        color: const Color(0xFF19312C), fontWeight: FontWeight.w900)),
               ])),
           const SizedBox(width: 12),
           Expanded(
@@ -119,12 +119,12 @@ class PrayerInsightCards {
                   children: [
                 Text("TODAY'S PROGRESS",
                     style: AppTextStyles.labelSmall.copyWith(
-                        color: const Color(0xFF00E676),
+                        color: const Color(0xFF123F36),
                         fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 Text('$completed of 5 prayers completed',
                     style:
-                        AppTextStyles.labelSmall.copyWith(color: Colors.white)),
+                        AppTextStyles.labelSmall.copyWith(color: const Color(0xFF19312C))),
               ])),
         ]),
       );
@@ -147,7 +147,7 @@ class _Card extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: colors),
             borderRadius: AppRadius.cardRadiusLarge,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+            border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.10)),
           ),
           child: child,
         ),

@@ -297,7 +297,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             children: [
               Icon(
                 Icons.error_outline,
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 size: 20,
               ),
               SizedBox(width: AppSpacing.sm),
@@ -406,8 +406,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             center: Alignment.topCenter,
             radius: 1.5,
             colors: [
-              Color(0xFF0A130E),
-              Color(0xFF050806),
+              Color(0xFFF5F3EC),
+              Color(0xFFF8F6EF),
               AppColors.background,
             ],
             stops: [0.0, 0.5, 1.0],
@@ -465,7 +465,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
           child: Text(
             'JOIN QIBRA AI',
             style: AppTextStyles.labelSmall.copyWith(
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               letterSpacing: 3,
               fontWeight: FontWeight.w800,
             ),
@@ -518,7 +518,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFF19312C).withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -635,7 +635,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                 isLoading: false,
                 height: 48,
                 gradient: const LinearGradient(
-                    colors: [Color(0xFF00E676), Color(0xFF00E676)]),
+                    colors: [Color(0xFF123F36), Color(0xFF123F36)]),
               ),
             ],
           ),
@@ -789,7 +789,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   height: 6,
                   decoration: BoxDecoration(
                     borderRadius: AppRadius.pillRadius,
-                    color: Colors.white.withValues(alpha: 0.10),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.10),
                   ),
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
@@ -859,10 +859,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: const Color(0xFF19312C).withValues(alpha: 0.03),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
+          color: const Color(0xFF19312C).withValues(alpha: 0.08),
           width: 1,
         ),
       ),
@@ -930,7 +930,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             child: met
                 ? const Icon(
                     Icons.check_rounded,
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     size: 10,
                   )
                 : null,
@@ -988,7 +988,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             child: _acceptedTerms
                 ? const Icon(
                     Icons.check_rounded,
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     size: 14,
                   )
                 : null,
@@ -1068,7 +1068,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             child: Text(
               'Sign In',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontWeight: FontWeight.w800,
               ),
             ),

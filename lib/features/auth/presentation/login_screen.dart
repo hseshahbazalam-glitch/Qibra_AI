@@ -313,8 +313,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             center: Alignment.topCenter,
             radius: 1.5,
             colors: [
-              Color(0xFF0A130E),
-              Color(0xFF050806),
+              Color(0xFFF5F3EC),
+              Color(0xFFF8F6EF),
               AppColors.background,
             ],
             stops: [0.0, 0.5, 1.0],
@@ -387,7 +387,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 child: const Icon(
                   Icons.mosque_rounded,
                   size: 44,
-                  color: Colors.white,
+                  color: const Color(0xFF19312C),
                 ),
               ),
             ),
@@ -413,7 +413,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               fontFamily: 'Amiri',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: const Color(0xFF19312C),
               height: 1.0,
             ),
             textDirection: TextDirection.rtl,
@@ -456,19 +456,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: 0.08),
-                Colors.white.withValues(alpha: 0.03),
-              ],
-            ),
+            color: AppColors.surface,
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: AppColors.borderSubtle,
               width: 1,
             ),
+            boxShadow: AppShadows.subtle,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -522,7 +516,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 isLoading: false,
                 height: 48,
                 gradient: const LinearGradient(
-                    colors: [Color(0xFF00E676), Color(0xFF00E676)]),
+                    colors: [Color(0xFF123F36), Color(0xFF123F36)]),
               ),
 
               const SizedBox(height: AppSpacing.md),
@@ -697,7 +691,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 child: _rememberMe
                     ? const Icon(
                         Icons.check_rounded,
-                        color: Colors.white,
+                        color: AppColors.white,
                         size: 14,
                       )
                     : null,
@@ -853,7 +847,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             child: Text(
               'Sign Up',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: Colors.white,
+                color: const Color(0xFF19312C),
                 fontWeight: FontWeight.w800,
               ),
             ),

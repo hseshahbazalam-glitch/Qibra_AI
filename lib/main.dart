@@ -49,7 +49,7 @@ void main() async {
   }
 
   // ─── System UI Setup ─────────────────────────
-  AppSystemUI.setDarkTheme();
+  AppSystemUI.setLightTheme();
   await AppSystemUI.setPortraitOnly();
 
   // ─── Assets Check (Debug Only) ─────────────────────────
@@ -121,7 +121,7 @@ class QibraApp extends ConsumerWidget {
     return MaterialApp.router(
       title: AppInfo.appName,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,

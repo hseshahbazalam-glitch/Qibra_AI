@@ -125,8 +125,8 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
     ));
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content:
-          const Text('Name copied! 📋', style: TextStyle(color: Colors.white)),
-      backgroundColor: const Color(0xFF1B4332),
+          const Text('Name copied! 📋', style: TextStyle(color: const Color(0xFF19312C))),
+      backgroundColor: const Color(0xFF123F36),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(16),
@@ -146,8 +146,8 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
     ));
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text('Copied for sharing! 📤',
-          style: TextStyle(color: Colors.white)),
-      backgroundColor: const Color(0xFF1B4332),
+          style: TextStyle(color: const Color(0xFF19312C))),
+      backgroundColor: const Color(0xFF123F36),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(16),
@@ -157,7 +157,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E1A),
+      backgroundColor: const Color(0xFFF5F3EC),
       body: Column(
         children: [
           _buildHeader(),
@@ -181,7 +181,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF1B4332), Color(0xFF0A0E1A)],
+          colors: [Color(0xFF123F36), Color(0xFFF5F3EC)],
         ),
       ),
       child: Row(
@@ -191,11 +191,11 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: const Color(0xFF19312C).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.arrow_back_rounded,
-                  color: Colors.white, size: 20),
+                  color: const Color(0xFF19312C), size: 20),
             ),
           ),
           const SizedBox(width: 14),
@@ -205,12 +205,12 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
               children: [
                 Text('أَسْمَاء',
                     style: TextStyle(
-                        color: Color(0xFF00E676),
+                        color: Color(0xFF123F36),
                         fontSize: 18,
                         fontFamily: 'Amiri')),
                 Text('Islamic Names',
                     style: TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 18,
                         fontWeight: FontWeight.w800)),
               ],
@@ -219,13 +219,13 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: const Color(0xFF00E676).withValues(alpha: 0.15),
+              color: const Color(0xFF123F36).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               '${_allNames.length}+',
               style: const TextStyle(
-                  color: Color(0xFF00E676),
+                  color: Color(0xFF123F36),
                   fontSize: 14,
                   fontWeight: FontWeight.w800),
             ),
@@ -254,10 +254,10 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
   Widget _genderChip(String value, String emoji, String label) {
     final selected = _genderFilter == value;
     final color = value == 'boy'
-        ? const Color(0xFF74C0FC)
+        ? const Color(0xFF2F6B5D)
         : value == 'girl'
-            ? const Color(0xFFFF9EBC)
-            : const Color(0xFF00E676);
+            ? const Color(0xFFC6A15B)
+            : const Color(0xFF123F36);
 
     return Expanded(
       child: GestureDetector(
@@ -303,22 +303,22 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
         decoration: BoxDecoration(
           color: const Color(0xFF141926),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.08)),
         ),
         child: Row(
           children: [
             Icon(Icons.search_rounded,
-                color: Colors.white.withValues(alpha: 0.3), size: 20),
+                color: const Color(0xFF19312C).withValues(alpha: 0.3), size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearch,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: const Color(0xFF19312C), fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'Search name, meaning, Arabic...',
                   hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.2), fontSize: 13),
+                      color: const Color(0xFF19312C).withValues(alpha: 0.2), fontSize: 13),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -331,7 +331,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                   _onSearch('');
                 },
                 child: Icon(Icons.close_rounded,
-                    color: Colors.white.withValues(alpha: 0.3), size: 18),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.3), size: 18),
               ),
           ],
         ),
@@ -352,14 +352,14 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
         child: TabBar(
           controller: _tabController,
           indicator: BoxDecoration(
-            color: const Color(0xFF00E676).withValues(alpha: 0.2),
+            color: const Color(0xFF123F36).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: const Color(0xFF00E676).withValues(alpha: 0.4)),
+                color: const Color(0xFF123F36).withValues(alpha: 0.4)),
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
-          labelColor: const Color(0xFF00E676),
+          labelColor: const Color(0xFF123F36),
           unselectedLabelColor: Colors.white.withValues(alpha: 0.35),
           labelStyle:
               const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
@@ -400,12 +400,12 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
             const SizedBox(height: 12),
             const Text('No Names Found',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontSize: 16,
                     fontWeight: FontWeight.w700)),
             Text('Try a different search',
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.4), fontSize: 12)),
           ],
         ),
       );
@@ -448,14 +448,14 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                   height: 40,
                   decoration: BoxDecoration(
                     color: selected
-                        ? const Color(0xFF00E676).withValues(alpha: 0.2)
+                        ? const Color(0xFF123F36).withValues(alpha: 0.2)
                         : count > 0
                             ? const Color(0xFF141926)
                             : Colors.white.withValues(alpha: 0.02),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: selected
-                          ? const Color(0xFF00E676)
+                          ? const Color(0xFF123F36)
                           : count > 0
                               ? Colors.white.withValues(alpha: 0.08)
                               : Colors.transparent,
@@ -467,7 +467,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                       Text(l,
                           style: TextStyle(
                             color: selected
-                                ? const Color(0xFF00E676)
+                                ? const Color(0xFF123F36)
                                 : count > 0
                                     ? Colors.white
                                     : Colors.white.withValues(alpha: 0.15),
@@ -478,7 +478,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                         Text('$count',
                             style: TextStyle(
                               color: selected
-                                  ? const Color(0xFF00E676)
+                                  ? const Color(0xFF123F36)
                                   : Colors.white.withValues(alpha: 0.3),
                               fontSize: 7,
                             )),
@@ -512,8 +512,8 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
     if (_randomName == null) return const SizedBox.shrink();
     final name = _randomName!;
     final color = name.gender == 'boy'
-        ? const Color(0xFF74C0FC)
-        : const Color(0xFFFF9EBC);
+        ? const Color(0xFF2F6B5D)
+        : const Color(0xFFC6A15B);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -557,7 +557,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                 const SizedBox(height: 6),
                 Text(name.name,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: const Color(0xFF19312C),
                         fontSize: 28,
                         fontWeight: FontWeight.w900)),
                 const SizedBox(height: 4),
@@ -628,11 +628,11 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shuffle_rounded, color: Colors.white, size: 22),
+                  Icon(Icons.shuffle_rounded, color: const Color(0xFF19312C), size: 22),
                   SizedBox(width: 10),
                   Text('Generate Random Name',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF19312C),
                           fontSize: 16,
                           fontWeight: FontWeight.w700)),
                 ],
@@ -657,14 +657,14 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
             width: 70,
             child: Text(label,
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.4),
                     fontSize: 11,
                     fontWeight: FontWeight.w600)),
           ),
           Expanded(
               child: Text(value,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: const Color(0xFF19312C).withValues(alpha: 0.8),
                       fontSize: 12,
                       height: 1.4))),
         ],
@@ -714,12 +714,12 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
             const SizedBox(height: 12),
             const Text('No Saved Names',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: const Color(0xFF19312C),
                     fontSize: 18,
                     fontWeight: FontWeight.w700)),
             Text('Tap ❤️ on any name to save it',
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4), fontSize: 13)),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.4), fontSize: 13)),
           ],
         ),
       );
@@ -739,8 +739,8 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
   // ═══════════════════════════════════════════════════════════
   Widget _buildNameCard(_IslamicName name, int index) {
     final color = name.gender == 'boy'
-        ? const Color(0xFF74C0FC)
-        : const Color(0xFFFF9EBC);
+        ? const Color(0xFF2F6B5D)
+        : const Color(0xFFC6A15B);
     final isFav = _favorites.contains(index);
 
     return Container(
@@ -785,7 +785,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                   children: [
                     Text(name.name,
                         style: const TextStyle(
-                            color: Colors.white,
+                            color: const Color(0xFF19312C),
                             fontSize: 15,
                             fontWeight: FontWeight.w700)),
                     const SizedBox(width: 6),
@@ -806,13 +806,13 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                 ),
                 Text(name.meaning,
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: const Color(0xFF19312C).withValues(alpha: 0.5),
                         fontSize: 11),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
                 Text(name.urduMeaning,
                     style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.35),
+                        color: const Color(0xFF19312C).withValues(alpha: 0.35),
                         fontSize: 10),
                     maxLines: 1),
               ],
@@ -838,7 +838,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
               GestureDetector(
                 onTap: () => _copyName(name),
                 child: Icon(Icons.copy_rounded,
-                    color: Colors.white.withValues(alpha: 0.15), size: 16),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.15), size: 16),
               ),
             ],
           ),

@@ -180,8 +180,8 @@ class _MosqueVectorPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          const Color(0xFF0A1628),
-          const Color(0xFF020A08),
+          const Color(0xFFF5F3EC),
+          const Color(0xFFF5F3EC),
         ],
       ).createShader(bgRect);
     canvas.drawRect(bgRect, bgPaint);
@@ -198,7 +198,7 @@ class _MosqueVectorPainter extends CustomPainter {
 
     final baseY = h * 0.82;
     final silhouette = Paint()
-      ..color = const Color(0xFF0F1E2E)
+      ..color = const Color(0xFFEEF1EA)
       ..style = PaintingStyle.fill;
 
     // Ground
@@ -286,7 +286,7 @@ class _MosqueVectorPainter extends CustomPainter {
 
     // Arches on base
     final archPaint = Paint()
-      ..color = const Color(0xFF050D14)
+      ..color = const Color(0xFFE8EBE3)
       ..style = PaintingStyle.fill;
     for (int i = 0; i < 5; i++) {
       final cx = w * (0.2 + i * 0.15);
@@ -329,7 +329,7 @@ class _QuranVectorPainter extends CustomPainter {
     final h = size.height;
     if (w == 0 || h == 0) return;
 
-    final bg = Paint()..color = const Color(0xFF050D14);
+    final bg = Paint()..color = const Color(0xFFE8EBE3);
     canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bg);
 
     // Pages
@@ -337,7 +337,7 @@ class _QuranVectorPainter extends CustomPainter {
       Rect.fromLTWH(w * 0.10, h * 0.18, w * 0.80, h * 0.66),
       Radius.circular(w * 0.03),
     );
-    final pagePaint = Paint()..color = const Color(0xFF0F1E2E);
+    final pagePaint = Paint()..color = const Color(0xFFEEF1EA);
     canvas.drawRRect(pageRect, pagePaint);
 
     // Spine
@@ -347,7 +347,7 @@ class _QuranVectorPainter extends CustomPainter {
         width: w * 0.02,
         height: h * 0.70,
       ),
-      Paint()..color = const Color(0xFF020A08),
+      Paint()..color = const Color(0xFFF5F3EC),
     );
 
     // Gold border
@@ -450,7 +450,7 @@ class _LogoVectorPainter extends CustomPainter {
     if (w == 0 || h == 0) return;
     canvas.drawRect(
       Rect.fromLTWH(0, 0, w, h),
-      Paint()..color = const Color(0xFF020A08),
+      Paint()..color = const Color(0xFFF5F3EC),
     );
     // Kaaba cube
     final cube = RRect.fromRectAndRadius(
@@ -467,8 +467,8 @@ class _LogoVectorPainter extends CustomPainter {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          const Color(0xFF111827),
-          const Color(0xFF050D14),
+          const Color(0xFF19312C),
+          const Color(0xFFE8EBE3),
         ],
       ).createShader(cube.outerRect),
     );
@@ -521,7 +521,7 @@ class _PatternVectorPainter extends CustomPainter {
     if (w == 0 || h == 0) return;
     canvas.drawRect(
       Rect.fromLTWH(0, 0, w, h),
-      Paint()..color = const Color(0xFF050D14),
+      Paint()..color = const Color(0xFFE8EBE3),
     );
     final p = Paint()
       ..color = accent.withValues(alpha: 0.18)

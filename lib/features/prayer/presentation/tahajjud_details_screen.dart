@@ -3,10 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import '../data/models/prayer_models.dart';
+import '../providers/prayer_provider.dart';
 
 class TahajjudDetailsScreen extends ConsumerStatefulWidget {
   const TahajjudDetailsScreen({super.key});
@@ -17,10 +21,39 @@ class TahajjudDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
-  bool _alarmEnabled = true;
+  bool _alarmEnabled = false;
+
+  String _formatClock(DateTime time) {
+    final hour = time.hour;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = hour < 12 ? 'AM' : 'PM';
+    final hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return '${hour12.toString().padLeft(2, '0')}:$minute $period';
+  }
+
+  _NightWindows? _windows(DailyPrayerTimes? times) {
+    final maghrib = times?.getPrayer(PrayerType.maghrib)?.adjustedTime;
+    final fajr = times?.getPrayer(PrayerType.fajr)?.adjustedTime;
+    if (maghrib == null || fajr == null) return null;
+    var fajrAt = fajr;
+    if (!fajrAt.isAfter(maghrib)) {
+      fajrAt = fajrAt.add(const Duration(days: 1));
+    }
+    final night = fajrAt.difference(maghrib);
+    if (night.inMinutes < 30) return null;
+    final third = Duration(milliseconds: night.inMilliseconds ~/ 3);
+    final firstEnd = maghrib.add(third);
+    final lastStart = maghrib.add(Duration(milliseconds: third.inMilliseconds * 2));
+    return _NightWindows(
+      first: '${_formatClock(maghrib)} - ${_formatClock(firstEnd)}',
+      middle: '${_formatClock(firstEnd)} - ${_formatClock(lastStart)}',
+      last: '${_formatClock(lastStart)} - ${_formatClock(fajrAt)}',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final windows = _windows(ref.watch(dailyPrayerTimesProvider));
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
@@ -46,7 +79,13 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                   color: AppColors.textPrimary,
                 ),
               ),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(AppRoutes.prayer);
+                }
+              },
             ),
             centerTitle: true,
             title: Text(
@@ -88,14 +127,14 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF1E1B4B),
+                      Color(0xFFEEF1EA),
                       Color(0xFF312E81),
-                      Color(0xFF1E1B4B),
+                      Color(0xFFEEF1EA),
                     ],
                   ),
                   borderRadius: AppRadius.cardRadiusLarge,
                   border: Border.all(
-                    color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                    color: const Color(0xFFC6A15B).withValues(alpha: 0.3),
                   ),
                 ),
                 child: Stack(
@@ -106,7 +145,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                       child: Icon(
                         Icons.nightlight_round,
                         size: 100,
-                        color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                        color: const Color(0xFFC6A15B).withValues(alpha: 0.15),
                       ),
                     ),
                     Column(
@@ -125,7 +164,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                           style: TextStyle(
                             fontFamily: 'Amiri',
                             fontSize: 22,
-                            color: Color(0xFFFFD700),
+                            color: Color(0xFFC6A15B),
                             fontWeight: FontWeight.w700,
                           ),
                           textDirection: TextDirection.rtl,
@@ -152,10 +191,10 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: _buildInfoTile(
                 icon: Icons.access_time_filled_rounded,
-                iconColor: const Color(0xFF3B82F6),
+                iconColor: const Color(0xFF2F6B5D),
                 title: 'Recommended Time',
-                subtitle: '01:45 AM - 04:20 AM',
-                onTap: _showTimeDetails,
+                subtitle: windows?.last ?? 'Not available',
+                onTap: () => _showTimeDetails(windows),
               ),
             ),
           ),
@@ -177,12 +216,12 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                        color: const Color(0xFF2F6B5D).withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.alarm_rounded,
-                        color: Color(0xFF10B981),
+                        color: Color(0xFF2F6B5D),
                         size: 20,
                       ),
                     ),
@@ -211,7 +250,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                     ),
                     Switch(
                       value: _alarmEnabled,
-                      activeThumbColor: const Color(0xFF10B981),
+                      activeThumbColor: const Color(0xFF2F6B5D),
                       onChanged: (value) {
                         HapticFeedback.selectionClick();
                         setState(() => _alarmEnabled = value);
@@ -229,7 +268,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: _buildInfoTile(
                 icon: Icons.menu_book_rounded,
-                iconColor: const Color(0xFFFFB703),
+                iconColor: const Color(0xFFC6A15B),
                 title: 'Recommended Surahs',
                 subtitle: 'Al-Mulk, Al-Insan, Al-Jinn, Al-Muzzammil',
                 onTap: _showSurahsSheet,
@@ -243,7 +282,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: _buildInfoTile(
                 icon: Icons.volunteer_activism_rounded,
-                iconColor: const Color(0xFFD4AF37),
+                iconColor: const Color(0xFFC6A15B),
                 title: 'Recommended Duas',
                 subtitle: 'Dua Qunoot, Istighfar, Any Dua',
                 onTap: _showDuasSheet,
@@ -259,7 +298,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                 icon: Icons.local_fire_department_rounded,
                 iconColor: const Color(0xFFEF4444),
                 title: 'Tahajjud Streak',
-                subtitle: '8 Days',
+                subtitle: 'Not tracked',
                 onTap: _showStreakSheet,
               ),
             ),
@@ -280,14 +319,14 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [
-                        Color(0xFF10B981),
-                        Color(0xFF059669),
+                        Color(0xFF2F6B5D),
+                        Color(0xFF123F36),
                       ],
                     ),
                     borderRadius: AppRadius.cardRadius,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                        color: const Color(0xFF2F6B5D).withValues(alpha: 0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -375,7 +414,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
   // TIME DETAILS
   // ============================================================
 
-  void _showTimeDetails() {
+  void _showTimeDetails(_NightWindows? windows) {
     _openSheet(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,26 +427,35 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               fontWeight: FontWeight.w900,
             ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            windows == null
+                ? 'Windows appear after Maghrib and Fajr can be calculated.'
+                : 'Divided from today\'s Maghrib to Fajr.',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
           const SizedBox(height: 16),
           _buildTimeSection(
             'Last Third of Night',
-            '01:45 AM - 04:20 AM',
-            'Best time — Allah descends to lowest heaven',
-            const Color(0xFFFFD700),
+            windows?.last ?? 'Not available',
+            'Usually the preferred window',
+            const Color(0xFFC6A15B),
           ),
           const SizedBox(height: 12),
           _buildTimeSection(
             'Middle of Night',
-            '11:30 PM - 01:45 AM',
-            'Good time for reflection',
-            const Color(0xFFD4AF37),
+            windows?.middle ?? 'Not available',
+            'Optional window',
+            const Color(0xFFC6A15B),
           ),
           const SizedBox(height: 12),
           _buildTimeSection(
             'First Third',
-            '09:00 PM - 11:30 PM',
-            'Also acceptable',
-            const Color(0xFF3B82F6),
+            windows?.first ?? 'Not available',
+            'Optional window',
+            const Color(0xFF2F6B5D),
           ),
         ],
       ),
@@ -523,12 +571,12 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFB703).withValues(alpha: 0.15),
+                      color: const Color(0xFFC6A15B).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.menu_book_rounded,
-                      color: Color(0xFFFFB703),
+                      color: Color(0xFFC6A15B),
                       size: 18,
                     ),
                   ),
@@ -552,7 +600,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                               style: const TextStyle(
                                 fontFamily: 'Amiri',
                                 fontSize: 18,
-                                color: Color(0xFFFFD700),
+                                color: Color(0xFFC6A15B),
                                 fontWeight: FontWeight.w700,
                               ),
                               textDirection: TextDirection.rtl,
@@ -628,7 +676,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                 color: AppColors.background,
                 borderRadius: AppRadius.cardRadius,
                 border: Border.all(
-                  color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
+                  color: const Color(0xFFC6A15B).withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -637,7 +685,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                   Text(
                     d['name']!,
                     style: AppTextStyles.titleSmall.copyWith(
-                      color: const Color(0xFFD4AF37),
+                      color: const Color(0xFFC6A15B),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -647,7 +695,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                     style: const TextStyle(
                       fontFamily: 'Amiri',
                       fontSize: 20,
-                      color: Color(0xFFFFD700),
+                      color: Color(0xFFC6A15B),
                       fontWeight: FontWeight.w700,
                       height: 1.8,
                     ),
@@ -699,80 +747,16 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 40,
-                vertical: 20,
-              ),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFFEF4444),
-                    Color(0xFFDC2626),
-                  ],
-                ),
-                borderRadius: AppRadius.cardRadiusLarge,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFEF4444).withValues(alpha: 0.3),
-                    blurRadius: 15,
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    '8',
-                    style: TextStyle(
-                      fontSize: 64,
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w900,
-                      height: 1.0,
-                    ),
-                  ),
-                  Text(
-                    'DAYS',
-                    style: AppTextStyles.titleSmall.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 3.0,
-                    ),
-                  ),
-                ],
-              ),
+          Text(
+            'Tahajjud nights are not tracked in this build. Counts will appear here only after a real record exists.',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 24),
-          _buildStatRow('Longest Streak', '15 Days', const Color(0xFFFFD700)),
-          _buildStatRow('Total Tahajjud', '42 Prayers', AppColors.primary),
-          _buildStatRow('This Month', '20 Days', const Color(0xFFD4AF37)),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: AppRadius.cardRadius,
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.emoji_events_rounded,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'MashaAllah! Keep it up. Consistency is the key to success.',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 16),
+          _buildStatRow('Current streak', 'Not available', AppColors.primary),
+          _buildStatRow('Longest streak', 'Not available', const Color(0xFFC6A15B)),
+          _buildStatRow('Total Tahajjud', 'Not available', AppColors.primary),
         ],
       ),
     );
@@ -889,12 +873,12 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           children: [
             const Icon(
               Icons.alarm_rounded,
-              color: Color(0xFF10B981),
+              color: Color(0xFF2F6B5D),
               size: 24,
             ),
             const SizedBox(width: 8),
             Text(
-              'Alarm Set!',
+              'Reminder',
               style: AppTextStyles.titleMedium.copyWith(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w900,
@@ -903,7 +887,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           ],
         ),
         content: Text(
-          'Tahajjud alarm set for 1:45 AM. May Allah accept your worship.',
+          'This toggle is only a reminder on this screen. No device alarm is scheduled.',
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.textSecondary,
           ),
@@ -911,14 +895,26 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
         actions: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
+              backgroundColor: const Color(0xFF2F6B5D),
               foregroundColor: AppColors.white,
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('MashaAllah!'),
+            child: const Text('OK'),
           ),
         ],
       ),
     );
   }
+}
+
+class _NightWindows {
+  const _NightWindows({
+    required this.first,
+    required this.middle,
+    required this.last,
+  });
+
+  final String first;
+  final String middle;
+  final String last;
 }
