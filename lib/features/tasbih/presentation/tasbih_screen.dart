@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../providers/tasbih_provider.dart';
@@ -75,24 +75,25 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   }
 
   void _showCompletionMessage() {
+    final colors = QibraColors.of(context);
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_rounded,
-                color: const Color(0xFF19312C), size: 20),
+            Icon(Icons.check_circle_rounded,
+                color: colors.textPrimary, size: 20),
             const SizedBox(width: AppSpacing.sm),
             Text(
               'MashaAllah! Target achieved 🎉',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: const Color(0xFF19312C),
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ],
         ),
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -104,26 +105,27 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   }
 
   void _showDailyGoalMessage() {
+    final colors = QibraColors.of(context);
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.emoji_events_rounded,
-                color: const Color(0xFF19312C), size: 24),
+            Icon(Icons.emoji_events_rounded,
+                color: colors.textPrimary, size: 24),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
                 '🏆 Daily Goal Complete! Barakallahu feek!',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: const Color(0xFF19312C),
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ),
           ],
         ),
-        backgroundColor: const Color(0xFFC6A15B),
+        backgroundColor: colors.accent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -179,11 +181,12 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   }
 
   void _confirmReset() {
+    final colors = QibraColors.of(context);
     HapticFeedback.mediumImpact();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: colors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
@@ -195,7 +198,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
         content: Text(
           'Kya aap current count reset karna chahte hain?',
           style:
-              AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+              AppTextStyles.bodyMedium.copyWith(color: colors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -203,7 +206,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             child: Text(
               'Cancel',
               style: AppTextStyles.labelLarge
-                  .copyWith(color: AppColors.textSecondary),
+                  .copyWith(color: colors.textSecondary),
             ),
           ),
           TextButton(
@@ -214,7 +217,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             child: Text(
               'Reset',
               style: AppTextStyles.labelLarge.copyWith(
-                color: AppColors.error,
+                color: colors.error,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -226,19 +229,20 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final state = ref.watch(tasbihProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.primary.withValues(alpha: 0.15),
-              AppColors.background,
-              AppColors.background,
+              colors.primary.withValues(alpha: 0.15),
+              colors.background,
+              colors.background,
             ],
             stops: const [0.0, 0.35, 1.0],
           ),
@@ -273,6 +277,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   // ============================================================
 
   Widget _buildHeader() {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
@@ -286,15 +291,15 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.60),
+                color: colors.surface.withValues(alpha: 0.60),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.20),
+                  color: colors.primary.withValues(alpha: 0.20),
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 size: 18,
               ),
             ),
@@ -307,17 +312,17 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                 Text(
                   'Digital Tasbih',
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const Text(
+                Text(
                   'تَسْبِيح',
                   textDirection: TextDirection.rtl,
                   style: TextStyle(
                     fontFamily: 'Amiri',
                     fontSize: 14,
-                    color: AppColors.primary,
+                    color: colors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -332,15 +337,15 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               height: 40,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.60),
+                color: colors.surface.withValues(alpha: 0.60),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.20),
+                  color: colors.primary.withValues(alpha: 0.20),
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.bar_chart_rounded,
-                color: AppColors.primary,
+                color: colors.primary,
                 size: 20,
               ),
             ),
@@ -353,15 +358,15 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               height: 40,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.60),
+                color: colors.surface.withValues(alpha: 0.60),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.20),
+                  color: colors.primary.withValues(alpha: 0.20),
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.history_rounded,
-                color: AppColors.primary,
+                color: colors.primary,
                 size: 20,
               ),
             ),
@@ -380,8 +385,8 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   height: 40,
                   decoration: BoxDecoration(
                     color: vibrationEnabled
-                        ? AppColors.primary.withValues(alpha: 0.20)
-                        : AppColors.surface.withValues(alpha: 0.60),
+                        ? colors.primary.withValues(alpha: 0.20)
+                        : colors.surface.withValues(alpha: 0.60),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -389,8 +394,8 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                         ? Icons.vibration_rounded
                         : Icons.smartphone_rounded,
                     color: vibrationEnabled
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
+                        ? colors.primary
+                        : colors.textSecondary,
                     size: 20,
                   ),
                 ),
@@ -407,33 +412,34 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   // ============================================================
 
   Widget _buildAchievementBar(TasbihState state) {
+    final colors = QibraColors.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFC6A15B).withValues(alpha: 0.15),
-            AppColors.accent.withValues(alpha: 0.10),
+            colors.accent.withValues(alpha: 0.15),
+            colors.accent.withValues(alpha: 0.10),
           ],
         ),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border:
-            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.30)),
+            Border.all(color: colors.accent.withValues(alpha: 0.30)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFFC6A15B), Color(0xFFB8860B)],
+                colors: [colors.accent, Color(0xFFB8860B)],
               ),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.emoji_events_rounded,
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               size: 20,
             ),
           ),
@@ -446,13 +452,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   state.achievementTitle,
                   style: AppTextStyles.titleSmall.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 Text(
                   '${state.totalCount} total dhikr',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -463,16 +469,16 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.local_fire_department_rounded,
-                    color: Color(0xFFEF4444),
+                    color: colors.error,
                     size: 16,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '${state.currentStreak}',
                     style: AppTextStyles.titleSmall.copyWith(
-                      color: const Color(0xFFEF4444),
+                      color: colors.error,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -481,7 +487,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               Text(
                 'day streak',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontSize: 10,
                 ),
               ),
@@ -497,15 +503,16 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   // ============================================================
 
   Widget _buildDailyGoalCard(TasbihState state) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: _showDailyGoalSelector,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.borderSubtle),
+          border: Border.all(color: colors.border),
         ),
         child: Column(
           children: [
@@ -514,8 +521,8 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                 Icon(
                   Icons.flag_rounded,
                   color: state.isDailyGoalComplete
-                      ? const Color(0xFF2F6B5D)
-                      : AppColors.primary,
+                      ? colors.primarySoft
+                      : colors.primary,
                   size: 18,
                 ),
                 const SizedBox(width: 8),
@@ -523,7 +530,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   child: Text(
                     'Daily Goal',
                     style: AppTextStyles.labelMedium.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -533,8 +540,8 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   style: AppTextStyles.titleSmall.copyWith(
                     fontWeight: FontWeight.w800,
                     color: state.isDailyGoalComplete
-                        ? const Color(0xFF2F6B5D)
-                        : AppColors.textPrimary,
+                        ? colors.primarySoft
+                        : colors.textPrimary,
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -547,11 +554,11 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: state.dailyProgress,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                backgroundColor: colors.primary.withValues(alpha: 0.15),
                 valueColor: AlwaysStoppedAnimation(
                   state.isDailyGoalComplete
-                      ? const Color(0xFF2F6B5D)
-                      : AppColors.primary,
+                      ? colors.primarySoft
+                      : colors.primary,
                 ),
                 minHeight: 6,
               ),
@@ -567,6 +574,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   // ============================================================
 
   Widget _buildDhikrCard(TasbihState state) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: _showDhikrSelector,
       child: Container(
@@ -577,12 +585,12 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primary.withValues(alpha: 0.20),
-              AppColors.primary.withValues(alpha: 0.10),
+              colors.primary.withValues(alpha: 0.20),
+              colors.primary.withValues(alpha: 0.10),
             ],
           ),
           borderRadius: BorderRadius.circular(AppRadius.xl2),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.30)),
+          border: Border.all(color: colors.primary.withValues(alpha: 0.30)),
         ),
         child: Column(
           children: [
@@ -590,10 +598,10 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               state.currentDhikr.arabic,
               textDirection: TextDirection.rtl,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Amiri',
                 fontSize: 32,
-                color: AppColors.primary,
+                color: colors.primary,
                 fontWeight: FontWeight.w700,
                 height: 1.6,
               ),
@@ -602,7 +610,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             Text(
               state.currentDhikr.transliteration,
               style: AppTextStyles.titleMedium.copyWith(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -610,7 +618,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             Text(
               state.currentDhikr.translation,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
               textAlign: TextAlign.center,
@@ -622,22 +630,22 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                 vertical: 4,
               ),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
+                color: colors.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.swap_horiz_rounded,
-                    color: AppColors.primary,
+                    color: colors.primary,
                     size: 14,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     'Tap to change',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.primary,
+                      color: colors.primary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -655,6 +663,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   // ============================================================
 
   Widget _buildCounter(TasbihState state) {
+    final colors = QibraColors.of(context);
     return AnimatedBuilder(
       animation: _bounceAnimation,
       builder: (context, child) {
@@ -669,13 +678,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.primary.withValues(alpha: 0.30),
-                    AppColors.primary.withValues(alpha: 0.10),
+                    colors.primary.withValues(alpha: 0.30),
+                    colors.primary.withValues(alpha: 0.10),
                   ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.40),
+                    color: colors.primary.withValues(alpha: 0.40),
                     blurRadius: 40,
                     spreadRadius: 5,
                   ),
@@ -690,7 +699,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                     child: CustomPaint(
                       painter: _ProgressRingPainter(
                         progress: state.progress,
-                        color: AppColors.primary,
+                        color: colors.primary,
                         strokeWidth: 8,
                       ),
                     ),
@@ -698,12 +707,12 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   Container(
                     width: 220,
                     height: 220,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [AppColors.primary, AppColors.accent],
+                        colors: [colors.primary, colors.accent],
                       ),
                     ),
                     child: Center(
@@ -712,9 +721,9 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                         children: [
                           Text(
                             '${state.count}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 80,
-                              color: AppColors.white,
+                              color: colors.card,
                               fontWeight: FontWeight.w800,
                               height: 1,
                             ),
@@ -726,13 +735,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.white.withValues(alpha: 0.18),
+                              color: colors.card.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               '/ ${state.target}',
                               style: AppTextStyles.labelMedium.copyWith(
-                                color: AppColors.white,
+                                color: colors.card,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -755,6 +764,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   // ============================================================
 
   Widget _buildControls(TasbihState state) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Column(
@@ -767,7 +777,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   icon: Icons.refresh_rounded,
                   label: 'Rounds',
                   value: '${state.rounds}',
-                  color: const Color(0xFF2F6B5D),
+                  color: colors.primarySoft,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -776,7 +786,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   icon: Icons.timer_outlined,
                   label: 'Remaining',
                   value: '${state.remaining}',
-                  color: const Color(0xFF123F36),
+                  color: colors.primary,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -785,7 +795,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   icon: Icons.star_rounded,
                   label: 'Total',
                   value: '${state.totalCount}',
-                  color: AppColors.accent,
+                  color: colors.accent,
                 ),
               ),
             ],
@@ -807,7 +817,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   icon: Icons.refresh_rounded,
                   label: 'Reset',
                   onTap: _confirmReset,
-                  color: AppColors.error,
+                  color: colors.error,
                 ),
               ),
             ],
@@ -835,6 +845,7 @@ class _ProgressRingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
@@ -885,6 +896,7 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: AppSpacing.sm + 2,
@@ -909,7 +921,7 @@ class _StatCard extends StatelessWidget {
           Text(
             label,
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               fontSize: 10,
             ),
           ),
@@ -938,7 +950,8 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final btnColor = color ?? AppColors.primary;
+    final colors = QibraColors.of(context);
+    final btnColor = color ?? colors.primary;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -980,12 +993,13 @@ class _DhikrSelectorSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final currentDhikr = ref.watch(tasbihProvider).currentDhikr;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: colors.surface,
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
       ),
@@ -999,7 +1013,7 @@ class _DhikrSelectorSheet extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.borderSubtle,
+                  color: colors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1026,13 +1040,13 @@ class _DhikrSelectorSheet extends ConsumerWidget {
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.15)
+                          ? colors.primary.withValues(alpha: 0.15)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       border: Border.all(
                         color: isSelected
-                            ? AppColors.primary
-                            : AppColors.borderSubtle,
+                            ? colors.primary
+                            : colors.border,
                       ),
                     ),
                     child: Row(
@@ -1044,10 +1058,10 @@ class _DhikrSelectorSheet extends ConsumerWidget {
                               Text(
                                 dhikr.arabic,
                                 textDirection: TextDirection.rtl,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Amiri',
                                   fontSize: 22,
-                                  color: AppColors.primary,
+                                  color: colors.primary,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -1061,7 +1075,7 @@ class _DhikrSelectorSheet extends ConsumerWidget {
                               Text(
                                 dhikr.translation,
                                 style: AppTextStyles.labelSmall.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: colors.textSecondary,
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
@@ -1075,22 +1089,22 @@ class _DhikrSelectorSheet extends ConsumerWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.accent.withValues(alpha: 0.15),
+                            color: colors.accent.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             '${dhikr.defaultTarget}',
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.accent,
+                              color: colors.accent,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
                         if (isSelected) ...[
                           const SizedBox(width: AppSpacing.sm),
-                          const Icon(
+                          Icon(
                             Icons.check_circle_rounded,
-                            color: AppColors.primary,
+                            color: colors.primary,
                             size: 20,
                           ),
                         ],
@@ -1116,13 +1130,14 @@ class _TargetSelectorSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final currentTarget = ref.watch(tasbihProvider).target;
     final presets = [33, 99, 100, 500, 1000];
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: colors.surface,
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
       ),
@@ -1135,7 +1150,7 @@ class _TargetSelectorSheet extends ConsumerWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.borderSubtle,
+                color: colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1166,14 +1181,14 @@ class _TargetSelectorSheet extends ConsumerWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.primary
-                        : AppColors.primary.withValues(alpha: 0.15),
+                        ? colors.primary
+                        : colors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Text(
                     '$preset',
                     style: AppTextStyles.titleSmall.copyWith(
-                      color: isSelected ? Colors.white : AppColors.primary,
+                      color: isSelected ? Colors.white : colors.primary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -1197,13 +1212,14 @@ class _DailyGoalSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final currentGoal = ref.watch(tasbihProvider).dailyGoal;
     final goals = [50, 100, 300, 500, 1000, 2000];
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: colors.surface,
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
       ),
@@ -1216,7 +1232,7 @@ class _DailyGoalSheet extends ConsumerWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.borderSubtle,
+                color: colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1231,7 +1247,7 @@ class _DailyGoalSheet extends ConsumerWidget {
           Text(
             'Total dhikr count target per day',
             style: AppTextStyles.labelSmall
-                .copyWith(color: AppColors.textSecondary),
+                .copyWith(color: colors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.lg),
           Wrap(
@@ -1253,19 +1269,19 @@ class _DailyGoalSheet extends ConsumerWidget {
                   ),
                   decoration: BoxDecoration(
                     gradient: isSelected
-                        ? const LinearGradient(
-                            colors: [AppColors.primary, AppColors.accent],
+                        ? LinearGradient(
+                            colors: [colors.primary, colors.accent],
                           )
                         : null,
                     color: isSelected
                         ? null
-                        : AppColors.primary.withValues(alpha: 0.10),
+                        : colors.primary.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Text(
                     '$goal',
                     style: AppTextStyles.titleSmall.copyWith(
-                      color: isSelected ? Colors.white : AppColors.primary,
+                      color: isSelected ? Colors.white : colors.primary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -1289,12 +1305,13 @@ class _StatisticsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final state = ref.watch(tasbihProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         elevation: 0,
         title: Text(
           'Statistics',
@@ -1312,25 +1329,25 @@ class _StatisticsScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFFC6A15B), Color(0xFFB8860B)],
+                    colors: [colors.accent, Color(0xFFB8860B)],
                   ),
                   borderRadius: BorderRadius.circular(AppRadius.xl2),
                 ),
                 child: Column(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.emoji_events_rounded,
-                      color: const Color(0xFF19312C),
+                      color: colors.textPrimary,
                       size: 48,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       state.achievementTitle,
                       style: AppTextStyles.titleLarge.copyWith(
-                        color: const Color(0xFF19312C),
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -1338,7 +1355,7 @@ class _StatisticsScreen extends ConsumerWidget {
                     Text(
                       '${state.totalCount} total dhikr',
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.9),
+                        color: colors.textPrimary.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -1353,7 +1370,7 @@ class _StatisticsScreen extends ConsumerWidget {
                       icon: Icons.today_rounded,
                       label: 'Today',
                       value: '${state.todayCount}',
-                      color: AppColors.primary,
+                      color: colors.primary,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -1362,7 +1379,7 @@ class _StatisticsScreen extends ConsumerWidget {
                       icon: Icons.local_fire_department_rounded,
                       label: 'Streak',
                       value: '${state.currentStreak}',
-                      color: const Color(0xFFEF4444),
+                      color: colors.error,
                     ),
                   ),
                 ],
@@ -1375,7 +1392,7 @@ class _StatisticsScreen extends ConsumerWidget {
                       icon: Icons.star_rounded,
                       label: 'Best Streak',
                       value: '${state.bestStreak}',
-                      color: AppColors.accent,
+                      color: colors.accent,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -1384,7 +1401,7 @@ class _StatisticsScreen extends ConsumerWidget {
                       icon: Icons.flag_rounded,
                       label: 'Daily Goal',
                       value: '${state.dailyGoal}',
-                      color: const Color(0xFF2F6B5D),
+                      color: colors.primarySoft,
                     ),
                   ),
                 ],
@@ -1446,7 +1463,7 @@ class _StatisticsScreen extends ConsumerWidget {
           Text(
             label,
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -1455,23 +1472,24 @@ class _StatisticsScreen extends ConsumerWidget {
   }
 
   Widget _achievementRow(String title, int target, int current, bool unlocked) {
+    final colors = QibraColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: unlocked
-            ? AppColors.primary.withValues(alpha: 0.10)
-            : AppColors.surface,
+            ? colors.primary.withValues(alpha: 0.10)
+            : colors.surface,
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
-          color: unlocked ? AppColors.primary : AppColors.borderSubtle,
+          color: unlocked ? colors.primary : colors.border,
         ),
       ),
       child: Row(
         children: [
           Icon(
             unlocked ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
-            color: unlocked ? AppColors.primary : AppColors.textTertiary,
+            color: unlocked ? colors.primary : colors.textTertiary,
             size: 24,
           ),
           const SizedBox(width: AppSpacing.md),
@@ -1484,24 +1502,24 @@ class _StatisticsScreen extends ConsumerWidget {
                   style: AppTextStyles.titleSmall.copyWith(
                     fontWeight: FontWeight.w700,
                     color: unlocked
-                        ? AppColors.textPrimary
-                        : AppColors.textSecondary,
+                        ? colors.textPrimary
+                        : colors.textSecondary,
                   ),
                 ),
                 Text(
                   target > 0 ? '$target dhikr required' : 'Just start!',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
           if (unlocked)
-            const Text(
+            Text(
               '✓',
               style: TextStyle(
-                color: AppColors.primary,
+                color: colors.primary,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -1521,12 +1539,13 @@ class _HistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final history = ref.watch(tasbihProvider).history;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         elevation: 0,
         title: Text(
           'History',
@@ -1540,22 +1559,22 @@ class _HistoryScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.history_rounded,
                       size: 80,
-                      color: AppColors.textTertiary,
+                      color: colors.textTertiary,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Text(
                       'No history yet',
                       style: AppTextStyles.titleMedium
-                          .copyWith(color: AppColors.textSecondary),
+                          .copyWith(color: colors.textSecondary),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Complete a target to see history',
                       style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.textTertiary),
+                          .copyWith(color: colors.textTertiary),
                     ),
                   ],
                 ),
@@ -1574,9 +1593,9 @@ class _HistoryScreen extends ConsumerWidget {
                     margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: AppColors.borderSubtle),
+                      border: Border.all(color: colors.border),
                     ),
                     child: Row(
                       children: [
@@ -1584,12 +1603,12 @@ class _HistoryScreen extends ConsumerWidget {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.15),
+                            color: colors.primary.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.check_circle_rounded,
-                            color: AppColors.primary,
+                            color: colors.primary,
                           ),
                         ),
                         const SizedBox(width: AppSpacing.md),
@@ -1606,7 +1625,7 @@ class _HistoryScreen extends ConsumerWidget {
                               Text(
                                 '${entry.count} times • ${entry.date}',
                                 style: AppTextStyles.labelSmall.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: colors.textSecondary,
                                 ),
                               ),
                             ],
@@ -1615,7 +1634,7 @@ class _HistoryScreen extends ConsumerWidget {
                         Text(
                           _timeAgo(entry.completedAt),
                           style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.primary,
+                            color: colors.primary,
                             fontWeight: FontWeight.w700,
                           ),
                         ),

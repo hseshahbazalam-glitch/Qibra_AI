@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:hijri/hijri_calendar.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -29,7 +29,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Islamic New Year',
       nameArabic: 'رأس السنة الهجرية',
       description: 'Start of Islamic Hijri year',
-      color: const Color(0xFF2F6B5D),
+      color: colors.primarySoft,
       icon: Icons.celebration_rounded,
       category: 'Holiday',
       importance: 3,
@@ -39,7 +39,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Day of Ashura',
       nameArabic: 'يوم عاشوراء',
       description: 'Day of fasting & remembrance. Prophet Musa was saved.',
-      color: const Color(0xFFC6A15B),
+      color: colors.accent,
       icon: Icons.mosque_rounded,
       category: 'Fasting',
       importance: 3,
@@ -49,7 +49,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Mawlid an-Nabi',
       nameArabic: 'المولد النبوي',
       description: 'Birth of Prophet Muhammad ﷺ',
-      color: const Color(0xFFC6A15B),
+      color: colors.accent,
       icon: Icons.favorite_rounded,
       category: 'Holiday',
       importance: 3,
@@ -60,7 +60,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       nameArabic: 'الإسراء والمعراج',
       description:
           'Night journey of Prophet ﷺ from Makkah to Jerusalem & heavens',
-      color: const Color(0xFF2F6B5D),
+      color: colors.primarySoft,
       icon: Icons.nights_stay_rounded,
       category: 'Special Night',
       importance: 3,
@@ -70,7 +70,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Shab-e-Barat',
       nameArabic: 'ليلة النصف من شعبان',
       description: 'Night of forgiveness. Records are transferred.',
-      color: const Color(0xFFC6A15B),
+      color: colors.accent,
       icon: Icons.auto_awesome,
       category: 'Special Night',
       importance: 2,
@@ -80,7 +80,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Ramadan Begins',
       nameArabic: 'بداية رمضان',
       description: 'Start of the holy month of fasting',
-      color: const Color(0xFFEF4444),
+      color: colors.error,
       icon: Icons.nightlight_round,
       category: 'Fasting',
       importance: 3,
@@ -90,7 +90,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Laylat al-Qadr',
       nameArabic: 'ليلة القدر',
       description: 'Night better than 1000 months. Quran was revealed.',
-      color: const Color(0xFFC6A15B),
+      color: colors.accent,
       icon: Icons.star_rounded,
       category: 'Special Night',
       importance: 3,
@@ -100,7 +100,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Eid al-Fitr',
       nameArabic: 'عيد الفطر',
       description: 'Festival of Breaking the Fast. Celebrate with family!',
-      color: const Color(0xFF2F6B5D),
+      color: colors.primarySoft,
       icon: Icons.celebration_rounded,
       category: 'Holiday',
       importance: 3,
@@ -110,7 +110,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Day of Arafah',
       nameArabic: 'يوم عرفة',
       description: 'Best day for fasting. Sins of 2 years forgiven.',
-      color: const Color(0xFF123F36),
+      color: colors.primary,
       icon: Icons.terrain_rounded,
       category: 'Fasting',
       importance: 3,
@@ -120,7 +120,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Eid al-Adha',
       nameArabic: 'عيد الأضحى',
       description: 'Festival of Sacrifice. Remember Ibrahim\'s devotion.',
-      color: const Color(0xFFC6A15B),
+      color: colors.accent,
       icon: Icons.celebration_rounded,
       category: 'Holiday',
       importance: 3,
@@ -130,7 +130,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Monday Fasting',
       nameArabic: 'صيام الإثنين',
       description: 'Sunnah fasting on Mondays',
-      color: const Color(0xFF2F6B5D),
+      color: colors.primarySoft,
       icon: Icons.restaurant_rounded,
       category: 'Sunnah',
       importance: 1,
@@ -140,7 +140,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Thursday Fasting',
       nameArabic: 'صيام الخميس',
       description: 'Sunnah fasting on Thursdays',
-      color: const Color(0xFF2F6B5D),
+      color: colors.primarySoft,
       icon: Icons.restaurant_rounded,
       category: 'Sunnah',
       importance: 1,
@@ -150,7 +150,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       name: 'Ayyam al-Beedh',
       nameArabic: 'أيام البيض',
       description: 'White days fasting (13th, 14th, 15th of each Hijri month)',
-      color: const Color(0xFFC6A15B),
+      color: colors.accent,
       icon: Icons.brightness_3_rounded,
       category: 'Sunnah',
       importance: 1,
@@ -164,8 +164,9 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -230,7 +231,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                     Text(
                       'ISLAMIC EVENTS',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.accent,
+                        color: colors.accent,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 2.0,
                       ),
@@ -239,7 +240,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                     Text(
                       '${_filteredEvents.length} events',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
@@ -270,24 +271,25 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
   // ============================================================
 
   Widget _buildAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 100,
       pinned: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       elevation: 0,
       leading: IconButton(
         icon: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colors.surface,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.borderSubtle),
+            border: Border.all(color: colors.border),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 18,
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         onPressed: () {
@@ -304,7 +306,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
           Text(
             'HIJRI CALENDAR',
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.accent,
+              color: colors.accent,
               fontWeight: FontWeight.w800,
               letterSpacing: 2.0,
               fontSize: 10,
@@ -313,7 +315,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
           Text(
             'Islamic Calendar',
             style: AppTextStyles.titleLarge.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -334,13 +336,13 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: colors.surface,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.borderSubtle),
+                border: Border.all(color: colors.border),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.today_rounded,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 size: 18,
               ),
             ),
@@ -355,19 +357,20 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
   // ============================================================
 
   Widget _buildTodayCard() {
+    final colors = QibraColors.of(context);
     final now = DateTime.now();
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF123F36), Color(0xFF2F6B5D)],
+          colors: [colors.primary, colors.primarySoft],
         ),
         borderRadius: AppRadius.cardRadiusLarge,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: colors.primary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -382,13 +385,13 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.15),
+                  color: colors.card.withValues(alpha: 0.15),
                   borderRadius: AppRadius.pillRadius,
                 ),
                 child: Text(
                   'TODAY',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.white,
+                    color: colors.card,
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
                     letterSpacing: 1.5,
@@ -400,19 +403,19 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFC6A15B).withValues(alpha: 0.2),
+                  color: colors.accent.withValues(alpha: 0.2),
                   borderRadius: AppRadius.pillRadius,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.mosque_rounded,
-                        color: Color(0xFFC6A15B), size: 14),
+                    Icon(Icons.mosque_rounded,
+                        color: colors.accent, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       now.weekday == 5 ? 'Jummah Mubarak!' : 'Blessed Day',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: const Color(0xFFC6A15B),
+                        color: colors.accent,
                         fontWeight: FontWeight.w800,
                         fontSize: 10,
                       ),
@@ -426,7 +429,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
           Text(
             '${HijriCalendar.now().hDay} ${HijriCalendar.now().longMonthName} ${HijriCalendar.now().hYear}',
             style: AppTextStyles.displayLarge.copyWith(
-              color: AppColors.white,
+              color: colors.card,
               fontWeight: FontWeight.w900,
               fontSize: 36,
               height: 1.0,
@@ -436,7 +439,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
           Text(
             '${_getDayName(now.weekday)}, ${now.day} ${_getMonthName(now.month)} ${now.year}',
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.white.withValues(alpha: 0.85),
+              color: colors.card.withValues(alpha: 0.85),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -449,14 +452,14 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded,
-                    color: Color(0xFFC6A15B), size: 16),
+                Icon(Icons.info_outline_rounded,
+                    color: colors.accent, size: 16),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     '${HijriCalendar.now().longMonthName} ${HijriCalendar.now().hYear} AH',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.white.withValues(alpha: 0.9),
+                      color: colors.card.withValues(alpha: 0.9),
                       fontSize: 11,
                     ),
                   ),
@@ -474,29 +477,30 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
   // ============================================================
 
   Widget _buildSpecialDaysInfo() {
+    final colors = QibraColors.of(context);
     final now = DateTime.now();
     final isMonday = now.weekday == 1;
     final isThursday = now.weekday == 4;
     final isFriday = now.weekday == 5;
 
     String specialInfo = '';
-    Color specialColor = AppColors.primary;
+    Color specialColor = colors.primary;
     IconData specialIcon = Icons.info_outline;
 
     if (isFriday) {
       specialInfo = 'Jummah Mubarak! Best day for Surah Al-Kahf & Salawat';
-      specialColor = const Color(0xFF2F6B5D);
+      specialColor = colors.primarySoft;
       specialIcon = Icons.mosque_rounded;
     } else if (isMonday || isThursday) {
       specialInfo = isMonday
           ? 'Monday — Sunnah fasting day. Prophet ﷺ used to fast.'
           : 'Thursday — Sunnah fasting day. Deeds are presented to Allah.';
-      specialColor = const Color(0xFF123F36);
+      specialColor = colors.primary;
       specialIcon = Icons.restaurant_rounded;
     } else {
       specialInfo =
           'Make the most of today with dhikr, Quran reading, and good deeds.';
-      specialColor = AppColors.accent;
+      specialColor = colors.accent;
       specialIcon = Icons.auto_awesome;
     }
 
@@ -528,7 +532,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             child: Text(
               specialInfo,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w600,
                 height: 1.4,
               ),
@@ -544,6 +548,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
   // ============================================================
 
   Widget _buildFilterChips() {
+    final colors = QibraColors.of(context);
     final categories = ['All', 'Holiday', 'Fasting', 'Special Night', 'Sunnah'];
 
     return SizedBox(
@@ -564,21 +569,21 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 gradient: isSelected
-                    ? const LinearGradient(
-                        colors: [AppColors.primary, AppColors.accent],
+                    ? LinearGradient(
+                        colors: [colors.primary, colors.accent],
                       )
                     : null,
-                color: isSelected ? null : AppColors.surface,
+                color: isSelected ? null : colors.surface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color:
-                      isSelected ? Colors.transparent : AppColors.borderSubtle,
+                      isSelected ? Colors.transparent : colors.border,
                 ),
               ),
               child: Text(
                 cat,
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  color: isSelected ? Colors.white : colors.textSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -594,18 +599,19 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
   // ============================================================
 
   Widget _buildMonthNavigator() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadius,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left_rounded,
-                color: AppColors.primary),
+            icon: Icon(Icons.chevron_left_rounded,
+                color: colors.primary),
             onPressed: () {
               HapticFeedback.selectionClick();
               setState(() {
@@ -619,14 +625,14 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                 Text(
                   '${_getMonthName(_viewMonth.month)} ${_viewMonth.year}',
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
                   '${HijriCalendar.fromDate(_viewMonth).longMonthName} ${HijriCalendar.fromDate(_viewMonth).hYear} AH',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.accent,
+                    color: colors.accent,
                     fontWeight: FontWeight.w600,
                     fontSize: 10,
                   ),
@@ -635,8 +641,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right_rounded,
-                color: AppColors.primary),
+            icon: Icon(Icons.chevron_right_rounded,
+                color: colors.primary),
             onPressed: () {
               HapticFeedback.selectionClick();
               setState(() {
@@ -654,6 +660,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
   // ============================================================
 
   Widget _buildCalendarGrid() {
+    final colors = QibraColors.of(context);
     final firstDay = DateTime(_viewMonth.year, _viewMonth.month, 1);
     final lastDay = DateTime(_viewMonth.year, _viewMonth.month + 1, 0);
     final startWeekday = firstDay.weekday % 7;
@@ -662,9 +669,9 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadius,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [
@@ -677,8 +684,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                     d,
                     style: AppTextStyles.labelSmall.copyWith(
                       color: isWeekend
-                          ? AppColors.accent
-                          : AppColors.textSecondary,
+                          ? colors.accent
+                          : colors.textSecondary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -714,21 +721,21 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                         margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
                           gradient: isToday
-                              ? const LinearGradient(
+                              ? LinearGradient(
                                   colors: [
-                                    Color(0xFF2F6B5D),
-                                    Color(0xFF123F36),
+                                    colors.primarySoft,
+                                    colors.primary,
                                   ],
                                 )
                               : null,
                           color: isSelected && !isToday
-                              ? AppColors.primary.withValues(alpha: 0.2)
+                              ? colors.primary.withValues(alpha: 0.2)
                               : null,
                           borderRadius: BorderRadius.circular(8),
                           border: isFriday && !isToday
                               ? Border.all(
                                   color:
-                                      AppColors.accent.withValues(alpha: 0.4),
+                                      colors.accent.withValues(alpha: 0.4),
                                 )
                               : null,
                         ),
@@ -737,10 +744,10 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                             '$dayNum',
                             style: AppTextStyles.labelMedium.copyWith(
                               color: isToday
-                                  ? AppColors.white
+                                  ? colors.card
                                   : isFriday
-                                      ? AppColors.accent
-                                      : AppColors.textPrimary,
+                                      ? colors.accent
+                                      : colors.textPrimary,
                               fontWeight: isToday || isFriday
                                   ? FontWeight.w800
                                   : FontWeight.w600,
@@ -758,9 +765,9 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildLegend(const Color(0xFF2F6B5D), 'Today'),
-              _buildLegend(AppColors.accent, 'Friday'),
-              _buildLegend(AppColors.primary, 'Selected'),
+              _buildLegend(colors.primarySoft, 'Today'),
+              _buildLegend(colors.accent, 'Friday'),
+              _buildLegend(colors.primary, 'Selected'),
             ],
           ),
         ],
@@ -769,6 +776,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
   }
 
   Widget _buildLegend(Color color, String label) {
+    final colors = QibraColors.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -781,7 +789,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
         Text(
           label,
           style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             fontSize: 10,
           ),
         ),
@@ -794,13 +802,14 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
   // ============================================================
 
   Widget _buildEventCard(_IslamicEvent event) {
+    final colors = QibraColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadius,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
@@ -822,7 +831,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                 ),
               ],
             ),
-            child: Icon(event.icon, color: AppColors.white, size: 24),
+            child: Icon(event.icon, color: colors.card, size: 24),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -835,7 +844,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                       child: Text(
                         event.name,
                         style: AppTextStyles.titleSmall.copyWith(
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                           fontWeight: FontWeight.w800,
                           fontSize: 14,
                         ),
@@ -869,7 +878,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                 Text(
                   event.description,
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                     fontSize: 11,
                     height: 1.3,
                   ),

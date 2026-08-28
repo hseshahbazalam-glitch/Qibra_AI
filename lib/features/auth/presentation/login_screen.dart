@@ -15,10 +15,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_social_buttons.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_text_field.dart';
@@ -209,12 +210,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final size = MediaQuery.sizeOf(context);
     final authState = ref.watch(authProvider);
     final isLoading = authState.isLoading;
 
-    return Scaffold(
-      body: Stack(
+    return QibraPage(
+      useAppBar: false,
+      child: Stack(
         children: [
           // ── LAYER 1: Background gradient ──
           _buildBackground(),
@@ -306,16 +309,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildBackground() {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.topCenter,
             radius: 1.5,
             colors: [
-              Color(0xFFF5F3EC),
-              Color(0xFFF8F6EF),
-              AppColors.background,
+              colors.background,
+              colors.cardMuted,
+              colors.background,
             ],
             stops: [0.0, 0.5, 1.0],
           ),
@@ -329,6 +333,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildParticles(Size size) {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _particleController,
@@ -349,6 +354,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildLogo() {
+    final colors = QibraColors.of(context);
     return Container(
       width: 90,
       height: 90,
@@ -357,12 +363,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         gradient: AppGradients.gold,
         boxShadow: [
           BoxShadow(
-            color: AppColors.accent.withValues(alpha: 0.60),
+            color: colors.accent.withValues(alpha: 0.60),
             blurRadius: 40,
             spreadRadius: 8,
           ),
           BoxShadow(
-            color: AppColors.accent.withValues(alpha: 0.30),
+            color: colors.accent.withValues(alpha: 0.30),
             blurRadius: 80,
             spreadRadius: 16,
           ),
@@ -374,9 +380,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.background.withValues(alpha: 0.85),
+              color: colors.background.withValues(alpha: 0.85),
               border: Border.all(
-                color: AppColors.accent.withValues(alpha: 0.50),
+                color: colors.accent.withValues(alpha: 0.50),
                 width: 2,
               ),
             ),
@@ -384,10 +390,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               child: ShaderMask(
                 shaderCallback: (bounds) =>
                     AppGradients.gold.createShader(bounds),
-                child: const Icon(
+                child: Icon(
                   Icons.mosque_rounded,
                   size: 44,
-                  color: const Color(0xFF19312C),
+                  color: colors.textPrimary,
                 ),
               ),
             ),
@@ -402,18 +408,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildWelcomeText() {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         // Arabic greeting
         ShaderMask(
           shaderCallback: (bounds) => AppGradients.gold.createShader(bounds),
-          child: const Text(
+          child: Text(
             'السَّلامُ عَلَيْكُم',
             style: TextStyle(
               fontFamily: 'Amiri',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               height: 1.0,
             ),
             textDirection: TextDirection.rtl,
@@ -437,7 +444,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         Text(
           'Continue your spiritual journey',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
       ],
@@ -449,6 +456,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildFormCard(AuthState authState, bool isLoading) {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: AppRadius.cardRadiusLarge,
       child: BackdropFilter(
@@ -456,10 +464,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colors.surface,
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: AppColors.borderSubtle,
+              color: colors.border,
               width: 1,
             ),
             boxShadow: AppShadows.subtle,
@@ -515,8 +523,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 },
                 isLoading: false,
                 height: 48,
-                gradient: const LinearGradient(
-                    colors: [Color(0xFF123F36), Color(0xFF123F36)]),
+                gradient: LinearGradient(
+                    colors: [colors.primary, colors.primary]),
               ),
 
               const SizedBox(height: AppSpacing.md),
@@ -535,18 +543,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildErrorBanner(String message) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.error.withValues(alpha: 0.20),
-            AppColors.error.withValues(alpha: 0.10),
+            colors.error.withValues(alpha: 0.20),
+            colors.error.withValues(alpha: 0.10),
           ],
         ),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: AppColors.error.withValues(alpha: 0.40),
+          color: colors.error.withValues(alpha: 0.40),
           width: 1,
         ),
       ),
@@ -555,12 +564,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.error.withValues(alpha: 0.20),
+              color: colors.error.withValues(alpha: 0.20),
               borderRadius: AppRadius.pillRadius,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.error_outline_rounded,
-              color: AppColors.error,
+              color: colors.error,
               size: 16,
             ),
           ),
@@ -569,7 +578,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             child: Text(
               message,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.error,
+                color: colors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -578,9 +587,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             onTap: () {
               ref.read(authProvider.notifier).clearError();
             },
-            child: const Icon(
+            child: Icon(
               Icons.close_rounded,
-              color: AppColors.error,
+              color: colors.error,
               size: 18,
             ),
           ),
@@ -606,6 +615,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     required bool enabled,
     required void Function(String)? onSubmitted,
   }) {
+    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: controller,
       focusNode: focusNode,
@@ -626,6 +636,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPremiumPasswordField(bool isLoading) {
+    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: _passwordController,
       focusNode: _passwordFocus,
@@ -653,6 +664,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildRememberForgotRow() {
+    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -675,23 +687,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       _rememberMe ? null : Colors.white.withValues(alpha: 0.05),
                   border: Border.all(
                     color: _rememberMe
-                        ? AppColors.primary
+                        ? colors.primary
                         : Colors.white.withValues(alpha: 0.20),
                     width: 1.5,
                   ),
                   boxShadow: _rememberMe
                       ? [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.40),
+                            color: colors.primary.withValues(alpha: 0.40),
                             blurRadius: 8,
                           ),
                         ]
                       : null,
                 ),
                 child: _rememberMe
-                    ? const Icon(
+                    ? Icon(
                         Icons.check_rounded,
-                        color: AppColors.white,
+                        color: colors.card,
                         size: 14,
                       )
                     : null,
@@ -700,7 +712,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               Text(
                 'Remember me',
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -717,7 +729,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           child: Text(
             'Forgot Password?',
             style: AppTextStyles.labelMedium.copyWith(
-              color: AppColors.accent,
+              color: colors.goldText,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -731,6 +743,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildLoginButton(bool isLoading) {
+    final colors = QibraColors.of(context);
     return AuthButton(
       label: 'Sign In',
       onTap: _handleLogin,
@@ -745,6 +758,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildBiometricButton(bool isLoading) {
+    final colors = QibraColors.of(context);
     return AuthButton(
       label: 'Biometric (coming soon)',
       onTap: null,
@@ -752,9 +766,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       height: 48,
       gradient: null,
       backgroundColor: Colors.transparent,
-      borderColor: AppColors.accent.withValues(alpha: 0.30),
+      borderColor: colors.accent.withValues(alpha: 0.30),
       leadingIcon: Icons.fingerprint_rounded,
-      textColor: AppColors.accent,
+      textColor: colors.accent,
       enabled: false,
     );
   }
@@ -764,6 +778,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildDivider() {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         Expanded(
@@ -786,7 +801,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           child: Text(
             'OR CONTINUE WITH',
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
               letterSpacing: 2,
               fontWeight: FontWeight.w700,
             ),
@@ -814,6 +829,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSocialButtons(bool isLoading) {
+    final colors = QibraColors.of(context);
     return AuthSocialButtons(
       onGoogleTap: null,
       onAppleTap: null,
@@ -828,13 +844,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildRegisterLink() {
+    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           "Don't have an account? ",
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
         GestureDetector(
@@ -847,7 +864,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             child: Text(
               'Sign Up',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: const Color(0xFF19312C),
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -869,6 +886,7 @@ class _LoginParticlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     final random = math.Random(99);
 
     for (int i = 0; i < 25; i++) {
@@ -884,7 +902,7 @@ class _LoginParticlePainter extends CustomPainter {
 
       final particleSize = 1.5 + random.nextDouble() * 2;
       final isGold = i % 3 == 0;
-      final color = isGold ? AppColors.accent : AppColors.primary;
+      final color = isGold ? colors.accent : colors.primary;
       final alpha = 0.15 + (random.nextDouble() * 0.25);
 
       final paint = Paint()

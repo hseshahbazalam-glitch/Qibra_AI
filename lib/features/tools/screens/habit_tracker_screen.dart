@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -15,22 +16,22 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   static const String _storageKey = 'islamic_habits';
 
   final List<_HabitTemplate> _templates = const [
-    _HabitTemplate('Fajr on Time', '🌅', Color(0xFFC6A15B)),
-    _HabitTemplate('Read Quran', '📖', Color(0xFF123F36)),
-    _HabitTemplate('Morning Adhkar', '🌤️', Color(0xFFC6A15B)),
-    _HabitTemplate('Evening Adhkar', '🌙', Color(0xFFC6A15B)),
-    _HabitTemplate('Tahajjud', '🕌', Color(0xFF2F6B5D)),
-    _HabitTemplate('Give Sadaqah', '💚', Color(0xFF2F6B5D)),
-    _HabitTemplate('Fast Monday', '🗓️', Color(0xFFC6A15B)),
-    _HabitTemplate('Fast Thursday', '🗓️', Color(0xFFC6A15B)),
-    _HabitTemplate('Surah Mulk', '📜', Color(0xFF2F6B5D)),
-    _HabitTemplate('Surah Kahf (Fri)', '📜', Color(0xFF2F6B5D)),
-    _HabitTemplate('Durood 100x', '💛', Color(0xFFC6A15B)),
-    _HabitTemplate('Istighfar 100x', '🤲', Color(0xFF2F6B5D)),
-    _HabitTemplate('No Backbiting', '🤐', Color(0xFFEF4444)),
+    _HabitTemplate('Fajr on Time', '🌅', colors.accent),
+    _HabitTemplate('Read Quran', '📖', colors.primary),
+    _HabitTemplate('Morning Adhkar', '🌤️', colors.accent),
+    _HabitTemplate('Evening Adhkar', '🌙', colors.accent),
+    _HabitTemplate('Tahajjud', '🕌', colors.primarySoft),
+    _HabitTemplate('Give Sadaqah', '💚', colors.primarySoft),
+    _HabitTemplate('Fast Monday', '🗓️', colors.accent),
+    _HabitTemplate('Fast Thursday', '🗓️', colors.accent),
+    _HabitTemplate('Surah Mulk', '📜', colors.primarySoft),
+    _HabitTemplate('Surah Kahf (Fri)', '📜', colors.primarySoft),
+    _HabitTemplate('Durood 100x', '💛', colors.accent),
+    _HabitTemplate('Istighfar 100x', '🤲', colors.primarySoft),
+    _HabitTemplate('No Backbiting', '🤐', colors.error),
     _HabitTemplate('Lower Gaze', '👁️', Color(0xFF6B7280)),
-    _HabitTemplate('Help Someone', '🤝', Color(0xFF123F36)),
-    _HabitTemplate('Learn 1 Hadith', '📚', Color(0xFF2F6B5D)),
+    _HabitTemplate('Help Someone', '🤝', colors.primary),
+    _HabitTemplate('Learn 1 Hadith', '📚', colors.primarySoft),
   ];
 
   @override
@@ -135,15 +136,16 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final progress = _getTodayProgress();
     final completed = _getCompletedToday();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddHabitSheet,
-        backgroundColor: const Color(0xFF2F6B5D),
-        child: const Icon(Icons.add_rounded, color: const Color(0xFF19312C)),
+        backgroundColor: colors.primarySoft,
+        child: Icon(Icons.add_rounded, color: colors.textPrimary),
       ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
@@ -177,32 +179,33 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   // ─── App Bar ────────────────────────────────────────────────
   SliverAppBar _buildAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 120,
       pinned: true,
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF19312C).withValues(alpha: 0.1),
+            color: colors.textPrimary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.arrow_back_rounded,
-              color: const Color(0xFF19312C), size: 20),
+          child: Icon(Icons.arrow_back_rounded,
+              color: colors.textPrimary, size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFFEEF1EA), Color(0xFFF5F3EC)],
+              colors: [colors.backgroundSecondary, colors.background],
             ),
           ),
-          child: const SafeArea(
+          child: SafeArea(
             child: Padding(
               padding: EdgeInsets.fromLTRB(60, 8, 20, 0),
               child: Column(
@@ -211,7 +214,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   Text(
                     'عَادَات',
                     style: TextStyle(
-                      color: Color(0xFF2F6B5D),
+                      color: colors.primarySoft,
                       fontSize: 22,
                       fontFamily: 'Amiri',
                     ),
@@ -219,7 +222,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   Text(
                     'Islamic Habits',
                     style: TextStyle(
-                      color: const Color(0xFF19312C),
+                      color: colors.textPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -235,20 +238,21 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   // ─── Progress Card ──────────────────────────────────────────
   Widget _buildProgressCard(double progress, int completed) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFEEF1EA), Color(0xFF2D1B69)],
+          colors: [colors.backgroundSecondary, Color(0xFF2D1B69)],
         ),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.3)),
+            Border.all(color: colors.primarySoft.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2F6B5D).withValues(alpha: 0.1),
+            color: colors.primarySoft.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -267,13 +271,13 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   value: progress,
                   strokeWidth: 6,
                   backgroundColor:
-                      const Color(0xFF2F6B5D).withValues(alpha: 0.15),
-                  valueColor: const AlwaysStoppedAnimation(Color(0xFF2F6B5D)),
+                      colors.primarySoft.withValues(alpha: 0.15),
+                  valueColor: AlwaysStoppedAnimation(colors.primarySoft),
                 ),
                 Text(
                   '${(progress * 100).toInt()}%',
-                  style: const TextStyle(
-                    color: const Color(0xFF19312C),
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
                   ),
@@ -286,10 +290,10 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Today's Progress",
                   style: TextStyle(
-                    color: Color(0xFF2F6B5D),
+                    color: colors.primarySoft,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -298,7 +302,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 Text(
                   '$completed of ${_habits.length} habits',
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                    color: colors.textPrimary.withValues(alpha: 0.6),
                     fontSize: 12,
                   ),
                 ),
@@ -310,7 +314,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           ? 'Almost there! Keep going 💪'
                           : 'Start your day right! 🌅',
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                    color: colors.textPrimary.withValues(alpha: 0.5),
                     fontSize: 11,
                     fontStyle: FontStyle.italic,
                   ),
@@ -325,15 +329,16 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   // ─── Week View ──────────────────────────────────────────────
   Widget _buildWeekView() {
+    final colors = QibraColors.of(context);
     final now = DateTime.now();
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEFDF9),
+        color: colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -358,7 +363,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 days[i],
                 style: TextStyle(
                   color: isToday
-                      ? const Color(0xFF2F6B5D)
+                      ? colors.primarySoft
                       : Colors.white.withValues(alpha: 0.3),
                   fontSize: 10,
                   fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
@@ -370,26 +375,26 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   color: allDone
-                      ? const Color(0xFF2F6B5D)
+                      ? colors.primarySoft
                       : someDone
-                          ? const Color(0xFF2F6B5D).withValues(alpha: 0.2)
+                          ? colors.primarySoft.withValues(alpha: 0.2)
                           : isToday
-                              ? const Color(0xFF2F6B5D).withValues(alpha: 0.1)
+                              ? colors.primarySoft.withValues(alpha: 0.1)
                               : Colors.white.withValues(alpha: 0.03),
                   shape: BoxShape.circle,
                   border: isToday
-                      ? Border.all(color: const Color(0xFF2F6B5D), width: 1.5)
+                      ? Border.all(color: colors.primarySoft, width: 1.5)
                       : null,
                 ),
                 child: Center(
                   child: allDone
-                      ? const Icon(Icons.check_rounded,
-                          color: const Color(0xFF19312C), size: 16)
+                      ? Icon(Icons.check_rounded,
+                          color: colors.textPrimary, size: 16)
                       : Text(
                           '${day.day}',
                           style: TextStyle(
                             color: isToday
-                                ? const Color(0xFF2F6B5D)
+                                ? colors.primarySoft
                                 : Colors.white.withValues(alpha: 0.4),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -406,6 +411,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   // ─── Habits Header ──────────────────────────────────────────
   Widget _buildHabitsHeader() {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         const Text('📊', style: TextStyle(fontSize: 14)),
@@ -413,7 +419,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         Text(
           'YOUR HABITS',
           style: TextStyle(
-            color: const Color(0xFF19312C).withValues(alpha: 0.5),
+            color: colors.textPrimary.withValues(alpha: 0.5),
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 2.0,
@@ -423,7 +429,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         Text(
           '${_habits.length} habits',
           style: TextStyle(
-            color: const Color(0xFF19312C).withValues(alpha: 0.3),
+            color: colors.textPrimary.withValues(alpha: 0.3),
             fontSize: 10,
           ),
         ),
@@ -433,20 +439,21 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   // ─── Empty State ────────────────────────────────────────────
   Widget _buildEmptyState() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEFDF9),
+        color: colors.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
           const Text('📊', style: TextStyle(fontSize: 40)),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'No Habits Yet',
             style: TextStyle(
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -455,7 +462,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           Text(
             'Tap + to add Islamic habits',
             style: TextStyle(
-              color: const Color(0xFF19312C).withValues(alpha: 0.4),
+              color: colors.textPrimary.withValues(alpha: 0.4),
               fontSize: 12,
             ),
           ),
@@ -466,6 +473,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   // ─── Habit Card ─────────────────────────────────────────────
   Widget _buildHabitCard(_IslamicHabit habit, int index) {
+    final colors = QibraColors.of(context);
     final todayDone = habit.completedDays.containsKey(_todayKey());
     final streak = _getStreak(habit);
     final color = Color(habit.color);
@@ -478,11 +486,11 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+          color: colors.error.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(14),
         ),
-        child: const Icon(Icons.delete_rounded,
-            color: Color(0xFFEF4444), size: 22),
+        child: Icon(Icons.delete_rounded,
+            color: colors.error, size: 22),
       ),
       child: GestureDetector(
         onTap: () => _toggleHabit(index),
@@ -492,7 +500,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           decoration: BoxDecoration(
             color: todayDone
                 ? color.withValues(alpha: 0.08)
-                : const Color(0xFFFEFDF9),
+                : colors.card,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: todayDone
@@ -516,8 +524,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   ),
                 ),
                 child: todayDone
-                    ? const Icon(Icons.check_rounded,
-                        color: const Color(0xFF19312C), size: 20)
+                    ? Icon(Icons.check_rounded,
+                        color: colors.textPrimary, size: 20)
                     : Center(
                         child: Text(habit.emoji,
                             style: const TextStyle(fontSize: 16)),
@@ -590,6 +598,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   // ─── Add Habit Sheet ────────────────────────────────────────
   void _showAddHabitSheet() {
+    final colors = QibraColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -599,8 +608,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(ctx).size.height * 0.7,
         ),
-        decoration: const BoxDecoration(
-          color: Color(0xFFFEFDF9),
+        decoration: BoxDecoration(
+          color: colors.card,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -613,16 +622,16 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.2),
+                  color: colors.textPrimary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Add Islamic Habit',
               style: TextStyle(
-                color: const Color(0xFF19312C),
+                color: colors.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
               ),
@@ -631,7 +640,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             Text(
               'Choose from templates or create your own',
               style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                color: colors.textPrimary.withValues(alpha: 0.4),
                 fontSize: 12,
               ),
             ),

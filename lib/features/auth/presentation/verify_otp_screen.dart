@@ -17,7 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
@@ -256,7 +256,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             SnackBar(
               content: const Text(
                   'Guest mode: Your Quran, Prayer, and Duas work fully offline.'),
-              backgroundColor: AppColors.success,
+              backgroundColor: colors.success,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: AppRadius.cardRadius),
             ),
@@ -363,18 +363,18 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
       // Show success snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(
                 Icons.check_circle,
-                color: const Color(0xFF19312C),
+                color: colors.textPrimary,
                 size: 20,
               ),
               SizedBox(width: AppSpacing.sm),
               Text('OTP sent successfully!'),
             ],
           ),
-          backgroundColor: AppColors.success,
+          backgroundColor: colors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: AppRadius.cardRadius,
@@ -406,6 +406,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final size = MediaQuery.sizeOf(context);
     final displayEmail = widget.email ?? 'your email';
 
@@ -448,6 +449,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildBackground() {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 800),
@@ -457,14 +459,14 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             radius: 1.5,
             colors: _isVerified
                 ? [
-                    AppColors.success.withValues(alpha: 0.20),
-                    const Color(0xFFF8F6EF),
-                    AppColors.background,
+                    colors.success.withValues(alpha: 0.20),
+                    colors.cardMuted,
+                    colors.background,
                   ]
                 : [
                     const Color(0xFFF8F1E3),
-                    const Color(0xFFF8F6EF),
-                    AppColors.background,
+                    colors.cardMuted,
+                    colors.background,
                   ],
             stops: const [0.0, 0.5, 1.0],
           ),
@@ -478,6 +480,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildParticles(Size size) {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _particleController,
@@ -499,6 +502,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildVerifyState(String displayEmail) {
+    final colors = QibraColors.of(context);
     return Column(
       key: const ValueKey('verify'),
       children: [
@@ -547,6 +551,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSuccessState() {
+    final colors = QibraColors.of(context);
     return Column(
       key: const ValueKey('success'),
       children: [
@@ -585,6 +590,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHeader() {
+    final colors = QibraColors.of(context);
     return AuthHeader(
       onBackTap: () => context.go(AppRoutes.login),
       stepNumber: 2,
@@ -599,6 +605,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildTimerIcon() {
+    final colors = QibraColors.of(context);
     return ScaleTransition(
       scale: _iconPulse,
       child: SizedBox(
@@ -616,7 +623,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                 strokeWidth: 3,
                 backgroundColor: Colors.white.withValues(alpha: 0.10),
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  _canResend ? AppColors.success : AppColors.accent,
+                  _canResend ? colors.success : colors.accent,
                 ),
               ),
             ),
@@ -629,22 +636,22 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.accent.withValues(alpha: 0.30),
-                    AppColors.accent.withValues(alpha: 0.05),
+                    colors.accent.withValues(alpha: 0.30),
+                    colors.accent.withValues(alpha: 0.05),
                   ],
                 ),
                 border: Border.all(
-                  color: AppColors.accent.withValues(alpha: 0.50),
+                  color: colors.accent.withValues(alpha: 0.50),
                   width: 2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.accent.withValues(alpha: 0.40),
+                    color: colors.accent.withValues(alpha: 0.40),
                     blurRadius: 30,
                     spreadRadius: 4,
                   ),
                   BoxShadow(
-                    color: AppColors.accent.withValues(alpha: 0.20),
+                    color: colors.accent.withValues(alpha: 0.20),
                     blurRadius: 60,
                     spreadRadius: 8,
                   ),
@@ -654,9 +661,9 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                 child: ShaderMask(
                   shaderCallback: (bounds) =>
                       AppGradients.gold.createShader(bounds),
-                  child: const Icon(
+                  child: Icon(
                     Icons.security_rounded,
-                    color: const Color(0xFF19312C),
+                    color: colors.textPrimary,
                     size: 48,
                   ),
                 ),
@@ -673,6 +680,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildTitle(String displayEmail) {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         // VERIFICATION label
@@ -681,7 +689,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           child: Text(
             'VERIFICATION',
             style: AppTextStyles.labelSmall.copyWith(
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               letterSpacing: 3,
               fontWeight: FontWeight.w800,
             ),
@@ -710,7 +718,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             textAlign: TextAlign.center,
             text: TextSpan(
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.6,
               ),
               children: [
@@ -720,7 +728,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                 TextSpan(
                   text: displayEmail,
                   style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.accent,
+                    color: colors.accent,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -737,6 +745,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildFormCard() {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: AppRadius.cardRadiusLarge,
       child: BackdropFilter(
@@ -754,7 +763,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: colors.textPrimary.withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -785,6 +794,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildOtpBoxes() {
+    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(6, (index) {
@@ -794,6 +804,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   }
 
   Widget _buildSingleOtpBox(int index) {
+    final colors = QibraColors.of(context);
     final hasValue = _controllers[index].text.isNotEmpty;
     final isFocused = _isFocused[index];
     final hasError = _errorMessage != null;
@@ -808,8 +819,8 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         gradient: hasValue
             ? LinearGradient(
                 colors: [
-                  AppColors.primary.withValues(alpha: 0.20),
-                  AppColors.primary.withValues(alpha: 0.10),
+                  colors.primary.withValues(alpha: 0.20),
+                  colors.primary.withValues(alpha: 0.10),
                 ],
               )
             : null,
@@ -818,11 +829,11 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         // Border color based on state
         border: Border.all(
           color: hasError
-              ? AppColors.error
+              ? colors.error
               : isFocused
-                  ? AppColors.primary
+                  ? colors.primary
                   : hasValue
-                      ? AppColors.primary.withValues(alpha: 0.50)
+                      ? colors.primary.withValues(alpha: 0.50)
                       : Colors.white.withValues(alpha: 0.15),
           width: isFocused || hasValue ? 2 : 1,
         ),
@@ -830,7 +841,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         boxShadow: isFocused && !hasError
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.40),
+                  color: colors.primary.withValues(alpha: 0.40),
                   blurRadius: 12,
                   spreadRadius: 0,
                 ),
@@ -838,7 +849,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             : hasValue && !hasError
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.20),
+                      color: colors.primary.withValues(alpha: 0.20),
                       blurRadius: 8,
                     ),
                   ]
@@ -854,7 +865,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           FilteringTextInputFormatter.digitsOnly,
         ],
         style: AppTextStyles.headlineSmall.copyWith(
-          color: const Color(0xFF19312C),
+          color: colors.textPrimary,
           fontWeight: FontWeight.w800,
         ),
         decoration: const InputDecoration(
@@ -872,18 +883,19 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildErrorBanner(String message) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.error.withValues(alpha: 0.20),
-            AppColors.error.withValues(alpha: 0.10),
+            colors.error.withValues(alpha: 0.20),
+            colors.error.withValues(alpha: 0.10),
           ],
         ),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: AppColors.error.withValues(alpha: 0.40),
+          color: colors.error.withValues(alpha: 0.40),
           width: 1,
         ),
       ),
@@ -892,12 +904,12 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.error.withValues(alpha: 0.20),
+              color: colors.error.withValues(alpha: 0.20),
               borderRadius: AppRadius.pillRadius,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.error_outline_rounded,
-              color: AppColors.error,
+              color: colors.error,
               size: 16,
             ),
           ),
@@ -906,7 +918,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             child: Text(
               message,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.error,
+                color: colors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -921,6 +933,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildVerifyButton() {
+    final colors = QibraColors.of(context);
     return AuthButton(
       label: 'Verify Code',
       onTap: _handleVerify,
@@ -934,6 +947,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildResendSection() {
+    final colors = QibraColors.of(context);
     return Center(
       child: _canResend
           // Resend button (enabled)
@@ -954,29 +968,29 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.primary.withValues(alpha: 0.20),
-                          AppColors.primary.withValues(alpha: 0.10),
+                          colors.primary.withValues(alpha: 0.20),
+                          colors.primary.withValues(alpha: 0.10),
                         ],
                       ),
                       borderRadius: AppRadius.pillRadius,
                       border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.40),
+                        color: colors.primary.withValues(alpha: 0.40),
                         width: 1.5,
                       ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.refresh_rounded,
-                          color: AppColors.primary,
+                          color: colors.primary,
                           size: 18,
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Text(
                           'Resend Code',
                           style: AppTextStyles.labelLarge.copyWith(
-                            color: AppColors.primary,
+                            color: colors.primary,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -992,7 +1006,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                 Text(
                   'Resend code in',
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
@@ -1002,17 +1016,17 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withValues(alpha: 0.15),
+                    color: colors.accent.withValues(alpha: 0.15),
                     borderRadius: AppRadius.pillRadius,
                     border: Border.all(
-                      color: AppColors.accent.withValues(alpha: 0.30),
+                      color: colors.accent.withValues(alpha: 0.30),
                       width: 1,
                     ),
                   ),
                   child: Text(
                     _formattedTime,
                     style: AppTextStyles.titleMedium.copyWith(
-                      color: AppColors.accent,
+                      color: colors.accent,
                       fontWeight: FontWeight.w800,
                       fontFamily: 'monospace',
                     ),
@@ -1028,6 +1042,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHelpInfoCard() {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: AppRadius.cardRadius,
       child: BackdropFilter(
@@ -1043,7 +1058,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             ),
             borderRadius: AppRadius.cardRadius,
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.08),
+              color: colors.textPrimary.withValues(alpha: 0.08),
               width: 1,
             ),
           ),
@@ -1053,12 +1068,12 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xs),
                 decoration: BoxDecoration(
-                  color: AppColors.info.withValues(alpha: 0.15),
+                  color: colors.info.withValues(alpha: 0.15),
                   borderRadius: AppRadius.buttonRadius,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.lightbulb_outline,
-                  color: AppColors.info,
+                  color: colors.info,
                   size: AppIconSizes.sm,
                 ),
               ),
@@ -1070,7 +1085,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                     Text(
                       'Can\'t find the email?',
                       style: AppTextStyles.labelMedium.copyWith(
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -1078,7 +1093,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                     Text(
                       'Check your spam folder or make sure you entered the correct email address.',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                         height: 1.4,
                       ),
                     ),
@@ -1097,6 +1112,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildChangeEmailLink() {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -1106,14 +1122,14 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         textAlign: TextAlign.center,
         text: TextSpan(
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
           children: [
             const TextSpan(text: 'Wrong email? '),
             TextSpan(
               text: 'Change it',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.primary,
+                color: colors.primary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -1128,6 +1144,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSuccessIcon() {
+    final colors = QibraColors.of(context);
     return Container(
       width: 140,
       height: 140,
@@ -1135,18 +1152,18 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [
-            AppColors.success.withValues(alpha: 0.30),
-            AppColors.success.withValues(alpha: 0.05),
+            colors.success.withValues(alpha: 0.30),
+            colors.success.withValues(alpha: 0.05),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.success.withValues(alpha: 0.50),
+            color: colors.success.withValues(alpha: 0.50),
             blurRadius: 50,
             spreadRadius: 10,
           ),
           BoxShadow(
-            color: AppColors.success.withValues(alpha: 0.30),
+            color: colors.success.withValues(alpha: 0.30),
             blurRadius: 100,
             spreadRadius: 20,
           ),
@@ -1160,20 +1177,20 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
             shape: BoxShape.circle,
             gradient: LinearGradient(
               colors: [
-                AppColors.success,
-                AppColors.success.withValues(alpha: 0.70),
+                colors.success,
+                colors.success.withValues(alpha: 0.70),
               ],
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.success.withValues(alpha: 0.60),
+                color: colors.success.withValues(alpha: 0.60),
                 blurRadius: 30,
               ),
             ],
           ),
-          child: const Icon(
+          child: Icon(
             Icons.check_rounded,
-            color: const Color(0xFF19312C),
+            color: colors.textPrimary,
             size: 60,
           ),
         ),
@@ -1186,20 +1203,21 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSuccessText() {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         // Gradient "Verified!" text
         ShaderMask(
           shaderCallback: (bounds) => LinearGradient(
             colors: [
-              AppColors.success,
-              AppColors.success.withValues(alpha: 0.70),
+              colors.success,
+              colors.success.withValues(alpha: 0.70),
             ],
           ).createShader(bounds),
           child: Text(
             'Verified!',
             style: AppTextStyles.displaySmall.copyWith(
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               fontWeight: FontWeight.w900,
               fontSize: 40,
               letterSpacing: -1,
@@ -1213,7 +1231,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         Text(
           'Your account has been\nsuccessfully verified',
           style: AppTextStyles.bodyLarge.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             height: 1.5,
           ),
           textAlign: TextAlign.center,
@@ -1227,22 +1245,23 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildLoadingIndicator() {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         Text(
           'Setting up your profile...',
           style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        const SizedBox(
+        SizedBox(
           width: 32,
           height: 32,
           child: CircularProgressIndicator(
             strokeWidth: 3,
             valueColor: AlwaysStoppedAnimation<Color>(
-              AppColors.success,
+              colors.success,
             ),
           ),
         ),
@@ -1266,6 +1285,7 @@ class _OtpParticlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     final random = math.Random(33);
 
     // Draw 22 floating particles
@@ -1287,8 +1307,8 @@ class _OtpParticlePainter extends CustomPainter {
       // Color: alternate between gold and emerald/success
       final isGold = i % 3 == 0;
       final color = isSuccess
-          ? (isGold ? AppColors.accent : AppColors.success)
-          : (isGold ? AppColors.accent : AppColors.primary);
+          ? (isGold ? colors.accent : colors.success)
+          : (isGold ? colors.accent : colors.primary);
 
       // Random opacity for depth
       final alpha = 0.15 + (random.nextDouble() * 0.25);

@@ -3,6 +3,7 @@
 // and tasbihProvider so there is one dhikr counter.
 
 import 'package:flutter/material.dart';
+import '../../../core/design_system/qibra_colors.dart';
 
 import '../../tasbih/presentation/tasbih_screen.dart';
 

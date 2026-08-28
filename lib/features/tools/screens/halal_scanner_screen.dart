@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -214,9 +215,10 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   void _showSnackbar(String msg) {
+    final colors = QibraColors.of(context);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: const TextStyle(color: const Color(0xFF19312C))),
-      backgroundColor: const Color(0xFF123F36),
+      content: Text(msg, style: TextStyle(color: colors.textPrimary)),
+      backgroundColor: colors.primary,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(16),
@@ -225,8 +227,9 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       body: Column(
         children: [
           _buildAppBarArea(),
@@ -239,6 +242,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
 
   // ─── App Bar ────────────────────────────────────────────────
   Widget _buildAppBarArea() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 10,
@@ -246,9 +250,9 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
         right: 20,
         bottom: 12,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF123F36), Color(0xFFF5F3EC)],
+          colors: [colors.primary, colors.background],
         ),
       ),
       child: Row(
@@ -258,26 +262,26 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF19312C).withValues(alpha: 0.1),
+                color: colors.textPrimary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back_rounded,
-                  color: const Color(0xFF19312C), size: 20),
+              child: Icon(Icons.arrow_back_rounded,
+                  color: colors.textPrimary, size: 20),
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('حَلَال / حَرَام',
                     style: TextStyle(
-                        color: Color(0xFF123F36),
+                        color: colors.primary,
                         fontSize: 16,
                         fontFamily: 'Amiri')),
                 Text('Halal Scanner V2',
                     style: TextStyle(
-                        color: const Color(0xFF19312C),
+                        color: colors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w800)),
               ],
@@ -286,18 +290,18 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF123F36).withValues(alpha: 0.2),
+              color: colors.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.verified_rounded,
-                    color: Color(0xFF123F36), size: 12),
+                    color: colors.primary, size: 12),
                 SizedBox(width: 4),
                 Text('PRO',
                     style: TextStyle(
-                        color: Color(0xFF123F36),
+                        color: colors.primary,
                         fontSize: 10,
                         fontWeight: FontWeight.w800)),
               ],
@@ -310,6 +314,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
 
   // ─── Tab Bar ────────────────────────────────────────────────
   Widget _buildTabBar() {
+    final colors = QibraColors.of(context);
     final tabs = [
       const _TabItem(Icons.qr_code_scanner_rounded, 'Barcode'),
       const _TabItem(Icons.document_scanner_rounded, 'OCR'),
@@ -321,20 +326,20 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEFDF9),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
       ),
       child: TabBar(
         controller: _tabController,
         indicator: BoxDecoration(
-          color: const Color(0xFF123F36).withValues(alpha: 0.2),
+          color: colors.primary.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(10),
           border:
-              Border.all(color: const Color(0xFF123F36).withValues(alpha: 0.4)),
+              Border.all(color: colors.primary.withValues(alpha: 0.4)),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
-        labelColor: const Color(0xFF123F36),
+        labelColor: colors.primary,
         unselectedLabelColor: Colors.white.withValues(alpha: 0.35),
         labelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
         unselectedLabelStyle:
@@ -358,6 +363,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
 
   // ─── Tab Content ────────────────────────────────────────────
   Widget _buildTabContent() {
+    final colors = QibraColors.of(context);
     return TabBarView(
       controller: _tabController,
       children: [
@@ -373,6 +379,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   // TAB 1: BARCODE SCANNER
   // ═══════════════════════════════════════════════════════════
   Widget _buildBarcodeTab() {
+    final colors = QibraColors.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       physics: const BouncingScrollPhysics(),
@@ -403,6 +410,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   // TAB 2: OCR
   // ═══════════════════════════════════════════════════════════
   Widget _buildOCRTab() {
+    final colors = QibraColors.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       physics: const BouncingScrollPhysics(),
@@ -413,11 +421,11 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             children: [
               Expanded(
                   child: _ocrButton(Icons.camera_alt_rounded, 'Take Photo',
-                      _scanWithOCR, const Color(0xFF123F36))),
+                      _scanWithOCR, colors.primary)),
               const SizedBox(width: 12),
               Expanded(
                   child: _ocrButton(Icons.photo_library_rounded, 'Gallery',
-                      _pickFromGallery, const Color(0xFF2F6B5D))),
+                      _pickFromGallery, colors.primarySoft)),
             ],
           ),
           const SizedBox(height: 16),
@@ -427,17 +435,17 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFFEFDF9),
+                color: colors.card,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+                border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
               ),
               child: Column(
                 children: [
                   const Text('📸', style: TextStyle(fontSize: 40)),
                   const SizedBox(height: 12),
-                  const Text('Scan Ingredients Label',
+                  Text('Scan Ingredients Label',
                       style: TextStyle(
-                          color: const Color(0xFF19312C),
+                          color: colors.textPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
@@ -445,7 +453,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                     'Take a photo of the ingredients list on the back of the product packaging',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                        color: colors.textPrimary.withValues(alpha: 0.4),
                         fontSize: 12,
                         height: 1.5),
                   ),
@@ -465,21 +473,21 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFEFDF9),
+                color: colors.card,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+                border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.text_snippet_rounded,
-                          color: Color(0xFF123F36), size: 14),
+                      Icon(Icons.text_snippet_rounded,
+                          color: colors.primary, size: 14),
                       const SizedBox(width: 8),
                       Text('DETECTED TEXT',
                           style: TextStyle(
-                              color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                              color: colors.textPrimary.withValues(alpha: 0.4),
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.5)),
@@ -488,7 +496,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                   const SizedBox(height: 8),
                   Text(_ocrText,
                       style: TextStyle(
-                          color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                          color: colors.textPrimary.withValues(alpha: 0.6),
                           fontSize: 11,
                           height: 1.5),
                       maxLines: 10,
@@ -536,6 +544,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _tipRow(String emoji, String text) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -544,7 +553,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           const SizedBox(width: 8),
           Text(text,
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.4), fontSize: 11)),
+                  color: colors.textPrimary.withValues(alpha: 0.4), fontSize: 11)),
         ],
       ),
     );
@@ -554,6 +563,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   // TAB 3: SEARCH
   // ═══════════════════════════════════════════════════════════
   Widget _buildSearchTab() {
+    final colors = QibraColors.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       physics: const BouncingScrollPhysics(),
@@ -563,24 +573,24 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFFFEFDF9),
+              color: colors.card,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.08)),
+              border: Border.all(color: colors.textPrimary.withValues(alpha: 0.08)),
             ),
             child: Row(
               children: [
                 Icon(Icons.search_rounded,
-                    color: const Color(0xFF19312C).withValues(alpha: 0.3), size: 20),
+                    color: colors.textPrimary.withValues(alpha: 0.3), size: 20),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: _searchController,
                     onSubmitted: (_) => _searchProduct(),
-                    style: const TextStyle(color: const Color(0xFF19312C), fontSize: 14),
+                    style: TextStyle(color: colors.textPrimary, fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Search product, ingredient, or E-code...',
                       hintStyle: TextStyle(
-                          color: const Color(0xFF19312C).withValues(alpha: 0.2),
+                          color: colors.textPrimary.withValues(alpha: 0.2),
                           fontSize: 13),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -592,11 +602,11 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF123F36),
+                      color: colors.primary,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.search_rounded,
-                        color: const Color(0xFF19312C), size: 18),
+                    child: Icon(Icons.search_rounded,
+                        color: colors.textPrimary, size: 18),
                   ),
                 ),
               ],
@@ -642,6 +652,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _quickChip(String text) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         _searchController.text = text;
@@ -650,13 +661,13 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xFF19312C).withValues(alpha: 0.05),
+          color: colors.textPrimary.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.1)),
+          border: Border.all(color: colors.textPrimary.withValues(alpha: 0.1)),
         ),
         child: Text(text,
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.5), fontSize: 12)),
+                color: colors.textPrimary.withValues(alpha: 0.5), fontSize: 12)),
       ),
     );
   }
@@ -665,6 +676,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   // TAB 4: HISTORY
   // ═══════════════════════════════════════════════════════════
   Widget _buildHistoryTab() {
+    final colors = QibraColors.of(context);
     if (_history.isEmpty) {
       return Center(
         child: Column(
@@ -672,14 +684,14 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           children: [
             const Text('📋', style: TextStyle(fontSize: 40)),
             const SizedBox(height: 12),
-            const Text('No Scan History',
+            Text('No Scan History',
                 style: TextStyle(
-                    color: const Color(0xFF19312C),
+                    color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700)),
             Text('Your scanned products will appear here',
                 style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.4), fontSize: 12)),
+                    color: colors.textPrimary.withValues(alpha: 0.4), fontSize: 12)),
           ],
         ),
       );
@@ -697,7 +709,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
               children: [
                 Text('${_history.length} scans',
                     style: TextStyle(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                        color: colors.textPrimary.withValues(alpha: 0.4),
                         fontSize: 12)),
                 GestureDetector(
                   onTap: () async {
@@ -722,7 +734,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFFFEFDF9),
+            color: colors.card,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: color.withValues(alpha: 0.15)),
           ),
@@ -743,8 +755,8 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(item.productName,
-                        style: const TextStyle(
-                            color: const Color(0xFF19312C),
+                        style: TextStyle(
+                            color: colors.textPrimary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600),
                         maxLines: 1,
@@ -752,11 +764,11 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                     if (item.brand.isNotEmpty)
                       Text(item.brand,
                           style: TextStyle(
-                              color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                              color: colors.textPrimary.withValues(alpha: 0.4),
                               fontSize: 10)),
                     Text(_timeAgo(item.scannedAt),
                         style: TextStyle(
-                            color: const Color(0xFF19312C).withValues(alpha: 0.25),
+                            color: colors.textPrimary.withValues(alpha: 0.25),
                             fontSize: 9)),
                   ],
                 ),
@@ -785,12 +797,13 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   // ═══════════════════════════════════════════════════════════
 
   Widget _buildCameraView() {
+    final colors = QibraColors.of(context);
     return Container(
       height: 280,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-            color: const Color(0xFF123F36).withValues(alpha: 0.3), width: 2),
+            color: colors.primary.withValues(alpha: 0.3), width: 2),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
@@ -804,7 +817,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                 height: 220,
                 decoration: BoxDecoration(
                   border: Border.all(
-                      color: const Color(0xFF123F36).withValues(alpha: 0.5),
+                      color: colors.primary.withValues(alpha: 0.5),
                       width: 2),
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -836,13 +849,13 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                                   ? Icons.flash_on_rounded
                                   : Icons.flash_off_rounded,
                               color: _torchOn
-                                  ? const Color(0xFFC6A15B)
+                                  ? colors.accent
                                   : Colors.white,
                               size: 16),
                           const SizedBox(width: 6),
                           Text('Point at barcode',
                               style: TextStyle(
-                                  color: const Color(0xFF19312C).withValues(alpha: 0.7),
+                                  color: colors.textPrimary.withValues(alpha: 0.7),
                                   fontSize: 11)),
                         ],
                       ),
@@ -858,32 +871,34 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildLoadingView() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(40),
       child: Column(
         children: [
-          const SizedBox(
+          SizedBox(
             width: 50,
             height: 50,
             child: CircularProgressIndicator(
-                color: Color(0xFF123F36), strokeWidth: 3),
+                color: colors.primary, strokeWidth: 3),
           ),
           const SizedBox(height: 16),
-          const Text('Analyzing Product...',
+          Text('Analyzing Product...',
               style: TextStyle(
-                  color: const Color(0xFF19312C),
+                  color: colors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           Text('Checking 100+ ingredients & E-codes',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.4), fontSize: 12)),
+                  color: colors.textPrimary.withValues(alpha: 0.4), fontSize: 12)),
         ],
       ),
     );
   }
 
   Widget _buildVerdictCard() {
+    final colors = QibraColors.of(context);
     final v = _verdict!;
     final color = _statusColor(v.status.name);
     final emoji = _statusEmoji(v.status.name);
@@ -930,25 +945,26 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildProductDetails() {
+    final colors = QibraColors.of(context);
     final p = _productData!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEFDF9),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.info_outline_rounded,
-                  color: Color(0xFF123F36), size: 14),
+              Icon(Icons.info_outline_rounded,
+                  color: colors.primary, size: 14),
               const SizedBox(width: 8),
               Text('PRODUCT DETAILS',
                   style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                      color: colors.textPrimary.withValues(alpha: 0.4),
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5)),
@@ -970,6 +986,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _detailRow(String label, String value) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -979,12 +996,12 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             width: 90,
             child: Text(label,
                 style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.35), fontSize: 11)),
+                    color: colors.textPrimary.withValues(alpha: 0.35), fontSize: 11)),
           ),
           Expanded(
               child: Text(value,
-                  style: const TextStyle(
-                      color: const Color(0xFF19312C),
+                  style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 11,
                       fontWeight: FontWeight.w600),
                   maxLines: 2,
@@ -995,6 +1012,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildIngredientsAnalysis() {
+    final colors = QibraColors.of(context);
     final v = _verdict!;
     if (v.haramIngredients.isEmpty &&
         v.doubtfulIngredients.isEmpty &&
@@ -1005,21 +1023,21 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEFDF9),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.science_rounded,
-                  color: Color(0xFF123F36), size: 14),
+              Icon(Icons.science_rounded,
+                  color: colors.primary, size: 14),
               const SizedBox(width: 8),
               Text('INGREDIENTS ANALYSIS',
                   style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                      color: colors.textPrimary.withValues(alpha: 0.4),
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5)),
@@ -1029,21 +1047,22 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
 
           // Haram
           ...v.haramIngredients.map((i) => _ingredientRow(
-              i, const Color(0xFFEF4444), Icons.dangerous_rounded)),
+              i, colors.error, Icons.dangerous_rounded)),
 
           // Doubtful
           ...v.doubtfulIngredients.map((i) => _ingredientRow(
-              i, const Color(0xFFC6A15B), Icons.warning_rounded)),
+              i, colors.accent, Icons.warning_rounded)),
 
           // Halal
           ...v.halalIndicators.map((i) => _ingredientRow(
-              i, const Color(0xFF123F36), Icons.check_circle_rounded)),
+              i, colors.primary, Icons.check_circle_rounded)),
         ],
       ),
     );
   }
 
   Widget _ingredientRow(String text, Color color, IconData icon) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -1054,7 +1073,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           Expanded(
               child: Text(text,
                   style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                      color: colors.textPrimary.withValues(alpha: 0.6),
                       fontSize: 11,
                       height: 1.4))),
         ],
@@ -1063,28 +1082,29 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildWarningsCard() {
+    final colors = QibraColors.of(context);
     final warnings = _verdict?.warnings ?? [];
     if (warnings.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFC6A15B).withValues(alpha: 0.05),
+        color: colors.accent.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.15)),
+            Border.all(color: colors.accent.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.warning_amber_rounded,
-                  color: Color(0xFFC6A15B), size: 14),
+              Icon(Icons.warning_amber_rounded,
+                  color: colors.accent, size: 14),
               const SizedBox(width: 8),
               Text('WARNINGS',
                   style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                      color: colors.textPrimary.withValues(alpha: 0.4),
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5)),
@@ -1100,7 +1120,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                     Expanded(
                         child: Text(w,
                             style: TextStyle(
-                                color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                                color: colors.textPrimary.withValues(alpha: 0.5),
                                 fontSize: 11))),
                   ],
                 ),
@@ -1111,28 +1131,29 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildRecommendationsCard() {
+    final colors = QibraColors.of(context);
     final recs = _verdict?.recommendations ?? [];
     if (recs.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF123F36).withValues(alpha: 0.05),
+        color: colors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFF123F36).withValues(alpha: 0.15)),
+            Border.all(color: colors.primary.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline_rounded,
-                  color: Color(0xFF123F36), size: 14),
+              Icon(Icons.lightbulb_outline_rounded,
+                  color: colors.primary, size: 14),
               const SizedBox(width: 8),
               Text('RECOMMENDATIONS',
                   style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                      color: colors.textPrimary.withValues(alpha: 0.4),
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5)),
@@ -1148,7 +1169,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                     Expanded(
                         child: Text(r,
                             style: TextStyle(
-                                color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                                color: colors.textPrimary.withValues(alpha: 0.5),
                                 fontSize: 11))),
                   ],
                 ),
@@ -1159,30 +1180,31 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildScanAgainButton() {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: _resetScan,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF123F36), Color(0xFF2F6B5D)]),
+          gradient: LinearGradient(
+              colors: [colors.primary, colors.primarySoft]),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: const Color(0xFF123F36).withValues(alpha: 0.3),
+                color: colors.primary.withValues(alpha: 0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 6))
           ],
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.qr_code_scanner_rounded, color: const Color(0xFF19312C), size: 22),
+            Icon(Icons.qr_code_scanner_rounded, color: colors.textPrimary, size: 22),
             SizedBox(width: 10),
             Text('Scan Again',
                 style: TextStyle(
-                    color: const Color(0xFF19312C),
+                    color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700)),
           ],
@@ -1193,9 +1215,10 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
 
   // ─── Helpers ────────────────────────────────────────────────
   Color _statusColor(String status) => switch (status) {
-        'halal' || 'likelyHalal' => const Color(0xFF123F36),
-        'haram' => const Color(0xFFEF4444),
-        'doubtful' => const Color(0xFFC6A15B),
+    final colors = QibraColors.of(context);
+        'halal' || 'likelyHalal' => colors.primary,
+        'haram' => colors.error,
+        'doubtful' => colors.accent,
         _ => const Color(0xFF6B7280),
       };
 

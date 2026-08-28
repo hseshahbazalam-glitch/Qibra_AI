@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -35,6 +35,7 @@ class AuthButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final button = GestureDetector(
       onTap: enabled && !isLoading ? onTap : null,
       child: AnimatedContainer(
@@ -53,7 +54,7 @@ class AuthButton extends StatelessWidget {
           boxShadow: !isLoading
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.50),
+                    color: colors.primary.withValues(alpha: 0.50),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),

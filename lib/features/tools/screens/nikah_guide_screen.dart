@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 
 class NikahGuideScreen extends StatefulWidget {
@@ -16,7 +17,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       title: 'Before Nikah',
       subtitle: 'Preparation & Selection',
       emoji: '💚',
-      color: Color(0xFF123F36),
+      color: colors.primary,
       items: [
         _NikahItem(
           'Istikhara Prayer',
@@ -52,7 +53,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       title: 'Nikah Ceremony',
       subtitle: 'The Marriage Contract',
       emoji: '💍',
-      color: Color(0xFFC6A15B),
+      color: colors.accent,
       items: [
         _NikahItem(
           'Essential Conditions',
@@ -95,7 +96,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       title: 'After Nikah',
       subtitle: 'Rights & Responsibilities',
       emoji: '🏡',
-      color: Color(0xFF2F6B5D),
+      color: colors.primarySoft,
       items: [
         _NikahItem(
           'Walimah (Wedding Feast)',
@@ -131,7 +132,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       title: 'Islamic Etiquettes',
       subtitle: 'Sunnah Practices',
       emoji: '📿',
-      color: Color(0xFF2F6B5D),
+      color: colors.primarySoft,
       items: [
         _NikahItem(
           'Wedding Night Dua',
@@ -166,16 +167,17 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
   ];
 
   final List<_QuickFact> _quickFacts = const [
-    _QuickFact('Wali', 'Guardian required', '👨', Color(0xFF123F36)),
-    _QuickFact('Mahr', 'Bride\'s right', '💎', Color(0xFFC6A15B)),
-    _QuickFact('Witnesses', '2 males needed', '👥', Color(0xFF2F6B5D)),
-    _QuickFact('Consent', 'Both must agree', '✅', Color(0xFF2F6B5D)),
+    _QuickFact('Wali', 'Guardian required', '👨', colors.primary),
+    _QuickFact('Mahr', 'Bride\'s right', '💎', colors.accent),
+    _QuickFact('Witnesses', '2 males needed', '👥', colors.primarySoft),
+    _QuickFact('Consent', 'Both must agree', '✅', colors.primarySoft),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -206,29 +208,30 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
   }
 
   SliverAppBar _buildAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 130,
       pinned: true,
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF19312C).withValues(alpha: 0.1),
+            color: colors.textPrimary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.arrow_back_rounded,
-              color: const Color(0xFF19312C), size: 20),
+          child: Icon(Icons.arrow_back_rounded,
+              color: colors.textPrimary, size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFFFEFDF9), Color(0xFFF5F3EC)],
+              colors: [colors.card, colors.background],
             ),
           ),
           child: SafeArea(
@@ -237,18 +240,18 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'نِكَاح',
                     style: TextStyle(
-                      color: Color(0xFFC6A15B),
+                      color: colors.accent,
                       fontSize: 26,
                       fontFamily: 'Amiri',
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Nikah Guide',
                     style: TextStyle(
-                      color: const Color(0xFF19312C),
+                      color: colors.textPrimary,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
@@ -256,7 +259,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                   Text(
                     'Marriage in Islam',
                     style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                      color: colors.textPrimary.withValues(alpha: 0.4),
                       fontSize: 12,
                     ),
                   ),
@@ -270,20 +273,21 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
   }
 
   Widget _buildOverviewCard() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFEFDF9), Color(0xFF3D1528)],
+        gradient: LinearGradient(
+          colors: [colors.card, Color(0xFF3D1528)],
         ),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.3)),
+            Border.all(color: colors.accent.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Text('💍', style: TextStyle(fontSize: 28)),
               SizedBox(width: 12),
@@ -294,7 +298,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                     Text(
                       'A Sacred Bond',
                       style: TextStyle(
-                        color: Color(0xFFC6A15B),
+                        color: colors.accent,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -302,7 +306,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                     Text(
                       'Half of Your Deen',
                       style: TextStyle(
-                        color: const Color(0xFF19312C),
+                        color: colors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
                       ),
@@ -316,7 +320,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
           Text(
             'The Prophet ﷺ said: "When a man marries, he has completed half of his religion, so let him fear Allah regarding the remaining half." — Bayhaqi',
             style: TextStyle(
-              color: const Color(0xFF19312C).withValues(alpha: 0.6),
+              color: colors.textPrimary.withValues(alpha: 0.6),
               fontSize: 12,
               fontStyle: FontStyle.italic,
               height: 1.5,
@@ -328,6 +332,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
   }
 
   Widget _buildQuickFactsRow() {
+    final colors = QibraColors.of(context);
     return Row(
       children: _quickFacts.map((f) {
         return Expanded(
@@ -354,7 +359,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                 Text(
                   f.subtitle,
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.35),
+                    color: colors.textPrimary.withValues(alpha: 0.35),
                     fontSize: 8,
                   ),
                   textAlign: TextAlign.center,
@@ -369,6 +374,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
   }
 
   Widget _buildSectionCard(_NikahSection section, int index) {
+    final colors = QibraColors.of(context);
     final isExpanded = _expandedIndex == index;
 
     return GestureDetector(
@@ -382,7 +388,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
         decoration: BoxDecoration(
           color: isExpanded
               ? section.color.withValues(alpha: 0.06)
-              : const Color(0xFFFEFDF9),
+              : colors.card,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isExpanded
@@ -423,8 +429,8 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                       ),
                       Text(
                         section.title,
-                        style: const TextStyle(
-                          color: const Color(0xFF19312C),
+                        style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
                         ),
@@ -470,6 +476,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
   }
 
   Widget _buildNikahItem(_NikahItem item, Color color) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -491,8 +498,8 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
               children: [
                 Text(
                   item.title,
-                  style: const TextStyle(
-                    color: const Color(0xFF19312C),
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -501,7 +508,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                 Text(
                   item.description,
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                    color: colors.textPrimary.withValues(alpha: 0.5),
                     fontSize: 11,
                     height: 1.5,
                   ),
@@ -534,7 +541,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                           Text(
                             item.transliteration,
                             style: TextStyle(
-                              color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                              color: colors.textPrimary.withValues(alpha: 0.4),
                               fontSize: 10,
                               fontStyle: FontStyle.italic,
                             ),
@@ -554,25 +561,26 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
   }
 
   Widget _buildIslamicNote() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+        color: colors.cardMuted.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.15)),
+            Border.all(color: colors.accent.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Text('📖', style: TextStyle(fontSize: 14)),
               SizedBox(width: 8),
               Text(
                 'Quran',
                 style: TextStyle(
-                  color: Color(0xFFC6A15B),
+                  color: colors.accent,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -583,19 +591,19 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
           Text(
             '"And among His Signs is that He created for you mates from among yourselves, that you may dwell in tranquility with them, and He has put love and mercy between your hearts." — Quran 30:21',
             style: TextStyle(
-              color: const Color(0xFF19312C).withValues(alpha: 0.6),
+              color: colors.textPrimary.withValues(alpha: 0.6),
               fontSize: 12,
               fontStyle: FontStyle.italic,
               height: 1.5,
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا',
             style: TextStyle(
               fontFamily: 'Amiri',
               fontSize: 16,
-              color: Color(0xFFC6A15B),
+              color: colors.accent,
               height: 1.5,
             ),
             textDirection: TextDirection.rtl,

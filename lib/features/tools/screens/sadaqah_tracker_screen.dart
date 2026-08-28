@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -31,15 +32,15 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   final List<_SadaqahCategory> _categories = const [
     _SadaqahCategory(
-        'General', Icons.volunteer_activism_rounded, Color(0xFF123F36)),
-    _SadaqahCategory('Food', Icons.restaurant_rounded, Color(0xFFC6A15B)),
-    _SadaqahCategory('Education', Icons.school_rounded, Color(0xFF2F6B5D)),
+        'General', Icons.volunteer_activism_rounded, colors.primary),
+    _SadaqahCategory('Food', Icons.restaurant_rounded, colors.accent),
+    _SadaqahCategory('Education', Icons.school_rounded, colors.primarySoft),
     _SadaqahCategory(
-        'Medical', Icons.medical_services_rounded, Color(0xFFEF4444)),
-    _SadaqahCategory('Orphan', Icons.child_care_rounded, Color(0xFF2F6B5D)),
-    _SadaqahCategory('Masjid', Icons.mosque_rounded, Color(0xFF2F6B5D)),
-    _SadaqahCategory('Water', Icons.water_drop_rounded, Color(0xFF2F6B5D)),
-    _SadaqahCategory('Clothes', Icons.checkroom_rounded, Color(0xFFC6A15B)),
+        'Medical', Icons.medical_services_rounded, colors.error),
+    _SadaqahCategory('Orphan', Icons.child_care_rounded, colors.primarySoft),
+    _SadaqahCategory('Masjid', Icons.mosque_rounded, colors.primarySoft),
+    _SadaqahCategory('Water', Icons.water_drop_rounded, colors.primarySoft),
+    _SadaqahCategory('Clothes', Icons.checkroom_rounded, colors.accent),
   ];
 
   @override
@@ -113,10 +114,11 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
   }
 
   void _showSnackbar(String message) {
+    final colors = QibraColors.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(color: const Color(0xFF19312C))),
-        backgroundColor: const Color(0xFF123F36),
+        content: Text(message, style: TextStyle(color: colors.textPrimary)),
+        backgroundColor: colors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
@@ -152,14 +154,15 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddSheet(),
-        backgroundColor: const Color(0xFF2F6B5D),
-        icon: const Icon(Icons.add_rounded, color: const Color(0xFF19312C)),
-        label: const Text('Log Sadaqah',
-            style: TextStyle(color: const Color(0xFF19312C), fontWeight: FontWeight.w700)),
+        backgroundColor: colors.primarySoft,
+        icon: Icon(Icons.add_rounded, color: colors.textPrimary),
+        label: Text('Log Sadaqah',
+            style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w700)),
       ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
@@ -193,32 +196,33 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   // ─── App Bar ────────────────────────────────────────────────
   SliverAppBar _buildAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 120,
       pinned: true,
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF19312C).withValues(alpha: 0.1),
+            color: colors.textPrimary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.arrow_back_rounded,
-              color: const Color(0xFF19312C), size: 20),
+          child: Icon(Icons.arrow_back_rounded,
+              color: colors.textPrimary, size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFFEEF1EA), Color(0xFFF5F3EC)],
+              colors: [colors.backgroundSecondary, colors.background],
             ),
           ),
-          child: const SafeArea(
+          child: SafeArea(
             child: Padding(
               padding: EdgeInsets.fromLTRB(60, 8, 20, 0),
               child: Column(
@@ -227,7 +231,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                   Text(
                     'صَدَقَة',
                     style: TextStyle(
-                      color: Color(0xFF2F6B5D),
+                      color: colors.primarySoft,
                       fontSize: 22,
                       fontFamily: 'Amiri',
                     ),
@@ -235,7 +239,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                   Text(
                     'Sadaqah Tracker',
                     style: TextStyle(
-                      color: const Color(0xFF19312C),
+                      color: colors.textPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -251,20 +255,21 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   // ─── Total Card ─────────────────────────────────────────────
   Widget _buildTotalCard() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFEEF1EA), Color(0xFF1A3D38)],
+          colors: [colors.backgroundSecondary, Color(0xFF1A3D38)],
         ),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.3)),
+            Border.all(color: colors.primarySoft.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2F6B5D).withValues(alpha: 0.1),
+            color: colors.primarySoft.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -275,26 +280,26 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
           Text(
             'Total Sadaqah Given',
             style: TextStyle(
-              color: const Color(0xFF19312C).withValues(alpha: 0.5),
+              color: colors.textPrimary.withValues(alpha: 0.5),
               fontSize: 12,
               fontWeight: FontWeight.w600,
               letterSpacing: 1.5,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'جَزَاكَ اللَّهُ خَيْرًا',
             style: TextStyle(
               fontFamily: 'Amiri',
               fontSize: 16,
-              color: Color(0xFF2F6B5D),
+              color: colors.primarySoft,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             _formatAmount(_totalAmount),
-            style: const TextStyle(
-              color: const Color(0xFF19312C),
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 38,
               fontWeight: FontWeight.w900,
               height: 1.0,
@@ -304,13 +309,13 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF2F6B5D).withValues(alpha: 0.15),
+              color: colors.primarySoft.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               '${_entries.length} donations recorded',
               style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                color: colors.textPrimary.withValues(alpha: 0.6),
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
               ),
@@ -323,6 +328,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   // ─── Category Stats ─────────────────────────────────────────
   Widget _buildCategoryStats() {
+    final colors = QibraColors.of(context);
     final Map<String, double> catTotals = {};
     for (final e in _entries) {
       catTotals[e.category] = (catTotals[e.category] ?? 0) + e.amount;
@@ -364,7 +370,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                 Text(
                   cat.name,
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                    color: colors.textPrimary.withValues(alpha: 0.4),
                     fontSize: 9,
                   ),
                 ),
@@ -378,6 +384,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   // ─── History Header ─────────────────────────────────────────
   Widget _buildHistoryHeader() {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         const Text('📋', style: TextStyle(fontSize: 14)),
@@ -385,7 +392,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
         Text(
           'HISTORY',
           style: TextStyle(
-            color: const Color(0xFF19312C).withValues(alpha: 0.5),
+            color: colors.textPrimary.withValues(alpha: 0.5),
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 2.0,
@@ -396,7 +403,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
           Text(
             '${_entries.length} entries',
             style: TextStyle(
-              color: const Color(0xFF19312C).withValues(alpha: 0.3),
+              color: colors.textPrimary.withValues(alpha: 0.3),
               fontSize: 10,
             ),
           ),
@@ -406,21 +413,22 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   // ─── Empty State ────────────────────────────────────────────
   Widget _buildEmptyState() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEFDF9),
+        color: colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         children: [
           const Text('💰', style: TextStyle(fontSize: 40)),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'No Sadaqah Yet',
             style: TextStyle(
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -430,7 +438,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
             'Tap the button below to log\nyour first charity',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: const Color(0xFF19312C).withValues(alpha: 0.4),
+              color: colors.textPrimary.withValues(alpha: 0.4),
               fontSize: 12,
             ),
           ),
@@ -441,6 +449,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   // ─── Entry Card ─────────────────────────────────────────────
   Widget _buildEntryCard(_SadaqahEntry entry, int index) {
+    final colors = QibraColors.of(context);
     final cat = _getCategoryData(entry.category);
     return Dismissible(
       key: Key('${entry.date.millisecondsSinceEpoch}_$index'),
@@ -450,16 +459,16 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+          color: colors.error.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(14),
         ),
-        child: const Icon(Icons.delete_rounded,
-            color: Color(0xFFEF4444), size: 22),
+        child: Icon(Icons.delete_rounded,
+            color: colors.error, size: 22),
       ),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFFFEFDF9),
+          color: colors.card,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: cat.color.withValues(alpha: 0.12)),
         ),
@@ -481,8 +490,8 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                 children: [
                   Text(
                     entry.category,
-                    style: const TextStyle(
-                      color: const Color(0xFF19312C),
+                    style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -491,7 +500,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                     Text(
                       entry.note,
                       style: TextStyle(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                        color: colors.textPrimary.withValues(alpha: 0.4),
                         fontSize: 11,
                       ),
                       maxLines: 1,
@@ -500,7 +509,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                   Text(
                     _timeAgo(entry.date),
                     style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.25),
+                      color: colors.textPrimary.withValues(alpha: 0.25),
                       fontSize: 10,
                     ),
                   ),
@@ -523,6 +532,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
 
   // ─── Add Bottom Sheet ───────────────────────────────────────
   void _showAddSheet() {
+    final colors = QibraColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -535,8 +545,8 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
             top: 20,
             bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
           ),
-          decoration: const BoxDecoration(
-            color: Color(0xFFFEFDF9),
+          decoration: BoxDecoration(
+            color: colors.card,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: SingleChildScrollView(
@@ -550,17 +560,17 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.2),
+                      color: colors.textPrimary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                const Text(
+                Text(
                   'Log Sadaqah',
                   style: TextStyle(
-                    color: const Color(0xFF19312C),
+                    color: colors.textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                   ),
@@ -569,7 +579,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                 Text(
                   '"Charity does not decrease wealth" — Prophet ﷺ',
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                    color: colors.textPrimary.withValues(alpha: 0.4),
                     fontSize: 11,
                     fontStyle: FontStyle.italic,
                   ),
@@ -594,7 +604,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                               horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
                             color: sel
-                                ? const Color(0xFF2F6B5D)
+                                ? colors.primarySoft
                                 : Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -620,21 +630,21 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                   controller: _amountController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  style: const TextStyle(
-                    color: Color(0xFF2F6B5D),
+                  style: TextStyle(
+                    color: colors.primarySoft,
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
                   ),
                   decoration: InputDecoration(
                     hintText: '0',
                     hintStyle: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.15),
+                      color: colors.textPrimary.withValues(alpha: 0.15),
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
                     ),
                     prefixText: '${_currencySymbols[_currency]} ',
                     prefixStyle: TextStyle(
-                      color: const Color(0xFF2F6B5D).withValues(alpha: 0.5),
+                      color: colors.primarySoft.withValues(alpha: 0.5),
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                     ),
@@ -647,7 +657,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                 Text(
                   'CATEGORY',
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                    color: colors.textPrimary.withValues(alpha: 0.4),
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 2.0,
@@ -708,11 +718,11 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                 // Note
                 TextField(
                   controller: _noteController,
-                  style: const TextStyle(color: const Color(0xFF19312C), fontSize: 14),
+                  style: TextStyle(color: colors.textPrimary, fontSize: 14),
                   decoration: InputDecoration(
                     hintText: 'Add a note (optional)',
                     hintStyle: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.2),
+                      color: colors.textPrimary.withValues(alpha: 0.2),
                       fontSize: 13,
                     ),
                     filled: true,
@@ -734,28 +744,28 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF2F6B5D), Color(0xFF2D8F88)],
+                      gradient: LinearGradient(
+                        colors: [colors.primarySoft, Color(0xFF2D8F88)],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF2F6B5D).withValues(alpha: 0.3),
+                          color: colors.primarySoft.withValues(alpha: 0.3),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.favorite_rounded,
-                            color: const Color(0xFF19312C), size: 20),
+                            color: colors.textPrimary, size: 20),
                         SizedBox(width: 10),
                         Text(
                           'Log Sadaqah',
                           style: TextStyle(
-                            color: const Color(0xFF19312C),
+                            color: colors.textPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                           ),

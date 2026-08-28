@@ -15,7 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
@@ -201,21 +201,22 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
 
   // ── OPEN EMAIL APP ───────────────────────────────────
   void _handleOpenEmail() {
+    final colors = QibraColors.of(context);
     HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Row(
+        content: Row(
           children: [
             Icon(
               Icons.mail_rounded,
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               size: 20,
             ),
             SizedBox(width: AppSpacing.sm),
             Text('Opening email app...'),
           ],
         ),
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardRadius,
@@ -226,6 +227,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
@@ -263,6 +265,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildBackground() {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
@@ -271,14 +274,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             radius: 1.5,
             colors: _emailSent
                 ? [
-                    AppColors.success.withValues(alpha: 0.20),
-                    const Color(0xFFF8F6EF),
-                    AppColors.background,
+                    colors.success.withValues(alpha: 0.20),
+                    colors.cardMuted,
+                    colors.background,
                   ]
                 : [
-                    const Color(0xFFF5F3EC),
-                    const Color(0xFFF8F6EF),
-                    AppColors.background,
+                    colors.background,
+                    colors.cardMuted,
+                    colors.background,
                   ],
             stops: const [0.0, 0.5, 1.0],
           ),
@@ -292,6 +295,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildParticles(Size size) {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _particleController,
@@ -313,6 +317,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildFormState() {
+    final colors = QibraColors.of(context);
     return Column(
       key: const ValueKey('form'),
       children: [
@@ -354,6 +359,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSuccessState() {
+    final colors = QibraColors.of(context);
     return Column(
       key: const ValueKey('success'),
       children: [
@@ -415,6 +421,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHeader() {
+    final colors = QibraColors.of(context);
     return AuthHeader(
       onBackTap: () => context.go(AppRoutes.login),
     );
@@ -425,6 +432,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildAnimatedIcon() {
+    final colors = QibraColors.of(context);
     return ScaleTransition(
       scale: _iconPulse,
       child: Container(
@@ -434,22 +442,22 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           shape: BoxShape.circle,
           gradient: RadialGradient(
             colors: [
-              AppColors.primary.withValues(alpha: 0.30),
-              AppColors.primary.withValues(alpha: 0.05),
+              colors.primary.withValues(alpha: 0.30),
+              colors.primary.withValues(alpha: 0.05),
             ],
           ),
           border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.50),
+            color: colors.primary.withValues(alpha: 0.50),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.40),
+              color: colors.primary.withValues(alpha: 0.40),
               blurRadius: 40,
               spreadRadius: 8,
             ),
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.20),
+              color: colors.primary.withValues(alpha: 0.20),
               blurRadius: 80,
               spreadRadius: 16,
             ),
@@ -459,9 +467,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           child: ShaderMask(
             shaderCallback: (bounds) =>
                 AppGradients.emerald.createShader(bounds),
-            child: const Icon(
+            child: Icon(
               Icons.lock_reset_rounded,
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               size: 48,
             ),
           ),
@@ -475,6 +483,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSuccessIcon() {
+    final colors = QibraColors.of(context);
     return Container(
       width: 120,
       height: 120,
@@ -482,18 +491,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [
-            AppColors.success.withValues(alpha: 0.30),
-            AppColors.success.withValues(alpha: 0.05),
+            colors.success.withValues(alpha: 0.30),
+            colors.success.withValues(alpha: 0.05),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.success.withValues(alpha: 0.50),
+            color: colors.success.withValues(alpha: 0.50),
             blurRadius: 40,
             spreadRadius: 8,
           ),
           BoxShadow(
-            color: AppColors.success.withValues(alpha: 0.30),
+            color: colors.success.withValues(alpha: 0.30),
             blurRadius: 80,
             spreadRadius: 16,
           ),
@@ -505,17 +514,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           height: 90,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.success,
+            color: colors.success,
             boxShadow: [
               BoxShadow(
-                color: AppColors.success.withValues(alpha: 0.60),
+                color: colors.success.withValues(alpha: 0.60),
                 blurRadius: 24,
               ),
             ],
           ),
-          child: const Icon(
+          child: Icon(
             Icons.mark_email_read_rounded,
-            color: const Color(0xFF19312C),
+            color: colors.textPrimary,
             size: 48,
           ),
         ),
@@ -528,6 +537,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildTitle() {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         ShaderMask(
@@ -535,7 +545,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           child: Text(
             'PASSWORD RECOVERY',
             style: AppTextStyles.labelSmall.copyWith(
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               letterSpacing: 3,
               fontWeight: FontWeight.w800,
             ),
@@ -557,7 +567,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           child: Text(
             'No worries! Enter your email and we\'ll send you a link to reset your password.',
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               height: 1.6,
             ),
             textAlign: TextAlign.center,
@@ -572,6 +582,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSuccessText() {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         Text(
@@ -579,14 +590,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           style: AppTextStyles.displaySmall.copyWith(
             fontWeight: FontWeight.w800,
             fontSize: 32,
-            color: AppColors.success,
+            color: colors.success,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'We\'ve sent a password reset link to',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
@@ -599,29 +610,29 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.primary.withValues(alpha: 0.20),
-                AppColors.primary.withValues(alpha: 0.10),
+                colors.primary.withValues(alpha: 0.20),
+                colors.primary.withValues(alpha: 0.10),
               ],
             ),
             borderRadius: AppRadius.pillRadius,
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.40),
+              color: colors.primary.withValues(alpha: 0.40),
               width: 1,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.mail_outline_rounded,
-                color: AppColors.primary,
+                color: colors.primary,
                 size: 16,
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 _sentEmail ?? '',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.primary,
+                  color: colors.primary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -637,6 +648,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildFormCard() {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: AppRadius.cardRadiusLarge,
       child: BackdropFilter(
@@ -654,7 +666,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: colors.textPrimary.withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -674,9 +686,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
               // Helper text
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.info_outline_rounded,
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                     size: 14,
                   ),
                   const SizedBox(width: AppSpacing.xs),
@@ -684,7 +696,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                     child: Text(
                       'We\'ll send a password reset link to this email',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
                       ),
                     ),
                   ),
@@ -707,18 +719,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildErrorBanner(String message) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.error.withValues(alpha: 0.20),
-            AppColors.error.withValues(alpha: 0.10),
+            colors.error.withValues(alpha: 0.20),
+            colors.error.withValues(alpha: 0.10),
           ],
         ),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: AppColors.error.withValues(alpha: 0.40),
+          color: colors.error.withValues(alpha: 0.40),
           width: 1,
         ),
       ),
@@ -727,12 +740,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.error.withValues(alpha: 0.20),
+              color: colors.error.withValues(alpha: 0.20),
               borderRadius: AppRadius.pillRadius,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.error_outline_rounded,
-              color: AppColors.error,
+              color: colors.error,
               size: 16,
             ),
           ),
@@ -741,7 +754,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             child: Text(
               message,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.error,
+                color: colors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -756,6 +769,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPremiumTextField() {
+    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: _emailController,
       focusNode: _emailFocus,
@@ -776,6 +790,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSendButton() {
+    final colors = QibraColors.of(context);
     return AuthButton(
       label: 'Send Reset Link',
       onTap: _handleSendResetLink,
@@ -789,6 +804,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildInfoCard() {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: AppRadius.cardRadiusLarge,
       child: BackdropFilter(
@@ -804,7 +820,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: colors.textPrimary.withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -819,19 +835,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.accent.withValues(alpha: 0.30),
-                          AppColors.accent.withValues(alpha: 0.10),
+                          colors.accent.withValues(alpha: 0.30),
+                          colors.accent.withValues(alpha: 0.10),
                         ],
                       ),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.accent.withValues(alpha: 0.40),
+                        color: colors.accent.withValues(alpha: 0.40),
                         width: 1,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.checklist_rounded,
-                      color: AppColors.accent,
+                      color: colors.accent,
                       size: 18,
                     ),
                   ),
@@ -839,7 +855,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                   Text(
                     'NEXT STEPS',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.accent,
+                      color: colors.accent,
                       letterSpacing: 2,
                       fontWeight: FontWeight.w800,
                     ),
@@ -867,21 +883,21 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.warning.withValues(alpha: 0.15),
-                      AppColors.warning.withValues(alpha: 0.05),
+                      colors.accent.withValues(alpha: 0.15),
+                      colors.accent.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: AppRadius.buttonRadius,
                   border: Border.all(
-                    color: AppColors.warning.withValues(alpha: 0.40),
+                    color: colors.accent.withValues(alpha: 0.40),
                     width: 1,
                   ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.access_time_rounded,
-                      color: AppColors.warning,
+                      color: colors.accent,
                       size: 16,
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -889,7 +905,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                       child: Text(
                         'Link expires in 15 minutes',
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.warning,
+                          color: colors.accent,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -909,6 +925,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildStepItem(int number, String text) {
+    final colors = QibraColors.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -918,18 +935,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.primary.withValues(alpha: 0.30),
-                AppColors.primary.withValues(alpha: 0.10),
+                colors.primary.withValues(alpha: 0.30),
+                colors.primary.withValues(alpha: 0.10),
               ],
             ),
             shape: BoxShape.circle,
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.50),
+              color: colors.primary.withValues(alpha: 0.50),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.20),
+                color: colors.primary.withValues(alpha: 0.20),
                 blurRadius: 8,
               ),
             ],
@@ -938,7 +955,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             child: Text(
               '$number',
               style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.primary,
+                color: colors.primary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -951,7 +968,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             child: Text(
               text,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -966,6 +983,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSuccessActions() {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         // Open Email button
@@ -979,7 +997,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
               borderRadius: AppRadius.buttonRadiusLg,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.50),
+                  color: colors.primary.withValues(alpha: 0.50),
                   blurRadius: 24,
                   offset: const Offset(0, 8),
                 ),
@@ -988,16 +1006,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.mail_rounded,
-                  color: const Color(0xFF19312C),
+                  color: colors.textPrimary,
                   size: 22,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   'Open Email App',
                   style: AppTextStyles.buttonLarge.copyWith(
-                    color: const Color(0xFF19312C),
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.5,
                   ),
@@ -1020,10 +1038,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                 width: double.infinity,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.05),
+                  color: colors.textPrimary.withValues(alpha: 0.05),
                   borderRadius: AppRadius.buttonRadiusLg,
                   border: Border.all(
-                    color: AppColors.accent.withValues(alpha: 0.40),
+                    color: colors.accent.withValues(alpha: 0.40),
                     width: 1.5,
                   ),
                 ),
@@ -1031,13 +1049,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (_isLoading)
-                      const SizedBox(
+                      SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.accent,
+                            colors.accent,
                           ),
                         ),
                       )
@@ -1045,9 +1063,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                       ShaderMask(
                         shaderCallback: (bounds) =>
                             AppGradients.gold.createShader(bounds),
-                        child: const Icon(
+                        child: Icon(
                           Icons.refresh_rounded,
-                          color: const Color(0xFF19312C),
+                          color: colors.textPrimary,
                           size: 20,
                         ),
                       ),
@@ -1058,7 +1076,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                       child: Text(
                         _isLoading ? 'Sending...' : 'Resend Link',
                         style: AppTextStyles.buttonMedium.copyWith(
-                          color: const Color(0xFF19312C),
+                          color: colors.textPrimary,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1,
                         ),
@@ -1079,6 +1097,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildBackToLoginLink() {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -1087,16 +1106,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.arrow_back_rounded,
-            color: AppColors.primary,
+            color: colors.primary,
             size: 16,
           ),
           const SizedBox(width: AppSpacing.xs),
           Text(
             'Back to Login',
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.primary,
+              color: colors.primary,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -1121,6 +1140,7 @@ class _ForgotParticlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     final random = math.Random(44);
 
     for (int i = 0; i < 22; i++) {
@@ -1137,8 +1157,8 @@ class _ForgotParticlePainter extends CustomPainter {
       final particleSize = 1.5 + random.nextDouble() * 2;
       final isGold = i % 3 == 0;
       final color = isSuccess
-          ? (isGold ? AppColors.accent : AppColors.success)
-          : (isGold ? AppColors.accent : AppColors.primary);
+          ? (isGold ? colors.accent : colors.success)
+          : (isGold ? colors.accent : colors.primary);
       final alpha = 0.15 + (random.nextDouble() * 0.25);
 
       final paint = Paint()

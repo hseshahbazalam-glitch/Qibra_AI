@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -41,6 +41,7 @@ class AuthTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
@@ -48,7 +49,7 @@ class AuthTextField extends StatelessWidget {
         boxShadow: isFocused
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.30),
+                  color: colors.primary.withValues(alpha: 0.30),
                   blurRadius: 20,
                   spreadRadius: 0,
                 ),
@@ -66,17 +67,17 @@ class AuthTextField extends StatelessWidget {
         obscureText: obscureText,
         style: style ??
             AppTextStyles.bodyMedium.copyWith(
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               fontWeight: FontWeight.w500,
             ),
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
           hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
           ),
           labelStyle: AppTextStyles.bodyMedium.copyWith(
-            color: isFocused ? AppColors.primary : AppColors.textSecondary,
+            color: isFocused ? colors.primary : colors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
           prefixIcon: prefixIcon == null
@@ -84,7 +85,7 @@ class AuthTextField extends StatelessWidget {
               : Icon(
                   prefixIcon,
                   color:
-                      isFocused ? AppColors.primary : AppColors.textSecondary,
+                      isFocused ? colors.primary : colors.textSecondary,
                   size: 22,
                 ),
           suffixIcon: suffixIcon == null
@@ -92,7 +93,7 @@ class AuthTextField extends StatelessWidget {
               : IconButton(
                   icon: Icon(
                     suffixIcon,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                     size: 20,
                   ),
                   onPressed: onSuffixPressed,
@@ -108,40 +109,40 @@ class AuthTextField extends StatelessWidget {
           border: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: colors.textPrimary.withValues(alpha: 0.10),
               width: 1,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: colors.textPrimary.withValues(alpha: 0.10),
               width: 1,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.primary,
+            borderSide: BorderSide(
+              color: colors.primary,
               width: 2,
             ),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
+            borderSide: BorderSide(
+              color: colors.error,
               width: 1,
             ),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
+            borderSide: BorderSide(
+              color: colors.error,
               width: 2,
             ),
           ),
           errorStyle: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.error,
+            color: colors.error,
             fontWeight: FontWeight.w600,
           ),
         ),

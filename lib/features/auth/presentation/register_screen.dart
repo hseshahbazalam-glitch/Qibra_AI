@@ -15,7 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
@@ -37,15 +37,15 @@ enum _PasswordStrength {
   Color get color {
     switch (this) {
       case _PasswordStrength.none:
-        return AppColors.borderStandard;
+        return colors.border;
       case _PasswordStrength.weak:
-        return AppColors.error;
+        return colors.error;
       case _PasswordStrength.fair:
-        return AppColors.warning;
+        return colors.accent;
       case _PasswordStrength.good:
-        return AppColors.info;
+        return colors.info;
       case _PasswordStrength.strong:
-        return AppColors.success;
+        return colors.success;
     }
   }
 
@@ -293,18 +293,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
       HapticFeedback.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(
                 Icons.error_outline,
-                color: const Color(0xFF19312C),
+                color: colors.textPrimary,
                 size: 20,
               ),
               SizedBox(width: AppSpacing.sm),
               Text('Please accept the Terms & Conditions'),
             ],
           ),
-          backgroundColor: AppColors.error,
+          backgroundColor: colors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: AppRadius.cardRadius,
@@ -333,6 +333,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final size = MediaQuery.sizeOf(context);
     final authState = ref.watch(authProvider);
     final isLoading = authState.isLoading;
@@ -399,16 +400,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildBackground() {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.topCenter,
             radius: 1.5,
             colors: [
-              Color(0xFFF5F3EC),
-              Color(0xFFF8F6EF),
-              AppColors.background,
+              colors.background,
+              colors.cardMuted,
+              colors.background,
             ],
             stops: [0.0, 0.5, 1.0],
           ),
@@ -422,6 +424,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildParticles(Size size) {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _particleController,
@@ -442,6 +445,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHeader() {
+    final colors = QibraColors.of(context);
     return AuthHeader(
       onBackTap: () => context.go(AppRoutes.login),
       stepNumber: 1,
@@ -456,6 +460,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildTitle() {
+    final colors = QibraColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -465,7 +470,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
           child: Text(
             'JOIN QIBRA AI',
             style: AppTextStyles.labelSmall.copyWith(
-              color: const Color(0xFF19312C),
+              color: colors.textPrimary,
               letterSpacing: 3,
               fontWeight: FontWeight.w800,
             ),
@@ -489,7 +494,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
         Text(
           'Start your spiritual journey today',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
       ],
@@ -501,6 +506,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildFormCard(AuthState authState, bool isLoading) {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: AppRadius.cardRadiusLarge,
       child: BackdropFilter(
@@ -518,7 +524,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: colors.textPrimary.withValues(alpha: 0.10),
               width: 1,
             ),
           ),
@@ -634,8 +640,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                 },
                 isLoading: false,
                 height: 48,
-                gradient: const LinearGradient(
-                    colors: [Color(0xFF123F36), Color(0xFF123F36)]),
+                gradient: LinearGradient(
+                    colors: [colors.primary, colors.primary]),
               ),
             ],
           ),
@@ -649,18 +655,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildErrorBanner(String message) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.error.withValues(alpha: 0.20),
-            AppColors.error.withValues(alpha: 0.10),
+            colors.error.withValues(alpha: 0.20),
+            colors.error.withValues(alpha: 0.10),
           ],
         ),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: AppColors.error.withValues(alpha: 0.40),
+          color: colors.error.withValues(alpha: 0.40),
           width: 1,
         ),
       ),
@@ -669,12 +676,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.error.withValues(alpha: 0.20),
+              color: colors.error.withValues(alpha: 0.20),
               borderRadius: AppRadius.pillRadius,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.error_outline_rounded,
-              color: AppColors.error,
+              color: colors.error,
               size: 16,
             ),
           ),
@@ -683,7 +690,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             child: Text(
               message,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.error,
+                color: colors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -692,9 +699,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             onTap: () {
               ref.read(authProvider.notifier).clearError();
             },
-            child: const Icon(
+            child: Icon(
               Icons.close_rounded,
-              color: AppColors.error,
+              color: colors.error,
               size: 18,
             ),
           ),
@@ -720,6 +727,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
     required bool enabled,
     required void Function(String)? onSubmitted,
   }) {
+    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: controller,
       focusNode: focusNode,
@@ -752,6 +760,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
     required TextInputAction textInputAction,
     required void Function(String)? onSubmitted,
   }) {
+    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: controller,
       focusNode: focusNode,
@@ -775,6 +784,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPasswordStrength() {
+    final colors = QibraColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -789,7 +799,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   height: 6,
                   decoration: BoxDecoration(
                     borderRadius: AppRadius.pillRadius,
-                    color: const Color(0xFF19312C).withValues(alpha: 0.10),
+                    color: colors.textPrimary.withValues(alpha: 0.10),
                   ),
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
@@ -856,13 +866,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPasswordRequirements() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: const Color(0xFF19312C).withValues(alpha: 0.03),
+        color: colors.textPrimary.withValues(alpha: 0.03),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: const Color(0xFF19312C).withValues(alpha: 0.08),
+          color: colors.textPrimary.withValues(alpha: 0.08),
           width: 1,
         ),
       ),
@@ -871,16 +882,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.shield_outlined,
-                color: AppColors.accent,
+                color: colors.accent,
                 size: 14,
               ),
               const SizedBox(width: AppSpacing.xs),
               Text(
                 'PASSWORD REQUIREMENTS',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.accent,
+                  color: colors.accent,
                   letterSpacing: 1.5,
                   fontWeight: FontWeight.w700,
                 ),
@@ -900,6 +911,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   }
 
   Widget _buildRequirementItem(String text, bool met) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -914,23 +926,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
               color: met ? null : Colors.white.withValues(alpha: 0.10),
               border: Border.all(
                 color: met
-                    ? AppColors.primary
+                    ? colors.primary
                     : Colors.white.withValues(alpha: 0.20),
                 width: 1,
               ),
               boxShadow: met
                   ? [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.40),
+                        color: colors.primary.withValues(alpha: 0.40),
                         blurRadius: 6,
                       ),
                     ]
                   : null,
             ),
             child: met
-                ? const Icon(
+                ? Icon(
                     Icons.check_rounded,
-                    color: const Color(0xFF19312C),
+                    color: colors.textPrimary,
                     size: 10,
                   )
                 : null,
@@ -939,7 +951,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
           Text(
             text,
             style: AppTextStyles.labelSmall.copyWith(
-              color: met ? AppColors.primary : AppColors.textSecondary,
+              color: met ? colors.primary : colors.textSecondary,
               fontWeight: met ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
@@ -953,6 +965,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildTermsCheckbox() {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -972,23 +985,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   _acceptedTerms ? null : Colors.white.withValues(alpha: 0.05),
               border: Border.all(
                 color: _acceptedTerms
-                    ? AppColors.primary
+                    ? colors.primary
                     : Colors.white.withValues(alpha: 0.20),
                 width: 1.5,
               ),
               boxShadow: _acceptedTerms
                   ? [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.40),
+                        color: colors.primary.withValues(alpha: 0.40),
                         blurRadius: 8,
                       ),
                     ]
                   : null,
             ),
             child: _acceptedTerms
-                ? const Icon(
+                ? Icon(
                     Icons.check_rounded,
-                    color: const Color(0xFF19312C),
+                    color: colors.textPrimary,
                     size: 14,
                   )
                 : null,
@@ -998,7 +1011,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             child: RichText(
               text: TextSpan(
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   height: 1.5,
                 ),
                 children: [
@@ -1006,20 +1019,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   TextSpan(
                     text: 'Terms of Service',
                     style: AppTextStyles.labelMedium.copyWith(
-                      color: AppColors.accent,
+                      color: colors.accent,
                       fontWeight: FontWeight.w700,
                       decoration: TextDecoration.underline,
-                      decorationColor: AppColors.accent,
+                      decorationColor: colors.accent,
                     ),
                   ),
                   const TextSpan(text: ' and '),
                   TextSpan(
                     text: 'Privacy Policy',
                     style: AppTextStyles.labelMedium.copyWith(
-                      color: AppColors.accent,
+                      color: colors.accent,
                       fontWeight: FontWeight.w700,
                       decoration: TextDecoration.underline,
-                      decorationColor: AppColors.accent,
+                      decorationColor: colors.accent,
                     ),
                   ),
                 ],
@@ -1036,6 +1049,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildRegisterButton(bool isLoading) {
+    final colors = QibraColors.of(context);
     return AuthButton(
       label: 'Create Account',
       onTap: _handleRegister,
@@ -1049,13 +1063,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildLoginLink() {
+    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'Already have an account? ',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
         GestureDetector(
@@ -1068,7 +1083,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             child: Text(
               'Sign In',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: const Color(0xFF19312C),
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -1090,6 +1105,7 @@ class _RegisterParticlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     final random = math.Random(66);
 
     for (int i = 0; i < 22; i++) {
@@ -1105,7 +1121,7 @@ class _RegisterParticlePainter extends CustomPainter {
 
       final particleSize = 1.5 + random.nextDouble() * 2;
       final isGold = i % 3 == 0;
-      final color = isGold ? AppColors.accent : AppColors.primary;
+      final color = isGold ? colors.accent : colors.primary;
       final alpha = 0.15 + (random.nextDouble() * 0.25);
 
       final paint = Paint()

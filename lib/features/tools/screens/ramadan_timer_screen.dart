@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 
@@ -131,8 +132,9 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -163,29 +165,30 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
 
   // ─── App Bar ────────────────────────────────────────────────
   SliverAppBar _buildAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 130,
       pinned: true,
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF19312C).withValues(alpha: 0.1),
+            color: colors.textPrimary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.arrow_back_rounded,
-              color: const Color(0xFF19312C), size: 20),
+          child: Icon(Icons.arrow_back_rounded,
+              color: colors.textPrimary, size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFFF8F1E3), Color(0xFFF5F3EC)],
+              colors: [Color(0xFFF8F1E3), colors.background],
             ),
           ),
           child: SafeArea(
@@ -194,18 +197,18 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'رَمَضَان',
                     style: TextStyle(
-                      color: Color(0xFFC6A15B),
+                      color: colors.accent,
                       fontSize: 24,
                       fontFamily: 'Amiri',
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Ramadan Timer',
                     style: TextStyle(
-                      color: const Color(0xFF19312C),
+                      color: colors.textPrimary,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
@@ -213,7 +216,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                   Text(
                     'Suhoor & Iftar Countdown',
                     style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                      color: colors.textPrimary.withValues(alpha: 0.4),
                       fontSize: 12,
                     ),
                   ),
@@ -228,6 +231,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
 
   // ─── Status Card ────────────────────────────────────────────
   Widget _buildStatusCard() {
+    final colors = QibraColors.of(context);
     final isRamadan = _isRamadan;
     final daysLeft = _daysUntilRamadan;
     final ramadanDay = _currentRamadanDay;
@@ -239,14 +243,14 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isRamadan
-              ? [const Color(0xFF123F36), const Color(0xFF2F6B5D)]
+              ? [colors.primary, colors.primarySoft]
               : [const Color(0xFFF8F1E3), const Color(0xFFF8F1E3)],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isRamadan
-              ? const Color(0xFF123F36).withValues(alpha: 0.3)
-              : const Color(0xFFC6A15B).withValues(alpha: 0.3),
+              ? colors.primary.withValues(alpha: 0.3)
+              : colors.accent.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -255,7 +259,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: const Color(0xFF19312C).withValues(alpha: 0.1),
+              color: colors.textPrimary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -271,10 +275,10 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (isRamadan) ...[
-                  const Text(
+                  Text(
                     'Ramadan Mubarak!',
                     style: TextStyle(
-                      color: Color(0xFF123F36),
+                      color: colors.primary,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
@@ -282,7 +286,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                   Text(
                     'Day $ramadanDay of 30',
                     style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.7),
+                      color: colors.textPrimary.withValues(alpha: 0.7),
                       fontSize: 13,
                     ),
                   ),
@@ -293,16 +297,16 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                       value: ramadanDay / 30,
                       minHeight: 5,
                       backgroundColor:
-                          const Color(0xFF123F36).withValues(alpha: 0.15),
+                          colors.primary.withValues(alpha: 0.15),
                       valueColor:
-                          const AlwaysStoppedAnimation(Color(0xFF123F36)),
+                          AlwaysStoppedAnimation(colors.primary),
                     ),
                   ),
                 ] else if (daysLeft > 0) ...[
-                  const Text(
+                  Text(
                     'Ramadan is Coming!',
                     style: TextStyle(
-                      color: Color(0xFFC6A15B),
+                      color: colors.accent,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
@@ -312,8 +316,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                     children: [
                       Text(
                         '$daysLeft',
-                        style: const TextStyle(
-                          color: const Color(0xFF19312C),
+                        style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 32,
                           fontWeight: FontWeight.w900,
                           height: 1.0,
@@ -325,7 +329,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                         child: Text(
                           'days remaining',
                           style: TextStyle(
-                            color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                            color: colors.textPrimary.withValues(alpha: 0.5),
                             fontSize: 13,
                           ),
                         ),
@@ -333,10 +337,10 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                     ],
                   ),
                 ] else ...[
-                  const Text(
+                  Text(
                     'Ramadan has passed',
                     style: TextStyle(
-                      color: Color(0xFFC6A15B),
+                      color: colors.accent,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                     ),
@@ -344,7 +348,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                   Text(
                     'May Allah accept your fasts',
                     style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                      color: colors.textPrimary.withValues(alpha: 0.5),
                       fontSize: 13,
                     ),
                   ),
@@ -359,6 +363,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
 
   // ─── Timer Cards ────────────────────────────────────────────
   Widget _buildTimerCards() {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         Expanded(
@@ -367,7 +372,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             time: _suhoorTime,
             countdown: _suhoorCountdown,
             emoji: '🌅',
-            color: const Color(0xFFC6A15B),
+            color: colors.accent,
             bgColor: const Color(0xFFF8F1E3),
             isActive: !_isFasting,
           ),
@@ -379,8 +384,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             time: _iftarTime,
             countdown: _iftarCountdown,
             emoji: '🌙',
-            color: const Color(0xFFC6A15B),
-            bgColor: const Color(0xFFEEF1EA),
+            color: colors.accent,
+            bgColor: colors.backgroundSecondary,
             isActive: _isFasting,
           ),
         ),
@@ -471,8 +476,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
           const SizedBox(height: 2),
           Text(
             time,
-            style: const TextStyle(
-              color: const Color(0xFF19312C),
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w800,
             ),
@@ -493,7 +498,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             Text(
               'Passed',
               style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.3),
+                color: colors.textPrimary.withValues(alpha: 0.3),
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -505,13 +510,14 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
 
   // ─── Fasting Progress ───────────────────────────────────────
   Widget _buildFastingProgress() {
+    final colors = QibraColors.of(context);
     if (!_isFasting) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFEFDF9),
+          color: colors.card,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+          border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
         ),
         child: Row(
           children: [
@@ -521,10 +527,10 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Not Fasting Currently',
                     style: TextStyle(
-                      color: const Color(0xFF19312C),
+                      color: colors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -532,7 +538,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                   Text(
                     'Next Suhoor in ${_formatDuration(_suhoorCountdown)}',
                     style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                      color: colors.textPrimary.withValues(alpha: 0.4),
                       fontSize: 11,
                     ),
                   ),
@@ -552,26 +558,26 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF123F36), Color(0xFFEEF1EA)],
+        gradient: LinearGradient(
+          colors: [colors.primary, colors.backgroundSecondary],
         ),
         borderRadius: BorderRadius.circular(18),
         border:
-            Border.all(color: const Color(0xFF123F36).withValues(alpha: 0.3)),
+            Border.all(color: colors.primary.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Text('🤲', style: TextStyle(fontSize: 18)),
                   SizedBox(width: 8),
                   Text(
                     'FASTING NOW',
                     style: TextStyle(
-                      color: Color(0xFF123F36),
+                      color: colors.primary,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 2.0,
@@ -581,8 +587,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
               ),
               Text(
                 '${(progress * 100).toInt()}%',
-                style: const TextStyle(
-                  color: Color(0xFF123F36),
+                style: TextStyle(
+                  color: colors.primary,
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
                 ),
@@ -595,8 +601,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             child: LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
               minHeight: 8,
-              backgroundColor: const Color(0xFF123F36).withValues(alpha: 0.15),
-              valueColor: const AlwaysStoppedAnimation(Color(0xFF123F36)),
+              backgroundColor: colors.primary.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation(colors.primary),
             ),
           ),
           const SizedBox(height: 8),
@@ -606,14 +612,14 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
               Text(
                 _suhoorTime,
                 style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                  color: colors.textPrimary.withValues(alpha: 0.5),
                   fontSize: 11,
                 ),
               ),
               Text(
                 _iftarTime,
                 style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                  color: colors.textPrimary.withValues(alpha: 0.5),
                   fontSize: 11,
                 ),
               ),
@@ -626,6 +632,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
 
   // ─── Duas Section ───────────────────────────────────────────
   Widget _buildDuasSection() {
+    final colors = QibraColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -636,7 +643,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             Text(
               'RAMADAN DUAS',
               style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                color: colors.textPrimary.withValues(alpha: 0.5),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0,
@@ -654,15 +661,16 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
   }
 
   Widget _buildDuaCard(_RamadanDua dua) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
         Clipboard.setData(ClipboardData(text: dua.arabic));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Dua copied! 📋',
-                style: TextStyle(color: const Color(0xFF19312C))),
-            backgroundColor: const Color(0xFF123F36),
+            content: Text('Dua copied! 📋',
+                style: TextStyle(color: colors.textPrimary)),
+            backgroundColor: colors.primary,
             behavior: SnackBarBehavior.floating,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -674,10 +682,10 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFEFDF9),
+          color: colors.card,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-              color: const Color(0xFFC6A15B).withValues(alpha: 0.12)),
+              color: colors.accent.withValues(alpha: 0.12)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -688,13 +696,13 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFC6A15B).withValues(alpha: 0.12),
+                    color: colors.accent.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     dua.title,
-                    style: const TextStyle(
-                      color: Color(0xFFC6A15B),
+                    style: TextStyle(
+                      color: colors.accent,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
@@ -702,16 +710,16 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                 ),
                 const Spacer(),
                 Icon(Icons.copy_rounded,
-                    color: const Color(0xFF19312C).withValues(alpha: 0.2), size: 14),
+                    color: colors.textPrimary.withValues(alpha: 0.2), size: 14),
               ],
             ),
             const SizedBox(height: 12),
             Text(
               dua.arabic,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Amiri',
                 fontSize: 18,
-                color: const Color(0xFF19312C),
+                color: colors.textPrimary,
                 height: 1.6,
               ),
               textDirection: TextDirection.rtl,
@@ -720,7 +728,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             Text(
               dua.transliteration,
               style: TextStyle(
-                color: const Color(0xFFC6A15B).withValues(alpha: 0.7),
+                color: colors.accent.withValues(alpha: 0.7),
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
               ),
@@ -729,7 +737,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             Text(
               dua.translation,
               style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                color: colors.textPrimary.withValues(alpha: 0.5),
                 fontSize: 11,
                 height: 1.4,
               ),
@@ -742,6 +750,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
 
   // ─── Tips Section ───────────────────────────────────────────
   Widget _buildTipsSection() {
+    final colors = QibraColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -752,7 +761,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
             Text(
               'RAMADAN TIPS',
               style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                color: colors.textPrimary.withValues(alpha: 0.5),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0,
@@ -773,10 +782,10 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                 margin: const EdgeInsets.only(right: 10),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEFDF9),
+                  color: colors.card,
                   borderRadius: BorderRadius.circular(14),
                   border:
-                      Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+                      Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -785,8 +794,8 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                     const Spacer(),
                     Text(
                       tip.title,
-                      style: const TextStyle(
-                        color: const Color(0xFF19312C),
+                      style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
@@ -794,7 +803,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                     Text(
                       tip.subtitle,
                       style: TextStyle(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.35),
+                        color: colors.textPrimary.withValues(alpha: 0.35),
                         fontSize: 9,
                       ),
                       maxLines: 1,
@@ -812,25 +821,26 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
 
   // ─── Islamic Note ───────────────────────────────────────────
   Widget _buildIslamicNote() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+        color: colors.cardMuted.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.15)),
+            Border.all(color: colors.accent.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Text('📖', style: TextStyle(fontSize: 14)),
               SizedBox(width: 8),
               Text(
                 'Hadith',
                 style: TextStyle(
-                  color: Color(0xFFC6A15B),
+                  color: colors.accent,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -841,7 +851,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
           Text(
             '"When Ramadan begins, the gates of Paradise are opened, the gates of Hell are closed, and the devils are chained." — Bukhari & Muslim',
             style: TextStyle(
-              color: const Color(0xFF19312C).withValues(alpha: 0.6),
+              color: colors.textPrimary.withValues(alpha: 0.6),
               fontSize: 12,
               fontStyle: FontStyle.italic,
               height: 1.5,
