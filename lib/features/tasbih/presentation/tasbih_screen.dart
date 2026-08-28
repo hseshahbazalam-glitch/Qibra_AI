@@ -1095,7 +1095,7 @@ class _DhikrSelectorSheet extends ConsumerWidget {
                           child: Text(
                             '${dhikr.defaultTarget}',
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: colors.accent,
+                              color: colors.goldText,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -1188,7 +1188,7 @@ class _TargetSelectorSheet extends ConsumerWidget {
                   child: Text(
                     '$preset',
                     style: AppTextStyles.titleSmall.copyWith(
-                      color: isSelected ? Colors.white : colors.primary,
+                      color: isSelected ? colors.onPrimary : colors.primary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -1281,7 +1281,7 @@ class _DailyGoalSheet extends ConsumerWidget {
                   child: Text(
                     '$goal',
                     style: AppTextStyles.titleSmall.copyWith(
-                      color: isSelected ? Colors.white : colors.primary,
+                      color: isSelected ? colors.onPrimary : colors.primary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),

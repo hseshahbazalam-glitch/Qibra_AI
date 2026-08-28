@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -12,6 +12,7 @@ class HomeErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return SafeArea(
       child: Center(
         child: Padding(
@@ -23,13 +24,13 @@ class HomeErrorState extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.10),
+                  color: colors.error.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                   border: Border.all(
-                      color: AppColors.error.withValues(alpha: 0.25), width: 2),
+                      color: colors.error.withValues(alpha: 0.25), width: 2),
                 ),
-                child: const Icon(Icons.wifi_off_rounded,
-                    color: AppColors.error, size: 40),
+                child: Icon(Icons.wifi_off_rounded,
+                    color: colors.error, size: 40),
               ),
               const SizedBox(height: AppSpacing.xl2),
               Text(
@@ -42,7 +43,7 @@ class HomeErrorState extends StatelessWidget {
               Text(
                 'Please check your connection and try again.',
                 style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.textSecondary, height: 1.6),
+                    .copyWith(color: colors.textSecondary, height: 1.6),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xl3),
@@ -62,13 +63,13 @@ class HomeErrorState extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.refresh_rounded,
-                          color: AppColors.white, size: 18),
+                      Icon(Icons.refresh_rounded,
+                          color: colors.onPrimary, size: 18),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         'Try Again',
                         style: AppTextStyles.labelLarge.copyWith(
-                            color: AppColors.white,
+                            color: colors.onPrimary,
                             fontWeight: FontWeight.w700),
                       ),
                     ],
@@ -89,6 +90,7 @@ class HomeEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return SafeArea(
       child: Center(
         child: Padding(
@@ -102,17 +104,17 @@ class HomeEmptyState extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primary.withValues(alpha: 0.15),
-                      AppColors.accent.withValues(alpha: 0.10),
+                      colors.primary.withValues(alpha: 0.15),
+                      colors.accent.withValues(alpha: 0.10),
                     ],
                   ),
                   shape: BoxShape.circle,
                   border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.20),
+                      color: colors.primary.withValues(alpha: 0.20),
                       width: 2),
                 ),
-                child: const Icon(Icons.mosque_rounded,
-                    color: AppColors.primary, size: 60),
+                child: Icon(Icons.mosque_rounded,
+                    color: colors.primary, size: 60),
               ),
               const SizedBox(height: AppSpacing.xl2),
               Text(
@@ -125,7 +127,7 @@ class HomeEmptyState extends StatelessWidget {
               Text(
                 'Your Islamic companion is ready.',
                 style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.textSecondary, height: 1.6),
+                    .copyWith(color: colors.textSecondary, height: 1.6),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xl3),
@@ -145,7 +147,7 @@ class HomeEmptyState extends StatelessWidget {
                   child: Text(
                     'Get Started',
                     style: AppTextStyles.labelLarge.copyWith(
-                        color: AppColors.white, fontWeight: FontWeight.w700),
+                        color: colors.onPrimary, fontWeight: FontWeight.w700),
                     textAlign: TextAlign.center,
                   ),
                 ),

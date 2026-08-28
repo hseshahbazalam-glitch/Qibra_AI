@@ -7,7 +7,7 @@
 // inactiveTrackColor / activeColor parameters on Switch/SwitchListTile.
 // ===========================================================
 import 'package:flutter/material.dart';
-import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/qibra_colors.dart';
 
 class AppSwitchListTile extends StatelessWidget {
   final bool value;
@@ -33,34 +33,35 @@ class AppSwitchListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = activeColor ?? AppColors.primary;
+    final colors = QibraColors.of(context);
+    final accent = activeColor ?? colors.primary;
 
     return Theme(
       data: Theme.of(context).copyWith(
         switchTheme: SwitchThemeData(
           thumbColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.disabled)) {
-              return AppColors.textDisabled;
+              return colors.textTertiary;
             }
             if (states.contains(WidgetState.selected)) {
-              return Colors.white;
+              return colors.onPrimary;
             }
-            return AppColors.textSecondary;
+            return colors.textSecondary;
           }),
           trackColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.disabled)) {
-              return AppColors.surfaceHigh.withValues(alpha: 0.4);
+              return colors.cardMuted.withValues(alpha: 0.4);
             }
             if (states.contains(WidgetState.selected)) {
               return accent;
             }
-            return AppColors.surfaceHigh;
+            return colors.cardMuted;
           }),
           trackOutlineColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return Colors.transparent;
             }
-            return AppColors.borderSubtle;
+            return colors.border;
           }),
           trackOutlineWidth: WidgetStateProperty.all(1.5),
         ),

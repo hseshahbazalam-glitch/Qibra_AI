@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
 // ============================================================
@@ -161,6 +161,7 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final bool isDisabled = widget.onPressed == null || widget.isLoading;
     final config = _ButtonSizeConfig.fromSize(widget.size);
 
@@ -184,8 +185,8 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton>
             gradient: isDisabled
                 ? LinearGradient(
                     colors: [
-                      AppColors.primary.withValues(alpha: 0.40),
-                      AppColors.primaryDark.withValues(alpha: 0.40),
+                      colors.primary.withValues(alpha: 0.40),
+                      colors.primary.withValues(alpha: 0.40),
                     ],
                   )
                 : AppGradients.emerald,
@@ -202,6 +203,7 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton>
   }
 
   Widget _buildContent(_ButtonSizeConfig config, bool isDisabled) {
+    final colors = QibraColors.of(context);
     if (widget.isLoading) {
       return Center(
         child: SizedBox(
@@ -210,7 +212,7 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton>
           child: CircularProgressIndicator(
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(
-              AppColors.white.withValues(alpha: 0.80),
+              colors.onPrimary.withValues(alpha: 0.80),
             ),
           ),
         ),
@@ -225,8 +227,8 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton>
           Icon(
             widget.prefixIcon,
             color: isDisabled
-                ? AppColors.white.withValues(alpha: 0.50)
-                : AppColors.white,
+                ? colors.onPrimary.withValues(alpha: 0.50)
+                : colors.onPrimary,
             size: config.iconSize,
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -236,8 +238,8 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton>
           style: AppTextStyles.buttonLarge.copyWith(
             fontSize: config.fontSize,
             color: isDisabled
-                ? AppColors.white.withValues(alpha: 0.50)
-                : AppColors.white,
+                ? colors.onPrimary.withValues(alpha: 0.50)
+                : colors.onPrimary,
           ),
         ),
         if (widget.suffixIcon != null) ...[
@@ -245,8 +247,8 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton>
           Icon(
             widget.suffixIcon,
             color: isDisabled
-                ? AppColors.white.withValues(alpha: 0.50)
-                : AppColors.white,
+                ? colors.onPrimary.withValues(alpha: 0.50)
+                : colors.onPrimary,
             size: config.iconSize,
           ),
         ],
@@ -323,6 +325,7 @@ class _AppSecondaryButtonState extends State<AppSecondaryButton>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final bool isDisabled = widget.onPressed == null || widget.isLoading;
     final config = _ButtonSizeConfig.fromSize(widget.size);
 
@@ -347,8 +350,8 @@ class _AppSecondaryButtonState extends State<AppSecondaryButton>
             borderRadius: BorderRadius.circular(config.borderRadius),
             border: Border.all(
               color: isDisabled
-                  ? AppColors.primary.withValues(alpha: 0.30)
-                  : AppColors.primary,
+                  ? colors.primary.withValues(alpha: 0.30)
+                  : colors.primary,
               width: 1.5,
             ),
           ),
@@ -362,6 +365,7 @@ class _AppSecondaryButtonState extends State<AppSecondaryButton>
   }
 
   Widget _buildContent(_ButtonSizeConfig config, bool isDisabled) {
+    final colors = QibraColors.of(context);
     if (widget.isLoading) {
       return Center(
         child: SizedBox(
@@ -370,7 +374,7 @@ class _AppSecondaryButtonState extends State<AppSecondaryButton>
           child: CircularProgressIndicator(
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(
-              AppColors.primary.withValues(alpha: 0.80),
+              colors.primary.withValues(alpha: 0.80),
             ),
           ),
         ),
@@ -385,8 +389,8 @@ class _AppSecondaryButtonState extends State<AppSecondaryButton>
           Icon(
             widget.prefixIcon,
             color: isDisabled
-                ? AppColors.primary.withValues(alpha: 0.40)
-                : AppColors.primary,
+                ? colors.primary.withValues(alpha: 0.40)
+                : colors.primary,
             size: config.iconSize,
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -396,8 +400,8 @@ class _AppSecondaryButtonState extends State<AppSecondaryButton>
           style: AppTextStyles.buttonLarge.copyWith(
             fontSize: config.fontSize,
             color: isDisabled
-                ? AppColors.primary.withValues(alpha: 0.40)
-                : AppColors.primary,
+                ? colors.primary.withValues(alpha: 0.40)
+                : colors.primary,
           ),
         ),
         if (widget.suffixIcon != null) ...[
@@ -405,8 +409,8 @@ class _AppSecondaryButtonState extends State<AppSecondaryButton>
           Icon(
             widget.suffixIcon,
             color: isDisabled
-                ? AppColors.primary.withValues(alpha: 0.40)
-                : AppColors.primary,
+                ? colors.primary.withValues(alpha: 0.40)
+                : colors.primary,
             size: config.iconSize,
           ),
         ],
@@ -483,6 +487,7 @@ class _AppGoldButtonState extends State<AppGoldButton>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final bool isDisabled = widget.onPressed == null || widget.isLoading;
     final config = _ButtonSizeConfig.fromSize(widget.size);
 
@@ -506,8 +511,8 @@ class _AppGoldButtonState extends State<AppGoldButton>
             gradient: isDisabled
                 ? LinearGradient(
                     colors: [
-                      AppColors.accent.withValues(alpha: 0.40),
-                      AppColors.accentDark.withValues(alpha: 0.40),
+                      colors.accent.withValues(alpha: 0.40),
+                      colors.goldText.withValues(alpha: 0.40),
                     ],
                   )
                 : AppGradients.gold,
@@ -524,6 +529,7 @@ class _AppGoldButtonState extends State<AppGoldButton>
   }
 
   Widget _buildContent(_ButtonSizeConfig config, bool isDisabled) {
+    final colors = QibraColors.of(context);
     if (widget.isLoading) {
       return Center(
         child: SizedBox(
@@ -532,7 +538,7 @@ class _AppGoldButtonState extends State<AppGoldButton>
           child: CircularProgressIndicator(
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(
-              AppColors.textOnGold.withValues(alpha: 0.80),
+              colors.textPrimary.withValues(alpha: 0.80),
             ),
           ),
         ),
@@ -547,8 +553,8 @@ class _AppGoldButtonState extends State<AppGoldButton>
           Icon(
             widget.prefixIcon,
             color: isDisabled
-                ? AppColors.textOnGold.withValues(alpha: 0.50)
-                : AppColors.textOnGold,
+                ? colors.textPrimary.withValues(alpha: 0.50)
+                : colors.textPrimary,
             size: config.iconSize,
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -558,8 +564,8 @@ class _AppGoldButtonState extends State<AppGoldButton>
           style: AppTextStyles.buttonLarge.copyWith(
             fontSize: config.fontSize,
             color: isDisabled
-                ? AppColors.textOnGold.withValues(alpha: 0.50)
-                : AppColors.textOnGold,
+                ? colors.textPrimary.withValues(alpha: 0.50)
+                : colors.textPrimary,
           ),
         ),
         if (widget.suffixIcon != null) ...[
@@ -567,8 +573,8 @@ class _AppGoldButtonState extends State<AppGoldButton>
           Icon(
             widget.suffixIcon,
             color: isDisabled
-                ? AppColors.textOnGold.withValues(alpha: 0.50)
-                : AppColors.textOnGold,
+                ? colors.textPrimary.withValues(alpha: 0.50)
+                : colors.textPrimary,
             size: config.iconSize,
           ),
         ],
@@ -601,14 +607,15 @@ class AppTextBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final bool isDisabled = onPressed == null;
     final config = _ButtonSizeConfig.fromSize(size);
 
     final Color textColor = isDisabled
-        ? AppColors.textTertiary
+        ? colors.textTertiary
         : isGold
-            ? AppColors.accent
-            : AppColors.primary;
+            ? colors.accent
+            : colors.primary;
 
     return GestureDetector(
       onTap: isDisabled
@@ -708,6 +715,7 @@ class _AppIconBtnState extends State<AppIconBtn>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final double btnSize = widget.size ?? AppUIConstants.tapTargetSize;
     final bool isDisabled = widget.onPressed == null;
 
@@ -715,22 +723,22 @@ class _AppIconBtnState extends State<AppIconBtn>
     if (widget.backgroundColor != null) {
       bgColor = widget.backgroundColor!;
     } else if (widget.isFilled) {
-      bgColor = AppColors.primary;
+      bgColor = colors.primary;
     } else if (widget.isOutlined) {
       bgColor = Colors.transparent;
     } else {
-      bgColor = AppColors.surfaceElevated;
+      bgColor = colors.surfaceElevated;
     }
 
     Color iconClr;
     if (widget.iconColor != null) {
       iconClr = widget.iconColor!;
     } else if (widget.isFilled) {
-      iconClr = AppColors.white;
+      iconClr = colors.onPrimary;
     } else {
       iconClr = isDisabled
-          ? AppColors.iconSecondary.withValues(alpha: 0.40)
-          : AppColors.iconPrimary;
+          ? colors.textSecondary.withValues(alpha: 0.40)
+          : colors.textPrimary;
     }
 
     return GestureDetector(
@@ -758,7 +766,7 @@ class _AppIconBtnState extends State<AppIconBtn>
                 shape: BoxShape.circle,
                 border: widget.isOutlined
                     ? Border.all(
-                        color: AppColors.borderStandard,
+                        color: colors.border,
                         width: 1.5,
                       )
                     : null,
@@ -776,8 +784,8 @@ class _AppIconBtnState extends State<AppIconBtn>
                 right: -2,
                 child: Container(
                   padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    color: AppColors.error,
+                  decoration: BoxDecoration(
+                    color: colors.error,
                     shape: BoxShape.circle,
                   ),
                   constraints: const BoxConstraints(
@@ -853,6 +861,7 @@ class _AppSocialButtonState extends State<AppSocialButton>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final bool isDisabled = widget.onPressed == null || widget.isLoading;
 
     return GestureDetector(
@@ -875,11 +884,11 @@ class _AppSocialButtonState extends State<AppSocialButton>
           width: double.infinity,
           decoration: BoxDecoration(
             color: isDisabled
-                ? AppColors.surfaceElevated.withValues(alpha: 0.50)
-                : AppColors.surfaceElevated,
+                ? colors.surfaceElevated.withValues(alpha: 0.50)
+                : colors.surfaceElevated,
             borderRadius: AppRadius.cardRadius,
             border: Border.all(
-              color: AppColors.borderStandard,
+              color: colors.border,
               width: 1,
             ),
           ),
@@ -895,15 +904,16 @@ class _AppSocialButtonState extends State<AppSocialButton>
   }
 
   Widget _buildContent(bool isDisabled) {
+    final colors = QibraColors.of(context);
     if (widget.isLoading) {
-      return const Center(
+      return Center(
         child: SizedBox(
           width: 20,
           height: 20,
           child: CircularProgressIndicator(
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(
-              AppColors.textSecondary,
+              colors.textSecondary,
             ),
           ),
         ),
@@ -918,7 +928,7 @@ class _AppSocialButtonState extends State<AppSocialButton>
         Text(
           widget.label,
           style: AppTextStyles.buttonMedium.copyWith(
-            color: isDisabled ? AppColors.textTertiary : AppColors.textPrimary,
+            color: isDisabled ? colors.textTertiary : colors.textPrimary,
           ),
         ),
       ],
@@ -926,20 +936,21 @@ class _AppSocialButtonState extends State<AppSocialButton>
   }
 
   Widget _buildSocialIcon() {
+    final colors = QibraColors.of(context);
     switch (widget.type) {
       case SocialButtonType.google:
         return Container(
           width: 22,
           height: 22,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.surface,
+            color: colors.surface,
           ),
-          child: const Center(
+          child: Center(
             child: Text(
               'G',
               style: TextStyle(
-                color: Color(0xFF123F36),
+                color: colors.primary,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -947,9 +958,9 @@ class _AppSocialButtonState extends State<AppSocialButton>
           ),
         );
       case SocialButtonType.apple:
-        return const Icon(
+        return Icon(
           Icons.apple,
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           size: 22,
         );
     }
@@ -1001,6 +1012,7 @@ class _AppLoadingButtonState extends State<AppLoadingButton> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     if (widget.isGold) {
       return AppGoldButton(
         label:

@@ -16,7 +16,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/qibra_colors.dart';
 
 /// Possible fallback variants for [SafeImage].
 enum SafeImageFallback { quran, mosque, pattern, logo }
@@ -71,6 +71,7 @@ class SafeImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final variant = fallback ?? _inferFallback();
     final placeholder = _VectorFallback(
       variant: variant,
@@ -127,16 +128,17 @@ class _VectorFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final CustomPainter painter;
     switch (variant) {
       case SafeImageFallback.quran:
-        painter = _QuranVectorPainter(accent: tint ?? AppColors.primary);
+        painter = _QuranVectorPainter(accent: tint ?? colors.primary);
       case SafeImageFallback.mosque:
-        painter = _MosqueVectorPainter(accent: tint ?? AppColors.accent);
+        painter = _MosqueVectorPainter(accent: tint ?? colors.accent);
       case SafeImageFallback.logo:
-        painter = _LogoVectorPainter(accent: tint ?? AppColors.accent);
+        painter = _LogoVectorPainter(accent: tint ?? colors.accent);
       case SafeImageFallback.pattern:
-        painter = _PatternVectorPainter(accent: tint ?? AppColors.primary);
+        painter = _PatternVectorPainter(accent: tint ?? colors.primary);
     }
 
     return Container(
@@ -147,8 +149,8 @@ class _VectorFallback extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.surface,
-            AppColors.surfaceElevated,
+            colors.surface,
+            colors.surfaceElevated,
           ],
         ),
       ),
@@ -169,6 +171,7 @@ class _MosqueVectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     final w = size.width;
     final h = size.height;
     if (w == 0 || h == 0) return;
@@ -180,8 +183,8 @@ class _MosqueVectorPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          const Color(0xFFF5F3EC),
-          const Color(0xFFF5F3EC),
+          colors.background,
+          colors.background,
         ],
       ).createShader(bgRect);
     canvas.drawRect(bgRect, bgPaint);
@@ -198,7 +201,7 @@ class _MosqueVectorPainter extends CustomPainter {
 
     final baseY = h * 0.82;
     final silhouette = Paint()
-      ..color = const Color(0xFFEEF1EA)
+      ..color = colors.backgroundSecondary
       ..style = PaintingStyle.fill;
 
     // Ground
@@ -286,7 +289,7 @@ class _MosqueVectorPainter extends CustomPainter {
 
     // Arches on base
     final archPaint = Paint()
-      ..color = const Color(0xFFE8EBE3)
+      ..color = colors.backgroundSecondary
       ..style = PaintingStyle.fill;
     for (int i = 0; i < 5; i++) {
       final cx = w * (0.2 + i * 0.15);
@@ -325,11 +328,12 @@ class _QuranVectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     final w = size.width;
     final h = size.height;
     if (w == 0 || h == 0) return;
 
-    final bg = Paint()..color = const Color(0xFFE8EBE3);
+    final bg = Paint()..color = colors.backgroundSecondary;
     canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bg);
 
     // Pages
@@ -337,7 +341,7 @@ class _QuranVectorPainter extends CustomPainter {
       Rect.fromLTWH(w * 0.10, h * 0.18, w * 0.80, h * 0.66),
       Radius.circular(w * 0.03),
     );
-    final pagePaint = Paint()..color = const Color(0xFFEEF1EA);
+    final pagePaint = Paint()..color = colors.backgroundSecondary;
     canvas.drawRRect(pageRect, pagePaint);
 
     // Spine
@@ -347,7 +351,7 @@ class _QuranVectorPainter extends CustomPainter {
         width: w * 0.02,
         height: h * 0.70,
       ),
-      Paint()..color = const Color(0xFFF5F3EC),
+      Paint()..color = colors.background,
     );
 
     // Gold border
@@ -375,7 +379,7 @@ class _QuranVectorPainter extends CustomPainter {
     final cy = h * 0.51;
     final octSize = w * 0.14;
     _drawOctagon(canvas, Offset(cx, cy), octSize,
-        Paint()..color = AppColors.primary.withValues(alpha: 0.55));
+        Paint()..color = colors.primary.withValues(alpha: 0.55));
     _drawOctagon(canvas, Offset(cx, cy), octSize * 0.6,
         Paint()..color = accent.withValues(alpha: 0.85));
 
@@ -417,8 +421,9 @@ class _QuranVectorPainter extends CustomPainter {
 
   void _drawCornerOrnament(
       Canvas canvas, Offset anchor, double dirX, double dirY) {
+    final colors = QibraColors.of(context);
     final p = Paint()
-      ..color = AppColors.primary.withValues(alpha: 0.85)
+      ..color = colors.primary.withValues(alpha: 0.85)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
     final len = 18.0;
@@ -427,7 +432,7 @@ class _QuranVectorPainter extends CustomPainter {
     canvas.drawLine(anchor,
         Offset(anchor.dx, anchor.dy + dirY * len), p);
     canvas.drawCircle(anchor, 2.5,
-        Paint()..color = AppColors.primary);
+        Paint()..color = colors.primary);
   }
 
   @override
@@ -445,12 +450,13 @@ class _LogoVectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     final w = size.width;
     final h = size.height;
     if (w == 0 || h == 0) return;
     canvas.drawRect(
       Rect.fromLTWH(0, 0, w, h),
-      Paint()..color = const Color(0xFFF5F3EC),
+      Paint()..color = colors.background,
     );
     // Kaaba cube
     final cube = RRect.fromRectAndRadius(
@@ -467,8 +473,8 @@ class _LogoVectorPainter extends CustomPainter {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          const Color(0xFF19312C),
-          const Color(0xFFE8EBE3),
+          colors.textPrimary,
+          colors.backgroundSecondary,
         ],
       ).createShader(cube.outerRect),
     );
@@ -516,12 +522,13 @@ class _PatternVectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     final w = size.width;
     final h = size.height;
     if (w == 0 || h == 0) return;
     canvas.drawRect(
       Rect.fromLTWH(0, 0, w, h),
-      Paint()..color = const Color(0xFFE8EBE3),
+      Paint()..color = colors.backgroundSecondary,
     );
     final p = Paint()
       ..color = accent.withValues(alpha: 0.18)

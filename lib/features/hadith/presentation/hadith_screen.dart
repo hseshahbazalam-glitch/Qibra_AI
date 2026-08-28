@@ -61,19 +61,6 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
       child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-              actions: [
-                QibraIconButton(
-                  icon: Icons.search_rounded,
-                  tooltip: 'Search',
-                  onTap: () => _showSearchSheet(context),
-                ),
-                QibraIconButton(
-                  icon: Icons.bookmark_border_rounded,
-                  tooltip: 'Bookmarks',
-                  onTap: () => context.go(AppRoutes.bookmarks),
-                ),
-              ],
-            ),
             daily.when(
               data: (hadith) => _TodaysHadithCard(
                 hadith: hadith,

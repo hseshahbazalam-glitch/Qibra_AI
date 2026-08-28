@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -33,23 +33,24 @@ class PrayerTimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadiusLarge,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [
           Row(
             children: [
-              const Icon(Icons.timelapse_rounded,
-                  color: Color(0xFF123F36), size: 17),
+              Icon(Icons.timelapse_rounded,
+                  color: colors.primary, size: 17),
               const SizedBox(width: 7),
               Text("TODAY'S PRAYER TIMES",
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.0,
                   )),
@@ -68,18 +69,19 @@ class PrayerTimelineCard extends StatelessWidget {
   }
 
   Widget _tile(PrayerTimelineItemData item) {
+    final colors = QibraColors.of(context);
     return Container(
       margin: const EdgeInsets.only(top: 7),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
         color: item.isNext
             ? item.color.withValues(alpha: 0.12)
-            : AppColors.background.withValues(alpha: 0.55),
+            : colors.background.withValues(alpha: 0.55),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
           color: item.isNext
               ? item.color.withValues(alpha: 0.62)
-              : AppColors.borderSubtle,
+              : colors.border,
         ),
       ),
       child: Row(
@@ -101,7 +103,7 @@ class PrayerTimelineCard extends StatelessWidget {
                 Row(children: [
                   Text(item.label,
                       style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                           fontWeight: FontWeight.w800)),
                   if (item.isNext) ...[
                     const SizedBox(width: 5),
@@ -119,7 +121,7 @@ class PrayerTimelineCard extends StatelessWidget {
           ),
           Text(item.time,
               style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
+                  color: colors.textPrimary, fontWeight: FontWeight.w800)),
         ],
       ),
     );

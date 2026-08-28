@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -28,39 +28,37 @@ class _ProgressStat {
   });
 }
 
-const List<_ProgressStat> _stats = [
+List<_ProgressStat> _statsFor(QibraColors colors) => [
   _ProgressStat(
     label: 'Prayer',
-    value: '4/5',
+    value: '—',
     icon: Icons.mosque_rounded,
-    color: Color(0xFF123F36),
-    caption: 'On Track',
+    color: colors.primary,
+    caption: 'Unknown',
     route: AppRoutes.prayer,
   ),
   _ProgressStat(
     label: 'Quran',
-    value: '20 min',
+    value: '—',
     icon: Icons.menu_book_rounded,
-    color: Color(0xFFC6A15B),
-    caption: 'On Track',
+    color: colors.accent,
+    caption: 'Unknown',
     route: AppRoutes.quran,
   ),
   _ProgressStat(
     label: 'Tasbih',
-    value: '66/200',
+    value: '—',
     icon: Icons.blur_circular_rounded,
-    color: Color(0xFFC6A15B),
-    caption: 'Daily Goal',
-    progress: 66 / 200,
+    color: colors.accent,
+    caption: 'Unknown',
     route: AppRoutes.tasbih,
   ),
   _ProgressStat(
     label: 'Duas',
-    value: '12/40',
+    value: '—',
     icon: Icons.volunteer_activism_rounded,
-    color: Color(0xFFEF4444),
-    caption: 'Daily Goal',
-    progress: 12 / 40,
+    color: colors.error,
+    caption: 'Unknown',
     route: AppRoutes.dua,
   ),
 ];
@@ -72,12 +70,13 @@ class HomeDailyProgressSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadiusLarge,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +86,7 @@ class HomeDailyProgressSection extends StatelessWidget {
               Text(
                 "TODAY'S PROGRESS",
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontSize: 10,
                   letterSpacing: 1.0,
                   fontWeight: FontWeight.w700,
@@ -102,7 +101,7 @@ class HomeDailyProgressSection extends StatelessWidget {
                 child: Text(
                   'View All',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: const Color(0xFF123F36),
+                    color: colors.primary,
                     fontWeight: FontWeight.w700,
                     fontSize: 9,
                   ),
@@ -113,17 +112,17 @@ class HomeDailyProgressSection extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: _buildTile(context, _stats[0])),
+              Expanded(child: _buildTile(context, _statsFor(colors)[0])),
               const SizedBox(width: 8),
-              Expanded(child: _buildTile(context, _stats[1])),
+              Expanded(child: _buildTile(context, _statsFor(colors)[1])),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _buildTile(context, _stats[2])),
+              Expanded(child: _buildTile(context, _statsFor(colors)[2])),
               const SizedBox(width: 8),
-              Expanded(child: _buildTile(context, _stats[3])),
+              Expanded(child: _buildTile(context, _statsFor(colors)[3])),
             ],
           ),
         ],
@@ -132,6 +131,7 @@ class HomeDailyProgressSection extends StatelessWidget {
   }
 
   Widget _buildTile(BuildContext context, _ProgressStat stat) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -140,7 +140,7 @@ class HomeDailyProgressSection extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFFFEFDF9),
+          color: colors.card,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -152,15 +152,15 @@ class HomeDailyProgressSection extends StatelessWidget {
             Text(
               stat.label,
               style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.85),
+                color: colors.textPrimary.withValues(alpha: 0.85),
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
               ),
             ),
             Text(
               stat.value,
-              style: const TextStyle(
-                color: const Color(0xFF19312C),
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
                 height: 1.2,
@@ -173,7 +173,7 @@ class HomeDailyProgressSection extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: stat.progress!.clamp(0.0, 1.0),
                   minHeight: 3,
-                  backgroundColor: Colors.white.withValues(alpha: 0.10),
+                  backgroundColor: colors.onPrimary.withValues(alpha: 0.10),
                   valueColor: AlwaysStoppedAnimation<Color>(stat.color),
                 ),
               )

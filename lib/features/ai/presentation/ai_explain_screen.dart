@@ -285,8 +285,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               Navigator.pop(context);
             },
             child: Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: colors.surfaceElevated,
                 shape: BoxShape.circle,
@@ -337,9 +337,9 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                       height: 8,
                       decoration: BoxDecoration(
                         color: _isSpeaking
-                            ? Colors.orange
+                            ? colors.accent
                             : (_isListening
-                                ? Colors.red
+                                ? colors.error
                                 : colors.primarySoft),
                         shape: BoxShape.circle,
                       ),
@@ -363,8 +363,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           GestureDetector(
             onTap: _toggleAutoSpeak,
             child: Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
                 color: _autoSpeak
@@ -388,8 +388,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               _showClearDialog();
             },
             child: Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: colors.surfaceElevated,
                 shape: BoxShape.circle,
@@ -544,7 +544,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 child: Text(
                   'AYAH ${widget.ayahNumber}',
                   style: TextStyle(
-                    color: colors.accent,
+                    color: colors.goldText,
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1,
@@ -739,7 +739,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                           _formatTime(message.timestamp),
                           style: TextStyle(
                             color: isUser
-                                ? Colors.white.withValues(alpha: 0.7)
+                                ? colors.onPrimary.withValues(alpha: 0.7)
                                 : colors.textTertiary,
                             fontSize: 10,
                           ),
@@ -787,7 +787,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
   Widget _buildFormattedText(String text, bool isUser) {
     final colors = QibraColors.of(context);
-    final color = isUser ? Colors.white : colors.textPrimary;
+    final color = isUser ? colors.onPrimary : colors.textPrimary;
     final List<TextSpan> spans = [];
     final parts = text.split(RegExp(r'(\*\*[^*]+\*\*)'));
 
@@ -933,15 +933,15 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: _isListening
-                      ? [Colors.red, Colors.redAccent]
+                      ? [colors.error, colors.error]
                       : (_isSpeaking
-                          ? [Colors.orange, Colors.deepOrange]
+                          ? [colors.accent, colors.accent]
                           : [colors.primarySoft, colors.accent]),
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: (_isListening ? Colors.red : colors.primarySoft)
+                    color: (_isListening ? colors.error : colors.primarySoft)
                         .withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),

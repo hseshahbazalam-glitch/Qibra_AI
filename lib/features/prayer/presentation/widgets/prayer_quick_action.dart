@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
 class QuickActionItem {
@@ -30,6 +30,7 @@ class PrayerQuickActionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -42,6 +43,7 @@ class PrayerQuickActionsRow extends StatelessWidget {
   }
 
   Widget _buildActionButton(QuickActionItem action) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.mediumImpact();
@@ -52,8 +54,8 @@ class PrayerQuickActionsRow extends StatelessWidget {
         children: [
           // Circular icon container
           Container(
-            width: 46,
-            height: 46,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -89,7 +91,7 @@ class PrayerQuickActionsRow extends StatelessWidget {
           Text(
             action.label,
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w700,
               fontSize: 10,
             ),
