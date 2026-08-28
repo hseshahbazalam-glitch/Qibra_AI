@@ -45,6 +45,7 @@ class QuranRepository {
   Map<String, String>? _cachedTranslationsUrdu; // "chapter_verse" -> text
   Map<String, String>? _cachedTranslationsRoman;
   bool _isInitialized = false;
+  Future<void>? _initInFlight;
 
   bool get isInitialized => _isInitialized;
 
@@ -54,7 +55,17 @@ class QuranRepository {
 
   Future<void> initialize() async {
     if (_isInitialized) return;
+    if (_initInFlight != null) return _initInFlight!;
+    _initInFlight = _initializeInternal();
+    try {
+      await _initInFlight;
+    } finally {
+      _initInFlight = null;
+    }
+  }
 
+  Future<void> _initializeInternal() async {
+    if (_isInitialized) return;
     try {
       debugPrint('[QURAN] Initializing...');
       final stopwatch = Stopwatch()..start();

@@ -86,12 +86,14 @@ class RagService {
   Future<String> buildContextForQuery(String query) async {
     final passages = await retrieve(query, topK: 3);
 
-    if (passages.isEmpty) return '';
+    if (passages.isEmpty) {
+      return 'REFUSE: no retrieved passage. Do not invent Quran or Hadith.';
+    }
 
     final buffer = StringBuffer();
 
     buffer.writeln(
-      'Verified Qibra sources for this question (use these first and cite them):',
+      'Retrieved local passages (not independently verified). Cite only these:',
     );
 
     for (var index = 0; index < passages.length; index++) {

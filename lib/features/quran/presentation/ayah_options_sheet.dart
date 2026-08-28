@@ -83,14 +83,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF1A2438),
-            Color(0xFFFEFDF9),
-          ],
-        ),
+        color: Color(0xFFFEFDF9),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: SafeArea(
@@ -536,19 +529,8 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     _showToast('📋 Ayah copied to clipboard');
   }
 
-  // ✅ PLAY AUDIO (Opens surah reader with audio ready)
   void _playAudio() {
-    Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SurahReaderScreen(
-          surahNumber: widget.surahNumber,
-          initialAyah: widget.ayahNumber,
-        ),
-      ),
-    );
-    _showToast('🎵 Opening audio player...');
+    _showToast('Recitation is not bundled');
   }
 
   // ✅ BOOKMARK (Real - saves to SharedPreferences)
@@ -574,7 +556,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2438),
+        backgroundColor: const Color(0xFFFEFDF9),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),

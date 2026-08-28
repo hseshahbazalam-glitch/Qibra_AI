@@ -153,6 +153,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           return MushafReaderScreen(initialPage: page);
         },
       ),
+      GoRoute(
+        path: AppRoutes.surahReader,
+        name: 'surah-reader',
+        builder: (context, state) {
+          final surah = int.tryParse(state.uri.queryParameters['surah'] ?? '1') ?? 1;
+          final ayahStr = state.uri.queryParameters['ayah'];
+          final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
+          return SurahReaderScreen(surahNumber: surah, initialAyah: ayah);
+        },
+      ),
       ShellRoute(
         builder: (context, state, child) => AppShellScaffold(
           location: state.matchedLocation,
@@ -174,18 +184,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'quran',
             builder: (context, state) => const QuranScreen(),
             routes: [
-              GoRoute(
-                path: 'surah/:surahNumber',
-                name: 'quran-surah',
-                builder: (context, state) {
-                  final idStr = state.pathParameters['surahNumber'] ?? '1';
-                  final surahNum = int.tryParse(idStr) ?? 1;
-                  final ayahStr = state.uri.queryParameters['ayah'];
-                  final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
-                  return SurahReaderScreen(
-                      surahNumber: surahNum, initialAyah: ayah);
-                },
-              ),
               GoRoute(
                   path: 'surahs',
                   name: 'quran-surah-list',
@@ -242,11 +240,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                       slug: slug,
                       name: bookInfo?.name ?? 'Hadith Collection',
                       nameArabic: '',
-                      author: 'Islamic Scholar',
+                      author: '—',
                       authorArabic: '',
                       totalHadiths: bookInfo?.totalHadiths ?? 0,
                       totalChapters: bookInfo?.sections.length ?? 0,
-                      description: 'Authentic Hadith Collection',
+                      description: '',
                       color: QibraColors.of(context).primary,
                     ),
                   );

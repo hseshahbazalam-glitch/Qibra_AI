@@ -331,7 +331,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
@@ -436,7 +436,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -492,7 +492,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           decoration: BoxDecoration(
             color: todayDone
                 ? color.withValues(alpha: 0.08)
-                : const Color(0xFF141926),
+                : const Color(0xFFFEFDF9),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: todayDone
@@ -600,7 +600,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           maxHeight: MediaQuery.of(ctx).size.height * 0.7,
         ),
         decoration: const BoxDecoration(
-          color: Color(0xFF141926),
+          color: Color(0xFFFEFDF9),
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(

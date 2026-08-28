@@ -26,10 +26,22 @@ class PrayerTimesScreen extends ConsumerWidget {
     final records = ref.watch(prayerRecordsProvider);
     final hijri = HijriCalendar.now();
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: RefreshIndicator(
+    return QibraPage(
+      title: 'Prayer',
+      subtitle: '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH',
+      actions: [
+        QibraIconButton(
+          icon: Icons.notifications_none_rounded,
+          tooltip: 'Notifications',
+          onTap: () => context.push('/settings/notifications'),
+        ),
+        QibraIconButton(
+          icon: Icons.explore_outlined,
+          tooltip: 'Qibla',
+          onTap: () => context.go(AppRoutes.qibla),
+        ),
+      ],
+      child: RefreshIndicator(
           color: colors.primary,
           onRefresh: () async {
             await ref.read(locationProvider.notifier).fetchCurrentLocation();
@@ -37,23 +49,6 @@ class PrayerTimesScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
-              QibraScreenHeader(
-                title: 'Prayer',
-                subtitle:
-                    '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH',
-                actions: [
-                  QibraIconButton(
-                    icon: Icons.notifications_none_rounded,
-                    tooltip: 'Notifications',
-                    onTap: () => context.push('/settings/notifications'),
-                  ),
-                  QibraIconButton(
-                    icon: Icons.explore_outlined,
-                    tooltip: 'Qibla',
-                    onTap: () => context.go(AppRoutes.qibla),
-                  ),
-                ],
-              ),
               QibraCard(
                 filled: true,
                 child: nextPrayer == null
@@ -228,6 +223,11 @@ class PrayerTimesScreen extends ConsumerWidget {
                       label: 'Schedule',
                       icon: Icons.calendar_view_day_outlined,
                       onTap: () => context.push(AppRoutes.prayerSchedule),
+                    ),
+                    QibraSoftButton(
+                      label: 'Statistics',
+                      icon: Icons.bar_chart_rounded,
+                      onTap: () => context.push(AppRoutes.prayerStatistics),
                     ),
                     QibraSoftButton(
                       label: 'Tahajjud',

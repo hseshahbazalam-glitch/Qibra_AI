@@ -38,6 +38,17 @@ class QibraColors extends ThemeExtension<QibraColors> {
   final Color navBackground;
   final Color onPrimary;
 
+  // Semantic aliases required by Family A screens.
+  Color get surface => card;
+  Color get surfaceElevated => cardMuted;
+  Color get primaryContainer => primarySoft;
+  Color get divider => border;
+  Color get goldAccent => accent;
+  Color get goldText => const Color(0xFF6B542B);
+  Color get success => const Color(0xFF2F6B5D);
+  Color get info => const Color(0xFF2F6B5D);
+  Color get error => const Color(0xFFB42318);
+
   static const QibraColors light = QibraColors(
     background: Color(0xFFF5F3EC),
     backgroundSecondary: Color(0xFFEEF1EA),

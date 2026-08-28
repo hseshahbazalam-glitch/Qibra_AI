@@ -321,7 +321,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(14),
       ),
       child: TabBar(
@@ -427,7 +427,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF141926),
+                color: const Color(0xFFFEFDF9),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
               ),
@@ -465,7 +465,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFF141926),
+                color: const Color(0xFFFEFDF9),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
               ),
@@ -563,7 +563,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFF141926),
+              color: const Color(0xFFFEFDF9),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.08)),
             ),
@@ -722,7 +722,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF141926),
+            color: const Color(0xFFFEFDF9),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: color.withValues(alpha: 0.15)),
           ),
@@ -934,7 +934,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
@@ -1005,7 +1005,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),

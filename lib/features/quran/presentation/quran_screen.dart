@@ -12,9 +12,7 @@ import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_provider.dart' hide readingProgressProvider;
 import '../providers/reading_progress_provider.dart';
-import 'quran_search_screen.dart';
 import 'surah_list_screen.dart';
-import 'surah_reader_screen.dart';
 
 class QuranScreen extends ConsumerStatefulWidget {
   const QuranScreen({super.key});
@@ -42,45 +40,30 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
     final dailyAyah = ref.watch(dailyAyahProvider);
     final page = progress.currentPage;
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: ListView(
+    return QibraPage(
+      title: 'Quran',
+      subtitle: 'Read, continue, and browse',
+      actions: [
+        QibraIconButton(
+          icon: Icons.search_rounded,
+          tooltip: 'Search',
+          onTap: () => context.go(AppRoutes.quranSearch),
+        ),
+        QibraIconButton(
+          icon: Icons.bookmark_border_rounded,
+          tooltip: 'Bookmarks',
+          onTap: () => context.go(AppRoutes.bookmarks),
+        ),
+      ],
+      child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            QibraScreenHeader(
-              title: 'Quran',
-              subtitle: 'Read, continue, and browse',
-              actions: [
-                QibraIconButton(
-                  icon: Icons.search_rounded,
-                  tooltip: 'Search',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const QuranSearchScreen(),
-                      ),
-                    );
-                  },
-                ),
-                QibraIconButton(
-                  icon: Icons.bookmark_border_rounded,
-                  tooltip: 'Bookmarks',
-                  onTap: () => context.go(AppRoutes.bookmarks),
-                ),
-              ],
-            ),
             QibraCard(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => SurahReaderScreen(
-                      surahNumber: page?.surahNumber ?? 1,
-                      initialAyah: page?.ayahNumber,
-                    ),
-                  ),
+                final surah = page?.surahNumber ?? 1;
+                final ayah = page?.ayahNumber;
+                context.push(
+                  '${AppRoutes.surahReader}?surah=$surah${ayah == null ? '' : '&ayah=$ayah'}',
                 );
               },
               child: Row(
@@ -135,14 +118,8 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                 return QibraCard(
                   accentBorder: true,
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => SurahReaderScreen(
-                          surahNumber: _dailySurahNumber,
-                          initialAyah: ayah.number,
-                        ),
-                      ),
+                    context.push(
+                      '${AppRoutes.surahReader}?surah=$_dailySurahNumber&ayah=${ayah.number}',
                     );
                   },
                   child: Column(
@@ -246,20 +223,13 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
               ),
           ],
         ),
-      ),
     );
   }
 
   void _openSurah(int number, {int? ayah}) {
     HapticFeedback.selectionClick();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SurahReaderScreen(
-          surahNumber: number,
-          initialAyah: ayah,
-        ),
-      ),
+    context.push(
+      '${AppRoutes.surahReader}?surah=$number${ayah == null ? '' : '&ayah=$ayah'}',
     );
   }
 }

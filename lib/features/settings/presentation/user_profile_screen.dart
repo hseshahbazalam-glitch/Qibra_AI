@@ -9,8 +9,10 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_typography.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../shared/widgets/media/safe_image.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
@@ -22,26 +24,16 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.textPrimary, size: 18),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            } else {
-              context.go(AppRoutes.settings);
-            }
-          },
-        ),
-        title: Text('My Profile', style: AppTextStyles.titleLarge),
-        centerTitle: true,
-      ),
-      body: SafeArea(
+    return QibraPage(
+      title: 'My Profile',
+      onBack: () {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          context.go(AppRoutes.settings);
+        }
+      },
+      child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(

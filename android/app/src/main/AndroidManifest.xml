@@ -13,7 +13,6 @@
 
     <!-- Azan Alarms -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Compass/magnetometer access does not require a runtime permission. -->

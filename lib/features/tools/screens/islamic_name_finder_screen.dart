@@ -268,7 +268,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
           decoration: BoxDecoration(
             color: selected
                 ? color.withValues(alpha: 0.15)
-                : const Color(0xFF141926),
+                : const Color(0xFFFEFDF9),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: selected ? color : Colors.white.withValues(alpha: 0.05),
@@ -301,7 +301,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF141926),
+          color: const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.08)),
         ),
@@ -346,7 +346,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFF141926),
+          color: const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(14),
         ),
         child: TabBar(
@@ -450,7 +450,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                     color: selected
                         ? const Color(0xFF123F36).withValues(alpha: 0.2)
                         : count > 0
-                            ? const Color(0xFF141926)
+                            ? const Color(0xFFFEFDF9)
                             : Colors.white.withValues(alpha: 0.02),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
@@ -747,7 +747,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withValues(alpha: 0.12)),
       ),

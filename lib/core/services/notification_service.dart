@@ -491,7 +491,7 @@ class NotificationService {
           body: body,
           scheduledDate: tzDate,
           notificationDetails: details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           matchDateTimeComponents: DateTimeComponents.time,
           payload: payload,
         );
@@ -502,7 +502,7 @@ class NotificationService {
           body: body,
           scheduledDate: tzDate,
           notificationDetails: details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           payload: payload,
         );
       }

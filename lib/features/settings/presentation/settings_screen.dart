@@ -12,8 +12,10 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -24,9 +26,10 @@ class SettingsScreen extends ConsumerWidget {
     final userName = ref.watch(userDisplayNameProvider);
     final isDark = ref.watch(isDarkModeProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+    final colors = QibraColors.of(context);
+    return QibraPage(
+      title: 'Settings',
+      child: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -113,7 +116,7 @@ class SettingsScreen extends ConsumerWidget {
                       icon: Icons.headphones_rounded,
                       iconColor: AppColors.accent,
                       title: 'Quran Reciter',
-                      subtitle: 'Mishary Rashid',
+                      subtitle: 'Recitation not bundled',
                       onTap: () =>
                           _showComingSoon(context, 'Reciter selection'),
                     ),

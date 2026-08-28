@@ -43,15 +43,24 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     );
     final books = ref.watch(hadithBooksProvider);
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: ListView(
+    return QibraPage(
+      title: 'Hadith',
+      subtitle: 'The sayings of the Prophet ﷺ',
+      actions: [
+        QibraIconButton(
+          icon: Icons.search_rounded,
+          tooltip: 'Search',
+          onTap: () => _showSearchSheet(context),
+        ),
+        QibraIconButton(
+          icon: Icons.bookmark_border_rounded,
+          tooltip: 'Bookmarks',
+          onTap: () => context.go(AppRoutes.bookmarks),
+        ),
+      ],
+      child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            QibraScreenHeader(
-              title: 'Hadith',
-              subtitle: 'The sayings of the Prophet ﷺ',
               actions: [
                 QibraIconButton(
                   icon: Icons.search_rounded,
@@ -215,7 +224,6 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -224,7 +232,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     final info = db.getBookInfo(slug);
     final config = _collections.firstWhere(
       (c) => c['slug'] == slug,
-      orElse: () => {'name': 'Hadith Collection', 'author': 'Islamic Scholar'},
+      orElse: () => {'name': 'Hadith Collection', 'author': '—'},
     );
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -234,11 +242,13 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             slug: slug,
             name: info?.name ?? config['name']!,
             nameArabic: '',
-            author: config['author'] ?? 'Islamic Scholar',
+            author: (config['author'] == null || config['author']!.isEmpty)
+                ? '—'
+                : config['author']!,
             authorArabic: '',
             totalHadiths: info?.totalHadiths ?? 0,
             totalChapters: info?.sections.length ?? 0,
-            description: 'Authentic Hadith collection',
+            description: '',
             color: QibraColors.of(context).primary,
           ),
         ),

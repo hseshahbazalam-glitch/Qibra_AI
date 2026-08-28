@@ -375,7 +375,7 @@ class _NotificationSettingsScreenState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
@@ -522,7 +522,7 @@ class _NotificationSettingsScreenState
             data: ThemeData.dark().copyWith(
               colorScheme: const ColorScheme.dark(
                 primary: Color(0xFF123F36),
-                surface: Color(0xFF141926),
+                surface: Color(0xFFFEFDF9),
               ),
             ),
             child: child!,
@@ -569,7 +569,7 @@ class _NotificationSettingsScreenState
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),

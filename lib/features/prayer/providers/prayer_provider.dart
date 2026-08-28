@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/location/location_resolver.dart';
 import '../data/models/prayer_models.dart';
 import '../data/services/prayer_calculation_service.dart';
 
@@ -163,15 +164,18 @@ class LocationNotifier extends StateNotifier<LocationState> {
         '[LOCATION] Position: ${position.latitude}, ${position.longitude}',
       );
 
-      const cityName = 'My Location';
-      const countryName = 'Auto-detected';
+      final resolved = LocationResolver.fromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
 
       final location = PrayerLocation(
         latitude: position.latitude,
         longitude: position.longitude,
-        city: cityName,
-        country: countryName,
-        countryCode: null,
+        city: resolved.city ?? 'UNKNOWN',
+        country: resolved.country ?? 'UNKNOWN',
+        countryCode: resolved.countryCode,
+        timezone: resolved.timezone,
         isManuallySet: false,
       );
 

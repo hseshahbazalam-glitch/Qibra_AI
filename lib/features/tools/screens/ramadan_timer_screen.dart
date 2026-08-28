@@ -509,7 +509,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF141926),
+          color: const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
         ),
@@ -674,7 +674,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF141926),
+          color: const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
               color: const Color(0xFFC6A15B).withValues(alpha: 0.12)),
@@ -773,7 +773,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
                 margin: const EdgeInsets.only(right: 10),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF141926),
+                  color: const Color(0xFFFEFDF9),
                   borderRadius: BorderRadius.circular(14),
                   border:
                       Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),

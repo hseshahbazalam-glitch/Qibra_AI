@@ -4,11 +4,17 @@
 // Version: 2.1.0 — Singleton Database Integration with Instant Load
 // ============================================================
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
+
+/// Hadith display language is independent of UI locale.
+final hadithLanguageProvider = StateProvider<String>((ref) => 'en');
 
 // ============================================================
 // SECTION 1: DATABASE SERVICE PROVIDER
@@ -48,11 +54,11 @@ final hadithBooksProvider = FutureProvider<List<HadithBook>>((ref) async {
         slug: info.slug,
         name: info.name,
         nameArabic: '',
-        author: 'Islamic Scholar',
+        author: '—',
         authorArabic: '',
         totalHadiths: info.totalHadiths,
         totalChapters: info.sections.length,
-        description: 'Authentic Hadith collection',
+        description: '',
         color: const Color(0xFF123F36),
       ),
     );
@@ -262,7 +268,31 @@ HadithMatchType _matchTypeFromString(String s) {
 // ============================================================
 
 class HadithBookmarksNotifier extends StateNotifier<List<HadithBookmark>> {
-  HadithBookmarksNotifier() : super([]);
+  HadithBookmarksNotifier() : super([]) {
+    _load();
+  }
+
+  static const _storageKey = 'hadith_bookmarks_v1';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_storageKey);
+    if (raw == null || raw.isEmpty) return;
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      state = list
+          .map((e) => HadithBookmark.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {}
+  }
+
+  Future<void> _persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _storageKey,
+      jsonEncode(state.map((b) => b.toJson()).toList()),
+    );
+  }
 
   void addBookmark(HadithModel hadith, {String? note}) {
     if (state.any((b) => b.hadithId == hadith.id)) return;
@@ -280,10 +310,12 @@ class HadithBookmarksNotifier extends StateNotifier<List<HadithBookmark>> {
     );
 
     state = [...state, bookmark];
+    _persist();
   }
 
   void removeBookmark(String hadithId) {
     state = state.where((b) => b.hadithId != hadithId).toList();
+    _persist();
   }
 
   bool isBookmarked(String hadithId) {
@@ -300,6 +332,7 @@ class HadithBookmarksNotifier extends StateNotifier<List<HadithBookmark>> {
 
   void clearAll() {
     state = [];
+    _persist();
   }
 }
 

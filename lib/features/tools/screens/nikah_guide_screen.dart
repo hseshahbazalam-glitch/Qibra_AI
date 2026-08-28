@@ -382,7 +382,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
         decoration: BoxDecoration(
           color: isExpanded
               ? section.color.withValues(alpha: 0.06)
-              : const Color(0xFF141926),
+              : const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isExpanded

@@ -1081,6 +1081,7 @@ abstract final class AppRoutes {
   static const String aiChat = '/ai-chat';
 
   // --- Sub Routes ---
+  static const String surahReader = '/quran/reader';
   static const String quranSurah = '/quran/surah';
   static const String quranSearch = '/quran/search';
   static const String quranBookmarks = '/quran/bookmarks';

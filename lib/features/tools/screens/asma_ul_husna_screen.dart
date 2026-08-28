@@ -196,7 +196,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF141926),
+          color: const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.08)),
         ),
@@ -241,7 +241,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFF141926),
+          color: const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(14),
         ),
         child: TabBar(
@@ -303,7 +303,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
             decoration: BoxDecoration(
               color: isSelected
                   ? name.color.withValues(alpha: 0.08)
-                  : const Color(0xFF141926),
+                  : const Color(0xFFFEFDF9),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected
@@ -636,7 +636,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: const Color(0xFF141926),
+              color: const Color(0xFFFEFDF9),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                   color: const Color(0xFFC6A15B).withValues(alpha: 0.15)),

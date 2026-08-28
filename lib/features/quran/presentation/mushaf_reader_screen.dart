@@ -147,7 +147,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       decoration: BoxDecoration(
         color: isNightMode
             ? Colors.black.withValues(alpha: 0.85)
-            : const Color(0xFF0A1F14).withValues(alpha: 0.95),
+            : const Color(0xFF123F36).withValues(alpha: 0.95),
         border: Border(
           bottom: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
         ),
@@ -209,7 +209,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       decoration: BoxDecoration(
         color: isNightMode
             ? Colors.black.withValues(alpha: 0.85)
-            : const Color(0xFF0A1F14).withValues(alpha: 0.95),
+            : const Color(0xFF123F36).withValues(alpha: 0.95),
         border: Border(
           top: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
         ),
@@ -486,7 +486,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF1A2438),
+          color: Color(0xFFFEFDF9),
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SafeArea(
@@ -647,7 +647,7 @@ Join me on Qibra AI 🕌''';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2438),
+        backgroundColor: const Color(0xFFFEFDF9),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -737,7 +737,7 @@ Join me on Qibra AI 🕌''';
         expand: false,
         builder: (_, controller) => Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF1A2438),
+            color: Color(0xFFFEFDF9),
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
@@ -864,7 +864,7 @@ Join me on Qibra AI 🕌''';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2438),
+        backgroundColor: const Color(0xFFFEFDF9),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),

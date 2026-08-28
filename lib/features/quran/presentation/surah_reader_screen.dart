@@ -549,7 +549,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Mishary Rashid Alafasy',
+                    const Text('Recitation not bundled',
                         style: TextStyle(
                             color: const Color(0xFF19312C),
                             fontSize: 11,

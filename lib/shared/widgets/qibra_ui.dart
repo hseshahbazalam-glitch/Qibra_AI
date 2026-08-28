@@ -4,9 +4,136 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/a11y/app_a11y.dart';
 import '../../core/design_system/app_design_system.dart';
 import '../../core/design_system/app_typography.dart';
 import '../../core/design_system/qibra_colors.dart';
+import 'qibra_status.dart';
+
+class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const QibraAppBar({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.leading,
+    this.actions = const [],
+    this.onBack,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget? leading;
+  final List<Widget> actions;
+  final VoidCallback? onBack;
+
+  @override
+  Size get preferredSize =>
+      Size.fromHeight(subtitle == null ? 56 : 72);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final canPop = Navigator.of(context).canPop();
+    return Material(
+      color: colors.background,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SizedBox(
+            height: preferredSize.height,
+            child: Row(
+              children: [
+                if (leading != null)
+                  AppA11y.ensureTapTarget(child: leading!)
+                else if (onBack != null || canPop)
+                  AppA11y.ensureTapTarget(
+                    child: IconButton(
+                      tooltip: 'Back',
+                      icon: Icon(Icons.arrow_back_rounded, color: colors.textPrimary),
+                      onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+                    ),
+                  ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTextStyles.titleLarge.copyWith(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (subtitle != null)
+                        Text(
+                          subtitle!,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                ...actions.map((a) => AppA11y.ensureTapTarget(child: a)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class QibraPage extends StatelessWidget {
+  const QibraPage({
+    super.key,
+    required this.child,
+    this.title,
+    this.subtitle,
+    this.actions = const [],
+    this.leading,
+    this.onBack,
+    this.padding,
+    this.useAppBar = true,
+    this.status,
+    this.floatingActionButton,
+  });
+
+  final Widget child;
+  final String? title;
+  final String? subtitle;
+  final List<Widget> actions;
+  final Widget? leading;
+  final VoidCallback? onBack;
+  final EdgeInsetsGeometry? padding;
+  final bool useAppBar;
+  final Widget? status;
+  final Widget? floatingActionButton;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return Scaffold(
+      backgroundColor: colors.background,
+      appBar: useAppBar && title != null
+          ? QibraAppBar(
+              title: title!,
+              subtitle: subtitle,
+              leading: leading,
+              actions: actions,
+              onBack: onBack,
+            )
+          : null,
+      floatingActionButton: floatingActionButton,
+      body: status ??
+          (padding == null
+              ? child
+              : Padding(padding: padding!, child: child)),
+    );
+  }
+}
 
 class QibraCard extends StatelessWidget {
   const QibraCard({
@@ -131,9 +258,9 @@ class QibraIconButton extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(icon, size: 20, color: colors.textPrimary),
+          width: AppA11y.minTapTarget,
+          height: AppA11y.minTapTarget,
+          child: Icon(icon, color: colors.textPrimary),
         ),
       ),
     );

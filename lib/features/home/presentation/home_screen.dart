@@ -13,7 +13,6 @@ import '../../../shared/widgets/qibra_ui.dart';
 import '../../duas/providers/dua_provider.dart';
 import '../../hadith/providers/hadith_provider.dart';
 import '../../prayer/providers/prayer_provider.dart';
-import '../../quran/presentation/surah_reader_screen.dart';
 import '../../quran/providers/reading_progress_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -38,10 +37,17 @@ class HomeScreen extends ConsumerWidget {
     final hijri = HijriCalendar.now();
     final hijriLabel = '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH';
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: RefreshIndicator(
+    return QibraPage(
+      title: 'Assalamu alaikum',
+      subtitle: '${_greeting(DateTime.now())}, $name · $hijriLabel',
+      actions: [
+        QibraIconButton(
+          icon: Icons.person_outline_rounded,
+          tooltip: 'Profile',
+          onTap: () => context.go(AppRoutes.profile),
+        ),
+      ],
+      child: RefreshIndicator(
           color: colors.primary,
           onRefresh: () async {
             ref.invalidate(dailyPrayerTimesProvider);
@@ -52,44 +58,6 @@ class HomeScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Assalamu alaikum',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: colors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${_greeting(DateTime.now())}, $name',
-                          style: AppTextStyles.headlineSmall.copyWith(
-                            color: colors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          hijriLabel,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: colors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  QibraIconButton(
-                    icon: Icons.person_outline_rounded,
-                    tooltip: 'Profile',
-                    onTap: () => context.go(AppRoutes.profile),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
               QibraCard(
                 filled: true,
                 onTap: () => context.go(AppRoutes.prayer),
@@ -183,13 +151,10 @@ class HomeScreen extends ConsumerWidget {
               QibraCard(
                 onTap: () {
                   final page = progress.currentPage;
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => SurahReaderScreen(
-                        surahNumber: page?.surahNumber ?? 1,
-                        initialAyah: page?.ayahNumber,
-                      ),
-                    ),
+                  final surah = page?.surahNumber ?? 1;
+                  final ayah = page?.ayahNumber;
+                  context.push(
+                    '${AppRoutes.surahReader}?surah=$surah${ayah == null ? '' : '&ayah=$ayah'}',
                   );
                 },
                 child: Row(
@@ -365,7 +330,6 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
-        ),
       ),
     );
   }

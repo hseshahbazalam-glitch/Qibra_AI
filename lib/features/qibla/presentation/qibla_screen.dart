@@ -5,6 +5,7 @@
 // Beautiful 3D compass + Enhanced info + Location
 // ============================================================
 
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,6 +39,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   // Reject updates that jump > 45° instantaneously (magnetic spikes).
   static const double _maxDeltaPerSampleDeg = 45.0;
   double? _smoothedHeading;
+  StreamSubscription<CompassEvent>? _compassSub;
 
   @override
   void initState() {
@@ -72,7 +74,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
       ref.read(qiblaProvider.notifier).loadQibla();
     });
 
-    FlutterCompass.events?.listen((event) {
+    _compassSub = FlutterCompass.events?.listen((event) {
       if (!mounted || event.heading == null) return;
       final raw = event.heading!;
       final double filtered;
@@ -97,6 +99,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
 
   @override
   void dispose() {
+    _compassSub?.cancel();
     _pulseController.dispose();
     _shineController.dispose();
     _floatController.dispose();
@@ -999,7 +1002,7 @@ Shared via Qibra AI 🌙''';
           Text(
             '${state.result!.qiblaAngle.toStringAsFixed(1)}° from North',
             style: AppTextStyles.titleSmall.copyWith(
-              color: const Color(0xFFC6A15B),
+              color: const Color(0xFF6B542B),
               fontWeight: FontWeight.w700,
             ),
           ),

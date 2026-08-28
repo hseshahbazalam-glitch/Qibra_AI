@@ -315,7 +315,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
             margin: EdgeInsets.only(right: p == pillars.last ? 0 : 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF141926),
+              color: const Color(0xFFFEFDF9),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                   color: const Color(0xFFC6A15B).withValues(alpha: 0.12)),
@@ -372,7 +372,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
         decoration: BoxDecoration(
           color: isExpanded
               ? day.color.withValues(alpha: 0.06)
-              : const Color(0xFF141926),
+              : const Color(0xFFFEFDF9),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
               color: isExpanded
@@ -504,7 +504,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),

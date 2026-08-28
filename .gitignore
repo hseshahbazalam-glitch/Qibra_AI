@@ -69,6 +69,13 @@ android/key.properties
 
 # Env
 .env
+backend/.env
+backend/.venv
+backend/.pytest_cache/
+.pytest_cache/
+backend/__pycache__/
+**/__pycache__/
+*.pyc
 
 # Backups
 lib_backup*/

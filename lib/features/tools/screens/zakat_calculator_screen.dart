@@ -489,7 +489,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF141926),
+        backgroundColor: const Color(0xFFFEFDF9),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text('Edit Silver Price ($_currency/g)',
             style: const TextStyle(
@@ -631,7 +631,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.08)),
       ),
@@ -705,7 +705,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.15)),
       ),
@@ -895,7 +895,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.08)),
       ),

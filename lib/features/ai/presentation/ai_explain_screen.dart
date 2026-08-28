@@ -10,7 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 
 import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 import '../providers/ai_provider.dart';
 import '../services/ai_action_service.dart';
 import '../services/voice_service.dart';
@@ -216,16 +218,36 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
     final messages = ref.watch(chatProvider);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      resizeToAvoidBottomInset: true,
-      body: Column(
-        children: [
-          Container(
-            color: AppColors.surface,
-            padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-            child: _buildAppBar(),
+    final colors = QibraColors.of(context);
+    return QibraPage(
+      title: 'Qibra AI',
+      subtitle: _isSpeaking
+          ? 'Speaking...'
+          : (_isListening ? 'Listening...' : 'Retrieval only — not a fatwa'),
+      actions: [
+        IconButton(
+          tooltip: _autoSpeak ? 'Auto speak on' : 'Auto speak off',
+          onPressed: _toggleAutoSpeak,
+          icon: Icon(
+            _autoSpeak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+            color: colors.textPrimary,
           ),
+        ),
+        SizedBox(
+          width: 48,
+          height: 48,
+          child: IconButton(
+            tooltip: 'Delete conversation',
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              _showClearDialog();
+            },
+            icon: Icon(Icons.delete_outline_rounded, color: colors.textPrimary),
+          ),
+        ),
+      ],
+      child: Column(
+        children: [
           if (widget.ayahText != null) _buildAyahContext(),
           Expanded(
             child: _isListening
@@ -238,7 +260,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             _buildSuggestedQuestions(),
           Container(
             padding: EdgeInsets.only(bottom: bottomPadding),
-            color: AppColors.surface,
+            color: colors.card,
             child: _buildInputBar(),
           ),
         ],

@@ -97,7 +97,8 @@ class AppUser {
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
       isEmailVerified: json['is_email_verified'] as bool? ?? false,
-      isPremium: json['is_premium'] as bool? ?? false,
+      // Never trust JSON for premium. Billing store is unconfigured.
+      isPremium: false,
     );
   }
 

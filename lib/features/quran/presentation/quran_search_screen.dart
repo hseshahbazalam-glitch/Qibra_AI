@@ -74,25 +74,25 @@ const _popularTopics = [
   PopularTopic(
     label: 'Mercy',
     icon: Icons.favorite_rounded,
-    color: Color(0xFFEC407A),
+    color: Color(0xFF123F36),
     searchQuery: 'mercy',
   ),
   PopularTopic(
     label: 'Patience',
     icon: Icons.self_improvement_rounded,
-    color: Color(0xFF7E57C2),
+    color: Color(0xFF2F6B5D),
     searchQuery: 'patience',
   ),
   PopularTopic(
     label: 'Paradise',
     icon: Icons.park_rounded,
-    color: Color(0xFF66BB6A),
+    color: Color(0xFF2F6B5D),
     searchQuery: 'paradise',
   ),
   PopularTopic(
     label: 'Prayer',
     icon: Icons.mosque_rounded,
-    color: Color(0xFF42A5F5),
+    color: Color(0xFF123F36),
     searchQuery: 'prayer',
   ),
   PopularTopic(
@@ -104,13 +104,13 @@ const _popularTopics = [
   PopularTopic(
     label: 'Guidance',
     icon: Icons.explore_rounded,
-    color: Color(0xFF26A69A),
+    color: Color(0xFF2F6B5D),
     searchQuery: 'guidance',
   ),
   PopularTopic(
     label: 'Forgiveness',
     icon: Icons.healing_rounded,
-    color: Color(0xFFAB47BC),
+    color: Color(0xFF123F36),
     searchQuery: 'forgive',
   ),
   PopularTopic(
