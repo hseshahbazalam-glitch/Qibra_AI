@@ -122,8 +122,8 @@ const _tools = [
     route: '/tools/sadaqah',
   ),
   _Tool(
-    title: 'Tasbih',
-    subtitle: 'Digital dhikr counter',
+    title: 'Dhikr',
+    subtitle: 'Tasbih counter',
     icon: Icons.radio_button_checked,
     route: AppRoutes.tasbih,
   ),

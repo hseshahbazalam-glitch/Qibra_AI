@@ -99,7 +99,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = _RouterRefreshNotifier(ref);
   return GoRouter(
     initialLocation: AppRoutes.splash,
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: false,
     refreshListenable: refreshNotifier,
     errorBuilder: (context, state) =>
         _ErrorScreen(message: state.error?.message),
@@ -328,7 +328,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
               path: '/tools/dhikr',
               name: 'tools-dhikr',
-              builder: (context, state) => const TasbihScreen()),
+              redirect: (context, state) => AppRoutes.tasbih),
           GoRoute(
               path: '/tools/sadaqah',
               name: 'tools-sadaqah',

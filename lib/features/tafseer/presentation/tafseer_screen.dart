@@ -297,7 +297,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           GestureDetector(
             onTap: () {
               HapticFeedback.lightImpact();
-              _showToast('Bookmarked');
+              _showToast('Bookmark not saved — tafsir not bundled');
             },
             child: Container(
               width: 48,
@@ -948,7 +948,7 @@ class _WordByWordTab extends StatelessWidget {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Tap any word to learn its meaning',
+                    'Word tokens only. Meanings are UNKNOWN — no licensed word corpus.',
                     style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: 13,

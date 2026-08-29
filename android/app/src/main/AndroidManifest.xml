@@ -18,9 +18,6 @@
     <!-- Compass/magnetometer access does not require a runtime permission. -->
     <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
 
-    <!-- Voice Assistant Permissions -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
     <application
         android:label="qibra_ai"
         android:name="${applicationName}"
@@ -70,10 +67,6 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
-        </intent>
-        <!-- Voice Assistant Queries -->
-        <intent>
-            <action android:name="android.speech.RecognitionService" />
         </intent>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
