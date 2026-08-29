@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
-import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -24,6 +23,7 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return QibraPage(
       title: 'My Profile',
       onBack: () {
@@ -46,18 +46,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [AppColors.primary, AppColors.accent],
+                    gradient: LinearGradient(
+                      colors: [colors.primary, colors.accent],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     border: Border.all(
-                      color: AppColors.accent.withValues(alpha: 0.6),
+                      color: colors.accent.withValues(alpha: 0.6),
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.35),
+                        color: colors.primary.withValues(alpha: 0.35),
                         blurRadius: 24,
                         spreadRadius: 1,
                       ),
@@ -75,7 +75,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               Text(
                 'QIBRA User',
                 style: AppTextStyles.headlineSmall.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -83,7 +83,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               Text(
                 'May Allah accept your worship 🤲',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(height: 28),
@@ -91,44 +91,44 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 icon: Icons.edit_rounded,
                 title: 'Edit Profile',
                 subtitle: 'Name, email, photo',
-                accent: AppColors.primary,
+                accent: colors.primary,
               ),
               _buildTile(
                 icon: Icons.notifications_active_rounded,
                 title: 'Notifications',
                 subtitle: 'Adhan, reminders, alerts',
-                accent: AppColors.accent,
+                accent: colors.accent,
                 onTap: () => context.push('/settings/notifications'),
               ),
               _buildTile(
                 icon: Icons.translate_rounded,
                 title: 'Language',
                 subtitle: 'English / العربية / اردو',
-                accent: AppColors.primaryLight,
+                accent: colors.primarySoft,
               ),
               _buildTile(
                 icon: Icons.palette_rounded,
                 title: 'Appearance',
                 subtitle: 'Theme, font size',
-                accent: AppColors.accent,
+                accent: colors.accent,
               ),
               _buildTile(
                 icon: Icons.shield_rounded,
                 title: 'Privacy & Security',
                 subtitle: 'Data, permissions',
-                accent: AppColors.success,
+                accent: colors.success,
               ),
               _buildTile(
                 icon: Icons.help_outline_rounded,
                 title: 'Help & Support',
                 subtitle: 'FAQ, contact us',
-                accent: AppColors.info,
+                accent: colors.info,
               ),
               _buildTile(
                 icon: Icons.logout_rounded,
                 title: 'Sign Out',
                 subtitle: 'Log out of your account',
-                accent: AppColors.error,
+                accent: colors.error,
               ),
             ],
           ),
@@ -144,10 +144,11 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     required Color accent,
     VoidCallback? onTap,
   }) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -156,13 +157,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.borderSubtle),
+              border: Border.all(color: colors.border),
             ),
             child: Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
@@ -177,19 +178,19 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     children: [
                       Text(title,
                           style: AppTextStyles.titleSmall.copyWith(
-                            color: AppColors.textPrimary,
+                            color: colors.textPrimary,
                             fontWeight: FontWeight.w700,
                           )),
                       const SizedBox(height: 2),
                       Text(subtitle,
                           style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
+                            color: colors.textSecondary,
                           )),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right_rounded,
-                    color: AppColors.textDisabled, size: 20),
+                Icon(Icons.chevron_right_rounded,
+                    color: colors.textTertiary, size: 20),
               ],
             ),
           ),

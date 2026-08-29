@@ -15,7 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -195,6 +195,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   }
 
   Widget _buildAvatarPickerSheet() {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(
         top: Radius.circular(24),
@@ -204,7 +205,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.xl2),
           decoration: BoxDecoration(
-            color: AppColors.surface.withValues(alpha: 0.95),
+            color: colors.surface.withValues(alpha: 0.95),
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(24),
             ),
@@ -281,7 +282,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                     child: Text(
                       'Remove Photo',
                       style: AppTextStyles.buttonMedium.copyWith(
-                        color: AppColors.error,
+                        color: colors.error,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -300,6 +301,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     required String label,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -309,13 +311,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppColors.primary.withValues(alpha: 0.20),
-              AppColors.primary.withValues(alpha: 0.10),
+              colors.primary.withValues(alpha: 0.20),
+              colors.primary.withValues(alpha: 0.10),
             ],
           ),
           borderRadius: AppRadius.cardRadius,
           border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.30),
+            color: colors.primary.withValues(alpha: 0.30),
             width: 1,
           ),
         ),
@@ -323,14 +325,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           children: [
             Icon(
               icon,
-              color: AppColors.primary,
+              color: colors.primary,
               size: 32,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               label,
               style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.primary,
+                color: colors.primary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -341,6 +343,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   }
 
   void _mockAvatarUpload(String source) {
+    final colors = QibraColors.of(context);
     HapticFeedback.heavyImpact();
     setState(() => _hasAvatar = true);
     _avatarController.reset();
@@ -359,7 +362,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             Text('Photo selected from $source'),
           ],
         ),
-        backgroundColor: AppColors.success,
+        backgroundColor: colors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardRadius,
@@ -380,10 +383,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.primary,
+            colorScheme: ColorScheme.dark(
+              primary: QibraColors.of(context).primary,
               onPrimary: Colors.white,
-              surface: AppColors.surface,
+              surface: QibraColors.of(context).surface,
               onSurface: Colors.white,
             ),
           ),
@@ -409,6 +412,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   }
 
   Widget _buildCountryPickerSheet() {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(
         top: Radius.circular(24),
@@ -419,7 +423,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           height: MediaQuery.sizeOf(context).height * 0.6,
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.surface.withValues(alpha: 0.95),
+            color: colors.surface.withValues(alpha: 0.95),
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(24),
             ),
@@ -471,8 +475,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                           gradient: isSelected
                               ? LinearGradient(
                                   colors: [
-                                    AppColors.primary.withValues(alpha: 0.20),
-                                    AppColors.primary.withValues(alpha: 0.10),
+                                    colors.primary.withValues(alpha: 0.20),
+                                    colors.primary.withValues(alpha: 0.10),
                                   ],
                                 )
                               : null,
@@ -482,7 +486,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                           borderRadius: AppRadius.cardRadius,
                           border: Border.all(
                             color: isSelected
-                                ? AppColors.primary
+                                ? colors.primary
                                 : Colors.white.withValues(alpha: 0.10),
                             width: 1,
                           ),
@@ -507,14 +511,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                             Text(
                               country['code']!,
                               style: AppTextStyles.labelMedium.copyWith(
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                             if (isSelected) ...[
                               const SizedBox(width: AppSpacing.sm),
-                              const Icon(
+                              Icon(
                                 Icons.check_circle,
-                                color: AppColors.primary,
+                                color: colors.primary,
                                 size: 20,
                               ),
                             ],
@@ -535,6 +539,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ── HANDLERS ─────────────────────────────────────────
 
   Future<void> _handleSave() async {
+    final colors = QibraColors.of(context);
     if (!_formKey.currentState!.validate()) {
       HapticFeedback.heavyImpact();
       return;
@@ -561,7 +566,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 Text('Profile setup complete!'),
               ],
             ),
-            backgroundColor: AppColors.success,
+            backgroundColor: colors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: AppRadius.cardRadius,
@@ -586,6 +591,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
@@ -637,16 +643,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
 
   Widget _buildBackground() {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.topCenter,
             radius: 1.5,
             colors: [
               Color(0xFFEEF1EA),
               Color(0xFFF5F3EC),
-              AppColors.background,
+              colors.background,
             ],
             stops: [0.0, 0.5, 1.0],
           ),
@@ -660,6 +667,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
 
   Widget _buildParticles(Size size) {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _particleController,
@@ -680,6 +688,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHeader() {
+    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -738,7 +747,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               Text(
                 ' / 3 · Profile',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
             ],
@@ -753,6 +762,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
 
   Widget _buildAvatarSection() {
+    final colors = QibraColors.of(context);
     return Center(
       child: GestureDetector(
         onTap: _handleAvatarPick,
@@ -768,17 +778,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.primary.withValues(alpha: 0.30),
-                      AppColors.primary.withValues(alpha: 0.05),
+                      colors.primary.withValues(alpha: 0.30),
+                      colors.primary.withValues(alpha: 0.05),
                     ],
                   ),
                   border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.50),
+                    color: colors.primary.withValues(alpha: 0.50),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.40),
+                      color: colors.primary.withValues(alpha: 0.40),
                       blurRadius: 40,
                       spreadRadius: 8,
                     ),
@@ -822,19 +832,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                     shape: BoxShape.circle,
                     gradient: AppGradients.gold,
                     border: Border.all(
-                      color: AppColors.background,
+                      color: colors.background,
                       width: 3,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.accent.withValues(alpha: 0.40),
+                        color: colors.accent.withValues(alpha: 0.40),
                         blurRadius: 12,
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.camera_alt_rounded,
-                    color: AppColors.background,
+                    color: colors.background,
                     size: 18,
                   ),
                 ),
@@ -851,6 +861,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
 
   Widget _buildTitle() {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         ShaderMask(
@@ -878,7 +889,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           child: Text(
             'Personalize your Islamic experience',
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -892,6 +903,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
 
   Widget _buildFormCard() {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: AppRadius.cardRadiusLarge,
       child: BackdropFilter(
@@ -918,16 +930,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               // Section title
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.person_outline_rounded,
-                    color: AppColors.primary,
+                    color: colors.primary,
                     size: 18,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
                     'PERSONAL INFORMATION',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.primary,
+                      color: colors.primary,
                       letterSpacing: 2,
                       fontWeight: FontWeight.w800,
                     ),
@@ -1024,6 +1036,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     required String? Function(String?)? validator,
     TextInputType? keyboardType,
   }) {
+    final colors = QibraColors.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
@@ -1031,7 +1044,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         boxShadow: isFocused
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.30),
+                  color: colors.primary.withValues(alpha: 0.30),
                   blurRadius: 20,
                 ),
               ]
@@ -1050,15 +1063,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           labelText: label,
           hintText: hint,
           hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
           ),
           labelStyle: AppTextStyles.bodyMedium.copyWith(
-            color: isFocused ? AppColors.primary : AppColors.textSecondary,
+            color: isFocused ? colors.primary : colors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
           prefixIcon: Icon(
             icon,
-            color: isFocused ? AppColors.primary : AppColors.textSecondary,
+            color: isFocused ? colors.primary : colors.textSecondary,
             size: 22,
           ),
           filled: true,
@@ -1085,22 +1098,22 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.primary,
+            borderSide: BorderSide(
+              color: colors.primary,
               width: 2,
             ),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
+            borderSide: BorderSide(
+              color: colors.error,
               width: 1,
             ),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
-            borderSide: const BorderSide(
-              color: AppColors.error,
+            borderSide: BorderSide(
+              color: colors.error,
               width: 2,
             ),
           ),
@@ -1139,7 +1152,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           children: [
             Icon(
               icon,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               size: 22,
             ),
             const SizedBox(width: AppSpacing.md),
@@ -1150,7 +1163,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                   Text(
                     label,
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -1158,16 +1171,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                     value ?? placeholder,
                     style: AppTextStyles.bodyMedium.copyWith(
                       color:
-                          value != null ? Colors.white : AppColors.textTertiary,
+                          value != null ? Colors.white : colors.textTertiary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios_rounded,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
               size: 14,
             ),
           ],
@@ -1181,13 +1194,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
 
   Widget _buildGenderSelector() {
+    final colors = QibraColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Gender',
           style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -1206,6 +1220,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   }
 
   Widget _buildGenderOption(String value, String label, IconData icon) {
+    final colors = QibraColors.of(context);
     final isSelected = _selectedGender == value;
     return Expanded(
       child: GestureDetector(
@@ -1222,8 +1237,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             gradient: isSelected
                 ? LinearGradient(
                     colors: [
-                      AppColors.primary.withValues(alpha: 0.30),
-                      AppColors.primary.withValues(alpha: 0.15),
+                      colors.primary.withValues(alpha: 0.30),
+                      colors.primary.withValues(alpha: 0.15),
                     ],
                   )
                 : null,
@@ -1231,7 +1246,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             borderRadius: AppRadius.cardRadius,
             border: Border.all(
               color: isSelected
-                  ? AppColors.primary
+                  ? colors.primary
                   : Colors.white.withValues(alpha: 0.10),
               width: isSelected ? 2 : 1,
             ),
@@ -1240,7 +1255,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             children: [
               Icon(
                 icon,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected ? colors.primary : colors.textSecondary,
                 size: 24,
               ),
               const SizedBox(height: 4),
@@ -1248,7 +1263,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 label,
                 style: AppTextStyles.labelSmall.copyWith(
                   color:
-                      isSelected ? AppColors.primary : AppColors.textSecondary,
+                      isSelected ? colors.primary : colors.textSecondary,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                 ),
               ),
@@ -1264,6 +1279,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
 
   Widget _buildIslamicPrefsCard() {
+    final colors = QibraColors.of(context);
     return ClipRRect(
       borderRadius: AppRadius.cardRadiusLarge,
       child: BackdropFilter(
@@ -1275,13 +1291,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.accent.withValues(alpha: 0.10),
-                AppColors.accent.withValues(alpha: 0.05),
+                colors.accent.withValues(alpha: 0.10),
+                colors.accent.withValues(alpha: 0.05),
               ],
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: AppColors.accent.withValues(alpha: 0.20),
+              color: colors.accent.withValues(alpha: 0.20),
               width: 1,
             ),
           ),
@@ -1290,16 +1306,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               // Section title
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.mosque_rounded,
-                    color: AppColors.accent,
+                    color: colors.accent,
                     size: 18,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
                     'ISLAMIC PREFERENCES',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.accent,
+                      color: colors.accent,
                       letterSpacing: 2,
                       fontWeight: FontWeight.w800,
                     ),
@@ -1363,6 +1379,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     required List<String> items,
     required void Function(String?) onChanged,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -1379,10 +1396,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         initialValue: value,
         onChanged: onChanged,
         isExpanded: true,
-        dropdownColor: AppColors.surface,
-        icon: const Icon(
+        dropdownColor: colors.surface,
+        icon: Icon(
           Icons.arrow_drop_down_rounded,
-          color: AppColors.textSecondary,
+          color: colors.textSecondary,
         ),
         style: AppTextStyles.bodyMedium.copyWith(
           color: const Color(0xFF19312C),
@@ -1391,12 +1408,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         decoration: InputDecoration(
           labelText: label,
           labelStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
           prefixIcon: Icon(
             icon,
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             size: 22,
           ),
           border: InputBorder.none,
@@ -1426,6 +1443,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
 
   Widget _buildActions() {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         // Save button
@@ -1439,15 +1457,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               gradient: _isLoading
                   ? LinearGradient(
                       colors: [
-                        AppColors.primary.withValues(alpha: 0.60),
-                        AppColors.primaryDark.withValues(alpha: 0.60),
+                        colors.primary.withValues(alpha: 0.60),
+                        colors.primary.withValues(alpha: 0.60),
                       ],
                     )
                   : AppGradients.emerald,
               borderRadius: AppRadius.buttonRadiusLg,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.50),
+                  color: colors.primary.withValues(alpha: 0.50),
                   blurRadius: 24,
                   offset: const Offset(0, 8),
                 ),
@@ -1498,7 +1516,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             child: Text(
               'Skip for now',
               style: AppTextStyles.buttonMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1535,7 +1553,7 @@ class _ProfileParticlePainter extends CustomPainter {
 
       final particleSize = 1.5 + random.nextDouble() * 2;
       final isGold = i % 3 == 0;
-      final color = isGold ? AppColors.accent : AppColors.primary;
+      final color = isGold ? const Color(0xFFC6A15B) : const Color(0xFF123F36);
       final alpha = 0.15 + (random.nextDouble() * 0.25);
 
       final paint = Paint()

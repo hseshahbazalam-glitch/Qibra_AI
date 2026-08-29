@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
@@ -29,11 +29,12 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final dua = ref.watch(duaByIdProvider(widget.duaId));
 
     if (dua == null) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
+      return Scaffold(
+        backgroundColor: colors.background,
         body: SafeArea(
           child: Center(
             child: Text('Dua not found'),
@@ -43,7 +44,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -51,19 +52,19 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
             // APP BAR
             SliverAppBar(
               pinned: true,
-              backgroundColor: AppColors.background,
+              backgroundColor: colors.background,
               leading: IconButton(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: colors.surface,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.borderSubtle),
+                    border: Border.all(color: colors.border),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_back_ios_new_rounded,
                     size: 16,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
@@ -77,7 +78,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                         : Icons.favorite_border_rounded,
                     color: dua.isFavorite
                         ? const Color(0xFFFF6B6B)
-                        : AppColors.iconSecondary,
+                        : colors.textSecondary,
                   ),
                   onPressed: () {
                     HapticFeedback.selectionClick();
@@ -88,17 +89,17 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 ),
                 // Share button
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.share_rounded,
-                    color: AppColors.iconSecondary,
+                    color: colors.textSecondary,
                   ),
                   onPressed: () => _shareDua(),
                 ),
                 // Copy button
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.copy_rounded,
-                    color: AppColors.iconSecondary,
+                    color: colors.textSecondary,
                   ),
                   onPressed: () => _copyDua(),
                 ),
@@ -195,6 +196,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     String titleAr,
     String grade,
   ) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -220,7 +222,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     Text(
                       titleEn,
                       style: AppTextStyles.titleLarge.copyWith(
-                        color: AppColors.white,
+                        color: colors.onPrimary,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -228,7 +230,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     Text(
                       titleUr,
                       style: AppTextStyles.arabicSmall.copyWith(
-                        color: AppColors.white.withValues(alpha: 0.8),
+                        color: colors.onPrimary.withValues(alpha: 0.8),
                       ),
                       textDirection: TextDirection.rtl,
                     ),
@@ -241,13 +243,13 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.2),
+                  color: colors.onPrimary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   grade,
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.white,
+                    color: colors.onPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -258,7 +260,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
           Text(
             titleAr,
             style: AppTextStyles.arabicMedium.copyWith(
-              color: AppColors.white.withValues(alpha: 0.9),
+              color: colors.onPrimary.withValues(alpha: 0.9),
               fontSize: 18,
             ),
             textAlign: TextAlign.right,
@@ -274,18 +276,19 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   // ============================================================
 
   Widget _buildArabicCard(String arabic) {
+    final colors = QibraColors.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.3),
+          color: colors.primary.withValues(alpha: 0.3),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
+            color: colors.primary.withValues(alpha: 0.05),
             blurRadius: 20,
             spreadRadius: 0,
           ),
@@ -308,7 +311,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
               Text(
                 'Arabic Text',
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -320,7 +323,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
             style: AppTextStyles.arabicLarge.copyWith(
               fontSize: 24,
               height: 2.2,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
             textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
@@ -335,12 +338,13 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   // ============================================================
 
   Widget _buildToggles() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
@@ -365,6 +369,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   }
 
   Widget _buildToggleBtn(String label, bool isOn, VoidCallback onTap) {
+    final colors = QibraColors.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -375,13 +380,13 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
           duration: AppDurations.fast,
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isOn ? AppColors.primary : Colors.transparent,
+            color: isOn ? colors.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
             label,
             style: AppTextStyles.labelSmall.copyWith(
-              color: isOn ? AppColors.white : AppColors.textSecondary,
+              color: isOn ? colors.onPrimary : colors.textSecondary,
               fontWeight: isOn ? FontWeight.w700 : FontWeight.w500,
               fontSize: 11,
             ),
@@ -408,9 +413,9 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -422,7 +427,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
               Text(
                 label,
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -435,7 +440,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 ? AppTextStyles.arabicSmall.copyWith(
                     fontSize: 14,
                     height: 1.8,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   )
                 : AppTextStyles.bodyMedium.copyWith(
                     height: 1.7,
@@ -459,10 +464,11 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     String number,
     String grade,
   ) {
+    final colors = QibraColors.of(context);
     Color gradeColor;
     switch (grade.toLowerCase()) {
       case 'sahih':
-        gradeColor = AppColors.primary;
+        gradeColor = colors.primary;
         break;
       case 'hasan':
         gradeColor = const Color(0xFF123F36);
@@ -471,7 +477,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         gradeColor = const Color(0xFFC6A15B);
         break;
       default:
-        gradeColor = AppColors.textSecondary;
+        gradeColor = colors.textSecondary;
     }
 
     return Container(
@@ -505,7 +511,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 Text(
                   'Hadith #$number',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
@@ -548,13 +554,13 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isHighlighted
-            ? AppColors.primary.withValues(alpha: 0.06)
-            : AppColors.surface,
+            ? colors.primary.withValues(alpha: 0.06)
+            : colors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isHighlighted
-              ? AppColors.primary.withValues(alpha: 0.2)
-              : AppColors.borderSubtle,
+              ? colors.primary.withValues(alpha: 0.2)
+              : colors.border,
         ),
       ),
       child: Column(
@@ -569,7 +575,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 style: AppTextStyles.titleSmall.copyWith(
                   fontWeight: FontWeight.w700,
                   color:
-                      isHighlighted ? AppColors.primary : AppColors.textPrimary,
+                      isHighlighted ? colors.primary : colors.textPrimary,
                 ),
               ),
             ],
@@ -579,7 +585,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
             content,
             style: AppTextStyles.bodyMedium.copyWith(
               height: 1.7,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -592,6 +598,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   // ============================================================
 
   void _copyDua() {
+    final colors = QibraColors.of(context);
     final dua = ref.read(duaByIdProvider(widget.duaId));
     if (dua == null) return;
 
@@ -622,12 +629,12 @@ Reference: ${dua.reference} (${dua.grade})
             Text(
               'Dua copied to clipboard',
               style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.white,
+                color: colors.onPrimary,
               ),
             ),
           ],
         ),
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -639,6 +646,7 @@ Reference: ${dua.reference} (${dua.grade})
   }
 
   void _shareDua() {
+    final colors = QibraColors.of(context);
     final dua = ref.read(duaByIdProvider(widget.duaId));
     if (dua == null) return;
 
@@ -666,7 +674,7 @@ Shared via QIBRA AI''';
             Text(
               'Copied — paste to share anywhere',
               style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.white,
+                color: colors.onPrimary,
               ),
             ),
           ],

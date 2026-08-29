@@ -1086,6 +1086,8 @@ abstract final class AppRoutes {
   static const String quranSearch = '/quran/search';
   static const String quranBookmarks = '/quran/bookmarks';
   static const String mushafReader = '/quran/mushaf';
+  static const String continueReading = '/quran/continue-reading';
+  static const String dailyAyah = '/quran/daily-ayah';
 
   static const String prayerTimes = '/prayer/times';
   static const String qibla = '/prayer/qibla';

@@ -34,6 +34,9 @@ class AppStrings {
       );
   String get continueAsGuest =>
       _t('Continue as guest', 'المتابعة كضيف', 'مہمان کے طور پر جاری رکھیں');
+  String get settings => _t('Settings', 'الإعدادات', 'ترتیبات');
+  String get language => _t('Language', 'اللغة', 'زبان');
+  String get guest => _t('Guest', 'ضيف', 'مہمان');
 
   String _t(String en, String ar, String ur) {
     switch (_code) {

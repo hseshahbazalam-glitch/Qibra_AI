@@ -17,7 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import '../../quran/data/models/quran_models.dart';
 import '../../quran/providers/quran_provider.dart';
 
@@ -77,11 +77,12 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final surahAsync = ref.watch(surahDetailProvider(widget.surahNumber));
     final currentAyah = ref.watch(_currentAyahProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: surahAsync.when(
         data: (surah) {
           if (surah == null) return _buildError('Surah not found');
@@ -125,8 +126,8 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
             ),
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: colors.primary),
         ),
         error: (e, _) => _buildError(e.toString()),
       ),
@@ -136,12 +137,13 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
   // ─── APP BAR ─────────────────────────
 
   Widget _buildAppBar(SurahModel surah) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: colors.surface,
         border: Border(
-          bottom: BorderSide(color: AppColors.borderSubtle),
+          bottom: BorderSide(color: colors.border),
         ),
       ),
       child: Row(
@@ -155,23 +157,23 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surfaceElevated,
+                color: colors.surfaceElevated,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.borderSubtle),
+                border: Border.all(color: colors.border),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 size: 18,
               ),
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
               'Tafsir & Translation',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
               ),
@@ -184,13 +186,13 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surfaceElevated,
+                color: colors.surfaceElevated,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.borderSubtle),
+                border: Border.all(color: colors.border),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.text_fields_rounded,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 size: 18,
               ),
             ),
@@ -203,13 +205,13 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surfaceElevated,
+                color: colors.surfaceElevated,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.borderSubtle),
+                border: Border.all(color: colors.border),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.more_vert_rounded,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 size: 18,
               ),
             ),
@@ -222,6 +224,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
   // ─── AYAH HEADER ─────────────────────────
 
   Widget _buildAyahHeader(SurahModel surah, int ayahNumber) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -229,13 +232,13 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary.withValues(alpha: 0.15),
-            AppColors.accent.withValues(alpha: 0.08),
+            colors.primary.withValues(alpha: 0.15),
+            colors.accent.withValues(alpha: 0.08),
           ],
         ),
         border: Border(
           bottom: BorderSide(
-            color: AppColors.accent.withValues(alpha: 0.2),
+            color: colors.accent.withValues(alpha: 0.2),
           ),
         ),
       ),
@@ -245,13 +248,13 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.accent],
+              gradient: LinearGradient(
+                colors: [colors.primary, colors.accent],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.4),
+                  color: colors.primary.withValues(alpha: 0.4),
                   blurRadius: 8,
                 ),
               ],
@@ -274,16 +277,16 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               children: [
                 Text(
                   'Ayah $ayahNumber',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
                   '${surah.name} (${surah.number}:$ayahNumber)',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -299,12 +302,12 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.15),
+                color: colors.accent.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.bookmark_border_rounded,
-                color: AppColors.accent,
+                color: colors.accent,
                 size: 18,
               ),
             ),
@@ -317,19 +320,20 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
   // ─── TABS ─────────────────────────
 
   Widget _buildTabs() {
+    final colors = QibraColors.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: colors.surface,
         border: Border(
-          bottom: BorderSide(color: AppColors.borderSubtle),
+          bottom: BorderSide(color: colors.border),
         ),
       ),
       child: TabBar(
         controller: _tabController,
-        indicatorColor: AppColors.accent,
+        indicatorColor: colors.accent,
         indicatorWeight: 3,
-        labelColor: AppColors.accent,
-        unselectedLabelColor: AppColors.textSecondary,
+        labelColor: colors.accent,
+        unselectedLabelColor: colors.textSecondary,
         labelStyle: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w800,
@@ -350,12 +354,13 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
   // ─── BOTTOM NAV ─────────────────────────
 
   Widget _buildBottomNav(SurahModel surah, int currentAyah) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: colors.surface,
         border: Border(
-          top: BorderSide(color: AppColors.borderSubtle),
+          top: BorderSide(color: colors.border),
         ),
       ),
       child: Row(
@@ -373,17 +378,17 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               margin: const EdgeInsets.symmetric(horizontal: 12),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.15),
+                color: colors.accent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: AppColors.accent.withValues(alpha: 0.3),
+                  color: colors.accent.withValues(alpha: 0.3),
                 ),
               ),
               child: Text(
                 'Ayah $currentAyah / ${surah.numberOfAyahs}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.accent,
+                style: TextStyle(
+                  color: colors.accent,
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                 ),
@@ -415,18 +420,18 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
         height: 44,
         decoration: BoxDecoration(
           color: enabled
-              ? AppColors.accent.withValues(alpha: 0.15)
-              : AppColors.surface,
+              ? colors.accent.withValues(alpha: 0.15)
+              : colors.surface,
           shape: BoxShape.circle,
           border: Border.all(
             color: enabled
-                ? AppColors.accent.withValues(alpha: 0.3)
-                : AppColors.borderSubtle,
+                ? colors.accent.withValues(alpha: 0.3)
+                : colors.border,
           ),
         ),
         child: Icon(
           icon,
-          color: enabled ? AppColors.accent : AppColors.textTertiary,
+          color: enabled ? colors.accent : colors.textTertiary,
           size: 22,
         ),
       ),
@@ -436,6 +441,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
   // ─── DIALOGS ─────────────────────────
 
   void _showFontSizeSheet() {
+    final colors = QibraColors.of(context);
     HapticFeedback.selectionClick();
     showModalBottomSheet(
       context: context,
@@ -446,8 +452,8 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
 
           return Container(
             padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
+            decoration: BoxDecoration(
+              color: colors.surface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
@@ -457,15 +463,15 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.borderSubtle,
+                    color: colors.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Font Size',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
@@ -476,7 +482,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
                   min: 12,
                   max: 24,
                   divisions: 12,
-                  activeColor: AppColors.primary,
+                  activeColor: colors.primary,
                   label: currentSize.round().toString(),
                   onChanged: (v) {
                     ref.read(_tafsirFontSizeProvider.notifier).state = v;
@@ -484,8 +490,8 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
                 ),
                 Text(
                   'Size: ${currentSize.round()}px',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -504,27 +510,29 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
   }
 
   void _showToast(String message) {
+    final colors = QibraColors.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         duration: const Duration(seconds: 1),
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   Widget _buildError(String message) {
+    final colors = QibraColors.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline_rounded,
-              size: 60, color: AppColors.error),
+          Icon(Icons.error_outline_rounded,
+              size: 60, color: colors.error),
           const SizedBox(height: 12),
           Text(
             message,
-            style: const TextStyle(color: AppColors.textPrimary),
+            style: TextStyle(color: colors.textPrimary),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
@@ -552,6 +560,7 @@ class _TranslationTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final fontSize = ref.watch(_tafsirFontSizeProvider);
     final ayah = surah.getAyahByNumber(ayahNumber);
 
@@ -569,7 +578,7 @@ class _TranslationTab extends ConsumerWidget {
           _buildLanguageCard(
             label: 'Arabic',
             icon: Icons.mosque_rounded,
-            color: AppColors.accent,
+            color: colors.accent,
             content: Text(
               ayah.text,
               textAlign: TextAlign.right,
@@ -577,7 +586,7 @@ class _TranslationTab extends ConsumerWidget {
               style: TextStyle(
                 fontFamily: 'Amiri',
                 fontSize: fontSize + 10,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 height: 2.2,
                 fontWeight: FontWeight.w600,
               ),
@@ -595,7 +604,7 @@ class _TranslationTab extends ConsumerWidget {
               content: Text(
                 ayah.translation!,
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontSize: fontSize,
                   height: 1.7,
                   fontWeight: FontWeight.w500,
@@ -617,7 +626,7 @@ class _TranslationTab extends ConsumerWidget {
                 textAlign: TextAlign.right,
                 style: TextStyle(
                   fontFamily: 'Amiri',
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontSize: fontSize + 2,
                   height: 2.0,
                   fontWeight: FontWeight.w500,
@@ -636,7 +645,7 @@ class _TranslationTab extends ConsumerWidget {
               content: Text(
                 ayah.translationRoman!,
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontSize: fontSize,
                   height: 1.7,
                   fontWeight: FontWeight.w500,
@@ -658,10 +667,10 @@ class _TranslationTab extends ConsumerWidget {
               ));
               HapticFeedback.mediumImpact();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text('Copied to clipboard'),
                   duration: Duration(seconds: 1),
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: colors.primary,
                 ),
               );
             },
@@ -720,13 +729,13 @@ class _TranslationTab extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.primary, AppColors.accent],
+          gradient: LinearGradient(
+            colors: [colors.primary, colors.accent],
           ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
+              color: colors.primary.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -767,6 +776,7 @@ class _TafsirTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final fontSize = ref.watch(_tafsirFontSizeProvider);
     final ayah = surah.getAyahByNumber(ayahNumber);
 
@@ -786,13 +796,13 @@ class _TafsirTab extends ConsumerWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.accent.withValues(alpha: 0.15),
-                  AppColors.accent.withValues(alpha: 0.05),
+                  colors.accent.withValues(alpha: 0.15),
+                  colors.accent.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppColors.accent.withValues(alpha: 0.3),
+                color: colors.accent.withValues(alpha: 0.3),
               ),
             ),
             child: Text(
@@ -802,7 +812,7 @@ class _TafsirTab extends ConsumerWidget {
               style: TextStyle(
                 fontFamily: 'Amiri',
                 fontSize: fontSize + 8,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 height: 2.2,
                 fontWeight: FontWeight.w600,
               ),
@@ -821,50 +831,51 @@ class _TafsirTab extends ConsumerWidget {
   }
 
   Widget _buildTafsirUnavailable(AyahModel ayah) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: colors.surfaceElevated,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.menu_book_outlined,
             size: 52,
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Verified tafsir is not included in this build',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'A translation is shown below, but it is not a tafsir.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
               fontSize: 12,
             ),
           ),
           if ((ayah.translationUrdu ?? '').isNotEmpty) ...[
             const SizedBox(height: 20),
-            const Divider(color: AppColors.borderSubtle),
+            Divider(color: colors.border),
             const SizedBox(height: 12),
-            const Align(
+            Align(
               alignment: Alignment.centerRight,
               child: Text(
                 'اردو ترجمہ',
                 textDirection: TextDirection.rtl,
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -874,10 +885,10 @@ class _TafsirTab extends ConsumerWidget {
               ayah.translationUrdu!,
               textDirection: TextDirection.rtl,
               textAlign: TextAlign.right,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Amiri',
                 fontSize: 18,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 height: 1.8,
               ),
             ),
@@ -977,6 +988,7 @@ class _WordByWordTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
@@ -996,21 +1008,21 @@ class _WordByWordTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: colors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
+                color: colors.primary.withValues(alpha: 0.3),
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.auto_awesome, color: AppColors.primary, size: 20),
+                Icon(Icons.auto_awesome, color: colors.primary, size: 20),
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Tap any word to learn its meaning',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: colors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1040,7 +1052,7 @@ class _WordByWordTab extends StatelessWidget {
                         style: const TextStyle(fontSize: 16),
                       ),
                       duration: const Duration(seconds: 2),
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: colors.primary,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -1053,13 +1065,13 @@ class _WordByWordTab extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.accent.withValues(alpha: 0.15),
-                        AppColors.accent.withValues(alpha: 0.05),
+                        colors.accent.withValues(alpha: 0.15),
+                        colors.accent.withValues(alpha: 0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.accent.withValues(alpha: 0.3),
+                      color: colors.accent.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Column(
@@ -1067,18 +1079,18 @@ class _WordByWordTab extends StatelessWidget {
                       Text(
                         word,
                         textDirection: TextDirection.rtl,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Amiri',
                           fontSize: 24,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         meaning,
-                        style: const TextStyle(
-                          color: AppColors.accent,
+                        style: TextStyle(
+                          color: colors.accent,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),
@@ -1096,19 +1108,19 @@ class _WordByWordTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.surfaceElevated,
+              color: colors.surfaceElevated,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.info_outline,
-                    color: AppColors.textSecondary, size: 16),
+                Icon(Icons.info_outline,
+                    color: colors.textSecondary, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   '${words.length} words in this ayah',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),

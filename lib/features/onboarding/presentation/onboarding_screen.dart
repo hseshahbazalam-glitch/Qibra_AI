@@ -15,7 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
@@ -59,8 +59,8 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.menu_book_rounded,
     arabicText: 'اقْرَأْ',
     arabicTranslation: 'Read',
-    primaryColor: AppColors.primary,
-    secondaryColor: AppColors.primaryLight,
+    primaryColor: Color(0xFF123F36),
+    secondaryColor: Color(0xFF2F6B5D),
     backgroundGradient: [
       Color(0xFFF5F3EC),
       Color(0xFFEEF1EA),
@@ -74,8 +74,8 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.access_time_filled_rounded,
     arabicText: 'الصَّلَاة',
     arabicTranslation: 'Prayer',
-    primaryColor: AppColors.accent,
-    secondaryColor: AppColors.accentBright,
+    primaryColor: Color(0xFFC6A15B),
+    secondaryColor: Color(0xFFC6A15B),
     backgroundGradient: [
       Color(0xFFF5F3EC),
       Color(0xFFF8F1E3),
@@ -104,8 +104,8 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.mosque_rounded,
     arabicText: 'بِسْمِ اللَّه',
     arabicTranslation: 'In the name of Allah',
-    primaryColor: AppColors.accent,
-    secondaryColor: AppColors.primary,
+    primaryColor: Color(0xFFC6A15B),
+    secondaryColor: Color(0xFF123F36),
     backgroundGradient: [
       Color(0xFFF5F3EC),
       Color(0xFFEEF1EA),
@@ -272,6 +272,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final currentSlide = _slides[_currentPage];
     final isLastPage = _currentPage == _slides.length - 1;
     final size = MediaQuery.sizeOf(context);
@@ -338,6 +339,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildParticleBackground(Size size, _OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _particleController,
@@ -360,6 +362,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildTopBar() {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
@@ -379,15 +382,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.accent.withValues(alpha: 0.40),
+                      color: colors.accent.withValues(alpha: 0.40),
                       blurRadius: 12,
                       spreadRadius: 1,
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.mosque_rounded,
-                  color: AppColors.background,
+                  color: colors.background,
                   size: 20,
                 ),
               ),
@@ -425,6 +428,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     required String label,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
@@ -447,7 +451,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             child: Text(
               label,
               style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -462,6 +466,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSlide(_OnboardingSlide slide, int index) {
+    final colors = QibraColors.of(context);
     // Parallax calculation
     final delta = (_pageOffset - index).clamp(-1.0, 1.0);
 
@@ -495,6 +500,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildIllustration(_OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return AnimatedBuilder(
       animation: _iconController,
       builder: (context, child) {
@@ -610,6 +616,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildContentCard(_OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return SlideTransition(
       position: _contentSlide,
       child: FadeTransition(
@@ -658,7 +665,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   Text(
                     slide.description,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       height: 1.6,
                     ),
                     textAlign: TextAlign.center,
@@ -677,6 +684,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildArabicBadge(_OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -737,6 +745,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPageIndicators() {
+    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_slides.length, (index) {
@@ -783,6 +792,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     bool isLastPage,
     _OnboardingSlide slide,
   ) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xl2,
@@ -818,6 +828,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildNextButton(_OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: _handleNext,
       child: Container(
@@ -870,6 +881,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: ClipOval(
@@ -888,7 +900,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             ),
             child: Icon(
               icon,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               size: 24,
             ),
           ),

@@ -498,15 +498,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         key: AppStorageKeys.refreshToken,
       );
       if (refreshToken == null || refreshToken.isEmpty) {
-        await logout();
         return false;
       }
-      // Real implementation would call AppApi.endpointRefreshToken
-      // Stub returns false to force re-login
-      await logout();
+      // Network failure must not log the user out.
       return false;
-    } catch (e) {
-      await logout();
+    } catch (_) {
       return false;
     }
   }

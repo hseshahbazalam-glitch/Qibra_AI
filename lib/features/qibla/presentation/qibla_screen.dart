@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import '../providers/qibla_provider.dart';
@@ -107,11 +107,12 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   }
 
   void _calibrate() {
+    final colors = QibraColors.of(context);
     HapticFeedback.mediumImpact();
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: colors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
@@ -176,6 +177,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   }
 
   Widget _calibrationStep(String num, String text) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -202,7 +204,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
           Expanded(
             child: Text(text,
                 style: AppTextStyles.bodySmall
-                    .copyWith(color: AppColors.textSecondary)),
+                    .copyWith(color: colors.textSecondary)),
           ),
         ],
       ),
@@ -210,6 +212,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   }
 
   void _shareQibla() {
+    final colors = QibraColors.of(context);
     final state = ref.read(qiblaProvider);
     final result = state.result;
     if (result == null) return;
@@ -227,7 +230,7 @@ Shared via Qibra AI 🌙''';
     HapticFeedback.mediumImpact();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Row(
           children: [
             Icon(Icons.check_circle, color: const Color(0xFF19312C), size: 18),
@@ -235,7 +238,7 @@ Shared via Qibra AI 🌙''';
             Text('📋 Qibla info copied - paste to share'),
           ],
         ),
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 2),
       ),
@@ -244,10 +247,11 @@ Shared via Qibra AI 🌙''';
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final qiblaState = ref.watch(qiblaProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: Stack(
         children: [
           _buildAnimatedBackground(),
@@ -303,6 +307,7 @@ Shared via Qibra AI 🌙''';
   // ============================================================
 
   Widget _buildAnimatedBackground() {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
@@ -312,7 +317,7 @@ Shared via Qibra AI 🌙''';
             colors: [
               const Color(0xFFEEF1EA).withValues(alpha: 0.4),
               const Color(0xFF19312C).withValues(alpha: 0.6),
-              AppColors.background,
+              colors.background,
             ],
           ),
         ),
@@ -325,6 +330,7 @@ Shared via Qibra AI 🌙''';
   // ============================================================
 
   Widget _buildSliverAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 130,
       pinned: true,
@@ -372,7 +378,7 @@ Shared via Qibra AI 🌙''';
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.6),
+                      color: colors.surface.withValues(alpha: 0.6),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: const Color(0xFFC6A15B).withValues(alpha: 0.3),
@@ -394,6 +400,7 @@ Shared via Qibra AI 🌙''';
   }
 
   Widget _buildCacheWarning() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -429,6 +436,7 @@ Shared via Qibra AI 🌙''';
   // ============================================================
 
   Widget _buildLocationCard(QiblaState state) {
+    final colors = QibraColors.of(context);
     final result = state.result!;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -544,6 +552,7 @@ Shared via Qibra AI 🌙''';
   // ============================================================
 
   Widget _build3DCompass(QiblaState state) {
+    final colors = QibraColors.of(context);
     if (state.status == QiblaStatus.loading) {
       return _buildLoadingCompass();
     }
@@ -574,8 +583,8 @@ Shared via Qibra AI 🌙''';
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        AppColors.primary.withValues(alpha: 0.4),
-                        AppColors.primary.withValues(alpha: 0.0),
+                        colors.primary.withValues(alpha: 0.4),
+                        colors.primary.withValues(alpha: 0.0),
                       ],
                     ),
                   ),
@@ -590,9 +599,9 @@ Shared via Qibra AI 🌙''';
               gradient: SweepGradient(
                 colors: isAligned
                     ? [
-                        AppColors.primary,
-                        AppColors.primary.withValues(alpha: 0.3),
-                        AppColors.primary,
+                        colors.primary,
+                        colors.primary.withValues(alpha: 0.3),
+                        colors.primary,
                       ]
                     : [
                         const Color(0xFFC6A15B),
@@ -605,7 +614,7 @@ Shared via Qibra AI 🌙''';
               boxShadow: [
                 BoxShadow(
                   color:
-                      (isAligned ? AppColors.primary : const Color(0xFFC6A15B))
+                      (isAligned ? colors.primary : const Color(0xFFC6A15B))
                           .withValues(alpha: 0.4),
                   blurRadius: 40,
                   spreadRadius: 4,
@@ -724,6 +733,7 @@ Shared via Qibra AI 🌙''';
   }
 
   Widget _buildFloatingKaaba(bool isAligned) {
+    final colors = QibraColors.of(context);
     return Container(
       width: 48,
       height: 48,
@@ -737,7 +747,7 @@ Shared via Qibra AI 🌙''';
         border: Border.all(color: const Color(0xFFC6A15B), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: (isAligned ? AppColors.primary : const Color(0xFFC6A15B))
+            color: (isAligned ? colors.primary : const Color(0xFFC6A15B))
                 .withValues(alpha: 0.6),
             blurRadius: 20,
             spreadRadius: 2,
@@ -773,6 +783,7 @@ Shared via Qibra AI 🌙''';
   }
 
   Widget _buildCenterHub(bool isAligned) {
+    final colors = QibraColors.of(context);
     return Container(
       width: 40,
       height: 40,
@@ -783,7 +794,7 @@ Shared via Qibra AI 🌙''';
           colors: isAligned
               ? [
                   const Color(0xFF2F6B5D),
-                  AppColors.primary,
+                  colors.primary,
                   const Color(0xFF123F36),
                   const Color(0xFF123F36),
                 ]
@@ -797,7 +808,7 @@ Shared via Qibra AI 🌙''';
         ),
         boxShadow: [
           BoxShadow(
-            color: (isAligned ? AppColors.primary : const Color(0xFFC6A15B))
+            color: (isAligned ? colors.primary : const Color(0xFFC6A15B))
                 .withValues(alpha: 0.7),
             blurRadius: 20,
             spreadRadius: 2,
@@ -830,8 +841,9 @@ Shared via Qibra AI 🌙''';
   }
 
   List<Widget> _buildCardinalDirections() {
+    final colors = QibraColors.of(context);
     final positions = [
-      ('N', 0.0, Alignment.topCenter, AppColors.error),
+      ('N', 0.0, Alignment.topCenter, colors.error),
       ('E', 90.0, Alignment.centerRight, Colors.white.withValues(alpha: 0.8)),
       ('S', 180.0, Alignment.bottomCenter, Colors.white.withValues(alpha: 0.8)),
       ('W', 270.0, Alignment.centerLeft, Colors.white.withValues(alpha: 0.8)),
@@ -848,7 +860,7 @@ Shared via Qibra AI 🌙''';
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: p.$1 == 'N'
-                  ? AppColors.error.withValues(alpha: 0.15)
+                  ? colors.error.withValues(alpha: 0.15)
                   : Colors.transparent,
             ),
             child: Center(
@@ -868,6 +880,7 @@ Shared via Qibra AI 🌙''';
   }
 
   Widget _buildLoadingCompass() {
+    final colors = QibraColors.of(context);
     return SizedBox(
       width: 320,
       height: 320,
@@ -902,7 +915,7 @@ Shared via Qibra AI 🌙''';
             Text(
               'Finding your location...',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ],
@@ -912,6 +925,7 @@ Shared via Qibra AI 🌙''';
   }
 
   Widget _buildErrorCompass(String? message) {
+    final colors = QibraColors.of(context);
     return SizedBox(
       width: 320,
       height: 320,
@@ -923,12 +937,12 @@ Shared via Qibra AI 🌙''';
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.1),
+                color: colors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.location_off_rounded,
-                color: AppColors.error,
+                color: colors.error,
                 size: 48,
               ),
             ),
@@ -938,7 +952,7 @@ Shared via Qibra AI 🌙''';
               child: Text(
                 message ?? 'Location unavailable',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -950,6 +964,7 @@ Shared via Qibra AI 🌙''';
   }
 
   Widget _buildAngleBadge(QiblaState state) {
+    final colors = QibraColors.of(context);
     final normalizedAngle = ((state.needleAngle % 360) + 360) % 360;
     final isAligned = normalizedAngle < 5 || normalizedAngle > 355;
 
@@ -961,7 +976,7 @@ Shared via Qibra AI 🌙''';
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.5),
+              color: colors.primary.withValues(alpha: 0.5),
               blurRadius: 20,
               spreadRadius: 2,
             ),
@@ -1016,6 +1031,7 @@ Shared via Qibra AI 🌙''';
   // ============================================================
 
   Widget _buildEnhancedInfoCards(QiblaState state) {
+    final colors = QibraColors.of(context);
     final result = state.result;
     return Row(
       children: [
@@ -1050,13 +1066,14 @@ Shared via Qibra AI 🌙''';
     required String value,
     required Color color,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.surface, AppColors.surfaceElevated],
+          colors: [colors.surface, colors.surfaceElevated],
         ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: color.withValues(alpha: 0.2)),
@@ -1085,7 +1102,7 @@ Shared via Qibra AI 🌙''';
           Text(
             label,
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -1098,13 +1115,14 @@ Shared via Qibra AI 🌙''';
   // ============================================================
 
   Widget _buildCoordinatesCard(QiblaState state) {
+    final colors = QibraColors.of(context);
     final result = state.result!;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
@@ -1129,7 +1147,7 @@ Shared via Qibra AI 🌙''';
                 Text(
                   'Coordinates',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -1137,7 +1155,7 @@ Shared via Qibra AI 🌙''';
                   result.formattedCoordinates,
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 if (result.altitude != null && result.altitude! > 0) ...[
@@ -1145,7 +1163,7 @@ Shared via Qibra AI 🌙''';
                   Text(
                     'Altitude: ${result.altitude!.toStringAsFixed(0)}m',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
@@ -1188,6 +1206,7 @@ Shared via Qibra AI 🌙''';
   // ============================================================
 
   Widget _buildActionButtons() {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         // Refresh
@@ -1238,7 +1257,7 @@ Shared via Qibra AI 🌙''';
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: const Color(0xFFC6A15B).withValues(alpha: 0.4),
@@ -1268,12 +1287,13 @@ Shared via Qibra AI 🌙''';
   }
 
   Widget _buildInstructions() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1301,6 +1321,7 @@ Shared via Qibra AI 🌙''';
   }
 
   Widget _buildInstStep(String num, String text) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -1331,7 +1352,7 @@ Shared via Qibra AI 🌙''';
             child: Text(
               text,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -1434,7 +1455,7 @@ class _Premium3DNeedlePainter extends CustomPainter {
     final leftPoint = Offset(center.dx - needleWidth / 2, center.dy);
     final rightPoint = Offset(center.dx + needleWidth / 2, center.dy);
 
-    final color = isAligned ? AppColors.primary : const Color(0xFFC6A15B);
+    final color = isAligned ? const Color(0xFF123F36) : const Color(0xFFC6A15B);
     final colorLight =
         isAligned ? const Color(0xFF2F6B5D) : const Color(0xFF2F6B5D);
     final colorDark =
@@ -1508,7 +1529,7 @@ class _Premium3DNeedlePainter extends CustomPainter {
       canvas.drawPath(
         glowPath,
         Paint()
-          ..color = AppColors.primary.withValues(alpha: 0.5)
+          ..color = const Color(0xFF123F36).withValues(alpha: 0.5)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),

@@ -7,7 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/features/duas/data/models/dua_model.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
@@ -25,6 +25,7 @@ class DuasListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final duas = ref.watch(duasByCategoryProvider(categoryId));
     final categories = ref.watch(duaCategoriesProvider);
 
@@ -34,7 +35,7 @@ class DuasListScreen extends ConsumerWidget {
       category = categories.firstWhere((c) => c.id == categoryId);
     } catch (_) {}
 
-    Color catColor = AppColors.primary;
+    Color catColor = colors.primary;
     if (category != null) {
       try {
         final hex = category.colorHex.replaceAll('#', '');
@@ -43,7 +44,7 @@ class DuasListScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -51,19 +52,19 @@ class DuasListScreen extends ConsumerWidget {
           SliverAppBar(
             expandedHeight: 140,
             pinned: true,
-            backgroundColor: AppColors.background,
+            backgroundColor: colors.background,
             leading: IconButton(
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: colors.surface,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.borderSubtle),
+                  border: Border.all(color: colors.border),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_ios_new_rounded,
                   size: 16,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               onPressed: () => Navigator.of(context).pop(),
@@ -76,7 +77,7 @@ class DuasListScreen extends ConsumerWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       catColor.withValues(alpha: 0.15),
-                      AppColors.background,
+                      colors.background,
                     ],
                   ),
                 ),
@@ -102,7 +103,7 @@ class DuasListScreen extends ConsumerWidget {
                           Text(
                             category.nameUrdu,
                             style: AppTextStyles.arabicSmall.copyWith(
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           ),
                       ],
@@ -120,7 +121,7 @@ class DuasListScreen extends ConsumerWidget {
               child: Text(
                 '${duas.length} duas in this category',
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
             ),
@@ -164,14 +165,14 @@ class DuasListScreen extends ConsumerWidget {
                     Text(
                       'No duas in this category yet',
                       style: AppTextStyles.titleMedium.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'More duas coming soon',
                       style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
                       ),
                     ),
                   ],
@@ -207,14 +208,15 @@ class _DuaCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderSubtle),
+          border: Border.all(color: colors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -266,7 +268,7 @@ class _DuaCard extends ConsumerWidget {
                         Text(
                           dua.titleUrdu,
                           style: AppTextStyles.arabicSmall.copyWith(
-                            color: AppColors.textSecondary,
+                            color: colors.textSecondary,
                             fontSize: 12,
                           ),
                         ),
@@ -290,7 +292,7 @@ class _DuaCard extends ConsumerWidget {
                             : Icons.favorite_border_rounded,
                         color: dua.isFavorite
                             ? const Color(0xFFFF6B6B)
-                            : AppColors.iconSecondary,
+                            : colors.textSecondary,
                         size: 20,
                       ),
                     ),
@@ -307,7 +309,7 @@ class _DuaCard extends ConsumerWidget {
                 style: AppTextStyles.arabicMedium.copyWith(
                   fontSize: 20,
                   height: 2.0,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                 ),
                 textAlign: TextAlign.right,
                 textDirection: TextDirection.rtl,
@@ -315,8 +317,8 @@ class _DuaCard extends ConsumerWidget {
             ),
 
             // ── DIVIDER ──────────────────────────────────────
-            const Divider(
-              color: AppColors.borderSubtle,
+            Divider(
+              color: colors.border,
               indent: 16,
               endIndent: 16,
               height: 1,
@@ -330,7 +332,7 @@ class _DuaCard extends ConsumerWidget {
                     ? '${dua.transliteration.substring(0, 100)}...'
                     : dua.transliteration,
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontStyle: FontStyle.italic,
                   height: 1.5,
                 ),
@@ -345,7 +347,7 @@ class _DuaCard extends ConsumerWidget {
                     ? '${dua.translationUrdu.substring(0, 120)}...'
                     : dua.translationUrdu,
                 style: AppTextStyles.arabicSmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontSize: 13,
                   height: 1.6,
                 ),
@@ -357,8 +359,8 @@ class _DuaCard extends ConsumerWidget {
             // ── FOOTER ───────────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-              decoration: const BoxDecoration(
-                color: AppColors.surfaceElevated,
+              decoration: BoxDecoration(
+                color: colors.surfaceElevated,
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(20),
                 ),
@@ -368,14 +370,14 @@ class _DuaCard extends ConsumerWidget {
                   Icon(
                     Icons.verified_rounded,
                     size: 13,
-                    color: AppColors.primary.withValues(alpha: 0.8),
+                    color: colors.primary.withValues(alpha: 0.8),
                   ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       dua.reference,
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                         fontSize: 11,
                       ),
                     ),
@@ -411,13 +413,13 @@ class _DuaCard extends ConsumerWidget {
   Color _gradeColor(String grade) {
     switch (grade.toLowerCase()) {
       case 'sahih':
-        return AppColors.primary;
+        return colors.primary;
       case 'hasan':
         return const Color(0xFF2F6B5D);
       case 'quran':
         return const Color(0xFFC6A15B);
       default:
-        return AppColors.textSecondary;
+        return colors.textSecondary;
     }
   }
 }

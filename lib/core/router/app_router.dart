@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
@@ -61,23 +60,34 @@ class _ErrorScreen extends StatelessWidget {
   const _ErrorScreen({this.message});
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: AppColors.error, size: 64),
+            Icon(Icons.error_outline, color: colors.error, size: 64),
             const SizedBox(height: AppSpacing.lg),
-            Text('Page Not Found', style: AppTextStyles.headlineSmall),
+            Text(
+              'Page Not Found',
+              style: AppTextStyles.headlineSmall.copyWith(
+                color: colors.textPrimary,
+              ),
+            ),
             const SizedBox(height: AppSpacing.sm),
-            Text(message ?? 'The requested page does not exist.',
-                style: AppTextStyles.bodyMedium.secondary,
-                textAlign: TextAlign.center),
+            Text(
+              message ?? 'The requested page does not exist.',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: colors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: AppSpacing.xl3),
             ElevatedButton(
-                onPressed: () => context.go(AppRoutes.home),
-                child: const Text('Go to Home')),
+              onPressed: () => context.go(AppRoutes.home),
+              child: const Text('Go to Home'),
+            ),
           ],
         ),
       ),
@@ -160,6 +170,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           final surah = int.tryParse(state.uri.queryParameters['surah'] ?? '1') ?? 1;
           final ayahStr = state.uri.queryParameters['ayah'];
           final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
+          return SurahReaderScreen(surahNumber: surah, initialAyah: ayah);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.continueReading,
+        name: 'continue-reading',
+        builder: (context, state) {
+          final surah = int.tryParse(state.uri.queryParameters['surah'] ?? '1') ?? 1;
+          final ayahStr = state.uri.queryParameters['ayah'];
+          final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
+          return SurahReaderScreen(surahNumber: surah, initialAyah: ayah);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.dailyAyah,
+        name: 'daily-ayah',
+        builder: (context, state) {
+          final surah = int.tryParse(state.uri.queryParameters['surah'] ?? '1') ?? 1;
+          final ayah = int.tryParse(state.uri.queryParameters['ayah'] ?? '1') ?? 1;
           return SurahReaderScreen(surahNumber: surah, initialAyah: ayah);
         },
       ),

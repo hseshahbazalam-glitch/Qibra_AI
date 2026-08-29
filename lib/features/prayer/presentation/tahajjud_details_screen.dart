@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import '../data/models/prayer_models.dart';
@@ -53,30 +53,31 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final windows = _windows(ref.watch(dailyPrayerTimesProvider));
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
             expandedHeight: 80,
             pinned: true,
-            backgroundColor: AppColors.background,
+            backgroundColor: colors.background,
             elevation: 0,
             leading: IconButton(
               icon: Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: colors.surface,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.borderSubtle),
+                  border: Border.all(color: colors.border),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_ios_new_rounded,
                   size: 18,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               onPressed: () {
@@ -91,7 +92,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
             title: Text(
               'Tahajjud Details',
               style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -102,13 +103,13 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: colors.surface,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.borderSubtle),
+                    border: Border.all(color: colors.border),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.more_vert_rounded,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     size: 20,
                   ),
                 ),
@@ -154,7 +155,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                         Text(
                           'Tahajjud',
                           style: AppTextStyles.displaySmall.copyWith(
-                            color: AppColors.white,
+                            color: colors.onPrimary,
                             fontWeight: FontWeight.w900,
                             fontSize: 32,
                           ),
@@ -173,7 +174,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                         Text(
                           'The best time for Tahajjud is in the last third of the night.',
                           style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.white.withValues(alpha: 0.85),
+                            color: colors.onPrimary.withValues(alpha: 0.85),
                             height: 1.5,
                           ),
                         ),
@@ -206,9 +207,9 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: colors.surface,
                   borderRadius: AppRadius.cardRadius,
-                  border: Border.all(color: AppColors.borderSubtle),
+                  border: Border.all(color: colors.border),
                 ),
                 child: Row(
                   children: [
@@ -233,7 +234,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                           Text(
                             'Alarm',
                             style: AppTextStyles.titleSmall.copyWith(
-                              color: AppColors.textPrimary,
+                              color: colors.textPrimary,
                               fontWeight: FontWeight.w800,
                               fontSize: 14,
                             ),
@@ -241,7 +242,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                           Text(
                             'Wake me for Tahajjud',
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                               fontSize: 11,
                             ),
                           ),
@@ -335,16 +336,16 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.alarm_add_rounded,
-                        color: AppColors.white,
+                        color: colors.onPrimary,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'Set Tahajjud Alarm',
                         style: AppTextStyles.titleSmall.copyWith(
-                          color: AppColors.white,
+                          color: colors.onPrimary,
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
                         ),
@@ -367,10 +368,11 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
   // ============================================================
 
   void _openSheet(Widget content) {
+    final colors = QibraColors.of(context);
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: colors.surface,
       isScrollControlled: true,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
@@ -394,7 +396,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -415,6 +417,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
   // ============================================================
 
   void _showTimeDetails(_NightWindows? windows) {
+    final colors = QibraColors.of(context);
     _openSheet(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,7 +426,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           Text(
             'Best Times for Tahajjud',
             style: AppTextStyles.titleLarge.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -433,7 +436,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                 ? 'Windows appear after Maghrib and Fajr can be calculated.'
                 : 'Divided from today\'s Maghrib to Fajr.',
             style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
@@ -464,6 +467,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
 
   Widget _buildTimeSection(
       String title, String time, String desc, Color color) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -485,7 +489,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           Text(
             time,
             style: AppTextStyles.titleMedium.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w900,
               fontFamily: 'monospace',
             ),
@@ -493,7 +497,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           Text(
             desc,
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               fontSize: 11,
             ),
           ),
@@ -507,6 +511,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
   // ============================================================
 
   void _showSurahsSheet() {
+    final colors = QibraColors.of(context);
     final surahs = [
       {
         'name': 'Al-Mulk',
@@ -544,7 +549,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           Text(
             'Recommended Surahs',
             style: AppTextStyles.titleLarge.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -552,7 +557,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           Text(
             'Suggested surahs for Tahajjud prayer',
             style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
@@ -561,9 +566,9 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: colors.background,
                 borderRadius: AppRadius.cardRadius,
-                border: Border.all(color: AppColors.borderSubtle),
+                border: Border.all(color: colors.border),
               ),
               child: Row(
                 children: [
@@ -590,7 +595,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                             Text(
                               s['name']!,
                               style: AppTextStyles.titleSmall.copyWith(
-                                color: AppColors.textPrimary,
+                                color: colors.textPrimary,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -611,7 +616,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                         Text(
                           s['benefit']!,
                           style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.textSecondary,
+                            color: colors.textSecondary,
                             fontSize: 11,
                           ),
                         ),
@@ -632,6 +637,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
   // ============================================================
 
   void _showDuasSheet() {
+    final colors = QibraColors.of(context);
     final duas = [
       {
         'name': 'Dua Qunoot',
@@ -663,7 +669,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           Text(
             'Tahajjud Duas',
             style: AppTextStyles.titleLarge.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -673,7 +679,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: colors.background,
                 borderRadius: AppRadius.cardRadius,
                 border: Border.all(
                   color: const Color(0xFFC6A15B).withValues(alpha: 0.3),
@@ -706,7 +712,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                   Text(
                     d['trans']!,
                     style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -724,6 +730,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
   // ============================================================
 
   void _showStreakSheet() {
+    final colors = QibraColors.of(context);
     _openSheet(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -740,7 +747,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               Text(
                 'Tahajjud Streak',
                 style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -750,19 +757,20 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           Text(
             'Tahajjud nights are not tracked in this build. Counts will appear here only after a real record exists.',
             style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
-          _buildStatRow('Current streak', 'Not available', AppColors.primary),
+          _buildStatRow('Current streak', 'Not available', colors.primary),
           _buildStatRow('Longest streak', 'Not available', const Color(0xFFC6A15B)),
-          _buildStatRow('Total Tahajjud', 'Not available', AppColors.primary),
+          _buildStatRow('Total Tahajjud', 'Not available', colors.primary),
         ],
       ),
     );
   }
 
   Widget _buildStatRow(String label, String value, Color color) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -779,7 +787,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           Text(
             label,
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
           const Spacer(),
@@ -811,9 +819,9 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: AppRadius.cardRadius,
-          border: Border.all(color: AppColors.borderSubtle),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           children: [
@@ -834,7 +842,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                   Text(
                     title,
                     style: AppTextStyles.titleSmall.copyWith(
-                      color: AppColors.textPrimary,
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.w800,
                       fontSize: 14,
                     ),
@@ -843,16 +851,16 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                   Text(
                     subtitle,
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       fontSize: 11,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right_rounded,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
               size: 20,
             ),
           ],
@@ -862,10 +870,11 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
   }
 
   void _showAlarmSetDialog() {
+    final colors = QibraColors.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: colors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardRadiusLarge,
         ),
@@ -880,7 +889,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
             Text(
               'Reminder',
               style: AppTextStyles.titleMedium.copyWith(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -889,14 +898,14 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
         content: Text(
           'This toggle is only a reminder on this screen. No device alarm is scheduled.',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
         actions: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2F6B5D),
-              foregroundColor: AppColors.white,
+              foregroundColor: colors.onPrimary,
             ),
             onPressed: () => Navigator.pop(ctx),
             child: const Text('OK'),

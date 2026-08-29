@@ -53,4 +53,23 @@ class SyncEngine {
       _inFlight = false;
     }
   }
+
+  Duration jitteredBackoff(int attempt, {int maxMs = 30000}) {
+    final base = 250 * (1 << attempt.clamp(0, 6));
+    final jitter = DateTime.now().microsecond % 180;
+    return Duration(milliseconds: (base + jitter).clamp(250, maxMs));
+  }
+
+  Future<T> retry<T>(Future<T> Function() work, {int times = 3}) async {
+    Object? last;
+    for (var i = 0; i < times; i++) {
+      try {
+        return await work();
+      } catch (e) {
+        last = e;
+        await Future<void>.delayed(jitteredBackoff(i));
+      }
+    }
+    throw last ?? StateError('retry exhausted');
+  }
 }
