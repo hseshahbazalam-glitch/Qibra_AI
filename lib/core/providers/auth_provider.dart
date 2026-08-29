@@ -506,6 +506,38 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return false;
     }
   }
+
+  /// Delete account locally. Network failure does not invent success.
+  Future<bool> deleteAccount() async {
+    try {
+      if (AppApi.isBackendEnabled) {
+        try {
+          await _repository.logout();
+        } catch (_) {
+          return false;
+        }
+      }
+      await logout();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  CachedProfile cachedProfile({required bool networkOnline}) {
+    return CachedProfile(
+      user: state.user,
+      serverValidated: networkOnline && state.isAuthenticated,
+    );
+  }
+}
+
+@immutable
+class CachedProfile {
+  const CachedProfile({this.user, this.serverValidated = false});
+
+  final AppUser? user;
+  final bool serverValidated;
 }
 
 // ============================================================

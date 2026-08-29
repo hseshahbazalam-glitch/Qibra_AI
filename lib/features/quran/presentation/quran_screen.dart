@@ -63,7 +63,7 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                 final surah = page?.surahNumber ?? 1;
                 final ayah = page?.ayahNumber;
                 context.push(
-                  '${AppRoutes.surahReader}?surah=$surah${ayah == null ? '' : '&ayah=$ayah'}',
+                  '${AppRoutes.continueReading}?surah=$surah${ayah == null ? '' : '&ayah=$ayah'}',
                 );
               },
               child: Row(
@@ -119,7 +119,7 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                   accentBorder: true,
                   onTap: () {
                     context.push(
-                      '${AppRoutes.surahReader}?surah=$_dailySurahNumber&ayah=${ayah.number}',
+                      '${AppRoutes.dailyAyah}?surah=$_dailySurahNumber&ayah=${ayah.number}',
                     );
                   },
                   child: Column(

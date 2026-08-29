@@ -369,11 +369,13 @@ class BookmarksNotifier extends StateNotifier<List<BookmarkModel>> {
       }
       return b;
     }).toList();
+    _persist();
   }
 
   /// Clear all bookmarks
   void clearAll() {
     state = [];
+    _persist();
   }
 }
 

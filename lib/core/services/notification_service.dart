@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+/// Local notifications only. Scheduling uses inexact alarms.
+/// Do not claim reboot-proof or exact-alarm delivery; those are not device-tested.
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
 

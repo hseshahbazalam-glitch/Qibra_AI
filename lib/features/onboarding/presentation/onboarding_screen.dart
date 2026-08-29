@@ -55,7 +55,7 @@ const List<_OnboardingSlide> _slides = [
   _OnboardingSlide(
     title: 'Read the Holy Quran',
     description:
-        'Access the complete Quran with beautiful Arabic text, audio recitations by renowned Qaris, and translations in multiple languages.',
+        'Access the bundled Arabic Quran and English translation. Recitation audio is not bundled in this build.',
     icon: Icons.menu_book_rounded,
     arabicText: 'اقْرَأْ',
     arabicTranslation: 'Read',

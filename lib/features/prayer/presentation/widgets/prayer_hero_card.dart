@@ -201,6 +201,7 @@ class PrayerHeroCard extends StatelessWidget {
     required String label,
     required Color iconColor,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 8,

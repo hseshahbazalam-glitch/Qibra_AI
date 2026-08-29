@@ -375,8 +375,8 @@ Shared via Qibra AI 🌙''';
                 GestureDetector(
                   onTap: _shareQibla,
                   child: Container(
-                    width: 44,
-                    height: 44,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: colors.surface.withValues(alpha: 0.6),
                       shape: BoxShape.circle,

@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/content/word_by_word.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../quran/data/models/quran_models.dart';
 import '../../quran/providers/quran_provider.dart';
@@ -154,8 +155,8 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               Navigator.pop(context);
             },
             child: Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: colors.surfaceElevated,
                 shape: BoxShape.circle,
@@ -183,8 +184,8 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           GestureDetector(
             onTap: _showFontSizeSheet,
             child: Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: colors.surfaceElevated,
                 shape: BoxShape.circle,
@@ -202,8 +203,8 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           GestureDetector(
             onTap: () => _showMoreOptions(),
             child: Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: colors.surfaceElevated,
                 shape: BoxShape.circle,
@@ -245,8 +246,8 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [colors.primary, colors.accent],
@@ -299,8 +300,8 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               _showToast('Bookmarked');
             },
             child: Container(
-              width: 36,
-              height: 36,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: colors.accent.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
@@ -413,11 +414,12 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
     required bool enabled,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: enabled ? onTap : null,
       child: Container(
-        width: 44,
-        height: 44,
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
           color: enabled
               ? colors.accent.withValues(alpha: 0.15)
@@ -641,7 +643,7 @@ class _TranslationTab extends ConsumerWidget {
             _buildLanguageCard(
               label: 'Roman Urdu',
               icon: Icons.abc_rounded,
-              color: const Color(0xFFFF9800),
+              color: colors.goldText,
               content: Text(
                 ayah.translationRoman!,
                 style: TextStyle(
@@ -724,6 +726,7 @@ class _TranslationTab extends ConsumerWidget {
     required String label,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -912,80 +915,6 @@ class _WordByWordTab extends StatelessWidget {
   final SurahModel surah;
   final int ayahNumber;
 
-  // Basic word meanings database
-  static const Map<String, String> _wordMeanings = {
-    'بِسْمِ': 'In the name',
-    'اللَّهِ': 'of Allah',
-    'الرَّحْمَٰنِ': 'The Most Gracious',
-    'الرَّحِيمِ': 'The Most Merciful',
-    'الْحَمْدُ': 'All praise',
-    'لِلَّهِ': 'is for Allah',
-    'رَبِّ': 'Lord',
-    'الْعَالَمِينَ': 'of the worlds',
-    'مَالِكِ': 'Master/Owner',
-    'يَوْمِ': 'of the Day',
-    'الدِّينِ': 'of Judgment',
-    'إِيَّاكَ': 'You alone',
-    'نَعْبُدُ': 'we worship',
-    'وَإِيَّاكَ': 'and You alone',
-    'نَسْتَعِينُ': 'we ask for help',
-    'اهْدِنَا': 'Guide us',
-    'الصِّرَاطَ': 'the path',
-    'الْمُسْتَقِيمَ': 'the straight',
-    'صِرَاطَ': 'Path',
-    'الَّذِينَ': 'of those',
-    'أَنْعَمْتَ': 'You have blessed',
-    'عَلَيْهِمْ': 'upon them',
-    'غَيْرِ': 'not',
-    'الْمَغْضُوبِ': 'those who earned wrath',
-    'وَلَا': 'and not',
-    'الضَّالِّينَ': 'those who went astray',
-    'الم': 'Alif Lam Mim',
-    'ذَٰلِكَ': 'That',
-    'الْكِتَابُ': 'is the Book',
-    'لَا': 'No',
-    'رَيْبَ': 'doubt',
-    'فِيهِ': 'in it',
-    'هُدًى': 'guidance',
-    'لِلْمُتَّقِينَ': 'for the God-fearing',
-    'إِنَّ': 'Indeed',
-    'مَعَ': 'with',
-    'الْعُسْرِ': 'hardship',
-    'يُسْرًا': 'ease',
-    'وَ': 'and',
-    'مِنَ': 'from',
-    'فِي': 'in',
-    'عَلَىٰ': 'upon',
-    'إِلَىٰ': 'to/towards',
-    'مِنْ': 'from',
-    'قَالَ': 'he said',
-    'كَانَ': 'was/were',
-    'اللَّهَ': 'Allah',
-    'هُوَ': 'He',
-    'الَّذِي': 'the one who',
-    'قُلْ': 'Say',
-  };
-
-  String _getMeaning(String word) {
-    // Clean the word
-    final clean = word.trim();
-
-    // Direct match
-    if (_wordMeanings.containsKey(clean)) {
-      return _wordMeanings[clean]!;
-    }
-
-    // Try without last character (for different forms)
-    if (clean.length > 2) {
-      final shortened = clean.substring(0, clean.length - 1);
-      if (_wordMeanings.containsKey(shortened)) {
-        return _wordMeanings[shortened]!;
-      }
-    }
-
-    return 'meaning';
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
@@ -995,8 +924,7 @@ class _WordByWordTab extends StatelessWidget {
       return const Center(child: Text('Ayah not found'));
     }
 
-    final words =
-        ayah.text.split(' ').where((w) => w.trim().isNotEmpty).toList();
+    final words = WordByWordResolver.tokenize(ayah.text);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -1041,14 +969,14 @@ class _WordByWordTab extends StatelessWidget {
             runSpacing: 14,
             alignment: WrapAlignment.center,
             children: words.map((word) {
-              final meaning = _getMeaning(word);
+              final meaning = word.gloss;
               return GestureDetector(
                 onTap: () {
                   HapticFeedback.selectionClick();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        '$word → $meaning',
+                        '${word.token} → UNKNOWN (not a meaning)',
                         style: const TextStyle(fontSize: 16),
                       ),
                       duration: const Duration(seconds: 2),
@@ -1077,7 +1005,7 @@ class _WordByWordTab extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        word,
+                        word.token,
                         textDirection: TextDirection.rtl,
                         style: TextStyle(
                           fontFamily: 'Amiri',
@@ -1090,7 +1018,7 @@ class _WordByWordTab extends StatelessWidget {
                       Text(
                         meaning,
                         style: TextStyle(
-                          color: colors.accent,
+                          color: colors.goldText,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),

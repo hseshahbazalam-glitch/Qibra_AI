@@ -52,7 +52,7 @@ Address them by name naturally when appropriate.
 LANGUAGE RULES:
 - Detect user's language automatically
 - Reply in the SAME language they wrote in
-- Roman Urdu, English, Urdu, Arabic, Hindi — all supported
+- Roman Urdu, English, Urdu, Arabic — match the user's language. Do not invent Hindi Quran.
 
 YOU CAN DO TWO THINGS:
 1. Answer Islamic questions (Quran, Hadith, prayers)
@@ -229,6 +229,19 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
             await RagService.instance.retrieve(userMessage, topK: 3);
       } catch (_) {
         _lastRetrieved = [];
+      }
+
+      final actionish = RegExp(
+        r'open|kholo|dikhao|alarm|notification|settings|qibla|tasbih|calculator',
+        caseSensitive: false,
+      ).hasMatch(userMessage);
+      if (!actionish &&
+          (ragContext.startsWith('REFUSE:') || _lastRetrieved.isEmpty)) {
+        removeTypingIndicator();
+        addAIMessage(
+          'I could not find a retrieved Quran or Hadith passage for that. I will not invent one. Please consult a qualified scholar.',
+        );
+        return;
       }
 
       if (ragContext.isNotEmpty) {

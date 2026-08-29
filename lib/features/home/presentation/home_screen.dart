@@ -154,7 +154,7 @@ class HomeScreen extends ConsumerWidget {
                   final surah = page?.surahNumber ?? 1;
                   final ayah = page?.ayahNumber;
                   context.push(
-                    '${AppRoutes.surahReader}?surah=$surah${ayah == null ? '' : '&ayah=$ayah'}',
+                    '${AppRoutes.continueReading}?surah=$surah${ayah == null ? '' : '&ayah=$ayah'}',
                   );
                 },
                 child: Row(
