@@ -411,6 +411,7 @@ class _DuaCard extends ConsumerWidget {
   }
 
   Color _gradeColor(String grade) {
+    final colors = QibraColors.light;
     switch (grade.toLowerCase()) {
       case 'sahih':
         return colors.primary;

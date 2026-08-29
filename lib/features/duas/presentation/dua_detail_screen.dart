@@ -409,6 +409,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     bool isItalic = false,
     bool isRtl = false,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -549,6 +550,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     required String content,
     bool isHighlighted = false,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),

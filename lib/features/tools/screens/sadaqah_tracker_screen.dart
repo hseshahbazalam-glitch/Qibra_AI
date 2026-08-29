@@ -30,17 +30,17 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
     'INR': '₹',
   };
 
-  final List<_SadaqahCategory> _categories = const [
+  final List<_SadaqahCategory> _categories = [
     _SadaqahCategory(
-        'General', Icons.volunteer_activism_rounded, colors.primary),
-    _SadaqahCategory('Food', Icons.restaurant_rounded, colors.accent),
-    _SadaqahCategory('Education', Icons.school_rounded, colors.primarySoft),
+        'General', Icons.volunteer_activism_rounded, QibraColors.light.primary),
+    _SadaqahCategory('Food', Icons.restaurant_rounded, QibraColors.light.accent),
+    _SadaqahCategory('Education', Icons.school_rounded, QibraColors.light.primarySoft),
     _SadaqahCategory(
-        'Medical', Icons.medical_services_rounded, colors.error),
-    _SadaqahCategory('Orphan', Icons.child_care_rounded, colors.primarySoft),
-    _SadaqahCategory('Masjid', Icons.mosque_rounded, colors.primarySoft),
-    _SadaqahCategory('Water', Icons.water_drop_rounded, colors.primarySoft),
-    _SadaqahCategory('Clothes', Icons.checkroom_rounded, colors.accent),
+        'Medical', Icons.medical_services_rounded, QibraColors.light.error),
+    _SadaqahCategory('Orphan', Icons.child_care_rounded, QibraColors.light.primarySoft),
+    _SadaqahCategory('Masjid', Icons.mosque_rounded, QibraColors.light.primarySoft),
+    _SadaqahCategory('Water', Icons.water_drop_rounded, QibraColors.light.primarySoft),
+    _SadaqahCategory('Clothes', Icons.checkroom_rounded, QibraColors.light.accent),
   ];
 
   @override

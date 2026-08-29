@@ -846,7 +846,7 @@ class _AsmaName {
 // ═══════════════════════════════════════════════════════════
 // 99 NAMES DATABASE
 // ═══════════════════════════════════════════════════════════
-const List<_AsmaName> _allNames = [
+final List<_AsmaName> _allNames = [
   _AsmaName(
       number: 1,
       arabic: 'اللَّهُ',
@@ -856,7 +856,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'The supreme name of God encompassing all attributes',
       reference: 'Quran 1:1 — The foundational name of God',
       reciteCount: 1000,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 2,
       arabic: 'الرَّحْمَنُ',
@@ -866,7 +866,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for mercy and blessings in this world',
       reference: 'Quran 1:3 — "Bismillah ir-Rahman ir-Raheem"',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 3,
       arabic: 'الرَّحِيمُ',
@@ -876,7 +876,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for mercy in the Hereafter',
       reference: 'Quran 1:3 — Most repeated name in Quran',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 4,
       arabic: 'الْمَلِكُ',
@@ -886,7 +886,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for dignity and authority',
       reference: 'Quran 20:114 — "So high above all is Allah, the Sovereign"',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 5,
       arabic: 'الْقُدُّوسُ',
@@ -896,7 +896,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to purify heart from sins',
       reference: 'Quran 62:1 — "Al-Malik Al-Quddus"',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 6,
       arabic: 'السَّلَامُ',
@@ -906,7 +906,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite 160x on sick person for healing',
       reference: 'Quran 59:23',
       reciteCount: 160,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 7,
       arabic: 'الْمُؤْمِنُ',
@@ -916,7 +916,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for safety from fears',
       reference: 'Quran 59:23',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 8,
       arabic: 'الْمُهَيْمِنُ',
@@ -926,7 +926,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to purify soul',
       reference: 'Quran 59:23',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 9,
       arabic: 'الْعَزِيزُ',
@@ -936,7 +936,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for strength and dignity',
       reference: 'Quran 59:23',
       reciteCount: 40,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 10,
       arabic: 'الْجَبَّارُ',
@@ -946,7 +946,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for protection from tyrants',
       reference: 'Quran 59:23',
       reciteCount: 100,
-      color: colors.error),
+      color: QibraColors.light.error),
   _AsmaName(
       number: 11,
       arabic: 'الْمُتَكَبِّرُ',
@@ -956,7 +956,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for respect and honor',
       reference: 'Quran 59:23',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 12,
       arabic: 'الْخَالِقُ',
@@ -966,7 +966,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for creativity and new beginnings',
       reference: 'Quran 59:24',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 13,
       arabic: 'الْبَارِئُ',
@@ -976,7 +976,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for good health',
       reference: 'Quran 59:24',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 14,
       arabic: 'الْمُصَوِّرُ',
@@ -986,7 +986,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for beautiful children',
       reference: 'Quran 59:24',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 15,
       arabic: 'الْغَفَّارُ',
@@ -996,7 +996,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for forgiveness of sins',
       reference: 'Quran 20:82',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 16,
       arabic: 'الْقَهَّارُ',
@@ -1006,7 +1006,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to overcome enemies',
       reference: 'Quran 13:16',
       reciteCount: 100,
-      color: colors.error),
+      color: QibraColors.light.error),
   _AsmaName(
       number: 17,
       arabic: 'الْوَهَّابُ',
@@ -1016,7 +1016,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite 40x after Fajr for blessings',
       reference: 'Quran 3:8',
       reciteCount: 40,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 18,
       arabic: 'الرَّزَّاقُ',
@@ -1026,7 +1026,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for abundance in sustenance',
       reference: 'Quran 51:58',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 19,
       arabic: 'الْفَتَّاحُ',
@@ -1036,7 +1036,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for opening of doors',
       reference: 'Quran 34:26',
       reciteCount: 71,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 20,
       arabic: 'الْعَلِيمُ',
@@ -1046,7 +1046,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for knowledge and wisdom',
       reference: 'Quran 2:158',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 21,
       arabic: 'الْقَابِضُ',
@@ -1056,7 +1056,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for protection',
       reference: 'Quran 2:245',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 22,
       arabic: 'الْبَاسِطُ',
@@ -1066,7 +1066,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for expansion of wealth',
       reference: 'Quran 2:245',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 23,
       arabic: 'الْخَافِضُ',
@@ -1076,7 +1076,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for protection from enemies',
       reference: 'Not in Quran directly — Hadith',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 24,
       arabic: 'الرَّافِعُ',
@@ -1086,7 +1086,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for elevation in status',
       reference: 'Quran 58:11',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 25,
       arabic: 'الْمُعِزُّ',
@@ -1096,7 +1096,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for honor and dignity',
       reference: 'Quran 3:26',
       reciteCount: 140,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 26,
       arabic: 'الْمُذِلُّ',
@@ -1106,7 +1106,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for protection from humiliation',
       reference: 'Quran 3:26',
       reciteCount: 100,
-      color: colors.error),
+      color: QibraColors.light.error),
   _AsmaName(
       number: 27,
       arabic: 'السَّمِيعُ',
@@ -1116,7 +1116,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for answered duas',
       reference: 'Quran 2:127',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 28,
       arabic: 'الْبَصِيرُ',
@@ -1126,7 +1126,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for good eyesight and insight',
       reference: 'Quran 17:1',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 29,
       arabic: 'الْحَكَمُ',
@@ -1136,7 +1136,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for justice and guidance',
       reference: 'Quran 22:69',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 30,
       arabic: 'الْعَدْلُ',
@@ -1146,7 +1146,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for justice in disputes',
       reference: 'Quran 6:115',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 31,
       arabic: 'اللَّطِيفُ',
@@ -1156,7 +1156,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite 133x for relief from difficulties',
       reference: 'Quran 6:103',
       reciteCount: 133,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 32,
       arabic: 'الْخَبِيرُ',
@@ -1166,7 +1166,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for awareness and knowledge',
       reference: 'Quran 6:18',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 33,
       arabic: 'الْحَلِيمُ',
@@ -1176,7 +1176,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for patience and tolerance',
       reference: 'Quran 2:225',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 34,
       arabic: 'الْعَظِيمُ',
@@ -1186,7 +1186,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for greatness and honor',
       reference: 'Quran 2:255 — Ayat al-Kursi',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 35,
       arabic: 'الْغَفُورُ',
@@ -1196,7 +1196,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for forgiveness of sins',
       reference: 'Quran 2:173',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 36,
       arabic: 'الشَّكُورُ',
@@ -1206,7 +1206,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for gratitude and blessings',
       reference: 'Quran 35:30',
       reciteCount: 41,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 37,
       arabic: 'الْعَلِيُّ',
@@ -1216,7 +1216,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for elevation and success',
       reference: 'Quran 2:255',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 38,
       arabic: 'الْكَبِيرُ',
@@ -1226,7 +1226,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for greatness',
       reference: 'Quran 13:9',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 39,
       arabic: 'الْحَفِيظُ',
@@ -1236,7 +1236,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for protection of self and family',
       reference: 'Quran 11:57',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 40,
       arabic: 'الْمُقِيتُ',
@@ -1246,7 +1246,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for strength and nourishment',
       reference: 'Quran 4:85',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 41,
       arabic: 'الْحَسِيبُ',
@@ -1256,7 +1256,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite 70x morning/evening for protection',
       reference: 'Quran 4:6',
       reciteCount: 70,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 42,
       arabic: 'الْجَلِيلُ',
@@ -1266,7 +1266,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for majesty and respect',
       reference: 'Quran 55:27',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 43,
       arabic: 'الْكَرِيمُ',
@@ -1276,7 +1276,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for generosity and honor',
       reference: 'Quran 27:40',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 44,
       arabic: 'الرَّقِيبُ',
@@ -1286,7 +1286,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for protection',
       reference: 'Quran 4:1',
       reciteCount: 7,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 45,
       arabic: 'الْمُجِيبُ',
@@ -1296,7 +1296,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for answered prayers',
       reference: 'Quran 11:61',
       reciteCount: 55,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 46,
       arabic: 'الْوَاسِعُ',
@@ -1306,7 +1306,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for abundance and expansion',
       reference: 'Quran 2:115',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 47,
       arabic: 'الْحَكِيمُ',
@@ -1316,7 +1316,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for wisdom in decisions',
       reference: 'Quran 2:32',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 48,
       arabic: 'الْوَدُودُ',
@@ -1326,7 +1326,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for love and harmony',
       reference: 'Quran 11:90',
       reciteCount: 1000,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 49,
       arabic: 'الْمَجِيدُ',
@@ -1336,7 +1336,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for glory',
       reference: 'Quran 11:73',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 50,
       arabic: 'الْبَاعِثُ',
@@ -1346,7 +1346,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for awakening of heart',
       reference: 'Quran 22:7',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 51,
       arabic: 'الشَّهِيدُ',
@@ -1356,7 +1356,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for truthfulness',
       reference: 'Quran 4:166',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 52,
       arabic: 'الْحَقُّ',
@@ -1366,7 +1366,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for truth and justice',
       reference: 'Quran 22:6',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 53,
       arabic: 'الْوَكِيلُ',
@@ -1376,7 +1376,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to put trust in Allah',
       reference: 'Quran 3:173',
       reciteCount: 66,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 54,
       arabic: 'الْقَوِيُّ',
@@ -1386,7 +1386,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for strength against enemies',
       reference: 'Quran 22:40',
       reciteCount: 100,
-      color: colors.error),
+      color: QibraColors.light.error),
   _AsmaName(
       number: 55,
       arabic: 'الْمَتِينُ',
@@ -1396,7 +1396,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for firmness in faith',
       reference: 'Quran 51:58',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 56,
       arabic: 'الْوَلِيُّ',
@@ -1406,7 +1406,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for divine friendship and support',
       reference: 'Quran 42:28',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 57,
       arabic: 'الْحَمِيدُ',
@@ -1416,7 +1416,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for gratitude',
       reference: 'Quran 2:267',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 58,
       arabic: 'الْمُحْصِي',
@@ -1426,7 +1426,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to remember accountability',
       reference: 'Quran 78:29',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 59,
       arabic: 'الْمُبْدِئُ',
@@ -1436,7 +1436,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for new beginnings',
       reference: 'Quran 85:13',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 60,
       arabic: 'الْمُعِيدُ',
@@ -1446,7 +1446,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to restore lost things',
       reference: 'Quran 85:13',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 61,
       arabic: 'الْمُحْيِي',
@@ -1456,7 +1456,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for spiritual life',
       reference: 'Quran 30:50',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 62,
       arabic: 'الْمُمِيتُ',
@@ -1466,7 +1466,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to remember death and prepare',
       reference: 'Quran 3:156',
       reciteCount: 100,
-      color: colors.error),
+      color: QibraColors.light.error),
   _AsmaName(
       number: 63,
       arabic: 'الْحَيُّ',
@@ -1476,7 +1476,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite during illness for healing',
       reference: 'Quran 2:255 — Ayat al-Kursi',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 64,
       arabic: 'الْقَيُّومُ',
@@ -1486,7 +1486,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to not forget anything',
       reference: 'Quran 2:255 — Ayat al-Kursi',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 65,
       arabic: 'الْوَاجِدُ',
@@ -1496,7 +1496,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to find what is lost',
       reference: 'Hadith — Al-Tirmidhi',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 66,
       arabic: 'الْمَاجِدُ',
@@ -1506,7 +1506,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for honor',
       reference: 'Hadith',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 67,
       arabic: 'الْوَاحِدُ',
@@ -1516,7 +1516,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to strengthen Tawheed',
       reference: 'Quran 13:16',
       reciteCount: 1000,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 68,
       arabic: 'الْأَحَدُ',
@@ -1526,7 +1526,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite Surah Ikhlas — equals 1/3 Quran',
       reference: 'Quran 112:1',
       reciteCount: 1000,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 69,
       arabic: 'الصَّمَدُ',
@@ -1536,7 +1536,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to become self-sufficient',
       reference: 'Quran 112:2',
       reciteCount: 125,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 70,
       arabic: 'الْقَادِرُ',
@@ -1546,7 +1546,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for achieving goals',
       reference: 'Quran 6:65',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 71,
       arabic: 'الْمُقْتَدِرُ',
@@ -1556,7 +1556,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for power to achieve',
       reference: 'Quran 18:45',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 72,
       arabic: 'الْمُقَدِّمُ',
@@ -1566,7 +1566,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for advancement',
       reference: 'Hadith',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 73,
       arabic: 'الْمُؤَخِّرُ',
@@ -1576,7 +1576,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for patience',
       reference: 'Hadith',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 74,
       arabic: 'الْأَوَّلُ',
@@ -1586,7 +1586,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for children (40 days after Fajr)',
       reference: 'Quran 57:3',
       reciteCount: 40,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 75,
       arabic: 'الْآخِرُ',
@@ -1596,7 +1596,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to remember eternity of Allah',
       reference: 'Quran 57:3',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 76,
       arabic: 'الظَّاهِرُ',
@@ -1606,7 +1606,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for divine vision',
       reference: 'Quran 57:3',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 77,
       arabic: 'الْبَاطِنُ',
@@ -1616,7 +1616,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for inner knowledge',
       reference: 'Quran 57:3',
       reciteCount: 33,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 78,
       arabic: 'الْوَالِي',
@@ -1626,7 +1626,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for leadership and governance',
       reference: 'Quran 13:11',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 79,
       arabic: 'الْمُتَعَالِي',
@@ -1636,7 +1636,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for exaltation',
       reference: 'Quran 13:9',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 80,
       arabic: 'الْبَرُّ',
@@ -1646,7 +1646,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for protection of children',
       reference: 'Quran 52:28',
       reciteCount: 7,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 81,
       arabic: 'التَّوَّابُ',
@@ -1656,7 +1656,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for acceptance of repentance',
       reference: 'Quran 2:37',
       reciteCount: 360,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 82,
       arabic: 'الْمُنْتَقِمُ',
@@ -1666,7 +1666,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for justice against oppressors',
       reference: 'Quran 32:22',
       reciteCount: 100,
-      color: colors.error),
+      color: QibraColors.light.error),
   _AsmaName(
       number: 83,
       arabic: 'الْعَفُوُّ',
@@ -1676,7 +1676,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite in Laylat al-Qadr for full pardon',
       reference: 'Quran 4:99',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 84,
       arabic: 'الرَّؤُوفُ',
@@ -1686,7 +1686,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for compassion and kindness',
       reference: 'Quran 2:143',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 85,
       arabic: 'مَالِكُ الْمُلْكِ',
@@ -1696,7 +1696,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for stability and permanence',
       reference: 'Quran 3:26',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 86,
       arabic: 'ذُو الْجَلَالِ وَالإكرام',
@@ -1706,7 +1706,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for greatness and bounty',
       reference: 'Quran 55:27',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 87,
       arabic: 'الْمُقْسِطُ',
@@ -1716,7 +1716,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to eliminate anger',
       reference: 'Quran 7:29',
       reciteCount: 209,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 88,
       arabic: 'الْجَامِعُ',
@@ -1726,7 +1726,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for unity and gathering',
       reference: 'Quran 3:9',
       reciteCount: 114,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 89,
       arabic: 'الْغَنِيُّ',
@@ -1736,7 +1736,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for wealth and contentment',
       reference: 'Quran 3:97',
       reciteCount: 1000,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 90,
       arabic: 'الْمُغْنِي',
@@ -1746,7 +1746,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for financial ease',
       reference: 'Quran 9:28',
       reciteCount: 10,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 91,
       arabic: 'الْمَانِعُ',
@@ -1756,7 +1756,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for protection from harm',
       reference: 'Hadith',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 92,
       arabic: 'الضَّارُّ',
@@ -1766,7 +1766,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite to avoid harm',
       reference: 'Hadith',
       reciteCount: 100,
-      color: colors.error),
+      color: QibraColors.light.error),
   _AsmaName(
       number: 93,
       arabic: 'النَّافِعُ',
@@ -1776,7 +1776,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for benefit in all matters',
       reference: 'Hadith',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 94,
       arabic: 'النُّورُ',
@@ -1786,7 +1786,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for enlightenment of heart',
       reference: 'Quran 24:35 — Ayat an-Nur',
       reciteCount: 100,
-      color: colors.accent),
+      color: QibraColors.light.accent),
   _AsmaName(
       number: 95,
       arabic: 'الْهَادِي',
@@ -1796,7 +1796,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for guidance in confusion',
       reference: 'Quran 22:54',
       reciteCount: 1100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 96,
       arabic: 'الْبَدِيعُ',
@@ -1806,7 +1806,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for creativity',
       reference: 'Quran 2:117',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 97,
       arabic: 'الْبَاقِي',
@@ -1816,7 +1816,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for permanence in faith',
       reference: 'Quran 55:27',
       reciteCount: 100,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
   _AsmaName(
       number: 98,
       arabic: 'الْوَارِثُ',
@@ -1826,7 +1826,7 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for children and family protection',
       reference: 'Quran 15:23',
       reciteCount: 100,
-      color: colors.primary),
+      color: QibraColors.light.primary),
   _AsmaName(
       number: 99,
       arabic: 'الرَّشِيدُ',
@@ -1836,5 +1836,5 @@ const List<_AsmaName> _allNames = [
       benefit: 'Recite for right guidance in all affairs',
       reference: 'Hadith',
       reciteCount: 1000,
-      color: colors.primarySoft),
+      color: QibraColors.light.primarySoft),
 ];

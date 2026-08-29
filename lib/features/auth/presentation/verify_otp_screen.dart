@@ -237,6 +237,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ── VERIFY OTP HANDLER ───────────────────────────────
   // Phase 1 Security: OTP is backend-gated. When isBackendEnabled==false, OTP is not available; guide to Guest.
   Future<void> _handleVerify() async {
+    final colors = QibraColors.of(context);
     // Validate OTP length
     if (_currentOtp.length != 6) {
       HapticFeedback.heavyImpact();
@@ -336,6 +337,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
 
   // ── RESEND OTP HANDLER ───────────────────────────────
   Future<void> _handleResend() async {
+    final colors = QibraColors.of(context);
     if (!_canResend) return;
 
     HapticFeedback.mediumImpact();

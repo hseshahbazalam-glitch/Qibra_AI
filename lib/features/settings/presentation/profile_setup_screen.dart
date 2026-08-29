@@ -1133,6 +1133,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     required String placeholder,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(

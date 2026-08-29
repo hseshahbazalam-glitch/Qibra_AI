@@ -1214,13 +1214,15 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   // ─── Helpers ────────────────────────────────────────────────
-  Color _statusColor(String status) => switch (status) {
+  Color _statusColor(String status) {
     final colors = QibraColors.of(context);
-        'halal' || 'likelyHalal' => colors.primary,
-        'haram' => colors.error,
-        'doubtful' => colors.accent,
-        _ => const Color(0xFF6B7280),
-      };
+    return switch (status) {
+      'halal' || 'likelyHalal' => colors.primary,
+      'haram' => colors.error,
+      'doubtful' => colors.accent,
+      _ => const Color(0xFF6B7280),
+    };
+  }
 
   String _statusEmoji(String status) => switch (status) {
         'halal' || 'likelyHalal' => '✅',

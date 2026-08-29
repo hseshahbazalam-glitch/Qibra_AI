@@ -402,6 +402,7 @@ class _RamadanTimerScreenState extends State<RamadanTimerScreen> {
     required Color bgColor,
     required bool isActive,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

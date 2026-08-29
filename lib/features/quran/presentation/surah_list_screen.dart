@@ -138,7 +138,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   Color _revelationColor(SurahInfoModel surah) {
     if (surah.isMeccan) return const Color(0xFF123F36);
     if (surah.isMedinan) return const Color(0xFF2F6B5D);
-    return colors.primary;
+    return QibraColors.light.primary;
   }
 
   String _revelationLabel(SurahInfoModel surah) {
@@ -183,6 +183,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   }
 
   Widget _buildGradientBackground({required Widget child}) {
+    final colors = QibraColors.of(context);
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -606,6 +607,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
     required int total,
     required int filtered,
   }) {
+    final colors = QibraColors.of(context);
     final isFiltering =
         _searchQuery.isNotEmpty || _selectedFilter != SurahFilterType.all;
 
@@ -1242,7 +1244,7 @@ class _SurahListLoadingState extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: colors.cardMuted.withValues(alpha: 0.88),
+        color: QibraColors.light.cardMuted.withValues(alpha: 0.88),
         borderRadius: BorderRadius.circular(radius),
       ),
     );

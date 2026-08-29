@@ -15,23 +15,23 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   List<_IslamicHabit> _habits = [];
   static const String _storageKey = 'islamic_habits';
 
-  final List<_HabitTemplate> _templates = const [
-    _HabitTemplate('Fajr on Time', '🌅', colors.accent),
-    _HabitTemplate('Read Quran', '📖', colors.primary),
-    _HabitTemplate('Morning Adhkar', '🌤️', colors.accent),
-    _HabitTemplate('Evening Adhkar', '🌙', colors.accent),
-    _HabitTemplate('Tahajjud', '🕌', colors.primarySoft),
-    _HabitTemplate('Give Sadaqah', '💚', colors.primarySoft),
-    _HabitTemplate('Fast Monday', '🗓️', colors.accent),
-    _HabitTemplate('Fast Thursday', '🗓️', colors.accent),
-    _HabitTemplate('Surah Mulk', '📜', colors.primarySoft),
-    _HabitTemplate('Surah Kahf (Fri)', '📜', colors.primarySoft),
-    _HabitTemplate('Durood 100x', '💛', colors.accent),
-    _HabitTemplate('Istighfar 100x', '🤲', colors.primarySoft),
-    _HabitTemplate('No Backbiting', '🤐', colors.error),
+  final List<_HabitTemplate> _templates = [
+    _HabitTemplate('Fajr on Time', '🌅', QibraColors.light.accent),
+    _HabitTemplate('Read Quran', '📖', QibraColors.light.primary),
+    _HabitTemplate('Morning Adhkar', '🌤️', QibraColors.light.accent),
+    _HabitTemplate('Evening Adhkar', '🌙', QibraColors.light.accent),
+    _HabitTemplate('Tahajjud', '🕌', QibraColors.light.primarySoft),
+    _HabitTemplate('Give Sadaqah', '💚', QibraColors.light.primarySoft),
+    _HabitTemplate('Fast Monday', '🗓️', QibraColors.light.accent),
+    _HabitTemplate('Fast Thursday', '🗓️', QibraColors.light.accent),
+    _HabitTemplate('Surah Mulk', '📜', QibraColors.light.primarySoft),
+    _HabitTemplate('Surah Kahf (Fri)', '📜', QibraColors.light.primarySoft),
+    _HabitTemplate('Durood 100x', '💛', QibraColors.light.accent),
+    _HabitTemplate('Istighfar 100x', '🤲', QibraColors.light.primarySoft),
+    _HabitTemplate('No Backbiting', '🤐', QibraColors.light.error),
     _HabitTemplate('Lower Gaze', '👁️', Color(0xFF6B7280)),
-    _HabitTemplate('Help Someone', '🤝', colors.primary),
-    _HabitTemplate('Learn 1 Hadith', '📚', colors.primarySoft),
+    _HabitTemplate('Help Someone', '🤝', QibraColors.light.primary),
+    _HabitTemplate('Learn 1 Hadith', '📚', QibraColors.light.primarySoft),
   ];
 
   @override

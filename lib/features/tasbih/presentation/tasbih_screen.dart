@@ -1442,6 +1442,7 @@ class _StatisticsScreen extends ConsumerWidget {
     required String value,
     required Color color,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(

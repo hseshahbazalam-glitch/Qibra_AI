@@ -562,7 +562,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   Widget _buildCategoryCard(DuaCategoryModel category) {
     final colors = QibraColors.of(context);
     // Parse hex color
-    const cardColor = colors.primary;
+    final cardColor = colors.primary;
 
     return GestureDetector(
       onTap: () {
@@ -670,7 +670,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   Widget _buildDuaListTile(DuaModel dua) {
     final colors = QibraColors.of(context);
     // Category color
-    const tileColor = colors.primary;
+    final tileColor = colors.primary;
 
     return GestureDetector(
       onTap: () {

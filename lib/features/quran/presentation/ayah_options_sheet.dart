@@ -551,6 +551,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
 
   // ✅ ADD NOTE (Real - opens dialog)
   Future<void> _addNote() async {
+    final colors = QibraColors.of(context);
     Navigator.pop(context);
     final noteKey = 'note_${widget.surahNumber}_${widget.ayahNumber}';
     final prefs = await SharedPreferences.getInstance();

@@ -35,6 +35,7 @@ enum _PasswordStrength {
   strong;
 
   Color get color {
+    final colors = QibraColors.light;
     switch (this) {
       case _PasswordStrength.none:
         return colors.border;
@@ -284,6 +285,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
   // ── REGISTER HANDLER ─────────────────────────────────
   Future<void> _handleRegister() async {
+    final colors = QibraColors.of(context);
     if (!_formKey.currentState!.validate()) {
       HapticFeedback.heavyImpact();
       return;

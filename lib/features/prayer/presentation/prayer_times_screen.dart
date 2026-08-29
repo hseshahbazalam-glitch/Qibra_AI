@@ -240,7 +240,6 @@ class PrayerTimesScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 

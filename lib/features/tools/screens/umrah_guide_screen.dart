@@ -12,12 +12,12 @@ class UmrahGuideScreen extends StatefulWidget {
 class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   int _expandedIndex = -1;
 
-  final List<_UmrahStep> _steps = const [
+  final List<_UmrahStep> _steps = [
     _UmrahStep(
       number: 1,
       title: 'Enter Ihram',
       emoji: '🧕',
-      color: colors.primarySoft,
+      color: QibraColors.light.primarySoft,
       description:
           'Before reaching Meeqat, take a bath (ghusl), put on Ihram garments. Men wear two white unstitched cloths. Women wear regular modest clothing.',
       details: [
@@ -36,7 +36,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 2,
       title: 'Recite Talbiyah',
       emoji: '🗣️',
-      color: colors.accent,
+      color: QibraColors.light.accent,
       description:
           'Continuously recite the Talbiyah from the moment you enter Ihram until you begin Tawaf.',
       details: [
@@ -56,7 +56,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 3,
       title: 'Tawaf (7 Rounds)',
       emoji: '🕋',
-      color: colors.primary,
+      color: QibraColors.light.primary,
       description:
           'Perform 7 rounds (circuits) around the Ka\'bah in anti-clockwise direction, starting from Hajar al-Aswad (Black Stone).',
       details: [
@@ -81,7 +81,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 4,
       title: 'Sa\'i (Safa & Marwah)',
       emoji: '🚶',
-      color: colors.primarySoft,
+      color: QibraColors.light.primarySoft,
       description:
           'Walk between the hills of Safa and Marwah 7 times. Start at Safa and end at Marwah.',
       details: [
@@ -102,7 +102,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 5,
       title: 'Halq or Taqsir',
       emoji: '✂️',
-      color: colors.accent,
+      color: QibraColors.light.accent,
       description:
           'After completing Sa\'i, shave the head (Halq) or trim the hair (Taqsir) to exit the state of Ihram.',
       details: [

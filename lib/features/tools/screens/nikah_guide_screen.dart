@@ -12,12 +12,12 @@ class NikahGuideScreen extends StatefulWidget {
 class _NikahGuideScreenState extends State<NikahGuideScreen> {
   int _expandedIndex = -1;
 
-  final List<_NikahSection> _sections = const [
+  final List<_NikahSection> _sections = [
     _NikahSection(
       title: 'Before Nikah',
       subtitle: 'Preparation & Selection',
       emoji: '💚',
-      color: colors.primary,
+      color: QibraColors.light.primary,
       items: [
         _NikahItem(
           'Istikhara Prayer',
@@ -53,7 +53,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       title: 'Nikah Ceremony',
       subtitle: 'The Marriage Contract',
       emoji: '💍',
-      color: colors.accent,
+      color: QibraColors.light.accent,
       items: [
         _NikahItem(
           'Essential Conditions',
@@ -96,7 +96,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       title: 'After Nikah',
       subtitle: 'Rights & Responsibilities',
       emoji: '🏡',
-      color: colors.primarySoft,
+      color: QibraColors.light.primarySoft,
       items: [
         _NikahItem(
           'Walimah (Wedding Feast)',
@@ -132,7 +132,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       title: 'Islamic Etiquettes',
       subtitle: 'Sunnah Practices',
       emoji: '📿',
-      color: colors.primarySoft,
+      color: QibraColors.light.primarySoft,
       items: [
         _NikahItem(
           'Wedding Night Dua',
@@ -166,11 +166,11 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
     ),
   ];
 
-  final List<_QuickFact> _quickFacts = const [
-    _QuickFact('Wali', 'Guardian required', '👨', colors.primary),
-    _QuickFact('Mahr', 'Bride\'s right', '💎', colors.accent),
-    _QuickFact('Witnesses', '2 males needed', '👥', colors.primarySoft),
-    _QuickFact('Consent', 'Both must agree', '✅', colors.primarySoft),
+  final List<_QuickFact> _quickFacts = [
+    _QuickFact('Wali', 'Guardian required', '👨', QibraColors.light.primary),
+    _QuickFact('Mahr', 'Bride\'s right', '💎', QibraColors.light.accent),
+    _QuickFact('Witnesses', '2 males needed', '👥', QibraColors.light.primarySoft),
+    _QuickFact('Consent', 'Both must agree', '✅', QibraColors.light.primarySoft),
   ];
 
   @override

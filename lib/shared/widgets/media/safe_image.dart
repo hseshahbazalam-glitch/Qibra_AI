@@ -421,7 +421,7 @@ class _QuranVectorPainter extends CustomPainter {
 
   void _drawCornerOrnament(
       Canvas canvas, Offset anchor, double dirX, double dirY) {
-    final colors = QibraColors.of(context);
+    final colors = QibraColors.light;
     final p = Paint()
       ..color = colors.primary.withValues(alpha: 0.85)
       ..strokeWidth = 1.5

@@ -12,12 +12,12 @@ class HajjGuideScreen extends StatefulWidget {
 class _HajjGuideScreenState extends State<HajjGuideScreen> {
   int _expandedIndex = -1;
 
-  final List<_HajjDay> _hajjDays = const [
+  final List<_HajjDay> _hajjDays = [
     _HajjDay(
       day: '8th Dhul Hijjah',
       title: 'Yawm al-Tarwiyah',
       emoji: '🕋',
-      color: colors.accent,
+      color: QibraColors.light.accent,
       steps: [
         _HajjStep(
           'Enter Ihram',
@@ -46,7 +46,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '9th Dhul Hijjah',
       title: 'Yawm al-Arafah',
       emoji: '⛰️',
-      color: colors.primary,
+      color: QibraColors.light.primary,
       steps: [
         _HajjStep(
           'Go to Arafah',
@@ -75,7 +75,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '10th Dhul Hijjah',
       title: 'Yawm al-Nahr (Eid)',
       emoji: '🐑',
-      color: colors.error,
+      color: QibraColors.light.error,
       steps: [
         _HajjStep(
           'Rami al-Jamarat',
@@ -118,7 +118,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '11th-13th Dhul Hijjah',
       title: 'Ayyam al-Tashreeq',
       emoji: '🏕️',
-      color: colors.accent,
+      color: QibraColors.light.accent,
       steps: [
         _HajjStep(
           'Stay in Mina',
