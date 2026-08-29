@@ -160,9 +160,7 @@ class LocationNotifier extends StateNotifier<LocationState> {
         timeLimit: const Duration(seconds: 20),
       );
 
-      debugPrint(
-        '[LOCATION] Position: ${position.latitude}, ${position.longitude}',
-      );
+      debugPrint('[LOCATION] Position acquired');
 
       final resolved = LocationResolver.fromCoordinates(
         position.latitude,

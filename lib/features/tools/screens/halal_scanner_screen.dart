@@ -340,7 +340,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         labelColor: colors.primary,
-        unselectedLabelColor: Colors.white.withValues(alpha: 0.35),
+        unselectedLabelColor: colors.textPrimary.withValues(alpha: 0.35),
         labelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
         unselectedLabelStyle:
             const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
@@ -850,7 +850,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                                   : Icons.flash_off_rounded,
                               color: _torchOn
                                   ? colors.accent
-                                  : Colors.white,
+                                  : colors.textPrimary,
                               size: 16),
                           const SizedBox(width: 6),
                           Text('Point at barcode',

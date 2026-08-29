@@ -237,8 +237,7 @@ class ReadingProgressRepository {
     try {
       final prefs = await _p;
       await prefs.setString(_keyLastRead, jsonEncode(lastRead.toJson()));
-      debugPrint(
-          '[READING_PROGRESS] 💾 LastRead: ${lastRead.surahName} ${lastRead.ayahNumber}');
+      debugPrint('[READING_PROGRESS] LastRead saved');
     } catch (e) {
       debugPrint('[READING_PROGRESS] ❌ LastRead save error: $e');
     }

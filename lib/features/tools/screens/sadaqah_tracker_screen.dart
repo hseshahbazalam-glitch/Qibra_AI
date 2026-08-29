@@ -605,15 +605,15 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                           decoration: BoxDecoration(
                             color: sel
                                 ? colors.primarySoft
-                                : Colors.white.withValues(alpha: 0.05),
+                                : colors.textPrimary.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             c,
                             style: TextStyle(
                               color: sel
-                                  ? Colors.white
-                                  : Colors.white.withValues(alpha: 0.4),
+                                  ? colors.textPrimary
+                                  : colors.textPrimary.withValues(alpha: 0.4),
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -679,12 +679,12 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                         decoration: BoxDecoration(
                           color: sel
                               ? cat.color.withValues(alpha: 0.2)
-                              : Colors.white.withValues(alpha: 0.05),
+                              : colors.textPrimary.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: sel
                                 ? cat.color
-                                : Colors.white.withValues(alpha: 0.08),
+                                : colors.textPrimary.withValues(alpha: 0.08),
                           ),
                         ),
                         child: Row(
@@ -693,7 +693,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                             Icon(cat.icon,
                                 color: sel
                                     ? cat.color
-                                    : Colors.white.withValues(alpha: 0.4),
+                                    : colors.textPrimary.withValues(alpha: 0.4),
                                 size: 14),
                             const SizedBox(width: 6),
                             Text(
@@ -701,7 +701,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                               style: TextStyle(
                                 color: sel
                                     ? cat.color
-                                    : Colors.white.withValues(alpha: 0.4),
+                                    : colors.textPrimary.withValues(alpha: 0.4),
                                 fontSize: 12,
                                 fontWeight:
                                     sel ? FontWeight.w700 : FontWeight.w500,
@@ -726,7 +726,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                       fontSize: 13,
                     ),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.05),
+                    fillColor: colors.textPrimary.withValues(alpha: 0.05),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,

@@ -49,8 +49,8 @@ class _PrayerStatisticsScreenState
               elevation: 0,
               leading: IconButton(
                 icon: Container(
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: colors.surface,
                     shape: BoxShape.circle,
@@ -358,6 +358,7 @@ class _PrayerStatisticsScreenState
     required String value,
     required Color color,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(

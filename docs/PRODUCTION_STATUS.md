@@ -95,8 +95,8 @@ MISSING, BROKEN / LIKELY BROKEN, EXTRA, NOT RUN, UNKNOWN.
 | Item | Status | Evidence |
 | --- | --- | --- |
 | Ivory / forest / gold | PRESENT & WIRED | `QibraColors`; gold fill `#C6A15B`, gold text `#6B542B` |
-| Tools leftover `Colors.orange` | PRESENT & WIRED | `rg Colors.orange lib/features/tools` = 0 after `78f1ee2` |
-| 48dp icon taps | PRESENT & WIRED | `AppA11y.minTapTarget`; remaining 36/40/44 lifts in `78f1ee2` |
+| Tools leftover `Colors.orange` / `Colors.white` overlays | PRESENT & WIRED | tools `Colors.orange` = 0; tools `Colors.white` = 0 this pass |
+| 48dp icon taps | PRESENT & WIRED | More IconButton/InkWell 40/38 lifts; decorative 36/40 left |
 | Search chips | PRESENT & WIRED | Forest/sage/goldText (prior) |
 
 ---
@@ -117,10 +117,13 @@ CORS: not added this pass (would be EXTRA without a live web client).
 
 ## I. What this pass implemented (bounded)
 
-1. Settings Privacy / Terms → copy-URL dialog (`AppInfo` URLs). Honest: no in-app browser.
-2. Settings “Delete local account data” → existing `deleteAccount()`; copy states cloud delete is off.
-3. About blurb: companion + not a fatwa / not a scholar.
-4. Feature flags aligned with reality: social auth, analytics/crash/perf, Quran audio **false**.
+1. Tools leftover `Colors.white` overlays → `QibraColors` text tokens (no math changes).
+2. More 48dp icon taps (salah/tahajjud/stats/calendar back, ayah fav/close, asma/name-finder back, qibla copy).
+3. Settings stub snackbar: “not available in this build”.
+4. JWT: `.env.example` only; fallback is explicitly non-prod; tests set `JWT_SECRET`.
+5. Rate-limit store reset between tests (production 60/60 unchanged).
+6. Removed unused `PrayerDashboardSection` / `NightWorshipCard` (zero call sites).
+7. Redacted GPS coords, LastRead surah, speech/TTS error text from `debugPrint`.
 
 **Not done (blocked or override):** drop Hadith tab, enable gen-l10n, unlock landscape, rewrite prayer/qibla/RAG/billing/zakat formulas, claim production-ready, run Flutter.
 
@@ -133,9 +136,8 @@ CORS: not added this pass (would be EXTRA without a live web client).
 Blockers:
 
 1. Flutter analyze + test **NOT RUN**.
-2. Backend pytest **not** a clean 130 (44 fail, mostly 429 isolation).
-3. Store listings, live privacy/terms, billing **UNKNOWN / MISSING**.
-4. Recitation not bundled; tafsir license **MISSING**.
-5. Backend disabled in the app (`isBackendEnabled = false`).
+2. Store listings, live privacy/terms, billing **UNKNOWN / MISSING**.
+3. Recitation not bundled; tafsir license **MISSING**.
+4. Backend disabled in the app (`isBackendEnabled = false`).
 
 Until (1) runs green on a Flutter machine, any “ready” claim is false.

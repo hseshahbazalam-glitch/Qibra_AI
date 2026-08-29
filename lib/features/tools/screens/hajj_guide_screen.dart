@@ -384,7 +384,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
           border: Border.all(
               color: isExpanded
                   ? day.color.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.05)),
+                  : colors.textPrimary.withValues(alpha: 0.05)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,12 +536,12 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                     decoration: BoxDecoration(
                       color: item.isDone
                           ? colors.primary
-                          : Colors.white.withValues(alpha: 0.05),
+                          : colors.textPrimary.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                           color: item.isDone
                               ? colors.primary
-                              : Colors.white.withValues(alpha: 0.15)),
+                              : colors.textPrimary.withValues(alpha: 0.15)),
                     ),
                     child: item.isDone
                         ? Icon(Icons.check_rounded,
@@ -553,13 +553,13 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                     item.label,
                     style: TextStyle(
                       color: item.isDone
-                          ? Colors.white.withValues(alpha: 0.4)
-                          : Colors.white,
+                          ? colors.textPrimary.withValues(alpha: 0.4)
+                          : colors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       decoration:
                           item.isDone ? TextDecoration.lineThrough : null,
-                      decorationColor: Colors.white.withValues(alpha: 0.3),
+                      decorationColor: colors.textPrimary.withValues(alpha: 0.3),
                     ),
                   ),
                 ],

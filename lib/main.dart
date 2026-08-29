@@ -73,7 +73,6 @@ void main() async {
     final quranRepo = QuranRepository();
     await quranRepo.initialize();
     debugPrint('✅ Quran data loaded successfully!');
-    debugPrint('   📊 Stats: ${quranRepo.statistics}');
   } catch (e) {
     debugPrint('⚠️ Quran data loading failed: $e');
   }

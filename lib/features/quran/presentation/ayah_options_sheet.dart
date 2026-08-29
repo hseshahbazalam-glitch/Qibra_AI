@@ -194,8 +194,8 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                       : 'Removed from favorites');
                 },
                 child: Container(
-                  width: 38,
-                  height: 38,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: _isFavorite
                         ? colors.accent.withValues(alpha: 0.2)
@@ -220,8 +220,8 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                   Navigator.pop(context);
                 },
                 child: Container(
-                  width: 38,
-                  height: 38,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: colors.textPrimary.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
@@ -320,6 +320,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     required VoidCallback onTap,
     bool isActive = false,
   }) {
+    final colors = QibraColors.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -435,6 +436,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();

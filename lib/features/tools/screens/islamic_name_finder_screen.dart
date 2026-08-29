@@ -193,14 +193,18 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
         children: [
           GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colors.textPrimary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colors.textPrimary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.arrow_back_rounded,
+                    color: colors.textPrimary, size: 20),
               ),
-              child: Icon(Icons.arrow_back_rounded,
-                  color: colors.textPrimary, size: 20),
             ),
           ),
           const SizedBox(width: 14),
@@ -278,7 +282,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                 : colors.card,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: selected ? color : Colors.white.withValues(alpha: 0.05),
+              color: selected ? color : colors.textPrimary.withValues(alpha: 0.05),
               width: selected ? 1.5 : 1,
             ),
           ),
@@ -290,7 +294,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
               Text(label,
                   style: TextStyle(
                     color:
-                        selected ? color : Colors.white.withValues(alpha: 0.4),
+                        selected ? color : colors.textPrimary.withValues(alpha: 0.4),
                     fontSize: 12,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   )),
@@ -369,7 +373,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
           labelColor: colors.primary,
-          unselectedLabelColor: Colors.white.withValues(alpha: 0.35),
+          unselectedLabelColor: colors.textPrimary.withValues(alpha: 0.35),
           labelStyle:
               const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
           tabs: const [
@@ -463,13 +467,13 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                         ? colors.primary.withValues(alpha: 0.2)
                         : count > 0
                             ? colors.card
-                            : Colors.white.withValues(alpha: 0.02),
+                            : colors.textPrimary.withValues(alpha: 0.02),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: selected
                           ? colors.primary
                           : count > 0
-                              ? Colors.white.withValues(alpha: 0.08)
+                              ? colors.textPrimary.withValues(alpha: 0.08)
                               : Colors.transparent,
                     ),
                   ),
@@ -481,8 +485,8 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                             color: selected
                                 ? colors.primary
                                 : count > 0
-                                    ? Colors.white
-                                    : Colors.white.withValues(alpha: 0.15),
+                                    ? colors.textPrimary
+                                    : colors.textPrimary.withValues(alpha: 0.15),
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                           )),
@@ -491,7 +495,7 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
                             style: TextStyle(
                               color: selected
                                   ? colors.primary
-                                  : Colors.white.withValues(alpha: 0.3),
+                                  : colors.textPrimary.withValues(alpha: 0.3),
                               fontSize: 7,
                             )),
                     ],
@@ -840,21 +844,28 @@ class _IslamicNameFinderScreenState extends State<IslamicNameFinderScreen>
             children: [
               GestureDetector(
                 onTap: () => _toggleFavorite(index),
-                child: Icon(
-                  isFav
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  color: isFav
-                      ? colors.error
-                      : Colors.white.withValues(alpha: 0.15),
-                  size: 20,
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Icon(
+                    isFav
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    color: isFav
+                        ? colors.error
+                        : colors.textPrimary.withValues(alpha: 0.15),
+                    size: 20,
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
               GestureDetector(
                 onTap: () => _copyName(name),
-                child: Icon(Icons.copy_rounded,
-                    color: colors.textPrimary.withValues(alpha: 0.15), size: 16),
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Icon(Icons.copy_rounded,
+                      color: colors.textPrimary.withValues(alpha: 0.15), size: 16),
+                ),
               ),
             ],
           ),

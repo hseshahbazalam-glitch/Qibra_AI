@@ -371,6 +371,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     required VoidCallback onTap,
     bool highlight = false,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(

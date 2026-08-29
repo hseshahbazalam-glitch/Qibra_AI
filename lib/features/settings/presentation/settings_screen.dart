@@ -951,7 +951,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              '$feature coming soon',
+              '$feature is not available in this build',
               style: TextStyle(color: colors.onPrimary),
             ),
           ],

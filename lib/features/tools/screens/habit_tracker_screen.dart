@@ -364,7 +364,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 style: TextStyle(
                   color: isToday
                       ? colors.primarySoft
-                      : Colors.white.withValues(alpha: 0.3),
+                      : colors.textPrimary.withValues(alpha: 0.3),
                   fontSize: 10,
                   fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                 ),
@@ -380,7 +380,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           ? colors.primarySoft.withValues(alpha: 0.2)
                           : isToday
                               ? colors.primarySoft.withValues(alpha: 0.1)
-                              : Colors.white.withValues(alpha: 0.03),
+                              : colors.textPrimary.withValues(alpha: 0.03),
                   shape: BoxShape.circle,
                   border: isToday
                       ? Border.all(color: colors.primarySoft, width: 1.5)
@@ -395,7 +395,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           style: TextStyle(
                             color: isToday
                                 ? colors.primarySoft
-                                : Colors.white.withValues(alpha: 0.4),
+                                : colors.textPrimary.withValues(alpha: 0.4),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -505,7 +505,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             border: Border.all(
               color: todayDone
                   ? color.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.05),
+                  : colors.textPrimary.withValues(alpha: 0.05),
             ),
           ),
           child: Row(
@@ -541,7 +541,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                     Text(
                       habit.name,
                       style: TextStyle(
-                        color: todayDone ? color : Colors.white,
+                        color: todayDone ? color : colors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         decoration:
@@ -673,12 +673,12 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: alreadyAdded
-                            ? Colors.white.withValues(alpha: 0.02)
+                            ? colors.textPrimary.withValues(alpha: 0.02)
                             : t.color.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: alreadyAdded
-                              ? Colors.white.withValues(alpha: 0.03)
+                              ? colors.textPrimary.withValues(alpha: 0.03)
                               : t.color.withValues(alpha: 0.15),
                         ),
                       ),
@@ -691,8 +691,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                               t.name,
                               style: TextStyle(
                                 color: alreadyAdded
-                                    ? Colors.white.withValues(alpha: 0.25)
-                                    : Colors.white,
+                                    ? colors.textPrimary.withValues(alpha: 0.25)
+                                    : colors.textPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),

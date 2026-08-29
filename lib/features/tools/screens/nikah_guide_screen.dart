@@ -393,7 +393,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
           border: Border.all(
             color: isExpanded
                 ? section.color.withValues(alpha: 0.3)
-                : Colors.white.withValues(alpha: 0.05),
+                : colors.textPrimary.withValues(alpha: 0.05),
           ),
         ),
         child: Column(

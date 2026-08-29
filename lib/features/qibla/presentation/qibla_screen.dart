@@ -1183,16 +1183,20 @@ Shared via Qibra AI 🌙''';
                 ),
               );
             },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2F6B5D).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.copy_rounded,
-                color: Color(0xFF2F6B5D),
-                size: 16,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2F6B5D).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.copy_rounded,
+                  color: Color(0xFF2F6B5D),
+                  size: 16,
+                ),
               ),
             ),
           ),

@@ -137,14 +137,18 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
         children: [
           GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colors.textPrimary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colors.textPrimary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.arrow_back_rounded,
+                    color: colors.textPrimary, size: 20),
               ),
-              child: Icon(Icons.arrow_back_rounded,
-                  color: colors.textPrimary, size: 20),
             ),
           ),
           const SizedBox(width: 14),
@@ -261,7 +265,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
           labelColor: colors.primarySoft,
-          unselectedLabelColor: Colors.white.withValues(alpha: 0.35),
+          unselectedLabelColor: colors.textPrimary.withValues(alpha: 0.35),
           labelStyle:
               const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
           tabs: const [
@@ -316,7 +320,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
               border: Border.all(
                 color: isSelected
                     ? name.color.withValues(alpha: 0.4)
-                    : Colors.white.withValues(alpha: 0.05),
+                    : colors.textPrimary.withValues(alpha: 0.05),
                 width: isSelected ? 1.5 : 1,
               ),
               boxShadow: isSelected

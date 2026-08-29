@@ -87,8 +87,8 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
             elevation: 0,
             leading: IconButton(
               icon: Container(
-                width: 40,
-                height: 40,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: colors.surface,
                   shape: BoxShape.circle,
@@ -904,6 +904,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
     String? subtitle,
     VoidCallback? onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
