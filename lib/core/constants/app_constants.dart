@@ -898,8 +898,8 @@ abstract final class AppFeatureFlags {
   /// Is offline Quran download enabled?
   static const bool quranOfflineEnabled = true;
 
-  /// Is Quran audio enabled?
-  static const bool quranAudioEnabled = true;
+  /// Recitation audio is not bundled in this checkout.
+  static const bool quranAudioEnabled = false;
 
   /// Is AI Fatwa feature enabled?
   static const bool aiFatwaEnabled = false; // Coming soon
@@ -917,14 +917,12 @@ abstract final class AppFeatureFlags {
 
   // --- Auth Features ---
 
-  /// Is Google Sign-In enabled?
-  static const bool googleAuthEnabled = true;
+  /// Live social auth is off while AppApi.isBackendEnabled is false.
+  static const bool googleAuthEnabled = false;
 
-  /// Is Apple Sign-In enabled?
-  static const bool appleAuthEnabled = true;
+  static const bool appleAuthEnabled = false;
 
-  /// Is phone/OTP auth enabled?
-  static const bool phoneAuthEnabled = true;
+  static const bool phoneAuthEnabled = false;
 
   // --- Developer Options ---
 
@@ -932,14 +930,12 @@ abstract final class AppFeatureFlags {
   /// MUST be false in production!
   static const bool showDebugInfo = false;
 
-  /// Enable analytics?
-  static const bool analyticsEnabled = true;
+  /// Observability consent default is OFF. No Firebase/Sentry/Mixpanel wired.
+  static const bool analyticsEnabled = false;
 
-  /// Enable crash reporting?
-  static const bool crashReportingEnabled = true;
+  static const bool crashReportingEnabled = false;
 
-  /// Enable performance monitoring?
-  static const bool performanceMonitoringEnabled = true;
+  static const bool performanceMonitoringEnabled = false;
 }
 
 // ============================================================

@@ -170,13 +170,30 @@ class SettingsScreen extends ConsumerWidget {
                       icon: Icons.privacy_tip_outlined,
                       iconColor: const Color(0xFF6B7280),
                       title: 'Privacy Policy',
-                      onTap: () => _showComingSoon(context, 'Privacy policy'),
+                      subtitle: 'Copy the published URL',
+                      onTap: () => _showLegalUrl(
+                        context,
+                        title: 'Privacy Policy',
+                        url: AppInfo.privacyPolicy,
+                      ),
                     ),
                     _SettingsTile(
                       icon: Icons.description_outlined,
                       iconColor: const Color(0xFF6B7280),
                       title: 'Terms of Service',
-                      onTap: () => _showComingSoon(context, 'Terms'),
+                      subtitle: 'Copy the published URL',
+                      onTap: () => _showLegalUrl(
+                        context,
+                        title: 'Terms of Service',
+                        url: AppInfo.termsOfService,
+                      ),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.delete_forever_rounded,
+                      iconColor: colors.error,
+                      title: 'Delete local account data',
+                      subtitle: 'Clears tokens on this device. Cloud delete needs backend.',
+                      onTap: () => _showDeleteLocalDataDialog(context, ref),
                     ),
                   ]),
 
@@ -453,7 +470,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'QIBRA AI is an Islamic Super App designed to help Muslims with the Quran, Hadith, Prayer Times, Qibla, and AI-powered Islamic knowledge.',
+            'Qibra is a daily companion for Quran, Hadith, prayer times, and Qibla. On-device AI retrieval is not a fatwa and is not a scholar.',
             style: AppTextStyles.bodyMedium.copyWith(
               color: colors.textSecondary,
               height: 1.6,
@@ -801,6 +818,122 @@ class SettingsScreen extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+
+  void _showLegalUrl(
+    BuildContext context, {
+    required String title,
+    required String url,
+  }) {
+    final colors = QibraColors.of(context);
+    HapticFeedback.lightImpact();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.cardRadiusLarge,
+        ),
+        title: Text(
+          title,
+          style: AppTextStyles.titleMedium.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        content: Text(
+          'This build does not open a browser. Copy the URL and open it yourself. Live page status is unknown until verified.\n\n$url',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: colors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Close', style: TextStyle(color: colors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.primary,
+              foregroundColor: colors.onPrimary,
+            ),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: url));
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'URL copied',
+                      style: TextStyle(color: colors.onPrimary),
+                    ),
+                    backgroundColor: colors.primary,
+                  ),
+                );
+              }
+            },
+            child: const Text('Copy URL'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteLocalDataDialog(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.cardRadiusLarge,
+        ),
+        title: Text(
+          'Delete local account data?',
+          style: AppTextStyles.titleMedium.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        content: Text(
+          'This clears tokens on this device and returns you to guest. '
+          'Cloud account deletion is not available while the backend is disabled. '
+          'Quran and Hadith files on device are not deleted.',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: colors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.error,
+              foregroundColor: colors.onPrimary,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final ok = await ref.read(authProvider.notifier).deleteAccount();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    ok
+                        ? 'Local session cleared'
+                        : 'Could not clear local session',
+                    style: TextStyle(color: colors.onPrimary),
+                  ),
+                  backgroundColor: ok ? colors.primary : colors.error,
+                ),
+              );
+            },
+            child: const Text('Delete local data'),
+          ),
+        ],
+      ),
     );
   }
 
