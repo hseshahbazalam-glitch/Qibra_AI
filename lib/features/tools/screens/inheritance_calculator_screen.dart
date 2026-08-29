@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
@@ -172,6 +173,7 @@ class _InheritanceCalculatorScreenState
   // MAIN CALCULATION — AWL + RADD + HALF SIBLINGS FIXED
   // ═══════════════════════════════════════════════════════════
   List<_ShareResult> _calculateShares(double estate) {
+    final colors = QibraColors.of(context);
     Map<String, _ShareResult> sharesMap = {};
     Map<String, double> fractions = {};
 
@@ -792,24 +794,24 @@ class _InheritanceCalculatorScreenState
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.08),
+        color: colors.error.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
+        border: Border.all(color: colors.error.withValues(alpha: 0.4)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.warning_amber_rounded,
-              color: Colors.orange, size: 20),
+          Icon(Icons.warning_amber_rounded,
+              color: colors.error, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Important Notice',
                   style: TextStyle(
-                    color: Colors.orange,
+                    color: colors.error,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -821,7 +823,7 @@ class _InheritanceCalculatorScreenState
                   'variations. Please consult a qualified Islamic scholar '
                   'before making any actual distribution decisions.',
                   style: TextStyle(
-                    color: Colors.orange.withValues(alpha: 0.8),
+                    color: colors.error.withValues(alpha: 0.8),
                     fontSize: 11,
                     height: 1.5,
                   ),
@@ -845,7 +847,7 @@ class _InheritanceCalculatorScreenState
         border: Border.all(
             color: _understood
                 ? colors.primary.withValues(alpha: 0.4)
-                : Colors.orange.withValues(alpha: 0.3)),
+                : colors.goldText.withValues(alpha: 0.35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -874,8 +876,8 @@ class _InheritanceCalculatorScreenState
                         fontSize: 12,
                         fontWeight: FontWeight.w600),
                     dropdownColor: colors.card,
-                    icon: const Icon(Icons.arrow_drop_down_rounded,
-                        color: Colors.white54, size: 18),
+                    icon: Icon(Icons.arrow_drop_down_rounded,
+                        color: colors.textSecondary, size: 18),
                     items: const [
                       DropdownMenuItem(
                           value: 'Hanafi',
@@ -901,7 +903,7 @@ class _InheritanceCalculatorScreenState
             Text(
               'Note: This calculator implements Sunni/Hanafi reference logic. Other schools may differ for some cases (e.g., Radd, grandfather). Result is for educational reference.',
               style: TextStyle(
-                  color: Colors.orange.withValues(alpha: 0.7),
+                  color: colors.goldText,
                   fontSize: 10,
                   height: 1.3),
             ),
@@ -917,11 +919,11 @@ class _InheritanceCalculatorScreenState
                   value: _understood,
                   onChanged: (v) => setState(() => _understood = v ?? false),
                   activeColor: colors.primary,
-                  checkColor: Colors.white,
+                  checkColor: colors.onPrimary,
                   side: BorderSide(
                       color: _understood
                           ? colors.primary
-                          : Colors.orange.withValues(alpha: 0.5)),
+                          : colors.goldText.withValues(alpha: 0.5)),
                 ),
                 const SizedBox(width: 4),
                 Expanded(
@@ -931,8 +933,8 @@ class _InheritanceCalculatorScreenState
                       'I understand this is an educational estimate and I will consult a qualified Islamic scholar before distributing inheritance.',
                       style: TextStyle(
                           color: _understood
-                              ? Colors.white.withValues(alpha: 0.8)
-                              : Colors.white.withValues(alpha: 0.5),
+                              ? colors.textPrimary
+                              : colors.textSecondary,
                           fontSize: 11,
                           height: 1.4),
                     ),
@@ -954,6 +956,10 @@ class _InheritanceCalculatorScreenState
       pinned: true,
       backgroundColor: colors.background,
       leading: IconButton(
+        constraints: const BoxConstraints(
+          minWidth: AppA11y.minTapTarget,
+          minHeight: AppA11y.minTapTarget,
+        ),
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -1092,7 +1098,7 @@ class _InheritanceCalculatorScreenState
                 : colors.card,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-                color: selected ? color : Colors.white.withValues(alpha: 0.05)),
+                color: selected ? color : colors.border),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1103,7 +1109,7 @@ class _InheritanceCalculatorScreenState
                   style: TextStyle(
                       color: selected
                           ? color
-                          : Colors.white.withValues(alpha: 0.4),
+                          : colors.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
             ],
@@ -1133,8 +1139,8 @@ class _InheritanceCalculatorScreenState
               child: Text(c,
                   style: TextStyle(
                       color: sel
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.4),
+                          ? colors.onPrimary
+                          : colors.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
             ),
@@ -1496,8 +1502,8 @@ class _InheritanceCalculatorScreenState
               child: Text(label,
                   style: TextStyle(
                       color: value
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.5),
+                          ? colors.textPrimary
+                          : colors.textSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500))),
           GestureDetector(
@@ -1510,7 +1516,7 @@ class _InheritanceCalculatorScreenState
               width: 44,
               height: 26,
               decoration: BoxDecoration(
-                color: value ? color : Colors.white.withValues(alpha: 0.08),
+                color: value ? color : colors.border,
                 borderRadius: BorderRadius.circular(13),
               ),
               child: AnimatedAlign(
@@ -1543,8 +1549,8 @@ class _InheritanceCalculatorScreenState
               child: Text(label,
                   style: TextStyle(
                       color: value > 0
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.5),
+                          ? colors.textPrimary
+                          : colors.textSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500))),
           GestureDetector(
@@ -1570,7 +1576,7 @@ class _InheritanceCalculatorScreenState
             child: Text('$value',
                 style: TextStyle(
                     color:
-                        value > 0 ? color : Colors.white.withValues(alpha: 0.3),
+                        value > 0 ? color : colors.textTertiary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800)),
           ),
@@ -1634,16 +1640,16 @@ class _InheritanceCalculatorScreenState
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.calculate_rounded,
-                  color: enabled ? Colors.white : Colors.white54, size: 22),
+                  color: enabled ? colors.onPrimary : colors.textSecondary, size: 22),
               const SizedBox(width: 10),
               Text('Calculate Shares',
                   style: TextStyle(
-                      color: enabled ? Colors.white : Colors.white54,
+                      color: enabled ? colors.onPrimary : colors.textSecondary,
                       fontSize: 16,
                       fontWeight: FontWeight.w700)),
               if (!enabled) ...[
                 const SizedBox(width: 8),
-                const Icon(Icons.lock_rounded, color: Colors.white30, size: 16),
+                Icon(Icons.lock_rounded, color: colors.textTertiary, size: 16),
               ],
             ],
           ),
@@ -1679,7 +1685,7 @@ class _InheritanceCalculatorScreenState
                   letterSpacing: 2.0)),
           const SizedBox(height: 14),
           _summaryRow(
-              'Total Estate', _formatAmount(_totalEstate), Colors.white),
+              'Total Estate', _formatAmount(_totalEstate), colors.onPrimary),
           if (debt > 0)
             _summaryRow('Debts Deducted', '- ${_formatAmount(debt)}',
                 colors.error),

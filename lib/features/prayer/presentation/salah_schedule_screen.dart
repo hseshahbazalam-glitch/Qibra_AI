@@ -133,8 +133,8 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: colors.surface,
                     shape: BoxShape.circle,
@@ -157,8 +157,8 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: colors.surface,
                     shape: BoxShape.circle,

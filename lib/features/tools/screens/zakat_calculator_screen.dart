@@ -5,6 +5,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -277,6 +278,10 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
       pinned: true,
       backgroundColor: colors.background,
       leading: IconButton(
+        constraints: const BoxConstraints(
+          minWidth: AppA11y.minTapTarget,
+          minHeight: AppA11y.minTapTarget,
+        ),
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -521,7 +526,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                     TextStyle(color: colors.textPrimary.withValues(alpha: 0.3)),
                 prefixText: '${_currencySymbols[_currency]} ',
                 filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.08),
+                fillColor: colors.cardMuted,
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none),
@@ -599,12 +604,12 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
       decoration: BoxDecoration(
         color: _zakatDue
             ? colors.primary.withValues(alpha: 0.15)
-            : Colors.orange.withValues(alpha: 0.15),
+            : colors.accent.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: _zakatDue
               ? colors.primary.withValues(alpha: 0.4)
-              : Colors.orange.withValues(alpha: 0.4),
+              : colors.accent.withValues(alpha: 0.4),
         ),
       ),
       child: Row(
@@ -612,7 +617,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         children: [
           Icon(
             _zakatDue ? Icons.check_circle_outline : Icons.info_outline,
-            color: _zakatDue ? colors.primary : Colors.orange,
+            color: _zakatDue ? colors.primary : colors.goldText,
             size: 20,
           ),
           const SizedBox(width: 10),
@@ -620,7 +625,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
             child: Text(
               _nisabMessage,
               style: TextStyle(
-                color: _zakatDue ? colors.primary : Colors.orange,
+                color: _zakatDue ? colors.primary : colors.goldText,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 height: 1.4,
@@ -667,8 +672,8 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   c,
                   style: TextStyle(
                     color: selected
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.5),
+                        ? colors.onPrimary
+                        : colors.textSecondary,
                     fontSize: 12,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   ),
@@ -945,7 +950,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
             _breakdownRow('Debts (−)', debt, colors.error),
           Divider(color: colors.border, height: 24),
           _breakdownRow('Total Wealth', _totalWealth, colors.primary),
-          _breakdownRow('Zakat (2.5%)', _zakatAmount, Colors.white),
+          _breakdownRow('Zakat (2.5%)', _zakatAmount, colors.goldText),
         ],
       ),
     );

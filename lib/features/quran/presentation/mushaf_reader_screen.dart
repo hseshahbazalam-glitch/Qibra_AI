@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../shared/widgets/media/safe_image.dart';
 import '../../tafseer/presentation/tafseer_screen.dart';
@@ -373,8 +374,8 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
+        width: AppA11y.minTapTarget,
+        height: AppA11y.minTapTarget,
         decoration: BoxDecoration(
           color: highlight
               ? colors.accent.withValues(alpha: 0.35)
@@ -395,6 +396,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     required String label,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -589,6 +591,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return ListTile(
       onTap: onTap,
       leading: Container(

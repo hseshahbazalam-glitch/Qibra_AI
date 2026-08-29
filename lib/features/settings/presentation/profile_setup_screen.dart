@@ -698,8 +698,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: const Color(0xFF19312C).withValues(alpha: 0.10),

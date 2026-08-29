@@ -1138,8 +1138,8 @@ class _CircleButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         child: Ink(
-          width: 44,
-          height: 44,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
             color: colors.surfaceElevated.withValues(alpha: 0.82),
             borderRadius: BorderRadius.circular(AppRadius.xl),

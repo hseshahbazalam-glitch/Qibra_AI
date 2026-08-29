@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
@@ -288,8 +289,8 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               Navigator.of(context).maybePop();
             },
             child: Container(
-              width: 40,
-              height: 40,
+              width: AppA11y.minTapTarget,
+              height: AppA11y.minTapTarget,
               decoration: BoxDecoration(
                 color: colors.surface.withValues(alpha: 0.60),
                 shape: BoxShape.circle,
@@ -333,8 +334,8 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
           GestureDetector(
             onTap: _showStatistics,
             child: Container(
-              width: 40,
-              height: 40,
+              width: AppA11y.minTapTarget,
+              height: AppA11y.minTapTarget,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
                 color: colors.surface.withValues(alpha: 0.60),
@@ -354,8 +355,8 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
           GestureDetector(
             onTap: _showHistory,
             child: Container(
-              width: 40,
-              height: 40,
+              width: AppA11y.minTapTarget,
+              height: AppA11y.minTapTarget,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
                 color: colors.surface.withValues(alpha: 0.60),
@@ -381,8 +382,8 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   ref.read(tasbihProvider.notifier).toggleVibration();
                 },
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  width: AppA11y.minTapTarget,
+                  height: AppA11y.minTapTarget,
                   decoration: BoxDecoration(
                     color: vibrationEnabled
                         ? colors.primary.withValues(alpha: 0.20)

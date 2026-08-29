@@ -389,23 +389,30 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                       children: [
                         GestureDetector(
                           onTap: () => _toggleFavorite(name.number),
-                          child: Icon(
-                            isFav
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            color: isFav
-                                ? colors.error
-                                : Colors.white.withValues(alpha: 0.2),
-                            size: 20,
+                          child: SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Icon(
+                              isFav
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              color: isFav
+                                  ? colors.error
+                                  : colors.textTertiary,
+                              size: 20,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
                         GestureDetector(
                           onTap: () => _copyName(name),
-                          child: Icon(
-                            Icons.copy_rounded,
-                            color: colors.textPrimary.withValues(alpha: 0.2),
-                            size: 18,
+                          child: SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Icon(
+                              Icons.copy_rounded,
+                              color: colors.textTertiary,
+                              size: 18,
+                            ),
                           ),
                         ),
                       ],
