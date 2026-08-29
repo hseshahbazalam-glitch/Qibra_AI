@@ -21,9 +21,14 @@ def answer(query: str, corpus: list[dict]) -> dict:
             "reason": "no_retrieved_passage",
             "answer": None,
         }
+    citations = []
+    for passage in passages:
+        source = passage.get("source")
+        if isinstance(source, str) and source.strip():
+            citations.append(source.strip())
     return {
         "refused": False,
         "answer": passages[0]["text"],
-        "citations": [p.get("source") for p in passages],
+        "citations": citations,
         "verified": False,
     }

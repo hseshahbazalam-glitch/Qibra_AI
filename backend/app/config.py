@@ -4,12 +4,22 @@ import os
 from functools import lru_cache
 
 
+_INSECURE_JWT = frozenset(
+    {"", "dev-only-change-me", "replace-me", "changeme", "secret"}
+)
+
+
 def _jwt_secret() -> str:
     """Never treat the local fallback as a production secret.
 
     Set JWT_SECRET in backend/.env (see .env.example). Tests set it in conftest.
+    Empty / well-known values are refused when QIBRA_ENV is production.
+    Otherwise the fallback is an explicit dev-only sentinel, not a deploy secret.
     """
     value = os.environ.get("JWT_SECRET", "").strip()
+    env = os.environ.get("QIBRA_ENV", "").strip().lower()
+    if env in {"prod", "production"} and value in _INSECURE_JWT:
+        raise RuntimeError("JWT_SECRET must be set to a non-default value in production")
     if value:
         return value
     return "dev-only-change-me"

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
 
@@ -28,7 +27,7 @@ class RagService {
     _hadithDb = db;
   }
 
-  /// Retrieves verified local Quran and Hadith passages for a query.
+  /// Retrieves local Quran and Hadith passages for a query. Not independently verified.
   Future<List<RetrievedPassage>> retrieve(
     String query, {
     int topK = 3,
@@ -52,8 +51,8 @@ class RagService {
           );
         }
       }
-    } catch (error) {
-      debugPrint('[RAG] Quran search error: $error');
+    } catch (_) {
+      // Do not log query, Quran text, or exception payloads.
     }
 
     try {
@@ -73,8 +72,8 @@ class RagService {
           );
         }
       }
-    } catch (error) {
-      debugPrint('[RAG] Hadith search error: $error');
+    } catch (_) {
+      // Do not log query, Hadith text, or exception payloads.
     }
 
     results.sort((a, b) => b.relevance.compareTo(a.relevance));
@@ -82,7 +81,7 @@ class RagService {
     return results.take(topK).toList();
   }
 
-  /// Builds verified source context for an AI request.
+  /// Builds retrieved-passage context for an AI request. Never invent citations.
   Future<String> buildContextForQuery(String query) async {
     final passages = await retrieve(query, topK: 3);
 
@@ -105,8 +104,8 @@ class RagService {
     }
 
     buffer.writeln(
-      'If no relevant passage above exists, say: '
-      '"I could not find a verified source — please consult a qualified scholar."',
+      'If no relevant passage above exists, say you could not find a retrieved '
+      'passage and will not invent Quran or Hadith.',
     );
 
     return buffer.toString();
