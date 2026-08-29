@@ -1001,6 +1001,7 @@ class _SearchResultCard extends StatelessWidget {
                     AppSpacing.md,
                   ),
                   child: _buildHighlightedText(
+                    context,
                     result.translation!,
                     query,
                     AppTextStyles.bodySmall.copyWith(
@@ -1054,7 +1055,12 @@ class _SearchResultCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHighlightedText(String text, String query, TextStyle style) {
+  Widget _buildHighlightedText(
+    BuildContext context,
+    String text,
+    String query,
+    TextStyle style,
+  ) {
     final colors = QibraColors.of(context);
     if (query.isEmpty) {
       return Text(text,

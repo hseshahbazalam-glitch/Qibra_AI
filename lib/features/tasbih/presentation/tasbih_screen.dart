@@ -1368,6 +1368,7 @@ class _StatisticsScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: _bigStatCard(
+                      context,
                       icon: Icons.today_rounded,
                       label: 'Today',
                       value: '${state.todayCount}',
@@ -1377,6 +1378,7 @@ class _StatisticsScreen extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: _bigStatCard(
+                      context,
                       icon: Icons.local_fire_department_rounded,
                       label: 'Streak',
                       value: '${state.currentStreak}',
@@ -1390,6 +1392,7 @@ class _StatisticsScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: _bigStatCard(
+                      context,
                       icon: Icons.star_rounded,
                       label: 'Best Streak',
                       value: '${state.bestStreak}',
@@ -1399,6 +1402,7 @@ class _StatisticsScreen extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: _bigStatCard(
+                      context,
                       icon: Icons.flag_rounded,
                       label: 'Daily Goal',
                       value: '${state.dailyGoal}',
@@ -1415,19 +1419,19 @@ class _StatisticsScreen extends ConsumerWidget {
                     .copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: AppSpacing.md),
-              _achievementRow(
-                  'Starter', 0, state.totalCount, state.achievementLevel >= 0),
-              _achievementRow('Beginner 🌸', 100, state.totalCount,
+              _achievementRow(context, 'Starter', 0, state.totalCount,
+                  state.achievementLevel >= 0),
+              _achievementRow(context, 'Beginner 🌸', 100, state.totalCount,
                   state.achievementLevel >= 1),
-              _achievementRow('Rising Star 🌱', 1000, state.totalCount,
+              _achievementRow(context, 'Rising Star 🌱', 1000, state.totalCount,
                   state.achievementLevel >= 2),
-              _achievementRow('Intermediate 💎', 5000, state.totalCount,
+              _achievementRow(context, 'Intermediate 💎', 5000, state.totalCount,
                   state.achievementLevel >= 3),
-              _achievementRow('Advanced 🌟', 10000, state.totalCount,
+              _achievementRow(context, 'Advanced 🌟', 10000, state.totalCount,
                   state.achievementLevel >= 4),
-              _achievementRow('Expert ⭐', 50000, state.totalCount,
+              _achievementRow(context, 'Expert ⭐', 50000, state.totalCount,
                   state.achievementLevel >= 5),
-              _achievementRow('Master 🏆', 100000, state.totalCount,
+              _achievementRow(context, 'Master 🏆', 100000, state.totalCount,
                   state.achievementLevel >= 6),
             ],
           ),
@@ -1473,7 +1477,13 @@ class _StatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _achievementRow(String title, int target, int current, bool unlocked) {
+  Widget _achievementRow(
+    BuildContext context,
+    String title,
+    int target,
+    int current,
+    bool unlocked,
+  ) {
     final colors = QibraColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

@@ -398,22 +398,14 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
           }
           return;
         }
-      } catch (e) {
-        debugPrint('JSON parse error: $e');
+      } catch (_) {
+        // Keep the original model text if JSON is not a valid action payload.
       }
     }
 
     // Islamic safety: verify citations if we had retrieved passages
     if (_lastRetrieved.isNotEmpty) {
-      final hasCitation =
-          RagService.instance.verifyCitations(response, _lastRetrieved);
-      if (!hasCitation &&
-          (response.contains('Quran') ||
-              response.contains('Hadith') ||
-              response.contains('Sahih'))) {
-        debugPrint(
-            'AI response contains Islamic claim without verified citation — retrieved: ${_lastRetrieved.map((e) => e.source).join(', ')}');
-      }
+      RagService.instance.verifyCitations(response, _lastRetrieved);
     }
     // If _lastRetrieved empty and answer is Islamic, system prompt already instructs to say "couldn't find verified source"
     addAIMessage(response);

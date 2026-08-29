@@ -827,13 +827,13 @@ class _TafsirTab extends ConsumerWidget {
           // The app does not currently include a verified tafsir dataset.
           // Keep this state explicit rather than presenting a broken loader or
           // incorrectly presenting a translation as tafsir.
-          _buildTafsirUnavailable(ayah),
+          _buildTafsirUnavailable(context, ayah),
         ],
       ),
     );
   }
 
-  Widget _buildTafsirUnavailable(AyahModel ayah) {
+  Widget _buildTafsirUnavailable(BuildContext context, AyahModel ayah) {
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(24),
