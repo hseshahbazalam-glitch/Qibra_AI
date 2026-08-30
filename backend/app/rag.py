@@ -50,12 +50,16 @@ def _provenance(passage: dict) -> dict:
 
 def answer(query: str, corpus: list[dict]) -> dict:
     passages = retrieve(query, corpus)
+    from .observability.metrics import inc
+
     if not passages:
+        inc("rag_no_context")
         return {
             "refused": True,
             "reason": "no_retrieved_passage",
             "answer": None,
         }
+    inc("rag_local")
     citations = []
     provenance = []
     for passage in passages:

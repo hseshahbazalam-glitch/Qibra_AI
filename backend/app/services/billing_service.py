@@ -9,6 +9,9 @@ class BillingService:
         self.verifier = StoreVerifier()
 
     def status(self) -> dict:
+        from ..observability.metrics import inc
+
+        inc("billing_unconfigured")
         return {
             "store": "unconfigured",
             "billing_production_ready": False,

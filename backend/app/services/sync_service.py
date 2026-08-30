@@ -102,4 +102,14 @@ def merge_records(db: Session, user_id: int, items: list[dict]) -> tuple[list[di
                 }
             )
     db.commit()
+    from ..observability.metrics import inc
+
+    for row in results:
+        status = row.get("status")
+        if status == "conflicted":
+            inc("sync_conflict")
+        elif status == "accepted":
+            inc("sync_ok")
+        elif status == "retryable":
+            inc("sync_fail")
     return out, results

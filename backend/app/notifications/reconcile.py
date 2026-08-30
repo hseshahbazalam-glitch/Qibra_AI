@@ -124,6 +124,9 @@ def reconcile(desired: list[Alert], existing_ids: set[int]) -> dict:
     keep = set(existing_ids) & want
     create = [a for a in desired if a.id not in existing_ids]
     resulting = sorted(keep | {a.id for a in create})
+    from ..observability.metrics import inc
+
+    inc("notif_plan")
     return {
         "cancel": sorted(cancel),
         "keep": sorted(keep),

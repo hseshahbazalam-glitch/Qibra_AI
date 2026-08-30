@@ -65,4 +65,13 @@ def classify(entry: Optional[CacheEntry], now: datetime) -> str:
 
 def lookup(cache: MemoryCache, key: str, now: datetime) -> tuple[str, Optional[CacheEntry]]:
     entry = cache.get(key)
-    return classify(entry, now), entry
+    freshness = classify(entry, now)
+    from ..observability.metrics import inc
+
+    if freshness == MISSING:
+        inc("cache_miss")
+    elif freshness == STALE:
+        inc("cache_stale")
+    elif freshness == FRESH:
+        inc("cache_hit")
+    return freshness, entry

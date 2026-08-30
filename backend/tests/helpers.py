@@ -16,11 +16,13 @@ os.environ.setdefault("JWT_SECRET", "test-secret")
 from app.db.session import reset_engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.middleware.rate_limit import reset_rate_limit_store  # noqa: E402
+from app.observability.metrics import reset_metrics  # noqa: E402
 
 
 def fresh_client() -> TestClient:
     reset_engine("sqlite+pysqlite:///:memory:")
     reset_rate_limit_store()
+    reset_metrics()
     return TestClient(app)
 
 

@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from ..config import get_settings
+from ..observability.metrics import snapshot as metrics_snapshot
 
 router = APIRouter()
 
@@ -20,3 +21,23 @@ def health():
             "precise_location_stored_on_server": s.precise_location_stored_on_server,
         },
     }
+
+
+@router.get("/health/metrics")
+def health_metrics():
+    body = metrics_snapshot()
+    blob = str(body).lower()
+    for banned in ("email", "token", "gps", "receipt", "ayah", "hadith", "prompt"):
+        if banned in blob:
+            return {
+                "analytics_production_ready": False,
+                "consent_default": False,
+                "third_party_sdks": [],
+                "counters": {},
+                "api": {
+                    "latency_ms_sum": 0,
+                    "latency_ms_count": 0,
+                    "latency_ms_avg": 0,
+                },
+            }
+    return body
