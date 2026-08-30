@@ -41,7 +41,7 @@ void main() {
       textEnglish: 'english',
       textUrdu: 'urdu',
       grade: HadithGrade.sahih,
-      narrator: HadithNarrator(name: ''),
+      narrator: const HadithNarrator(name: ''),
       reference: 'Bukhari 1',
     );
     expect(hadithTextForLanguage(hadith, 'en'), 'english');
