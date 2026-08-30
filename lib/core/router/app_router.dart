@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
@@ -70,7 +71,7 @@ class _ErrorScreen extends StatelessWidget {
             Icon(Icons.error_outline, color: colors.error, size: 64),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              'Page Not Found',
+              AppStrings.of(context).pageNotFound,
               style: AppTextStyles.headlineSmall.copyWith(
                 color: colors.textPrimary,
               ),
@@ -86,7 +87,7 @@ class _ErrorScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl3),
             ElevatedButton(
               onPressed: () => context.go(AppRoutes.home),
-              child: const Text('Go to Home'),
+              child: Text(AppStrings.of(context).goHome),
             ),
           ],
         ),

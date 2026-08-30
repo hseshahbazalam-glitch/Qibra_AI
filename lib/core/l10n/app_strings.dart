@@ -77,6 +77,16 @@ class AppStrings {
         'حدیث کی زبان',
       );
 
+  String get navHome => _t('Home', 'الرئيسية', 'ہوم');
+  String get navQuran => _t('Quran', 'القرآن', 'قرآن');
+  String get navPrayer => _t('Prayer', 'الصلاة', 'نماز');
+  String get navHadith => _t('Hadith', 'الحديث', 'حدیث');
+  String get navAi => _t('AI', 'الذكاء', 'AI');
+  String get navMore => _t('More', 'المزيد', 'مزید');
+  String get goHome => _t('Go to Home', 'الذهاب إلى الرئيسية', 'ہوم پر جائیں');
+  String get pageNotFound =>
+      _t('Page not found', 'الصفحة غير موجودة', 'صفحہ نہیں ملا');
+
   String _t(String en, String ar, String ur) {
     switch (_code) {
       case 'ar':
