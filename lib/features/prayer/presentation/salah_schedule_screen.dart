@@ -1105,7 +1105,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
       case PrayerType.dhuhr:
         return const Color(0xFFC6A15B);
       case PrayerType.asr:
-        return const Color(0xFFEF4444);
+        return QibraColors.light.error;
       case PrayerType.maghrib:
         return const Color(0xFFC6A15B);
       case PrayerType.isha:

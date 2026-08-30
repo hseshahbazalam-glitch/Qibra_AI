@@ -284,6 +284,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             children: [
               _CircleButton(
                 icon: Icons.arrow_back_ios_new_rounded,
+                tooltip: 'Back',
                 onTap: () {
                   HapticFeedback.lightImpact();
                   Navigator.of(context).maybePop();
@@ -295,11 +296,11 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'EXPLORE THE QURAN',
+                      'Explore the Quran',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: colors.primary,
+                        color: colors.goldText,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
+                        letterSpacing: 0.4,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -531,21 +532,26 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              crossAxisSpacing: AppSpacing.sm,
-              mainAxisSpacing: AppSpacing.sm,
-              childAspectRatio: 0.95,
-            ),
-            itemCount: _popularTopicsFor(colors).length,
-            itemBuilder: (context, index) {
-              final topic = _popularTopicsFor(colors)[index];
-              return _TopicCard(
-                topic: topic,
-                onTap: () => _performSearch(topic.searchQuery),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cols = constraints.maxWidth < 360 ? 2 : 4;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: cols,
+                  crossAxisSpacing: AppSpacing.sm,
+                  mainAxisSpacing: AppSpacing.sm,
+                  childAspectRatio: 0.95,
+                ),
+                itemCount: _popularTopicsFor(colors).length,
+                itemBuilder: (context, index) {
+                  final topic = _popularTopicsFor(colors)[index];
+                  return _TopicCard(
+                    topic: topic,
+                    onTap: () => _performSearch(topic.searchQuery),
+                  );
+                },
               );
             },
           ),
@@ -869,7 +875,7 @@ class _SearchResultCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
+                color: colors.primary.withValues(alpha: 0.10),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -909,7 +915,7 @@ class _SearchResultCard extends StatelessWidget {
                         child: Text(
                           '${result.ayahNumber}',
                           style: AppTextStyles.labelSmall.copyWith(
-                            color: colors.textPrimary,
+                            color: colors.onPrimary,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -957,7 +963,7 @@ class _SearchResultCard extends StatelessWidget {
                         result.isArabicMatch ? 'AR' : 'EN',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: result.isArabicMatch
-                              ? colors.accent
+                              ? colors.goldText
                               : colors.primarySoft,
                           fontWeight: FontWeight.w800,
                           fontSize: 10,
@@ -1086,9 +1092,9 @@ class _SearchResultCard extends StatelessWidget {
       matches.add(TextSpan(
         text: text.substring(index, index + query.length),
         style: style.copyWith(
-          color: colors.accent,
+          color: colors.goldText,
           fontWeight: FontWeight.w800,
-          backgroundColor: colors.accent.withValues(alpha: 0.16),
+          backgroundColor: colors.goldText.withValues(alpha: 0.12),
         ),
       ));
 
@@ -1253,15 +1259,17 @@ class _CircleButton extends StatelessWidget {
   const _CircleButton({
     required this.icon,
     required this.onTap,
+    this.tooltip,
   });
 
   final IconData icon;
   final VoidCallback onTap;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    return Material(
+    final button = Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
@@ -1280,6 +1288,8 @@ class _CircleButton extends StatelessWidget {
         ),
       ),
     );
+    if (tooltip == null) return button;
+    return Tooltip(message: tooltip!, child: button);
   }
 }
 

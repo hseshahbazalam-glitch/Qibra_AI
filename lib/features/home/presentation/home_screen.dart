@@ -31,6 +31,7 @@ class HomeScreen extends ConsumerWidget {
     final colors = QibraColors.of(context);
     final name = ref.watch(userDisplayNameProvider);
     final nextPrayer = ref.watch(nextPrayerProvider);
+    final currentPrayer = ref.watch(currentPrayerProvider);
     final location = ref.watch(locationProvider);
     final progress = ref.watch(readingProgressProvider);
     final dailyHadith = ref.watch(dailyHadithProvider);
@@ -96,6 +97,16 @@ class HomeScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                if (currentPrayer != null) ...[
+                                  Text(
+                                    'Now · ${currentPrayer.type.name}',
+                                    style: AppTextStyles.labelSmall.copyWith(
+                                      color: colors.onPrimary
+                                          .withValues(alpha: 0.75),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                ],
                                 Text(
                                   'Next prayer',
                                   style: AppTextStyles.labelMedium.copyWith(
@@ -147,6 +158,20 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                () {
+                  final loc = location.location;
+                  if (loc == null) return 'Location not set';
+                  if (loc.city == 'UNKNOWN' || loc.country == 'UNKNOWN') {
+                    return 'UNKNOWN';
+                  }
+                  return loc.displayName;
+                }(),
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
               const SizedBox(height: 16),
               QibraCard(
@@ -397,6 +422,8 @@ class _QuickAction extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.labelMedium.copyWith(
                 color: colors.textPrimary,
               ),

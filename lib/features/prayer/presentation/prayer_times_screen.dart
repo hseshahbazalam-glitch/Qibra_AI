@@ -20,6 +20,7 @@ class PrayerTimesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final nextPrayer = ref.watch(nextPrayerProvider);
+    final currentPrayer = ref.watch(currentPrayerProvider);
     final dailyTimes = ref.watch(dailyPrayerTimesProvider);
     final location = ref.watch(locationProvider);
     final settings = ref.watch(prayerSettingsProvider);
@@ -180,6 +181,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                           _PrayerRow(
                             prayer: prayer,
                             isNext: nextPrayer?.prayer.type == prayer.type,
+                            isCurrent: currentPrayer?.type == prayer.type,
                             record: _recordFor(records, prayer.type),
                             onToggle: () => _togglePrayer(ref, prayer.type),
                           ),
@@ -334,12 +336,14 @@ class _PrayerRow extends StatelessWidget {
   const _PrayerRow({
     required this.prayer,
     required this.isNext,
+    this.isCurrent = false,
     required this.record,
     required this.onToggle,
   });
 
   final PrayerTime prayer;
   final bool isNext;
+  final bool isCurrent;
   final PrayerRecord? record;
   final VoidCallback onToggle;
 

@@ -1220,7 +1220,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
       'halal' || 'likelyHalal' => colors.primary,
       'haram' => colors.error,
       'doubtful' => colors.accent,
-      _ => const Color(0xFF6B7280),
+      _ => QibraColors.light.textTertiary,
     };
   }
 

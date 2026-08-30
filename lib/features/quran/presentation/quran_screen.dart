@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_provider.dart' hide readingProgressProvider;
@@ -161,7 +162,10 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                 );
               },
               loading: () => const LinearProgressIndicator(minHeight: 2),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, __) => const QibraStatus.error(
+                title: 'Ayah unavailable',
+                message: 'The daily ayah will appear when offline files finish loading.',
+              ),
             ),
             const SizedBox(height: 24),
             Row(

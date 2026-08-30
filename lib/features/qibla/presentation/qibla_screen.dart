@@ -544,7 +544,7 @@ Shared via Qibra AI 🌙''';
     if (accuracy < 5) return const Color(0xFF2F6B5D);
     if (accuracy < 15) return const Color(0xFF2F6B5D);
     if (accuracy < 30) return const Color(0xFFC6A15B);
-    return const Color(0xFFEF4444);
+    return QibraColors.light.error;
   }
 
   // ============================================================

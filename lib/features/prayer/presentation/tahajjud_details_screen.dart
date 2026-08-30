@@ -297,7 +297,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
               child: _buildInfoTile(
                 icon: Icons.local_fire_department_rounded,
-                iconColor: const Color(0xFFEF4444),
+                iconColor: QibraColors.light.error,
                 title: 'Tahajjud Streak',
                 subtitle: 'Not tracked',
                 onTap: _showStreakSheet,
@@ -740,7 +740,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
             children: [
               const Icon(
                 Icons.local_fire_department_rounded,
-                color: Color(0xFFEF4444),
+                color: QibraColors.light.error,
                 size: 28,
               ),
               const SizedBox(width: 8),

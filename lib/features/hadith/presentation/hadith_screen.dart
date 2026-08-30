@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
@@ -155,7 +156,10 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                 );
               },
               loading: () => const LinearProgressIndicator(minHeight: 2),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, __) => const QibraStatus.error(
+                title: 'Collections unavailable',
+                message: 'Cached books will appear when they finish loading.',
+              ),
             ),
             const SizedBox(height: 20),
             SingleChildScrollView(
@@ -298,6 +302,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                           ),
                         ),
                         IconButton(
+                          tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark',
                           icon: Icon(
                             bookmarked
                                 ? Icons.bookmark_rounded
@@ -311,6 +316,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                           },
                         ),
                         IconButton(
+                          tooltip: 'Copy',
                           icon: Icon(Icons.copy_outlined, color: colors.primary),
                           onPressed: () => _copyHadith(context, hadith),
                         ),

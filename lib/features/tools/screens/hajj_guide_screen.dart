@@ -207,6 +207,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       pinned: true,
       backgroundColor: colors.background,
       leading: IconButton(
+        tooltip: 'Back',
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -235,7 +236,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                 children: [
                   Text('حَجّ',
                       style: TextStyle(
-                          color: colors.accent,
+                          color: colors.goldText,
                           fontSize: 26,
                           fontFamily: 'Amiri')),
                   Text('Hajj Guide',
@@ -261,8 +262,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-            colors: [Color(0xFFF8F1E3), Color(0xFF2B1F00)]),
+        gradient: LinearGradient(
+            colors: [colors.card, colors.backgroundSecondary]),
         borderRadius: BorderRadius.circular(20),
         border:
             Border.all(color: colors.accent.withValues(alpha: 0.3)),
@@ -483,7 +484,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                             style: TextStyle(
                                 fontFamily: 'Amiri',
                                 fontSize: 16,
-                                color: color,
+                                color: colors.textPrimary,
                                 height: 1.5),
                             textDirection: TextDirection.rtl,
                             textAlign: TextAlign.center),
@@ -590,7 +591,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
               SizedBox(width: 8),
               Text('Quran',
                   style: TextStyle(
-                      color: colors.accent,
+                      color: colors.goldText,
                       fontSize: 12,
                       fontWeight: FontWeight.w700)),
             ],

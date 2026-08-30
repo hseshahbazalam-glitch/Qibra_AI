@@ -203,7 +203,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         children: [
           _buildBackgroundGradient(),
           _buildRotatingPattern(size),
-          _buildFloatingParticles(size),
+          if (!MediaQuery.of(context).disableAnimations)
+            _buildFloatingParticles(size),
           _buildGlassOverlay(),
           SafeArea(
             child: Column(

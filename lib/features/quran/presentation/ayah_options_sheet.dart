@@ -199,7 +199,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                   decoration: BoxDecoration(
                     color: _isFavorite
                         ? colors.accent.withValues(alpha: 0.2)
-                        : colors.onPrimary.withValues(alpha: 0.08),
+                        : colors.cardMuted,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -207,8 +207,8 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                         ? Icons.star_rounded
                         : Icons.star_border_rounded,
                     color: _isFavorite
-                        ? colors.accent
-                        : colors.onPrimary.withValues(alpha: 0.7),
+                        ? colors.goldText
+                        : colors.textTertiary,
                     size: 22,
                   ),
                 ),
@@ -305,7 +305,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
           _actionButton(
             icon: Icons.share_rounded,
             label: 'Share',
-            color: const Color(0xFF14B8A6),
+            color: colors.primarySoft,
             onTap: _shareAyah,
           ),
         ],
