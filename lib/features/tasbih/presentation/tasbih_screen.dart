@@ -434,7 +434,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [colors.accent, Color(0xFFB8860B)],
+                colors: [colors.accent, const Color(0xFFB8860B)],
               ),
               shape: BoxShape.circle,
             ),
@@ -846,7 +846,6 @@ class _ProgressRingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
@@ -1002,7 +1001,7 @@ class _DhikrSelectorSheet extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
+            const BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -1140,7 +1139,7 @@ class _TargetSelectorSheet extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
+            const BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1222,7 +1221,7 @@ class _DailyGoalSheet extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
+            const BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1333,7 +1332,7 @@ class _StatisticsScreen extends ConsumerWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [colors.accent, Color(0xFFB8860B)],
+                    colors: [colors.accent, const Color(0xFFB8860B)],
                   ),
                   borderRadius: BorderRadius.circular(AppRadius.xl2),
                 ),
@@ -1440,7 +1439,8 @@ class _StatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _bigStatCard({
+  Widget _bigStatCard(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required String value,
