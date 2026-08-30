@@ -623,7 +623,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
               child: CircularProgressIndicator(
                 value: _timerProgress,
                 strokeWidth: 3,
-                backgroundColor: Colors.white.withValues(alpha: 0.10),
+                backgroundColor: QibraColors.light.textPrimary.withValues(alpha: 0.10),
                 valueColor: AlwaysStoppedAnimation<Color>(
                   _canResend ? colors.success : colors.accent,
                 ),
@@ -759,8 +759,8 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.08),
-                Colors.white.withValues(alpha: 0.03),
+                QibraColors.light.textPrimary.withValues(alpha: 0.08),
+                QibraColors.light.textPrimary.withValues(alpha: 0.03),
               ],
             ),
             borderRadius: AppRadius.cardRadiusLarge,
@@ -827,7 +827,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
               )
             : null,
         // Empty state color
-        color: hasValue ? null : Colors.white.withValues(alpha: 0.05),
+        color: hasValue ? null : QibraColors.light.textPrimary.withValues(alpha: 0.05),
         // Border color based on state
         border: Border.all(
           color: hasError
@@ -836,7 +836,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                   ? colors.primary
                   : hasValue
                       ? colors.primary.withValues(alpha: 0.50)
-                      : Colors.white.withValues(alpha: 0.15),
+                      : QibraColors.light.textPrimary.withValues(alpha: 0.15),
           width: isFocused || hasValue ? 2 : 1,
         ),
         // Glow shadow based on state
@@ -1054,8 +1054,8 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white.withValues(alpha: 0.06),
-                Colors.white.withValues(alpha: 0.02),
+                QibraColors.light.textPrimary.withValues(alpha: 0.06),
+                QibraColors.light.textPrimary.withValues(alpha: 0.02),
               ],
             ),
             borderRadius: AppRadius.cardRadius,

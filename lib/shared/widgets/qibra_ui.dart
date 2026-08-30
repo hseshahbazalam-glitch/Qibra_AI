@@ -50,7 +50,12 @@ class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
                   AppA11y.ensureTapTarget(
                     child: IconButton(
                       tooltip: 'Back',
-                      icon: Icon(Icons.arrow_back_rounded, color: colors.textPrimary),
+                      icon: Icon(
+                        Directionality.of(context) == TextDirection.rtl
+                            ? Icons.arrow_forward_rounded
+                            : Icons.arrow_back_rounded,
+                        color: colors.textPrimary,
+                      ),
                       onPressed: onBack ?? () => Navigator.of(context).maybePop(),
                     ),
                   ),

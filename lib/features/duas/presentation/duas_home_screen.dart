@@ -405,7 +405,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
                       color: dailyDua.isFavorite
-                          ? const Color(0xFFFF6B6B)
+                          ? QibraColors.light.error
                           : colors.onPrimary.withValues(alpha: 0.7),
                       size: 22,
                     ),
@@ -772,7 +772,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
                 color: dua.isFavorite
-                    ? const Color(0xFFFF6B6B)
+                    ? QibraColors.light.error
                     : colors.textSecondary,
                 size: 20,
               ),

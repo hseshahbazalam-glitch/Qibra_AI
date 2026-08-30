@@ -300,7 +300,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               Text(
                 'Al-Quran Al-Kareem',
                 style: AppTextStyles.labelLarge.copyWith(
-                  color: colors.accent,
+                  color: colors.goldText,
                   letterSpacing: 0.5,
                 ),
               ),

@@ -100,8 +100,8 @@ class AuthTextField extends StatelessWidget {
                 ),
           filled: true,
           fillColor: isFocused
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white.withValues(alpha: 0.02),
+              ? QibraColors.light.textPrimary.withValues(alpha: 0.05)
+              : QibraColors.light.textPrimary.withValues(alpha: 0.02),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,

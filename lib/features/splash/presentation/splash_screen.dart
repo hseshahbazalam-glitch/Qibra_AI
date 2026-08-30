@@ -311,32 +311,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
           child: Column(
             children: [
-              ShaderMask(
-                shaderCallback: (bounds) => LinearGradient(
-                  colors: [
-                    colors.accent,
-                    colors.goldText,
-                    colors.accent,
-                  ],
-                ).createShader(bounds),
-                child: Text(
-                  AppIslamicConstants.bismillah,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.5,
-                    shadows: [
-                      Shadow(
-                        color: colors.accent.withValues(alpha: 0.60),
-                        blurRadius: 20,
-                      ),
-                    ],
-                  ),
-                  textDirection: TextDirection.rtl,
-                  textAlign: TextAlign.center,
+              Text(
+                AppIslamicConstants.bismillah,
+                style: TextStyle(
+                  fontFamily: 'Amiri',
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: colors.goldText,
+                  height: 1.5,
                 ),
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
@@ -463,23 +448,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               opacity: letterProgress,
               child: Transform.translate(
                 offset: Offset(0, 20 * (1 - letterProgress)),
-                child: ShaderMask(
-                  shaderCallback: (bounds) =>
-                      AppGradients.gold.createShader(bounds),
-                  child: Text(
-                    letters[index],
-                    style: AppTextStyles.displaySmall.copyWith(
-                      color: const Color(0xFF19312C),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 6,
-                      height: 1.0,
-                      shadows: [
-                        Shadow(
-                          color: colors.accent.withValues(alpha: 0.60),
-                          blurRadius: 20,
-                        ),
-                      ],
-                    ),
+                child: Text(
+                  letters[index],
+                  style: AppTextStyles.displaySmall.copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 6,
+                    height: 1.0,
                   ),
                 ),
               ),
@@ -535,7 +510,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     return FadeTransition(
       opacity: _taglineFade,
       child: Text(
-        'Your Complete Islamic Companion',
+        'Quran, Hadith, prayer, and tools',
         style: AppTextStyles.bodyMedium.copyWith(
           color: colors.textSecondary,
           letterSpacing: 2,
@@ -640,19 +615,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFFEF4444),
-                      Color(0xFFDC2626),
-                    ],
-                  ),
+                  color: colors.error,
                   borderRadius: AppRadius.pillRadius,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFEF4444).withValues(alpha: 0.35),
-                      blurRadius: 6,
-                    ),
-                  ],
                 ),
                 child: Text(
                   'BETA',
@@ -772,7 +736,7 @@ class _ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final random = math.Random(42);
 
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 12; i++) {
       final baseX = random.nextDouble() * size.width;
       final baseY = random.nextDouble() * size.height;
       final offset = math.sin((animationValue * 2 * math.pi) + i);

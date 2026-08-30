@@ -520,8 +520,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.08),
-                Colors.white.withValues(alpha: 0.03),
+                QibraColors.light.textPrimary.withValues(alpha: 0.08),
+                QibraColors.light.textPrimary.withValues(alpha: 0.03),
               ],
             ),
             borderRadius: AppRadius.cardRadiusLarge,
@@ -925,11 +925,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: met ? AppGradients.emerald : null,
-              color: met ? null : Colors.white.withValues(alpha: 0.10),
+              color: met ? null : QibraColors.light.textPrimary.withValues(alpha: 0.10),
               border: Border.all(
                 color: met
                     ? colors.primary
-                    : Colors.white.withValues(alpha: 0.20),
+                    : QibraColors.light.textPrimary.withValues(alpha: 0.20),
                 width: 1,
               ),
               boxShadow: met
@@ -984,11 +984,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
               borderRadius: BorderRadius.circular(6),
               gradient: _acceptedTerms ? AppGradients.emerald : null,
               color:
-                  _acceptedTerms ? null : Colors.white.withValues(alpha: 0.05),
+                  _acceptedTerms ? null : QibraColors.light.textPrimary.withValues(alpha: 0.05),
               border: Border.all(
                 color: _acceptedTerms
                     ? colors.primary
-                    : Colors.white.withValues(alpha: 0.20),
+                    : QibraColors.light.textPrimary.withValues(alpha: 0.20),
                 width: 1.5,
               ),
               boxShadow: _acceptedTerms

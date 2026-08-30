@@ -684,11 +684,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   borderRadius: BorderRadius.circular(6),
                   gradient: _rememberMe ? AppGradients.emerald : null,
                   color:
-                      _rememberMe ? null : Colors.white.withValues(alpha: 0.05),
+                      _rememberMe ? null : QibraColors.light.textPrimary.withValues(alpha: 0.05),
                   border: Border.all(
                     color: _rememberMe
                         ? colors.primary
-                        : Colors.white.withValues(alpha: 0.20),
+                        : QibraColors.light.textPrimary.withValues(alpha: 0.20),
                     width: 1.5,
                   ),
                   boxShadow: _rememberMe
@@ -788,7 +788,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               gradient: LinearGradient(
                 colors: [
                   Colors.transparent,
-                  Colors.white.withValues(alpha: 0.20),
+                  QibraColors.light.textPrimary.withValues(alpha: 0.20),
                 ],
               ),
             ),
@@ -813,7 +813,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withValues(alpha: 0.20),
+                  QibraColors.light.textPrimary.withValues(alpha: 0.20),
                   Colors.transparent,
                 ],
               ),

@@ -278,7 +278,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [colors.card, Color(0xFF3D1528)],
+          colors: [colors.card, colors.backgroundSecondary],
         ),
         borderRadius: BorderRadius.circular(20),
         border:

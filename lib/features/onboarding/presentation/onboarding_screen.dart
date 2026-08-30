@@ -85,7 +85,7 @@ const List<_OnboardingSlide> _slides = [
   _OnboardingSlide(
     title: 'Islamic AI Assistant',
     description:
-        'Ask any Islamic question and get instant, authentic answers from our AI trained on Quran, Hadith, and scholarly texts.',
+        'Ask about bundled Quran and Hadith passages. Retrieval only — not a fatwa and not a scholar.',
     icon: Icons.smart_toy_rounded,
     arabicText: 'الْحِكْمَة',
     arabicTranslation: 'Wisdom',
@@ -632,8 +632,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withValues(alpha: 0.10),
-                    Colors.white.withValues(alpha: 0.05),
+                    QibraColors.light.textPrimary.withValues(alpha: 0.10),
+                    QibraColors.light.textPrimary.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: AppRadius.cardRadiusLarge,

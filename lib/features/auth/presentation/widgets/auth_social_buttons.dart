@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 
 class AuthSocialButtons extends StatelessWidget {
   const AuthSocialButtons({
@@ -86,8 +87,8 @@ class _AuthSocialButton extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Colors.white.withValues(alpha: 0.08),
-                      Colors.white.withValues(alpha: 0.03),
+                      QibraColors.light.textPrimary.withValues(alpha: 0.08),
+                      QibraColors.light.textPrimary.withValues(alpha: 0.03),
                     ],
                   ),
                   borderRadius: AppRadius.buttonRadiusLg,

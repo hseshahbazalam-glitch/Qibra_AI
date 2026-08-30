@@ -660,8 +660,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.08),
-                Colors.white.withValues(alpha: 0.03),
+                QibraColors.light.textPrimary.withValues(alpha: 0.08),
+                QibraColors.light.textPrimary.withValues(alpha: 0.03),
               ],
             ),
             borderRadius: AppRadius.cardRadiusLarge,
@@ -814,8 +814,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white.withValues(alpha: 0.08),
-                Colors.white.withValues(alpha: 0.03),
+                QibraColors.light.textPrimary.withValues(alpha: 0.08),
+                QibraColors.light.textPrimary.withValues(alpha: 0.03),
               ],
             ),
             borderRadius: AppRadius.cardRadiusLarge,

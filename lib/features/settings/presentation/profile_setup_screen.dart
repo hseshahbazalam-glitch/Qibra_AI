@@ -482,12 +482,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                               : null,
                           color: isSelected
                               ? null
-                              : Colors.white.withValues(alpha: 0.05),
+                              : QibraColors.light.textPrimary.withValues(alpha: 0.05),
                           borderRadius: AppRadius.cardRadius,
                           border: Border.all(
                             color: isSelected
                                 ? colors.primary
-                                : Colors.white.withValues(alpha: 0.10),
+                                : QibraColors.light.textPrimary.withValues(alpha: 0.10),
                             width: 1,
                           ),
                         ),
@@ -915,8 +915,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.08),
-                Colors.white.withValues(alpha: 0.03),
+                QibraColors.light.textPrimary.withValues(alpha: 0.08),
+                QibraColors.light.textPrimary.withValues(alpha: 0.03),
               ],
             ),
             borderRadius: AppRadius.cardRadiusLarge,
@@ -1076,8 +1076,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           ),
           filled: true,
           fillColor: isFocused
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white.withValues(alpha: 0.02),
+              ? QibraColors.light.textPrimary.withValues(alpha: 0.05)
+              : QibraColors.light.textPrimary.withValues(alpha: 0.02),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
@@ -1243,12 +1243,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                     ],
                   )
                 : null,
-            color: isSelected ? null : Colors.white.withValues(alpha: 0.02),
+            color: isSelected ? null : QibraColors.light.textPrimary.withValues(alpha: 0.02),
             borderRadius: AppRadius.cardRadius,
             border: Border.all(
               color: isSelected
                   ? colors.primary
-                  : Colors.white.withValues(alpha: 0.10),
+                  : QibraColors.light.textPrimary.withValues(alpha: 0.10),
               width: isSelected ? 2 : 1,
             ),
           ),

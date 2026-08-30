@@ -635,7 +635,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [colors.backgroundSecondary, Color(0xFF2D1B69)],
+                colors: [colors.backgroundSecondary, colors.card],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(

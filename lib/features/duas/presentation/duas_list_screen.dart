@@ -291,7 +291,7 @@ class _DuaCard extends ConsumerWidget {
                             ? Icons.favorite_rounded
                             : Icons.favorite_border_rounded,
                         color: dua.isFavorite
-                            ? const Color(0xFFFF6B6B)
+                            ? QibraColors.light.error
                             : colors.textSecondary,
                         size: 20,
                       ),

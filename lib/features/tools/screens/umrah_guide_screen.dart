@@ -228,7 +228,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-            colors: [colors.backgroundSecondary, Color(0xFF152E4A)]),
+                colors: [colors.backgroundSecondary, colors.card]),
         borderRadius: BorderRadius.circular(20),
         border:
             Border.all(color: colors.primarySoft.withValues(alpha: 0.3)),

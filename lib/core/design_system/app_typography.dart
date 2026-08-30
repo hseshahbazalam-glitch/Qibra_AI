@@ -78,133 +78,111 @@ abstract final class AppTextStyles {
   static TextStyle get displayLarge => GoogleFonts.inter(
       fontSize: AppFontSize.displayLarge,
       fontWeight: AppFontWeight.black,
-      color: AppColors.textPrimary,
       height: AppLineHeight.snug,
       letterSpacing: AppLetterSpacing.tighter);
   static TextStyle get displayMedium => GoogleFonts.inter(
       fontSize: AppFontSize.displayMedium,
       fontWeight: AppFontWeight.extraBold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.snug,
       letterSpacing: AppLetterSpacing.tighter);
   static TextStyle get displaySmall => GoogleFonts.inter(
       fontSize: AppFontSize.displaySmall,
       fontWeight: AppFontWeight.bold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.tight);
   static TextStyle get headlineLarge => GoogleFonts.inter(
       fontSize: AppFontSize.headlineLarge,
       fontWeight: AppFontWeight.bold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.tight);
   static TextStyle get headlineMedium => GoogleFonts.inter(
       fontSize: AppFontSize.headlineMedium,
       fontWeight: AppFontWeight.bold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get headlineSmall => GoogleFonts.inter(
       fontSize: AppFontSize.headlineSmall,
       fontWeight: AppFontWeight.semiBold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get titleLarge => GoogleFonts.inter(
       fontSize: AppFontSize.titleLarge,
       fontWeight: AppFontWeight.semiBold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get titleMedium => GoogleFonts.inter(
       fontSize: AppFontSize.titleMedium,
       fontWeight: AppFontWeight.semiBold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.wide);
   static TextStyle get titleSmall => GoogleFonts.inter(
       fontSize: AppFontSize.titleSmall,
       fontWeight: AppFontWeight.medium,
-      color: AppColors.textPrimary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.wide);
   static TextStyle get bodyLarge => GoogleFonts.inter(
       fontSize: AppFontSize.bodyLarge,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textPrimary,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get bodyMedium => GoogleFonts.inter(
       fontSize: AppFontSize.bodyMedium,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textPrimary,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get bodySmall => GoogleFonts.inter(
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textSecondary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get labelLarge => GoogleFonts.inter(
       fontSize: AppFontSize.labelLarge,
       fontWeight: AppFontWeight.semiBold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
   static TextStyle get labelMedium => GoogleFonts.inter(
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.medium,
-      color: AppColors.textPrimary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
   static TextStyle get labelSmall => GoogleFonts.inter(
       fontSize: AppFontSize.labelSmall,
       fontWeight: AppFontWeight.medium,
-      color: AppColors.textSecondary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wider);
   static TextStyle get labelXSmall => GoogleFonts.inter(
       fontSize: AppFontSize.labelXSmall,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textTertiary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.widest);
   static TextStyle get buttonLarge => GoogleFonts.inter(
       fontSize: AppFontSize.labelLarge,
       fontWeight: AppFontWeight.semiBold,
-      color: AppColors.white,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
   static TextStyle get buttonMedium => GoogleFonts.inter(
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.semiBold,
-      color: AppColors.white,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
   static TextStyle get buttonSmall => GoogleFonts.inter(
       fontSize: AppFontSize.labelSmall,
       fontWeight: AppFontWeight.medium,
-      color: AppColors.white,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
   static TextStyle get inputText => GoogleFonts.inter(
       fontSize: AppFontSize.bodyLarge,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textPrimary,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get inputHint => GoogleFonts.inter(
       fontSize: AppFontSize.bodyLarge,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textDisabled,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get inputLabel => GoogleFonts.inter(
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.medium,
-      color: AppColors.textSecondary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
   static TextStyle get inputError => GoogleFonts.inter(
@@ -223,25 +201,21 @@ abstract final class AppTextStyles {
   static TextStyle get cardTitle => GoogleFonts.inter(
       fontSize: AppFontSize.titleMedium,
       fontWeight: AppFontWeight.semiBold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get cardSubtitle => GoogleFonts.inter(
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textSecondary,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get badge => GoogleFonts.inter(
       fontSize: AppFontSize.labelXSmall,
       fontWeight: AppFontWeight.bold,
-      color: AppColors.white,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get chip => GoogleFonts.inter(
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.medium,
-      color: AppColors.textSecondary,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.normal);
 }
@@ -250,63 +224,51 @@ abstract final class AppArabicStyles {
   static TextStyle get quranSmall => GoogleFonts.amiri(
       fontSize: AppFontSize.arabicSmall,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textPrimary,
       height: AppLineHeight.arabicNormal);
   static TextStyle get quranMedium => GoogleFonts.amiri(
       fontSize: AppFontSize.arabicMedium,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textPrimary,
       height: AppLineHeight.arabicRelaxed);
   static TextStyle get quranLarge => GoogleFonts.amiri(
       fontSize: AppFontSize.arabicLarge,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textPrimary,
       height: AppLineHeight.arabicLoose);
   static TextStyle get quranBold => GoogleFonts.amiri(
       fontSize: AppFontSize.arabicMedium,
       fontWeight: AppFontWeight.bold,
-      color: AppColors.textPrimary,
       height: AppLineHeight.arabicRelaxed);
   static TextStyle get surahName => GoogleFonts.amiri(
       fontSize: AppFontSize.arabicDisplay,
       fontWeight: AppFontWeight.bold,
-      color: AppColors.accent,
       height: AppLineHeight.arabicNormal);
   static TextStyle get bismillah => GoogleFonts.amiri(
       fontSize: AppFontSize.arabicDisplay,
       fontWeight: AppFontWeight.bold,
-      color: AppColors.accent,
       height: AppLineHeight.arabicRelaxed);
   static TextStyle get bismillahHero => GoogleFonts.amiri(
       fontSize: AppFontSize.arabicHero,
       fontWeight: AppFontWeight.bold,
-      color: AppColors.accent,
       height: AppLineHeight.arabicRelaxed);
   static TextStyle get hadithArabic => GoogleFonts.amiri(
       fontSize: AppFontSize.arabicMedium,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textPrimary,
       height: AppLineHeight.arabicRelaxed);
   static TextStyle get duaArabic => GoogleFonts.amiri(
       fontSize: AppFontSize.arabicLarge,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textEmerald,
       height: AppLineHeight.arabicLoose);
   static TextStyle get ayahNumber => GoogleFonts.inter(
       fontSize: AppFontSize.labelSmall,
       fontWeight: AppFontWeight.semiBold,
-      color: AppColors.accent,
       height: AppLineHeight.tight);
   static TextStyle get translation => GoogleFonts.inter(
       fontSize: AppFontSize.bodyMedium,
       fontWeight: AppFontWeight.regular,
-      color: AppColors.textSecondary,
       height: AppLineHeight.loose,
       letterSpacing: AppLetterSpacing.normal);
   static TextStyle get transliteration => GoogleFonts.inter(
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.light,
-      color: AppColors.textTertiary,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.wide,
       fontStyle: FontStyle.italic);
@@ -316,8 +278,8 @@ extension TextStyleExtension on TextStyle {
   TextStyle get white => copyWith(color: AppColors.textPrimary);
   TextStyle get secondary => copyWith(color: AppColors.textSecondary);
   TextStyle get tertiary => copyWith(color: AppColors.textTertiary);
-  TextStyle get gold => copyWith(color: AppColors.accent);
-  TextStyle get goldBright => copyWith(color: AppColors.accentBright);
+  TextStyle get gold => copyWith(color: const Color(0xFF6B542B));
+  TextStyle get goldBright => copyWith(color: const Color(0xFF6B542B));
   TextStyle get emerald => copyWith(color: AppColors.primary);
   TextStyle get error => copyWith(color: AppColors.error);
   TextStyle get success => copyWith(color: AppColors.success);

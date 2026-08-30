@@ -118,8 +118,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       children: [
-                        const Icon(Icons.error_outline_rounded,
-                            color: Colors.redAccent, size: 48),
+                        Icon(Icons.error_outline_rounded,
+                            color: QibraColors.light.error, size: 48),
                         const SizedBox(height: 12),
                         const Text(
                           'Failed to load hadiths',
@@ -160,6 +160,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         width: 48,
         height: 48,
         child: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: Color(0xFF19312C), size: 18),
           onPressed: () => Navigator.of(context).pop(),
@@ -176,6 +177,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       centerTitle: true,
       actions: [
         IconButton(
+          tooltip: 'Display languages',
           icon: const Icon(Icons.display_settings_rounded,
               color: Color(0xFFC6A15B), size: 20),
           onPressed: () => _showDisplaySettingsDialog(context),

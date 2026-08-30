@@ -29,6 +29,7 @@ class SettingsScreen extends ConsumerWidget {
     final colors = QibraColors.of(context);
     final user = ref.watch(currentUserProvider);
     final userName = ref.watch(userDisplayNameProvider);
+    final isGuest = ref.watch(isGuestModeProvider);
     final isDark = ref.watch(isDarkModeProvider);
     final strings = AppStrings.of(context);
     final locale = ref.watch(localeProvider);
@@ -58,7 +59,12 @@ class SettingsScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   // PROFILE CARD
-                  _buildProfileCard(context, userName, user?.email ?? ''),
+                  _buildProfileCard(
+                    context,
+                    userName,
+                    user?.email ?? '',
+                    isGuest: isGuest,
+                  ),
                   const SizedBox(height: AppSpacing.xl2),
 
                   _buildSectionTitle(context, 'App preferences'),
@@ -148,7 +154,7 @@ class SettingsScreen extends ConsumerWidget {
                   _buildSettingsGroup(context, [
                     _SettingsTile(
                       icon: Icons.notifications_active_rounded,
-                      iconColor: const Color(0xFFEF4444),
+                      iconColor: colors.error,
                       title: 'Prayer Notifications',
                       subtitle: 'Azan alerts & reminders',
                       onTap: () => context.push('/settings/notifications'),
@@ -191,7 +197,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _SettingsTile(
                       icon: Icons.privacy_tip_outlined,
-                      iconColor: const Color(0xFF6B7280),
+                      iconColor: colors.textTertiary,
                       title: 'Privacy Policy',
                       subtitle: 'Copy the published URL',
                       onTap: () => _showLegalUrl(
@@ -202,7 +208,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _SettingsTile(
                       icon: Icons.description_outlined,
-                      iconColor: const Color(0xFF6B7280),
+                      iconColor: colors.textTertiary,
                       title: 'Terms of Service',
                       subtitle: 'Copy the published URL',
                       onTap: () => _showLegalUrl(
@@ -250,8 +256,9 @@ class SettingsScreen extends ConsumerWidget {
   Widget _buildProfileCard(
     BuildContext context,
     String userName,
-    String email,
-  ) {
+    String email, {
+    required bool isGuest,
+  }) {
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -320,29 +327,31 @@ class SettingsScreen extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.onPrimary.withValues(alpha: 0.20),
-                    borderRadius: AppRadius.pillRadius,
-                    border: Border.all(
-                      color: colors.onPrimary.withValues(alpha: 0.30),
+                if (isGuest) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.onPrimary.withValues(alpha: 0.20),
+                      borderRadius: AppRadius.pillRadius,
+                      border: Border.all(
+                        color: colors.onPrimary.withValues(alpha: 0.30),
+                      ),
+                    ),
+                    child: Text(
+                      AppStrings.of(context).guest,
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.onPrimary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 9,
+                        letterSpacing: 1.0,
+                      ),
                     ),
                   ),
-                  child: Text(
-                    AppStrings.of(context).guest,
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: colors.onPrimary,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 9,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                ),
+                ],
               ],
             ),
           ),
@@ -474,7 +483,7 @@ class SettingsScreen extends ConsumerWidget {
                     Text(
                       'About QIBRA AI',
                       style: AppTextStyles.titleMedium.copyWith(
-                        color: colors.accent,
+                        color: colors.goldText,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -541,19 +550,8 @@ class SettingsScreen extends ConsumerWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFFEF4444),
-                      Color(0xFFDC2626),
-                    ],
-                  ),
+                  color: colors.error,
                   borderRadius: AppRadius.pillRadius,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFEF4444).withValues(alpha: 0.40),
-                      blurRadius: 8,
-                    ),
-                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -723,29 +721,21 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.md),
-        ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [
-              Color(0xFFC6A15B),
-              Color(0xFFB8960C),
-            ],
-          ).createShader(bounds),
-          child: const Text(
-            'بَارَكَ اللَّهُ فِيك',
-            style: TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 20,
-              color: const Color(0xFF19312C),
-              fontWeight: FontWeight.w700,
-            ),
-            textDirection: TextDirection.rtl,
+        Text(
+          'بَارَكَ اللَّهُ فِيك',
+          style: TextStyle(
+            fontFamily: 'Amiri',
+            fontSize: 20,
+            color: colors.goldText,
+            fontWeight: FontWeight.w700,
           ),
+          textDirection: TextDirection.rtl,
         ),
         const SizedBox(height: 4),
         Text(
           'May Allah bless you',
           style: AppTextStyles.labelSmall.copyWith(
-            color: colors.accent.withValues(alpha: 0.70),
+            color: colors.goldText.withValues(alpha: 0.80),
             fontStyle: FontStyle.italic,
             fontSize: 10,
           ),
@@ -784,9 +774,10 @@ class SettingsScreen extends ConsumerWidget {
   // HELPERS
   // ============================================================
 
-  void _showLanguageSheet(BuildContext context) {
+  void _showLanguageSheet(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final strings = AppStrings.of(context);
+    final current = ref.read(localeProvider).languageCode;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: colors.card,
@@ -823,17 +814,182 @@ class SettingsScreen extends ConsumerWidget {
                         color: sheetColors.textPrimary,
                       ),
                     ),
+                    trailing: current == entry.$1
+                        ? Icon(Icons.check_rounded, color: sheetColors.primary)
+                        : null,
                     onTap: () {
+                      ref.read(localeProvider.notifier).setLocale(entry.$1);
                       Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '${entry.$2}',
-                            style: TextStyle(color: sheetColors.onPrimary),
-                          ),
-                          backgroundColor: sheetColors.primary,
-                        ),
-                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFontSizeSheet(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final current = ref.read(readingPreferencesProvider).fontScale;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final sheetColors = QibraColors.of(ctx);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Font Size',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: sheetColors.goldText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final entry in const [
+                  (0.9, 'Small'),
+                  (1.0, 'Medium'),
+                  (1.25, 'Large'),
+                ])
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      entry.$2,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: sheetColors.textPrimary,
+                      ),
+                    ),
+                    trailing: current == entry.$1
+                        ? Icon(Icons.check_rounded, color: sheetColors.primary)
+                        : null,
+                    onTap: () {
+                      ref
+                          .read(readingPreferencesProvider.notifier)
+                          .setFontScale(entry.$1);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showQuranTranslationSheet(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final current = ref.read(readingPreferencesProvider).translationId;
+    final editions = EditionResolver.allBundled()
+        .where((e) => e.id != 'ar')
+        .toList();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final sheetColors = QibraColors.of(ctx);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStrings.of(context).quranTranslation,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: sheetColors.goldText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final edition in editions)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      edition.label,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: sheetColors.textPrimary,
+                      ),
+                    ),
+                    trailing: current == edition.id
+                        ? Icon(Icons.check_rounded, color: sheetColors.primary)
+                        : null,
+                    onTap: () {
+                      ref
+                          .read(readingPreferencesProvider.notifier)
+                          .setTranslation(edition.id);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showHadithLanguageSheet(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final current = ref.read(hadithLanguageProvider);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final sheetColors = QibraColors.of(ctx);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStrings.of(context).hadithLanguage,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: sheetColors.goldText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final entry in const [
+                  ('en', 'English'),
+                  ('ar', 'العربية'),
+                  ('ur', 'اردو'),
+                ])
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      entry.$2,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: sheetColors.textPrimary,
+                      ),
+                    ),
+                    trailing: current == entry.$1
+                        ? Icon(Icons.check_rounded, color: sheetColors.primary)
+                        : null,
+                    onTap: () {
+                      ref
+                          .read(hadithLanguageProvider.notifier)
+                          .setLanguage(entry.$1);
+                      Navigator.pop(ctx);
                     },
                   ),
               ],

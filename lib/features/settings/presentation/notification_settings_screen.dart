@@ -1,5 +1,6 @@
 // lib/features/settings/presentation/notification_settings_screen.dart
 import 'package:audioplayers/audioplayers.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -141,7 +142,7 @@ class _NotificationSettingsScreenState
                     const Color(0xFF123F36),
                   ),
                   if (_prayerNotifications) ...[
-                    const Divider(color: Color(0xFF1E2535), height: 20),
+                    const Divider(color: QibraColors.light.border, height: 20),
                     _settingToggle(
                       'Pre-Prayer Alert',
                       'Alert before prayer time',
@@ -171,7 +172,7 @@ class _NotificationSettingsScreenState
                     const Color(0xFFC6A15B),
                   ),
                   if (_tahajjudNotification) ...[
-                    const Divider(color: Color(0xFF1E2535), height: 20),
+                    const Divider(color: QibraColors.light.border, height: 20),
                     _timeSelector(
                       'Alarm Time',
                       _tahajjudHour,
@@ -196,7 +197,7 @@ class _NotificationSettingsScreenState
                     (v) => setState(() => _morningAdhkar = v),
                     const Color(0xFFC6A15B),
                   ),
-                  const Divider(color: Color(0xFF1E2535), height: 20),
+                  const Divider(color: QibraColors.light.border, height: 20),
                   _settingToggle(
                     'Evening Adhkar',
                     'Daily reminder at 5:30 PM',
@@ -218,7 +219,7 @@ class _NotificationSettingsScreenState
                     (v) => setState(() => _jummahNotification = v),
                     const Color(0xFF123F36),
                   ),
-                  const Divider(color: Color(0xFF1E2535), height: 20),
+                  const Divider(color: QibraColors.light.border, height: 20),
                   _settingToggle(
                     'Quran Daily',
                     'Read Quran reminder',
@@ -402,8 +403,8 @@ class _NotificationSettingsScreenState
               Text(title,
                   style: TextStyle(
                       color: value
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.5),
+                          ? const Color(0xFF19312C)
+                          : const Color(0xFF71807A),
                       fontSize: 13,
                       fontWeight: FontWeight.w600)),
               Text(subtitle,
@@ -423,7 +424,7 @@ class _NotificationSettingsScreenState
             width: 46,
             height: 26,
             decoration: BoxDecoration(
-              color: value ? color : Colors.white.withValues(alpha: 0.08),
+              color: value ? color : const Color(0xFFE4E0D5),
               borderRadius: BorderRadius.circular(13),
             ),
             child: AnimatedAlign(
@@ -469,12 +470,12 @@ class _NotificationSettingsScreenState
                   decoration: BoxDecoration(
                     color: selected
                         ? const Color(0xFFC6A15B).withValues(alpha: 0.15)
-                        : Colors.white.withValues(alpha: 0.05),
+                        : const Color(0xFFF5F3EC),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: selected
-                          ? const Color(0xFFC6A15B)
-                          : Colors.white.withValues(alpha: 0.05),
+                          ? const Color(0xFF6B542B)
+                          : const Color(0xFFE4E0D5),
                     ),
                   ),
                   child: Text(
@@ -482,8 +483,8 @@ class _NotificationSettingsScreenState
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: selected
-                          ? const Color(0xFFC6A15B)
-                          : Colors.white.withValues(alpha: 0.3),
+                          ? const Color(0xFF6B542B)
+                          : const Color(0xFF71807A),
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
@@ -684,7 +685,7 @@ class _NotificationSettingsScreenState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+        color: QibraColors.light.cardMuted.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
             Border.all(color: const Color(0xFF123F36).withValues(alpha: 0.15)),

@@ -262,7 +262,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [colors.backgroundSecondary, Color(0xFF1A3D38)],
+          colors: [colors.backgroundSecondary, colors.card],
         ),
         borderRadius: BorderRadius.circular(20),
         border:
@@ -745,7 +745,7 @@ class _SadaqahTrackerScreenState extends State<SadaqahTrackerScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [colors.primarySoft, Color(0xFF2D8F88)],
+                        colors: [colors.primarySoft, QibraColors.light.primarySoft],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [

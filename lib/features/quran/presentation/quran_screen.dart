@@ -12,7 +12,6 @@ import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_provider.dart' hide readingProgressProvider;
 import '../providers/reading_progress_provider.dart';
-import 'surah_list_screen.dart';
 
 class QuranScreen extends ConsumerStatefulWidget {
   const QuranScreen({super.key});
@@ -199,14 +198,7 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                       _SurahTile(surah: surah, onTap: () => _openSurah(surah.number)),
                     const SizedBox(height: 8),
                     OutlinedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SurahListScreen(),
-                          ),
-                        );
-                      },
+                      onPressed: () => context.go('/quran/surahs'),
                       child: const Text('View all surahs'),
                     ),
                   ],

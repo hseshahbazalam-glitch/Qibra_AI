@@ -245,7 +245,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [colors.backgroundSecondary, Color(0xFF2D1B69)],
+          colors: [colors.backgroundSecondary, colors.card],
         ),
         borderRadius: BorderRadius.circular(20),
         border:

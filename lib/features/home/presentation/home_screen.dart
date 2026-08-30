@@ -9,6 +9,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../../duas/providers/dua_provider.dart';
 import '../../hadith/providers/hadith_provider.dart';
@@ -265,7 +266,13 @@ class HomeScreen extends ConsumerWidget {
                   padding: EdgeInsets.only(bottom: 12),
                   child: LinearProgressIndicator(minHeight: 2),
                 ),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 12),
+                  child: QibraStatus.error(
+                    title: 'Hadith unavailable',
+                    message: 'Cached collections will appear when they finish loading.',
+                  ),
+                ),
               ),
               QibraCard(
                 onTap: () => context.go(AppRoutes.dua),
@@ -327,6 +334,37 @@ class HomeScreen extends ConsumerWidget {
                     onTap: () => context.go(AppRoutes.bookmarks),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              QibraCard(
+                onTap: () => context.go(AppRoutes.aiChat),
+                child: Row(
+                  children: [
+                    Icon(Icons.auto_awesome_outlined, color: colors.primary),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ask Qibra',
+                            style: AppTextStyles.titleSmall.copyWith(
+                              color: colors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            'Retrieval only — not a fatwa',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_rounded, color: colors.primary),
+                  ],
+                ),
               ),
             ],
           ),

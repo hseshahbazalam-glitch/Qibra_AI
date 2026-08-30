@@ -348,7 +348,9 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                     Text(
                       _isSpeaking
                           ? 'Speaking...'
-                          : (_isListening ? 'Listening...' : 'Online'),
+                          : (_isListening
+                              ? 'Listening...'
+                              : 'Retrieval only — not a fatwa'),
                       style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 11,
