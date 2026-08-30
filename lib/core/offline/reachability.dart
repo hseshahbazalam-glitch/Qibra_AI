@@ -1,6 +1,7 @@
-// Reachability: unknown ≠ online.
+// Reachability: unknown ≠ online. Reconnecting ≠ online.
+// Transport online does not mean the Qibra API is healthy.
 
-enum Reachability { online, offline, unknown }
+enum Reachability { online, offline, unknown, reconnecting }
 
 class ReachabilityState {
   const ReachabilityState(this.value);
@@ -9,8 +10,9 @@ class ReachabilityState {
   bool get isOnline => value == Reachability.online;
   bool get isOffline => value == Reachability.offline;
   bool get isUnknown => value == Reachability.unknown;
+  bool get isReconnecting => value == Reachability.reconnecting;
 
-  /// Never treat unknown as online.
+  /// Never treat unknown or reconnecting as online.
   bool get mayUseNetwork => value == Reachability.online;
 }
 
@@ -21,9 +23,16 @@ abstract final class ReachabilityMapper {
     if (none) return const ReachabilityState(Reachability.offline);
     final hasTransport = labels.any((l) {
       final v = l.toLowerCase();
-      return v == 'wifi' || v == 'mobile' || v == 'ethernet' || v == 'vpn' || v == 'other';
+      return v == 'wifi' ||
+          v == 'mobile' ||
+          v == 'ethernet' ||
+          v == 'vpn' ||
+          v == 'other';
     });
     if (hasTransport) return const ReachabilityState(Reachability.online);
+    if (labels.any((l) => l.toLowerCase() == 'reconnecting')) {
+      return const ReachabilityState(Reachability.reconnecting);
+    }
     return const ReachabilityState(Reachability.unknown);
   }
 }

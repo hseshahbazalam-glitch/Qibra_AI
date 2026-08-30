@@ -1,6 +1,8 @@
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
 
+enum RetrievalMode { localRetrieval, remoteRetrieval, noContext }
+
 class RetrievedPassage {
   final String source;
   final String text;
@@ -35,6 +37,14 @@ class RagService {
 
   void attachHadithDb(HadithDatabaseService db) {
     _hadithDb = db;
+  }
+
+  static RetrievalMode modeFor(
+    Iterable<RetrievedPassage> passages, {
+    bool remote = false,
+  }) {
+    if (passages.isEmpty) return RetrievalMode.noContext;
+    return remote ? RetrievalMode.remoteRetrieval : RetrievalMode.localRetrieval;
   }
 
   /// Retrieves local Quran and Hadith passages for a query. Not independently verified.

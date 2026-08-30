@@ -1,7 +1,9 @@
 # Offline
 
-See `OFFLINE_FIRST_ARCHITECTURE.md`.
+See `OFFLINE_FIRST_ARCHITECTURE.md`, `CACHE_STRATEGY.md`, `OFFLINE_SYNC.md`.
 
-- Unknown network is not online.
+- Unknown / reconnecting is not online.
+- Transport online is not backend-available.
 - Cache hits may serve Quran/Hadith/prayer chrome without claiming live connectivity.
-- Sync uses jittered backoff and retries; it does not reboot-proof notifications.
+- Expired cache is kept until invalidated.
+- Sync uses jittered backoff; it does not reboot-proof notifications.

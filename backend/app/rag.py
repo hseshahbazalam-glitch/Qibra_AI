@@ -1,6 +1,12 @@
 """Retrieval-only RAG. No passage = refuse. Never claim verified sources."""
 
 
+def retrieval_mode(passages: list, *, remote: bool = False) -> str:
+    if not passages:
+        return "NO_CONTEXT"
+    return "REMOTE_RETRIEVAL" if remote else "LOCAL_RETRIEVAL"
+
+
 def retrieve(query: str, corpus: list[dict]) -> list[dict]:
     q = query.lower().strip()
     if not q:

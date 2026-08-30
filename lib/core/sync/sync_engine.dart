@@ -1,11 +1,12 @@
 // Client sync engine. Merge is last-write-wins on the server; client queues ops.
-// Never enqueue passwords, tokens, or Quran/Hadith full text.
+// Never enqueue passwords, tokens, GPS, or Quran/Hadith full text.
 
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/app_constants.dart';
+import 'retry_policy.dart';
 
 enum SyncOpType { upsert, delete }
 
@@ -21,6 +22,7 @@ class SyncOp {
     this.status = SyncOpStatus.pending,
     this.attemptCount = 0,
     this.errorCode,
+    this.nextRetryAt,
   });
 
   final String id;
@@ -31,11 +33,19 @@ class SyncOp {
   final SyncOpStatus status;
   final int attemptCount;
   final String? errorCode;
+  final DateTime? nextRetryAt;
+
+  String? get lastError => errorCode;
+
+  bool isDue(DateTime now) =>
+      nextRetryAt == null || !nextRetryAt!.isAfter(now);
 
   SyncOp copyWith({
     SyncOpStatus? status,
     int? attemptCount,
     String? errorCode,
+    DateTime? nextRetryAt,
+    bool clearNextRetry = false,
   }) {
     return SyncOp(
       id: id,
@@ -45,7 +55,8 @@ class SyncOp {
       updatedAt: updatedAt,
       status: status ?? this.status,
       attemptCount: attemptCount ?? this.attemptCount,
-      errorCode: errorCode,
+      errorCode: errorCode ?? this.errorCode,
+      nextRetryAt: clearNextRetry ? null : (nextRetryAt ?? this.nextRetryAt),
     );
   }
 
@@ -58,6 +69,7 @@ class SyncOp {
         'status': status.name,
         'attempt_count': attemptCount,
         'error_code': errorCode,
+        'next_retry_at': nextRetryAt?.toIso8601String(),
       };
 
   factory SyncOp.fromJson(Map<String, dynamic> json) {
@@ -78,7 +90,9 @@ class SyncOp {
         orElse: () => SyncOpStatus.pending,
       ),
       attemptCount: (json['attempt_count'] as num?)?.toInt() ?? 0,
-      errorCode: json['error_code']?.toString(),
+      errorCode:
+          json['error_code']?.toString() ?? json['last_error']?.toString(),
+      nextRetryAt: DateTime.tryParse(json['next_retry_at']?.toString() ?? ''),
     );
   }
 }
@@ -89,25 +103,36 @@ class SyncQueue {
   List<SyncOp> get pending =>
       List.unmodifiable(_ops.where((o) => o.status == SyncOpStatus.pending));
 
+  List<SyncOp> due(DateTime now) =>
+      List.unmodifiable(pending.where((o) => o.isDue(now)));
+
   List<SyncOp> get all => List.unmodifiable(_ops);
 
   void enqueue(SyncOp op) {
     _ops.removeWhere((o) => o.collection == op.collection && o.id == op.id);
-    _ops.add(op.copyWith(status: SyncOpStatus.pending));
+    _ops.add(op.copyWith(status: SyncOpStatus.pending, clearNextRetry: true));
   }
 
   void ack(String id, String collection) {
     _ops.removeWhere((o) => o.id == id && o.collection == collection);
   }
 
-  void mark(String id, String collection, SyncOpStatus status, {String? errorCode}) {
+  void mark(
+    String id,
+    String collection,
+    SyncOpStatus status, {
+    String? errorCode,
+    DateTime? nextRetryAt,
+  }) {
     for (var i = 0; i < _ops.length; i++) {
       final op = _ops[i];
       if (op.id == id && op.collection == collection) {
         _ops[i] = op.copyWith(
           status: status,
-          attemptCount: op.attemptCount + (status == SyncOpStatus.failed ? 1 : 0),
+          attemptCount:
+              op.attemptCount + (status == SyncOpStatus.failed ? 1 : 0),
           errorCode: errorCode,
+          nextRetryAt: nextRetryAt,
         );
       }
     }
@@ -128,6 +153,9 @@ class SyncEngine {
   SyncEngine._();
   static final SyncEngine instance = SyncEngine._();
 
+  /// Test / isolated engine. Production uses [instance].
+  SyncEngine.standalone() : queue = SyncQueue();
+
   final SyncQueue queue = SyncQueue();
   bool _inFlight = false;
   static const int maxBatch = 500;
@@ -139,9 +167,10 @@ class SyncEngine {
     await prefs.setString(persistKey, jsonEncode(queue.snapshot()));
   }
 
-  Future<void> load(SharedPreferences prefs) async {
-    final raw = prefs.getString(persistKey);
-    if (raw == null || raw.isEmpty) return;
+  String dumpJson() => jsonEncode(queue.snapshot());
+
+  void loadJson(String raw) {
+    if (raw.isEmpty) return;
     final decoded = jsonDecode(raw);
     if (decoded is! List) return;
     queue.restore(
@@ -152,16 +181,23 @@ class SyncEngine {
     );
   }
 
+  Future<void> load(SharedPreferences prefs) async {
+    final raw = prefs.getString(persistKey);
+    if (raw == null || raw.isEmpty) return;
+    loadJson(raw);
+  }
+
   /// Flush pending ops when the device is online. No-op while backend is off.
   Future<void> flushWhenOnline({
     required bool online,
     Future<void> Function(List<SyncOp> batch)? sender,
     SharedPreferences? prefs,
+    DateTime? now,
   }) async {
     if (prefs != null) await persist(prefs);
     if (!online || !AppApi.isBackendEnabled) return;
     await runSingleFlight(() async {
-      final batch = takeBatch();
+      final batch = takeBatch(now: now ?? DateTime.now());
       if (batch.isEmpty || sender == null) return;
       await sender(batch);
     });
@@ -177,14 +213,17 @@ class SyncEngine {
     }
   }
 
-  List<SyncOp> takeBatch({int limit = maxBatch}) {
-    return queue.pending.take(limit).toList();
+  List<SyncOp> takeBatch({int limit = maxBatch, DateTime? now}) {
+    final due = now == null ? queue.pending : queue.due(now);
+    return due.take(limit).toList();
   }
 
   Duration jitteredBackoff(int attempt, {int maxMs = 30000}) {
-    final base = 250 * (1 << attempt.clamp(0, 6));
-    final jitter = DateTime.now().microsecond % 180;
-    return Duration(milliseconds: (base + jitter).clamp(250, maxMs));
+    return RetryPolicy.backoff(
+      attempt,
+      maxMs: maxMs,
+      jitterMs: DateTime.now().microsecond % 180,
+    );
   }
 
   Future<T> retry<T>(Future<T> Function() work, {int times = 3}) async {

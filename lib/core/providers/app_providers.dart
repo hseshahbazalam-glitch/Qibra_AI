@@ -15,6 +15,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants/app_constants.dart';
+import '../offline/data_status.dart';
 import '../offline/reachability.dart';
 
 // ============================================================
@@ -80,6 +82,15 @@ final reachabilityProvider = Provider<ReachabilityState>((ref) {
 /// Simple boolean provider — unknown is NOT online.
 final isOnlineProvider = Provider<bool>((ref) {
   return ref.watch(reachabilityProvider).isOnline;
+});
+
+/// Transport online ≠ Qibra API healthy. Health is never assumed.
+final serviceAvailabilityProvider = Provider<ServiceAvailability>((ref) {
+  return ServiceAvailability(
+    reachability: ref.watch(reachabilityProvider),
+    backendEnabled: AppApi.isBackendEnabled,
+    backendHealthy: false,
+  );
 });
 
 // ============================================================
