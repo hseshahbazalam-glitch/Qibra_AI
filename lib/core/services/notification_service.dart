@@ -21,6 +21,11 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  static bool _timeZonesReady = false;
+
+  static void markTimeZonesInitialized() {
+    _timeZonesReady = true;
+  }
 
   static const int _fajrId = 1001;
   static const int _dhuhrId = 1002;

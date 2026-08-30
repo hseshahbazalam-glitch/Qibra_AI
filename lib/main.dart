@@ -4,6 +4,8 @@
 // Version: 6.0.0 — Clean (No Audio, New AI System)
 // ============================================================
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,6 +39,7 @@ void main() async {
   // ─── Timezone DB (Phase 2: IANA for exact prayer timezone) ─────
   try {
     tz_data.initializeTimeZones();
+    NotificationService.markTimeZonesInitialized();
     debugPrint('✅ Timezone DB initialized');
   } catch (e) {
     debugPrint('⚠️ Timezone DB failed: $e');
@@ -79,23 +82,6 @@ void main() async {
     debugPrint('⚠️ Quran data loading failed: $e');
   }
 
-  // ─── Hadith Database ─────────────────────────
-  try {
-    debugPrint('📚 Loading Hadith database...');
-    final hadithDb = HadithDatabaseService();
-    await hadithDb.initialize();
-    debugPrint('✅ Hadith database loaded!');
-    debugPrint('   📊 Total: ${hadithDb.totalHadiths} hadiths');
-    _globalHadithDb = hadithDb;
-    // Attach to RAG for offline retrieval
-    try {
-      RagService.instance.attachHadithDb(hadithDb);
-      debugPrint('✅ RAG attached to Hadith DB');
-    } catch (_) {}
-  } catch (e) {
-    debugPrint('⚠️ Hadith database loading failed: $e');
-  }
-
   // ─── Boot Info ─────────────────────────
   _printBootInfo();
 
@@ -105,6 +91,24 @@ void main() async {
       child: QibraApp(),
     ),
   );
+
+  // Hadith corpus is large; screens call initialize() if still loading.
+  unawaited(_loadHadithInBackground());
+}
+
+Future<void> _loadHadithInBackground() async {
+  try {
+    debugPrint('📚 Loading Hadith database...');
+    final hadithDb = HadithDatabaseService();
+    await hadithDb.initialize();
+    debugPrint('✅ Hadith database loaded!');
+    _globalHadithDb = hadithDb;
+    try {
+      RagService.instance.attachHadithDb(hadithDb);
+    } catch (_) {}
+  } catch (e) {
+    debugPrint('⚠️ Hadith database loading failed: $e');
+  }
 }
 
 // ============================================================
@@ -144,7 +148,7 @@ void _printBootInfo() {
   debugPrint('║  ✅ Riverpod initialized');
   debugPrint('║  ✅ Router ready');
   debugPrint('║  📖 Quran data ready');
-  debugPrint('║  📚 Hadith DB ready');
+  debugPrint('║  📚 Hadith DB loading after first frame');
   debugPrint('║  🤖 AI Engine ready');
   debugPrint('╚═══════════════════════════════════════╝');
 }

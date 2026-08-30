@@ -9,6 +9,7 @@ from .allowlist import is_forbidden
 _COUNTERS: dict[str, int] = defaultdict(int)
 _LATENCY_SUM_MS: float = 0.0
 _LATENCY_COUNT: int = 0
+_MAX_KEYS = 64
 
 
 def reset_metrics() -> None:
@@ -20,6 +21,8 @@ def reset_metrics() -> None:
 
 def inc(name: str, n: int = 1) -> None:
     if not name or is_forbidden(name):
+        return
+    if name not in _COUNTERS and len(_COUNTERS) >= _MAX_KEYS:
         return
     _COUNTERS[name] += n
 

@@ -7,6 +7,9 @@ from ..observability.metrics import inc, observe_ms
 
 class MetricsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
+        path = request.url.path
+        if path == "/health/metrics":
+            return await call_next(request)
         started = time.perf_counter()
         response = await call_next(request)
         elapsed_ms = (time.perf_counter() - started) * 1000
