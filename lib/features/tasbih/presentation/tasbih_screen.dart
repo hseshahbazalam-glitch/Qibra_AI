@@ -1440,7 +1440,8 @@ class _StatisticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _bigStatCard({
+  Widget _bigStatCard(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required String value,
