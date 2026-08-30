@@ -27,15 +27,30 @@ class PrayerSource {
 class AladhanParser {
   const AladhanParser();
 
+  /// Returns parsed HH:MM strings. Invalid payloads yield {}.
+  /// Imsak/Sunset are optional and never invented.
   Map<String, String> parseTimings(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>? ?? json;
-    final timings = data['timings'] as Map<String, dynamic>? ?? {};
+    final timings = data['timings'];
+    if (timings is! Map) return {};
     final out = <String, String>{};
-    for (final key in ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
-      final raw = timings[key]?.toString();
-      if (raw == null || raw.isEmpty) continue;
-      out[key] = raw.split(' ').first;
+    for (final key in [
+      'Imsak',
+      'Fajr',
+      'Sunrise',
+      'Dhuhr',
+      'Asr',
+      'Sunset',
+      'Maghrib',
+      'Isha',
+    ]) {
+      final raw = timings[key]?.toString() ?? '';
+      final hhmm = raw.split(' ').first.trim();
+      if (!RegExp(r'^\d{1,2}:\d{2}').hasMatch(hhmm)) continue;
+      out[key] = hhmm;
     }
     return out;
   }
+
+  bool get isLiveNetwork => false;
 }

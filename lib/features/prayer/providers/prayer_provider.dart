@@ -27,7 +27,17 @@ final prayerCalculationServiceProvider = Provider<PrayerCalculationService>(
 // SECTION 3 — LOCATION STATE
 // ============================================================
 
-enum LocationStatus { initial, loading, success, denied, disabled, error }
+enum LocationStatus {
+  initial,
+  loading,
+  success,
+  denied,
+  deniedForever,
+  disabled,
+  timeout,
+  unavailable,
+  error,
+}
 
 class LocationState {
   const LocationState({
@@ -45,7 +55,10 @@ class LocationState {
   bool get hasError =>
       status == LocationStatus.error ||
       status == LocationStatus.denied ||
-      status == LocationStatus.disabled;
+      status == LocationStatus.deniedForever ||
+      status == LocationStatus.disabled ||
+      status == LocationStatus.timeout ||
+      status == LocationStatus.unavailable;
 
   LocationState copyWith({
     LocationStatus? status,
@@ -147,20 +160,17 @@ class LocationNotifier extends StateNotifier<LocationState> {
 
       if (permission == LocationPermission.deniedForever) {
         state = state.copyWith(
-          status: LocationStatus.denied,
+          status: LocationStatus.deniedForever,
           error:
               'Location permission permanently denied. Enable from settings.',
         );
         return;
       }
 
-      debugPrint('[LOCATION] Getting current position...');
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 20),
       );
-
-      debugPrint('[LOCATION] Position acquired');
 
       final resolved = LocationResolver.fromCoordinates(
         position.latitude,
@@ -183,11 +193,15 @@ class LocationNotifier extends StateNotifier<LocationState> {
       );
 
       await _cacheLocation(location);
-    } catch (e) {
-      debugPrint('[LOCATION] Error: $e');
+    } on TimeoutException {
+      state = state.copyWith(
+        status: LocationStatus.timeout,
+        error: 'Location timed out. You can set a city manually.',
+      );
+    } catch (_) {
       state = state.copyWith(
         status: LocationStatus.error,
-        error: 'Failed to get location. Check GPS and internet.',
+        error: 'Location unavailable. You can set a city manually.',
       );
     }
   }

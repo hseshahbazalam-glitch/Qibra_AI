@@ -23,6 +23,25 @@ class NextPrayerResult {
 abstract final class NextPrayerEngine {
   static const obligatory = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
+  /// Current obligatory window. Before Fajr / after Isha returns null
+  /// (next is Fajr, possibly tomorrow). Sunrise is never "current salah".
+  static NamedPrayerInstant? current({
+    required DateTime now,
+    required List<NamedPrayerInstant> today,
+  }) {
+    final ordered = today
+        .where((p) => obligatory.contains(p.name))
+        .toList()
+      ..sort((a, b) => a.time.compareTo(b.time));
+    NamedPrayerInstant? active;
+    for (final p in ordered) {
+      if (!p.time.isAfter(now)) {
+        active = p;
+      }
+    }
+    return active;
+  }
+
   static NextPrayerResult? next({
     required DateTime now,
     required List<NamedPrayerInstant> today,

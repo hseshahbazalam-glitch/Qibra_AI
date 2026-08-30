@@ -1,9 +1,19 @@
 from datetime import datetime, timedelta
 
+ORDER = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+
+
+def current_prayer_at(now: datetime, today: dict[str, datetime]) -> dict | None:
+    active = None
+    for name in ORDER:
+        t = today.get(name)
+        if t is not None and t <= now:
+            active = {"name": name, "time": t.isoformat()}
+    return active
+
 
 def next_prayer_after(now: datetime, today: dict[str, datetime], tomorrow_fajr: datetime) -> dict:
-    order = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
-    for name in order:
+    for name in ORDER:
         t = today.get(name)
         if t is not None and t > now:
             return {"name": name, "time": t.isoformat(), "tomorrow": False}

@@ -6,37 +6,44 @@ class PrayerScheduleCache {
   PrayerScheduleCache._();
   static final PrayerScheduleCache instance = PrayerScheduleCache._();
 
-  static const _key = 'prayer_schedule_v1';
+  static const ttl = Duration(hours: 24);
+
+  static String keyFor({
+    required double latitude,
+    required double longitude,
+    required DateTime date,
+    required String timezone,
+    required String method,
+    required String asr,
+    required String provider,
+  }) {
+    final day =
+        '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final lat = latitude.toStringAsFixed(4);
+    final lng = longitude.toStringAsFixed(4);
+    return 'prayer|$lat|$lng|$day|$timezone|$method|$asr|$provider';
+  }
 
   Future<void> save({
-    required DateTime date,
+    required String cacheKey,
     required Map<String, String> times,
-    required String locationLabel,
   }) {
     return CacheStore.instance.write(
-      _key,
-      jsonEncode({
-        'date': DateTime(date.year, date.month, date.day).toIso8601String(),
-        'times': times,
-        'location': locationLabel,
-      }),
-      ttl: const Duration(hours: 24),
+      cacheKey,
+      jsonEncode({'times': times, 'key': cacheKey}),
+      ttl: ttl,
     );
   }
 
-  Future<Map<String, dynamic>?> loadFor(DateTime date) async {
-    final entry = await CacheStore.instance.read(_key);
+  Future<Map<String, String>?> load(String cacheKey) async {
+    final entry = await CacheStore.instance.read(cacheKey);
     if (entry == null) return null;
     try {
       final map = jsonDecode(entry.value) as Map<String, dynamic>;
-      final stored = DateTime.tryParse(map['date'] as String? ?? '');
-      if (stored == null) return null;
-      if (stored.year != date.year ||
-          stored.month != date.month ||
-          stored.day != date.day) {
-        return null;
-      }
-      return map;
+      if (map['key'] != cacheKey) return null;
+      final times = map['times'];
+      if (times is! Map) return null;
+      return times.map((k, v) => MapEntry(k.toString(), v.toString()));
     } catch (_) {
       return null;
     }

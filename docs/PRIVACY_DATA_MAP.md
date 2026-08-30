@@ -9,7 +9,7 @@
 | Reading progress | yes | `progress` | optional | last position |
 | Access/refresh tokens | secure storage | refresh **hash** only | no | Never log |
 | Password | never | PBKDF2 hash | no | |
-| GPS / city | local cache | no | no | `precise_location_stored_on_server=false` |
+| GPS / city | local cache | no | no | `precise_location_stored_on_server=false`. See `LOCATION_PRIVACY.md`. |
 | AI prompts | no | no query logs | no | |
 | Billing | no | stub `is_premium` false | no | |
 
