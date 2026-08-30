@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from ..services.billing_service import BillingService
 
@@ -12,5 +12,17 @@ def status():
 
 
 @router.post("/verify")
-def verify():
-    return {"ok": False, "reason": "store_unconfigured", "is_premium": False}
+async def verify(request: Request):
+    payload: dict = {}
+    try:
+        data = await request.json()
+        if isinstance(data, dict):
+            payload = data
+    except Exception:
+        payload = {}
+    return _service.verify_payload(payload)
+
+
+@router.post("/restore")
+def restore():
+    return _service.restore()

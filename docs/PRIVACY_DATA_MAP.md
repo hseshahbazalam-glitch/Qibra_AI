@@ -14,5 +14,6 @@
 | Sync queue | prefs `qibra_sync_queue_v1` | optional `/sync` | refs only | Bookmarks/progress ids. Never tokens. |
 | AI prompts | no | no query logs | no | |
 | Billing | no | stub `is_premium` false | no | |
+| Store receipts / purchase tokens | no | no | no | Verifier unconfigured. Never log. |
 
 Observability consent default OFF. No Firebase/Sentry/Mixpanel in this checkout.
