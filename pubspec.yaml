@@ -98,6 +98,7 @@ flutter:
     - assets/audio/
 
     # Quran & Hadith Datasets
+    - assets/data/content_manifest.json
     - assets/data/quran/
     - assets/data/hadith/
     - assets/data/hadith/bukhari/

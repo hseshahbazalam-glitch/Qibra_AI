@@ -6,13 +6,23 @@ class RetrievedPassage {
   final String text;
   final double relevance;
   final String collection;
+  final String? edition;
+  final String? translator;
+  final String verificationStatus;
+  final String? reference;
 
   const RetrievedPassage({
     required this.source,
     required this.text,
     required this.relevance,
     required this.collection,
+    this.edition,
+    this.translator,
+    this.verificationStatus = 'UNKNOWN',
+    this.reference,
   });
+
+  bool get productionRagEligible => verificationStatus == 'VERIFIED';
 }
 
 class RagService {
@@ -47,6 +57,8 @@ class RagService {
               text: '${result.ayahText} — ${result.translation ?? ''}'.trim(),
               relevance: 0.9,
               collection: 'quran',
+              verificationStatus: 'UNKNOWN',
+              reference: '${result.surahNumber}:${result.ayahNumber}',
             ),
           );
         }
@@ -68,6 +80,8 @@ class RagService {
               text: result.hadith.textEnglish,
               relevance: result.relevance,
               collection: 'hadith',
+              verificationStatus: 'UNKNOWN',
+              reference: result.hadith.displayReference,
             ),
           );
         }
