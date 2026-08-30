@@ -46,6 +46,14 @@ def create_access_token(subject: str, minutes: int | None = None) -> str:
     return f"{header}.{body}.{_b64url(sig)}"
 
 
+def hash_refresh_token(raw: str) -> str:
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def new_refresh_token() -> str:
+    return os.urandom(32).hex()
+
+
 def decode_token(token: str) -> str | None:
     settings = get_settings()
     try:

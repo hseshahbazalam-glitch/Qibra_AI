@@ -26,13 +26,21 @@ def list_progress(user: User = Depends(current_user), db: Session = Depends(get_
 
 @router.post("")
 def put_progress(body: ProgressIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    db.add(
-        Progress(
-            user_id=user.id,
-            kind=body.kind,
-            payload=json.dumps(body.payload),
-            updated_at=datetime.now(timezone.utc),
-        )
+    existing = db.scalar(
+        select(Progress).where(Progress.user_id == user.id, Progress.kind == body.kind)
     )
+    now = datetime.now(timezone.utc)
+    if existing:
+        existing.payload = json.dumps(body.payload)
+        existing.updated_at = now
+    else:
+        db.add(
+            Progress(
+                user_id=user.id,
+                kind=body.kind,
+                payload=json.dumps(body.payload),
+                updated_at=now,
+            )
+        )
     db.commit()
     return {"ok": True}

@@ -88,6 +88,16 @@ class ApiClient {
   late final Dio _dio;
   Dio get dio => _dio;
 
+  /// Attach a bearer token. Never log the value. Network errors must not
+  /// clear this; callers decide session policy.
+  void setBearer(String? accessToken) {
+    if (accessToken == null || accessToken.isEmpty) {
+      _dio.options.headers.remove('Authorization');
+      return;
+    }
+    _dio.options.headers['Authorization'] = 'Bearer $accessToken';
+  }
+
   bool _shouldRetry(DioException e) {
     return e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||

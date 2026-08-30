@@ -30,7 +30,8 @@ class Settings:
     version: str = "0.6.0"
     jwt_secret: str = _jwt_secret()
     jwt_algorithm: str = "HS256"
-    access_token_minutes: int = 60
+    access_token_minutes: int = 15
+    refresh_token_days: int = int(os.environ.get("REFRESH_TOKEN_DAYS", "30"))
     database_url: str = os.environ.get("DATABASE_URL", "sqlite+pysqlite:///:memory:")
 
     auth_production_ready: bool = False

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -24,5 +24,7 @@ class SyncIn(BaseModel):
 
 @router.post("")
 def sync(body: SyncIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    if len(body.items) > 500:
+        raise HTTPException(status_code=400, detail="sync_batch_too_large")
     merged = merge_records(db, user.id, [i.model_dump() for i in body.items])
     return {"items": merged}
