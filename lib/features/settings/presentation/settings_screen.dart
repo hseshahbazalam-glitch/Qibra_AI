@@ -12,9 +12,13 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/content/edition_resolver.dart';
+import 'package:qibra_ai/core/l10n/app_locales.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
+import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
+import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -27,6 +31,16 @@ class SettingsScreen extends ConsumerWidget {
     final userName = ref.watch(userDisplayNameProvider);
     final isDark = ref.watch(isDarkModeProvider);
     final strings = AppStrings.of(context);
+    final locale = ref.watch(localeProvider);
+    final readingPrefs = ref.watch(readingPreferencesProvider);
+    final hadithLang = ref.watch(hadithLanguageProvider);
+    final quranEdition =
+        EditionResolver.resolve(readingPrefs.translationId)?.label ?? 'English';
+    final fontLabel = readingPrefs.fontScale >= 1.25
+        ? 'Large'
+        : readingPrefs.fontScale <= 0.9
+            ? 'Small'
+            : 'Medium';
 
     return QibraPage(
       title: strings.settings,
@@ -68,15 +82,16 @@ class SettingsScreen extends ConsumerWidget {
                       icon: Icons.language_rounded,
                       iconColor: colors.primarySoft,
                       title: strings.language,
-                      subtitle: 'English',
-                      onTap: () => _showLanguageSheet(context),
+                      subtitle: AppLanguages.displayNames[locale.languageCode] ??
+                          'English',
+                      onTap: () => _showLanguageSheet(context, ref),
                     ),
                     _SettingsTile(
                       icon: Icons.text_fields_rounded,
                       iconColor: colors.goldText,
                       title: 'Font Size',
-                      subtitle: 'Medium',
-                      onTap: () => _showComingSoon(context, 'Font size'),
+                      subtitle: fontLabel,
+                      onTap: () => _showFontSizeSheet(context, ref),
                     ),
                   ]),
 
@@ -104,9 +119,17 @@ class SettingsScreen extends ConsumerWidget {
                     _SettingsTile(
                       icon: Icons.translate_rounded,
                       iconColor: colors.primarySoft,
-                      title: 'Translation',
-                      subtitle: 'English',
-                      onTap: () => _showComingSoon(context, 'Translation'),
+                      title: strings.quranTranslation,
+                      subtitle: quranEdition,
+                      onTap: () => _showQuranTranslationSheet(context, ref),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.menu_book_rounded,
+                      iconColor: colors.primary,
+                      title: strings.hadithLanguage,
+                      subtitle: AppLanguages.displayNames[hadithLang] ??
+                          hadithLang,
+                      onTap: () => _showHadithLanguageSheet(context, ref),
                     ),
                     _SettingsTile(
                       icon: Icons.explore_rounded,

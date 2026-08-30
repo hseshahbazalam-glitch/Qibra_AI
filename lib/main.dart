@@ -11,6 +11,8 @@ import 'package:qibra_ai/core/services/notification_service.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/constants/app_assets_check.dart';
 import 'package:qibra_ai/core/design_system/app_theme.dart';
+import 'package:qibra_ai/core/l10n/app_locales.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/core/router/app_router.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;

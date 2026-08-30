@@ -531,6 +531,8 @@ class _TodaysHadithCard extends ConsumerWidget {
       );
     }
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith!.id));
+    final lang = ref.watch(hadithLanguageProvider);
+    final translation = hadithTextForLanguage(hadith!, lang);
     return QibraCard(
       accentBorder: true,
       child: Column(
@@ -555,10 +557,11 @@ class _TodaysHadithCard extends ConsumerWidget {
               ),
             ),
           ],
-          if (hadith!.hasEnglish) ...[
+          if (lang != 'ar') ...[
             const SizedBox(height: 10),
             Text(
-              hadith!.textEnglish,
+              translation ??
+                  'Verified translation unavailable for this language.',
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodyMedium.copyWith(
@@ -611,6 +614,8 @@ class _HadithTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
+    final lang = ref.watch(hadithLanguageProvider);
+    final translation = hadithTextForLanguage(hadith, lang);
     return QibraCard(
       padding: const EdgeInsets.all(16),
       onTap: onTap,

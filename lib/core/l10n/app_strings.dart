@@ -2,14 +2,33 @@
 
 import 'package:flutter/widgets.dart';
 
+class AppStringsScope extends InheritedWidget {
+  const AppStringsScope({
+    super.key,
+    required this.locale,
+    required super.child,
+  });
+
+  final Locale locale;
+
+  static Locale localeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppStringsScope>()?.locale ??
+        Localizations.maybeLocaleOf(context) ??
+        const Locale('en');
+  }
+
+  @override
+  bool updateShouldNotify(AppStringsScope oldWidget) =>
+      locale != oldWidget.locale;
+}
+
 class AppStrings {
   const AppStrings._(this.locale);
 
   final Locale locale;
 
   static AppStrings of(BuildContext context) {
-    final locale = Localizations.maybeLocaleOf(context) ?? const Locale('en');
-    return AppStrings._(locale);
+    return AppStrings._(AppStringsScope.localeOf(context));
   }
 
   static AppStrings forCode(String code) => AppStrings._(Locale(code));
@@ -37,6 +56,26 @@ class AppStrings {
   String get settings => _t('Settings', 'الإعدادات', 'ترتیبات');
   String get language => _t('Language', 'اللغة', 'زبان');
   String get guest => _t('Guest', 'ضيف', 'مہمان');
+  String get tafsirUnavailable => _t(
+        'Verified tafsir is not bundled in this build.',
+        'التفسير الموثّق غير مضمّن في هذا الإصدار.',
+        'مستند تفسیر اس بلڈ میں شامل نہیں ہے۔',
+      );
+  String get translationUnavailable => _t(
+        'Verified translation unavailable for this language.',
+        'لا تتوفر ترجمة موثّقة لهذه اللغة.',
+        'اس زبان کا تصدیق شدہ ترجمہ دستیاب نہیں۔',
+      );
+  String get quranTranslation => _t(
+        'Quran translation',
+        'ترجمة القرآن',
+        'قرآن کا ترجمہ',
+      );
+  String get hadithLanguage => _t(
+        'Hadith language',
+        'لغة الحديث',
+        'حدیث کی زبان',
+      );
 
   String _t(String en, String ar, String ur) {
     switch (_code) {

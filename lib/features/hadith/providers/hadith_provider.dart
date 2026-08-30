@@ -14,7 +14,46 @@ import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
 
 /// Hadith display language is independent of UI locale.
-final hadithLanguageProvider = StateProvider<String>((ref) => 'en');
+/// Only bundled languages: en, ar, ur. Hindi and others stay unresolved.
+class HadithLanguageNotifier extends StateNotifier<String> {
+  HadithLanguageNotifier() : super('en') {
+    _load();
+  }
+
+  static const _key = 'hadith_display_language_v1';
+  static const supported = {'en', 'ar', 'ur'};
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_key) ?? 'en';
+    state = supported.contains(saved) ? saved : 'en';
+  }
+
+  Future<void> setLanguage(String code) async {
+    if (!supported.contains(code)) return;
+    state = code;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, code);
+  }
+}
+
+final hadithLanguageProvider =
+    StateNotifierProvider<HadithLanguageNotifier, String>(
+  (ref) => HadithLanguageNotifier(),
+);
+
+String? hadithTextForLanguage(HadithModel hadith, String language) {
+  switch (language) {
+    case 'ar':
+      return hadith.hasArabic ? hadith.textArabic : null;
+    case 'ur':
+      return hadith.hasUrdu ? hadith.textUrdu : null;
+    case 'en':
+      return hadith.hasEnglish ? hadith.textEnglish : null;
+    default:
+      return null;
+  }
+}
 
 // ============================================================
 // SECTION 1: DATABASE SERVICE PROVIDER
