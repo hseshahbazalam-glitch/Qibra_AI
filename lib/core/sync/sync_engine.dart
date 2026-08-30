@@ -1,6 +1,12 @@
 // Client sync engine. Merge is last-write-wins on the server; client queues ops.
 // Never enqueue passwords, tokens, or Quran/Hadith full text.
 
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../constants/app_constants.dart';
+
 enum SyncOpType { upsert, delete }
 
 enum SyncOpStatus { pending, processing, completed, failed, conflict }
@@ -62,8 +68,8 @@ class SyncOp {
         (v) => v.name == json['type'],
         orElse: () => SyncOpType.upsert,
       ),
-      payload: json['payload'] is Map<String, dynamic>
-          ? json['payload'] as Map<String, dynamic>
+      payload: json['payload'] is Map
+          ? Map<String, dynamic>.from(json['payload'] as Map)
           : <String, dynamic>{},
       updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
@@ -125,8 +131,41 @@ class SyncEngine {
   final SyncQueue queue = SyncQueue();
   bool _inFlight = false;
   static const int maxBatch = 500;
+  static const persistKey = 'qibra_sync_queue_v1';
 
   bool get isInFlight => _inFlight;
+
+  Future<void> persist(SharedPreferences prefs) async {
+    await prefs.setString(persistKey, jsonEncode(queue.snapshot()));
+  }
+
+  Future<void> load(SharedPreferences prefs) async {
+    final raw = prefs.getString(persistKey);
+    if (raw == null || raw.isEmpty) return;
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) return;
+    queue.restore(
+      decoded
+          .whereType<Map>()
+          .map((row) => SyncOp.fromJson(Map<String, dynamic>.from(row)))
+          .toList(),
+    );
+  }
+
+  /// Flush pending ops when the device is online. No-op while backend is off.
+  Future<void> flushWhenOnline({
+    required bool online,
+    Future<void> Function(List<SyncOp> batch)? sender,
+    SharedPreferences? prefs,
+  }) async {
+    if (prefs != null) await persist(prefs);
+    if (!online || !AppApi.isBackendEnabled) return;
+    await runSingleFlight(() async {
+      final batch = takeBatch();
+      if (batch.isEmpty || sender == null) return;
+      await sender(batch);
+    });
+  }
 
   Future<void> runSingleFlight(Future<void> Function() work) async {
     if (_inFlight) return;

@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -10,11 +12,17 @@ class Base(DeclarativeBase):
 
 
 def _make_engine(url: str):
-    kwargs = {"future": True}
+    env = os.environ.get("QIBRA_ENV", "").strip().lower()
+    if env in {"prod", "production"} and url.startswith("sqlite"):
+        raise RuntimeError("SQLite is not allowed when QIBRA_ENV=production; use PostgreSQL")
+    kwargs: dict = {"future": True}
     if url.startswith("sqlite"):
         kwargs["connect_args"] = {"check_same_thread": False}
         if ":memory:" in url:
             kwargs["poolclass"] = StaticPool
+    elif url.startswith("postgresql"):
+        kwargs["pool_pre_ping"] = True
+        kwargs["pool_size"] = 5
     return create_engine(url, **kwargs)
 
 

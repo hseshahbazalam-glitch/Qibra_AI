@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
@@ -64,6 +65,7 @@ def issue_tokens(
     platform: str = "",
     app_version: str = "",
     session: UserSession | None = None,
+    family_id: str | None = None,
 ) -> tuple[str, str]:
     settings = get_settings()
     now = datetime.now(timezone.utc)
@@ -85,12 +87,22 @@ def issue_tokens(
         user_id=user.id,
         session_id=session.id,
         token_hash=hash_refresh_token(raw),
+        family_id=family_id or str(uuid.uuid4()),
         created_at=now,
         expires_at=now + timedelta(days=settings.refresh_token_days),
     )
     db.add(row)
     db.commit()
     return create_access_token(str(user.id)), raw
+
+
+def _revoke_family(db: Session, family_id: str, now: datetime) -> None:
+    if not family_id:
+        return
+    rows = db.scalars(select(RefreshToken).where(RefreshToken.family_id == family_id)).all()
+    for row in rows:
+        if row.revoked_at is None:
+            row.revoked_at = now
 
 
 def _revoke_user_refresh(db: Session, user_id: int, now: datetime) -> None:
@@ -119,7 +131,7 @@ def rotate_refresh(db: Session, raw_token: str) -> tuple[User, str, str]:
     if row is None:
         raise AuthError("invalid_refresh", 401)
     if row.revoked_at is not None:
-        _revoke_user_refresh(db, row.user_id, now)
+        _revoke_family(db, row.family_id, now)
         db.commit()
         raise AuthError("refresh_reuse", 401)
     expires = row.expires_at
@@ -136,7 +148,8 @@ def rotate_refresh(db: Session, raw_token: str) -> tuple[User, str, str]:
     if session is not None and session.revoked_at is not None:
         raise AuthError("invalid_refresh", 401)
     row.revoked_at = now
-    access, refresh = issue_tokens(db, user, session=session)
+    row.rotated_at = now
+    access, refresh = issue_tokens(db, user, session=session, family_id=row.family_id or str(uuid.uuid4()))
     new_row = db.scalar(
         select(RefreshToken).where(RefreshToken.token_hash == hash_refresh_token(refresh))
     )

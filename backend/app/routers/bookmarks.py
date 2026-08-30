@@ -20,8 +20,17 @@ class BookmarkIn(BaseModel):
 
 
 @router.get("")
-def list_bookmarks(user: User = Depends(current_user), db: Session = Depends(get_db)):
-    rows = db.scalars(select(Bookmark).where(Bookmark.user_id == user.id)).all()
+def list_bookmarks(
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    limit: int = 100,
+    offset: int = 0,
+):
+    limit = min(max(limit, 1), 500)
+    offset = max(offset, 0)
+    rows = db.scalars(
+        select(Bookmark).where(Bookmark.user_id == user.id).offset(offset).limit(limit)
+    ).all()
     return [
         {
             "collection": r.collection,

@@ -16,6 +16,7 @@ class SyncItem(BaseModel):
     payload: dict = {}
     updated_at: str
     deleted: bool = False
+    operation_id: str | None = None
 
 
 class SyncIn(BaseModel):
@@ -26,5 +27,5 @@ class SyncIn(BaseModel):
 def sync(body: SyncIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
     if len(body.items) > 500:
         raise HTTPException(status_code=400, detail="sync_batch_too_large")
-    merged = merge_records(db, user.id, [i.model_dump() for i in body.items])
-    return {"items": merged}
+    merged, results = merge_records(db, user.id, [i.model_dump() for i in body.items])
+    return {"items": merged, "results": results}

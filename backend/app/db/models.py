@@ -102,12 +102,24 @@ class RefreshToken(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     session_id: Mapped[int | None] = mapped_column(ForeignKey("user_sessions.id"), nullable=True)
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    family_id: Mapped[str] = mapped_column(String(36), index=True, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    rotated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     replaced_by_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     session: Mapped[UserSession | None] = relationship(back_populates="refresh_tokens")
+
+
+class SyncOperation(Base):
+    __tablename__ = "sync_operations"
+    __table_args__ = (UniqueConstraint("user_id", "operation_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    operation_id: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
 class AuditEvent(Base):

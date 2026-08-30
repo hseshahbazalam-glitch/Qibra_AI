@@ -52,6 +52,9 @@ def patch_me(body: ProfilePatch, user: User = Depends(current_user), db: Session
 
 @router.delete("/me")
 def delete_me(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    from ..services.auth_service import logout_all
+
+    logout_all(db, user.id)
     user.deleted_at = datetime.now(timezone.utc)
     db.commit()
     return {"ok": True, "deleted": True}

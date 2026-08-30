@@ -18,7 +18,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/network/api_client.dart';
+import 'package:qibra_ai/core/network/http_auth_repository.dart';
 import 'package:qibra_ai/core/providers/app_providers.dart';
+import 'package:qibra_ai/core/sync/account_migration.dart';
+import 'package:qibra_ai/core/sync/sync_engine.dart';
 
 // ============================================================
 // SECTION 1: AUTH STATE ENUM
@@ -209,8 +213,9 @@ abstract class AuthRepository {
   Future<AuthResult> login({required String email, required String password});
   Future<AuthResult> register(
       {required String email, required String password, required String name});
-  Future<void> logout();
+  Future<void> logout({String? refreshToken});
   Future<AppUser?> getCurrentUser();
+  Future<bool> deleteAccount();
 }
 
 class AuthResult {
@@ -254,10 +259,13 @@ class StubAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> logout() async {}
+  Future<void> logout({String? refreshToken}) async {}
 
   @override
   Future<AppUser?> getCurrentUser() async => null;
+
+  @override
+  Future<bool> deleteAccount() async => true;
 }
 
 // ============================================================
@@ -269,8 +277,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repository;
 
   AuthNotifier(this._secureStorage, {AuthRepository? repository})
-      : _repository = repository ?? StubAuthRepository(),
+      : _repository = repository ??
+            (AppApi.isBackendEnabled ? HttpAuthRepository() : StubAuthRepository()),
         super(AuthState.initial()) {
+    if (AppApi.isBackendEnabled) {
+      ApiClient.instance.refreshAccess = _rotateAccess;
+      ApiClient.instance.onAuthExpired = _onSessionExpired;
+    }
     _checkAuthStatus();
   }
 
@@ -305,12 +318,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
         return;
       }
 
+      ApiClient.instance.setBearer(token);
+
       // Backend enabled + token looks real → try to fetch user
-      final user = await _repository.getCurrentUser();
-      if (user != null) {
-        state = AuthState.authenticated(user);
-      } else {
-        // Token present but user fetch failed → treat as guest
+      try {
+        final user = await _repository.getCurrentUser();
+        if (user != null) {
+          state = AuthState.authenticated(user);
+        } else {
+          state = AuthState.unauthenticated();
+        }
+      } on ApiException catch (e) {
+        if (e.type == ApiErrorType.offline || e.type == ApiErrorType.timeout) {
+          final id = await _secureStorage.read(key: AppStorageKeys.userId);
+          state = AuthState.authenticated(
+            AppUser(id: id ?? '', email: '', name: ''),
+          );
+          return;
+        }
         state = AuthState.unauthenticated();
       }
     } catch (e) {
@@ -376,15 +401,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         return false;
       }
 
-      if (result.token != null) {
-        await _secureStorage.write(
-            key: AppStorageKeys.accessToken, value: result.token);
-      }
-      if (result.refreshToken != null) {
-        await _secureStorage.write(
-            key: AppStorageKeys.refreshToken, value: result.refreshToken);
-      }
-
+      await _persistTokens(result);
+      AccountMigration.attachLocal(queue: SyncEngine.instance.queue, localOps: const []);
       state = AuthState.authenticated(result.user!);
       return true;
     } catch (e) {
@@ -435,11 +453,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         return false;
       }
 
-      if (result.token != null) {
-        await _secureStorage.write(
-            key: AppStorageKeys.accessToken, value: result.token);
-      }
-
+      await _persistTokens(result);
+      AccountMigration.attachLocal(queue: SyncEngine.instance.queue, localOps: const []);
       state = AuthState.authenticated(result.user!);
       return true;
     } catch (e) {
@@ -463,9 +478,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       if (AppApi.isBackendEnabled) {
         try {
-          await _repository.logout();
+          final refresh =
+              await _secureStorage.read(key: AppStorageKeys.refreshToken);
+          await _repository.logout(refreshToken: refresh);
         } catch (_) {}
       }
+      ApiClient.instance.setBearer(null);
       await _secureStorage.delete(key: AppStorageKeys.accessToken);
       await _secureStorage.delete(key: AppStorageKeys.refreshToken);
       await _secureStorage.delete(key: AppStorageKeys.userId);
@@ -492,30 +510,64 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // Only meaningful when backend enabled
 
   Future<bool> refreshToken() async {
-    if (!AppApi.isBackendEnabled) return false;
+    final outcome = await _rotateAccess();
+    return outcome == RefreshOutcome.rotated;
+  }
+
+  Future<RefreshOutcome> _rotateAccess() async {
+    if (!AppApi.isBackendEnabled) return RefreshOutcome.skipped;
     try {
       final refreshToken = await _secureStorage.read(
         key: AppStorageKeys.refreshToken,
       );
       if (refreshToken == null || refreshToken.isEmpty) {
-        return false;
+        return RefreshOutcome.rejected;
+      }
+      final repo = _repository;
+      if (repo is! HttpAuthRepository) return RefreshOutcome.skipped;
+      final result = await repo.refreshWith(refreshToken);
+      if (result.outcome == RefreshOutcome.rotated && result.access != null) {
+        await _secureStorage.write(
+            key: AppStorageKeys.accessToken, value: result.access);
+        if (result.refresh != null && result.refresh!.isNotEmpty) {
+          await _secureStorage.write(
+              key: AppStorageKeys.refreshToken, value: result.refresh);
+        }
+        ApiClient.instance.setBearer(result.access);
       }
       // Network failure must not log the user out.
-      return false;
+      return result.outcome;
     } catch (_) {
-      return false;
+      return RefreshOutcome.networkFailure;
     }
   }
 
-  /// Delete account locally. Network failure does not invent success.
+  void _onSessionExpired() {
+    logout();
+  }
+
+  Future<void> _persistTokens(AuthResult result) async {
+    if (result.token != null) {
+      await _secureStorage.write(
+          key: AppStorageKeys.accessToken, value: result.token);
+      ApiClient.instance.setBearer(result.token);
+    }
+    if (result.refreshToken != null) {
+      await _secureStorage.write(
+          key: AppStorageKeys.refreshToken, value: result.refreshToken);
+    }
+    if (result.user != null && result.user!.id.isNotEmpty) {
+      await _secureStorage.write(
+          key: AppStorageKeys.userId, value: result.user!.id);
+    }
+  }
+
+  /// Delete account remotely when backend is on. Network failure does not invent success.
   Future<bool> deleteAccount() async {
     try {
       if (AppApi.isBackendEnabled) {
-        try {
-          await _repository.logout();
-        } catch (_) {
-          return false;
-        }
+        final ok = await _repository.deleteAccount();
+        if (!ok) return false;
       }
       await logout();
       return true;
