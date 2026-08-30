@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../notifications/notification_reconcile.dart';
+
 /// Local notifications only. Scheduling uses inexact alarms.
 /// Do not claim reboot-proof or exact-alarm delivery; those are not device-tested.
 class NotificationService {
@@ -54,9 +56,7 @@ class NotificationService {
           requestSoundPermission: true,
         ),
       ),
-      onDidReceiveNotificationResponse: (NotificationResponse response) {
-        debugPrint('Notification tapped: ${response.payload}');
-      },
+      onDidReceiveNotificationResponse: (NotificationResponse response) {},
     );
 
     await _createChannels();
@@ -114,126 +114,118 @@ class NotificationService {
   // PERMISSION
   // ────────────────────────────────────────────────────────────
   Future<bool> requestPermission() async {
-    final ios = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
-    await ios?.requestPermissions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    try {
+      final ios = _plugin.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      await ios?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    return await android?.requestNotificationsPermission() ?? false;
+      final android = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      return await android?.requestNotificationsPermission() ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  NotificationPermissionStatus permissionFrom({
+    required bool granted,
+    bool permanentlyDenied = false,
+    bool unsupported = false,
+  }) {
+    if (unsupported) return NotificationPermissionStatus.unsupported;
+    if (permanentlyDenied) return NotificationPermissionStatus.deniedForever;
+    if (granted) return NotificationPermissionStatus.granted;
+    return NotificationPermissionStatus.denied;
   }
 
   // ────────────────────────────────────────────────────────────
   // PRAYER NOTIFICATIONS
   // ────────────────────────────────────────────────────────────
+  static const _scheduledIdsKey = 'qibra_notif_ids_v1';
+  static const _legacyPrayerIds = [
+    _fajrId,
+    _dhuhrId,
+    _asrId,
+    _maghribId,
+    _ishaId,
+    _fajrPreId,
+    _dhuhrPreId,
+    _asrPreId,
+    _maghribPreId,
+    _ishaPreId,
+  ];
+
   Future<void> schedulePrayerNotifications({
     required DateTime fajr,
     required DateTime dhuhr,
     required DateTime asr,
     required DateTime maghrib,
     required DateTime isha,
+    DateTime? sunrise,
     bool prePrayerAlert = true,
     int preMinutes = 10,
+    String timezone = 'UNKNOWN',
+    String locationKey = 'UNKNOWN',
+    NotificationPermissionStatus permission =
+        NotificationPermissionStatus.granted,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('prayer_notifications') ?? true;
+    const engine = NotificationReconcile();
 
-    if (!enabled) return;
+    final times = <String, DateTime>{
+      'Fajr': fajr,
+      'Dhuhr': dhuhr,
+      'Asr': asr,
+      'Maghrib': maghrib,
+      'Isha': isha,
+      if (sunrise != null) 'Sunrise': sunrise,
+    };
 
-    await cancelPrayerNotifications();
-
-    await _schedulePrayer(
-      id: _fajrId,
-      preId: _fajrPreId,
-      name: 'Fajr',
-      arabic: 'الفجر',
-      time: fajr,
-      prePrayerAlert: prePrayerAlert,
-      preMinutes: preMinutes,
+    final desired = engine.desired(
+      times: times,
+      now: DateTime.now(),
+      policy: NotificationPolicy(
+        prayerAlertsEnabled: enabled,
+        preMinutes: prePrayerAlert ? preMinutes : 0,
+        includeSunrise: sunrise != null,
+      ),
+      timezone: timezone,
+      locationKey: locationKey == '' ? 'UNKNOWN' : locationKey,
+      permission: permission,
     );
 
-    await _schedulePrayer(
-      id: _dhuhrId,
-      preId: _dhuhrPreId,
-      name: 'Dhuhr',
-      arabic: 'الظهر',
-      time: dhuhr,
-      prePrayerAlert: prePrayerAlert,
-      preMinutes: preMinutes,
-    );
-
-    await _schedulePrayer(
-      id: _asrId,
-      preId: _asrPreId,
-      name: 'Asr',
-      arabic: 'العصر',
-      time: asr,
-      prePrayerAlert: prePrayerAlert,
-      preMinutes: preMinutes,
-    );
-
-    await _schedulePrayer(
-      id: _maghribId,
-      preId: _maghribPreId,
-      name: 'Maghrib',
-      arabic: 'المغرب',
-      time: maghrib,
-      prePrayerAlert: prePrayerAlert,
-      preMinutes: preMinutes,
-    );
-
-    await _schedulePrayer(
-      id: _ishaId,
-      preId: _ishaPreId,
-      name: 'Isha',
-      arabic: 'العشاء',
-      time: isha,
-      prePrayerAlert: prePrayerAlert,
-      preMinutes: preMinutes,
-    );
-  }
-
-  Future<void> _schedulePrayer({
-    required int id,
-    required int preId,
-    required String name,
-    required String arabic,
-    required DateTime time,
-    required bool prePrayerAlert,
-    required int preMinutes,
-  }) async {
-    final now = DateTime.now();
-
-    if (time.isBefore(now)) return;
-
-    if (prePrayerAlert && preMinutes > 0) {
-      final preTime = time.subtract(Duration(minutes: preMinutes));
-      if (preTime.isAfter(now)) {
-        await _scheduleNotification(
-          id: preId,
-          title: '$name in $preMinutes minutes',
-          body: 'Time to prepare for $name prayer — $arabic',
-          scheduledDate: preTime,
-          channelId: 'pre_prayer_channel',
-          channelName: 'Pre-Prayer Reminders',
-          payload: 'pre_prayer_$name',
-        );
-      }
+    final existing = <int>{
+      ..._legacyPrayerIds,
+      ...(prefs.getStringList(_scheduledIdsKey) ?? [])
+          .map((s) => int.tryParse(s) ?? 0)
+          .where((id) => id > 0),
+    };
+    final plan = engine.plan(desired: desired, existingIds: existing);
+    for (final id in plan.cancelIds) {
+      await _plugin.cancel(id: id);
     }
 
-    await _scheduleNotification(
-      id: id,
-      title: '$name — $arabic',
-      body: _getPrayerMessage(name),
-      scheduledDate: time,
-      channelId: 'azan_channel',
-      channelName: 'Azan Notifications',
-      payload: 'prayer_$name',
-      isMax: true,
+    for (final alert in plan.create) {
+      final isPre = alert.kind == NotificationKind.pre;
+      await _scheduleNotification(
+        id: alert.id,
+        title: isPre ? '${alert.name} reminder' : alert.name,
+        body: isPre ? 'Upcoming ${alert.name} prayer' : _getPrayerMessage(alert.name),
+        scheduledDate: alert.when,
+        channelId: isPre ? 'pre_prayer_channel' : 'azan_channel',
+        channelName: isPre ? 'Pre-Prayer Reminders' : 'Azan Notifications',
+        payload: isPre ? 'pre_prayer' : 'prayer',
+        isMax: !isPre,
+      );
+    }
+    await prefs.setStringList(
+      _scheduledIdsKey,
+      plan.resultingIds.map((id) => '$id').toList(),
     );
   }
 
@@ -424,20 +416,16 @@ class NotificationService {
   // CANCEL
   // ────────────────────────────────────────────────────────────
   Future<void> cancelPrayerNotifications() async {
-    for (final id in [
-      _fajrId,
-      _dhuhrId,
-      _asrId,
-      _maghribId,
-      _ishaId,
-      _fajrPreId,
-      _dhuhrPreId,
-      _asrPreId,
-      _maghribPreId,
-      _ishaPreId,
-    ]) {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getStringList(_scheduledIdsKey) ?? [];
+    final ids = <int>{
+      ..._legacyPrayerIds,
+      ...stored.map((s) => int.tryParse(s) ?? 0).where((id) => id > 0),
+    };
+    for (final id in ids) {
       await _plugin.cancel(id: id);
     }
+    await prefs.setStringList(_scheduledIdsKey, []);
   }
 
   Future<void> cancelAllNotifications() async {

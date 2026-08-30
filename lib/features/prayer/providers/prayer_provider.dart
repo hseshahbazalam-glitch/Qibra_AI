@@ -813,6 +813,8 @@ Future<void> _scheduleAllAzanNotifications(
       isha: times.isha.time,
       prePrayerAlert: settings.enablePreReminder,
       preMinutes: settings.preReminderMinutes,
+      timezone: times.location.timezone ?? 'UNKNOWN',
+      locationKey: (times.location.city.isEmpty) ? 'UNKNOWN' : times.location.city,
     );
 
     debugPrint('✅ All prayer notifications scheduled');

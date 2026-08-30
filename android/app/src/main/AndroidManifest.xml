@@ -11,8 +11,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!-- Azan Alarms -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Inexact local notifications only. Do not request USE_EXACT_ALARM. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Compass/magnetometer access does not require a runtime permission. -->
