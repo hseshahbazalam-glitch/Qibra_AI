@@ -9,8 +9,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 
+import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../shared/widgets/media/safe_image.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../providers/ai_provider.dart';
 import '../services/ai_action_service.dart';
@@ -591,22 +593,14 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 40),
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: colors.violetAi,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.violetAi.withValues(alpha: 0.4),
-                  blurRadius: 24,
-                  spreadRadius: 4,
-                ),
-              ],
+          ClipOval(
+            child: const SafeImage(
+              assetPath: AppAssets.aiArt,
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+              fallback: SafeImageFallback.pattern,
             ),
-            child:
-                Icon(Icons.auto_awesome, color: colors.textPrimary, size: 48),
           ),
           const SizedBox(height: 20),
           Text(

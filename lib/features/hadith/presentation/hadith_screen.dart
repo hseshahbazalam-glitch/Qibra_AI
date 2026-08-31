@@ -6,8 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/media/pattern_backdrop.dart';
+import '../../../shared/widgets/media/safe_image.dart';
 import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/hadith_models.dart';
@@ -478,7 +481,8 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
-        return SafeArea(
+        return PatternBackdrop(
+          child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(8, 16, 8, 24),
             shrinkWrap: true,
@@ -504,6 +508,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                 ),
             ],
           ),
+        ),
         );
       },
     );
@@ -540,6 +545,17 @@ class _TodaysHadithCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(
+            height: 88,
+            width: double.infinity,
+            child: SafeImage(
+              assetPath: AppAssets.hadithArt,
+              height: 88,
+              fit: BoxFit.cover,
+              fallback: SafeImageFallback.mosque,
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
             'Today\'s hadith',
             style: AppTextStyles.labelMedium.copyWith(

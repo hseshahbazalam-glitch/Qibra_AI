@@ -6,8 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/media/safe_image.dart';
 import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/quran_models.dart';

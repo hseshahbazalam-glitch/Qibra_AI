@@ -119,7 +119,7 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/logo/qibra_logo.png"
   min_sdk_android: 21
-  adaptive_icon_background: "#0D3320"
+  adaptive_icon_background: "#071512"
   adaptive_icon_foreground: "assets/images/logo/qibra_logo.png"
   remove_alpha_ios: true
 

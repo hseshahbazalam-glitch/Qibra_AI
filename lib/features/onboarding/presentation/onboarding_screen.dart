@@ -20,6 +20,7 @@ import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/shared/widgets/buttons/app_button.dart';
+import 'package:qibra_ai/shared/widgets/media/safe_image.dart';
 
 // ============================================================
 // ONBOARDING SLIDE DATA MODEL
@@ -34,6 +35,7 @@ class _OnboardingSlide {
   final Color primaryColor;
   final Color secondaryColor;
   final List<Color> backgroundGradient;
+  final String? illustrationAsset;
 
   const _OnboardingSlide({
     required this.title,
@@ -44,6 +46,7 @@ class _OnboardingSlide {
     required this.primaryColor,
     required this.secondaryColor,
     required this.backgroundGradient,
+    this.illustrationAsset,
   });
 }
 
@@ -66,6 +69,7 @@ const List<_OnboardingSlide> _slides = [
       Color(0xFFEEF1EA),
       Color(0xFFE8EBE3),
     ],
+    illustrationAsset: AppAssets.onboarding2,
   ),
   _OnboardingSlide(
     title: 'Never Miss a Prayer',
@@ -81,6 +85,7 @@ const List<_OnboardingSlide> _slides = [
       Color(0xFFF8F1E3),
       Color(0xFFE8EBE3),
     ],
+    illustrationAsset: AppAssets.onboarding1,
   ),
   _OnboardingSlide(
     title: 'Islamic AI Assistant',
@@ -96,6 +101,7 @@ const List<_OnboardingSlide> _slides = [
       Color(0xFFEEF1EA),
       Color(0xFFE8EBE3),
     ],
+    illustrationAsset: AppAssets.aiArt,
   ),
   _OnboardingSlide(
     title: 'Your Islamic Companion',
@@ -565,46 +571,56 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               ),
             ),
 
-            // Icon container with glassmorphism
-            ClipOval(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                child: Container(
-                  width: 110,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        slide.primaryColor.withValues(alpha: 0.30),
-                        slide.primaryColor.withValues(alpha: 0.10),
-                      ],
-                    ),
-                    border: Border.all(
-                      color: slide.primaryColor,
-                      width: 2,
-                    ),
-                  ),
-                  child: Center(
-                    child: ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
+            if (slide.illustrationAsset != null)
+              ClipOval(
+                child: SafeImage(
+                  assetPath: slide.illustrationAsset!,
+                  width: 150,
+                  height: 150,
+                  fit: BoxFit.cover,
+                  fallback: SafeImageFallback.pattern,
+                ),
+              )
+            else
+              ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    width: 110,
+                    height: 110,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: [
-                          slide.primaryColor,
-                          slide.secondaryColor,
+                          slide.primaryColor.withValues(alpha: 0.30),
+                          slide.primaryColor.withValues(alpha: 0.10),
                         ],
-                      ).createShader(bounds),
-                      child: Icon(
-                        slide.icon,
-                        size: 56,
-                        color: const Color(0xFF19312C),
+                      ),
+                      border: Border.all(
+                        color: slide.primaryColor,
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: [
+                            slide.primaryColor,
+                            slide.secondaryColor,
+                          ],
+                        ).createShader(bounds),
+                        child: Icon(
+                          slide.icon,
+                          size: 56,
+                          color: const Color(0xFF19312C),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

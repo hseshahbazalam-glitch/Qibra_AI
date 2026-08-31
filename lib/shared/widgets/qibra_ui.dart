@@ -8,6 +8,8 @@ import '../../core/a11y/app_a11y.dart';
 import '../../core/design_system/app_design_system.dart';
 import '../../core/design_system/app_typography.dart';
 import '../../core/design_system/qibra_colors.dart';
+import 'media/pattern_backdrop.dart';
+import 'media/safe_image.dart';
 import 'qibra_status.dart';
 
 class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -145,27 +147,48 @@ class QibraHeroCard extends StatelessWidget {
     super.key,
     required this.child,
     this.onTap,
+    this.backgroundAsset = AppAssets.homeHeroBg,
   });
 
   final Widget child;
   final VoidCallback? onTap;
+  final String backgroundAsset;
 
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final card = Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [colors.cardMuted, colors.primarySoft],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.border),
+    final card = ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: SafeImage(
+              assetPath: backgroundAsset,
+              fit: BoxFit.cover,
+              fallback: SafeImageFallback.mosque,
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.background.withValues(alpha: 0.55),
+              ),
+            ),
+          ),
+          const Positioned.fill(
+            child: PatternBackdrop(child: SizedBox.expand()),
+          ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: colors.border),
+            ),
+            child: child,
+          ),
+        ],
       ),
-      child: child,
     );
     if (onTap == null) return card;
     return Material(

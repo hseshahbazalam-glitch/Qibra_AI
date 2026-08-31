@@ -656,39 +656,26 @@ abstract final class AppOpacity {
 // ============================================================
 
 abstract final class AppAssets {
-  // --- Base Paths ---
   static const String _images = 'assets/images';
   static const String _icons = 'assets/icons';
   static const String _animations = 'assets/animations';
-  // --- Logo ---
-  static const String logo = '$_images/logo.png';
-  static const String logoWhite = '$_images/logo_white.png';
-  static const String logoIcon = '$_images/logo_icon.png';
 
-  // --- Splash ---
-  static const String splashBackground = '$_images/splash_bg.png';
-  static const String splashLogo = '$_images/splash_logo.png';
+  static const String logo = '$_images/logo/qibra_logo.png';
+  static const String splashBackground = '$_images/hero/splash_bg.png';
+  static const String splashLogo = logo;
+  static const String homeHeroBg = '$_images/hero/home_hero_bg.png';
+  static const String patternTile = '$_images/hero/pattern_tile.png';
+  static const String emptyState = '$_images/hero/empty_state.png';
 
-  // --- Onboarding ---
-  static const String onboarding1 = '$_images/onboarding_1.png';
-  static const String onboarding2 = '$_images/onboarding_2.png';
-  static const String onboarding3 = '$_images/onboarding_3.png';
-  static const String onboarding4 = '$_images/onboarding_4.png';
+  static const String quranArt = '$_images/features/quran_art.png';
+  static const String prayerArt = '$_images/features/prayer_art.png';
+  static const String hadithArt = '$_images/features/hadith_art.png';
+  static const String aiArt = '$_images/features/ai_art.png';
 
-  // --- Quran ---
-  static const String quranBg = '$_images/quran_bg.png';
-  static const String quranCover = '$_images/quran_cover.png';
+  static const String onboarding1 = '$_images/illustrations/onboarding_1.png';
+  static const String onboarding2 = '$_images/illustrations/onboarding_2.png';
+  static const String onboarding3 = '$_images/illustrations/onboarding_3.png';
 
-  // --- Prayer ---
-  static const String mosqueIllustration = '$_images/mosque.png';
-  static const String compassBg = '$_images/compass_bg.png';
-
-  // --- Patterns (Islamic geometric) ---
-  static const String islamicPattern1 = '$_images/islamic_pattern_1.png';
-  static const String islamicPattern2 = '$_images/islamic_pattern_2.png';
-  static const String islamicPatternOverlay = '$_images/pattern_overlay.png';
-
-  // --- Lottie Animations ---
   static const String loadingAnimation = '$_animations/loading.json';
   static const String successAnimation = '$_animations/success.json';
   static const String errorAnimation = '$_animations/error.json';
@@ -696,7 +683,6 @@ abstract final class AppAssets {
   static const String quranAnimation = '$_animations/quran.json';
   static const String aiAnimation = '$_animations/ai_thinking.json';
 
-  // --- Icons (SVG) ---
   static const String iconQuran = '$_icons/quran.svg';
   static const String iconPrayer = '$_icons/prayer.svg';
   static const String iconQibla = '$_icons/qibla.svg';

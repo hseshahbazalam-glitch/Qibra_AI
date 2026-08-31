@@ -7,8 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:hijri/hijri_calendar.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/media/pattern_backdrop.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/prayer_models.dart';
 import '../providers/prayer_provider.dart';
@@ -51,6 +53,7 @@ class PrayerTimesScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
               QibraHeroCard(
+                backgroundAsset: AppAssets.prayerArt,
                 child: nextPrayer == null
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +293,8 @@ class PrayerTimesScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
-        return SafeArea(
+        return PatternBackdrop(
+          child: SafeArea(
           child: ListView(
             shrinkWrap: true,
             padding: const EdgeInsets.fromLTRB(8, 16, 8, 24),
@@ -333,6 +337,7 @@ class PrayerTimesScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
         );
       },
     );

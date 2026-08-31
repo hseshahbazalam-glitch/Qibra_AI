@@ -9,6 +9,8 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/design_system/app_design_system.dart';
+import '../../../shared/widgets/media/safe_image.dart';
 import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../../duas/providers/dua_provider.dart';
@@ -220,14 +222,15 @@ class HomeScreen extends ConsumerWidget {
               },
               child: Row(
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: colors.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: const SafeImage(
+                      assetPath: AppAssets.quranArt,
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.cover,
+                      fallback: SafeImageFallback.quran,
                     ),
-                    child: Icon(Icons.menu_book_rounded, color: colors.primary),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -471,7 +474,13 @@ class HomeScreen extends ConsumerWidget {
               onTap: () => context.go(AppRoutes.aiChat),
               child: Row(
                 children: [
-                  Icon(Icons.auto_awesome_outlined, color: colors.violetAi),
+                  const SafeImage(
+                    assetPath: AppAssets.aiArt,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    fallback: SafeImageFallback.pattern,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(

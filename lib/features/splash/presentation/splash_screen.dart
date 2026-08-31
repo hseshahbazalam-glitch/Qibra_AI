@@ -18,6 +18,8 @@ import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
+import 'package:qibra_ai/shared/widgets/media/pattern_backdrop.dart';
+import 'package:qibra_ai/shared/widgets/media/safe_image.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -235,18 +237,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget _buildBackgroundGradient() {
     final colors = QibraColors.of(context);
     return Positioned.fill(
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [
-              Color(0xFFEEF1EA),
-              Color(0xFFF5F3EC),
-              Color(0xFFE8EBE3),
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
+      child: PatternBackdrop(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            SafeImage(
+              assetPath: AppAssets.splashBackground,
+              fit: BoxFit.cover,
+              fallback: SafeImageFallback.mosque,
+            ),
+            ColoredBox(color: colors.background.withValues(alpha: 0.35)),
+          ],
         ),
       ),
     );
@@ -409,15 +410,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           width: 2,
                         ),
                       ),
-                      child: Center(
-                        child: ShaderMask(
-                          shaderCallback: (bounds) =>
-                              AppGradients.gold.createShader(bounds),
-                          child: const Icon(
-                            Icons.mosque_rounded,
-                            size: 64,
-                            color: const Color(0xFF19312C),
-                          ),
+                      child: const Center(
+                        child: SafeImage(
+                          assetPath: AppAssets.logo,
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.contain,
+                          fallback: SafeImageFallback.logo,
                         ),
                       ),
                     ),
