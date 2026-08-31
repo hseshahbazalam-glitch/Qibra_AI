@@ -142,7 +142,7 @@ class _NotificationSettingsScreenState
                     const Color(0xFF123F36),
                   ),
                   if (_prayerNotifications) ...[
-                    const Divider(color: QibraColors.light.border, height: 20),
+                    Divider(color: QibraColors.light.border, height: 20),
                     _settingToggle(
                       'Pre-Prayer Alert',
                       'Alert before prayer time',
@@ -172,7 +172,7 @@ class _NotificationSettingsScreenState
                     const Color(0xFFC6A15B),
                   ),
                   if (_tahajjudNotification) ...[
-                    const Divider(color: QibraColors.light.border, height: 20),
+                    Divider(color: QibraColors.light.border, height: 20),
                     _timeSelector(
                       'Alarm Time',
                       _tahajjudHour,
@@ -197,7 +197,7 @@ class _NotificationSettingsScreenState
                     (v) => setState(() => _morningAdhkar = v),
                     const Color(0xFFC6A15B),
                   ),
-                  const Divider(color: QibraColors.light.border, height: 20),
+                  Divider(color: QibraColors.light.border, height: 20),
                   _settingToggle(
                     'Evening Adhkar',
                     'Daily reminder at 5:30 PM',
@@ -219,7 +219,7 @@ class _NotificationSettingsScreenState
                     (v) => setState(() => _jummahNotification = v),
                     const Color(0xFF123F36),
                   ),
-                  const Divider(color: QibraColors.light.border, height: 20),
+                  Divider(color: QibraColors.light.border, height: 20),
                   _settingToggle(
                     'Quran Daily',
                     'Read Quran reminder',
@@ -378,7 +378,8 @@ class _NotificationSettingsScreenState
       decoration: BoxDecoration(
         color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border:
+            Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(children: children),
     );
@@ -540,7 +541,8 @@ class _NotificationSettingsScreenState
           Expanded(
             child: Text(label,
                 style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.6), fontSize: 13)),
+                    color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                    fontSize: 13)),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -572,7 +574,8 @@ class _NotificationSettingsScreenState
       decoration: BoxDecoration(
         color: const Color(0xFFFEFDF9),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border:
+            Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
       ),
       child: Column(
         children: prayers.map((p) {
@@ -593,7 +596,8 @@ class _NotificationSettingsScreenState
                               fontWeight: FontWeight.w600)),
                       Text(p.subtitle,
                           style: TextStyle(
-                              color: const Color(0xFF19312C).withValues(alpha: 0.3),
+                              color: const Color(0xFF19312C)
+                                  .withValues(alpha: 0.3),
                               fontSize: 9)),
                     ],
                   ),
@@ -668,7 +672,8 @@ class _NotificationSettingsScreenState
             : const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.save_rounded, color: const Color(0xFF19312C), size: 20),
+                  Icon(Icons.save_rounded,
+                      color: const Color(0xFF19312C), size: 20),
                   SizedBox(width: 10),
                   Text('Save Settings',
                       style: TextStyle(

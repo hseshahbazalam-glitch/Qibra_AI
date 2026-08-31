@@ -117,7 +117,7 @@ abstract final class EntitlementPolicy {
     }
     if (state == SubscriptionState.active ||
         state == SubscriptionState.cancelled) {
-      if (expiresAt != None && !now.isBefore(expiresAt)) {
+      if (expiresAt != null && !now.isBefore(expiresAt)) {
         if (graceEndsAt != null && now.isBefore(graceEndsAt)) {
           return Entitlement(
             isPremium: true,

@@ -43,7 +43,8 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
     if (night.inMinutes < 30) return null;
     final third = Duration(milliseconds: night.inMilliseconds ~/ 3);
     final firstEnd = maghrib.add(third);
-    final lastStart = maghrib.add(Duration(milliseconds: third.inMilliseconds * 2));
+    final lastStart =
+        maghrib.add(Duration(milliseconds: third.inMilliseconds * 2));
     return _NightWindows(
       first: '${_formatClock(maghrib)} - ${_formatClock(firstEnd)}',
       middle: '${_formatClock(firstEnd)} - ${_formatClock(lastStart)}',
@@ -738,7 +739,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.local_fire_department_rounded,
                 color: QibraColors.light.error,
                 size: 28,
@@ -762,7 +763,8 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           ),
           const SizedBox(height: 16),
           _buildStatRow('Current streak', 'Not available', colors.primary),
-          _buildStatRow('Longest streak', 'Not available', const Color(0xFFC6A15B)),
+          _buildStatRow(
+              'Longest streak', 'Not available', const Color(0xFFC6A15B)),
           _buildStatRow('Total Tahajjud', 'Not available', colors.primary),
         ],
       ),

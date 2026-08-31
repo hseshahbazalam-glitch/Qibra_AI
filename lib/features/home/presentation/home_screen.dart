@@ -197,8 +197,8 @@ class HomeScreen extends ConsumerWidget {
             else
               Row(
                 children: [
-                  for (final prayer in dailyTimes.prayers
-                      .where((p) => p.type.isObligatory))
+                  for (final prayer
+                      in dailyTimes.prayers.where((p) => p.type.isObligatory))
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 3),
@@ -340,12 +340,12 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 );
               },
-              loading: () => const Padding(
-                padding: EdgeInsets.only(bottom: 12),
+              loading: () => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
                 child: QibraStatus.skeleton(height: 88),
               ),
-              error: (_, __) => const Padding(
-                padding: EdgeInsets.only(bottom: 12),
+              error: (_, __) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
                 child: QibraStatus.error(
                   title: 'Ayah unavailable',
                   message:
@@ -395,12 +395,12 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 );
               },
-              loading: () => const Padding(
-                padding: EdgeInsets.only(bottom: 12),
+              loading: () => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
                 child: QibraStatus.skeleton(height: 88),
               ),
-              error: (_, __) => const Padding(
-                padding: EdgeInsets.only(bottom: 12),
+              error: (_, __) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
                 child: QibraStatus.error(
                   title: 'Hadith unavailable',
                   message:

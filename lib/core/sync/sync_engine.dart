@@ -37,8 +37,7 @@ class SyncOp {
 
   String? get lastError => errorCode;
 
-  bool isDue(DateTime now) =>
-      nextRetryAt == null || !nextRetryAt!.isAfter(now);
+  bool isDue(DateTime now) => nextRetryAt == null || !nextRetryAt!.isAfter(now);
 
   SyncOp copyWith({
     SyncOpStatus? status,
@@ -154,7 +153,7 @@ class SyncEngine {
   static final SyncEngine instance = SyncEngine._();
 
   /// Test / isolated engine. Production uses [instance].
-  SyncEngine.standalone() : queue = SyncQueue();
+  SyncEngine.standalone();
 
   final SyncQueue queue = SyncQueue();
   bool _inFlight = false;
