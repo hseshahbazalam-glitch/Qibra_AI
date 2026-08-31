@@ -55,7 +55,7 @@ void main() async {
   }
 
   // ─── System UI Setup ─────────────────────────
-  AppSystemUI.setLightTheme();
+  AppSystemUI.setDarkTheme();
   await AppSystemUI.setPortraitOnly();
 
   // ─── Assets Check (Debug Only) ─────────────────────────

@@ -229,7 +229,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           onPressed: _toggleAutoSpeak,
           icon: Icon(
             _autoSpeak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-            color: colors.textPrimary,
+            color: colors.violetAi,
           ),
         ),
         SizedBox(
@@ -595,13 +595,11 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [colors.primarySoft, colors.accent],
-              ),
+              color: colors.violetAi,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: colors.primarySoft.withValues(alpha: 0.4),
+                  color: colors.violetAi.withValues(alpha: 0.4),
                   blurRadius: 24,
                   spreadRadius: 4,
                 ),
@@ -639,7 +637,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.mic_rounded, color: colors.primarySoft, size: 16),
+                Icon(Icons.mic_rounded, color: colors.violetAi, size: 16),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -692,9 +690,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colors.primarySoft, colors.accent],
-                ),
+                color: colors.violetAi,
                 shape: BoxShape.circle,
               ),
               child:
@@ -733,6 +729,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildFormattedText(message.content, isUser),
+                    if (!isUser) ..._sourceChips(message.content),
                     const SizedBox(height: 4),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -787,6 +784,46 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
     );
   }
 
+  List<Widget> _sourceChips(String content) {
+    final colors = QibraColors.of(context);
+    final tags = <String>{};
+    for (final match in RegExp(r'Quran\s+\d+:\d+', caseSensitive: false)
+        .allMatches(content)) {
+      tags.add(match.group(0)!);
+    }
+    for (final match in RegExp(r'\[(\d+)\]\s+([^:\n]+):').allMatches(content)) {
+      final label = match.group(2)?.trim();
+      if (label != null && label.isNotEmpty) tags.add(label);
+    }
+    if (tags.isEmpty) return const [];
+    return [
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          for (final tag in tags)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: colors.violetAi.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colors.violetAi.withValues(alpha: 0.4)),
+              ),
+              child: Text(
+                tag,
+                style: TextStyle(
+                  color: colors.violetAi,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
+      ),
+    ];
+  }
+
   Widget _buildFormattedText(String text, bool isUser) {
     final colors = QibraColors.of(context);
     final color = isUser ? colors.onPrimary : colors.textPrimary;
@@ -829,9 +866,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [colors.primarySoft, colors.accent],
-              ),
+              color: colors.violetAi,
               shape: BoxShape.circle,
             ),
             child:
@@ -938,12 +973,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                       ? [colors.error, colors.error]
                       : (_isSpeaking
                           ? [colors.accent, colors.accent]
-                          : [colors.primarySoft, colors.accent]),
+                          : [colors.violetAi, colors.violetAi]),
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: (_isListening ? colors.error : colors.primarySoft)
+                    color: (_isListening ? colors.error : colors.violetAi)
                         .withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
@@ -992,7 +1027,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide(
-                    color: colors.accent,
+                    color: colors.violetAi,
                     width: 1.5,
                   ),
                 ),

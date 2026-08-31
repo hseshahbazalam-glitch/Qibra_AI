@@ -59,6 +59,7 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             QibraCard(
+              accentBorder: true,
               onTap: () {
                 final surah = page?.surahNumber ?? 1;
                 final ayah = page?.ayahNumber;
@@ -128,7 +129,7 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                       Text(
                         'Ayah of the day',
                         style: AppTextStyles.labelMedium.copyWith(
-                          color: colors.primary,
+                          color: colors.goldText,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -161,8 +162,8 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                   ),
                 );
               },
-              loading: () => const LinearProgressIndicator(minHeight: 2),
-              error: (_, __) => const QibraStatus.error(
+              loading: () => QibraStatus.skeleton(height: 120),
+              error: (_, __) => QibraStatus.error(
                 title: 'Ayah unavailable',
                 message: 'The daily ayah will appear when offline files finish loading.',
               ),
@@ -207,12 +208,8 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                     ),
                   ],
                 ),
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (_, __) => const QibraEmptyState(
-                  icon: Icons.menu_book_outlined,
+                loading: () => QibraStatus.skeleton(height: 220),
+                error: (_, __) => QibraStatus.error(
                   title: 'Quran data unavailable',
                   message: 'Try again after the offline files finish loading.',
                 ),
@@ -274,7 +271,7 @@ class _SurahTile extends StatelessWidget {
             ),
             Text(
               surah.nameArabic,
-              style: AppArabicStyles.quranSmall.copyWith(color: colors.primary),
+              style: AppArabicStyles.quranSmall.copyWith(color: colors.goldText),
             ),
           ],
         ),

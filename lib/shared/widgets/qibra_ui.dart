@@ -140,6 +140,48 @@ class QibraPage extends StatelessWidget {
   }
 }
 
+class QibraHeroCard extends StatelessWidget {
+  const QibraHeroCard({
+    super.key,
+    required this.child,
+    this.onTap,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final card = Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [colors.cardMuted, colors.primarySoft],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.border),
+      ),
+      child: child,
+    );
+    if (onTap == null) return card;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap!();
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: card,
+      ),
+    );
+  }
+}
+
 class QibraCard extends StatelessWidget {
   const QibraCard({
     super.key,
@@ -163,7 +205,7 @@ class QibraCard extends StatelessWidget {
       width: double.infinity,
       padding: padding ?? const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: filled ? colors.primary : colors.card,
+        color: filled ? colors.primarySoft : colors.card,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: accentBorder

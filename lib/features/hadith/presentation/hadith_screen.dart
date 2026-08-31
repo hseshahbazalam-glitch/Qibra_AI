@@ -77,12 +77,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                   _copyHadith(context, hadith);
                 },
               ),
-              loading: () => const QibraCard(
-                child: SizedBox(
-                  height: 120,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              ),
+              loading: () => QibraStatus.skeleton(height: 140),
               error: (_, __) => const QibraEmptyState(
                 icon: Icons.menu_book_outlined,
                 title: 'Today\'s hadith is unavailable',
@@ -114,49 +109,50 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         )
                         .toList()
                     : bookList;
-                return SizedBox(
-                  height: 118,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: source.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
-                    itemBuilder: (context, index) {
-                      final book = source[index];
-                      return SizedBox(
-                        width: 160,
-                        child: QibraCard(
-                          padding: const EdgeInsets.all(14),
-                          onTap: () => _openBook(context, book.slug),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                book.name,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.titleSmall.copyWith(
-                                  color: colors.textPrimary,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                book.totalHadiths > 0
-                                    ? '${book.totalHadiths} hadiths'
-                                    : book.author,
-                                style: AppTextStyles.labelSmall.copyWith(
-                                  color: colors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: source.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.55,
                   ),
+                  itemBuilder: (context, index) {
+                    final book = source[index];
+                    final author = book.author.isEmpty ? '—' : book.author;
+                    return QibraCard(
+                      padding: const EdgeInsets.all(14),
+                      onTap: () => _openBook(context, book.slug),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            book.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.titleSmall.copyWith(
+                              color: colors.textPrimary,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            book.totalHadiths > 0
+                                ? '${book.totalHadiths} hadiths'
+                                : author,
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: colors.goldText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
-              loading: () => const LinearProgressIndicator(minHeight: 2),
-              error: (_, __) => const QibraStatus.error(
+              loading: () => QibraStatus.skeleton(height: 160),
+              error: (_, __) => QibraStatus.error(
                 title: 'Collections unavailable',
                 message: 'Cached books will appear when they finish loading.',
               ),

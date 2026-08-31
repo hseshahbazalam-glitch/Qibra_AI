@@ -48,6 +48,11 @@ class QibraStatus extends StatelessWidget {
         onRetry: onRetry,
       );
 
+  factory QibraStatus.skeleton({double height = 88}) => QibraStatus(
+        kind: QibraStatusKind.loading,
+        message: '__skeleton__$height',
+      );
+
   factory QibraStatus.offline({VoidCallback? onRetry}) => QibraStatus(
         kind: QibraStatusKind.offline,
         onRetry: onRetry,
@@ -59,6 +64,18 @@ class QibraStatus extends StatelessWidget {
     final s = AppStrings.of(context);
 
     if (kind == QibraStatusKind.loading) {
+      if (message != null && message!.startsWith('__skeleton__')) {
+        final h = double.tryParse(message!.replaceFirst('__skeleton__', '')) ?? 88;
+        return Container(
+          height: h,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: colors.cardMuted,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colors.border),
+          ),
+        );
+      }
       return Padding(
         padding: const EdgeInsets.all(32),
         child: Column(

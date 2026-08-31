@@ -1,47 +1,34 @@
-# Qibra design system — Family A
+# Qibra design system — dark-first (approved)
 
-Identity is ivory / forest / gold. Do **not** switch to midnight+emerald. Do **not** gold-wash type. Gold FILL is not body text.
+Product owner approved a dark-first emerald + gold identity. Previous ivory “Family A” `QibraColors.light` remains for compile/migration. Default theme is **dark**.
+
+Violet `#9B6CFF` is **AI only**.
 
 ## Color
 
 | Token | Hex | Use |
 | --- | --- | --- |
-| Ivory / card | `#FEFDF9` | Surfaces, cards |
-| Canvas | `#F5F3EC` | App background |
-| Forest | `#123F36` | Primary fill, filled cards, nav selected |
-| Sage | `#2F6B5D` | Secondary / success / chips |
-| Gold FILL | `#C6A15B` | Icons, borders, small fills only |
-| Gold TEXT | `#6B542B` | Captions, section labels, Arabic display captions |
-| Ink | `#19312C` | Body / titles on ivory |
-| Danger | `#B42318` | Error, destructive, BETA badge |
-| Border | `#E4E0D5` | Hairlines |
+| bg_canvas | `#071512` | App background |
+| bg_surface | `#0B1D19` | Nav, sheets |
+| bg_card | `#102721` | Cards |
+| bg_card_elevated | `#14332A` | Hero / pressed |
+| border_subtle | `#244139` | Hairlines |
+| emerald_primary | `#2ED39A` | Actions, progress, next prayer |
+| emerald_deep | `#0F8F68` | Fills, gradient stops |
+| gold_islamic | `#D7AD5A` | Quran/Hadith highlights only |
+| gold_soft | `#F0D58A` | Gold text on dark |
+| violet_ai | `#9B6CFF` | AI only |
+| text_primary | `#F4F7F4` | Titles, body |
+| text_secondary | `#A9B8B2` | Captions |
+| text_muted | `#71817B` | Hints |
+| error | `#E5484D` | Destructive |
 
-Source of truth in code: `lib/core/design_system/qibra_colors.dart` (`QibraColors.of(context)`). Parallel `AppColors` exists for compile; prefer `QibraColors`. Dark palette is forest-night, not navy.
-
-Search chips: forest / sage / gold TEXT only.
-
-## Typography
-
-- Latin: Inter (`GoogleFonts.inter`) via `AppTextStyles`.
-- Arabic: Amiri via `AppArabicStyles`. Scripture is **not** translated with `_t()`.
-- Styles do **not** bake light ink except `inputError` (`AppColors.error`). Call sites `copyWith(color: QibraColors.of(context).…)`.
-- Gold TEXT extension: `#6B542B`. Gold FILL is not a type color.
-
-## Spacing & radius
-
-`AppSpacing` 4px grid. Common card radius 16–20. Do not invent a new grid.
+Code: `QibraColorsNext` + `QibraColors.dark` mapped to the same hex. Light `QibraColors.light` still ivory/forest.
 
 ## Chrome
 
-- Shared: `QibraPage` / `QibraAppBar` / `QibraCard` / `QibraChip` / `QibraStatus`.
-- Six-tab bar kept (Home, Quran, Prayer, Hadith, AI, More). Portrait only.
-- Back icon follows `Directionality`. Icon buttons 48dp (`AppA11y.minTapTarget`).
-- Do not clamp `MediaQuery.textScaler`. Do not enable gen-l10n.
-
-## Motion
-
-Calm fades. Splash particles are decorative and reduced. Respect reduced-motion is **not** wired (UNKNOWN / NOT RUN).
+Six tabs kept: Home, Quran, Prayer, Hadith, AI, More. Portrait only. No gen-l10n. Icon buttons 48dp.
 
 ## Honesty
 
-Recitation not bundled. Tafsir unavailable unless licensed. AI is retrieval only — not a fatwa. UNKNOWN stays UNKNOWN.
+No invented weather, streaks, recitation, GPS cities, or “100% authentic”. UNKNOWN stays UNKNOWN. AI is retrieval only — not a fatwa.

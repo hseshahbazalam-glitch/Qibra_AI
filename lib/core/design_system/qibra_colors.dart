@@ -44,10 +44,14 @@ class QibraColors extends ThemeExtension<QibraColors> {
   Color get primaryContainer => primarySoft;
   Color get divider => border;
   Color get goldAccent => accent;
-  Color get goldText => const Color(0xFF6B542B);
-  Color get success => const Color(0xFF2F6B5D);
-  Color get info => const Color(0xFF2F6B5D);
-  Color get error => const Color(0xFFB42318);
+  Color get goldText =>
+      isDark ? const Color(0xFFF0D58A) : const Color(0xFF6B542B);
+  Color get success =>
+      isDark ? const Color(0xFF0F8F68) : const Color(0xFF2F6B5D);
+  Color get info => isDark ? const Color(0xFF9B6CFF) : const Color(0xFF2F6B5D);
+  Color get error =>
+      isDark ? const Color(0xFFE5484D) : const Color(0xFFB42318);
+  Color get violetAi => const Color(0xFF9B6CFF);
 
   static const QibraColors light = QibraColors(
     background: Color(0xFFF5F3EC),
@@ -67,20 +71,20 @@ class QibraColors extends ThemeExtension<QibraColors> {
   );
 
   static const QibraColors dark = QibraColors(
-    background: Color(0xFF121916),
-    backgroundSecondary: Color(0xFF171F1B),
-    card: Color(0xFF1C2621),
-    cardMuted: Color(0xFF222E28),
-    primary: Color(0xFF8FB8A8),
-    primarySoft: Color(0xFF2F6B5D),
-    secondary: Color(0xFF8FB8A8),
-    accent: Color(0xFFC6A15B),
-    textPrimary: Color(0xFFF5F3EC),
-    textSecondary: Color(0xFF9AA8A2),
-    textTertiary: Color(0xFF7A8882),
-    border: Color(0xFF2A332E),
-    navBackground: Color(0xFF171F1B),
-    onPrimary: Color(0xFF121916),
+    background: Color(0xFF071512),
+    backgroundSecondary: Color(0xFF0B1D19),
+    card: Color(0xFF102721),
+    cardMuted: Color(0xFF14332A),
+    primary: Color(0xFF2ED39A),
+    primarySoft: Color(0xFF0F8F68),
+    secondary: Color(0xFF0F8F68),
+    accent: Color(0xFFD7AD5A),
+    textPrimary: Color(0xFFF4F7F4),
+    textSecondary: Color(0xFFA9B8B2),
+    textTertiary: Color(0xFF71817B),
+    border: Color(0xFF244139),
+    navBackground: Color(0xFF0B1D19),
+    onPrimary: Color(0xFF071512),
   );
 
   static QibraColors of(BuildContext context) {
