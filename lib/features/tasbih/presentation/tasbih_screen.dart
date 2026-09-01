@@ -13,7 +13,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../providers/tasbih_provider.dart';
@@ -239,18 +238,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
     return Scaffold(
       backgroundColor: colors.background,
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colors.primary.withValues(alpha: 0.15),
-              colors.background,
-              colors.background,
-            ],
-            stops: const [0.0, 0.35, 1.0],
-          ),
-        ),
+        color: colors.background,
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -295,10 +283,10 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               width: AppA11y.minTapTarget,
               height: AppA11y.minTapTarget,
               decoration: BoxDecoration(
-                color: colors.surface.withValues(alpha: 0.60),
+                color: colors.surface,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: colors.primary.withValues(alpha: 0.20),
+                  color: colors.border,
                 ),
               ),
               child: Icon(
@@ -323,8 +311,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                 Text(
                   'تَسْبِيح',
                   textDirection: TextDirection.rtl,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
+                  style: AppArabicStyles.quranSmall.copyWith(
                     fontSize: 14,
                     color: colors.primary,
                     fontWeight: FontWeight.w600,
@@ -341,10 +328,10 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               height: AppA11y.minTapTarget,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: colors.surface.withValues(alpha: 0.60),
+                color: colors.surface,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: colors.primary.withValues(alpha: 0.20),
+                  color: colors.border,
                 ),
               ),
               child: Icon(
@@ -362,10 +349,10 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               height: AppA11y.minTapTarget,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: colors.surface.withValues(alpha: 0.60),
+                color: colors.surface,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: colors.primary.withValues(alpha: 0.20),
+                  color: colors.border,
                 ),
               ),
               child: Icon(
@@ -389,8 +376,8 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   height: AppA11y.minTapTarget,
                   decoration: BoxDecoration(
                     color: vibrationEnabled
-                        ? colors.primary.withValues(alpha: 0.20)
-                        : colors.surface.withValues(alpha: 0.60),
+                        ? colors.primary
+                        : colors.surface,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -398,7 +385,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                         ? Icons.vibration_rounded
                         : Icons.smartphone_rounded,
                     color: vibrationEnabled
-                        ? colors.primary
+                        ? colors.onPrimary
                         : colors.textSecondary,
                     size: 20,
                   ),
@@ -421,29 +408,22 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colors.accent.withValues(alpha: 0.15),
-            colors.accent.withValues(alpha: 0.10),
-          ],
-        ),
+        color: colors.card,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border:
-            Border.all(color: colors.accent.withValues(alpha: 0.30)),
+            Border.all(color: colors.accent.withValues(alpha: 0.16)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [colors.accent, QibraNavy.gold],
-              ),
+              color: colors.accent,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.emoji_events_rounded,
-              color: colors.textPrimary,
+              color: colors.onPrimary,
               size: 20,
             ),
           ),
@@ -585,16 +565,9 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.primary.withValues(alpha: 0.20),
-              colors.primary.withValues(alpha: 0.10),
-            ],
-          ),
+          color: colors.card,
           borderRadius: BorderRadius.circular(AppRadius.xl2),
-          border: Border.all(color: colors.primary.withValues(alpha: 0.30)),
+          border: Border.all(color: colors.primary.withValues(alpha: 0.16)),
         ),
         child: Column(
           children: [
@@ -602,11 +575,9 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               state.currentDhikr.arabic,
               textDirection: TextDirection.rtl,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Amiri',
+              style: AppArabicStyles.quranBold.copyWith(
                 fontSize: 32,
                 color: colors.primary,
-                fontWeight: FontWeight.w700,
                 height: 1.6,
               ),
             ),
@@ -680,19 +651,9 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
               height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    colors.primary.withValues(alpha: 0.30),
-                    colors.primary.withValues(alpha: 0.10),
-                  ],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.primary.withValues(alpha: 0.40),
-                    blurRadius: 40,
-                    spreadRadius: 5,
-                  ),
-                ],
+                color: colors.surface,
+                border: Border.all(
+                    color: colors.primary.withValues(alpha: 0.16)),
               ),
               child: Stack(
                 alignment: Alignment.center,
@@ -713,11 +674,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                     height: 220,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [colors.primary, colors.accent],
-                      ),
+                      color: colors.primary,
                     ),
                     child: Center(
                       child: Column(
@@ -727,7 +684,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                             '${state.count}',
                             style: TextStyle(
                               fontSize: 80,
-                              color: colors.card,
+                              color: colors.onPrimary,
                               fontWeight: FontWeight.w800,
                               height: 1,
                             ),
@@ -739,13 +696,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: colors.card.withValues(alpha: 0.18),
+                              color: colors.onPrimary.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               '/ ${state.target}',
                               style: AppTextStyles.labelMedium.copyWith(
-                                color: colors.card,
+                                color: colors.onPrimary,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -781,7 +738,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                   icon: Icons.refresh_rounded,
                   label: 'Rounds',
                   value: '${state.rounds}',
-                  color: colors.primarySoft,
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),

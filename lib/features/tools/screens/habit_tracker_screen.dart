@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../logic/habit_defaults.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -12,27 +15,10 @@ class HabitTrackerScreen extends StatefulWidget {
 }
 
 class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
-  List<_IslamicHabit> _habits = [];
+  List<IslamicHabit> _habits = [];
   static const String _storageKey = 'islamic_habits';
 
-  final List<_HabitTemplate> _templates = [
-    _HabitTemplate('Fajr on Time', '🌅', QibraColors.light.accent),
-    _HabitTemplate('Read Quran', '📖', QibraColors.light.primary),
-    _HabitTemplate('Morning Adhkar', '🌤️', QibraColors.light.accent),
-    _HabitTemplate('Evening Adhkar', '🌙', QibraColors.light.accent),
-    _HabitTemplate('Tahajjud', '🕌', QibraColors.light.primarySoft),
-    _HabitTemplate('Give Sadaqah', '💚', QibraColors.light.primarySoft),
-    _HabitTemplate('Fast Monday', '🗓️', QibraColors.light.accent),
-    _HabitTemplate('Fast Thursday', '🗓️', QibraColors.light.accent),
-    _HabitTemplate('Surah Mulk', '📜', QibraColors.light.primarySoft),
-    _HabitTemplate('Surah Kahf (Fri)', '📜', QibraColors.light.primarySoft),
-    _HabitTemplate('Durood 100x', '💛', QibraColors.light.accent),
-    _HabitTemplate('Istighfar 100x', '🤲', QibraColors.light.primarySoft),
-    _HabitTemplate('No Backbiting', '🤐', QibraColors.light.error),
-    _HabitTemplate('Lower Gaze', '👁️', Color(0xFF6B7280)),
-    _HabitTemplate('Help Someone', '🤝', QibraColors.light.primary),
-    _HabitTemplate('Learn 1 Hadith', '📚', QibraColors.light.primarySoft),
-  ];
+  final List<HabitTemplate> _templates = buildHabitTemplates();
 
   @override
   void initState() {
@@ -47,21 +33,14 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
       final List<dynamic> list = jsonDecode(data) as List<dynamic>;
       setState(() {
         _habits = list
-            .map((e) => _IslamicHabit.fromJson(e as Map<String, dynamic>))
+            .map((e) => IslamicHabit.fromJson(e as Map<String, dynamic>))
             .toList();
         _cleanOldDays();
       });
     } else {
       // Default habits
       setState(() {
-        _habits = [
-          _IslamicHabit(name: 'Fajr on Time', emoji: '🌅', color: 0xFFC6A15B),
-          _IslamicHabit(name: 'Read Quran', emoji: '📖', color: 0xFF123F36),
-          _IslamicHabit(
-              name: 'Morning Adhkar', emoji: '🌤️', color: 0xFFC6A15B),
-          _IslamicHabit(name: 'Evening Adhkar', emoji: '🌙', color: 0xFFC6A15B),
-          _IslamicHabit(name: 'Tahajjud', emoji: '🕌', color: 0xFF2F6B5D),
-        ];
+        _habits = buildDefaultHabits();
       });
       _saveHabits();
     }
@@ -108,7 +87,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     _saveHabits();
   }
 
-  int _getStreak(_IslamicHabit habit) {
+  int _getStreak(IslamicHabit habit) {
     int streak = 0;
     DateTime day = DateTime.now();
     while (true) {
@@ -199,11 +178,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [colors.backgroundSecondary, colors.background],
-            ),
+            color: colors.surface,
           ),
           child: SafeArea(
             child: Padding(
@@ -213,11 +188,11 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 children: [
                   Text(
                     'عَادَات',
-                    style: TextStyle(
-                      color: colors.primarySoft,
+                    style: AppArabicStyles.quranMedium.copyWith(
                       fontSize: 22,
-                      fontFamily: 'Amiri',
+                      color: colors.primary,
                     ),
+                    textDirection: TextDirection.rtl,
                   ),
                   Text(
                     'Islamic Habits',
@@ -242,21 +217,10 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [colors.backgroundSecondary, colors.card],
-        ),
+        color: colors.card,
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: colors.primarySoft.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: colors.primarySoft.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
+            Border.all(color: colors.primary.withValues(alpha: 0.16)),
       ),
       child: Row(
         children: [
@@ -270,9 +234,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 CircularProgressIndicator(
                   value: progress,
                   strokeWidth: 6,
-                  backgroundColor:
-                      colors.primarySoft.withValues(alpha: 0.15),
-                  valueColor: AlwaysStoppedAnimation(colors.primarySoft),
+                  backgroundColor: colors.surfaceElevated,
+                  valueColor: AlwaysStoppedAnimation(colors.primary),
                 ),
                 Text(
                   '${(progress * 100).toInt()}%',
@@ -293,7 +256,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 Text(
                   "Today's Progress",
                   style: TextStyle(
-                    color: colors.primarySoft,
+                    color: colors.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -302,19 +265,19 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 Text(
                   '$completed of ${_habits.length} habits',
                   style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.6),
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   progress == 1.0
-                      ? 'MashaAllah! All done! 🎉'
+                      ? 'MashaAllah — every habit checked off today.'
                       : progress > 0.5
-                          ? 'Almost there! Keep going 💪'
-                          : 'Start your day right! 🌅',
+                          ? 'Almost there — keep going.'
+                          : 'Start your day right.',
                   style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.5),
+                    color: colors.textTertiary,
                     fontSize: 11,
                     fontStyle: FontStyle.italic,
                   ),
@@ -363,8 +326,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 days[i],
                 style: TextStyle(
                   color: isToday
-                      ? colors.primarySoft
-                      : colors.textPrimary.withValues(alpha: 0.3),
+                      ? colors.primary
+                      : colors.textTertiary,
                   fontSize: 10,
                   fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                 ),
@@ -375,27 +338,27 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   color: allDone
-                      ? colors.primarySoft
+                      ? colors.primary
                       : someDone
-                          ? colors.primarySoft.withValues(alpha: 0.2)
+                          ? colors.primary.withValues(alpha: 0.12)
                           : isToday
-                              ? colors.primarySoft.withValues(alpha: 0.1)
-                              : colors.textPrimary.withValues(alpha: 0.03),
+                              ? colors.primary.withValues(alpha: 0.08)
+                              : colors.surface,
                   shape: BoxShape.circle,
                   border: isToday
-                      ? Border.all(color: colors.primarySoft, width: 1.5)
+                      ? Border.all(color: colors.primary, width: 1.5)
                       : null,
                 ),
                 child: Center(
                   child: allDone
                       ? Icon(Icons.check_rounded,
-                          color: colors.textPrimary, size: 16)
+                          color: colors.onPrimary, size: 16)
                       : Text(
                           '${day.day}',
                           style: TextStyle(
                             color: isToday
-                                ? colors.primarySoft
-                                : colors.textPrimary.withValues(alpha: 0.4),
+                                ? colors.primary
+                                : colors.textTertiary,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -414,12 +377,13 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     final colors = QibraColors.of(context);
     return Row(
       children: [
-        const Text('📊', style: TextStyle(fontSize: 14)),
+        Icon(Icons.insights_rounded, size: 16,
+            color: colors.textSecondary),
         const SizedBox(width: 8),
         Text(
           'YOUR HABITS',
           style: TextStyle(
-            color: colors.textPrimary.withValues(alpha: 0.5),
+            color: colors.textSecondary,
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 2.0,
@@ -429,7 +393,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         Text(
           '${_habits.length} habits',
           style: TextStyle(
-            color: colors.textPrimary.withValues(alpha: 0.3),
+            color: colors.textTertiary,
             fontSize: 10,
           ),
         ),
@@ -439,44 +403,24 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   // ─── Empty State ────────────────────────────────────────────
   Widget _buildEmptyState() {
-    final colors = QibraColors.of(context);
-    return Container(
-      padding: const EdgeInsets.all(40),
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          const Text('📊', style: TextStyle(fontSize: 40)),
-          const SizedBox(height: 12),
-          Text(
-            'No Habits Yet',
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Tap + to add Islamic habits',
-            style: TextStyle(
-              color: colors.textPrimary.withValues(alpha: 0.4),
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
+    return QibraEmptyState(
+      icon: Icons.fact_check_outlined,
+      title: 'No Habits Yet',
+      message: 'Add your first habit and this screen will start '
+          'tracking your daily streak.',
+      actionLabel: 'Add a habit',
+      onAction: _showAddHabitSheet,
     );
   }
 
   // ─── Habit Card ─────────────────────────────────────────────
-  Widget _buildHabitCard(_IslamicHabit habit, int index) {
+  Widget _buildHabitCard(IslamicHabit habit, int index) {
     final colors = QibraColors.of(context);
     final todayDone = habit.completedDays.containsKey(_todayKey());
     final streak = _getStreak(habit);
-    final color = Color(habit.color);
+    // The stored int color is legacy seed data; presentation derives
+    // from context tokens instead (invisible tones were persisted).
+    final color = colors.primary;
 
     return Dismissible(
       key: Key(habit.name + index.toString()),
@@ -486,7 +430,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: colors.error.withValues(alpha: 0.2),
+          color: colors.error.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Icon(Icons.delete_rounded,
@@ -504,8 +448,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: todayDone
-                  ? color.withValues(alpha: 0.3)
-                  : colors.textPrimary.withValues(alpha: 0.05),
+                  ? color.withValues(alpha: 0.16)
+                  : colors.border,
             ),
           ),
           child: Row(
@@ -516,20 +460,17 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: todayDone ? color : color.withValues(alpha: 0.1),
+                  color: todayDone ? color : colors.surface,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: todayDone ? color : color.withValues(alpha: 0.3),
+                    color: todayDone ? color : color.withValues(alpha: 0.16),
                     width: 2,
                   ),
                 ),
                 child: todayDone
                     ? Icon(Icons.check_rounded,
-                        color: colors.textPrimary, size: 20)
-                    : Center(
-                        child: Text(habit.emoji,
-                            style: const TextStyle(fontSize: 16)),
-                      ),
+                        color: colors.onPrimary, size: 20)
+                    : const SizedBox.shrink(),
               ),
               const SizedBox(width: 14),
 
@@ -546,19 +487,19 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                         fontWeight: FontWeight.w600,
                         decoration:
                             todayDone ? TextDecoration.lineThrough : null,
-                        decorationColor: color.withValues(alpha: 0.5),
+                        decorationColor: color,
                       ),
                     ),
                     if (streak > 0)
                       Row(
                         children: [
                           Icon(Icons.local_fire_department_rounded,
-                              color: color.withValues(alpha: 0.7), size: 12),
+                              color: colors.accent, size: 12),
                           const SizedBox(width: 3),
                           Text(
                             '$streak day streak',
                             style: TextStyle(
-                              color: color.withValues(alpha: 0.6),
+                              color: colors.accent,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                             ),
@@ -622,7 +563,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: colors.textPrimary.withValues(alpha: 0.2),
+                  color: colors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -640,7 +581,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             Text(
               'Choose from templates or create your own',
               style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.4),
+                color: colors.textSecondary,
                 fontSize: 12,
               ),
             ),
@@ -659,7 +600,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                         : () {
                             HapticFeedback.mediumImpact();
                             setState(() {
-                              _habits.add(_IslamicHabit(
+                              _habits.add(IslamicHabit(
                                 name: t.name,
                                 emoji: t.emoji,
                                 color: t.color.toARGB32(),
@@ -673,25 +614,26 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: alreadyAdded
-                            ? colors.textPrimary.withValues(alpha: 0.02)
-                            : t.color.withValues(alpha: 0.06),
+                            ? colors.surface
+                            : colors.primary.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: alreadyAdded
-                              ? colors.textPrimary.withValues(alpha: 0.03)
-                              : t.color.withValues(alpha: 0.15),
+                              ? colors.border
+                              : colors.primary.withValues(alpha: 0.15),
                         ),
                       ),
                       child: Row(
                         children: [
-                          Text(t.emoji, style: const TextStyle(fontSize: 20)),
+                          const Icon(Icons.add_task_rounded,
+                              size: 20, color: colors.primary),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Text(
                               t.name,
                               style: TextStyle(
                                 color: alreadyAdded
-                                    ? colors.textPrimary.withValues(alpha: 0.25)
+                                    ? colors.textTertiary
                                     : colors.textPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -700,10 +642,10 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           ),
                           if (alreadyAdded)
                             Icon(Icons.check_circle_rounded,
-                                color: t.color.withValues(alpha: 0.4), size: 20)
+                                color: colors.textTertiary, size: 20)
                           else
                             Icon(Icons.add_circle_outline_rounded,
-                                color: t.color, size: 20),
+                                color: colors.primary, size: 20),
                         ],
                       ),
                     ),
@@ -718,38 +660,3 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   }
 }
 
-// ─── Models ───────────────────────────────────────────────────
-class _IslamicHabit {
-  final String name;
-  final String emoji;
-  final int color;
-  final Map<String, bool> completedDays;
-
-  _IslamicHabit({
-    required this.name,
-    required this.emoji,
-    required this.color,
-    Map<String, bool>? completedDays,
-  }) : completedDays = completedDays ?? {};
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'emoji': emoji,
-        'color': color,
-        'completedDays': completedDays,
-      };
-
-  factory _IslamicHabit.fromJson(Map<String, dynamic> json) => _IslamicHabit(
-        name: json['name'] as String,
-        emoji: json['emoji'] as String,
-        color: json['color'] as int,
-        completedDays: Map<String, bool>.from(json['completedDays'] as Map),
-      );
-}
-
-class _HabitTemplate {
-  final String name;
-  final String emoji;
-  final Color color;
-  const _HabitTemplate(this.name, this.emoji, this.color);
-}

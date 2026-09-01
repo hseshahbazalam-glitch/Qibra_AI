@@ -75,7 +75,7 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: color.withValues(alpha: 0.20)),
+        border: Border.all(color: color.withValues(alpha: 0.16)),
       ),
       child: Column(
         children: [
@@ -132,7 +132,7 @@ class _ActionButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: btnColor.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: btnColor.withValues(alpha: 0.30)),
+            border: Border.all(color: btnColor.withValues(alpha: 0.16)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -228,12 +228,8 @@ class _DhikrSelectorSheet extends ConsumerWidget {
                               Text(
                                 dhikr.arabic,
                                 textDirection: TextDirection.rtl,
-                                style: TextStyle(
-                                  fontFamily: 'Amiri',
-                                  fontSize: 22,
-                                  color: colors.primary,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: AppArabicStyles.quranBold
+                                    .copyWith(color: colors.primary),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -265,7 +261,7 @@ class _DhikrSelectorSheet extends ConsumerWidget {
                           child: Text(
                             '${dhikr.defaultTarget}',
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: colors.goldText,
+                              color: colors.accent,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -438,13 +434,8 @@ class _DailyGoalSheet extends ConsumerWidget {
                     vertical: AppSpacing.md,
                   ),
                   decoration: BoxDecoration(
-                    gradient: isSelected
-                        ? LinearGradient(
-                            colors: [colors.primary, colors.accent],
-                          )
-                        : null,
                     color: isSelected
-                        ? null
+                        ? colors.primary
                         : colors.primary.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
@@ -499,25 +490,21 @@ class _StatisticsScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [colors.accent, QibraNavy.gold],
-                  ),
+                  color: colors.accent,
                   borderRadius: BorderRadius.circular(AppRadius.xl2),
                 ),
                 child: Column(
                   children: [
                     Icon(
                       Icons.emoji_events_rounded,
-                      color: colors.textPrimary,
+                      color: colors.onPrimary,
                       size: 48,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       state.achievementTitle,
                       style: AppTextStyles.titleLarge.copyWith(
-                        color: colors.textPrimary,
+                        color: colors.onPrimary,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -525,7 +512,7 @@ class _StatisticsScreen extends ConsumerWidget {
                     Text(
                       '${state.totalCount} total dhikr',
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: colors.textPrimary.withValues(alpha: 0.9),
+                        color: colors.onPrimary.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -622,7 +609,7 @@ class _StatisticsScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: color.withValues(alpha: 0.20)),
+        border: Border.all(color: color.withValues(alpha: 0.16)),
       ),
       child: Column(
         children: [
