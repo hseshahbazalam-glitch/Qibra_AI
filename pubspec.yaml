@@ -19,7 +19,6 @@ dependencies:
 
   # --- UI & FONTS ---
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.2.1
 
   # --- STATE MANAGEMENT ---
   flutter_riverpod: ^2.5.1
@@ -109,11 +108,29 @@ flutter:
     - assets/data/hadith/ibnmajah/
     - assets/data/hadith/malik/
 
-  # Arabic typography — Amiri is bundled locally (SIL OFL 1.1, see
-  # assets/fonts/LICENSE-Amiri.txt) so no screen ever depends on a CDN
-  # fetch for Quran/hadith Arabic. GoogleFonts.config.allowRuntimeFetching
-  # is disabled in main() to enforce this.
+  # Typography — Inter (Latin) and Amiri (Arabic) are bundled locally
+  # (SIL OFL 1.1: assets/fonts/LICENSE-Inter.txt, LICENSE-Amiri.txt).
+  # The runtime CDN font package was dropped as a dependency entirely; every
+  # style resolves against these families, so no screen can ever depend on a
+  # network fetch. Inter ships the exact seven weights AppFontWeight
+  # exposes (300 Light .. 900 Black).
   fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Inter-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Inter-Black.ttf
+          weight: 900
     - family: Amiri
       fonts:
         - asset: assets/fonts/Amiri-Regular.ttf

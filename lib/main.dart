@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/services/notification_service.dart';
@@ -38,9 +37,9 @@ HadithDatabaseService? get globalHadithDb => _globalHadithDb;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Amiri (Arabic) is bundled in assets/fonts and registered under
-  // fonts: in pubspec.yaml — never fetch typefaces at runtime.
-  GoogleFonts.config.allowRuntimeFetching = false;
+  // Inter (Latin) and Amiri (Arabic) are bundled in assets/fonts and
+  // registered under fonts: in pubspec.yaml — the runtime CDN font package
+  // is no longer a dependency, so no text style can depend on a fetch.
 
   // ─── Timezone DB (Phase 2: IANA for exact prayer timezone) ─────
   try {
