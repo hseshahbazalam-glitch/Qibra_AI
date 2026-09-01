@@ -108,6 +108,9 @@ flutter:
     - assets/data/hadith/ibnmajah/
     - assets/data/hadith/malik/
 
+    # Tafsir (bundled verbatim from a published dataset — see content_manifest.json)
+    - assets/data/tafsir/
+
   # Typography — Inter (Latin) and Amiri (Arabic) are bundled locally
   # (SIL OFL 1.1: assets/fonts/LICENSE-Inter.txt, LICENSE-Amiri.txt).
   # The runtime CDN font package was dropped as a dependency entirely; every

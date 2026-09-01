@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/content/word_by_word.dart';
+import '../data/tafsir_bundle.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../shared/widgets/qibra_status.dart';
@@ -738,6 +739,11 @@ class _TafsirTab extends ConsumerWidget {
       return const Center(child: Text('Ayah not found'));
     }
 
+    final tafsirAsync = ref.watch(tafsirBundleProvider);
+    final TafsirPassage? passage = tafsirAsync.hasValue
+        ? tafsirAsync.value?.passageFor(surah.number, ayahNumber)
+        : null;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       physics: const BouncingScrollPhysics(),
@@ -767,10 +773,67 @@ class _TafsirTab extends ConsumerWidget {
 
           const SizedBox(height: 16),
 
-          // The app does not currently include a verified tafsir dataset.
-          // Keep this state explicit rather than presenting a broken loader or
-          // incorrectly presenting a translation as tafsir.
-          _buildTafsirUnavailable(context, ayah),
+          // A verbatim-bundled English tafsir dataset ships at
+          // assets/data/tafsir (provenance: assets/data/content_manifest.json).
+          // If it ever fails to load, keep the explicit unavailable state
+          // rather than presenting a translation as tafsir.
+          if (passage != null)
+            _buildBundledPassage(context, colors, passage, fontSize)
+          else
+            _buildTafsirUnavailable(context, ayah),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBundledPassage(
+      BuildContext context,
+      QibraColors colors,
+      TafsirPassage passage,
+      double fontSize) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.menu_book_rounded, size: 16, color: colors.accent),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Tafsir Ibn Kathir (abridged, Eng. tr.)',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.accent,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+              Text(
+                passage.start == passage.end
+                    ? 'Ayah ${passage.start}'
+                    : 'Ayahs ${passage.start}–${passage.end}',
+                style: AppTextStyles.labelXSmall.copyWith(
+                  color: colors.textTertiary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            passage.text,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: fontSize,
+              color: colors.textPrimary,
+              height: 1.75,
+            ),
+          ),
         ],
       ),
     );
