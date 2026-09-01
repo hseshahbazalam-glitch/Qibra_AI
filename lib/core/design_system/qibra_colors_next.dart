@@ -1,7 +1,15 @@
-// Dark-first identity (product-owner approved).
-// Old QibraColors stays compiling for migration.
+// lib/core/design_system/qibra_colors_next.dart
+// ============================================================
+// QIBRA AI — Semantic theme-extension tokens (MIDNIGHT NAVY).
+// Product-owner override: navy identity is the global brand.
+// Values are derived from [QibraNavy] so tokens never drift.
+// Dark is the primary identity; the light theme maps Family A
+// palette onto the same semantic fields for migration.
+// ============================================================
 
 import 'package:flutter/material.dart';
+
+import 'qibra_navy.dart';
 
 @immutable
 class QibraColorsNext extends ThemeExtension<QibraColorsNext> {
@@ -20,6 +28,11 @@ class QibraColorsNext extends ThemeExtension<QibraColorsNext> {
     required this.textSecondary,
     required this.textMuted,
     required this.error,
+    this.info = QibraNavy.blue,
+    this.infoCyan = QibraNavy.cyan,
+    this.warning = QibraNavy.orange,
+    this.success = QibraNavy.emerald,
+    this.heroVioletDeep = QibraNavy.violetDeep,
   });
 
   final Color bgCanvas;
@@ -35,23 +48,44 @@ class QibraColorsNext extends ThemeExtension<QibraColorsNext> {
   final Color textPrimary;
   final Color textSecondary;
   final Color textMuted;
+
+  /// Errors / destructive actions only.
   final Color error;
 
+  /// Informational states, search, hadith contexts.
+  final Color info;
+  final Color infoCyan;
+
+  /// Warnings / streak reminders (never decoration).
+  final Color warning;
+
+  /// Completion / positive states.
+  final Color success;
+
+  /// Deeper violet stop for AI surfaces.
+  final Color heroVioletDeep;
+
+  /// The approved midnight-navy identity.
   static const QibraColorsNext dark = QibraColorsNext(
-    bgCanvas: Color(0xFF071512),
-    bgSurface: Color(0xFF0B1D19),
-    bgCard: Color(0xFF102721),
-    bgCardElevated: Color(0xFF14332A),
-    borderSubtle: Color(0xFF244139),
-    emeraldPrimary: Color(0xFF2ED39A),
-    emeraldDeep: Color(0xFF0F8F68),
-    goldIslamic: Color(0xFFD7AD5A),
-    goldSoft: Color(0xFFF0D58A),
-    violetAi: Color(0xFF9B6CFF),
-    textPrimary: Color(0xFFF4F7F4),
-    textSecondary: Color(0xFFA9B8B2),
-    textMuted: Color(0xFF71817B),
-    error: Color(0xFFE5484D),
+    bgCanvas: QibraNavy.canvas,
+    bgSurface: QibraNavy.surface,
+    bgCard: QibraNavy.card,
+    bgCardElevated: QibraNavy.cardElevated,
+    borderSubtle: QibraNavy.hairline,
+    emeraldPrimary: QibraNavy.emerald,
+    emeraldDeep: QibraNavy.emeraldDeep,
+    goldIslamic: QibraNavy.gold,
+    goldSoft: QibraNavy.goldBright,
+    violetAi: QibraNavy.violet,
+    textPrimary: QibraNavy.textPrimary,
+    textSecondary: QibraNavy.textSecondary,
+    textMuted: QibraNavy.textMuted,
+    error: QibraNavy.red,
+    info: QibraNavy.blue,
+    infoCyan: QibraNavy.cyan,
+    warning: QibraNavy.orange,
+    success: QibraNavy.emerald,
+    heroVioletDeep: QibraNavy.violetDeep,
   );
 
   static QibraColorsNext of(BuildContext context) {
@@ -75,6 +109,11 @@ class QibraColorsNext extends ThemeExtension<QibraColorsNext> {
     Color? textSecondary,
     Color? textMuted,
     Color? error,
+    Color? info,
+    Color? infoCyan,
+    Color? warning,
+    Color? success,
+    Color? heroVioletDeep,
   }) {
     return QibraColorsNext(
       bgCanvas: bgCanvas ?? this.bgCanvas,
@@ -91,6 +130,11 @@ class QibraColorsNext extends ThemeExtension<QibraColorsNext> {
       textSecondary: textSecondary ?? this.textSecondary,
       textMuted: textMuted ?? this.textMuted,
       error: error ?? this.error,
+      info: info ?? this.info,
+      infoCyan: infoCyan ?? this.infoCyan,
+      warning: warning ?? this.warning,
+      success: success ?? this.success,
+      heroVioletDeep: heroVioletDeep ?? this.heroVioletDeep,
     );
   }
 
@@ -112,6 +156,12 @@ class QibraColorsNext extends ThemeExtension<QibraColorsNext> {
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textMuted: Color.lerp(textMuted, other.textMuted, t)!,
       error: Color.lerp(error, other.error, t)!,
+      info: Color.lerp(info, other.info, t)!,
+      infoCyan: Color.lerp(infoCyan, other.infoCyan, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      success: Color.lerp(success, other.success, t)!,
+      heroVioletDeep:
+          Color.lerp(heroVioletDeep, other.heroVioletDeep, t)!,
     );
   }
 }

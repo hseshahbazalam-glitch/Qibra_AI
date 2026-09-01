@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/l10n/app_strings.dart';
 
 class NavBarItem {
@@ -12,10 +13,14 @@ class NavBarItem {
   final IconData activeIcon;
   final String label;
 
+  /// Optional active accent (AI tab uses violet; everything else emerald).
+  final Color? activeColor;
+
   const NavBarItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
+    this.activeColor,
   });
 }
 
@@ -83,7 +88,8 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final color = isActive ? colors.primary : colors.textTertiary;
+    final accent = item.activeColor ?? colors.primary;
+    final color = isActive ? accent : colors.textTertiary;
     return Semantics(
       button: true,
       selected: isActive,
@@ -95,10 +101,38 @@ class _NavItem extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Active indicator hairline — state is never color-only.
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                width: isActive ? 18 : 0,
+                height: 3,
+                margin: const EdgeInsets.only(bottom: 5),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.65),
+                            blurRadius: 9,
+                          ),
+                        ]
+                      : null,
+                ),
+              ),
               Icon(
                 isActive ? item.activeIcon : item.icon,
                 color: color,
                 size: compact ? 18 : 22,
+                shadows: isActive
+                    ? [
+                        Shadow(
+                          color: color.withValues(alpha: 0.45),
+                          blurRadius: 14,
+                        ),
+                      ]
+                    : null,
               ),
               SizedBox(height: compact ? 2 : 4),
               FittedBox(
@@ -224,6 +258,7 @@ class AppShellScaffold extends StatelessWidget {
             icon: Icons.auto_awesome_outlined,
             activeIcon: Icons.auto_awesome_rounded,
             label: strings.navAi,
+            activeColor: QibraNavy.violet,
           ),
           NavBarItem(
             icon: Icons.grid_view_outlined,

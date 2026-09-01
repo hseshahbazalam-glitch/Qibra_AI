@@ -125,16 +125,42 @@ final randomAyahProvider = FutureProvider<AyahModel?>((ref) async {
 /// Deterministic local verse for the current calendar day.
 /// The same device date returns the same verified offline ayah without storing
 /// a random choice or making a network request.
-final dailyAyahProvider = FutureProvider<AyahModel?>((ref) async {
-  final repository = ref.read(quranRepositoryProvider);
+int _dayOfVerseKey() {
   final today = DateTime.now();
-  final dayKey = DateTime(today.year, today.month, today.day)
+  return DateTime(today.year, today.month, today.day)
       .difference(DateTime(2000, 1, 1))
       .inDays;
+}
+
+final dailyAyahProvider = FutureProvider<AyahModel?>((ref) async {
+  final repository = ref.read(quranRepositoryProvider);
+  final dayKey = _dayOfVerseKey();
   final surahNumber = (dayKey % 114) + 1;
   final surah = await repository.getSurah(surahNumber);
   if (surah == null || surah.ayahs.isEmpty) return null;
   return surah.ayahs[dayKey % surah.ayahs.length];
+});
+
+/// Daily verse with full surah context so the UI can show an honest,
+/// traceable reference (Surah name + ayah number), not just text.
+class DailyVerseBundle {
+  const DailyVerseBundle({required this.surah, required this.ayah});
+
+  final SurahModel surah;
+  final AyahModel ayah;
+
+  String get reference => '${surah.name} ${ayah.number}';
+  String get shortReference => 'Quran ${surah.number}:${ayah.number}';
+}
+
+final dailyVerseBundleProvider = FutureProvider<DailyVerseBundle?>((ref) async {
+  final repository = ref.read(quranRepositoryProvider);
+  final dayKey = _dayOfVerseKey();
+  final surahNumber = (dayKey % 114) + 1;
+  final surah = await repository.getSurah(surahNumber);
+  if (surah == null || surah.ayahs.isEmpty) return null;
+  final ayah = surah.ayahs[dayKey % surah.ayahs.length];
+  return DailyVerseBundle(surah: surah, ayah: ayah);
 });
 
 /// Auto-refreshing random ayah (changes every N seconds).

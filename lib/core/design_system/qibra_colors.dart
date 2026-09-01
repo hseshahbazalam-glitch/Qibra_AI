@@ -1,8 +1,11 @@
 // lib/core/design_system/qibra_colors.dart
 // Theme-aware palette so light/dark both stay on-brand.
+// DARK = the approved midnight-navy global identity (QibraNavy tokens).
+// LIGHT = legacy Family A ivory, kept for migration only.
 
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'qibra_navy.dart';
 
 @immutable
 class QibraColors extends ThemeExtension<QibraColors> {
@@ -45,13 +48,15 @@ class QibraColors extends ThemeExtension<QibraColors> {
   Color get divider => border;
   Color get goldAccent => accent;
   Color get goldText =>
-      isDark ? const Color(0xFFF0D58A) : const Color(0xFF6B542B);
+      isDark ? QibraNavy.goldBright : const Color(0xFF6B542B);
   Color get success =>
-      isDark ? const Color(0xFF0F8F68) : const Color(0xFF2F6B5D);
-  Color get info => isDark ? const Color(0xFF9B6CFF) : const Color(0xFF2F6B5D);
+      isDark ? QibraNavy.emerald : const Color(0xFF2F6B5D);
+  Color get info => isDark ? QibraNavy.blue : const Color(0xFF2F6B5D);
   Color get error =>
-      isDark ? const Color(0xFFE5484D) : const Color(0xFFB42318);
+      isDark ? QibraNavy.red : const Color(0xFFB42318);
   Color get violetAi => const Color(0xFF9B6CFF);
+  Color get warning =>
+      isDark ? QibraNavy.orange : const Color(0xFF8A6D38);
 
   static const QibraColors light = QibraColors(
     background: Color(0xFFF5F3EC),
@@ -71,20 +76,20 @@ class QibraColors extends ThemeExtension<QibraColors> {
   );
 
   static const QibraColors dark = QibraColors(
-    background: Color(0xFF071512),
-    backgroundSecondary: Color(0xFF0B1D19),
-    card: Color(0xFF102721),
-    cardMuted: Color(0xFF14332A),
-    primary: Color(0xFF2ED39A),
-    primarySoft: Color(0xFF0F8F68),
-    secondary: Color(0xFF0F8F68),
-    accent: Color(0xFFD7AD5A),
-    textPrimary: Color(0xFFF4F7F4),
-    textSecondary: Color(0xFFA9B8B2),
-    textTertiary: Color(0xFF71817B),
-    border: Color(0xFF244139),
-    navBackground: Color(0xFF0B1D19),
-    onPrimary: Color(0xFF071512),
+    background: QibraNavy.canvas,
+    backgroundSecondary: QibraNavy.surface,
+    card: QibraNavy.card,
+    cardMuted: QibraNavy.cardElevated,
+    primary: QibraNavy.emerald,
+    primarySoft: QibraNavy.emeraldDeep,
+    secondary: QibraNavy.emeraldDeep,
+    accent: QibraNavy.gold,
+    textPrimary: QibraNavy.textPrimary,
+    textSecondary: QibraNavy.textSecondary,
+    textTertiary: QibraNavy.textMuted,
+    border: QibraNavy.hairline,
+    navBackground: QibraNavy.surface,
+    onPrimary: QibraNavy.textOnEmerald,
   );
 
   static QibraColors of(BuildContext context) {

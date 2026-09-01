@@ -1,5 +1,6 @@
 // lib/core/design_system/app_theme.dart
-// QIBRA AI — Dark-first emerald + gold. Light Family A remains for migration.
+// QIBRA AI — Dark-first MIDNIGHT NAVY identity (emerald / violet / gold
+// accents, per QibraNavy tokens). Light Family A ivory remains for migration.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,21 +36,21 @@ abstract final class AppTheme {
   static ThemeData get dark => _build(
         brightness: Brightness.dark,
         palette: QibraColors.dark,
-        background: const Color(0xFF071512),
-        surface: const Color(0xFF102721),
-        surfaceHigh: const Color(0xFF14332A),
-        surfaceHighest: const Color(0xFF14332A),
-        surfaceSheet: const Color(0xFF0B1D19),
+        background: const Color(0xFF020B14),
+        surface: const Color(0xFF071B28),
+        surfaceHigh: const Color(0xFF0A2536),
+        surfaceHighest: const Color(0xFF0A2536),
+        surfaceSheet: const Color(0xFF04111C),
         primary: const Color(0xFF2ED39A),
-        onPrimary: const Color(0xFF071512),
-        accent: const Color(0xFFD7AD5A),
-        onAccent: const Color(0xFF071512),
-        textPrimary: const Color(0xFFF4F7F4),
-        textSecondary: const Color(0xFFA9B8B2),
-        border: const Color(0xFF244139),
-        navBackground: const Color(0xFF0B1D19),
-        navInactive: const Color(0xFF71817B),
-        inputBackground: const Color(0xFF14332A),
+        onPrimary: const Color(0xFF02150F),
+        accent: const Color(0xFFD9B26A),
+        onAccent: const Color(0xFF08131C),
+        textPrimary: const Color(0xFFECF3FA),
+        textSecondary: const Color(0xFFA6BACD),
+        border: const Color(0xFF143045),
+        navBackground: const Color(0xFF04111C),
+        navInactive: const Color(0xFF71869B),
+        inputBackground: const Color(0xFF0A2536),
         statusIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
       );
@@ -126,8 +127,8 @@ abstract final class AppTheme {
         onSurfaceVariant: textSecondary,
         outline: border,
         outlineVariant: border,
-        shadow: const Color(0xFF19312C),
-        scrim: const Color(0xFF19312C),
+        shadow: isDark ? const Color(0xFF01070D) : const Color(0xFF19312C),
+        scrim: isDark ? const Color(0xFF01070D) : const Color(0xFF19312C),
         inverseSurface: isDark ? AppNeutral.s50 : AppNeutral.s800,
         onInverseSurface: isDark ? AppNeutral.s800 : AppNeutral.s50,
         inversePrimary: AppEmerald.s400,
@@ -152,7 +153,9 @@ abstract final class AppTheme {
       cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
-        shadowColor: const Color(0xFF19312C).withValues(alpha: 0.06),
+        shadowColor: isDark
+            ? const Color(0xFF01070D).withValues(alpha: 0.45)
+            : const Color(0xFF19312C).withValues(alpha: 0.06),
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardRadiusLarge,
           side: BorderSide(color: border),
@@ -236,7 +239,7 @@ abstract final class AppTheme {
         ),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: isDark ? const Color(0xFF14332A) : AppColors.primary,
+        backgroundColor: isDark ? const Color(0xFF0A2536) : AppColors.primary,
         contentTextStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.white),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.cardRadius),
@@ -324,7 +327,7 @@ abstract final class AppSystemUI {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: Color(0xFF0B1D19),
+        systemNavigationBarColor: Color(0xFF04111C),
         systemNavigationBarIconBrightness: Brightness.light,
         systemNavigationBarDividerColor: Colors.transparent,
       ),

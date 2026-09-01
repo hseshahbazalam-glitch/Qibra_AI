@@ -1,7 +1,9 @@
 // lib/core/design_system/app_colors.dart
 //
 // QIBRA AI — Unified colour system
-// Warm Ivory + Deep Forest Green + Sage + Champagne Gold
+// LIGHT  (Family A, migration only): Warm Ivory + Deep Forest + Champagne Gold.
+// DARK   (approved global identity): MIDNIGHT NAVY + emerald + violet + gold
+//        — see AppColorsDark (values must mirror QibraNavy tokens).
 // Token names are preserved so existing AppColors.* call sites keep compiling.
 
 import 'package:flutter/material.dart';
@@ -270,17 +272,18 @@ abstract final class AppColors {
 // ============================================================
 
 abstract final class AppColorsDark {
-  static const Color background = Color(0xFF071512);
-  static const Color backgroundSecondary = Color(0xFF0B1D19);
-  static const Color surface = Color(0xFF102721);
-  static const Color surfaceElevated = Color(0xFF14332A);
-  static const Color surfaceHigh = Color(0xFF14332A);
+  // Midnight navy global identity — derived from QibraNavy tokens.
+  static const Color background = Color(0xFF020B14);
+  static const Color backgroundSecondary = Color(0xFF04111C);
+  static const Color surface = Color(0xFF071B28);
+  static const Color surfaceElevated = Color(0xFF0A2536);
+  static const Color surfaceHigh = Color(0xFF0A2536);
   static const Color primary = Color(0xFF2ED39A);
-  static const Color primaryDeep = Color(0xFF0F8F68);
-  static const Color accent = Color(0xFFD7AD5A);
-  static const Color textPrimary = Color(0xFFF4F7F4);
-  static const Color textSecondary = Color(0xFFA9B8B2);
-  static const Color textTertiary = Color(0xFF71817B);
-  static const Color border = Color(0xFF244139);
-  static const Color navBackground = Color(0xFF0B1D19);
+  static const Color primaryDeep = Color(0xFF0E9F6E);
+  static const Color accent = Color(0xFFD9B26A);
+  static const Color textPrimary = Color(0xFFECF3FA);
+  static const Color textSecondary = Color(0xFFA6BACD);
+  static const Color textTertiary = Color(0xFF71869B);
+  static const Color border = Color(0xFF143045);
+  static const Color navBackground = Color(0xFF04111C);
 }
