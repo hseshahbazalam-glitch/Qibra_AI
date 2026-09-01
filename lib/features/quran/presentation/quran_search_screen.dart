@@ -16,6 +16,7 @@ import '../../../core/utils/search_normalizer.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../providers/quran_provider.dart';
+import '../data/models/quran_models.dart';
 import 'surah_reader_screen.dart';
 
 // ============================================================
@@ -70,55 +71,55 @@ class PopularTopic {
 }
 
 List<PopularTopic> _popularTopicsFor(QibraColors colors) => [
-  PopularTopic(
-    label: 'Mercy',
-    icon: Icons.favorite_rounded,
-    color: colors.primary,
-    searchQuery: 'mercy',
-  ),
-  PopularTopic(
-    label: 'Patience',
-    icon: Icons.self_improvement_rounded,
-    color: colors.primarySoft,
-    searchQuery: 'patience',
-  ),
-  PopularTopic(
-    label: 'Paradise',
-    icon: Icons.park_rounded,
-    color: colors.primarySoft,
-    searchQuery: 'paradise',
-  ),
-  PopularTopic(
-    label: 'Prayer',
-    icon: Icons.mosque_rounded,
-    color: colors.primary,
-    searchQuery: 'prayer',
-  ),
-  PopularTopic(
-    label: 'Faith',
-    icon: Icons.light_mode_rounded,
-    color: colors.primary,
-    searchQuery: 'faith',
-  ),
-  PopularTopic(
-    label: 'Guidance',
-    icon: Icons.explore_rounded,
-    color: colors.primarySoft,
-    searchQuery: 'guidance',
-  ),
-  PopularTopic(
-    label: 'Forgiveness',
-    icon: Icons.healing_rounded,
-    color: colors.primary,
-    searchQuery: 'forgive',
-  ),
-  PopularTopic(
-    label: 'Charity',
-    icon: Icons.volunteer_activism_rounded,
-    color: colors.primary,
-    searchQuery: 'charity',
-  ),
-];
+      PopularTopic(
+        label: 'Mercy',
+        icon: Icons.favorite_rounded,
+        color: colors.primary,
+        searchQuery: 'mercy',
+      ),
+      PopularTopic(
+        label: 'Patience',
+        icon: Icons.self_improvement_rounded,
+        color: colors.primarySoft,
+        searchQuery: 'patience',
+      ),
+      PopularTopic(
+        label: 'Paradise',
+        icon: Icons.park_rounded,
+        color: colors.primarySoft,
+        searchQuery: 'paradise',
+      ),
+      PopularTopic(
+        label: 'Prayer',
+        icon: Icons.mosque_rounded,
+        color: colors.primary,
+        searchQuery: 'prayer',
+      ),
+      PopularTopic(
+        label: 'Faith',
+        icon: Icons.light_mode_rounded,
+        color: colors.primary,
+        searchQuery: 'faith',
+      ),
+      PopularTopic(
+        label: 'Guidance',
+        icon: Icons.explore_rounded,
+        color: colors.primarySoft,
+        searchQuery: 'guidance',
+      ),
+      PopularTopic(
+        label: 'Forgiveness',
+        icon: Icons.healing_rounded,
+        color: colors.primary,
+        searchQuery: 'forgive',
+      ),
+      PopularTopic(
+        label: 'Charity',
+        icon: Icons.volunteer_activism_rounded,
+        color: colors.primary,
+        searchQuery: 'charity',
+      ),
+    ];
 
 // ============================================================
 // SECTION 3 — MAIN SCREEN
@@ -582,10 +583,14 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          _buildTip(Icons.translate_rounded, 'Search in English or Arabic text'),
-          _buildTip(Icons.menu_book_rounded, 'Type surah name like "Al-Fatiha"'),
-          _buildTip(Icons.format_list_numbered_rounded, 'Enter numbers for surah 1-114'),
-          _buildTip(Icons.auto_awesome_rounded, 'Try topics: mercy, forgiveness, prayer'),
+          _buildTip(
+              Icons.translate_rounded, 'Search in English or Arabic text'),
+          _buildTip(
+              Icons.menu_book_rounded, 'Type surah name like "Al-Fatiha"'),
+          _buildTip(Icons.format_list_numbered_rounded,
+              'Enter numbers for surah 1-114'),
+          _buildTip(Icons.auto_awesome_rounded,
+              'Try topics: mercy, forgiveness, prayer'),
         ],
       ),
     );

@@ -494,8 +494,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline_rounded,
-              size: 60, color: colors.error),
+          Icon(Icons.error_outline_rounded, size: 60, color: colors.error),
           const SizedBox(height: 12),
           Text(
             message,
@@ -543,6 +542,7 @@ class _TranslationTab extends ConsumerWidget {
         children: [
           // Arabic Text
           _buildLanguageCard(
+            context,
             label: 'Arabic',
             icon: Icons.mosque_rounded,
             content: Text(
@@ -563,6 +563,7 @@ class _TranslationTab extends ConsumerWidget {
           // English
           if (ayah.translation != null)
             _buildLanguageCard(
+              context,
               label: 'English',
               icon: Icons.language_rounded,
               content: Text(
@@ -581,6 +582,7 @@ class _TranslationTab extends ConsumerWidget {
           // Urdu
           if (ayah.translationUrdu != null)
             _buildLanguageCard(
+              context,
               label: 'اردو',
               icon: Icons.translate_rounded,
               content: Text(
@@ -601,6 +603,7 @@ class _TranslationTab extends ConsumerWidget {
           // Roman Urdu
           if (ayah.translationRoman != null)
             _buildLanguageCard(
+              context,
               label: 'Roman Urdu',
               icon: Icons.abc_rounded,
               content: Text(
@@ -640,7 +643,8 @@ class _TranslationTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildLanguageCard({
+  Widget _buildLanguageCard(
+    BuildContext context, {
     required String label,
     required IconData icon,
     required Widget content,
@@ -967,8 +971,7 @@ class _WordByWordTab extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.info_outline,
-                    color: colors.textSecondary, size: 16),
+                Icon(Icons.info_outline, color: colors.textSecondary, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   '${words.length} words in this ayah',

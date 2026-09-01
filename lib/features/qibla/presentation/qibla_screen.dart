@@ -165,15 +165,15 @@ Shared via QIBRA AI''';
       ),
       body: SafeArea(
         child: switch (state.status) {
-          QiblaStatus.loading || QiblaStatus.initial =>
+          QiblaStatus.loading ||
+          QiblaStatus.initial =>
             const _QiblaLoadingBody(),
           QiblaStatus.error => QibraStatus.error(
               title: 'Qibla unavailable',
               message: state.errorMessage ??
                   'Location permission is required to compute the '
                       'Qibla bearing.',
-              onRetry: () =>
-                  ref.read(qiblaProvider.notifier).loadQibla(),
+              onRetry: () => ref.read(qiblaProvider.notifier).loadQibla(),
             ),
           QiblaStatus.loaded => _QiblaBody(
               state: state,
@@ -221,8 +221,7 @@ class _QiblaLoadingBody extends StatelessWidget {
         Text(
           'Finding your location…',
           textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMedium
-              .copyWith(color: colors.textSecondary),
+          style: AppTextStyles.bodyMedium.copyWith(color: colors.textSecondary),
         ),
         const SizedBox(height: 20),
         QibraStatus.skeleton(height: 72),
@@ -279,8 +278,7 @@ class _QiblaBody extends StatelessWidget {
                 aligned: aligned,
                 offsetDeg: offset,
                 live: hasCompass,
-                bearing:
-                    result?.qiblaAngle,
+                bearing: result?.qiblaAngle,
               ),
             ],
           ),
@@ -295,8 +293,7 @@ class _QiblaBody extends StatelessWidget {
                 Expanded(
                   child: QibraStatCard(
                     icon: Icons.mosque_rounded,
-                    value: QiblaService.formatDistance(
-                        result.distanceToMakkah),
+                    value: QiblaService.formatDistance(result.distanceToMakkah),
                     label: 'Straight-line distance to the Kaaba',
                   ),
                 ),
@@ -355,8 +352,8 @@ class _CacheNotice extends StatelessWidget {
             child: Text(
               'Using the last known location. Pull refresh for '
               'current accuracy.',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: colors.textSecondary),
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
             ),
           ),
         ],
@@ -460,9 +457,9 @@ class _CompassDial extends StatelessWidget {
             turns: needleAngle / 360,
             duration: const Duration(milliseconds: 400),
             curve: Curves.easeOutCubic,
-            child: const Transform.translate(
-              offset: Offset(0, -104),
-              child: _KaabaMarker(),
+            child: Transform.translate(
+              offset: const Offset(0, -104),
+              child: const _KaabaMarker(),
             ),
           ),
           // Hub.
@@ -518,9 +515,7 @@ class _CompassDial extends StatelessWidget {
             child: Text(
               label,
               style: AppTextStyles.labelMedium.copyWith(
-                color: label == 'N'
-                    ? colors.textPrimary
-                    : colors.textTertiary,
+                color: label == 'N' ? colors.textPrimary : colors.textTertiary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -573,8 +568,7 @@ class _AlignmentStatus extends StatelessWidget {
     final colors = QibraColors.of(context);
     if (aligned) {
       return Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: colors.primarySoft,
           borderRadius: BorderRadius.circular(12),
@@ -647,8 +641,7 @@ class _LocationCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.place_outlined,
-                  size: 18, color: colors.textSecondary),
+              Icon(Icons.place_outlined, size: 18, color: colors.textSecondary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -694,8 +687,7 @@ class _LocationCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (result.altitude != null &&
-                        result.altitude! > 0) ...[
+                    if (result.altitude != null && result.altitude! > 0) ...[
                       const SizedBox(height: 2),
                       Text(
                         'Altitude ${result.altitude!.toStringAsFixed(0)} m',
@@ -766,8 +758,7 @@ class _HowToCard extends StatelessWidget {
                     color: colors.surface,
                     border: Border.all(color: colors.border),
                   ),
-                  child: Icon(step.$1,
-                      size: 15, color: colors.textSecondary),
+                  child: Icon(step.$1, size: 15, color: colors.textSecondary),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -899,6 +890,5 @@ class _NeedlePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_NeedlePainter old) =>
-      old.tip != tip || old.tail != tail;
+  bool shouldRepaint(_NeedlePainter old) => old.tip != tip || old.tail != tail;
 }

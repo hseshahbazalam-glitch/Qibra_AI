@@ -54,9 +54,7 @@ final mushafPageIndexProvider =
     final surah = await repository.getSurah(info.number);
     if (surah == null) continue;
     for (final ayah in surah.ayahs) {
-      byPage
-          .putIfAbsent(ayah.page, () => <MushafPageEntry>[])
-          .add(
+      byPage.putIfAbsent(ayah.page, () => <MushafPageEntry>[]).add(
             MushafPageEntry(
               surahNumber: surah.number,
               surahName: surah.name,
@@ -82,8 +80,7 @@ class MushafReaderScreen extends ConsumerStatefulWidget {
   final int? surahNumber;
 
   @override
-  ConsumerState<MushafReaderScreen> createState() =>
-      _MushafReaderScreenState();
+  ConsumerState<MushafReaderScreen> createState() => _MushafReaderScreenState();
 }
 
 class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
@@ -213,7 +210,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     final list = _index(ref)?[page];
     if (list == null) return null;
     for (final e in list) {
-      if (e.surahNumber == surahNumber) return e.ayah.numberInSurah;
+      if (e.surahNumber == surahNumber) return e.ayah.number;
     }
     return null;
   }
@@ -299,8 +296,7 @@ Juz: ${juz ?? '—'}''';
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Close',
-              style:
-                  AppTextStyles.labelLarge.copyWith(color: colors.primary),
+              style: AppTextStyles.labelLarge.copyWith(color: colors.primary),
             ),
           ),
         ],
@@ -316,8 +312,7 @@ Juz: ${juz ?? '—'}''';
         children: [
           Text(
             label,
-            style: AppTextStyles.bodySmall
-                .copyWith(color: colors.textTertiary),
+            style: AppTextStyles.bodySmall.copyWith(color: colors.textTertiary),
           ),
           Flexible(
             child: Text(
@@ -347,8 +342,7 @@ Juz: ${juz ?? '—'}''';
         ),
         title: Row(
           children: [
-            Icon(Icons.article_outlined,
-                color: colors.textSecondary, size: 22),
+            Icon(Icons.article_outlined, color: colors.textSecondary, size: 22),
             const SizedBox(width: 8),
             Text(
               'Go to page',
@@ -365,8 +359,8 @@ Juz: ${juz ?? '—'}''';
           children: [
             Text(
               'Enter a page number (1 – 604)',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: colors.textSecondary),
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -457,9 +451,8 @@ Juz: ${juz ?? '—'}''';
             child: Stack(
               children: [
                 GestureDetector(
-                  onTap: () => ref
-                      .read(_showControlsProvider.notifier)
-                      .state = !showControls,
+                  onTap: () => ref.read(_showControlsProvider.notifier).state =
+                      !showControls,
                   child: PageView.builder(
                     controller: _pageController,
                     reverse: true,
@@ -587,9 +580,9 @@ Juz: ${juz ?? '—'}''';
                       value: currentPage.toDouble().clamp(1, 604),
                       min: 1,
                       max: 604,
-                      onChanged: (value) =>
-                          ref.read(_currentPageProvider.notifier).state =
-                              value.toInt(),
+                      onChanged: (value) => ref
+                          .read(_currentPageProvider.notifier)
+                          .state = value.toInt(),
                       onChangeEnd: (value) {
                         _pageController.jumpToPage(value.toInt() - 1);
                         HapticFeedback.selectionClick();
@@ -1006,7 +999,18 @@ class _MushafPage extends StatelessWidget {
   final int pageNumber;
   final List<MushafPageEntry> entries;
 
-  static const _arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  static const _arabicDigits = [
+    '٠',
+    '١',
+    '٢',
+    '٣',
+    '٤',
+    '٥',
+    '٦',
+    '٧',
+    '٨',
+    '٩'
+  ];
 
   static String _toArabicDigits(int value) =>
       value.toString().split('').map((d) {
@@ -1021,8 +1025,7 @@ class _MushafPage extends StatelessWidget {
       return Center(
         child: Text(
           'No verses recorded for this page in the bundled data.',
-          style: AppTextStyles.bodyMedium
-              .copyWith(color: colors.textTertiary),
+          style: AppTextStyles.bodyMedium.copyWith(color: colors.textTertiary),
         ),
       );
     }
@@ -1031,7 +1034,7 @@ class _MushafPage extends StatelessWidget {
     final spans = <InlineSpan>[];
     for (var i = 0; i < entries.length; i++) {
       final e = entries[i];
-      final startsSurahHere = e.ayah.numberInSurah == 1 &&
+      final startsSurahHere = e.ayah.number == 1 &&
           (i == 0 || entries[i - 1].surahNumber != e.surahNumber);
       if (startsSurahHere) {
         spans.add(
@@ -1062,13 +1065,13 @@ class _MushafPage extends StatelessWidget {
       spans.add(
         TextSpan(
           text: '${e.ayah.text} ',
-          style: AppArabicStyles.quranMedium
-              .copyWith(color: colors.textPrimary),
+          style:
+              AppArabicStyles.quranMedium.copyWith(color: colors.textPrimary),
         ),
       );
       spans.add(
         TextSpan(
-          text: '(${_toArabicDigits(e.ayah.numberInSurah)}) ',
+          text: '(${_toArabicDigits(e.ayah.number)}) ',
           style: AppTextStyles.bodyMedium.copyWith(
             color: colors.primary,
             fontWeight: FontWeight.w700,

@@ -72,9 +72,8 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   @override
   void initState() {
     super.initState();
-    _activeTab = _tabs.contains(widget.initialTab)
-        ? widget.initialTab!
-        : 'Arabic';
+    _activeTab =
+        _tabs.contains(widget.initialTab) ? widget.initialTab! : 'Arabic';
   }
 
   @override
@@ -95,8 +94,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   void _jumpToInitialAyah(SurahModel surah) {
     if (_didInitialScroll || widget.initialAyah == null) return;
     _didInitialScroll = true;
-    final idx = surah.ayahs
-        .indexWhere((a) => a.numberInSurah == widget.initialAyah);
+    final idx = surah.ayahs.indexWhere((a) => a.number == widget.initialAyah);
     if (idx <= 0) return; // already near the top
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scroll.hasClients) return;
@@ -140,8 +138,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
           if (s == null) {
             return QibraStatus.empty(
               title: 'Surah not found',
-              message:
-                  'Surah ${widget.surahNumber} is not in the bundled '
+              message: 'Surah ${widget.surahNumber} is not in the bundled '
                   'Quran data.',
             );
           }
@@ -187,8 +184,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                     }
                     return Padding(
                       padding: const EdgeInsets.only(top: 4),
-                      child:
-                          _TranslationCompareCard(ayah: s.ayahs.first),
+                      child: _TranslationCompareCard(ayah: s.ayahs.first),
                     );
                   },
                 ),
@@ -211,8 +207,8 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
         error: (e, st) => QibraStatus.error(
           title: 'Could not open this surah',
           message: 'The bundled Quran data could not be read.',
-          onRetry: () => ref
-              .invalidate(surahDetailProvider(widget.surahNumber)),
+          onRetry: () =>
+              ref.invalidate(surahDetailProvider(widget.surahNumber)),
         ),
       ),
     );
@@ -352,8 +348,8 @@ class _SurahHeader extends StatelessWidget {
           children: [
             Text(
               surah.nameArabic,
-              style: AppArabicStyles.surahName
-                  .copyWith(color: colors.textPrimary),
+              style:
+                  AppArabicStyles.surahName.copyWith(color: colors.textPrimary),
             ),
             const SizedBox(height: 6),
             Text(
@@ -391,8 +387,8 @@ class _BismillahHeader extends StatelessWidget {
       child: Center(
         child: Text(
           'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-          style: AppArabicStyles.bismillah
-              .copyWith(color: colors.textSecondary),
+          style:
+              AppArabicStyles.bismillah.copyWith(color: colors.textSecondary),
         ),
       ),
     );
@@ -424,8 +420,7 @@ class _AyahCard extends ConsumerWidget {
     );
     final strings = AppStrings.of(context);
 
-    final arabicSize =
-        AppFontSize.arabicMedium * prefs.fontScale;
+    final arabicSize = AppFontSize.arabicMedium * prefs.fontScale;
     final showTranslation = activeTab == 'Translation' ||
         (activeTab != 'Arabic' && prefs.showTranslation);
     final showTranslit =
@@ -437,97 +432,97 @@ class _AyahCard extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: QibraCard(
         onTap: () => showAyahOptions(
-        context: context,
-        surahNumber: surah.number,
-        ayahNumber: ayah.number,
-        surahName: surah.name,
-        ayah: ayah,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: colors.primarySoft,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: colors.border),
-                ),
-                child: Center(
-                  child: Text(
-                    '${ayah.numberInSurah}',
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.w700,
+          context: context,
+          surahNumber: surah.number,
+          ayahNumber: ayah.number,
+          surahName: surah.name,
+          ayah: ayah,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: colors.primarySoft,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: colors.border),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${ayah.number}',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
+                const Spacer(),
+                IconButton(
+                  tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark ayah',
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    ref.read(bookmarksProvider.notifier).toggleBookmark(
+                          BookmarkModel(
+                            surahNumber: surah.number,
+                            ayahNumber: ayah.number,
+                            surahName: surah.name,
+                            ayahText: ayah.text,
+                            bookmarkedAt: DateTime.now(),
+                          ),
+                        );
+                  },
+                  icon: Icon(
+                    bookmarked
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_border_rounded,
+                    color: bookmarked ? colors.primary : colors.textTertiary,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              ayah.text,
+              textAlign: TextAlign.right,
+              textDirection: TextDirection.rtl,
+              style: AppArabicStyles.quranMedium.copyWith(
+                fontSize: arabicSize,
+                height: prefs.lineHeight,
+                color: colors.textPrimary,
               ),
-              const Spacer(),
-              IconButton(
-                tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark ayah',
-                onPressed: () {
-                  HapticFeedback.selectionClick();
-                  ref.read(bookmarksProvider.notifier).toggleBookmark(
-                        BookmarkModel(
-                          surahNumber: surah.number,
-                          ayahNumber: ayah.number,
-                          surahName: surah.name,
-                          ayahText: ayah.text,
-                          bookmarkedAt: DateTime.now(),
-                        ),
-                      );
-                },
-                icon: Icon(
-                  bookmarked
-                      ? Icons.bookmark_rounded
-                      : Icons.bookmark_border_rounded,
-                  color: bookmarked ? colors.primary : colors.textTertiary,
-                  size: 20,
+            ),
+            if (showTranslit) ...[
+              const SizedBox(height: 8),
+              Text(
+                (roman != null && roman.isNotEmpty)
+                    ? roman
+                    : 'Transliteration is not bundled for this ayah.',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: colors.textSecondary,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            ayah.text,
-            textAlign: TextAlign.right,
-            textDirection: TextDirection.rtl,
-            style: AppArabicStyles.quranMedium.copyWith(
-              fontSize: arabicSize,
-              height: prefs.lineHeight,
-              color: colors.textPrimary,
-            ),
-          ),
-          if (showTranslit) ...[
-            const SizedBox(height: 8),
-            Text(
-              (roman != null && roman.isNotEmpty)
-                  ? roman
-                  : 'Transliteration is not bundled for this ayah.',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: colors.textSecondary,
-                fontStyle: FontStyle.italic,
+            if (showTranslation) ...[
+              const SizedBox(height: 8),
+              Text(
+                translation ?? strings.translationUnavailable,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: colors.textSecondary,
+                  height: 1.5,
+                ),
               ),
-            ),
-          ],
-          if (showTranslation) ...[
-            const SizedBox(height: 8),
-            Text(
-              translation ?? strings.translationUnavailable,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textSecondary,
-                height: 1.5,
-              ),
-            ),
-          ],
             ],
-          ),
+          ],
         ),
-      );
+      ),
+    );
   }
 
   static String? _translationFor(
@@ -645,8 +640,7 @@ class _TranslationColumn extends StatelessWidget {
             textAlign: isRtl ? TextAlign.right : TextAlign.left,
             textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
             style: isRtl
-                ? AppArabicStyles.quranSmall
-                    .copyWith(color: colors.textPrimary)
+                ? AppArabicStyles.quranSmall.copyWith(color: colors.textPrimary)
                 : AppTextStyles.bodySmall
                     .copyWith(color: colors.textSecondary, height: 1.5),
           ),
@@ -738,8 +732,8 @@ class _ReadingSettingsSheet extends ConsumerWidget {
             const SizedBox(height: 10),
             Text(
               strings.recitationNotBundled,
-              style: AppTextStyles.labelSmall
-                  .copyWith(color: colors.textTertiary),
+              style:
+                  AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
             ),
           ],
         ),
