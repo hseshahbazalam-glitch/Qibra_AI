@@ -140,12 +140,6 @@ const _tools = [
     route: '/tools/asma',
   ),
   _Tool(
-    title: 'Islamic names',
-    subtitle: 'Find a name',
-    icon: Icons.badge_outlined,
-    route: '/tools/names',
-  ),
-  _Tool(
     title: 'Inheritance',
     subtitle: 'Faraid calculator',
     icon: Icons.balance_outlined,

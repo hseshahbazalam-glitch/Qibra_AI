@@ -46,7 +46,6 @@ import 'package:qibra_ai/features/tools/screens/umrah_guide_screen.dart';
 import 'package:qibra_ai/features/tools/screens/nikah_guide_screen.dart';
 import 'package:qibra_ai/features/tools/screens/halal_scanner_screen.dart';
 import 'package:qibra_ai/features/tools/screens/asma_ul_husna_screen.dart';
-import 'package:qibra_ai/features/tools/screens/islamic_name_finder_screen.dart';
 import 'package:qibra_ai/features/tools/screens/inheritance_calculator_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/notification_settings_screen.dart';
 import 'package:qibra_ai/features/home/presentation/home_screen.dart';
@@ -367,10 +366,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: '/tools/halal',
               name: 'tools-halal',
               builder: (context, state) => const HalalScannerScreen()),
-          GoRoute(
-              path: '/tools/names',
-              name: 'tools-names',
-              builder: (context, state) => const IslamicNameFinderScreen()),
           GoRoute(
               path: '/tools/inheritance',
               name: 'tools-inheritance',
