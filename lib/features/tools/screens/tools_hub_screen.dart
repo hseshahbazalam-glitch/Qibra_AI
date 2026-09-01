@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../shared/widgets/qibra_ui.dart';
+import 'nikah_guide_inline.dart';
 
 class ToolsHubScreen extends StatelessWidget {
   const ToolsHubScreen({super.key});
@@ -31,6 +32,8 @@ class ToolsHubScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          const NikahGuideInlineCard(),
+          const SizedBox(height: 10),
           for (final tool in _tools)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -96,12 +99,6 @@ const _tools = [
     subtitle: 'Umrah sequence',
     icon: Icons.account_balance_outlined,
     route: '/tools/umrah',
-  ),
-  _Tool(
-    title: 'Nikah guide',
-    subtitle: 'Marriage in Islam',
-    icon: Icons.favorite_border_rounded,
-    route: '/tools/nikah',
   ),
   _Tool(
     title: 'Habit tracker',
