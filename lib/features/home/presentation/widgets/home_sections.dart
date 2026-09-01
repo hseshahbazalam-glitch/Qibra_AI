@@ -687,7 +687,6 @@ class HomeProgressPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           child: QibraStatCard(
