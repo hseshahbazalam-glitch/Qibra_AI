@@ -1,334 +1,434 @@
 // lib/features/quran/presentation/surah_reader_screen.dart
 // ============================================================
-// QIBRA AI — SURAH READER (Multi-Translation & Flagship UI)
+// QIBRA AI — SURAH READER (Stage B rewrite, midnight navy)
+//
+// What changed vs the legacy screen (audit findings):
+//  • 76 hardcoded hexes -> QibraColors tokens (theme-driven:
+//    navy by default, sanctioned ivory when the app theme is light).
+//  • Deleted the floating audio-player bar: it carried a mic chip,
+//    skip controls and fabricated 00:09/01:01 timestamps for audio
+//    that is NOT bundled. The honesty notice now lives as plain
+//    text in the reading-settings sheet (no fake player chrome).
+//  • Deleted dead affordances: no-op search/bookmark appbar icons
+//    (they now route to the real screens), the font-family pill
+//    (labelled with the Amiri font that is not bundled as a local
+//    asset) and the empty agenda pill.
+//  • Deleted the 'Tafsir' mode tab — the reader has no tafsir
+//    data; the verified Tafseer screen is reachable from every
+//    ayah through the options sheet.
+//  • Header shows REAL metadata (revelation type, ayah count,
+//    starting juz/page) instead of the hardcoded 'Juz 1 • Page 1'.
+//  • Tapping an ayah opens the real options sheet (copy / share /
+//    note / bookmark / tafsir / AI explain); the row bookmark
+//    toggle writes to the real bookmarks provider.
+//  • Loading/error go through QibraStatus (skeleton + retry).
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_constants.dart';
+import '../../../core/design_system/app_typography.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
+import '../../../shared/widgets/qibra_status.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_provider.dart' hide readingProgressProvider;
 import '../providers/reading_preferences_provider.dart';
+import 'ayah_options_sheet.dart';
 
 class SurahReaderScreen extends ConsumerStatefulWidget {
-  final int surahNumber;
-  final int? initialAyah;
-
   const SurahReaderScreen({
     super.key,
     required this.surahNumber,
     this.initialAyah,
   });
 
+  final int surahNumber;
+  final int? initialAyah;
+
   @override
   ConsumerState<SurahReaderScreen> createState() => _SurahReaderScreenState();
 }
 
 class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
-  String _activeTab = 'Arabic';
-  final String _fontFamily = 'Uthmani';
-  double _fontSize = 24.0;
-  bool _isNightMode = true;
-  bool _isPlayingAudio = false;
-  int _playingAyah = 1;
-  final Set<int> _bookmarkedAyahs = {};
+  static const _tabs = ['Arabic', 'Translation', 'Transliteration'];
 
-  String? _bundledTranslation(AyahModel ayah, ReadingPreferences prefs) {
-    final id = prefs.translationId.toLowerCase();
-    if (id.startsWith('ur')) {
-      final urdu = ayah.translationUrdu?.trim();
-      return (urdu == null || urdu.isEmpty) ? null : urdu;
-    }
-    final english = ayah.translation?.trim();
-    return (english == null || english.isEmpty) ? null : english;
+  /// Text-size stops offered by the pill and the settings sheet.
+  static const scales = <double>[1.0, 1.25, 1.5];
+
+  String _activeTab = 'Arabic';
+  final ScrollController _scroll = ScrollController();
+  bool _didInitialScroll = false;
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _stepFontScale() {
+    HapticFeedback.selectionClick();
+    final prefs = ref.read(readingPreferencesProvider);
+    final i = scales.indexOf(prefs.fontScale);
+    ref
+        .read(readingPreferencesProvider.notifier)
+        .setFontScale(scales[(i + 1) % scales.length]);
+  }
+
+  void _jumpToInitialAyah(SurahModel surah) {
+    if (_didInitialScroll || widget.initialAyah == null) return;
+    _didInitialScroll = true;
+    final idx = surah.ayahs
+        .indexWhere((a) => a.numberInSurah == widget.initialAyah);
+    if (idx <= 0) return; // already near the top
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      // Approximate per-item height; lands close enough to fine-tune.
+      _scroll.jumpTo((idx + 1) * 184.0);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final surahAsync = ref.watch(surahDetailProvider(widget.surahNumber));
     final prefs = ref.watch(readingPreferencesProvider);
+    final colors = QibraColors.of(context);
+    final surah = surahAsync.value;
 
     return Scaffold(
-      backgroundColor:
-          _isNightMode ? const Color(0xFF020A08) : const Color(0xFFFBF9F4),
-      appBar: _buildReaderAppBar(context, surahAsync.value),
+      backgroundColor: colors.background,
+      appBar: QibraAppBar(
+        title: surah?.name ?? 'Surah ${widget.surahNumber}',
+        subtitle: surah == null ? null : 'Surah ${surah.number} of 114',
+        actions: [
+          IconButton(
+            tooltip: 'Search the Quran',
+            icon: const Icon(Icons.search_rounded),
+            onPressed: () => context.go(AppRoutes.quranSearch),
+          ),
+          IconButton(
+            tooltip: 'Bookmarks',
+            icon: const Icon(Icons.bookmark_border_rounded),
+            onPressed: () => context.push('/quran/bookmarks'),
+          ),
+          IconButton(
+            tooltip: 'Reading settings',
+            icon: const Icon(Icons.tune_rounded),
+            onPressed: () => _showSettingsSheet(context),
+          ),
+        ],
+      ),
       body: surahAsync.when(
-        data: (surah) {
-          if (surah == null) {
-            return const Center(
-                child: Text('Surah not found',
-                    style: TextStyle(color: const Color(0xFF19312C))));
+        data: (s) {
+          if (s == null) {
+            return QibraStatus.empty(
+              title: 'Surah not found',
+              message:
+                  'Surah ${widget.surahNumber} is not in the bundled '
+                  'Quran data.',
+            );
           }
+          _jumpToInitialAyah(s);
           return Column(
             children: [
-              _buildTopModeTabs(),
-              _buildControlPillsBar(),
+              _ModeTabs(
+                tabs: _tabs,
+                active: _activeTab,
+                fontScale: prefs.fontScale,
+                onSelect: (tab) {
+                  HapticFeedback.selectionClick();
+                  setState(() => _activeTab = tab);
+                },
+                onSizeStep: _stepFontScale,
+              ),
               Expanded(
-                // ListView.builder with SliverChildBuilderDelegate semantics
-                // for O(1) per-frame construction → 60fps on 286-ayah surahs.
+                // ListView.builder keeps long surahs (286 ayahs) at
+                // O(1) construction per frame.
                 child: ListView.builder(
+                  controller: _scroll,
                   physics: const BouncingScrollPhysics(),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  itemCount: surah.ayahs.length + 4,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  itemCount: s.ayahs.length + 3,
                   itemBuilder: (context, index) {
-                    // 0: title header
-                    // 1: bismillah (when applicable)
-                    // 2..2+N-1: ayahs
-                    // 2+N: multi-translation comparison
-                    // last: bottom spacer
-                    final bool showBismillah =
+                    final showBismillah =
                         widget.surahNumber != 9 && widget.surahNumber != 1;
-                    final int bismillahOffset = showBismillah ? 1 : 0;
-                    if (index == 0) return _buildSurahTitleHeader(surah);
+                    if (index == 0) return _SurahHeader(surah: s);
                     if (index == 1 && showBismillah) {
-                      return Column(
-                        children: [
-                          const SizedBox(height: 16),
-                          _buildBismillahHeader(),
-                        ],
+                      return const _BismillahHeader();
+                    }
+                    final ayahIndex = index - (showBismillah ? 2 : 1);
+                    if (ayahIndex < s.ayahs.length) {
+                      return _AyahCard(
+                        surah: s,
+                        ayah: s.ayahs[ayahIndex],
+                        activeTab: _activeTab,
+                        prefs: prefs,
                       );
                     }
-                    final int ayahIndex = index - 1 - bismillahOffset;
-                    if (ayahIndex >= 0 && ayahIndex < surah.ayahs.length) {
-                      return _buildAyahCard(
-                          surah.ayahs[ayahIndex], surah, prefs);
-                    }
-                    if (ayahIndex == surah.ayahs.length) {
-                      return Column(
-                        children: [
-                          const SizedBox(height: 16),
-                          _buildMultiTranslationComparisonCard(
-                              surah.ayahs.first, prefs),
-                        ],
-                      );
-                    }
-                    return const SizedBox(height: 120);
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child:
+                          _TranslationCompareCard(ayah: s.ayahs.first),
+                    );
                   },
                 ),
               ),
-              _buildFloatingAudioPlayer(surah),
-              _buildBottomActionStrip(),
             ],
           );
         },
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF123F36))),
-        error: (_, __) => const Center(
-            child: Text('Error loading surah',
-                style: TextStyle(color: const Color(0xFF19312C)))),
+        loading: () => Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              QibraStatus.skeleton(height: 96),
+              const SizedBox(height: 12),
+              QibraStatus.skeleton(height: 220),
+              const SizedBox(height: 12),
+              QibraStatus.skeleton(height: 220),
+            ],
+          ),
+        ),
+        error: (e, st) => QibraStatus.error(
+          title: 'Could not open this surah',
+          message: 'The bundled Quran data could not be read.',
+          onRetry: () => ref
+              .invalidate(surahDetailProvider(widget.surahNumber)),
+        ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildReaderAppBar(
-      BuildContext context, SurahModel? surah) {
-    final title = surah?.name ?? 'Surah ${widget.surahNumber}';
-    final ayahsCount = surah?.numberOfAyahs ?? 7;
-
-    return AppBar(
-      backgroundColor: const Color(0xFFEEF1EA),
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: const Color(0xFF19312C), size: 20),
-        onPressed: () => Navigator.pop(context),
+  void _showSettingsSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: QibraColors.of(context).card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(
-                  color: const Color(0xFF19312C),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold)),
-          Text('Juz 1 • Page 1 • $ayahsCount Ayahs',
-              style: const TextStyle(color: Color(0xFF123F36), fontSize: 10.5)),
-        ],
-      ),
-      actions: [
-        IconButton(
-            icon:
-                const Icon(Icons.search_rounded, color: const Color(0xFF19312C), size: 20),
-            onPressed: () {}),
-        IconButton(
-            icon: const Icon(Icons.bookmark_border_rounded,
-                color: const Color(0xFF19312C), size: 20),
-            onPressed: () {}),
-        IconButton(
-            icon: const Icon(Icons.more_vert_rounded,
-                color: const Color(0xFF19312C), size: 20),
-            onPressed: () => _showSettingsModal(context)),
-      ],
+      builder: (_) => const _ReadingSettingsSheet(),
     );
   }
+}
 
-  Widget _buildTopModeTabs() {
-    final tabs = ['Arabic', 'Translation', 'Tafsir', 'Transliteration'];
+// ─────────────────────────────────────────────────────────────
+// Mode tabs + text-size control
+// ─────────────────────────────────────────────────────────────
 
+class _ModeTabs extends StatelessWidget {
+  const _ModeTabs({
+    required this.tabs,
+    required this.active,
+    required this.fontScale,
+    required this.onSelect,
+    required this.onSizeStep,
+  });
+
+  final List<String> tabs;
+  final String active;
+  final double fontScale;
+  final ValueChanged<String> onSelect;
+  final VoidCallback onSizeStep;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
-      color: const Color(0xFF041710),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.card,
+        border: Border(bottom: BorderSide(color: colors.border)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: tabs.map((tab) {
-          final isSelected = _activeTab == tab;
-          return GestureDetector(
-            onTap: () => setState(() => _activeTab = tab),
-            child: Text(
-              tab,
-              style: TextStyle(
-                color: isSelected
-                    ? const Color(0xFF123F36)
-                    : const Color(0xFF71807A),
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                decoration: isSelected ? TextDecoration.underline : null,
-                decorationColor: const Color(0xFF123F36),
-                decorationThickness: 2,
+        children: [
+          for (final tab in tabs)
+            GestureDetector(
+              onTap: () => onSelect(tab),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color:
+                          active == tab ? colors.primary : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  tab,
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: active == tab
+                        ? colors.textPrimary
+                        : colors.textSecondary,
+                    fontWeight:
+                        active == tab ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
               ),
             ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildControlPillsBar() {
-    final prefs = ref.watch(readingPreferencesProvider);
-    return Container(
-      color: const Color(0xFF061A13),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          _buildPill(
-              icon: Icons.format_shapes_rounded,
-              label: _fontFamily,
-              onTap: () {}),
-          const SizedBox(width: 8),
-          _buildPill(
-              icon: Icons.text_fields_rounded,
-              label: 'A^A',
-              onTap: () =>
-                  setState(() => _fontSize = _fontSize == 24.0 ? 30.0 : 24.0)),
-          const SizedBox(width: 8),
-          _buildPill(icon: Icons.view_agenda_outlined, label: '', onTap: () {}),
           const Spacer(),
-          _buildPill(
-            icon:
-                _isNightMode ? Icons.nightlight_round : Icons.wb_sunny_rounded,
-            label: _isNightMode ? 'Night Mode' : 'Light Mode',
-            onTap: () => setState(() => _isNightMode = !_isNightMode),
+          InkWell(
+            onTap: onSizeStep,
+            borderRadius: BorderRadius.circular(999),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 13,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: colors.border),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.format_size_rounded,
+                      size: 16, color: colors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    fontScale == 1.0
+                        ? 'Aa'
+                        : 'Aa+${((fontScale - 1) * 100).round()}',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildPill(
-      {required IconData icon,
-      required String label,
-      required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEEF1EA),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF16543D)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+// ─────────────────────────────────────────────────────────────
+// Surah header — real metadata only
+// ─────────────────────────────────────────────────────────────
+
+class _SurahHeader extends StatelessWidget {
+  const _SurahHeader({required this.surah});
+
+  final SurahModel surah;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final first = surah.ayahs.isNotEmpty ? surah.ayahs.first : null;
+    final meta = <String>[
+      surah.revelationType == 'Meccan' ? 'Meccan' : 'Medinan',
+      '${surah.numberOfAyahs} ayahs',
+      if (first != null) 'Juz ${first.juz}',
+      if (first != null) 'from page ${first.page}',
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: QibraCard(
+        child: Column(
           children: [
-            Icon(icon, color: const Color(0xFF123F36), size: 14),
-            if (label.isNotEmpty) ...[
-              const SizedBox(width: 4),
-              Text(label,
-                  style: const TextStyle(
-                      color: const Color(0xFF19312C),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600)),
-              const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: const Color(0xFF71807A), size: 12),
-            ],
+            Text(
+              surah.nameArabic,
+              style: AppArabicStyles.surahName
+                  .copyWith(color: colors.textPrimary),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${surah.name} — ${surah.englishNameTranslation}',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.titleSmall.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(height: 1, color: colors.border),
+            const SizedBox(height: 8),
+            Text(
+              meta.join('  ·  '),
+              style: AppTextStyles.labelSmall.copyWith(
+                color: colors.textTertiary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSurahTitleHeader(SurahModel surah) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF061A13),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE4E0D5)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            surah.nameArabic,
-            style: const TextStyle(
-                color: Color(0xFFC6A15B),
-                fontFamily: 'Amiri',
-                fontSize: 28,
-                fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text('Surah ${surah.name}',
-              style: const TextStyle(
-                  color: const Color(0xFF71807A),
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
+class _BismillahHeader extends StatelessWidget {
+  const _BismillahHeader();
 
-  Widget _buildBismillahHeader() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 12),
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Center(
         child: Text(
-          'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-          style: TextStyle(
-              color: const Color(0xFF19312C),
-              fontFamily: 'Amiri',
-              fontSize: 22,
-              fontWeight: FontWeight.bold),
+          'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+          style: AppArabicStyles.bismillah
+              .copyWith(color: colors.textSecondary),
         ),
       ),
     );
   }
+}
 
-  Widget _buildAyahCard(
-    AyahModel ayah,
-    SurahModel surah,
-    ReadingPreferences prefs,
-  ) {
+// ─────────────────────────────────────────────────────────────
+// Ayah card
+// ─────────────────────────────────────────────────────────────
+
+class _AyahCard extends ConsumerWidget {
+  const _AyahCard({
+    required this.surah,
+    required this.ayah,
+    required this.activeTab,
+    required this.prefs,
+  });
+
+  final SurahModel surah;
+  final AyahModel ayah;
+  final String activeTab;
+  final ReadingPreferences prefs;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final bookmarked = ref.watch(
       isBookmarkedProvider((surah: surah.number, ayah: ayah.number)),
     );
-    final isBookmarked = bookmarked;
-    final isPlayingThis = false;
+    final strings = AppStrings.of(context);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color:
-            isPlayingThis ? const Color(0xFF0A2B1F) : const Color(0xFF061A13),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: isPlayingThis
-                ? const Color(0xFF123F36)
-                : const Color(0xFFE4E0D5)),
+    final arabicSize =
+        AppFontSize.arabicMedium * prefs.fontScale;
+    final showTranslation = activeTab != 'Arabic' && prefs.showTranslation;
+    final showTranslit =
+        activeTab == 'Transliteration' && prefs.showTransliteration;
+    final translation = _translationFor(ayah, prefs);
+    final roman = ayah.translationRoman?.trim();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: QibraCard(
+        onTap: () => showAyahOptions(
+        context: context,
+        surahNumber: surah.number,
+        ayahNumber: ayah.number,
+        surahName: surah.name,
+        ayah: ayah,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -336,40 +436,28 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
           Row(
             children: [
               Container(
-                width: 26,
-                height: 26,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEF1EA),
+                  color: colors.primarySoft,
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF16543D)),
+                  border: Border.all(color: colors.border),
                 ),
                 child: Center(
-                  child: Text('${ayah.number}',
-                      style: const TextStyle(
-                          color: Color(0xFF123F36),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold)),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(AppStrings.of(context).recitationNotBundled),
+                  child: Text(
+                    '${ayah.numberInSurah}',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w700,
                     ),
-                  );
-                },
-                child: const Icon(Icons.play_circle_fill_rounded,
-                    color: Color(0xFF123F36), size: 22),
+                  ),
+                ),
               ),
               const Spacer(),
               IconButton(
-                  icon: const Icon(Icons.more_vert_rounded,
-                      color: Color(0xFF71807A), size: 18),
-                  onPressed: () {}),
-              InkWell(
-                onTap: () {
+                tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark ayah',
+                onPressed: () {
+                  HapticFeedback.selectionClick();
                   ref.read(bookmarksProvider.notifier).toggleBookmark(
                         BookmarkModel(
                           surahNumber: surah.number,
@@ -380,78 +468,99 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                         ),
                       );
                 },
-                child: Icon(
-                    isBookmarked
-                        ? Icons.bookmark_rounded
-                        : Icons.bookmark_border_rounded,
-                    color: isBookmarked
-                        ? const Color(0xFF123F36)
-                        : const Color(0xFF71807A),
-                    size: 20),
+                icon: Icon(
+                  bookmarked
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
+                  color: bookmarked ? colors.primary : colors.textTertiary,
+                  size: 20,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             ayah.text,
             textAlign: TextAlign.right,
-            style: TextStyle(
-                color: const Color(0xFF19312C),
-                fontFamily: 'Amiri',
-                fontSize: _fontSize,
-                fontWeight: FontWeight.bold,
-                height: 1.8),
+            textDirection: TextDirection.rtl,
+            style: AppArabicStyles.quranMedium.copyWith(
+              fontSize: arabicSize,
+              height: prefs.lineHeight,
+              color: colors.textPrimary,
+            ),
           ),
-          const SizedBox(height: 8),
-          if (_activeTab == 'Arabic' || _activeTab == 'Transliteration')
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                ayah.translationRoman ?? 'Bismillāhir raḥmānir raḥīm',
-                style: const TextStyle(
-                    color: Color(0xFF123F36),
-                    fontSize: 11.5,
-                    fontStyle: FontStyle.italic),
+          if (showTranslit) ...[
+            const SizedBox(height: 8),
+            Text(
+              (roman != null && roman.isNotEmpty)
+                  ? roman
+                  : 'Transliteration is not bundled for this ayah.',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: colors.textSecondary,
+                fontStyle: FontStyle.italic,
               ),
             ),
-          if (_activeTab == 'Arabic' || _activeTab == 'Translation')
+          ],
+          if (showTranslation) ...[
+            const SizedBox(height: 8),
             Text(
-              ayah.translation ?? '',
-              style: const TextStyle(
-                  color: Color(0xFF71807A), fontSize: 12, height: 1.4),
+              translation ?? strings.translationUnavailable,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: colors.textSecondary,
+                height: 1.5,
+              ),
             ),
-        ],
-      ),
-    );
+          ],
+            ],
+          ),
+        ),
+      );
   }
 
-  Widget _buildMultiTranslationComparisonCard(
+  static String? _translationFor(
     AyahModel ayah,
     ReadingPreferences prefs,
   ) {
+    final id = prefs.translationId.toLowerCase();
+    if (id.startsWith('ur')) {
+      final urdu = ayah.translationUrdu?.trim();
+      return (urdu == null || urdu.isEmpty) ? null : urdu;
+    }
+    final english = ayah.translation?.trim();
+    return (english == null || english.isEmpty) ? null : english;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Bundled-translation comparison (EN + UR side by side)
+// ─────────────────────────────────────────────────────────────
+
+class _TranslationCompareCard extends StatelessWidget {
+  const _TranslationCompareCard({required this.ayah});
+
+  final AyahModel ayah;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final strings = AppStrings.of(context);
     final english = ayah.translation?.trim();
     final urdu = ayah.translationUrdu?.trim();
-    final strings = AppStrings.of(context);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF061A13),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE4E0D5)),
-      ),
+    return QibraCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.language_rounded,
-                  color: Color(0xFF123F36), size: 16),
+              Icon(Icons.language_rounded, size: 16, color: colors.primary),
               const SizedBox(width: 6),
-              const Text('Bundled translations',
-                  style: TextStyle(
-                      color: Color(0xFF19312C),
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold)),
+              Text(
+                'Bundled translations — first ayah',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -459,266 +568,169 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                  child: _buildTranslationColumn(
-                      lang: 'English',
-                      text: (english != null && english.isNotEmpty)
-                          ? english
-                          : strings.translationUnavailable,
-                      isRtl: false)),
+                child: _TranslationColumn(
+                  lang: 'English',
+                  text: (english != null && english.isNotEmpty)
+                      ? english
+                      : strings.translationUnavailable,
+                  isRtl: false,
+                ),
+              ),
               const SizedBox(width: 8),
               Expanded(
-                  child: _buildTranslationColumn(
-                      lang: 'اردو',
-                      text: (urdu != null && urdu.isNotEmpty)
-                          ? urdu
-                          : strings.translationUnavailable,
-                      isRtl: true)),
+                child: _TranslationColumn(
+                  lang: 'اردو',
+                  text: (urdu != null && urdu.isNotEmpty)
+                      ? urdu
+                      : strings.translationUnavailable,
+                  isRtl: true,
+                ),
+              ),
             ],
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _langChip(String label, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF123F36) : const Color(0xFFEEF1EA),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-            color: isSelected ? const Color(0xFF020A08) : Colors.white70,
-            fontSize: 9,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
-      ),
-    );
-  }
+class _TranslationColumn extends StatelessWidget {
+  const _TranslationColumn({
+    required this.lang,
+    required this.text,
+    required this.isRtl,
+  });
 
-  Widget _buildTranslationColumn(
-      {required String lang, required String text, required bool isRtl}) {
+  final String lang;
+  final String text;
+  final bool isRtl;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFF03100B),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF103023)),
+        color: colors.cardMuted,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment:
             isRtl ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(lang,
-                  style: const TextStyle(
-                      color: Color(0xFFC6A15B),
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold)),
-              const Icon(Icons.volume_up_rounded,
-                  color: Color(0xFF123F36), size: 12),
-            ],
+          Text(
+            lang,
+            style: AppTextStyles.labelSmall.copyWith(
+              color: colors.textSecondary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 6),
-          Text(text,
-              textAlign: isRtl ? TextAlign.right : TextAlign.left,
-              style: TextStyle(
-                  color: const Color(0xFF71807A),
-                  fontSize: 10,
-                  fontFamily: isRtl ? 'Amiri' : null,
-                  height: 1.4)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFloatingAudioPlayer(SurahModel surah) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Color(0xFF041710),
-        border: Border(top: BorderSide(color: Color(0xFFE4E0D5))),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border:
-                        Border.all(color: const Color(0xFFC6A15B), width: 1.2)),
-                child: const Center(
-                    child: Text('🎙️', style: TextStyle(fontSize: 16))),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Recitation not bundled',
-                        style: TextStyle(
-                            color: const Color(0xFF19312C),
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold)),
-                    Text('Surah ${surah.name}',
-                        style: const TextStyle(
-                            color: Color(0xFF71807A), fontSize: 9.5)),
-                  ],
-                ),
-              ),
-              IconButton(
-                  icon: const Icon(Icons.skip_previous_rounded,
-                      color: const Color(0xFF19312C), size: 20),
-                  onPressed: () {}),
-              InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content:
-                          Text(AppStrings.of(context).recitationNotBundled),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(
-                      color: Color(0xFF123F36), shape: BoxShape.circle),
-                  child: const Icon(Icons.play_arrow_rounded,
-                      color: Colors.black, size: 20),
-                ),
-              ),
-              IconButton(
-                  icon: const Icon(Icons.skip_next_rounded,
-                      color: const Color(0xFF19312C), size: 20),
-                  onPressed: () {}),
-              IconButton(
-                  icon: const Icon(Icons.queue_music_rounded,
-                      color: Color(0xFF71807A), size: 18),
-                  onPressed: () {}),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('00:09',
-                  style: TextStyle(color: Color(0xFF71807A), fontSize: 8)),
-              Text('01:01',
-                  style: TextStyle(color: Color(0xFF71807A), fontSize: 8)),
-            ],
+          Text(
+            text,
+            textAlign: isRtl ? TextAlign.right : TextAlign.left,
+            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+            style: isRtl
+                ? AppArabicStyles.quranSmall
+                    .copyWith(color: colors.textPrimary)
+                : AppTextStyles.bodySmall
+                    .copyWith(color: colors.textSecondary, height: 1.5),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildBottomActionStrip() {
-    final actions = [
-      {'icon': Icons.share_outlined, 'label': 'Share'},
-      {'icon': Icons.edit_note_rounded, 'label': 'Note'},
-      {'icon': Icons.copy_rounded, 'label': 'Copy'},
-      {'icon': Icons.download_rounded, 'label': 'Download'},
-      {'icon': Icons.more_horiz_rounded, 'label': 'More'},
-    ];
+// ─────────────────────────────────────────────────────────────
+// Reading settings (all switches write real preferences)
+// ─────────────────────────────────────────────────────────────
 
-    return Container(
-      color: const Color(0xFF020B08),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: actions.map((a) {
-          return InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text('${a['label']} triggered'),
-                    backgroundColor: const Color(0xFFEEF1EA),
-                    duration: const Duration(seconds: 1)),
-              );
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+class _ReadingSettingsSheet extends ConsumerWidget {
+  const _ReadingSettingsSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final prefs = ref.watch(readingPreferencesProvider);
+    final strings = AppStrings.of(context);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Reading settings',
+              style: AppTextStyles.titleMedium.copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            AppSwitchListTile(
+              title: const Text('Show translation'),
+              subtitle: Text(
+                'Display the bundled translation under the Arabic.',
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: colors.textSecondary),
+              ),
+              value: prefs.showTranslation,
+              onChanged: (v) => ref
+                  .read(readingPreferencesProvider.notifier)
+                  .setShowTranslation(v),
+            ),
+            AppSwitchListTile(
+              title: const Text('Show transliteration'),
+              subtitle: Text(
+                'Only where a roman edition exists in the bundle.',
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: colors.textSecondary),
+              ),
+              value: prefs.showTransliteration,
+              onChanged: (v) => ref
+                  .read(readingPreferencesProvider.notifier)
+                  .setShowTransliteration(v),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Text size',
+              style: AppTextStyles.labelMedium.copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
               children: [
-                Icon(a['icon'] as IconData,
-                    color: const Color(0xFF71807A), size: 18),
-                const SizedBox(height: 3),
-                Text(a['label'] as String,
-                    style:
-                        const TextStyle(color: Color(0xFF71807A), fontSize: 9)),
+                for (final scale in _SurahReaderScreenState.scales)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: QibraChip(
+                      label: scale == 1.0
+                          ? 'Default'
+                          : '+${((scale - 1) * 100).round()}%',
+                      selected: prefs.fontScale == scale,
+                      onTap: () => ref
+                          .read(readingPreferencesProvider.notifier)
+                          .setFontScale(scale),
+                    ),
+                  ),
               ],
             ),
-          );
-        }).toList(),
+            const SizedBox(height: 14),
+            Container(height: 1, color: colors.border),
+            const SizedBox(height: 10),
+            Text(
+              strings.recitationNotBundled,
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: colors.textTertiary),
+            ),
+          ],
+        ),
       ),
-    );
-  }
-
-  void _showSettingsModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFFEEF1EA),
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final prefs = ref.watch(readingPreferencesProvider);
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Reading settings',
-                      style: TextStyle(
-                          color: Color(0xFF19312C),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  AppSwitchListTile(
-                    title: const Text('Show Translation',
-                        style:
-                            TextStyle(color: Color(0xFF19312C), fontSize: 13)),
-                    subtitle: const Text('Display bundled translation below Arabic',
-                        style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
-                    value: prefs.showTranslation,
-                    activeColor: const Color(0xFF123F36),
-                    onChanged: (val) {
-                      ref
-                          .read(readingPreferencesProvider.notifier)
-                          .setShowTranslation(val);
-                    },
-                  ),
-                  AppSwitchListTile(
-                    title: const Text('Show transliteration',
-                        style:
-                            TextStyle(color: Color(0xFF19312C), fontSize: 13)),
-                    subtitle: const Text(
-                        'Only when a bundled roman edition exists',
-                        style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
-                    value: prefs.showTransliteration,
-                    activeColor: const Color(0xFF123F36),
-                    onChanged: (val) {
-                      ref
-                          .read(readingPreferencesProvider.notifier)
-                          .setShowTransliteration(val);
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
     );
   }
 }

@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../ai/presentation/ai_explain_screen.dart';
+import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 import '../../tafseer/presentation/tafseer_screen.dart';
 import '../data/models/quran_models.dart';
 import 'surah_reader_screen.dart';
@@ -134,18 +136,15 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: colors.accent.withValues(alpha: 0.2),
+                        color: colors.cardMuted,
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: colors.accent.withValues(alpha: 0.4),
-                        ),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Text(
                         'AYAH ${widget.ayahNumber}',
-                        style: TextStyle(
+                        style: AppTextStyles.labelSmall.copyWith(
                           color: colors.primary,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 1,
                         ),
                       ),
@@ -154,10 +153,8 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                       const SizedBox(width: 8),
                       Text(
                         'Juz ${widget.ayah!.juz}',
-                        style: TextStyle(
-                          color: colors.textPrimary.withValues(alpha: 0.5),
-                          fontSize: 11,
-                        ),
+                        style: AppTextStyles.labelSmall
+                            .copyWith(color: colors.textTertiary),
                       ),
                     ],
                   ],
@@ -165,19 +162,15 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                 const SizedBox(height: 8),
                 Text(
                   widget.surahName,
-                  style: TextStyle(
+                  style: AppTextStyles.titleMedium.copyWith(
                     color: colors.textPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
                   '${widget.surahNumber}:${widget.ayahNumber}',
-                  style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.5),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: colors.textSecondary),
                 ),
               ],
             ),
@@ -190,7 +183,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                   setState(() => _isFavorite = !_isFavorite);
                   await _saveState();
                   _showToast(_isFavorite
-                      ? '⭐ Added to favorites'
+                      ? 'Added to favorites'
                       : 'Removed from favorites');
                 },
                 child: Container(
@@ -198,9 +191,10 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                   height: 48,
                   decoration: BoxDecoration(
                     color: _isFavorite
-                        ? colors.accent.withValues(alpha: 0.2)
+                        ? colors.primarySoft
                         : colors.cardMuted,
                     shape: BoxShape.circle,
+                    border: Border.all(color: colors.border),
                   ),
                   child: Icon(
                     _isFavorite
@@ -208,7 +202,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                         : Icons.star_border_rounded,
                     color: _isFavorite
                         ? colors.primary
-                        : colors.textTertiary,
+                        : colors.textSecondary,
                     size: 22,
                   ),
                 ),
@@ -223,8 +217,9 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: colors.textPrimary.withValues(alpha: 0.08),
+                    color: colors.cardMuted,
                     shape: BoxShape.circle,
+                    border: Border.all(color: colors.border),
                   ),
                   child: Icon(
                     Icons.close_rounded,
@@ -241,7 +236,6 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
   }
 
   Widget _buildPrimaryActions() {
-    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -249,25 +243,21 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
           _actionButton(
             icon: Icons.translate_rounded,
             label: 'Translation',
-            color: colors.primarySoft,
             onTap: _openTranslation,
           ),
           _actionButton(
             icon: Icons.menu_book_rounded,
             label: 'Tafsir',
-            color: colors.accent,
             onTap: _openTafsir,
           ),
           _actionButton(
             icon: Icons.copy_rounded,
             label: 'Copy',
-            color: colors.accent,
             onTap: _copyAyah,
           ),
           _actionButton(
             icon: Icons.psychology_rounded,
             label: 'AI\nExplain',
-            color: colors.primarySoft,
             onTap: _openAIExplain,
           ),
         ],
@@ -276,36 +266,28 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
   }
 
   Widget _buildSecondaryActions() {
-    final colors = QibraColors.of(context);
+    // No recitation player here — audio files are not bundled with
+    // the app, so a Play tile would be a dead end (deleted, not wired).
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           _actionButton(
-            icon: Icons.play_arrow_rounded,
-            label: 'Play',
-            color: colors.accent,
-            onTap: _playAudio,
-          ),
-          _actionButton(
             icon: _isBookmarked
                 ? Icons.bookmark_rounded
                 : Icons.bookmark_border_rounded,
             label: 'Bookmark',
-            color: colors.error,
             onTap: _toggleBookmark,
             isActive: _isBookmarked,
           ),
           _actionButton(
             icon: Icons.edit_note_rounded,
             label: 'Note',
-            color: colors.primarySoft,
             onTap: _addNote,
           ),
           _actionButton(
             icon: Icons.share_rounded,
             label: 'Share',
-            color: colors.primarySoft,
             onTap: _shareAyah,
           ),
         ],
@@ -316,40 +298,37 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
   Widget _actionButton({
     required IconData icon,
     required String label,
-    required Color color,
     required VoidCallback onTap,
     bool isActive = false,
   }) {
     final colors = QibraColors.of(context);
     return Expanded(
-      child: GestureDetector(
+      child: InkWell(
         onTap: () {
           HapticFeedback.selectionClick();
           onTap();
         },
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           child: Column(
             children: [
               Container(
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      color.withValues(alpha: isActive ? 0.4 : 0.25),
-                      color.withValues(alpha: isActive ? 0.25 : 0.15),
-                    ],
-                  ),
+                  color: isActive ? colors.primarySoft : colors.cardMuted,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: color.withValues(alpha: isActive ? 0.8 : 0.4),
+                    color: isActive ? colors.primary : colors.border,
                     width: isActive ? 2 : 1,
                   ),
                 ),
-                child: Icon(icon, color: color, size: 26),
+                child: Icon(
+                  icon,
+                  color: isActive ? colors.primary : colors.textPrimary,
+                  size: 26,
+                ),
               ),
               const SizedBox(height: 6),
               SizedBox(
@@ -357,10 +336,8 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                 child: Text(
                   label,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.textSecondary,
                     height: 1.2,
                   ),
                 ),
@@ -373,33 +350,12 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
   }
 
   Widget _buildRelatedContent() {
-    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 3,
-                height: 14,
-                decoration: BoxDecoration(
-                  color: colors.accent,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Related Content',
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
+          const QibraSectionHeader(title: 'Related Content'),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -408,7 +364,6 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                   icon: Icons.auto_stories_rounded,
                   title: 'Related Ayahs',
                   subtitle: _getRelatedAyahs(),
-                  color: colors.primarySoft,
                   onTap: _openRelatedAyah,
                 ),
               ),
@@ -418,7 +373,6 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                   icon: Icons.article_rounded,
                   title: 'Read Full Surah',
                   subtitle: widget.surahName,
-                  color: colors.accent,
                   onTap: _openFullSurah,
                 ),
               ),
@@ -433,49 +387,39 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color color,
     required VoidCallback onTap,
   }) {
     final colors = QibraColors.of(context);
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         HapticFeedback.selectionClick();
         onTap();
       },
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              color.withValues(alpha: 0.15),
-              color.withValues(alpha: 0.05),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          color: colors.cardMuted,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 22),
+            Icon(icon, color: colors.textSecondary, size: 22),
             const SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(
+              style: AppTextStyles.labelLarge.copyWith(
                 color: colors.textPrimary,
-                fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.6),
-                fontSize: 11,
-              ),
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: colors.textSecondary),
             ),
           ],
         ),
@@ -483,9 +427,9 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     );
   }
 
-  // ═══════════════════════════════════════════════
-  // ACTIONS (ALL REAL - NO COMING SOON!)
-  // ═══════════════════════════════════════════════
+  // ─────────────────────────────────────────────────
+  // ACTIONS (all backed by real behavior)
+  // ─────────────────────────────────────────────────
 
   void _openTranslation() {
     Navigator.pop(context);
@@ -528,28 +472,24 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     );
   }
 
-  // ✅ COPY AYAH (Real)
+  // COPY AYAH (Real)
   void _copyAyah() {
     final text = _buildShareText();
     Clipboard.setData(ClipboardData(text: text));
     Navigator.pop(context);
-    _showToast('📋 Ayah copied to clipboard');
+    _showToast('Ayah copied to clipboard');
   }
 
-  void _playAudio() {
-    _showToast('Recitation is not bundled');
-  }
-
-  // ✅ BOOKMARK (Real - saves to SharedPreferences)
+  // BOOKMARK (Real - saves to SharedPreferences)
   Future<void> _toggleBookmark() async {
     setState(() => _isBookmarked = !_isBookmarked);
     await _saveState();
     _showToast(_isBookmarked
-        ? '🔖 Bookmarked ${widget.surahName}:${widget.ayahNumber}'
+        ? 'Bookmarked ${widget.surahName}:${widget.ayahNumber}'
         : 'Bookmark removed');
   }
 
-  // ✅ ADD NOTE (Real - opens dialog)
+  // ADD NOTE (Real - opens dialog)
   Future<void> _addNote() async {
     final colors = QibraColors.of(context);
     Navigator.pop(context);
@@ -571,14 +511,13 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
         title: Row(
           children: [
             Icon(Icons.edit_note_rounded,
-                color: colors.accent, size: 24),
+                color: colors.textSecondary, size: 22),
             const SizedBox(width: 8),
             Text(
               'Note for ${widget.surahName}:${widget.ayahNumber}',
-              style: TextStyle(
+              style: AppTextStyles.titleSmall.copyWith(
                 color: colors.textPrimary,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -587,12 +526,14 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
           controller: controller,
           maxLines: 5,
           autofocus: true,
-          style: TextStyle(color: colors.textPrimary, fontSize: 14),
+          style: AppTextStyles.bodyMedium
+              .copyWith(color: colors.textPrimary),
           decoration: InputDecoration(
             hintText: 'Write your reflection or note...',
-            hintStyle: TextStyle(color: colors.textPrimary.withValues(alpha: 0.4)),
+            hintStyle: AppTextStyles.bodyMedium
+                .copyWith(color: colors.textTertiary),
             filled: true,
-            fillColor: colors.onPrimary.withValues(alpha: 0.05),
+            fillColor: colors.cardMuted,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -604,16 +545,14 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Cancel',
-              style: TextStyle(color: colors.textPrimary.withValues(alpha: 0.7)),
+              style: AppTextStyles.labelLarge
+                  .copyWith(color: colors.textSecondary),
             ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
+          FilledButton(
+            style: FilledButton.styleFrom(
               backgroundColor: colors.primary,
               foregroundColor: colors.onPrimary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
             ),
             onPressed: () async {
               if (controller.text.trim().isEmpty) {
@@ -623,7 +562,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
               } else {
                 await prefs.setString(noteKey, controller.text.trim());
                 if (ctx.mounted) Navigator.pop(ctx);
-                _showToast('📝 Note saved');
+                _showToast('Note saved');
               }
             },
             child: const Text('Save'),
@@ -633,15 +572,15 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     );
   }
 
-  // ✅ SHARE AYAH (Real - uses clipboard)
+  // SHARE AYAH (Real - uses clipboard)
   void _shareAyah() {
     final text = _buildShareText();
     Clipboard.setData(ClipboardData(text: text));
     Navigator.pop(context);
-    _showToast('📤 Ayah copied — Paste anywhere to share');
+    _showToast('Ayah copied — paste anywhere to share');
   }
 
-  // ✅ RELATED AYAHS (Real - navigate to prev/next)
+  // RELATED AYAHS (Real - navigate to prev/next)
   void _openRelatedAyah() {
     Navigator.pop(context);
     final targetAyah =
@@ -658,7 +597,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     );
   }
 
-  // ✅ FULL SURAH
+  // FULL SURAH
   void _openFullSurah() {
     Navigator.pop(context);
     Navigator.push(
@@ -689,7 +628,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
     buffer.writeln(
         '— ${widget.surahName} (${widget.surahNumber}:${widget.ayahNumber})');
     buffer.writeln();
-    buffer.writeln('📱 Shared via Qibra AI');
+    buffer.writeln('Shared via QIBRA AI');
 
     return buffer.toString();
   }
@@ -707,7 +646,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
       SnackBar(
         content: Text(message),
         duration: const Duration(seconds: 2),
-        backgroundColor: colors.primary,
+        backgroundColor: colors.cardMuted,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
