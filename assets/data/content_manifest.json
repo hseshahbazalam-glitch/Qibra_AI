@@ -300,7 +300,7 @@
     },
     {
       "id": "hadith_tirmidhi",
-      "content": "Jami at-Tirmidhi (ar/en JSON; urdu file missing)",
+      "content": "Jami at-Tirmidhi (ar/en/ur JSON; urdu backfilled 2026-09-02 from fawazahmed0/hadith-api@df57907 editions/urd-tirmidhi.json)",
       "source": "assets/data/hadith/tirmidhi/",
       "source_name": "metadata.name Jami At Tirmidhi",
       "collection": "hadith",
@@ -317,17 +317,17 @@
       "attribution": "UNKNOWN",
       "verification_status": "UNKNOWN",
       "status": "UNKNOWN",
-      "language": "ar/en"
+      "language": "ar/en/ur"
     },
     {
       "id": "tafsir_ibn_kathir",
       "content": "Tafsir Ibn Kathir",
-      "source": "not bundled",
-      "source_name": "not present",
+      "source": "assets/data/tafsir/ibn_kathir_en.json",
+      "source_name": "spa5k/tafsir_api@05d5ba765d77c6ca6d43c30f0e1c273deb137454 tafsir/en-tafisr-ibn-kathir",
       "collection": "tafsir",
-      "edition": null,
-      "translator": null,
-      "author": "Ibn Kathir (work); this checkout has no edition",
+      "edition": "en-tafisr-ibn-kathir (abridged, English)",
+      "translator": "UNKNOWN",
+      "author": "Ibn Kathir (work); abridged English translation as mirrored by the upstream dataset",
       "license": "UNKNOWN",
       "license_url": null,
       "license_file": null,
@@ -336,10 +336,10 @@
       "commercial_use": "UNKNOWN",
       "redistribution": "UNKNOWN",
       "attribution": "UNKNOWN",
-      "verification_status": "DO_NOT_DISTRIBUTE",
-      "status": "DO_NOT_DISTRIBUTE",
-      "language": null,
-      "integrity_notes": "Do not bundle until a licensed edition is in-repo."
+      "verification_status": "REQUIRES_PERMISSION",
+      "status": "REQUIRES_PERMISSION",
+      "language": "en",
+      "integrity_notes": "Bundled verbatim (owner-approved content pass 2026-09-02) from a published dataset; every passage copied, none generated. Upstream repo code is MIT; rights for the underlying abridged translation are NOT documented — verify distribution permission before release. Do not mark VERIFIED without a license file in-repo."
     },
     {
       "id": "word_by_word",
