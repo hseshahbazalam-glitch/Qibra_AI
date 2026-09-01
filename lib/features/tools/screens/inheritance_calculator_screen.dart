@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/app_typography.dart';
 import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../logic/inheritance_estimator.dart';
@@ -177,7 +178,7 @@ class _InheritanceCalculatorScreenState
         f,
         1,
         rule,
-        colors.primarySoft,
+        colors.primary,
         Icons.man_rounded,
       );
     }
@@ -249,7 +250,7 @@ class _InheritanceCalculatorScreenState
         f,
         1,
         rule,
-        colors.primarySoft,
+        colors.primary,
         Icons.woman_rounded,
       );
     }
@@ -264,7 +265,7 @@ class _InheritanceCalculatorScreenState
         1 / 6,
         1,
         '1/6 — takes father\'s place',
-        colors.primarySoft,
+        colors.primary,
         Icons.elderly_rounded,
       );
     }
@@ -400,7 +401,7 @@ class _InheritanceCalculatorScreenState
             sonFraction * _sons,
             _sons,
             '2:1 ratio with daughters — each son: ${(sonFraction * 100).toStringAsFixed(1)}%',
-            colors.primarySoft,
+            colors.primary,
             Icons.boy_rounded,
           );
           sharesMap['Daughters'] = _ShareResult(
@@ -422,7 +423,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _sons,
             'Equal residual share among $_sons son${_sons > 1 ? "s" : ""} (Asabah)',
-            colors.primarySoft,
+            colors.primary,
             Icons.boy_rounded,
           );
         }
@@ -475,7 +476,7 @@ class _InheritanceCalculatorScreenState
             gsonF * _grandsons,
             _grandsons,
             '2:1 ratio (Asabah)',
-            colors.primarySoft,
+            colors.primary,
             Icons.boy_rounded,
           );
           sharesMap['Granddaughters'] = _ShareResult(
@@ -497,7 +498,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _grandsons,
             'Equal residual (Asabah)',
-            colors.primarySoft,
+            colors.primary,
             Icons.boy_rounded,
           );
         }
@@ -518,7 +519,7 @@ class _InheritanceCalculatorScreenState
             brotherF * _brothers,
             _brothers,
             '2:1 ratio with sisters (Asabah)',
-            colors.primarySoft,
+            colors.primary,
             Icons.people_rounded,
           );
           sharesMap['Sisters'] = _ShareResult(
@@ -540,7 +541,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _brothers,
             'Equal residual (Asabah)',
-            colors.primarySoft,
+            colors.primary,
             Icons.people_rounded,
           );
         }
@@ -564,7 +565,7 @@ class _InheritanceCalculatorScreenState
             hbF * _halfBrothersFather,
             _halfBrothersFather,
             '2:1 ratio (Asabah)',
-            colors.primarySoft,
+            colors.primary,
             Icons.people_rounded,
           );
           sharesMap['Half Sisters (Paternal)'] = _ShareResult(
@@ -586,7 +587,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _halfBrothersFather,
             'Equal residual (Asabah)',
-            colors.primarySoft,
+            colors.primary,
             Icons.people_rounded,
           );
         }
@@ -602,7 +603,7 @@ class _InheritanceCalculatorScreenState
           remainder,
           1,
           'Residual (Asabah)',
-          colors.primarySoft,
+          colors.primary,
           Icons.man_rounded,
         );
         remainder = 0;
@@ -777,7 +778,7 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: colors.error.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.error.withValues(alpha: 0.4)),
+        border: Border.all(color: colors.error.withValues(alpha: 0.16)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -804,7 +805,7 @@ class _InheritanceCalculatorScreenState
                   'variations. Please consult a qualified Islamic scholar '
                   'before making any actual distribution decisions.',
                   style: TextStyle(
-                    color: colors.error.withValues(alpha: 0.8),
+                    color: colors.error,
                     fontSize: 11,
                     height: 1.5,
                   ),
@@ -827,8 +828,8 @@ class _InheritanceCalculatorScreenState
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
             color: _understood
-                ? colors.primary.withValues(alpha: 0.4)
-                : colors.goldText.withValues(alpha: 0.35)),
+                ? colors.primary.withValues(alpha: 0.16)
+                : colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -838,7 +839,7 @@ class _InheritanceCalculatorScreenState
               Expanded(
                 child: Text('Calculation Method',
                     style: TextStyle(
-                        color: colors.textPrimary.withValues(alpha: 0.7),
+                        color: colors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
               ),
@@ -846,7 +847,7 @@ class _InheritanceCalculatorScreenState
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                    color: colors.textPrimary.withValues(alpha: 0.08),
+                    color: colors.surfaceElevated,
                     borderRadius: BorderRadius.circular(8)),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -883,8 +884,8 @@ class _InheritanceCalculatorScreenState
             const SizedBox(height: 8),
             Text(
               'Note: This calculator implements Sunni/Hanafi reference logic. Other schools may differ for some cases (e.g., Radd, grandfather). Result is for educational reference.',
-              style: TextStyle(
-                  color: colors.goldText,
+              style: AppTextStyles.labelSmall.copyWith(
+                  color: colors.textSecondary,
                   fontSize: 10,
                   height: 1.3),
             ),
@@ -904,7 +905,7 @@ class _InheritanceCalculatorScreenState
                   side: BorderSide(
                       color: _understood
                           ? colors.primary
-                          : colors.goldText.withValues(alpha: 0.5)),
+                          : colors.textTertiary),
                 ),
                 const SizedBox(width: 4),
                 Expanded(
@@ -954,8 +955,7 @@ class _InheritanceCalculatorScreenState
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
-            gradient:
-                LinearGradient(colors: [colors.backgroundSecondary, colors.background]),
+            color: colors.surface,
           ),
           child: SafeArea(
             child: Padding(
@@ -963,11 +963,13 @@ class _InheritanceCalculatorScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('فَرَائِض',
-                      style: TextStyle(
-                          color: colors.primarySoft,
-                          fontSize: 24,
-                          fontFamily: 'Amiri')),
+                  Text(
+                    'فَرَائِض',
+                    style: AppArabicStyles.quranMedium.copyWith(
+                      color: colors.primary,
+                    ),
+                    textDirection: TextDirection.rtl,
+                  ),
                   Text('Inheritance Calculator',
                       style: TextStyle(
                           color: colors.textPrimary,
@@ -975,7 +977,7 @@ class _InheritanceCalculatorScreenState
                           fontWeight: FontWeight.bold)),
                   Text('Islamic Law of Succession',
                       style: TextStyle(
-                          color: colors.textPrimary.withValues(alpha: 0.4),
+                          color: colors.textSecondary,
                           fontSize: 12)),
                 ],
               ),
@@ -994,8 +996,7 @@ class _InheritanceCalculatorScreenState
       decoration: BoxDecoration(
         color: colors.primarySoft.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: colors.primarySoft.withValues(alpha: 0.2)),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
@@ -1024,7 +1025,7 @@ class _InheritanceCalculatorScreenState
                   '2. Select family members\n'
                   '3. Calculate automatic Islamic shares',
                   style: TextStyle(
-                      color: colors.textPrimary.withValues(alpha: 0.5),
+                      color: colors.textSecondary,
                       fontSize: 11,
                       height: 1.5),
                 ),
@@ -1043,7 +1044,7 @@ class _InheritanceCalculatorScreenState
       children: [
         Text('Deceased:',
             style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.5),
+                color: colors.textSecondary,
                 fontSize: 12,
                 fontWeight: FontWeight.w600)),
         const SizedBox(width: 12),
@@ -1204,7 +1205,7 @@ class _InheritanceCalculatorScreenState
                         fontSize: 11),
                     prefixText: '${_currencySymbols[_currency]} ',
                     prefixStyle: TextStyle(
-                        color: color.withValues(alpha: 0.5), fontSize: 13),
+                        color: color, fontSize: 13),
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
                     border: InputBorder.none,

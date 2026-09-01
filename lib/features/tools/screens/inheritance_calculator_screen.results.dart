@@ -15,12 +15,12 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         Icon(
           icon,
           size: 14,
-          color: colors.textPrimary.withValues(alpha: 0.5),
+          color: colors.textSecondary,
         ),
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.5),
+                color: colors.textSecondary,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0)),
@@ -43,7 +43,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Text('Spouse',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.6),
+                  color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
@@ -77,7 +77,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Text('Parents & Grandparents',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.6),
+                  color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
@@ -111,7 +111,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Text('Children & Grandchildren',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.6),
+                  color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
@@ -145,7 +145,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Text('Full Siblings',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.6),
+                  color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
@@ -173,13 +173,13 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Text('Half Siblings',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.6),
+                  color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           Text('Paternal (same father)',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.3),
+                  color: colors.textTertiary,
                   fontSize: 10)),
           const SizedBox(height: 8),
           _counterRow(
@@ -194,7 +194,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           const SizedBox(height: 8),
           Text('Maternal (same mother)',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.3),
+                  color: colors.textTertiary,
                   fontSize: 10)),
           const SizedBox(height: 8),
           _counterRow('Maternal Half Brothers', _halfBrothersMother, 0, 20,
@@ -221,7 +221,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Text('Other Relatives',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.6),
+                  color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
@@ -312,7 +312,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                   color: colors.textPrimary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8)),
               child: Icon(Icons.remove_rounded,
-                  color: colors.textPrimary.withValues(alpha: 0.3), size: 16),
+                  color: colors.textTertiary, size: 16),
             ),
           ),
           Container(
@@ -363,22 +363,9 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-                colors: enabled
-                    ? [colors.primarySoft, colors.accent]
-                    : [
-                        Colors.grey.withValues(alpha: 0.3),
-                        Colors.grey.withValues(alpha: 0.2)
-                      ]),
+            color: enabled ? colors.primary : colors.surface,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: enabled
-                ? [
-                    BoxShadow(
-                        color: colors.primarySoft.withValues(alpha: 0.3),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6))
-                  ]
-                : [],
+            border: Border.all(color: colors.border),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -414,10 +401,10 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient:
-            LinearGradient(colors: [colors.backgroundSecondary, colors.card]),
+        color: colors.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.primarySoft.withValues(alpha: 0.3)),
+        border: Border.all(
+            color: colors.primary.withValues(alpha: 0.16)),
       ),
       child: Column(
         children: [
@@ -436,7 +423,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           if (actualW > 0)
             _summaryRow('Wasiyyah (Will)', '- ${_formatAmount(actualW)}',
                 colors.accent),
-          const Divider(color: Color(0xFF4A3F6B), height: 20),
+          const Divider(height: 20),
           _summaryRow(
               'Net Distributable', _formatAmount(_netEstate), colors.primary),
           _summaryRow('Heirs', '${_results.length}', colors.primarySoft),
@@ -454,7 +441,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Text(label,
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.5),
+                  color: colors.textSecondary,
                   fontSize: 12)),
           Text(value,
               style: TextStyle(
@@ -475,7 +462,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           decoration: BoxDecoration(
             color: r.color.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: r.color.withValues(alpha: 0.2)),
+            border: Border.all(color: r.color.withValues(alpha: 0.16)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -520,10 +507,10 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                           ],
                         ),
                         Text(r.arabic,
-                            style: TextStyle(
-                                fontFamily: 'Amiri',
-                                fontSize: 13,
-                                color: r.color),
+                            style:
+                                AppArabicStyles.quranSmall.copyWith(
+                                    fontSize: 13,
+                                    color: colors.textSecondary),
                             textDirection: TextDirection.rtl),
                       ],
                     ),
@@ -538,13 +525,13 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                               fontWeight: FontWeight.w900)),
                       Text('${(r.fraction * 100).toStringAsFixed(1)}%',
                           style: TextStyle(
-                              color: colors.textPrimary.withValues(alpha: 0.4),
+                              color: colors.textSecondary,
                               fontSize: 10)),
                       if (r.count > 1)
                         Text('${_formatAmount(r.amount / r.count)} each',
                             style: TextStyle(
                                 color:
-                                    colors.textPrimary.withValues(alpha: 0.3),
+                                    colors.textTertiary,
                                 fontSize: 9)),
                     ],
                   ),
@@ -560,13 +547,13 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                 child: Row(
                   children: [
                     Icon(Icons.info_outline_rounded,
-                        color: r.color.withValues(alpha: 0.5), size: 12),
+                        color: r.color, size: 12),
                     const SizedBox(width: 6),
                     Expanded(
                         child: Text(r.rule,
                             style: TextStyle(
                                 color:
-                                    colors.textPrimary.withValues(alpha: 0.4),
+                                    colors.textSecondary,
                                 fontSize: 10,
                                 height: 1.3))),
                   ],
@@ -596,7 +583,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Text('VISUAL BREAKDOWN',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.4),
+                  color: colors.textSecondary,
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2.0)),
@@ -625,7 +612,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                   const SizedBox(width: 6),
                   Text('${r.label} ${(r.fraction * 100).toStringAsFixed(0)}%',
                       style: TextStyle(
-                          color: colors.textPrimary.withValues(alpha: 0.5),
+                          color: colors.textSecondary,
                           fontSize: 10)),
                 ],
               );
@@ -653,11 +640,11 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.refresh_rounded,
-                color: colors.textPrimary.withValues(alpha: 0.5), size: 18),
+                color: colors.textTertiary, size: 18),
             const SizedBox(width: 8),
             Text('Reset All',
                 style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.5),
+                    color: colors.textSecondary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
           ],
@@ -672,7 +659,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.cardMuted.withValues(alpha: 0.5),
+        color: colors.cardMuted,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: colors.primarySoft.withValues(alpha: 0.15)),
       ),
@@ -696,7 +683,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
             'and His Messenger, He will admit him into Gardens beneath '
             'which rivers flow." — Quran 4:13',
             style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.6),
+                color: colors.textSecondary,
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
                 height: 1.5),
@@ -707,7 +694,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
             'Awl and Radd rules are applied automatically. '
             'For complex cases, always consult a qualified Islamic scholar.',
             style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.35),
+                color: colors.textTertiary,
                 fontSize: 10,
                 height: 1.4),
           ),

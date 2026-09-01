@@ -5,9 +5,9 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import '../../../core/design_system/app_typography.dart';
 import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/design_system/qibra_navy.dart';
 import '../logic/zakat_calculator.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -204,7 +204,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   label: 'Gold Value',
                   hint: 'Value of gold you own',
                   controller: _goldController,
-                  color: colors.accent,
+                  color: colors.primary,
                 ),
                 const SizedBox(height: 12),
                 _buildInputCard(
@@ -212,7 +212,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   label: 'Silver Value',
                   hint: 'Value of silver you own',
                   controller: _silverController,
-                  color: QibraNavy.textSecondary,
+                  color: colors.primary,
                 ),
                 const SizedBox(height: 12),
                 _buildInputCard(
@@ -228,7 +228,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   label: 'Investments & Stocks',
                   hint: 'Stocks, mutual funds, crypto',
                   controller: _investmentController,
-                  color: colors.primarySoft,
+                  color: colors.primary,
                 ),
                 const SizedBox(height: 12),
                 _buildInputCard(
@@ -236,7 +236,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   label: 'Business / Rental Property',
                   hint: 'Business goods, rental income',
                   controller: _propertyController,
-                  color: colors.primarySoft,
+                  color: colors.primary,
                 ),
                 const SizedBox(height: 20),
                 _buildSectionLabel(Icons.receipt_long_rounded, 'LIABILITIES'),
@@ -285,7 +285,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: colors.textPrimary.withValues(alpha: 0.1),
+            color: colors.textTertiary,
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -299,11 +299,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [colors.primary, colors.background],
-            ),
+            color: colors.surface,
           ),
           child: SafeArea(
             child: Padding(
@@ -315,10 +311,10 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: colors.primary.withValues(alpha: 0.2),
+                      color: colors.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: colors.primary.withValues(alpha: 0.4),
+                        color: colors.primary.withValues(alpha: 0.16),
                       ),
                     ),
                     child: Row(
@@ -340,11 +336,10 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'زَكَاة',
-                    style: TextStyle(
+                    style: AppArabicStyles.quranMedium.copyWith(
                       color: colors.primary,
-                      fontSize: 24,
-                      fontFamily: 'Amiri',
                     ),
+                    textDirection: TextDirection.rtl,
                   ),
                   Text(
                     'Calculate Your Zakat',
@@ -373,10 +368,10 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.5),
+        color: colors.primarySoft,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: colors.primary.withValues(alpha: 0.3),
+          color: colors.primary.withValues(alpha: 0.16),
         ),
       ),
       child: Column(
@@ -387,7 +382,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.2),
+                  color: colors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -415,7 +410,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                     color: colors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                        color: colors.primary.withValues(alpha: 0.3)),
+                        color: colors.primary.withValues(alpha: 0.16)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -446,9 +441,9 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: colors.textPrimary.withValues(alpha: 0.05),
+              color: colors.textTertiary,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: colors.textPrimary.withValues(alpha: 0.08)),
+              border: Border.all(color: colors.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,14 +468,14 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                 Text(
                   'Source: $_silverPriceSource • Updated: $_silverPriceLastUpdated',
                   style: TextStyle(
-                      color: colors.textPrimary.withValues(alpha: 0.45),
+                      color: colors.textTertiary,
                       fontSize: 10),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Tap Edit price to use live market rate. Reproducible: Nisab = 612.36g × silver price. Rounding to 2 decimals.',
                   style: TextStyle(
-                      color: colors.textPrimary.withValues(alpha: 0.35),
+                      color: colors.textTertiary,
                       fontSize: 10,
                       height: 1.3),
                 ),
@@ -513,7 +508,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
             Text(
                 'Current source: $_silverPriceSource ($_silverPriceLastUpdated)',
                 style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.5), fontSize: 12)),
+                    color: colors.textSecondary, fontSize: 12)),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
@@ -523,7 +518,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
               decoration: InputDecoration(
                 hintText: 'e.g. 280 for PKR',
                 hintStyle:
-                    TextStyle(color: colors.textPrimary.withValues(alpha: 0.3)),
+                    TextStyle(color: colors.textTertiary),
                 prefixText: '${_currencySymbols[_currency]} ',
                 filled: true,
                 fillColor: colors.cardMuted,
@@ -536,14 +531,14 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
             Text(
                 'This price is saved locally and used for Nisab. Consult your local jeweller for exact rate.',
                 style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.35), fontSize: 10)),
+                    color: colors.textTertiary, fontSize: 10)),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text('Cancel',
-                style: TextStyle(color: colors.textPrimary.withValues(alpha: 0.6))),
+                style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -579,7 +574,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         Text(
           label,
           style: TextStyle(
-            color: colors.textPrimary.withValues(alpha: 0.6),
+            color: colors.textSecondary,
             fontSize: 12,
           ),
         ),
@@ -608,8 +603,8 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: _zakatDue
-              ? colors.primary.withValues(alpha: 0.4)
-              : colors.accent.withValues(alpha: 0.4),
+              ? colors.primary.withValues(alpha: 0.16)
+              : colors.accent.withValues(alpha: 0.16),
         ),
       ),
       child: Row(
@@ -617,7 +612,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         children: [
           Icon(
             _zakatDue ? Icons.check_circle_outline : Icons.info_outline,
-            color: _zakatDue ? colors.primary : colors.goldText,
+            color: _zakatDue ? colors.primary : colors.accent,
             size: 20,
           ),
           const SizedBox(width: 10),
@@ -625,7 +620,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
             child: Text(
               _nisabMessage,
               style: TextStyle(
-                color: _zakatDue ? colors.primary : colors.goldText,
+                color: _zakatDue ? colors.primary : colors.accent,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 height: 1.4,
@@ -646,7 +641,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.08)),
+        border: Border.all(color: colors.border),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -692,12 +687,12 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     final colors = QibraColors.of(context);
     return Row(
       children: [
-        Icon(icon, size: 16, color: colors.textPrimary.withValues(alpha: 0.5)),
+        Icon(icon, size: 16, color: colors.textSecondary),
         const SizedBox(width: 8),
         Text(
           label,
           style: TextStyle(
-            color: colors.textPrimary.withValues(alpha: 0.5),
+            color: colors.textSecondary,
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 2.0,
@@ -761,12 +756,12 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   decoration: InputDecoration(
                     hintText: hint,
                     hintStyle: TextStyle(
-                      color: colors.textPrimary.withValues(alpha: 0.2),
+                      color: colors.textTertiary,
                       fontSize: 12,
                     ),
                     prefixText: '${_currencySymbols[_currency]} ',
                     prefixStyle: TextStyle(
-                      color: color.withValues(alpha: 0.6),
+                      color: color,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -793,27 +788,18 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [colors.primary, colors.primarySoft],
-          ),
+          color: colors.primary,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.3),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.calculate_rounded, color: colors.textPrimary, size: 22),
+            Icon(Icons.calculate_rounded, color: colors.onPrimary, size: 22),
             SizedBox(width: 10),
             Text(
               'Calculate Zakat',
               style: TextStyle(
-                color: colors.textPrimary,
+                color: colors.onPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -831,29 +817,15 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [colors.primary, colors.primarySoft],
-        ),
+        color: colors.primary,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.4),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.15),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Column(
         children: [
           Text(
             'Your Zakat Amount',
             style: TextStyle(
-              color: colors.primary,
+              color: colors.onPrimary.withValues(alpha: 0.85),
               fontSize: 13,
               fontWeight: FontWeight.w600,
               letterSpacing: 1.5,
@@ -862,11 +834,10 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
           const SizedBox(height: 4),
           Text(
             'زَكَاتُكَ',
-            style: TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 20,
-              color: colors.primary,
+            style: AppArabicStyles.quranSmall.copyWith(
+              color: colors.onPrimary.withValues(alpha: 0.9),
             ),
+            textDirection: TextDirection.rtl,
           ),
           const SizedBox(height: 12),
           Text(
@@ -882,13 +853,13 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: colors.textPrimary.withValues(alpha: 0.1),
+              color: colors.onPrimary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               '2.5% of ${_formatAmount(_totalWealth)}',
               style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.7),
+                color: colors.onPrimary.withValues(alpha: 0.85),
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
@@ -915,7 +886,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.08)),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -928,7 +899,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
               Text(
                 'BREAKDOWN',
                 style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.5),
+                  color: colors.textSecondary,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2.0,
@@ -937,20 +908,20 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          if (gold > 0) _breakdownRow('Gold', gold, colors.accent),
+          if (gold > 0) _breakdownRow('Gold', gold, colors.primary),
           if (silver > 0)
-            _breakdownRow('Silver', silver, QibraNavy.textSecondary),
+            _breakdownRow('Silver', silver, colors.primary),
           if (cash > 0)
             _breakdownRow('Cash & Bank', cash, colors.primary),
           if (investment > 0)
-            _breakdownRow('Investments', investment, colors.primarySoft),
+            _breakdownRow('Investments', investment, colors.primary),
           if (property > 0)
-            _breakdownRow('Property', property, colors.primarySoft),
+            _breakdownRow('Property', property, colors.primary),
           if (debt > 0)
             _breakdownRow('Debts (−)', debt, colors.error),
           Divider(color: colors.border, height: 24),
           _breakdownRow('Total Wealth', _totalWealth, colors.primary),
-          _breakdownRow('Zakat (2.5%)', _zakatAmount, colors.goldText),
+          _breakdownRow('Zakat (2.5%)', _zakatAmount, colors.primary),
         ],
       ),
     );
@@ -977,7 +948,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.7),
+                  color: colors.textSecondary,
                   fontSize: 13,
                 ),
               ),
@@ -1006,10 +977,10 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: colors.textPrimary.withValues(alpha: 0.05),
+          color: colors.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: colors.textPrimary.withValues(alpha: 0.1),
+            color: colors.border,
           ),
         ),
         child: Row(
@@ -1017,14 +988,14 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
           children: [
             Icon(
               Icons.refresh_rounded,
-              color: colors.textPrimary.withValues(alpha: 0.5),
+              color: colors.textSecondary,
               size: 18,
             ),
             const SizedBox(width: 8),
             Text(
               'Reset All',
               style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.5),
+                color: colors.textSecondary,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -1042,7 +1013,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.cardMuted.withValues(alpha: 0.5),
+        color: colors.cardMuted,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: colors.accent.withValues(alpha: 0.15),
@@ -1070,7 +1041,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
             '"Take from their wealth a charity to purify them '
             'and increase them thereby." — Quran 9:103',
             style: TextStyle(
-              color: colors.textPrimary.withValues(alpha: 0.6),
+              color: colors.textSecondary,
               fontSize: 12,
               fontStyle: FontStyle.italic,
               height: 1.5,
@@ -1081,7 +1052,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
             'Note: Silver standard Nisab used (majority opinion). '
             'Consult a scholar for specific rulings.',
             style: TextStyle(
-              color: colors.textPrimary.withValues(alpha: 0.35),
+              color: colors.textTertiary,
               fontSize: 10,
             ),
           ),
