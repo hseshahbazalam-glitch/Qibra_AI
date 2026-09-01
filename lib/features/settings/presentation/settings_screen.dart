@@ -265,13 +265,6 @@ class SettingsScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.primary,
         borderRadius: AppRadius.cardRadiusLarge,
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.30),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -280,19 +273,12 @@ class SettingsScreen extends ConsumerWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              gradient: AppGradients.gold,
+              color: colors.accent,
               shape: BoxShape.circle,
               border: Border.all(
-                color: colors.onPrimary.withValues(alpha: 0.30),
+                color: colors.onPrimary.withValues(alpha: 0.24),
                 width: 2,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.accent.withValues(alpha: 0.40),
-                  blurRadius: 12,
-                  spreadRadius: 0,
-                ),
-              ],
             ),
             child: Center(
               child: Text(
@@ -438,17 +424,10 @@ class SettingsScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.accent.withValues(alpha: 0.10),
-            colors.primary.withValues(alpha: 0.05),
-          ],
-        ),
+        color: colors.card,
         borderRadius: AppRadius.cardRadiusLarge,
         border: Border.all(
-          color: colors.accent.withValues(alpha: 0.25),
+          color: colors.border,
         ),
       ),
       child: Column(
@@ -460,14 +439,8 @@ class SettingsScreen extends ConsumerWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  gradient: AppGradients.gold,
+                  color: colors.accent,
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.accent.withValues(alpha: 0.40),
-                      blurRadius: 10,
-                    ),
-                  ],
                 ),
                 child: Icon(
                   Icons.mosque_rounded,
@@ -580,13 +553,7 @@ class SettingsScreen extends ConsumerWidget {
           Container(
             height: 1,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  colors.accent.withValues(alpha: 0.30),
-                  Colors.transparent,
-                ],
-              ),
+              color: colors.border,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -688,12 +655,7 @@ class SettingsScreen extends ConsumerWidget {
               child: Container(
                 height: 1,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      colors.accent.withValues(alpha: 0.30),
-                    ],
-                  ),
+                  color: colors.border,
                 ),
               ),
             ),
@@ -701,7 +663,7 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Icon(
                 Icons.star_rounded,
-                color: colors.accent.withValues(alpha: 0.60),
+                color: colors.accent,
                 size: 14,
               ),
             ),
@@ -709,12 +671,7 @@ class SettingsScreen extends ConsumerWidget {
               child: Container(
                 height: 1,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colors.accent.withValues(alpha: 0.30),
-                      Colors.transparent,
-                    ],
-                  ),
+                  color: colors.border,
                 ),
               ),
             ),

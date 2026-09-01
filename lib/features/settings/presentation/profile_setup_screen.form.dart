@@ -20,20 +20,7 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
     TextInputType? keyboardType,
   }) {
     final colors = QibraColors.of(context);
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.cardRadius,
-        boxShadow: isFocused
-            ? [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.30),
-                  blurRadius: 20,
-                ),
-              ]
-            : null,
-      ),
-      child: TextFormField(
+    return TextFormField(
         controller: controller,
         focusNode: focusNode,
         validator: validator,
@@ -58,9 +45,7 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
             size: 22,
           ),
           filled: true,
-          fillColor: isFocused
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white.withValues(alpha: 0.02),
+          fillColor: isFocused ? colors.cardMuted : Colors.transparent,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
@@ -68,14 +53,14 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
           border: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: colors.border,
               width: 1,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: colors.border,
               width: 1,
             ),
           ),
@@ -101,7 +86,6 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
             ),
           ),
         ),
-      ),
     );
   }
 
@@ -218,20 +202,12 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
             vertical: AppSpacing.md,
           ),
           decoration: BoxDecoration(
-            gradient: isSelected
-                ? LinearGradient(
-                    colors: [
-                      colors.primary.withValues(alpha: 0.30),
-                      colors.primary.withValues(alpha: 0.15),
-                    ],
-                  )
-                : null,
-            color: isSelected ? null : Colors.white.withValues(alpha: 0.02),
+            color: isSelected
+                ? colors.primary.withValues(alpha: 0.12)
+                : colors.cardMuted,
             borderRadius: AppRadius.cardRadius,
             border: Border.all(
-              color: isSelected
-                  ? colors.primary
-                  : Colors.white.withValues(alpha: 0.10),
+              color: isSelected ? colors.primary : colors.border,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -264,24 +240,13 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
 
   Widget _buildIslamicPrefsCard() {
     final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadiusLarge,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
+    return Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colors.accent.withValues(alpha: 0.10),
-                colors.accent.withValues(alpha: 0.05),
-              ],
-            ),
+            color: colors.card,
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: colors.accent.withValues(alpha: 0.20),
+              color: colors.border,
               width: 1,
             ),
           ),
@@ -347,8 +312,6 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -438,22 +401,10 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
             width: double.infinity,
             height: 56,
             decoration: BoxDecoration(
-              gradient: _isLoading
-                  ? LinearGradient(
-                      colors: [
-                        colors.primary.withValues(alpha: 0.60),
-                        colors.primary.withValues(alpha: 0.60),
-                      ],
-                    )
-                  : AppGradients.emerald,
+              color: _isLoading
+                  ? colors.primary.withValues(alpha: 0.60)
+                  : colors.primary,
               borderRadius: AppRadius.buttonRadiusLg,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.50),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
             ),
             child: Center(
               child: _isLoading
@@ -463,7 +414,7 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white,
+                          Colors.black87,
                         ),
                       ),
                     )
@@ -509,60 +460,4 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
       ],
     );
   }
-}
-
-
-// ============================================================
-// PARTICLE PAINTER
-// ============================================================
-
-class _ProfileParticlePainter extends CustomPainter {
-  final double animationValue;
-
-  _ProfileParticlePainter({required this.animationValue});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final random = math.Random(88);
-
-    for (int i = 0; i < 22; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      final offset = math.sin(
-        (animationValue * 2 * math.pi) + i,
-      );
-
-      final x = baseX + (offset * 25);
-      final y = baseY + (offset * 35);
-
-      final particleSize = 1.5 + random.nextDouble() * 2;
-      final isGold = i % 3 == 0;
-      final color = isGold ? QibraNavy.gold : QibraNavy.emeraldDeep;
-      final alpha = 0.15 + (random.nextDouble() * 0.25);
-
-      final paint = Paint()
-        ..color = color.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(Offset(x, y), particleSize, paint);
-
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: alpha * 0.3)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize * 4,
-        glowPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(
-    covariant _ProfileParticlePainter oldDelegate,
-  ) =>
-      oldDelegate.animationValue != animationValue;
 }

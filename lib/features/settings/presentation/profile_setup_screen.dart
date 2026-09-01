@@ -7,8 +7,6 @@
 //              and Islamic preferences. Completes Phase 5.
 // ============================================================
 
-import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -59,7 +57,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   bool _isLoading = false;
 
   // ── ANIMATIONS ───────────────────────────────────────
-  late AnimationController _particleController;
   late AnimationController _entranceController;
   late Animation<double> _entranceFade;
   late Animation<Offset> _entranceSlide;
@@ -102,12 +99,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       setState(() => _isCityFocused = _cityFocus.hasFocus);
       if (_cityFocus.hasFocus) HapticFeedback.selectionClick();
     });
-
-    // Particles
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 15),
-    )..repeat();
 
     // Entrance
     _entranceController = AnimationController(
@@ -157,7 +148,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     _nameFocus.dispose();
     _phoneFocus.dispose();
     _cityFocus.dispose();
-    _particleController.dispose();
     _entranceController.dispose();
     _avatarController.dispose();
     super.dispose();
@@ -202,20 +192,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       borderRadius: const BorderRadius.vertical(
         top: Radius.circular(24),
       ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.xl2),
-          decoration: BoxDecoration(
-            color: colors.surface.withValues(alpha: 0.95),
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.05),
-              width: 1,
-            ),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.xl2),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(24),
           ),
+          border: Border.all(
+            color: colors.border,
+            width: 1,
+          ),
+        ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -294,7 +282,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -311,15 +298,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           vertical: AppSpacing.lg,
         ),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              colors.primary.withValues(alpha: 0.20),
-              colors.primary.withValues(alpha: 0.10),
-            ],
-          ),
+          color: colors.primary.withValues(alpha: 0.12),
           borderRadius: AppRadius.cardRadius,
           border: Border.all(
-            color: colors.primary.withValues(alpha: 0.30),
+            color: colors.primary.withValues(alpha: 0.16),
             width: 1,
           ),
         ),
@@ -419,21 +401,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       borderRadius: const BorderRadius.vertical(
         top: Radius.circular(24),
       ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-        child: Container(
-          height: MediaQuery.sizeOf(context).height * 0.6,
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: colors.surface.withValues(alpha: 0.95),
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.05),
-              width: 1,
-            ),
+      child: Container(
+        height: MediaQuery.sizeOf(context).height * 0.6,
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(24),
           ),
+          border: Border.all(
+            color: colors.border,
+            width: 1,
+          ),
+        ),
           child: Column(
             children: [
               // Handle
@@ -473,16 +453,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                         ),
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? LinearGradient(
-                                  colors: [
-                                    colors.primary.withValues(alpha: 0.20),
-                                    colors.primary.withValues(alpha: 0.10),
-                                  ],
-                                )
-                              : null,
                           color: isSelected
-                              ? null
+                              ? colors.primary.withValues(alpha: 0.12)
                               : Colors.white.withValues(alpha: 0.05),
                           borderRadius: AppRadius.cardRadius,
                           border: Border.all(
@@ -528,7 +500,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -588,13 +559,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       body: Stack(
         children: [
           _buildBackground(),
-          _buildParticles(size),
           SafeArea(
             child: FadeTransition(
               opacity: _entranceFade,
@@ -643,16 +612,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topCenter,
-            radius: 1.5,
-            colors: [
-              QibraNavy.card,
-              QibraNavy.surface,
-              colors.background,
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
+          color: colors.background,
         ),
       ),
     );
@@ -661,23 +621,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
   // PARTICLES
   // ══════════════════════════════════════════
-
-  Widget _buildParticles(Size size) {
-    final colors = QibraColors.of(context);
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _ProfileParticlePainter(
-              animationValue: _particleController.value,
-            ),
-            size: size,
-          );
-        },
-      ),
-    );
-  }
 
   // ══════════════════════════════════════════
   // HEADER
@@ -690,26 +633,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       children: [
         GestureDetector(
           onTap: () => context.go(AppRoutes.login),
-          child: ClipOval(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.05),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.07),
-                    width: 1,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: QibraNavy.textPrimary,
-                  size: 20,
-                ),
-              ),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colors.cardMuted,
+              border: Border.all(color: colors.border),
+            ),
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              color: QibraNavy.textPrimary,
+              size: 20,
             ),
           ),
         ),
@@ -719,25 +654,21 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             vertical: AppSpacing.xs,
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: colors.cardMuted,
             borderRadius: AppRadius.pillRadius,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.07),
+              color: colors.border,
               width: 1,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppGradients.gold.createShader(bounds),
-                child: Text(
-                  '3',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: QibraNavy.textPrimary,
-                    fontWeight: FontWeight.w800,
-                  ),
+              Text(
+                '3',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               Text(
@@ -772,32 +703,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      colors.primary.withValues(alpha: 0.30),
-                      colors.primary.withValues(alpha: 0.05),
-                    ],
-                  ),
+                  color: colors.card,
                   border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.50),
+                    color: colors.primary.withValues(alpha: 0.24),
                     width: 2,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.40),
-                      blurRadius: 40,
-                      spreadRadius: 8,
-                    ),
-                  ],
                 ),
                 child: Center(
                   child: _hasAvatar
                       ? Container(
                           width: 100,
                           height: 100,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: AppGradients.emerald,
+                            color: colors.primary,
                           ),
                           child: const Icon(
                             Icons.person_rounded,
@@ -805,14 +724,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                             size: 60,
                           ),
                         )
-                      : ShaderMask(
-                          shaderCallback: (bounds) =>
-                              AppGradients.emerald.createShader(bounds),
-                          child: const Icon(
-                            Icons.person_add_alt_1_rounded,
-                            color: QibraNavy.textPrimary,
-                            size: 48,
-                          ),
+                      : const Icon(
+                          Icons.person_add_alt_1_rounded,
+                          color: QibraNavy.textPrimary,
+                          size: 48,
                         ),
                 ),
               ),
@@ -826,17 +741,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: AppGradients.gold,
+                    color: colors.accent,
                     border: Border.all(
                       color: colors.background,
                       width: 3,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.accent.withValues(alpha: 0.40),
-                        blurRadius: 12,
-                      ),
-                    ],
                   ),
                   child: Icon(
                     Icons.camera_alt_rounded,
@@ -860,15 +769,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     final colors = QibraColors.of(context);
     return Column(
       children: [
-        ShaderMask(
-          shaderCallback: (bounds) => AppGradients.emerald.createShader(bounds),
-          child: Text(
-            'ALMOST THERE',
-            style: AppTextStyles.labelSmall.copyWith(
-              color: QibraNavy.textPrimary,
-              letterSpacing: 3,
-              fontWeight: FontWeight.w800,
-            ),
+        Text(
+          'ALMOST THERE',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: colors.primary,
+            letterSpacing: 3,
+            fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -900,27 +806,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
   Widget _buildFormCard() {
     final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadiusLarge,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: 0.08),
-                Colors.white.withValues(alpha: 0.03),
-              ],
-            ),
-            borderRadius: AppRadius.cardRadiusLarge,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.05),
-              width: 1,
-            ),
-          ),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: AppRadius.cardRadiusLarge,
+        border: Border.all(
+          color: colors.border,
+          width: 1,
+        ),
+      ),
           child: Column(
             children: [
               // Section title
@@ -1013,8 +908,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 

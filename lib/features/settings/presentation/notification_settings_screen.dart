@@ -264,8 +264,7 @@ class _NotificationSettingsScreenState
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: const BoxDecoration(
-            gradient:
-                LinearGradient(colors: [QibraNavy.emeraldDeep, QibraNavy.canvas]),
+            color: QibraNavy.emeraldDeep,
           ),
           child: SafeArea(
             child: Padding(
@@ -653,15 +652,10 @@ class _NotificationSettingsScreenState
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [QibraNavy.emeraldDeep, QibraNavy.emeraldDeep]),
+          color: _isLoading
+              ? QibraNavy.emeraldDeep.withValues(alpha: 0.5)
+              : QibraNavy.emeraldDeep,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: QibraNavy.emerald.withValues(alpha: 0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6))
-          ],
         ),
         child: _isLoading
             ? const Center(

@@ -46,22 +46,11 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [colors.primary, colors.accent],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: colors.primary,
                     border: Border.all(
-                      color: colors.accent.withValues(alpha: 0.6),
+                      color: colors.accent.withValues(alpha: 0.24),
                       width: 2,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: 0.35),
-                        blurRadius: 24,
-                        spreadRadius: 1,
-                      ),
-                    ],
                   ),
                   child: const SafeImage(
                     assetPath: AppAssets.logo,
