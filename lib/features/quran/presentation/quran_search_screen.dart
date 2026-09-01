@@ -612,22 +612,22 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          _buildTip('🔤', 'Search in English or Arabic text'),
-          _buildTip('📖', 'Type surah name like "Al-Fatiha"'),
-          _buildTip('🔢', 'Enter numbers for surah 1-114'),
-          _buildTip('✨', 'Try topics: mercy, forgiveness, prayer'),
+          _buildTip(Icons.translate_rounded, 'Search in English or Arabic text'),
+          _buildTip(Icons.menu_book_rounded, 'Type surah name like "Al-Fatiha"'),
+          _buildTip(Icons.format_list_numbered_rounded, 'Enter numbers for surah 1-114'),
+          _buildTip(Icons.auto_awesome_rounded, 'Try topics: mercy, forgiveness, prayer'),
         ],
       ),
     );
   }
 
-  Widget _buildTip(String emoji, String text) {
+  Widget _buildTip(IconData icon, String text) {
     final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 14)),
+          Icon(icon, size: 14, color: colors.textSecondary),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(

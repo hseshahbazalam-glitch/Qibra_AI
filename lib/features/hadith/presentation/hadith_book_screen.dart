@@ -572,7 +572,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Clipboard.setData(ClipboardData(text: text));
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                              content: Text('Hadith copied! 📋'),
+                              content: Text('Hadith copied to clipboard'),
                               backgroundColor: Color(0xFFEEF1EA)),
                         );
                       },
@@ -764,7 +764,7 @@ class _HadithCard extends ConsumerWidget {
                     Clipboard.setData(ClipboardData(text: shareText));
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                          content: Text('Hadith copied! 📋'),
+                          content: Text('Hadith copied to clipboard'),
                           backgroundColor: Color(0xFFEEF1EA),
                           duration: Duration(seconds: 1)),
                     );
