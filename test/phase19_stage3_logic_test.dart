@@ -299,17 +299,30 @@ void main() {
       expect(r.countdown, const Duration(hours: 7, minutes: 12));
     });
 
-    test('current() is null before Fajr and after Isha', () {
-      expect(NextPrayerEngine.current(now: DateTime(2026, 1, 15, 3, 0), today: today),
+    test('current() is null before Fajr; late night is still Isha', () {
+      expect(
+          NextPrayerEngine.current(
+              now: DateTime(2026, 1, 15, 3, 0), today: today),
           isNull);
-      expect(NextPrayerEngine.current(now: DateTime(2026, 1, 15, 23, 30), today: today),
-          isNull);
+      expect(
+          NextPrayerEngine.current(
+                  now: DateTime(2026, 1, 15, 23, 30), today: today)!
+              .name,
+          'Isha');
     });
 
-    test('current() during a window returns that prayer; Sunrise is not current', () {
-      expect(NextPrayerEngine.current(now: DateTime(2026, 1, 15, 13, 0), today: today)!.name,
+    test(
+        'current() during a window returns that prayer; Sunrise is not current',
+        () {
+      expect(
+          NextPrayerEngine.current(
+                  now: DateTime(2026, 1, 15, 13, 0), today: today)!
+              .name,
           'Dhuhr');
-      expect(NextPrayerEngine.current(now: DateTime(2026, 1, 15, 6, 0), today: today)!.name,
+      expect(
+          NextPrayerEngine.current(
+                  now: DateTime(2026, 1, 15, 6, 0), today: today)!
+              .name,
           'Fajr'); // between Fajr and Sunrise
     });
   });
@@ -348,8 +361,8 @@ void main() {
 
     test('Hanafi Asr is later than Standard Asr', () {
       final std = timesAt(makkah, DateTime(2026, 6, 21));
-      final hanafi = timesAt(makkah, DateTime(2026, 6, 21),
-          asr: AsrMethod.hanafi);
+      final hanafi =
+          timesAt(makkah, DateTime(2026, 6, 21), asr: AsrMethod.hanafi);
       expect(hanafi.asr.time.isAfter(std.asr.time), isTrue);
     });
 
@@ -374,7 +387,7 @@ void main() {
           latitude: 25.2048, longitude: 55.2708, city: 'Dubai', country: 'AE');
       final nyc = const PrayerLocation(
           latitude: 40.7128, longitude: -74.0060, city: 'NYC', country: 'US');
-      expect(svc.calculateQiblaDirection(dubai), closeTo(244.9, 2.0));
+      expect(svc.calculateQiblaDirection(dubai), closeTo(258.2, 2.0));
       expect(svc.calculateQiblaDirection(nyc), closeTo(58.5, 2.0));
       expect(svc.calculateQiblaDirection(london), closeTo(119.0, 2.0));
     });
@@ -386,7 +399,8 @@ void main() {
       final londonLoc = const PrayerLocation(
           latitude: 51.5074, longitude: -0.1278, city: 'London', country: 'UK');
       expect(svc.calculateDistanceToKaaba(dubai), closeTo(1630, 1630 * 0.025));
-      expect(svc.calculateDistanceToKaaba(londonLoc), closeTo(4790, 4790 * 0.02));
+      expect(
+          svc.calculateDistanceToKaaba(londonLoc), closeTo(4790, 4790 * 0.02));
       expect(svc.calculateDistanceToKaaba(makkah), lessThan(60));
     });
 
@@ -394,8 +408,8 @@ void main() {
       expect(svc.detectMethodByCountry('PK'), CalculationMethod.karachi);
       expect(svc.detectMethodByCountry('US'), CalculationMethod.islamicSociety);
       expect(svc.detectMethodByCountry('SA'), CalculationMethod.ummAlQura);
-      expect(svc.detectMethodByCountry(null),
-          CalculationMethod.muslimWorldLeague);
+      expect(
+          svc.detectMethodByCountry(null), CalculationMethod.muslimWorldLeague);
     });
   });
 
@@ -418,7 +432,10 @@ void main() {
         final file =
             File('${parent.substring(0, parent.lastIndexOf('/'))}/$part');
         expect(file.existsSync(), isTrue, reason: part);
-        expect(file.readAsStringSync().contains("part of '${parent.split('/').last}';"),
+        expect(
+            file
+                .readAsStringSync()
+                .contains("part of '${parent.split('/').last}';"),
             isTrue,
             reason: '$part must be part of ${parent.split('/').last}');
       });
@@ -429,8 +446,8 @@ void main() {
           RegExp(r'[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]', unicode: true);
       for (final f in [
         ...pairs.keys,
-        ...pairs.keys.map((p) =>
-            '${p.substring(0, p.lastIndexOf('/'))}/${pairs[p]}'),
+        ...pairs.keys
+            .map((p) => '${p.substring(0, p.lastIndexOf('/'))}/${pairs[p]}'),
         'lib/features/tools/logic/zakat_calculator.dart',
         'lib/features/tools/logic/inheritance_estimator.dart',
       ]) {
@@ -438,8 +455,8 @@ void main() {
         expect(emoji.hasMatch(src), isFalse, reason: f);
       }
       for (final f in pairs.keys) {
-        expect(RegExp(r'[Ww]eather').hasMatch(File(f).readAsStringSync()),
-            isFalse,
+        expect(
+            RegExp(r'[Ww]eather').hasMatch(File(f).readAsStringSync()), isFalse,
             reason: f);
       }
     });

@@ -7,7 +7,6 @@
 //              animated illustrations, and premium UX.
 // ============================================================
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -404,7 +403,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     );
   }
 
-
   // ══════════════════════════════════════════
   // SINGLE SLIDE
   // ══════════════════════════════════════════
@@ -540,46 +538,46 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       child: FadeTransition(
         opacity: _contentFade,
         child: Container(
-              padding: const EdgeInsets.all(AppSpacing.xl2),
-              decoration: BoxDecoration(
-                color: colors.card,
-                borderRadius: AppRadius.cardRadiusLarge,
-                border: Border.all(
-                  color: colors.border,
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                children: [
-                  // Arabic badge
-                  _buildArabicBadge(slide),
-
-                  const SizedBox(height: AppSpacing.lg),
-
-                  // Title
-                  Text(
-                    slide.title,
-                    style: AppTextStyles.headlineSmall.copyWith(
-                      fontWeight: FontWeight.w800,
-                      height: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: AppSpacing.md),
-
-                  // Description
-                  Text(
-                    slide.description,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: colors.textSecondary,
-                      height: 1.6,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+          padding: const EdgeInsets.all(AppSpacing.xl2),
+          decoration: BoxDecoration(
+            color: colors.card,
+            borderRadius: AppRadius.cardRadiusLarge,
+            border: Border.all(
+              color: colors.border,
+              width: 1,
             ),
+          ),
+          child: Column(
+            children: [
+              // Arabic badge
+              _buildArabicBadge(slide),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              // Title
+              Text(
+                slide.title,
+                style: AppTextStyles.headlineSmall.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: AppSpacing.md),
+
+              // Description
+              Text(
+                slide.description,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: colors.textSecondary,
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -655,7 +653,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           height: 8,
           decoration: BoxDecoration(
             borderRadius: AppRadius.pillRadius,
-            color: isActive ? slide.primaryColor : QibraNavy.textMuted,
+            color: isActive ? _slides[index].primaryColor : QibraNavy.textMuted,
           ),
         );
       }),

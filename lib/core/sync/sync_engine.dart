@@ -102,8 +102,10 @@ class SyncQueue {
   List<SyncOp> get pending =>
       List.unmodifiable(_ops.where((o) => o.status == SyncOpStatus.pending));
 
-  List<SyncOp> due(DateTime now) =>
-      List.unmodifiable(pending.where((o) => o.isDue(now)));
+  List<SyncOp> due(DateTime now) => List.unmodifiable(_ops.where((o) =>
+      (o.status == SyncOpStatus.pending ||
+          (o.status == SyncOpStatus.failed && o.nextRetryAt != null)) &&
+      o.isDue(now)));
 
   List<SyncOp> get all => List.unmodifiable(_ops);
 

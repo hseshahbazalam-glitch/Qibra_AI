@@ -30,7 +30,8 @@ class AladhanParser {
   /// Returns parsed HH:MM strings. Invalid payloads yield {}.
   /// Imsak/Sunset are optional and never invented.
   Map<String, String> parseTimings(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>? ?? json;
+    final dynamic rawData = json['data'];
+    final data = rawData is Map<String, dynamic> ? rawData : json;
     final timings = data['timings'];
     if (timings is! Map) return {};
     final out = <String, String>{};
