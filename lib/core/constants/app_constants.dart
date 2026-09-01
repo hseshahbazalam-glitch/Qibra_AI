@@ -193,8 +193,6 @@ abstract final class AppApi {
   static const String inheritance = '/tools/inheritance';
   static const String habits = '/tools/habits';
   static const String dhikr = '/tasbih';
-  static const String ramadan = '/tools/ramadan';
-  static const String halalScanner = '/tools/halal-scanner';
   // --- External APIs ---
 
   /// Prayer times API (Aladhan — free, reliable)

@@ -259,6 +259,19 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               ),
             ),
 
+            // Ramadan — sunan & etiquettes. Merged from the retired
+            // standalone RamadanTimerScreen (LEAN PASS): its countdown
+            // read hardcoded 2025 dates + fixed times (never live), so
+            // only the durable content moved here. Suhoor/iftar duas are
+            // already in the Duas feature (Fast & Food category).
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _RamadanSunanCard(),
+              ),
+            ),
+
             const SliverToBoxAdapter(child: SizedBox(height: 120)),
           ],
         ),
@@ -951,4 +964,106 @@ class _IslamicEvent {
     required this.category,
     this.importance = 2,
   });
+
+class _RamadanTip {
+  const _RamadanTip(this.icon, this.title, this.note);
+
+  final IconData icon;
+  final String title;
+  final String note;
+}
+
+class _RamadanSunanCard extends StatelessWidget {
+  const _RamadanSunanCard();
+
+  static const List<_RamadanTip> _tips = [
+    _RamadanTip(Icons.nightlight_round, 'Pray Taraweeh',
+        'Special night prayer in Ramadan'),
+    _RamadanTip(Icons.menu_book_rounded, 'Read Quran Daily',
+        'Try to complete it this month'),
+    _RamadanTip(Icons.favorite_rounded, 'Give Charity',
+        'Rewards are multiplied in Ramadan'),
+    _RamadanTip(Icons.self_improvement_rounded, 'Make Dua',
+        'Especially before Iftar'),
+    _RamadanTip(Icons.mosque_rounded, 'Itikaf',
+        'Last 10 days seclusion in mosque'),
+    _RamadanTip(Icons.wb_twilight, 'Suhoor', 'Never skip — it is blessed'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: AppRadius.cardRadius,
+        border: Border.all(color: colors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 3,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: colors.accent,
+                  borderRadius: AppRadius.pillRadius,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'RAMADAN — SUNAN & ADAB',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: colors.accent,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          for (final t in _tips)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(t.icon, size: 16, color: colors.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      t.title,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: Text(
+                      t.note,
+                      textAlign: TextAlign.right,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Text(
+            'Suhoor & iftar duas: Duas section — Fast & Food category.',
+            style: AppTextStyles.labelXSmall.copyWith(
+              color: colors.textTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 }

@@ -39,7 +39,6 @@ import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.d
 import 'package:qibra_ai/features/tasbih/presentation/tasbih_screen.dart';
 import 'package:qibra_ai/features/tools/screens/zakat_calculator_screen.dart';
 import 'package:qibra_ai/features/tools/screens/habit_tracker_screen.dart';
-import 'package:qibra_ai/features/tools/screens/ramadan_timer_screen.dart';
 import 'package:qibra_ai/features/tools/screens/hajj_guide_screen.dart';
 import 'package:qibra_ai/features/tools/screens/umrah_guide_screen.dart';
 import 'package:qibra_ai/features/tools/screens/halal_scanner_screen.dart';
@@ -336,10 +335,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: '/tools/habits',
               name: 'tools-habits',
               builder: (context, state) => const HabitTrackerScreen()),
-          GoRoute(
-              path: '/tools/ramadan',
-              name: 'tools-ramadan',
-              builder: (context, state) => const RamadanTimerScreen()),
           GoRoute(
               path: '/tools/hajj',
               name: 'tools-hajj',

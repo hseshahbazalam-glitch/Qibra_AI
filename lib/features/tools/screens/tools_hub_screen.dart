@@ -107,12 +107,6 @@ const _tools = [
     route: '/tools/habits',
   ),
   _Tool(
-    title: 'Ramadan timer',
-    subtitle: 'Suhoor and iftar',
-    icon: Icons.nightlight_outlined,
-    route: '/tools/ramadan',
-  ),
-  _Tool(
     title: 'Dhikr',
     subtitle: 'Tasbih counter',
     icon: Icons.radio_button_checked,
