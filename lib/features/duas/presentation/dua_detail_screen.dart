@@ -12,6 +12,7 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import '../../../core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import '../../../shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
 
 class DuaDetailScreen extends ConsumerStatefulWidget {
@@ -38,7 +39,10 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         backgroundColor: colors.background,
         body: SafeArea(
           child: Center(
-            child: Text('Dua not found'),
+            child: QibraStatus.empty(
+              title: 'Dua not found',
+              message: 'This dua is not in the bundled collection.',
+            ),
           ),
         ),
       );
@@ -201,14 +205,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            QibraNavy.emeraldDeep,
-            QibraNavy.emerald,
-          ],
-        ),
+        color: colors.primary,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -285,15 +282,8 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         color: colors.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colors.primary.withValues(alpha: 0.3),
+          color: colors.primary.withValues(alpha: 0.16),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.05),
-            blurRadius: 20,
-            spreadRadius: 0,
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -488,7 +478,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         color: gradeColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: gradeColor.withValues(alpha: 0.3),
+          color: gradeColor.withValues(alpha: 0.16),
         ),
       ),
       child: Row(
@@ -562,7 +552,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isHighlighted
-              ? colors.primary.withValues(alpha: 0.2)
+              ? colors.primary.withValues(alpha: 0.16)
               : colors.border,
         ),
       ),

@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 import 'package:qibra_ai/features/duas/data/models/dua_model.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
 import 'dua_detail_screen.dart';
@@ -35,13 +36,9 @@ class DuasListScreen extends ConsumerWidget {
       category = categories.firstWhere((c) => c.id == categoryId);
     } catch (_) {}
 
-    Color catColor = colors.primary;
-    if (category != null) {
-      try {
-        final hex = category.colorHex.replaceAll('#', '');
-        catColor = Color(int.parse('FF$hex', radix: 16));
-      } catch (_) {}
-    }
+    // One accent per domain (Stage D): the legacy per-category colorHex
+    // palette is no longer parsed into the UI.
+    final catColor = colors.primary;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -72,14 +69,7 @@ class DuasListScreen extends ConsumerWidget {
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      catColor.withValues(alpha: 0.15),
-                      colors.background,
-                    ],
-                  ),
+                  color: colors.surface,
                 ),
                 child: SafeArea(
                   child: Padding(
@@ -88,9 +78,10 @@ class DuasListScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (category != null)
-                          Text(
-                            category.icon,
-                            style: const TextStyle(fontSize: 36),
+                          Icon(
+                            category.iconGlyph,
+                            size: 36,
+                            color: catColor,
                           ),
                         const SizedBox(height: 8),
                         Text(
@@ -152,30 +143,15 @@ class DuasListScreen extends ConsumerWidget {
 
           // ── EMPTY STATE ───────────────────────────────────
           if (duas.isEmpty)
-            SliverFillRemaining(
+            const SliverFillRemaining(
+              hasScrollBody: false,
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      '🤲',
-                      style: TextStyle(fontSize: 56),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No duas in this category yet',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'More duas coming soon',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: colors.textTertiary,
-                      ),
-                    ),
-                  ],
+                child: QibraEmptyState(
+                  icon: Icons.volunteer_activism_rounded,
+                  title: 'No duas in this category',
+                  message:
+                      'The bundled collection has no duas filed under '
+                      'this category.',
                 ),
               ),
             ),
@@ -237,7 +213,7 @@ class _DuaCard extends ConsumerWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: catColor.withValues(alpha: 0.2),
+                      color: catColor.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -370,7 +346,7 @@ class _DuaCard extends ConsumerWidget {
                   Icon(
                     Icons.verified_rounded,
                     size: 13,
-                    color: colors.primary.withValues(alpha: 0.8),
+                    color: colors.primary,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -389,13 +365,14 @@ class _DuaCard extends ConsumerWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: _gradeColor(dua.grade).withValues(alpha: 0.15),
+                      color: _gradeColor(context, dua.grade)
+                          .withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       dua.grade,
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: _gradeColor(dua.grade),
+                        color: _gradeColor(context, dua.grade),
                         fontWeight: FontWeight.w700,
                         fontSize: 10,
                       ),
@@ -410,15 +387,15 @@ class _DuaCard extends ConsumerWidget {
     );
   }
 
-  Color _gradeColor(String grade) {
-    final colors = QibraColors.light;
+  Color _gradeColor(BuildContext context, String grade) {
+    final colors = QibraColors.of(context);
     switch (grade.toLowerCase()) {
       case 'sahih':
         return colors.primary;
       case 'hasan':
-        return const Color(0xFF2F6B5D);
+        return colors.primary;
       case 'quran':
-        return const Color(0xFFC6A15B);
+        return colors.accent;
       default:
         return colors.textSecondary;
     }
