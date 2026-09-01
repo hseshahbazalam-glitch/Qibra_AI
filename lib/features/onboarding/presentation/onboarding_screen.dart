@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import '../../../core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
@@ -62,12 +63,12 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.menu_book_rounded,
     arabicText: 'اقْرَأْ',
     arabicTranslation: 'Read',
-    primaryColor: Color(0xFF123F36),
-    secondaryColor: Color(0xFF2F6B5D),
+    primaryColor: QibraNavy.emerald,
+    secondaryColor: QibraNavy.emerald,
     backgroundGradient: [
-      Color(0xFFF5F3EC),
-      Color(0xFFEEF1EA),
-      Color(0xFFE8EBE3),
+      QibraNavy.canvas,
+      QibraNavy.textSecondary,
+      QibraNavy.textMuted,
     ],
     illustrationAsset: AppAssets.onboarding2,
   ),
@@ -78,12 +79,12 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.access_time_filled_rounded,
     arabicText: 'الصَّلَاة',
     arabicTranslation: 'Prayer',
-    primaryColor: Color(0xFFC6A15B),
-    secondaryColor: Color(0xFFC6A15B),
+    primaryColor: QibraNavy.gold,
+    secondaryColor: QibraNavy.gold,
     backgroundGradient: [
-      Color(0xFFF5F3EC),
-      Color(0xFFF8F1E3),
-      Color(0xFFE8EBE3),
+      QibraNavy.canvas,
+      QibraNavy.textPrimary,
+      QibraNavy.textMuted,
     ],
     illustrationAsset: AppAssets.onboarding1,
   ),
@@ -94,12 +95,12 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.smart_toy_rounded,
     arabicText: 'الْحِكْمَة',
     arabicTranslation: 'Wisdom',
-    primaryColor: Color(0xFFC6A15B),
-    secondaryColor: Color(0xFFC6A15B),
+    primaryColor: QibraNavy.gold,
+    secondaryColor: QibraNavy.gold,
     backgroundGradient: [
-      Color(0xFFF5F3EC),
-      Color(0xFFEEF1EA),
-      Color(0xFFE8EBE3),
+      QibraNavy.canvas,
+      QibraNavy.textSecondary,
+      QibraNavy.textMuted,
     ],
     illustrationAsset: AppAssets.aiArt,
   ),
@@ -110,12 +111,12 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.mosque_rounded,
     arabicText: 'بِسْمِ اللَّه',
     arabicTranslation: 'In the name of Allah',
-    primaryColor: Color(0xFFC6A15B),
-    secondaryColor: Color(0xFF123F36),
+    primaryColor: QibraNavy.gold,
+    secondaryColor: QibraNavy.emerald,
     backgroundGradient: [
-      Color(0xFFF5F3EC),
-      Color(0xFFEEF1EA),
-      Color(0xFFE8EBE3),
+      QibraNavy.canvas,
+      QibraNavy.textSecondary,
+      QibraNavy.textMuted,
     ],
   ),
 ];
@@ -407,7 +408,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 child: Text(
                   AppInfo.appName,
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: const Color(0xFF19312C),
+                    color: QibraNavy.textPrimary,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 2,
                   ),
@@ -447,10 +448,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               vertical: AppSpacing.sm,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: QibraNavy.card.withValues(alpha: 0.10),
               borderRadius: AppRadius.pillRadius,
               border: Border.all(
-                color: const Color(0xFF19312C).withValues(alpha: 0.20),
+                color: QibraNavy.hairlineStrong.withValues(alpha: 0.20),
                 width: 1,
               ),
             ),
@@ -615,7 +616,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                         child: Icon(
                           slide.icon,
                           size: 56,
-                          color: const Color(0xFF19312C),
+                          color: QibraNavy.textPrimary,
                         ),
                       ),
                     ),
@@ -649,13 +650,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    QibraColors.light.textPrimary.withValues(alpha: 0.10),
-                    QibraColors.light.textPrimary.withValues(alpha: 0.05),
+                    Colors.white.withValues(alpha: 0.10),
+                    Colors.white.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: AppRadius.cardRadiusLarge,
                 border: Border.all(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.15),
+                  color: QibraNavy.hairlineStrong.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -785,7 +786,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                     ],
                   )
                 : null,
-            color: isActive ? null : const Color(0xFFD4CFC3),
+            color: isActive ? null : QibraNavy.textMuted,
             boxShadow: isActive
                 ? [
                     BoxShadow(
@@ -874,14 +875,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             Text(
               'Continue',
               style: AppTextStyles.buttonLarge.copyWith(
-                color: const Color(0xFF19312C),
+                color: QibraNavy.textPrimary,
                 letterSpacing: 1,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             const Icon(
               Icons.arrow_forward_rounded,
-              color: const Color(0xFF19312C),
+              color: QibraNavy.textPrimary,
               size: 22,
             ),
           ],
@@ -909,9 +910,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             height: 56,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: QibraNavy.textPrimary.withValues(alpha: 0.10),
               border: Border.all(
-                color: const Color(0xFF19312C).withValues(alpha: 0.20),
+                color: QibraNavy.hairlineStrong.withValues(alpha: 0.20),
                 width: 1,
               ),
             ),

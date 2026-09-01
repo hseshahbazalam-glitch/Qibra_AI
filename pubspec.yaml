@@ -95,8 +95,6 @@ flutter:
     - assets/images/patterns/
     - assets/images/quran/
     - assets/icons/
-    - assets/animations/
-    - assets/lottie/
     - assets/audio/
 
     # Quran & Hadith Datasets

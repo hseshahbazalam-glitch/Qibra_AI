@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import '../../../core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -110,7 +111,7 @@ class _PrayerStatisticsScreenState
                         icon: Icons.mosque_rounded,
                         label: 'In mosque',
                         value: '${periodStats.inMosqueCount}',
-                        color: const Color(0xFF2F6B5D),
+                        color: QibraNavy.emerald,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -119,7 +120,7 @@ class _PrayerStatisticsScreenState
                         icon: Icons.cancel_rounded,
                         label: 'Missed',
                         value: '${periodStats.missedCount}',
-                        color: const Color(0xFFB42318),
+                        color: QibraNavy.red,
                       ),
                     ),
                   ],
@@ -399,7 +400,7 @@ class _PrayerStatisticsScreenState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF123F36),
+        color: QibraNavy.emeraldDeep,
         borderRadius: AppRadius.cardRadiusLarge,
       ),
       child: Row(
@@ -517,7 +518,7 @@ class _PrayerStatisticsScreenState
                         '${weekly[i].count}',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: i == weekly.length - 1
-                              ? const Color(0xFFC6A15B)
+                              ? QibraNavy.gold
                               : colors.textSecondary,
                           fontWeight: FontWeight.w800,
                           fontSize: 10,
@@ -529,7 +530,7 @@ class _PrayerStatisticsScreenState
                         height: (100 * (weekly[i].count / goal)).clamp(4, 100),
                         decoration: BoxDecoration(
                           color: i == weekly.length - 1
-                              ? const Color(0xFFC6A15B)
+                              ? QibraNavy.gold
                               : colors.primary,
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(6),
@@ -617,7 +618,7 @@ class _PrayerStatisticsScreenState
                             ? Icons.emoji_events_rounded
                             : Icons.lock_outline_rounded,
                         color: badges[i].unlocked
-                            ? const Color(0xFFC6A15B)
+                            ? QibraNavy.gold
                             : colors.textTertiary,
                       ),
                       const SizedBox(height: 6),

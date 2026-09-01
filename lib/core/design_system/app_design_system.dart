@@ -658,30 +658,19 @@ abstract final class AppOpacity {
 abstract final class AppAssets {
   static const String _images = 'assets/images';
   static const String _icons = 'assets/icons';
-  static const String _animations = 'assets/animations';
 
   static const String logo = '$_images/logo/qibra_logo.png';
   static const String splashBackground = '$_images/hero/splash_bg.png';
   static const String splashLogo = logo;
   static const String homeHeroBg = '$_images/hero/home_hero_bg.png';
   static const String patternTile = '$_images/hero/pattern_tile.png';
-  static const String emptyState = '$_images/hero/empty_state.png';
 
-  static const String quranArt = '$_images/features/quran_art.png';
-  static const String prayerArt = '$_images/features/prayer_art.png';
   static const String hadithArt = '$_images/features/hadith_art.png';
   static const String aiArt = '$_images/features/ai_art.png';
 
   static const String onboarding1 = '$_images/illustrations/onboarding_1.png';
   static const String onboarding2 = '$_images/illustrations/onboarding_2.png';
-  static const String onboarding3 = '$_images/illustrations/onboarding_3.png';
 
-  static const String loadingAnimation = '$_animations/loading.json';
-  static const String successAnimation = '$_animations/success.json';
-  static const String errorAnimation = '$_animations/error.json';
-  static const String prayerAnimation = '$_animations/prayer.json';
-  static const String quranAnimation = '$_animations/quran.json';
-  static const String aiAnimation = '$_animations/ai_thinking.json';
 
   static const String iconQuran = '$_icons/quran.svg';
   static const String iconPrayer = '$_icons/prayer.svg';

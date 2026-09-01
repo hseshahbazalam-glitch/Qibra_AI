@@ -11,14 +11,10 @@ abstract final class AppAssetsCheck {
     AppAssets.splashBackground,
     AppAssets.homeHeroBg,
     AppAssets.patternTile,
-    AppAssets.emptyState,
-    AppAssets.quranArt,
-    AppAssets.prayerArt,
     AppAssets.hadithArt,
     AppAssets.aiArt,
     AppAssets.onboarding1,
     AppAssets.onboarding2,
-    AppAssets.onboarding3,
     AppAssets.iconQuran,
     AppAssets.iconPrayer,
     AppAssets.iconQibla,
@@ -27,12 +23,6 @@ abstract final class AppAssetsCheck {
     AppAssets.iconCalendar,
     AppAssets.iconTasbih,
     AppAssets.iconDua,
-    AppAssets.loadingAnimation,
-    AppAssets.successAnimation,
-    AppAssets.errorAnimation,
-    AppAssets.prayerAnimation,
-    AppAssets.quranAnimation,
-    AppAssets.aiAnimation,
   ];
 
   static Future<void> verifyAllAssets() async {

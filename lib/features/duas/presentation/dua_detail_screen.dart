@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import '../../../core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
@@ -77,7 +78,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
                     color: dua.isFavorite
-                        ? QibraColors.light.error
+                        ? QibraNavy.red
                         : colors.textSecondary,
                   ),
                   onPressed: () {
@@ -131,7 +132,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showTransliteration)
                       _buildInfoCard(
                         icon: Icons.translate_rounded,
-                        iconColor: const Color(0xFF123F36),
+                        iconColor: QibraNavy.emerald,
                         label: 'Transliteration',
                         content: dua.transliteration,
                         isItalic: true,
@@ -139,7 +140,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showUrdu)
                       _buildInfoCard(
                         icon: Icons.language_rounded,
-                        iconColor: const Color(0xFFC6A15B),
+                        iconColor: QibraNavy.gold,
                         label: 'Urdu Translation',
                         content: dua.translationUrdu,
                         isRtl: true,
@@ -147,7 +148,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showEnglish)
                       _buildInfoCard(
                         icon: Icons.article_rounded,
-                        iconColor: const Color(0xFF2F6B5D),
+                        iconColor: QibraNavy.emerald,
                         label: 'English Translation',
                         content: dua.translationEnglish,
                       ),
@@ -160,17 +161,17 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     ),
                     const SizedBox(height: 16),
                     _buildDetailSection(
-                      icon: '🕐',
+                      icon: Icons.schedule_rounded,
                       title: 'When to Recite',
                       content: dua.whenToRecite,
                     ),
                     _buildDetailSection(
-                      icon: '📿',
+                      icon: Icons.menu_book_rounded,
                       title: 'How to Recite',
                       content: dua.howToRecite,
                     ),
                     _buildDetailSection(
-                      icon: '✨',
+                      icon: Icons.auto_awesome_rounded,
                       title: 'Benefits & Fazilat',
                       content: dua.benefits,
                       isHighlighted: true,
@@ -204,8 +205,8 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF123F36),
-            Color(0xFF123F36),
+            QibraNavy.emeraldDeep,
+            QibraNavy.emerald,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -472,10 +473,10 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         gradeColor = colors.primary;
         break;
       case 'hasan':
-        gradeColor = const Color(0xFF123F36);
+        gradeColor = QibraNavy.emerald;
         break;
       case 'quran':
-        gradeColor = const Color(0xFFC6A15B);
+        gradeColor = QibraNavy.gold;
         break;
       default:
         gradeColor = colors.textSecondary;
@@ -545,7 +546,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   // ============================================================
 
   Widget _buildDetailSection({
-    required String icon,
+    required IconData icon,
     required String title,
     required String content,
     bool isHighlighted = false,
@@ -570,7 +571,11 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         children: [
           Row(
             children: [
-              Text(icon, style: const TextStyle(fontSize: 18)),
+              Icon(icon,
+                  size: 18,
+                  color: isHighlighted
+                      ? colors.primary
+                      : colors.textSecondary),
               const SizedBox(width: 8),
               Text(
                 title,
@@ -626,7 +631,7 @@ Reference: ${dua.reference} (${dua.grade})
         content: Row(
           children: [
             const Icon(Icons.check_circle_rounded,
-                color: const Color(0xFF19312C), size: 18),
+                color: QibraNavy.textPrimary, size: 18),
             const SizedBox(width: 10),
             Text(
               'Dua copied to clipboard',
@@ -652,7 +657,7 @@ Reference: ${dua.reference} (${dua.grade})
     final dua = ref.read(duaByIdProvider(widget.duaId));
     if (dua == null) return;
 
-    final text = '''🤲 ${dua.titleEnglish}
+    final text = '''${dua.titleEnglish}
 
 ${dua.arabic}
 
@@ -660,7 +665,7 @@ ${dua.transliteration}
 
 "${dua.translationEnglish}"
 
-📚 ${dua.reference} — ${dua.grade}
+${dua.reference} — ${dua.grade}
 
 Shared via QIBRA AI''';
 
@@ -671,7 +676,7 @@ Shared via QIBRA AI''';
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.share_rounded, color: const Color(0xFF19312C), size: 18),
+            const Icon(Icons.share_rounded, color: QibraNavy.textPrimary, size: 18),
             const SizedBox(width: 10),
             Text(
               'Copied — paste to share anywhere',
@@ -681,7 +686,7 @@ Shared via QIBRA AI''';
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF123F36),
+        backgroundColor: QibraNavy.emeraldDeep,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
