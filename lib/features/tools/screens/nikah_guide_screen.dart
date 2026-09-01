@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 
@@ -16,7 +17,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
     _NikahSection(
       title: 'Before Nikah',
       subtitle: 'Preparation & Selection',
-      emoji: '💚',
+      icon: Icons.favorite_rounded,
       color: QibraColors.light.primary,
       items: [
         _NikahItem(
@@ -52,7 +53,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
     _NikahSection(
       title: 'Nikah Ceremony',
       subtitle: 'The Marriage Contract',
-      emoji: '💍',
+      icon: Icons.diamond_rounded,
       color: QibraColors.light.accent,
       items: [
         _NikahItem(
@@ -95,8 +96,8 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
     _NikahSection(
       title: 'After Nikah',
       subtitle: 'Rights & Responsibilities',
-      emoji: '🏡',
-      color: QibraColors.light.primarySoft,
+      icon: Icons.house_rounded,
+      color: QibraColors.light.primary,
       items: [
         _NikahItem(
           'Walimah (Wedding Feast)',
@@ -131,8 +132,8 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
     _NikahSection(
       title: 'Islamic Etiquettes',
       subtitle: 'Sunnah Practices',
-      emoji: '📿',
-      color: QibraColors.light.primarySoft,
+      icon: Icons.self_improvement_rounded,
+      color: QibraColors.light.accent,
       items: [
         _NikahItem(
           'Wedding Night Dua',
@@ -167,10 +168,14 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
   ];
 
   final List<_QuickFact> _quickFacts = [
-    _QuickFact('Wali', 'Guardian required', '👨', QibraColors.light.primary),
-    _QuickFact('Mahr', 'Bride\'s right', '💎', QibraColors.light.accent),
-    _QuickFact('Witnesses', '2 males needed', '👥', QibraColors.light.primarySoft),
-    _QuickFact('Consent', 'Both must agree', '✅', QibraColors.light.primarySoft),
+    _QuickFact('Wali', 'Guardian required', Icons.person_rounded,
+        QibraColors.light.primary),
+    _QuickFact('Mahr', 'Bride\'s right', Icons.diamond_rounded,
+        QibraColors.light.accent),
+    _QuickFact('Witnesses', '2 males needed', Icons.groups_rounded,
+        QibraColors.light.accent),
+    _QuickFact('Consent', 'Both must agree', Icons.check_circle_rounded,
+        QibraColors.light.primary),
   ];
 
   @override
@@ -228,11 +233,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [colors.card, colors.background],
-            ),
+            color: colors.surface,
           ),
           child: SafeArea(
             child: Padding(
@@ -242,11 +243,11 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                 children: [
                   Text(
                     'نِكَاح',
-                    style: TextStyle(
-                      color: colors.accent,
+                    style: AppArabicStyles.quranMedium.copyWith(
                       fontSize: 26,
-                      fontFamily: 'Amiri',
+                      color: colors.primary,
                     ),
+                    textDirection: TextDirection.rtl,
                   ),
                   Text(
                     'Nikah Guide',
@@ -259,7 +260,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                   Text(
                     'Marriage in Islam',
                     style: TextStyle(
-                      color: colors.textPrimary.withValues(alpha: 0.4),
+                      color: colors.textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -277,19 +278,17 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [colors.card, colors.backgroundSecondary],
-        ),
+        color: colors.card,
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: colors.accent.withValues(alpha: 0.3)),
+            Border.all(color: colors.accent.withValues(alpha: 0.16)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text('💍', style: TextStyle(fontSize: 28)),
+              Icon(Icons.favorite_rounded, size: 28, color: colors.accent),
               SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -320,7 +319,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
           Text(
             'The Prophet ﷺ said: "When a man marries, he has completed half of his religion, so let him fear Allah regarding the remaining half." — Bayhaqi',
             style: TextStyle(
-              color: colors.textPrimary.withValues(alpha: 0.6),
+              color: colors.textSecondary,
               fontSize: 12,
               fontStyle: FontStyle.italic,
               height: 1.5,
@@ -346,7 +345,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
             ),
             child: Column(
               children: [
-                Text(f.emoji, style: const TextStyle(fontSize: 20)),
+                Icon(f.icon, size: 20, color: f.color),
                 const SizedBox(height: 6),
                 Text(
                   f.title,
@@ -359,7 +358,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                 Text(
                   f.subtitle,
                   style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.35),
+                    color: colors.textTertiary,
                     fontSize: 8,
                   ),
                   textAlign: TextAlign.center,
@@ -392,8 +391,8 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isExpanded
-                ? section.color.withValues(alpha: 0.3)
-                : colors.textPrimary.withValues(alpha: 0.05),
+                ? section.color.withValues(alpha: 0.16)
+                : colors.border,
           ),
         ),
         child: Column(
@@ -409,8 +408,8 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
-                    child: Text(section.emoji,
-                        style: const TextStyle(fontSize: 22)),
+                    child:
+                        Icon(section.icon, size: 22, color: section.color),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -508,7 +507,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                 Text(
                   item.description,
                   style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.5),
+                    color: colors.textSecondary,
                     fontSize: 11,
                     height: 1.5,
                   ),
@@ -527,8 +526,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                       children: [
                         Text(
                           item.arabic,
-                          style: TextStyle(
-                            fontFamily: 'Amiri',
+                          style: AppArabicStyles.quranSmall.copyWith(
                             fontSize: 16,
                             color: color,
                             height: 1.6,
@@ -541,7 +539,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
                           Text(
                             item.transliteration,
                             style: TextStyle(
-                              color: colors.textPrimary.withValues(alpha: 0.4),
+                              color: colors.textTertiary,
                               fontSize: 10,
                               fontStyle: FontStyle.italic,
                             ),
@@ -565,7 +563,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.cardMuted.withValues(alpha: 0.5),
+        color: colors.cardMuted,
         borderRadius: BorderRadius.circular(14),
         border:
             Border.all(color: colors.accent.withValues(alpha: 0.15)),
@@ -575,7 +573,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
         children: [
           Row(
             children: [
-              Text('📖', style: TextStyle(fontSize: 14)),
+              Icon(Icons.menu_book_rounded, size: 14, color: colors.accent),
               SizedBox(width: 8),
               Text(
                 'Quran',
@@ -591,7 +589,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
           Text(
             '"And among His Signs is that He created for you mates from among yourselves, that you may dwell in tranquility with them, and He has put love and mercy between your hearts." — Quran 30:21',
             style: TextStyle(
-              color: colors.textPrimary.withValues(alpha: 0.6),
+              color: colors.textSecondary,
               fontSize: 12,
               fontStyle: FontStyle.italic,
               height: 1.5,
@@ -600,8 +598,7 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
           const SizedBox(height: 10),
           Text(
             'وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا',
-            style: TextStyle(
-              fontFamily: 'Amiri',
+            style: AppArabicStyles.quranSmall.copyWith(
               fontSize: 16,
               color: colors.accent,
               height: 1.5,
@@ -619,13 +616,13 @@ class _NikahGuideScreenState extends State<NikahGuideScreen> {
 class _NikahSection {
   final String title;
   final String subtitle;
-  final String emoji;
+  final IconData icon;
   final Color color;
   final List<_NikahItem> items;
   const _NikahSection({
     required this.title,
     required this.subtitle,
-    required this.emoji,
+    required this.icon,
     required this.color,
     required this.items,
   });
@@ -644,7 +641,7 @@ class _NikahItem {
 class _QuickFact {
   final String title;
   final String subtitle;
-  final String emoji;
+  final IconData icon;
   final Color color;
-  const _QuickFact(this.title, this.subtitle, this.emoji, this.color);
+  const _QuickFact(this.title, this.subtitle, this.icon, this.color);
 }
