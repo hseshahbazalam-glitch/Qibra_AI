@@ -68,6 +68,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     assetPath: AppAssets.logo,
                     width: 100,
                     height: 100,
+                    cacheWidth: 300,
                     fallback: SafeImageFallback.logo,
                   ),
                 ),

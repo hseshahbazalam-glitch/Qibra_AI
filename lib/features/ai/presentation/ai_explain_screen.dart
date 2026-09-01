@@ -457,6 +457,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               assetPath: AppAssets.aiArt,
               width: 100,
               height: 100,
+              cacheWidth: 300,
               fit: BoxFit.cover,
               fallback: SafeImageFallback.pattern,
             ),

@@ -36,6 +36,9 @@ class SafeImage extends StatelessWidget {
   final BorderRadius? borderRadius;
   final Color? fallbackTint;
   final SafeImageFallback? fallback;
+  /// Decode-size hint (pixels). Set for large art so memory matches
+  /// display size (P0 perf pass).
+  final int? cacheWidth;
   final AlignmentGeometry alignment;
 
   const SafeImage({
@@ -47,6 +50,7 @@ class SafeImage extends StatelessWidget {
     this.borderRadius,
     this.fallbackTint,
     this.fallback,
+    this.cacheWidth,
     this.alignment = Alignment.center,
   });
 
@@ -85,6 +89,7 @@ class SafeImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
+      cacheWidth: cacheWidth,
       alignment: alignment,
       errorBuilder: (context, error, stackTrace) {
         debugPrint('[SafeImage] Asset missing/failed: $assetPath — $error');

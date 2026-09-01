@@ -415,6 +415,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           assetPath: AppAssets.logo,
                           width: 96,
                           height: 96,
+                          cacheWidth: 288,
                           fit: BoxFit.contain,
                           fallback: SafeImageFallback.logo,
                         ),

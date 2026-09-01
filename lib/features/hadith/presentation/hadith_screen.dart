@@ -590,6 +590,7 @@ class _TodaysHadithCard extends ConsumerWidget {
             child: SafeImage(
               assetPath: AppAssets.hadithArt,
               height: 88,
+              cacheWidth: 512,
               fit: BoxFit.cover,
               fallback: SafeImageFallback.mosque,
             ),

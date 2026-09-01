@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hijri/hijri_calendar.dart';
 
 import '../../../../core/design_system/app_typography.dart';
@@ -19,15 +20,16 @@ import '../../../../shared/widgets/qibra_countdown_ring.dart';
 import '../../../../shared/widgets/qibra_night_sky.dart';
 import '../../../prayer/data/models/prayer_models.dart';
 import '../../../prayer/providers/prayer_provider.dart'
-    show NextPrayerInfo;
+    show
+        currentPrayerProvider,
+        currentTimeProvider,
+        nextPrayerInfoProvider;
 
 class HomeNightHero extends StatelessWidget {
   const HomeNightHero({
     super.key,
     required this.name,
     required this.now,
-    required this.nextPrayer,
-    required this.currentPrayer,
     required this.locationLabel,
     required this.methodShortName,
     required this.notificationsOn,
@@ -38,8 +40,6 @@ class HomeNightHero extends StatelessWidget {
 
   final String name;
   final DateTime now;
-  final NextPrayerInfo? nextPrayer;
-  final PrayerTime? currentPrayer;
   final String locationLabel;
   final String? methodShortName;
   final bool notificationsOn;
@@ -129,8 +129,6 @@ class HomeNightHero extends StatelessWidget {
 
           // ── Next prayer ───────────────────────────────────────
           _NextPrayerBody(
-            nextPrayer: nextPrayer,
-            currentPrayer: currentPrayer,
             methodShortName: methodShortName,
             isLoading: isLoading,
             hasLocation: hasLocation,
@@ -141,24 +139,41 @@ class HomeNightHero extends StatelessWidget {
   }
 }
 
-class _NextPrayerBody extends StatelessWidget {
+class _NextPrayerBody extends ConsumerWidget {
   const _NextPrayerBody({
-    required this.nextPrayer,
-    required this.currentPrayer,
     required this.methodShortName,
     required this.isLoading,
     required this.hasLocation,
   });
 
-  final NextPrayerInfo? nextPrayer;
-  final PrayerTime? currentPrayer;
   final String? methodShortName;
   final bool isLoading;
   final bool hasLocation;
 
+  static String _fmt(Duration d) {
+    if (d.isNegative) return 'Now';
+    if (d.inHours >= 1) {
+      return '${d.inHours}h ${d.inMinutes.remainder(60)}m';
+    }
+    if (d.inMinutes >= 1) {
+      return '${d.inMinutes}m '
+          '${d.inSeconds.remainder(60)}s';
+    }
+    return '${d.inSeconds}s';
+  }
+
+  /// The ONLY Home widget subscribed to the 1-second ticker. Schedule
+  /// data comes from the minute-granular provider; the countdown label
+  /// is recomputed from the tick locally so only this small body
+  /// rebuilds each second.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
+    final info = ref.watch(nextPrayerInfoProvider);
+    final currentName = ref.watch(
+      currentPrayerProvider.select((p) => p?.type.name),
+    );
+    final tick = ref.watch(currentTimeProvider.select((a) => a.value));
     final divider = Container(
       height: 1,
       color: colors.border.withValues(alpha: 0.7),
@@ -181,7 +196,6 @@ class _NextPrayerBody extends StatelessWidget {
       );
     }
 
-    final info = nextPrayer;
     if (info == null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,9 +220,12 @@ class _NextPrayerBody extends StatelessWidget {
     }
 
     final prayer = info.prayer;
+    final remaining =
+        prayer.adjustedTime.difference(tick ?? DateTime.now());
+    final countdownLabel = _fmt(remaining);
     final semanticsLabel =
         'Next prayer ${prayer.type.name} at ${prayer.formattedTime}, '
-        'countdown ${info.compactCountdown} remaining';
+        'countdown $countdownLabel remaining';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +238,7 @@ class _NextPrayerBody extends StatelessWidget {
             Expanded(
               child: _PrayerIdentity(
                 prayer: prayer,
-                currentPrayer: currentPrayer,
+                currentName: currentName,
                 methodShortName: methodShortName,
               ),
             ),
@@ -235,7 +252,7 @@ class _NextPrayerBody extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      info.compactCountdown,
+                      countdownLabel,
                       style: AppTextStyles.titleSmall.copyWith(
                         color: colors.primary,
                         fontWeight: FontWeight.w800,
@@ -279,12 +296,12 @@ class _NextPrayerBody extends StatelessWidget {
 class _PrayerIdentity extends StatelessWidget {
   const _PrayerIdentity({
     required this.prayer,
-    required this.currentPrayer,
+    required this.currentName,
     required this.methodShortName,
   });
 
   final PrayerTime prayer;
-  final PrayerTime? currentPrayer;
+  final String? currentName;
   final String? methodShortName;
 
   @override
@@ -318,11 +335,11 @@ class _PrayerIdentity extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            if (currentPrayer != null) ...[
+            if (currentName != null) ...[
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  '· now ${currentPrayer!.type.name}',
+                  '· now $currentName',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.labelSmall

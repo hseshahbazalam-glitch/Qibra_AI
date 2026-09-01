@@ -577,6 +577,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   assetPath: slide.illustrationAsset!,
                   width: 150,
                   height: 150,
+                  cacheWidth: 450,
                   fit: BoxFit.cover,
                   fallback: SafeImageFallback.pattern,
                 ),

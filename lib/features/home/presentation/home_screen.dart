@@ -42,8 +42,16 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final name = ref.watch(userDisplayNameProvider);
-    final nextPrayer = ref.watch(nextPrayerProvider);
-    final currentPrayer = ref.watch(currentPrayerProvider);
+    // P0 perf (fix pass): nothing below watches the 1-second ticker —
+    // that lives solely inside HomeNightHero's live countdown body.
+    // Watching the selected HOUR keeps the greeting fresh (rebuilds at
+    // most once an hour); the strip highlights the next prayer via a
+    // select on the minute-granular provider (rebuilds only when the
+    // selected prayer type actually changes).
+    ref.watch(currentTimeProvider.select((a) => a.value?.hour ?? 0));
+    final nextType = ref.watch(
+      nextPrayerInfoProvider.select((i) => i?.prayer.type),
+    );
     final location = ref.watch(locationProvider);
     final dailyTimes = ref.watch(dailyPrayerTimesProvider);
     final prayerSettings = ref.watch(prayerSettingsProvider);
@@ -60,6 +68,7 @@ class HomeScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(dailyPrayerTimesProvider);
           ref.invalidate(nextPrayerProvider);
+          ref.invalidate(nextPrayerInfoProvider);
           ref.invalidate(dailyHadithProvider);
           ref.invalidate(dailyVerseBundleProvider);
           await ref.read(readingProgressProvider.notifier).refresh();
@@ -101,8 +110,6 @@ class HomeScreen extends ConsumerWidget {
             HomeNightHero(
               name: name,
               now: now,
-              nextPrayer: nextPrayer,
-              currentPrayer: currentPrayer,
               locationLabel: _locationLabel(location),
               methodShortName: dailyTimes?.method.shortName,
               notificationsOn:
@@ -122,7 +129,7 @@ class HomeScreen extends ConsumerWidget {
             else if (dailyTimes != null)
               HomePrayerStrip(
                 prayers: dailyTimes.prayers,
-                nextType: nextPrayer?.prayer.type,
+                nextType: nextType,
                 onTap: () => context.go(AppRoutes.prayer),
               ),
             const SizedBox(height: 16),

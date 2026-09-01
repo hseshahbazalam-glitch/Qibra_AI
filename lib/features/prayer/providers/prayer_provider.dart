@@ -502,14 +502,8 @@ class NextPrayerInfo {
   }
 }
 
-final nextPrayerProvider = Provider<NextPrayerInfo?>((ref) {
-  final times = ref.watch(dailyPrayerTimesProvider);
-  final currentTimeAsync = ref.watch(currentTimeProvider);
-
-  if (times == null) return null;
-
-  final now = currentTimeAsync.value ?? DateTime.now();
-
+NextPrayerInfo? _computeNextPrayer(
+    Ref ref, DailyPrayerTimes times, DateTime now) {
   PrayerTime? nextPrayer = times.getNextPrayer(now);
 
   if (nextPrayer == null) {
@@ -528,7 +522,8 @@ final nextPrayerProvider = Provider<NextPrayerInfo?>((ref) {
   PrayerTime? previousPrayer;
   for (final prayer in times.prayers) {
     if (!prayer.type.isObligatory) continue;
-    if (prayer.adjustedTime.isBefore(now) && prayer.type != nextPrayer.type) {
+    if (prayer.adjustedTime.isBefore(now) &&
+        prayer.type != nextPrayer.type) {
       previousPrayer = prayer;
     }
   }
@@ -551,6 +546,35 @@ final nextPrayerProvider = Provider<NextPrayerInfo?>((ref) {
     countdown: countdown,
     progress: progress,
   );
+}
+
+/// Ticking next-prayer provider (1-second cadence). For dedicated
+/// countdown surfaces (prayer screen hero). Do NOT watch from list or
+/// screen roots — that rebuilds the whole tree every second. Use
+/// [nextPrayerInfoProvider] with `.select` there instead.
+final nextPrayerProvider = Provider<NextPrayerInfo?>((ref) {
+  final times = ref.watch(dailyPrayerTimesProvider);
+  if (times == null) return null;
+  final now = ref.watch(currentTimeProvider).value ?? DateTime.now();
+  return _computeNextPrayer(ref, times, now);
+});
+
+/// Minute-granular heartbeat derived from the second-tick stream. The
+/// int value changes at most once per minute, and Riverpod dedupes by
+/// `==`, so dependents rebuild at minute cadence at worst.
+final _minuteTickerProvider = Provider<int>(
+  (ref) => ref.watch(currentTimeProvider).value?.minute ?? -1,
+);
+
+/// Schedule-derived next-prayer snapshot WITHOUT the 1-second rebuild
+/// storm: recomputes when the daily schedule changes or at minute
+/// boundaries. The Home command center watches this (or a `.select` of
+/// it); the per-second countdown is owned by HomeNightHero's live body.
+final nextPrayerInfoProvider = Provider<NextPrayerInfo?>((ref) {
+  ref.watch(_minuteTickerProvider);
+  final times = ref.watch(dailyPrayerTimesProvider);
+  if (times == null) return null;
+  return _computeNextPrayer(ref, times, DateTime.now());
 });
 
 // ============================================================
