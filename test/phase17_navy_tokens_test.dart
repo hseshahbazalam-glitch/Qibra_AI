@@ -3,6 +3,8 @@
 // (QibraNavy) never drifts from the theme extensions, and that the
 // contrast floor documented in docs/DESIGN_SYSTEM.md holds.
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/design_system/contrast.dart';
@@ -109,5 +111,33 @@ void main() {
     expect(QibraNavy.aiViolet.colors.every((c) => Contrast.relativeLuminance(c) < 0.35),
         isTrue,
         reason: 'AI card surface must stay dark enough for white text');
+  });
+
+  test('violet is confined to the AI feature + design-system layer', () {
+    // Owner contract: violet = AI screens ONLY. This guard scans every
+    // source file under lib/ and rejects direct QibraNavy violet token
+    // references or raw violet hexes outside the allowed zones
+    // (lib/features/ai/** and lib/core/design_system/** — the token and
+    // theme files where violet is DEFINED and mapped). Feature screens
+    // must reach AI violet through the QibraColors.violetAi / aiAccent*
+    // getters, which this test intentionally does not flag.
+    final allowed = RegExp(r'^(lib/features/ai/|lib/core/design_system/)');
+    final offender = <String>[];
+    final pattern = RegExp(
+        r'QibraNavy\.violet\b|QibraNavy\.violetDeep\b'
+        r'|0xFF9B6CFF|0xFF6C3CE6|0xFFC7ADFF');
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      final rel = entity.path.replaceAll(r'\', '/');
+      if (allowed.hasMatch(rel)) continue;
+      final src = entity.readAsStringSync();
+      for (final m in pattern.allMatches(src)) {
+        offender.add('$rel: ${m.group(0)}');
+      }
+    }
+    expect(offender, isEmpty,
+        reason: 'violet may only be referenced in the AI feature or the '
+            'design-system layer; other screens must use '
+            'QibraColors.violetAi / aiAccentDeep / aiAccentSoft');
   });
 }
