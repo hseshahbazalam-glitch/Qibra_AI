@@ -67,6 +67,8 @@ void main() {
     final pub = File('pubspec.yaml').readAsStringSync();
     expect(pub.contains('google_fonts'), isFalse,
         reason: 'the package must not remain a dependency');
+    // Directory() paths are OS-native ('\' on Windows) — only
+    // separator-free predicates (.dart suffix / literal contains) below.
     for (final f in Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()

@@ -514,6 +514,8 @@ void main() {
         return segs.join('/');
       }
 
+      // Windows blind spot guard: Directory() paths use '\'; the dir used
+      // for resolution below is normalized to '/' before joining/checking.
       for (final f
           in Directory('lib').listSync(recursive: true).whereType<File>()) {
         if (!f.path.endsWith('.dart')) continue;

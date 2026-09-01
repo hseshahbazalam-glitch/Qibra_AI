@@ -29,13 +29,21 @@
 #                      (StatelessWidget/ConsumerWidget/…StatefulWidget) whose
 #                      signature has no BuildContext param. Legal anywhere a
 #                      State<…> provides this.context. (_buildLanguageCard.)
+#                      PERMANENT LIMIT: G4 (and every static gate here) cannot
+#                      see undefined identifiers — e.g. a dangling `slide.`
+#                      reference after a local was stripped is a compile fail
+#                      invisible to the battery; only the device gate catches
+#                      that class. Same for the onboarding slide refactor.
 #
 # Design gates (all files): L3 dangling Amiri literal, L4
 # colors.cardElevated (not a QibraColors field), L5 const QibraStatus call
 # sites, L8 empty widget bodies / bracket balance (historical corruption).
 # L2 alpha budget is a warning list (documented scrims/dims allowed).
 #
-# Known limits: single-file type inference (no constants from other libs,
+# Known limits: Windows path blind spot — every test/script that walks
+# `Directory(…)` MUST normalize with replaceAll(r'\', '/') before
+# substring matching (phase17/19 guards do; stage_c's checks are separator-
+# free — keep it that way). Plus: single-file type inference (no constants from other libs,
 # no generics beyond List/Iterable/Set/Future/Stream unwrap); receivers we
 # cannot type-check are skipped, never guessed. A clean run is necessary,
 # not sufficient — `flutter analyze` on device remains the authority.
@@ -624,6 +632,38 @@ for fi in FILES.values():
     for nm, d in bal.items():
         if d != 0:
             err("L8", fi.path, 0, f"unbalanced {nm} ({d:+d} in code text)")
+
+# ------------------------------------------------------------------- G9
+# G9 sync-queue due() retry reachability (owner device gate 2026-09-02:
+# SyncQueue.due() delegated to the pending-only getter, so failed ops
+# carrying a nextRetryAt were never re-attempted — a silent offline-queue
+# deadlock no compile/test/battery gate caught, and no gate can reason
+# about reachability the types allow. Static approximation: in any file
+# that declares retry semantics (`RetryAt`), a `due(...)` filter that
+# mentions `pending` without `failed`/`Retry`/`retry` is a finding.
+DUE_M = re.compile(r"\bdue\s*\([^)]*\)\s*(?:=>|\{)")
+for fi in FILES.values():
+    code = fi.code
+    if not re.search(r"RetryAt|retryAt", code):
+        continue
+    for m in DUE_M.finditer(code):
+        seg = code[m.end():m.end() + 300]
+        depth, cut = 0, 0
+        for i, c in enumerate(seg):
+            if c in "([{":
+                depth += 1
+            elif c in ")]}":
+                depth -= 1
+            elif c == ";" and depth <= 0:
+                cut = i
+                break
+        seg = seg[:cut] if cut else seg
+        if re.search(r"\bpending\b", seg) and not re.search(
+                r"failed|Retry|retry", seg):
+            err("G9", fi.path, code.count("\n", 0, m.start()) + 1,
+                "due() filters pending-only while this file declares retry "
+                "semantics — failed ops with a retry date never become due "
+                "(offline queue deadlock)")
 
 # ------------------------------------------------------------------- report
 print(f"static battery: {len(FILES)} dart files under {LIB}")

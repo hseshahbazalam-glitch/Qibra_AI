@@ -126,6 +126,8 @@ void main() {
     final pattern = RegExp(
         r'QibraNavy\.violet\b|QibraNavy\.violetDeep\b'
         r'|0xFF9B6CFF|0xFF6C3CE6|0xFFC7ADFF');
+    // Directory() yields OS-native paths: on Windows they carry '\', so
+    // every path substring match here must run on a '/'-normalized copy.
     for (final entity in Directory('lib').listSync(recursive: true)) {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
       final rel = entity.path.replaceAll(r'\', '/');
