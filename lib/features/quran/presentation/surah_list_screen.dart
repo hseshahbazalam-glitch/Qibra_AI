@@ -187,15 +187,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
     final colors = QibraColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            colors.primary.withValues(alpha: 0.05),
-            colors.background,
-          ],
-          stops: const [0.0, 0.35],
-        ),
+        color: colors.background,
       ),
       child: child,
     );
@@ -699,13 +691,6 @@ class _SurahCard extends StatelessWidget {
               color: colors.primary.withValues(alpha: 0.12),
               width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
           ),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),

@@ -239,16 +239,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
       backgroundColor: colors.background,
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colors.primary.withValues(alpha: 0.07),
-              colors.background,
-              colors.background,
-            ],
-            stops: const [0.0, 0.18, 1.0],
-          ),
+          color: colors.background,
         ),
         child: SafeArea(
           child: Column(

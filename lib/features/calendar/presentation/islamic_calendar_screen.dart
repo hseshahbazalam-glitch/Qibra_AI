@@ -223,7 +223,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                       width: 3,
                       height: 14,
                       decoration: BoxDecoration(
-                        gradient: AppGradients.gold,
+                        color: colors.accent,
                         borderRadius: AppRadius.pillRadius,
                       ),
                     ),
@@ -362,19 +362,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [colors.primary, colors.primarySoft],
-        ),
+        color: colors.primary,
         borderRadius: AppRadius.cardRadiusLarge,
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,14 +496,9 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            specialColor.withValues(alpha: 0.12),
-            specialColor.withValues(alpha: 0.05),
-          ],
-        ),
+        color: specialColor.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: specialColor.withValues(alpha: 0.25)),
+        border: Border.all(color: specialColor.withValues(alpha: 0.16)),
       ),
       child: Row(
         children: [
@@ -568,12 +552,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                gradient: isSelected
-                    ? LinearGradient(
-                        colors: [colors.primary, colors.accent],
-                      )
-                    : null,
-                color: isSelected ? null : colors.surface,
+                color: isSelected ? colors.primary : colors.surface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color:
@@ -583,7 +562,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               child: Text(
                 cat,
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: isSelected ? Colors.white : colors.textSecondary,
+                  color: isSelected ? colors.onPrimary : colors.textSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -720,22 +699,16 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                         height: 36,
                         margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
-                          gradient: isToday
-                              ? LinearGradient(
-                                  colors: [
-                                    colors.primarySoft,
-                                    colors.primary,
-                                  ],
-                                )
-                              : null,
-                          color: isSelected && !isToday
-                              ? colors.primary.withValues(alpha: 0.2)
-                              : null,
+                          color: isToday
+                              ? colors.primary
+                              : isSelected
+                                  ? colors.primary.withValues(alpha: 0.12)
+                                  : null,
                           borderRadius: BorderRadius.circular(8),
                           border: isFriday && !isToday
                               ? Border.all(
                                   color:
-                                      colors.accent.withValues(alpha: 0.4),
+                                      colors.accent.withValues(alpha: 0.24),
                                 )
                               : null,
                         ),
@@ -744,7 +717,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                             '$dayNum',
                             style: AppTextStyles.labelMedium.copyWith(
                               color: isToday
-                                  ? colors.card
+                                  ? colors.onPrimary
                                   : isFriday
                                       ? colors.accent
                                       : colors.textPrimary,
@@ -817,19 +790,8 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  event.color,
-                  event.color.withValues(alpha: 0.7),
-                ],
-              ),
+              color: event.color,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: event.color.withValues(alpha: 0.3),
-                  blurRadius: 10,
-                ),
-              ],
             ),
             child: Icon(event.icon, color: colors.card, size: 24),
           ),
