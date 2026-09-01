@@ -55,6 +55,11 @@ class QibraColors extends ThemeExtension<QibraColors> {
   Color get error =>
       isDark ? QibraNavy.red : const Color(0xFFB42318);
   Color get violetAi => const Color(0xFF9B6CFF);
+  /// Deep AI accent — for gradients/pills on AI-adjacent surfaces.
+  Color get aiAccentDeep => QibraNavy.violetDeep;
+  /// Soft AI accent for label text on tinted AI surfaces (dark side).
+  Color get aiAccentSoft =>
+      isDark ? const Color(0xFFC7ADFF) : QibraNavy.violetDeep;
   Color get warning =>
       isDark ? QibraNavy.orange : const Color(0xFF8A6D38);
 

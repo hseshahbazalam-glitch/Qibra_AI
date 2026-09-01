@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/l10n/app_strings.dart';
 
 class NavBarItem {
@@ -258,7 +257,7 @@ class AppShellScaffold extends StatelessWidget {
             icon: Icons.auto_awesome_outlined,
             activeIcon: Icons.auto_awesome_rounded,
             label: strings.navAi,
-            activeColor: QibraNavy.violet,
+            activeColor: colors.violetAi,
           ),
           NavBarItem(
             icon: Icons.grid_view_outlined,

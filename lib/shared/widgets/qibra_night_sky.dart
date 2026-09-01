@@ -44,7 +44,7 @@ class QibraNightSkyBackdrop extends StatelessWidget {
             stops: const [0.0, 0.55, 1.0],
           );
     final silhouette = isDark
-        ? const Color(0xFF010A12)
+        ? QibraNavy.nightInk
         : Colors.black.withValues(alpha: 0.08);
 
     Widget panel = ClipRRect(
@@ -194,7 +194,12 @@ class _NightSkyPainter extends CustomPainter {
         radius: moonR * 0.88,
       ));
     final crescent = Path.combine(PathOperation.difference, disc, bite);
-    canvas.drawPath(crescent, Paint()..color = moon);
+    // Slightly dimmed in dark so foreground chips/labels keep contrast
+    // when they overlap the moon zone (Stage A collision fix).
+    canvas.drawPath(
+      crescent,
+      Paint()..color = moon.withValues(alpha: isDark ? 0.78 : 1.0),
+    );
 
     // Mosque silhouette — skyline anchored to the bottom edge.
     final baseY = h * 0.92;
@@ -258,20 +263,8 @@ class _NightSkyPainter extends CustomPainter {
 
     canvas.drawPath(skyline, Paint()..color = silhouette);
 
-    // Warm window lights along the skyline.
-    final light = Paint()
-      ..color = moon.withValues(alpha: isDark ? 0.55 : 0.35);
-    for (var i = 0; i < 5; i++) {
-      final x = domeCx - domeR + domeR * 0.5 * i + domeR * 0.25;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromCenter(
-              center: Offset(x, baseY - h * 0.045), width: 3.4, height: 5.6),
-          const Radius.circular(1.8),
-        ),
-        light,
-      );
-    }
+    // (Stage A: the row of "window lights" read as dead pagination dots
+    // in both heroes and was removed by owner decision.)
   }
 
   @override

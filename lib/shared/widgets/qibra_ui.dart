@@ -211,14 +211,12 @@ class QibraCard extends StatelessWidget {
     required this.child,
     this.padding,
     this.onTap,
-    this.accentBorder = false,
     this.filled = false,
   });
 
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
-  final bool accentBorder;
   final bool filled;
 
   @override
@@ -230,11 +228,7 @@ class QibraCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: filled ? colors.primarySoft : colors.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: accentBorder
-              ? colors.accent.withValues(alpha: 0.45)
-              : colors.border,
-        ),
+        border: Border.all(color: colors.border),
         boxShadow: filled ? null : AppShadows.subtle,
       ),
       child: child,
@@ -497,7 +491,10 @@ class QibraSoftButton extends StatelessWidget {
     final colors = QibraColors.of(context);
     return Expanded(
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),

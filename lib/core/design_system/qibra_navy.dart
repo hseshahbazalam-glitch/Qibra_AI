@@ -19,6 +19,8 @@ abstract final class QibraNavy {
   // ─── Base surfaces ──────────────────────────────────────────────
   /// Deepest midnight navy — application canvas.
   static const Color canvas = Color(0xFF020B14);
+  /// Deep ink for vector silhouettes painted over the hero night sky.
+  static const Color nightInk = Color(0xFF010A12);
 
   /// Secondary navy — nav bar, sheets, app bars.
   static const Color surface = Color(0xFF04111C);

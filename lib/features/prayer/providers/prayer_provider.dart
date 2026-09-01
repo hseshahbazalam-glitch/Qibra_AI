@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/utils/countdown_format.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -486,20 +488,8 @@ class NextPrayerInfo {
     return '$h:$m:$s';
   }
 
-  String get compactCountdown {
-    if (countdown.isNegative) return 'Now';
-    if (countdown.inHours >= 1) {
-      final h = countdown.inHours;
-      final m = countdown.inMinutes.remainder(60);
-      return '${h}h ${m}m';
-    }
-    if (countdown.inMinutes >= 1) {
-      final m = countdown.inMinutes;
-      final s = countdown.inSeconds.remainder(60);
-      return '${m}m ${s}s';
-    }
-    return '${countdown.inSeconds}s';
-  }
+  /// App-wide countdown grammar (single source of truth — Stage A).
+  String get compactCountdown => formatCountdownCompact(countdown);
 }
 
 NextPrayerInfo? _computeNextPrayer(
