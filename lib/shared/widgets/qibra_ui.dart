@@ -229,7 +229,6 @@ class QibraCard extends StatelessWidget {
         color: filled ? colors.primarySoft : colors.card,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: colors.border),
-        boxShadow: filled ? null : AppShadows.subtle,
       ),
       child: child,
     );

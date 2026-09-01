@@ -369,7 +369,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               color: colors.border,
               width: 1,
             ),
-            boxShadow: AppShadows.subtle,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
