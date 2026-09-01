@@ -13,7 +13,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  intl: ^0.19.0
+  flutter_localizations:
+    sdk: flutter
+  intl: 0.20.2
 
   # --- UI & FONTS ---
   cupertino_icons: ^1.0.8
@@ -98,6 +100,7 @@ flutter:
     - assets/audio/
 
     # Quran & Hadith Datasets
+    - assets/data/content_manifest.json
     - assets/data/quran/
     - assets/data/hadith/
     - assets/data/hadith/bukhari/
@@ -116,7 +119,7 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/logo/qibra_logo.png"
   min_sdk_android: 21
-  adaptive_icon_background: "#0D3320"
+  adaptive_icon_background: "#071512"
   adaptive_icon_foreground: "assets/images/logo/qibra_logo.png"
   remove_alpha_ios: true
 

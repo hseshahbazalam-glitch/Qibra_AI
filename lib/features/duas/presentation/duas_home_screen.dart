@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/features/duas/data/models/dua_model.dart';
@@ -69,8 +69,9 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: FadeTransition(
         opacity: _fadeAnim,
         child: CustomScrollView(
@@ -129,23 +130,24 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildSliverAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 160,
       floating: false,
       pinned: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       elevation: 0,
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
                 Color(0xFFEEF1EA),
                 Color(0xFFF5F3EC),
-                AppColors.background,
+                colors.background,
               ],
             ),
           ),
@@ -159,7 +161,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                   Text(
                     'الأدعية المأثورة',
                     style: AppTextStyles.arabicLarge.copyWith(
-                      color: AppColors.primary.withValues(alpha: 0.9),
+                      color: colors.primary.withValues(alpha: 0.9),
                       fontSize: 22,
                     ),
                   ),
@@ -178,7 +180,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                     return Text(
                       '${stats.totalDuas} Duas  •  ${stats.totalCategories} Categories',
                       style: AppTextStyles.labelMedium.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     );
                   }),
@@ -196,22 +198,23 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildSearchBar() {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _isSearching
-                ? AppColors.primary.withValues(alpha: 0.5)
-                : AppColors.borderSubtle,
+                ? colors.primary.withValues(alpha: 0.5)
+                : colors.border,
           ),
           boxShadow: _isSearching
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.1),
+                    color: colors.primary.withValues(alpha: 0.1),
                     blurRadius: 12,
                     spreadRadius: 0,
                   ),
@@ -223,7 +226,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
             const SizedBox(width: 16),
             Icon(
               Icons.search_rounded,
-              color: _isSearching ? AppColors.primary : AppColors.iconSecondary,
+              color: _isSearching ? colors.primary : colors.textSecondary,
               size: 22,
             ),
             const SizedBox(width: 12),
@@ -235,7 +238,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                 decoration: InputDecoration(
                   hintText: 'Search duas, topics, Arabic...',
                   hintStyle: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                   ),
                   border: InputBorder.none,
                   isDense: true,
@@ -248,14 +251,14 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                 child: Container(
                   margin: const EdgeInsets.only(right: 12),
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: AppColors.surfaceElevated,
+                  decoration: BoxDecoration(
+                    color: colors.surfaceElevated,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.close_rounded,
                     size: 16,
-                    color: AppColors.iconSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ),
@@ -270,6 +273,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildSearchResults() {
+    final colors = QibraColors.of(context);
     final results = ref.watch(filteredDuasProvider);
 
     if (results.isEmpty) {
@@ -282,20 +286,20 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
               Icon(
                 Icons.search_off_rounded,
                 size: 56,
-                color: AppColors.textTertiary.withValues(alpha: 0.5),
+                color: colors.textTertiary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 16),
               Text(
                 'No duas found',
                 style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Try different keywords',
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ),
             ],
@@ -312,7 +316,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
           child: Text(
             '${results.length} results found',
             style: AppTextStyles.labelMedium.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ),
@@ -327,6 +331,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildDailyDuaCard() {
+    final colors = QibraColors.of(context);
     final dailyDua = ref.watch(dailyDuaProvider);
 
     return Padding(
@@ -339,18 +344,18 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.primaryLight,
-                AppColors.primary,
+                colors.primarySoft,
+                colors.primary,
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.3),
+                color: colors.primary.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -368,7 +373,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.15),
+                      color: colors.onPrimary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -379,7 +384,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                         Text(
                           'Dua of the Day',
                           style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.white,
+                            color: colors.onPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -400,8 +405,8 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
                       color: dailyDua.isFavorite
-                          ? const Color(0xFFFF6B6B)
-                          : AppColors.white.withValues(alpha: 0.7),
+                          ? QibraColors.light.error
+                          : colors.onPrimary.withValues(alpha: 0.7),
                       size: 22,
                     ),
                   ),
@@ -414,7 +419,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
               Text(
                 dailyDua.titleEnglish,
                 style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.white,
+                  color: colors.onPrimary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -427,7 +432,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                     ? '${dailyDua.arabic.substring(0, 120)}...'
                     : dailyDua.arabic,
                 style: AppTextStyles.arabicMedium.copyWith(
-                  color: AppColors.white.withValues(alpha: 0.95),
+                  color: colors.onPrimary.withValues(alpha: 0.95),
                   height: 1.8,
                   fontSize: 18,
                 ),
@@ -439,7 +444,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
 
               // Divider
               Divider(
-                color: AppColors.white.withValues(alpha: 0.2),
+                color: colors.onPrimary.withValues(alpha: 0.2),
                 height: 1,
               ),
 
@@ -451,14 +456,14 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                   Icon(
                     Icons.verified_rounded,
                     size: 14,
-                    color: AppColors.white.withValues(alpha: 0.7),
+                    color: colors.onPrimary.withValues(alpha: 0.7),
                   ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       dailyDua.reference,
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.white.withValues(alpha: 0.7),
+                        color: colors.onPrimary.withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -468,13 +473,13 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.15),
+                      color: colors.onPrimary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       dailyDua.grade,
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.white,
+                        color: colors.onPrimary,
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                       ),
@@ -494,6 +499,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildSectionTitle(String title, String arabic) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
       child: Row(
@@ -518,7 +524,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
           Text(
             arabic,
             style: AppTextStyles.arabicSmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -531,6 +537,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildCategoriesGrid() {
+    final colors = QibraColors.of(context);
     final categories = ref.watch(duaCategoriesProvider);
 
     return Padding(
@@ -553,8 +560,9 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   }
 
   Widget _buildCategoryCard(DuaCategoryModel category) {
+    final colors = QibraColors.of(context);
     // Parse hex color
-    const cardColor = AppColors.primary;
+    final cardColor = colors.primary;
 
     return GestureDetector(
       onTap: () {
@@ -570,9 +578,9 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
       },
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderSubtle),
+          border: Border.all(color: colors.border),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -642,6 +650,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildFavoritesSection() {
+    final colors = QibraColors.of(context);
     final favorites = ref.watch(favoriteDuasProvider);
     if (favorites.isEmpty) return const SizedBox.shrink();
 
@@ -659,8 +668,9 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildDuaListTile(DuaModel dua) {
+    final colors = QibraColors.of(context);
     // Category color
-    const tileColor = AppColors.primary;
+    final tileColor = colors.primary;
 
     return GestureDetector(
       onTap: () {
@@ -671,9 +681,9 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderSubtle),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           children: [
@@ -714,7 +724,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                         ? '${dua.arabic.substring(0, 60)}...'
                         : dua.arabic,
                     style: AppTextStyles.arabicSmall.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       fontSize: 13,
                     ),
                     textDirection: TextDirection.rtl,
@@ -727,14 +737,14 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                       Icon(
                         Icons.verified_rounded,
                         size: 11,
-                        color: AppColors.primary.withValues(alpha: 0.7),
+                        color: colors.primary.withValues(alpha: 0.7),
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           dua.reference,
                           style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.textTertiary,
+                            color: colors.textTertiary,
                             fontSize: 10,
                           ),
                           maxLines: 1,
@@ -762,8 +772,8 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
                 color: dua.isFavorite
-                    ? const Color(0xFFFF6B6B)
-                    : AppColors.iconSecondary,
+                    ? QibraColors.light.error
+                    : colors.textSecondary,
                 size: 20,
               ),
             ),

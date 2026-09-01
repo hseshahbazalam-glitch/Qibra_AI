@@ -9,45 +9,46 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/content/edition_resolver.dart';
+import 'package:qibra_ai/core/l10n/app_locales.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
+import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
+import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final user = ref.watch(currentUserProvider);
     final userName = ref.watch(userDisplayNameProvider);
+    final isGuest = ref.watch(isGuestModeProvider);
     final isDark = ref.watch(isDarkModeProvider);
+    final strings = AppStrings.of(context);
+    final locale = ref.watch(localeProvider);
+    final readingPrefs = ref.watch(readingPreferencesProvider);
+    final hadithLang = ref.watch(hadithLanguageProvider);
+    final quranEdition =
+        EditionResolver.resolve(readingPrefs.translationId)?.label ?? 'English';
+    final fontLabel = readingPrefs.fontScale >= 1.25
+        ? 'Large'
+        : readingPrefs.fontScale <= 0.9
+            ? 'Small'
+            : 'Medium';
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+    return QibraPage(
+      title: strings.settings,
+      child: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // APP BAR
-            SliverAppBar(
-              expandedHeight: 100,
-              pinned: true,
-              backgroundColor: AppColors.background,
-              elevation: 0,
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: true,
-                title: Text(
-                  'Settings',
-                  style: AppTextStyles.titleLarge.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-            ),
-
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.lg,
@@ -58,21 +59,25 @@ class SettingsScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   // PROFILE CARD
-                  _buildProfileCard(context, userName, user?.email ?? ''),
+                  _buildProfileCard(
+                    context,
+                    userName,
+                    user?.email ?? '',
+                    isGuest: isGuest,
+                  ),
                   const SizedBox(height: AppSpacing.xl2),
 
-                  // APP PREFERENCES
-                  _buildSectionTitle('APP PREFERENCES'),
+                  _buildSectionTitle(context, 'App preferences'),
                   const SizedBox(height: AppSpacing.md),
-                  _buildSettingsGroup([
+                  _buildSettingsGroup(context, [
                     _SettingsTile(
                       icon: isDark ? Icons.dark_mode : Icons.light_mode,
-                      iconColor: AppColors.accent,
+                      iconColor: colors.accent,
                       title: 'Dark Mode',
                       subtitle: isDark ? 'Enabled' : 'Disabled',
                       trailing: Switch(
                         value: isDark,
-                        activeThumbColor: AppColors.primary,
+                        activeThumbColor: colors.primary,
                         onChanged: (_) {
                           HapticFeedback.lightImpact();
                           ref.read(themeProvider.notifier).toggleTheme();
@@ -81,52 +86,60 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _SettingsTile(
                       icon: Icons.language_rounded,
-                      iconColor: AppColors.primaryLight,
-                      title: 'Language',
-                      subtitle: 'English',
-                      onTap: () =>
-                          _showComingSoon(context, 'Language selection'),
+                      iconColor: colors.primarySoft,
+                      title: strings.language,
+                      subtitle: AppLanguages.displayNames[locale.languageCode] ??
+                          'English',
+                      onTap: () => _showLanguageSheet(context, ref),
                     ),
                     _SettingsTile(
                       icon: Icons.text_fields_rounded,
-                      iconColor: AppColors.accentDark,
+                      iconColor: colors.goldText,
                       title: 'Font Size',
-                      subtitle: 'Medium',
-                      onTap: () => _showComingSoon(context, 'Font size'),
+                      subtitle: fontLabel,
+                      onTap: () => _showFontSizeSheet(context, ref),
                     ),
                   ]),
 
                   const SizedBox(height: AppSpacing.xl2),
 
                   // ISLAMIC SETTINGS
-                  _buildSectionTitle('ISLAMIC PREFERENCES'),
+                  _buildSectionTitle(context, 'Islamic preferences'),
                   const SizedBox(height: AppSpacing.md),
-                  _buildSettingsGroup([
+                  _buildSettingsGroup(context, [
                     _SettingsTile(
                       icon: Icons.access_time_filled_rounded,
-                      iconColor: AppColors.primary,
+                      iconColor: colors.primary,
                       title: 'Prayer Times',
                       subtitle: 'Calculation method',
                       onTap: () => context.go(AppRoutes.prayer),
                     ),
                     _SettingsTile(
                       icon: Icons.headphones_rounded,
-                      iconColor: AppColors.accent,
+                      iconColor: colors.accent,
                       title: 'Quran Reciter',
-                      subtitle: 'Mishary Rashid',
+                      subtitle: 'Recitation not bundled',
                       onTap: () =>
                           _showComingSoon(context, 'Reciter selection'),
                     ),
                     _SettingsTile(
                       icon: Icons.translate_rounded,
-                      iconColor: AppColors.primaryLight,
-                      title: 'Translation',
-                      subtitle: 'English',
-                      onTap: () => _showComingSoon(context, 'Translation'),
+                      iconColor: colors.primarySoft,
+                      title: strings.quranTranslation,
+                      subtitle: quranEdition,
+                      onTap: () => _showQuranTranslationSheet(context, ref),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.menu_book_rounded,
+                      iconColor: colors.primary,
+                      title: strings.hadithLanguage,
+                      subtitle: AppLanguages.displayNames[hadithLang] ??
+                          hadithLang,
+                      onTap: () => _showHadithLanguageSheet(context, ref),
                     ),
                     _SettingsTile(
                       icon: Icons.explore_rounded,
-                      iconColor: AppColors.accent,
+                      iconColor: colors.accent,
                       title: 'Qibla Direction',
                       subtitle: 'Auto-detect',
                       onTap: () => context.go(AppRoutes.qibla),
@@ -136,19 +149,19 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.xl2),
 
                   // NOTIFICATIONS
-                  _buildSectionTitle('NOTIFICATIONS'),
+                  _buildSectionTitle(context, 'Notifications'),
                   const SizedBox(height: AppSpacing.md),
-                  _buildSettingsGroup([
+                  _buildSettingsGroup(context, [
                     _SettingsTile(
                       icon: Icons.notifications_active_rounded,
-                      iconColor: const Color(0xFFEF4444),
+                      iconColor: colors.error,
                       title: 'Prayer Notifications',
                       subtitle: 'Azan alerts & reminders',
                       onTap: () => context.push('/settings/notifications'),
                     ),
                     _SettingsTile(
                       icon: Icons.notification_add_rounded,
-                      iconColor: AppColors.accent,
+                      iconColor: colors.accent,
                       title: 'Daily Reminders',
                       subtitle: 'Adhkar, Quran & Jummah',
                       onTap: () => context.push('/settings/notifications'),
@@ -158,41 +171,58 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.xl2),
 
                   // SUPPORT
-                  _buildSectionTitle('SUPPORT'),
+                  _buildSectionTitle(context, 'Support'),
                   const SizedBox(height: AppSpacing.md),
-                  _buildSettingsGroup([
+                  _buildSettingsGroup(context, [
                     _SettingsTile(
                       icon: Icons.help_outline_rounded,
-                      iconColor: AppColors.primaryLight,
+                      iconColor: colors.primarySoft,
                       title: 'Help & FAQ',
                       subtitle: 'Get help',
                       onTap: () => _showComingSoon(context, 'Help center'),
                     ),
                     _SettingsTile(
                       icon: Icons.star_rounded,
-                      iconColor: AppColors.accent,
+                      iconColor: colors.accent,
                       title: 'Rate App',
                       subtitle: 'Share your feedback',
                       onTap: () => _showComingSoon(context, 'App rating'),
                     ),
                     _SettingsTile(
                       icon: Icons.share_rounded,
-                      iconColor: AppColors.primaryLight,
+                      iconColor: colors.primarySoft,
                       title: 'Share App',
                       subtitle: 'Invite friends',
                       onTap: () => _showComingSoon(context, 'Share app'),
                     ),
                     _SettingsTile(
                       icon: Icons.privacy_tip_outlined,
-                      iconColor: const Color(0xFF6B7280),
+                      iconColor: colors.textTertiary,
                       title: 'Privacy Policy',
-                      onTap: () => _showComingSoon(context, 'Privacy policy'),
+                      subtitle: 'Copy the published URL',
+                      onTap: () => _showLegalUrl(
+                        context,
+                        title: 'Privacy Policy',
+                        url: AppInfo.privacyPolicy,
+                      ),
                     ),
                     _SettingsTile(
                       icon: Icons.description_outlined,
-                      iconColor: const Color(0xFF6B7280),
+                      iconColor: colors.textTertiary,
                       title: 'Terms of Service',
-                      onTap: () => _showComingSoon(context, 'Terms'),
+                      subtitle: 'Copy the published URL',
+                      onTap: () => _showLegalUrl(
+                        context,
+                        title: 'Terms of Service',
+                        url: AppInfo.termsOfService,
+                      ),
+                    ),
+                    _SettingsTile(
+                      icon: Icons.delete_forever_rounded,
+                      iconColor: colors.error,
+                      title: 'Delete local account data',
+                      subtitle: 'Clears tokens on this device. Cloud delete needs backend.',
+                      onTap: () => _showDeleteLocalDataDialog(context, ref),
                     ),
                   ]),
 
@@ -209,7 +239,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.xl3),
 
                   // FOOTER
-                  _buildFooter(),
+                  _buildFooter(context),
                 ]),
               ),
             ),
@@ -226,16 +256,18 @@ class SettingsScreen extends ConsumerWidget {
   Widget _buildProfileCard(
     BuildContext context,
     String userName,
-    String email,
-  ) {
+    String email, {
+    required bool isGuest,
+  }) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: colors.primary,
         borderRadius: AppRadius.cardRadiusLarge,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.30),
+            color: colors.primary.withValues(alpha: 0.30),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -251,12 +283,12 @@ class SettingsScreen extends ConsumerWidget {
               gradient: AppGradients.gold,
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.white.withValues(alpha: 0.30),
+                color: colors.onPrimary.withValues(alpha: 0.30),
                 width: 2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.accent.withValues(alpha: 0.40),
+                  color: colors.accent.withValues(alpha: 0.40),
                   blurRadius: 12,
                   spreadRadius: 0,
                 ),
@@ -266,7 +298,7 @@ class SettingsScreen extends ConsumerWidget {
               child: Text(
                 userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
                 style: AppTextStyles.headlineMedium.copyWith(
-                  color: AppColors.background,
+                  color: colors.background,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -280,7 +312,7 @@ class SettingsScreen extends ConsumerWidget {
                 Text(
                   userName.isNotEmpty ? userName : 'Guest User',
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: AppColors.white,
+                    color: colors.onPrimary,
                     fontWeight: FontWeight.w800,
                   ),
                   maxLines: 1,
@@ -290,34 +322,36 @@ class SettingsScreen extends ConsumerWidget {
                 Text(
                   email.isNotEmpty ? email : 'Not signed in',
                   style: AppTextStyles.labelMedium.copyWith(
-                    color: AppColors.white.withValues(alpha: 0.85),
+                    color: colors.onPrimary.withValues(alpha: 0.85),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.20),
-                    borderRadius: AppRadius.pillRadius,
-                    border: Border.all(
-                      color: AppColors.white.withValues(alpha: 0.30),
+                if (isGuest) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.onPrimary.withValues(alpha: 0.20),
+                      borderRadius: AppRadius.pillRadius,
+                      border: Border.all(
+                        color: colors.onPrimary.withValues(alpha: 0.30),
+                      ),
+                    ),
+                    child: Text(
+                      AppStrings.of(context).guest,
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.onPrimary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 9,
+                        letterSpacing: 1.0,
+                      ),
                     ),
                   ),
-                  child: Text(
-                    'PREMIUM MEMBER',
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 9,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                ),
+                ],
               ],
             ),
           ),
@@ -328,15 +362,15 @@ class SettingsScreen extends ConsumerWidget {
               _showComingSoon(context, 'Profile edit');
             },
             child: Container(
-              width: 36,
-              height: 36,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.20),
+                color: colors.onPrimary.withValues(alpha: 0.20),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.edit_rounded,
-                color: AppColors.white,
+                color: colors.onPrimary,
                 size: 18,
               ),
             ),
@@ -350,29 +384,17 @@ class SettingsScreen extends ConsumerWidget {
   // SECTION TITLE
   // ============================================================
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(left: AppSpacing.sm),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 14,
-            decoration: BoxDecoration(
-              gradient: AppGradients.gold,
-              borderRadius: AppRadius.pillRadius,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            title,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.accent,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2.0,
-            ),
-          ),
-        ],
+      child: Text(
+        title,
+        style: AppTextStyles.labelSmall.copyWith(
+          color: colors.goldText,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
+        ),
       ),
     );
   }
@@ -381,12 +403,13 @@ class SettingsScreen extends ConsumerWidget {
   // SETTINGS GROUP
   // ============================================================
 
-  Widget _buildSettingsGroup(List<_SettingsTile> tiles) {
+  Widget _buildSettingsGroup(BuildContext context, List<_SettingsTile> tiles) {
+    final colors = QibraColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadiusLarge,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: List.generate(tiles.length, (index) {
@@ -396,7 +419,7 @@ class SettingsScreen extends ConsumerWidget {
               if (index < tiles.length - 1)
                 Divider(
                   height: 1,
-                  color: AppColors.borderSubtle.withValues(alpha: 0.5),
+                  color: colors.border.withValues(alpha: 0.5),
                   indent: 60,
                 ),
             ],
@@ -411,6 +434,7 @@ class SettingsScreen extends ConsumerWidget {
   // ============================================================
 
   Widget _buildAboutCard(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -418,13 +442,13 @@ class SettingsScreen extends ConsumerWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.accent.withValues(alpha: 0.10),
-            AppColors.primary.withValues(alpha: 0.05),
+            colors.accent.withValues(alpha: 0.10),
+            colors.primary.withValues(alpha: 0.05),
           ],
         ),
         borderRadius: AppRadius.cardRadiusLarge,
         border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.25),
+          color: colors.accent.withValues(alpha: 0.25),
         ),
       ),
       child: Column(
@@ -440,14 +464,14 @@ class SettingsScreen extends ConsumerWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.accent.withValues(alpha: 0.40),
+                      color: colors.accent.withValues(alpha: 0.40),
                       blurRadius: 10,
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.mosque_rounded,
-                  color: AppColors.background,
+                  color: colors.background,
                   size: 22,
                 ),
               ),
@@ -459,7 +483,7 @@ class SettingsScreen extends ConsumerWidget {
                     Text(
                       'About QIBRA AI',
                       style: AppTextStyles.titleMedium.copyWith(
-                        color: AppColors.accent,
+                        color: colors.goldText,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -467,7 +491,7 @@ class SettingsScreen extends ConsumerWidget {
                     Text(
                       'Your Islamic Companion',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -478,9 +502,9 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'QIBRA AI is an Islamic Super App designed to help Muslims with the Quran, Hadith, Prayer Times, Qibla, and AI-powered Islamic knowledge.',
+            'Qibra is a daily companion for Quran, Hadith, prayer times, and Qibla. On-device AI retrieval is not a fatwa and is not a scholar.',
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               height: 1.6,
             ),
           ),
@@ -493,25 +517,25 @@ class SettingsScreen extends ConsumerWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
+                  color: colors.primary.withValues(alpha: 0.15),
                   borderRadius: AppRadius.pillRadius,
                   border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.30),
+                    color: colors.primary.withValues(alpha: 0.30),
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.check_circle_rounded,
-                      color: AppColors.primary,
+                      color: colors.primary,
                       size: 12,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       'v1.0.0',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.primary,
+                        color: colors.primary,
                         fontWeight: FontWeight.w800,
                         fontSize: 11,
                       ),
@@ -526,33 +550,22 @@ class SettingsScreen extends ConsumerWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFFEF4444),
-                      Color(0xFFDC2626),
-                    ],
-                  ),
+                  color: colors.error,
                   borderRadius: AppRadius.pillRadius,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFEF4444).withValues(alpha: 0.40),
-                      blurRadius: 8,
-                    ),
-                  ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.science_rounded,
-                      color: AppColors.white,
+                      color: colors.onPrimary,
                       size: 12,
                     ),
                     SizedBox(width: 4),
                     Text(
                       'BETA',
                       style: TextStyle(
-                        color: AppColors.white,
+                        color: colors.onPrimary,
                         fontWeight: FontWeight.w900,
                         fontSize: 10,
                         letterSpacing: 1.0,
@@ -570,7 +583,7 @@ class SettingsScreen extends ConsumerWidget {
               gradient: LinearGradient(
                 colors: [
                   Colors.transparent,
-                  AppColors.accent.withValues(alpha: 0.30),
+                  colors.accent.withValues(alpha: 0.30),
                   Colors.transparent,
                 ],
               ),
@@ -582,12 +595,12 @@ class SettingsScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.15),
+                  color: colors.accent.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.code_rounded,
-                  color: AppColors.accent,
+                  color: colors.accent,
                   size: 14,
                 ),
               ),
@@ -599,7 +612,7 @@ class SettingsScreen extends ConsumerWidget {
                     Text(
                       'Designed & Developed by',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
                         fontSize: 10,
                       ),
                     ),
@@ -607,7 +620,7 @@ class SettingsScreen extends ConsumerWidget {
                     Text(
                       'Shahbaz Alam',
                       style: AppTextStyles.titleSmall.copyWith(
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -626,31 +639,32 @@ class SettingsScreen extends ConsumerWidget {
   // ============================================================
 
   Widget _buildLogoutButton(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () => _showLogoutDialog(context, ref),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.10),
+          color: colors.error.withValues(alpha: 0.10),
           borderRadius: AppRadius.cardRadius,
           border: Border.all(
-            color: AppColors.error.withValues(alpha: 0.30),
+            color: colors.error.withValues(alpha: 0.30),
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.logout_rounded,
-              color: AppColors.error,
+              color: colors.error,
               size: 18,
             ),
             const SizedBox(width: AppSpacing.sm),
             Text(
               'Logout',
               style: AppTextStyles.labelLarge.copyWith(
-                color: AppColors.error,
+                color: colors.error,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -664,7 +678,8 @@ class SettingsScreen extends ConsumerWidget {
   // FOOTER
   // ============================================================
 
-  Widget _buildFooter() {
+  Widget _buildFooter(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         Row(
@@ -676,7 +691,7 @@ class SettingsScreen extends ConsumerWidget {
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      AppColors.accent.withValues(alpha: 0.30),
+                      colors.accent.withValues(alpha: 0.30),
                     ],
                   ),
                 ),
@@ -686,7 +701,7 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Icon(
                 Icons.star_rounded,
-                color: AppColors.accent.withValues(alpha: 0.60),
+                color: colors.accent.withValues(alpha: 0.60),
                 size: 14,
               ),
             ),
@@ -696,7 +711,7 @@ class SettingsScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.accent.withValues(alpha: 0.30),
+                      colors.accent.withValues(alpha: 0.30),
                       Colors.transparent,
                     ],
                   ),
@@ -706,29 +721,21 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.md),
-        ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [
-              Color(0xFFC6A15B),
-              Color(0xFFB8960C),
-            ],
-          ).createShader(bounds),
-          child: const Text(
-            'بَارَكَ اللَّهُ فِيك',
-            style: TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 20,
-              color: const Color(0xFF19312C),
-              fontWeight: FontWeight.w700,
-            ),
-            textDirection: TextDirection.rtl,
+        Text(
+          'بَارَكَ اللَّهُ فِيك',
+          style: TextStyle(
+            fontFamily: 'Amiri',
+            fontSize: 20,
+            color: colors.goldText,
+            fontWeight: FontWeight.w700,
           ),
+          textDirection: TextDirection.rtl,
         ),
         const SizedBox(height: 4),
         Text(
           'May Allah bless you',
           style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.accent.withValues(alpha: 0.70),
+            color: colors.goldText.withValues(alpha: 0.80),
             fontStyle: FontStyle.italic,
             fontSize: 10,
           ),
@@ -737,7 +744,7 @@ class SettingsScreen extends ConsumerWidget {
         Text(
           '© 2026 Shahbaz Alam',
           style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
             fontSize: 10,
           ),
         ),
@@ -745,7 +752,7 @@ class SettingsScreen extends ConsumerWidget {
         Text(
           'All Rights Reserved',
           style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
             fontSize: 9,
           ),
         ),
@@ -753,7 +760,7 @@ class SettingsScreen extends ConsumerWidget {
         Text(
           'QIBRA AI',
           style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.textTertiary,
+            color: colors.textTertiary,
             fontWeight: FontWeight.w900,
             letterSpacing: 3.0,
             fontSize: 10,
@@ -767,25 +774,368 @@ class SettingsScreen extends ConsumerWidget {
   // HELPERS
   // ============================================================
 
+  void _showLanguageSheet(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final strings = AppStrings.of(context);
+    final current = ref.read(localeProvider).languageCode;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final sheetColors = QibraColors.of(ctx);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  strings.language,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: sheetColors.goldText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final entry in const [
+                  ('en', 'English'),
+                  ('ar', 'العربية'),
+                  ('ur', 'اردو'),
+                ])
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      entry.$2,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: sheetColors.textPrimary,
+                      ),
+                    ),
+                    trailing: current == entry.$1
+                        ? Icon(Icons.check_rounded, color: sheetColors.primary)
+                        : null,
+                    onTap: () {
+                      ref.read(localeProvider.notifier).setLocale(entry.$1);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFontSizeSheet(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final current = ref.read(readingPreferencesProvider).fontScale;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final sheetColors = QibraColors.of(ctx);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Font Size',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: sheetColors.goldText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final entry in const [
+                  (0.9, 'Small'),
+                  (1.0, 'Medium'),
+                  (1.25, 'Large'),
+                ])
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      entry.$2,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: sheetColors.textPrimary,
+                      ),
+                    ),
+                    trailing: current == entry.$1
+                        ? Icon(Icons.check_rounded, color: sheetColors.primary)
+                        : null,
+                    onTap: () {
+                      ref
+                          .read(readingPreferencesProvider.notifier)
+                          .setFontScale(entry.$1);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showQuranTranslationSheet(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final current = ref.read(readingPreferencesProvider).translationId;
+    final editions = EditionResolver.allBundled()
+        .where((e) => e.id != 'ar')
+        .toList();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final sheetColors = QibraColors.of(ctx);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStrings.of(context).quranTranslation,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: sheetColors.goldText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final edition in editions)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      edition.label,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: sheetColors.textPrimary,
+                      ),
+                    ),
+                    trailing: current == edition.id
+                        ? Icon(Icons.check_rounded, color: sheetColors.primary)
+                        : null,
+                    onTap: () {
+                      ref
+                          .read(readingPreferencesProvider.notifier)
+                          .setTranslation(edition.id);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showHadithLanguageSheet(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final current = ref.read(hadithLanguageProvider);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final sheetColors = QibraColors.of(ctx);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStrings.of(context).hadithLanguage,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: sheetColors.goldText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final entry in const [
+                  ('en', 'English'),
+                  ('ar', 'العربية'),
+                  ('ur', 'اردو'),
+                ])
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      entry.$2,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: sheetColors.textPrimary,
+                      ),
+                    ),
+                    trailing: current == entry.$1
+                        ? Icon(Icons.check_rounded, color: sheetColors.primary)
+                        : null,
+                    onTap: () {
+                      ref
+                          .read(hadithLanguageProvider.notifier)
+                          .setLanguage(entry.$1);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLegalUrl(
+    BuildContext context, {
+    required String title,
+    required String url,
+  }) {
+    final colors = QibraColors.of(context);
+    HapticFeedback.lightImpact();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.cardRadiusLarge,
+        ),
+        title: Text(
+          title,
+          style: AppTextStyles.titleMedium.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        content: Text(
+          'This build does not open a browser. Copy the URL and open it yourself. Live page status is unknown until verified.\n\n$url',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: colors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Close', style: TextStyle(color: colors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.primary,
+              foregroundColor: colors.onPrimary,
+            ),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: url));
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'URL copied',
+                      style: TextStyle(color: colors.onPrimary),
+                    ),
+                    backgroundColor: colors.primary,
+                  ),
+                );
+              }
+            },
+            child: const Text('Copy URL'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteLocalDataDialog(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.cardRadiusLarge,
+        ),
+        title: Text(
+          'Delete local account data?',
+          style: AppTextStyles.titleMedium.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        content: Text(
+          'This clears tokens on this device and returns you to guest. '
+          'Cloud account deletion is not available while the backend is disabled. '
+          'Quran and Hadith files on device are not deleted.',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: colors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.error,
+              foregroundColor: colors.onPrimary,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final ok = await ref.read(authProvider.notifier).deleteAccount();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    ok
+                        ? 'Local session cleared'
+                        : 'Could not clear local session',
+                    style: TextStyle(color: colors.onPrimary),
+                  ),
+                  backgroundColor: ok ? colors.primary : colors.error,
+                ),
+              );
+            },
+            child: const Text('Delete local data'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showComingSoon(BuildContext context, String feature) {
+    final colors = QibraColors.of(context);
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.hourglass_empty_rounded,
-              color: AppColors.white,
+              color: colors.onPrimary,
               size: 18,
             ),
             const SizedBox(width: 8),
             Text(
-              '$feature coming soon',
-              style: const TextStyle(color: AppColors.white),
+              '$feature is not available in this build',
+              style: TextStyle(color: colors.onPrimary),
             ),
           ],
         ),
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(
@@ -796,24 +1146,25 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: colors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardRadiusLarge,
         ),
         title: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.logout_rounded,
-              color: AppColors.error,
+              color: colors.error,
             ),
             const SizedBox(width: 8),
             Text(
               'Logout?',
               style: AppTextStyles.titleMedium.copyWith(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -822,23 +1173,23 @@ class SettingsScreen extends ConsumerWidget {
         content: Text(
           'Are you sure you want to logout from QIBRA AI?',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Cancel',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: AppColors.white,
+              backgroundColor: colors.error,
+              foregroundColor: colors.onPrimary,
             ),
             onPressed: () async {
               Navigator.pop(ctx);
@@ -875,6 +1226,7 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -889,8 +1241,8 @@ class _SettingsTile extends StatelessWidget {
             children: [
               // Icon
               Container(
-                width: 40,
-                height: 40,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.15),
                   borderRadius: AppRadius.buttonRadius,
@@ -911,7 +1263,7 @@ class _SettingsTile extends StatelessWidget {
                     Text(
                       title,
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -920,7 +1272,7 @@ class _SettingsTile extends StatelessWidget {
                       Text(
                         subtitle!,
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.textTertiary,
+                          color: colors.textTertiary,
                           fontSize: 11,
                         ),
                       ),
@@ -932,9 +1284,9 @@ class _SettingsTile extends StatelessWidget {
               if (trailing != null)
                 trailing!
               else if (onTap != null)
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                   size: 20,
                 ),
             ],

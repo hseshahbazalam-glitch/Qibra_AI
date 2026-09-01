@@ -12,23 +12,16 @@ class ToolsHubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        title: const Text('Islamic tools'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(AppRoutes.more);
-            }
-          },
-        ),
-      ),
-      body: ListView(
+    return QibraPage(
+      title: 'Islamic tools',
+      onBack: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go(AppRoutes.more);
+        }
+      },
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
           Text(
@@ -129,8 +122,8 @@ const _tools = [
     route: '/tools/sadaqah',
   ),
   _Tool(
-    title: 'Tasbih',
-    subtitle: 'Digital dhikr counter',
+    title: 'Dhikr',
+    subtitle: 'Tasbih counter',
     icon: Icons.radio_button_checked,
     route: AppRoutes.tasbih,
   ),

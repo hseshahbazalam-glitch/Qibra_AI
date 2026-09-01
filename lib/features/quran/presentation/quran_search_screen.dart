@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../data/models/quran_models.dart';
@@ -70,53 +70,53 @@ class PopularTopic {
   final String searchQuery;
 }
 
-const _popularTopics = [
+List<PopularTopic> _popularTopicsFor(QibraColors colors) => [
   PopularTopic(
     label: 'Mercy',
     icon: Icons.favorite_rounded,
-    color: Color(0xFFEC407A),
+    color: colors.primary,
     searchQuery: 'mercy',
   ),
   PopularTopic(
     label: 'Patience',
     icon: Icons.self_improvement_rounded,
-    color: Color(0xFF7E57C2),
+    color: colors.primarySoft,
     searchQuery: 'patience',
   ),
   PopularTopic(
     label: 'Paradise',
     icon: Icons.park_rounded,
-    color: Color(0xFF66BB6A),
+    color: colors.primarySoft,
     searchQuery: 'paradise',
   ),
   PopularTopic(
     label: 'Prayer',
     icon: Icons.mosque_rounded,
-    color: Color(0xFF42A5F5),
+    color: colors.primary,
     searchQuery: 'prayer',
   ),
   PopularTopic(
     label: 'Faith',
     icon: Icons.light_mode_rounded,
-    color: Color(0xFFC6A15B),
+    color: colors.accent,
     searchQuery: 'faith',
   ),
   PopularTopic(
     label: 'Guidance',
     icon: Icons.explore_rounded,
-    color: Color(0xFF26A69A),
+    color: colors.primarySoft,
     searchQuery: 'guidance',
   ),
   PopularTopic(
     label: 'Forgiveness',
     icon: Icons.healing_rounded,
-    color: Color(0xFFAB47BC),
+    color: colors.primary,
     searchQuery: 'forgive',
   ),
   PopularTopic(
     label: 'Charity',
     icon: Icons.volunteer_activism_rounded,
-    color: Color(0xFFEF5350),
+    color: colors.goldText,
     searchQuery: 'charity',
   ),
 ];
@@ -231,20 +231,21 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final searchState = ref.watch(searchQuranProvider);
     final recentSearches = ref.watch(recentSearchesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.primary.withValues(alpha: 0.07),
-              AppColors.background,
-              AppColors.background,
+              colors.primary.withValues(alpha: 0.07),
+              colors.background,
+              colors.background,
             ],
             stops: const [0.0, 0.18, 1.0],
           ),
@@ -269,6 +270,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   // ── Header ────────────────────────────────────────────────
 
   Widget _buildHeader() {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -282,6 +284,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             children: [
               _CircleButton(
                 icon: Icons.arrow_back_ios_new_rounded,
+                tooltip: 'Back',
                 onTap: () {
                   HapticFeedback.lightImpact();
                   Navigator.of(context).maybePop();
@@ -293,18 +296,18 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'EXPLORE THE QURAN',
+                      'Explore the Quran',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.primary,
+                        color: colors.goldText,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
+                        letterSpacing: 0.4,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Search',
                       style: AppTextStyles.titleLarge.copyWith(
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -321,6 +324,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildSearchBar() {
+    final colors = QibraColors.of(context);
     final isFocused = _searchFocusNode.hasFocus;
     final hasText = _currentQuery.isNotEmpty;
 
@@ -331,18 +335,18 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.85),
+            color: colors.surfaceElevated.withValues(alpha: 0.85),
             borderRadius: BorderRadius.circular(AppRadius.xl2),
             border: Border.all(
               color: isFocused
-                  ? AppColors.primary.withValues(alpha: 0.50)
-                  : AppColors.primary.withValues(alpha: 0.16),
+                  ? colors.primary.withValues(alpha: 0.50)
+                  : colors.primary.withValues(alpha: 0.16),
               width: 1.4,
             ),
             boxShadow: isFocused
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.14),
+                      color: colors.primary.withValues(alpha: 0.14),
                       blurRadius: 20,
                       offset: const Offset(0, 6),
                     ),
@@ -353,10 +357,10 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             controller: _searchController,
             focusNode: _searchFocusNode,
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
-            cursorColor: AppColors.primary,
+            cursorColor: colors.primary,
             textInputAction: TextInputAction.search,
             onSubmitted: _performSearch,
             decoration: InputDecoration(
@@ -367,20 +371,20 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
               border: InputBorder.none,
               prefixIcon: Icon(
                 Icons.search_rounded,
-                color: AppColors.primary.withValues(alpha: 0.90),
+                color: colors.primary.withValues(alpha: 0.90),
                 size: 24,
               ),
               hintText: 'Search Quran (English or Arabic)...',
               hintStyle: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textTertiary,
+                color: colors.textTertiary,
                 fontWeight: FontWeight.w500,
               ),
               suffixIcon: hasText
                   ? IconButton(
                       onPressed: _clearSearch,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close_rounded,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                         size: 20,
                       ),
                     )
@@ -392,13 +396,13 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
+                          color: colors.primary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: Text(
                           '6236',
                           style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.primary,
+                            color: colors.primary,
                             fontWeight: FontWeight.w800,
                             fontSize: 10,
                           ),
@@ -415,6 +419,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   // ── Body ──────────────────────────────────────────────────
 
   Widget _buildBody(SearchState searchState, List<String> recentSearches) {
+    final colors = QibraColors.of(context);
     // No search query - show suggestions
     if (_currentQuery.isEmpty) {
       return _buildSuggestionsView(recentSearches);
@@ -440,6 +445,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildSuggestionsView(List<String> recentSearches) {
+    final colors = QibraColors.of(context);
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
@@ -455,16 +461,16 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
           if (recentSearches.isNotEmpty) ...[
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.history_rounded,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   size: 18,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   'Recent Searches',
                   style: AppTextStyles.labelLarge.copyWith(
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -482,7 +488,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                   child: Text(
                     'Clear',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.error,
+                      color: colors.error,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -510,37 +516,42 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
           // Popular topics
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.trending_up_rounded,
-                color: AppColors.accent,
+                color: colors.accent,
                 size: 18,
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 'Popular Topics',
                 style: AppTextStyles.labelLarge.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              crossAxisSpacing: AppSpacing.sm,
-              mainAxisSpacing: AppSpacing.sm,
-              childAspectRatio: 0.95,
-            ),
-            itemCount: _popularTopics.length,
-            itemBuilder: (context, index) {
-              final topic = _popularTopics[index];
-              return _TopicCard(
-                topic: topic,
-                onTap: () => _performSearch(topic.searchQuery),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cols = constraints.maxWidth < 360 ? 2 : 4;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: cols,
+                  crossAxisSpacing: AppSpacing.sm,
+                  mainAxisSpacing: AppSpacing.sm,
+                  childAspectRatio: 0.95,
+                ),
+                itemCount: _popularTopicsFor(colors).length,
+                itemBuilder: (context, index) {
+                  final topic = _popularTopicsFor(colors)[index];
+                  return _TopicCard(
+                    topic: topic,
+                    onTap: () => _performSearch(topic.searchQuery),
+                  );
+                },
               );
             },
           ),
@@ -554,6 +565,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildTipsCard() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -561,13 +573,13 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary.withValues(alpha: 0.14),
-            AppColors.accent.withValues(alpha: 0.08),
+            colors.primary.withValues(alpha: 0.14),
+            colors.accent.withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl2),
         border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.20),
+          color: colors.accent.withValues(alpha: 0.20),
         ),
       ),
       child: Column(
@@ -579,12 +591,12 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.16),
+                  color: colors.accent.withValues(alpha: 0.16),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.lightbulb_outline_rounded,
-                  color: AppColors.accent,
+                  color: colors.accent,
                   size: 18,
                 ),
               ),
@@ -592,7 +604,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
               Text(
                 'Search Tips',
                 style: AppTextStyles.labelLarge.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -609,6 +621,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildTip(String emoji, String text) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -619,7 +632,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             child: Text(
               text,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.4,
               ),
             ),
@@ -630,6 +643,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildLoadingState() {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -645,7 +659,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
               itemBuilder: (context, index) => Container(
                 height: 140,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceHigh.withValues(alpha: 0.60),
+                  color: colors.cardMuted.withValues(alpha: 0.60),
                   borderRadius: BorderRadius.circular(AppRadius.xl2),
                 ),
               ),
@@ -657,6 +671,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildErrorState(String error) {
+    final colors = QibraColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -668,11 +683,11 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.error.withValues(alpha: 0.12),
+                color: colors.error.withValues(alpha: 0.12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.error_outline_rounded,
-                color: AppColors.error,
+                color: colors.error,
                 size: 40,
               ),
             ),
@@ -680,7 +695,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             Text(
               'Search Failed',
               style: AppTextStyles.titleSmall.copyWith(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -689,7 +704,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
               error,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ],
@@ -699,6 +714,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildNoResults() {
+    final colors = QibraColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -708,13 +724,13 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             Container(
               width: 100,
               height: 100,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.surfaceElevated,
+                color: colors.surfaceElevated,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.search_off_rounded,
-                color: AppColors.textTertiary,
+                color: colors.textTertiary,
                 size: 50,
               ),
             ),
@@ -722,7 +738,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             Text(
               'No matches found',
               style: AppTextStyles.titleSmall.copyWith(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -731,7 +747,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
               'Try different keywords or\nexplore popular topics',
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -742,6 +758,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildResultsList(List<SearchResultModel> results) {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         Padding(
@@ -778,6 +795,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildResultsHeader({int? count, required bool searchingText}) {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         Container(
@@ -786,7 +804,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             vertical: 4,
           ),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.14),
+            color: colors.primary.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(AppRadius.full),
           ),
           child: Row(
@@ -797,13 +815,13 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                     ? Icons.search_rounded
                     : Icons.check_circle_rounded,
                 size: 12,
-                color: AppColors.primary,
+                color: colors.primary,
               ),
               const SizedBox(width: 4),
               Text(
                 searchingText ? 'Searching...' : '${count ?? 0} results',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.primary,
+                  color: colors.primary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -814,7 +832,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
         Text(
           '"$_currentQuery"',
           style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             fontWeight: FontWeight.w700,
             fontStyle: FontStyle.italic,
           ),
@@ -841,22 +859,23 @@ class _SearchResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.xl2),
-        splashColor: AppColors.primary.withValues(alpha: 0.10),
+        splashColor: colors.primary.withValues(alpha: 0.10),
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.90),
+            color: colors.surfaceElevated.withValues(alpha: 0.90),
             borderRadius: BorderRadius.circular(AppRadius.xl2),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.14),
+              color: colors.primary.withValues(alpha: 0.14),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
+                color: colors.primary.withValues(alpha: 0.10),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -872,7 +891,7 @@ class _SearchResultCard extends StatelessWidget {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surface.withValues(alpha: 0.60),
+                  color: colors.surface.withValues(alpha: 0.60),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(AppRadius.xl2),
                     topRight: Radius.circular(AppRadius.xl2),
@@ -886,8 +905,8 @@ class _SearchResultCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.primary.withValues(alpha: 0.90),
-                            AppColors.accent.withValues(alpha: 0.70),
+                            colors.primary.withValues(alpha: 0.90),
+                            colors.accent.withValues(alpha: 0.70),
                           ],
                         ),
                         shape: BoxShape.circle,
@@ -896,7 +915,7 @@ class _SearchResultCard extends StatelessWidget {
                         child: Text(
                           '${result.ayahNumber}',
                           style: AppTextStyles.labelSmall.copyWith(
-                            color: const Color(0xFF19312C),
+                            color: colors.onPrimary,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -910,14 +929,14 @@ class _SearchResultCard extends StatelessWidget {
                           Text(
                             result.surahName,
                             style: AppTextStyles.labelLarge.copyWith(
-                              color: AppColors.textPrimary,
+                              color: colors.textPrimary,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                           Text(
                             'Surah ${result.surahNumber} • Ayah ${result.ayahNumber}',
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.textTertiary,
+                              color: colors.textTertiary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -931,21 +950,21 @@ class _SearchResultCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: result.isArabicMatch
-                            ? AppColors.accent.withValues(alpha: 0.14)
-                            : const Color(0xFF2F6B5D).withValues(alpha: 0.14),
+                            ? colors.accent.withValues(alpha: 0.14)
+                            : colors.primarySoft.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(AppRadius.full),
                         border: Border.all(
                           color: result.isArabicMatch
-                              ? AppColors.accent.withValues(alpha: 0.24)
-                              : const Color(0xFF2F6B5D).withValues(alpha: 0.24),
+                              ? colors.accent.withValues(alpha: 0.24)
+                              : colors.primarySoft.withValues(alpha: 0.24),
                         ),
                       ),
                       child: Text(
                         result.isArabicMatch ? 'AR' : 'EN',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: result.isArabicMatch
-                              ? AppColors.accent
-                              : const Color(0xFF2F6B5D),
+                              ? colors.goldText
+                              : colors.primarySoft,
                           fontWeight: FontWeight.w800,
                           fontSize: 10,
                         ),
@@ -969,10 +988,10 @@ class _SearchResultCard extends StatelessWidget {
                   textDirection: TextDirection.rtl,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Amiri',
                     fontSize: 20,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                     height: 2.0,
                   ),
                 ),
@@ -988,10 +1007,11 @@ class _SearchResultCard extends StatelessWidget {
                     AppSpacing.md,
                   ),
                   child: _buildHighlightedText(
+                    context,
                     result.translation!,
                     query,
                     AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -1004,7 +1024,7 @@ class _SearchResultCard extends StatelessWidget {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surface.withValues(alpha: 0.40),
+                  color: colors.surface.withValues(alpha: 0.40),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(AppRadius.xl2),
                     bottomRight: Radius.circular(AppRadius.xl2),
@@ -1012,24 +1032,24 @@ class _SearchResultCard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.touch_app_rounded,
                       size: 14,
-                      color: AppColors.primary,
+                      color: colors.primary,
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       'Tap to open in reader',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.primary,
+                        color: colors.primary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const Spacer(),
-                    const Icon(
+                    Icon(
                       Icons.arrow_forward_rounded,
                       size: 14,
-                      color: AppColors.primary,
+                      color: colors.primary,
                     ),
                   ],
                 ),
@@ -1041,7 +1061,13 @@ class _SearchResultCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHighlightedText(String text, String query, TextStyle style) {
+  Widget _buildHighlightedText(
+    BuildContext context,
+    String text,
+    String query,
+    TextStyle style,
+  ) {
+    final colors = QibraColors.of(context);
     if (query.isEmpty) {
       return Text(text,
           style: style, maxLines: 3, overflow: TextOverflow.ellipsis);
@@ -1066,9 +1092,9 @@ class _SearchResultCard extends StatelessWidget {
       matches.add(TextSpan(
         text: text.substring(index, index + query.length),
         style: style.copyWith(
-          color: AppColors.accent,
+          color: colors.goldText,
           fontWeight: FontWeight.w800,
-          backgroundColor: AppColors.accent.withValues(alpha: 0.16),
+          backgroundColor: colors.goldText.withValues(alpha: 0.12),
         ),
       ));
 
@@ -1109,6 +1135,7 @@ class _RecentSearchChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1120,25 +1147,25 @@ class _RecentSearchChip extends StatelessWidget {
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.78),
+            color: colors.surfaceElevated.withValues(alpha: 0.78),
             borderRadius: BorderRadius.circular(AppRadius.full),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.14),
+              color: colors.primary.withValues(alpha: 0.14),
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.history_rounded,
                 size: 14,
-                color: AppColors.textTertiary,
+                color: colors.textTertiary,
               ),
               const SizedBox(width: AppSpacing.xs),
               Text(
                 query,
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -1147,10 +1174,10 @@ class _RecentSearchChip extends StatelessWidget {
                 onTap: onRemove,
                 child: Container(
                   padding: const EdgeInsets.all(2),
-                  child: const Icon(
+                  child: Icon(
                     Icons.close_rounded,
                     size: 14,
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                   ),
                 ),
               ),
@@ -1177,6 +1204,7 @@ class _TopicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1184,7 +1212,7 @@ class _TopicCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.80),
+            color: colors.surfaceElevated.withValues(alpha: 0.80),
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
               color: topic.color.withValues(alpha: 0.24),
@@ -1194,8 +1222,8 @@ class _TopicCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: topic.color.withValues(alpha: 0.16),
                   shape: BoxShape.circle,
@@ -1210,7 +1238,7 @@ class _TopicCard extends StatelessWidget {
               Text(
                 topic.label,
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
                   fontSize: 11,
                 ),
@@ -1231,32 +1259,37 @@ class _CircleButton extends StatelessWidget {
   const _CircleButton({
     required this.icon,
     required this.onTap,
+    this.tooltip,
   });
 
   final IconData icon;
   final VoidCallback onTap;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    final colors = QibraColors.of(context);
+    final button = Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         child: Ink(
-          width: 44,
-          height: 44,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.82),
+            color: colors.surfaceElevated.withValues(alpha: 0.82),
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.14),
+              color: colors.primary.withValues(alpha: 0.14),
             ),
           ),
-          child: Icon(icon, size: 20, color: AppColors.textPrimary),
+          child: Icon(icon, size: 20, color: colors.textPrimary),
         ),
       ),
     );
+    if (tooltip == null) return button;
+    return Tooltip(message: tooltip!, child: button);
   }
 }
 

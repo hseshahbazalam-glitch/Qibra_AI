@@ -22,7 +22,10 @@
 //   13. bookmarksProvider - User bookmarks
 // ============================================================
 
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/models/quran_models.dart';
 import '../data/repository/quran_repository.dart';
@@ -292,7 +295,31 @@ final lastReadProvider =
 
 /// Bookmarks state notifier
 class BookmarksNotifier extends StateNotifier<List<BookmarkModel>> {
-  BookmarksNotifier() : super([]);
+  BookmarksNotifier() : super([]) {
+    _load();
+  }
+
+  static const _storageKey = 'quran_bookmarks_v1';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_storageKey);
+    if (raw == null || raw.isEmpty) return;
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      state = list
+          .map((e) => BookmarkModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {}
+  }
+
+  Future<void> _persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _storageKey,
+      jsonEncode(state.map((b) => b.toJson()).toList()),
+    );
+  }
 
   /// Add bookmark
   void addBookmark(BookmarkModel bookmark) {
@@ -303,6 +330,7 @@ class BookmarksNotifier extends StateNotifier<List<BookmarkModel>> {
     if (existing) return;
 
     state = [...state, bookmark];
+    _persist();
   }
 
   /// Remove bookmark
@@ -311,6 +339,7 @@ class BookmarksNotifier extends StateNotifier<List<BookmarkModel>> {
         .where((b) =>
             !(b.surahNumber == surahNumber && b.ayahNumber == ayahNumber))
         .toList();
+    _persist();
   }
 
   /// Toggle bookmark
@@ -340,11 +369,13 @@ class BookmarksNotifier extends StateNotifier<List<BookmarkModel>> {
       }
       return b;
     }).toList();
+    _persist();
   }
 
   /// Clear all bookmarks
   void clearAll() {
     state = [];
+    _persist();
   }
 }
 

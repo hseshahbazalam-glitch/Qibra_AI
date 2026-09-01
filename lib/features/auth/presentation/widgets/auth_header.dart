@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -23,6 +23,7 @@ class AuthHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: _shouldShowStepBadge
           ? MainAxisAlignment.spaceBetween
@@ -34,19 +35,19 @@ class AuthHeader extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF19312C).withValues(alpha: 0.10),
+                  color: colors.textPrimary.withValues(alpha: 0.10),
                   border: Border.all(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.15),
+                    color: colors.textPrimary.withValues(alpha: 0.15),
                     width: 1,
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_rounded,
-                  color: const Color(0xFF19312C),
+                  color: colors.textPrimary,
                   size: 20,
                 ),
               ),
@@ -60,10 +61,10 @@ class AuthHeader extends StatelessWidget {
               vertical: AppSpacing.xs,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: colors.textPrimary.withValues(alpha: 0.10),
               borderRadius: AppRadius.pillRadius,
               border: Border.all(
-                color: const Color(0xFF19312C).withValues(alpha: 0.15),
+                color: colors.textPrimary.withValues(alpha: 0.15),
                 width: 1,
               ),
             ),
@@ -76,7 +77,7 @@ class AuthHeader extends StatelessWidget {
                   child: Text(
                     '$stepNumber',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: const Color(0xFF19312C),
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -84,7 +85,7 @@ class AuthHeader extends StatelessWidget {
                 Text(
                   totalSteps == null ? '' : ' / $totalSteps',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
                 if (stepLabel != null) ...[
@@ -92,7 +93,7 @@ class AuthHeader extends StatelessWidget {
                   Text(
                     '· $stepLabel',
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textTertiary,
+                      color: colors.textTertiary,
                     ),
                   ),
                 ],

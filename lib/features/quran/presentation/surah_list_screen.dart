@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../data/models/quran_models.dart';
@@ -138,7 +138,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   Color _revelationColor(SurahInfoModel surah) {
     if (surah.isMeccan) return const Color(0xFF123F36);
     if (surah.isMedinan) return const Color(0xFF2F6B5D);
-    return AppColors.primary;
+    return QibraColors.light.primary;
   }
 
   String _revelationLabel(SurahInfoModel surah) {
@@ -162,10 +162,11 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final surahsAsync = ref.watch(allSurahsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: _buildGradientBackground(
         child: SafeArea(
           child: surahsAsync.when(
@@ -182,16 +183,17 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   }
 
   Widget _buildGradientBackground({required Widget child}) {
+    final colors = QibraColors.of(context);
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.primary.withValues(alpha: 0.07),
-            AppColors.background,
-            AppColors.background,
-            AppColors.surfaceElevated.withValues(alpha: 0.90),
+            colors.primary.withValues(alpha: 0.07),
+            colors.background,
+            colors.background,
+            colors.surfaceElevated.withValues(alpha: 0.90),
           ],
           stops: const [0.0, 0.18, 0.70, 1.0],
         ),
@@ -201,6 +203,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   }
 
   Widget _buildContent(List<SurahInfoModel> surahs) {
+    final colors = QibraColors.of(context);
     final filtered = _applyFilters(surahs);
 
     return CustomScrollView(
@@ -279,6 +282,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   // ── Top Bar ───────────────────────────────────────────────
 
   Widget _buildTopBar() {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         _CircleButton(
@@ -296,7 +300,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               Text(
                 'Al-Quran Al-Kareem',
                 style: AppTextStyles.labelLarge.copyWith(
-                  color: AppColors.accent,
+                  color: colors.goldText,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -304,7 +308,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               Text(
                 'Surah Index',
                 style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -329,6 +333,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   // ── Hero Card ─────────────────────────────────────────────
 
   Widget _buildHeroCard() {
+    final colors = QibraColors.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -337,14 +342,14 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary.withValues(alpha: 0.26),
-            AppColors.primary.withValues(alpha: 0.14),
-            AppColors.accent.withValues(alpha: 0.10),
+            colors.primary.withValues(alpha: 0.26),
+            colors.primary.withValues(alpha: 0.14),
+            colors.accent.withValues(alpha: 0.10),
           ],
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl3),
         border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.20),
+          color: colors.accent.withValues(alpha: 0.20),
           width: 1.1,
         ),
         boxShadow: [
@@ -354,7 +359,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
             offset: const Offset(0, 12),
           ),
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.10),
+            color: colors.primary.withValues(alpha: 0.10),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -371,7 +376,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               height: 110,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.accent.withValues(alpha: 0.07),
+                color: colors.accent.withValues(alpha: 0.07),
               ),
             ),
           ),
@@ -383,7 +388,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               height: 90,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.09),
+                color: colors.primary.withValues(alpha: 0.09),
               ),
             ),
           ),
@@ -402,7 +407,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                       borderRadius: BorderRadius.circular(AppRadius.xl),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.accent.withValues(alpha: 0.24),
+                          color: colors.accent.withValues(alpha: 0.24),
                           blurRadius: 14,
                           offset: const Offset(0, 5),
                         ),
@@ -422,7 +427,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                         Text(
                           'Read all 114 Surahs',
                           style: AppTextStyles.titleMedium.copyWith(
-                            color: AppColors.textPrimary,
+                            color: colors.textPrimary,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -430,7 +435,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                         Text(
                           'Search by name, number, or revelation type. Tap any surah to begin reading.',
                           style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
+                            color: colors.textSecondary,
                             height: 1.45,
                           ),
                         ),
@@ -469,6 +474,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   // ── Search Field ──────────────────────────────────────────
 
   Widget _buildSearchField() {
+    final colors = QibraColors.of(context);
     final isFocused = _searchFocusNode.hasFocus;
 
     return ClipRRect(
@@ -479,12 +485,12 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.82),
+            color: colors.surfaceElevated.withValues(alpha: 0.82),
             borderRadius: BorderRadius.circular(AppRadius.xl2),
             border: Border.all(
               color: isFocused
-                  ? AppColors.accent.withValues(alpha: 0.44)
-                  : AppColors.primary.withValues(alpha: 0.16),
+                  ? colors.accent.withValues(alpha: 0.44)
+                  : colors.primary.withValues(alpha: 0.16),
               width: 1.2,
             ),
             boxShadow: [
@@ -499,10 +505,10 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
             controller: _searchController,
             focusNode: _searchFocusNode,
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
-            cursorColor: AppColors.accent,
+            cursorColor: colors.accent,
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
@@ -511,20 +517,20 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               border: InputBorder.none,
               prefixIcon: Icon(
                 Icons.search_rounded,
-                color: AppColors.accent.withValues(alpha: 0.90),
+                color: colors.accent.withValues(alpha: 0.90),
                 size: 22,
               ),
               hintText: 'Search surah by name, number, Arabic...',
               hintStyle: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textTertiary,
+                color: colors.textTertiary,
                 fontWeight: FontWeight.w500,
               ),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
                       onPressed: _clearSearch,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close_rounded,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                         size: 20,
                       ),
                     )
@@ -539,6 +545,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   // ── Filter Row ────────────────────────────────────────────
 
   Widget _buildFilterRow(List<SurahInfoModel> surahs) {
+    final colors = QibraColors.of(context);
     final meccanCount = surahs.where((s) => s.isMeccan).length;
     final medinanCount = surahs.where((s) => s.isMedinan).length;
 
@@ -548,7 +555,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
         Text(
           'Filter by Revelation',
           style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.3,
           ),
@@ -562,7 +569,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               label: 'All',
               count: surahs.length,
               isSelected: _selectedFilter == SurahFilterType.all,
-              color: AppColors.accent,
+              color: colors.accent,
               onTap: () {
                 HapticFeedback.selectionClick();
                 setState(() => _selectedFilter = SurahFilterType.all);
@@ -600,6 +607,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
     required int total,
     required int filtered,
   }) {
+    final colors = QibraColors.of(context);
     final isFiltering =
         _searchQuery.isNotEmpty || _selectedFilter != SurahFilterType.all;
 
@@ -611,7 +619,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                 ? '$filtered surah${filtered == 1 ? '' : 's'} found'
                 : 'Showing all $total surahs',
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -631,16 +639,16 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                 vertical: AppSpacing.xs + 2,
               ),
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.12),
+                color: colors.accent.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(AppRadius.full),
                 border: Border.all(
-                  color: AppColors.accent.withValues(alpha: 0.24),
+                  color: colors.accent.withValues(alpha: 0.24),
                 ),
               ),
               child: Text(
                 'Reset',
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.accent,
+                  color: colors.accent,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -653,6 +661,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   // ── Empty State ───────────────────────────────────────────
 
   Widget _buildEmptyState() {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Center(
@@ -660,10 +669,10 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.xl2),
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.86),
+            color: colors.surfaceElevated.withValues(alpha: 0.86),
             borderRadius: BorderRadius.circular(AppRadius.xl3),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.16),
+              color: colors.primary.withValues(alpha: 0.16),
             ),
           ),
           child: Column(
@@ -674,19 +683,19 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                 height: 78,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.accent.withValues(alpha: 0.10),
+                  color: colors.accent.withValues(alpha: 0.10),
                 ),
                 child: Icon(
                   Icons.search_off_rounded,
                   size: 36,
-                  color: AppColors.accent.withValues(alpha: 0.90),
+                  color: colors.accent.withValues(alpha: 0.90),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 'No Surah Found',
                 style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -695,7 +704,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                 'Aapki search ya filter se koi surah match nahi hui.\nSearch clear karke dobara try karein.',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -709,7 +718,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                   });
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: colors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.lg,
@@ -756,19 +765,20 @@ class _SurahCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.xl2 + 4),
-        splashColor: AppColors.primary.withValues(alpha: 0.08),
-        highlightColor: AppColors.primary.withValues(alpha: 0.04),
+        splashColor: colors.primary.withValues(alpha: 0.08),
+        highlightColor: colors.primary.withValues(alpha: 0.04),
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.90),
+            color: colors.surfaceElevated.withValues(alpha: 0.90),
             borderRadius: BorderRadius.circular(AppRadius.xl2 + 4),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: colors.primary.withValues(alpha: 0.12),
               width: 1,
             ),
             boxShadow: [
@@ -802,7 +812,7 @@ class _SurahCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.titleSmall.copyWith(
-                                color: AppColors.textPrimary,
+                                color: colors.textPrimary,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -822,7 +832,7 @@ class _SurahCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
+                          color: colors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -834,13 +844,13 @@ class _SurahCard extends StatelessWidget {
                           Icon(
                             Icons.format_list_numbered_rounded,
                             size: 14,
-                            color: AppColors.accent.withValues(alpha: 0.88),
+                            color: colors.accent.withValues(alpha: 0.88),
                           ),
                           const SizedBox(width: 5),
                           Text(
                             '${surah.numberOfAyahs} Ayahs',
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -848,13 +858,13 @@ class _SurahCard extends StatelessWidget {
                           Icon(
                             Icons.chrome_reader_mode_outlined,
                             size: 14,
-                            color: AppColors.primary.withValues(alpha: 0.88),
+                            color: colors.primary.withValues(alpha: 0.88),
                           ),
                           const SizedBox(width: 5),
                           Text(
                             'Read',
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.primary,
+                              color: colors.primary,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -875,7 +885,7 @@ class _SurahCard extends StatelessWidget {
                       textAlign: TextAlign.right,
                       textDirection: TextDirection.rtl,
                       style: AppTextStyles.titleMedium.copyWith(
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                         fontFamily: 'Amiri',
                         fontWeight: FontWeight.w700,
                         height: 1.4,
@@ -885,7 +895,7 @@ class _SurahCard extends StatelessWidget {
                     Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 15,
-                      color: AppColors.accent.withValues(alpha: 0.88),
+                      color: colors.accent.withValues(alpha: 0.88),
                     ),
                   ],
                 ),
@@ -909,6 +919,7 @@ class _NumberBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
       width: 54,
       height: 54,
@@ -917,15 +928,15 @@ class _NumberBadge extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary.withValues(alpha: 0.92),
-            AppColors.primary.withValues(alpha: 0.72),
-            AppColors.accent.withValues(alpha: 0.68),
+            colors.primary.withValues(alpha: 0.92),
+            colors.primary.withValues(alpha: 0.72),
+            colors.accent.withValues(alpha: 0.68),
           ],
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.20),
+            color: colors.primary.withValues(alpha: 0.20),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),
@@ -935,7 +946,7 @@ class _NumberBadge extends StatelessWidget {
         child: Text(
           number.toString(),
           style: AppTextStyles.titleSmall.copyWith(
-            color: AppColors.white,
+            color: colors.onPrimary,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -955,6 +966,7 @@ class _RevelationBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
@@ -990,16 +1002,17 @@ class _InfoPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.xs + 2,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.50),
+        color: colors.surface.withValues(alpha: 0.50),
         borderRadius: BorderRadius.circular(AppRadius.full),
         border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.14),
+          color: colors.accent.withValues(alpha: 0.14),
         ),
       ),
       child: Row(
@@ -1008,13 +1021,13 @@ class _InfoPill extends StatelessWidget {
           Icon(
             icon,
             size: 14,
-            color: AppColors.accent.withValues(alpha: 0.92),
+            color: colors.accent.withValues(alpha: 0.92),
           ),
           const SizedBox(width: 5),
           Text(
             label,
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1041,6 +1054,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -1053,12 +1067,12 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? color.withValues(alpha: 0.16)
-              : AppColors.surfaceElevated.withValues(alpha: 0.76),
+              : colors.surfaceElevated.withValues(alpha: 0.76),
           borderRadius: BorderRadius.circular(AppRadius.full),
           border: Border.all(
             color: isSelected
                 ? color.withValues(alpha: 0.48)
-                : AppColors.primary.withValues(alpha: 0.14),
+                : colors.primary.withValues(alpha: 0.14),
           ),
           boxShadow: isSelected
               ? [
@@ -1076,7 +1090,7 @@ class _FilterChip extends StatelessWidget {
             Text(
               label,
               style: AppTextStyles.labelMedium.copyWith(
-                color: isSelected ? color : AppColors.textSecondary,
+                color: isSelected ? color : colors.textSecondary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -1089,13 +1103,13 @@ class _FilterChip extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isSelected
                     ? color.withValues(alpha: 0.14)
-                    : AppColors.primary.withValues(alpha: 0.09),
+                    : colors.primary.withValues(alpha: 0.09),
                 borderRadius: BorderRadius.circular(AppRadius.full),
               ),
               child: Text(
                 '$count',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: isSelected ? color : AppColors.textPrimary,
+                  color: isSelected ? color : colors.textPrimary,
                   fontWeight: FontWeight.w800,
                   fontSize: 10,
                 ),
@@ -1119,25 +1133,26 @@ class _CircleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         child: Ink(
-          width: 44,
-          height: 44,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.82),
+            color: colors.surfaceElevated.withValues(alpha: 0.82),
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.14),
+              color: colors.primary.withValues(alpha: 0.14),
             ),
           ),
           child: Icon(
             icon,
             size: 20,
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
       ),
@@ -1154,6 +1169,7 @@ class _SurahListLoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
@@ -1228,7 +1244,7 @@ class _SurahListLoadingState extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.surfaceHigh.withValues(alpha: 0.88),
+        color: QibraColors.light.cardMuted.withValues(alpha: 0.88),
         borderRadius: BorderRadius.circular(radius),
       ),
     );
@@ -1250,6 +1266,7 @@ class _SurahListErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Center(
@@ -1257,10 +1274,10 @@ class _SurahListErrorState extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.xl2),
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withValues(alpha: 0.88),
+            color: colors.surfaceElevated.withValues(alpha: 0.88),
             borderRadius: BorderRadius.circular(AppRadius.xl3),
             border: Border.all(
-              color: AppColors.error.withValues(alpha: 0.14),
+              color: colors.error.withValues(alpha: 0.14),
             ),
           ),
           child: Column(
@@ -1271,19 +1288,19 @@ class _SurahListErrorState extends StatelessWidget {
                 height: 78,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.error.withValues(alpha: 0.09),
+                  color: colors.error.withValues(alpha: 0.09),
                 ),
                 child: Icon(
                   Icons.error_outline_rounded,
                   size: 36,
-                  color: AppColors.error.withValues(alpha: 0.84),
+                  color: colors.error.withValues(alpha: 0.84),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 'Unable to Load Surahs',
                 style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -1292,7 +1309,7 @@ class _SurahListErrorState extends StatelessWidget {
                 'Quran data load karne mein kuch issue aaya. Retry karein.',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -1303,7 +1320,7 @@ class _SurahListErrorState extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                   height: 1.4,
                 ),
               ),
@@ -1311,7 +1328,7 @@ class _SurahListErrorState extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: colors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.lg,
@@ -1326,7 +1343,7 @@ class _SurahListErrorState extends StatelessWidget {
                 label: Text(
                   'Retry',
                   style: AppTextStyles.labelLarge.copyWith(
-                    color: AppColors.white,
+                    color: colors.onPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

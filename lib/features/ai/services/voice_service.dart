@@ -61,7 +61,7 @@ class VoiceService {
       // Speech-to-Text init
       _isInitialized = await _speech.initialize(
         onError: (error) {
-          debugPrint('Speech error: ${error.errorMsg}');
+          debugPrint('Speech error');
           _isListening = false;
           onError?.call(error.errorMsg);
         },
@@ -107,7 +107,7 @@ class VoiceService {
       });
 
       _tts.setErrorHandler((msg) {
-        debugPrint('TTS Error: $msg');
+        debugPrint('TTS Error');
         _isSpeaking = false;
         onSpeakingStop?.call();
       });

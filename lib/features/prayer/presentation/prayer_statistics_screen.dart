@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -29,6 +29,7 @@ class _PrayerStatisticsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final records = ref.watch(prayerRecordsProvider);
     final lifetime = ref.watch(prayerStatisticsProvider);
     final filtered = _recordsForPeriod(records);
@@ -36,7 +37,7 @@ class _PrayerStatisticsScreenState
     final weekly = _weeklyCounts(records);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -44,21 +45,21 @@ class _PrayerStatisticsScreenState
             SliverAppBar(
               expandedHeight: 80,
               pinned: true,
-              backgroundColor: AppColors.background,
+              backgroundColor: colors.background,
               elevation: 0,
               leading: IconButton(
                 icon: Container(
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: colors.surface,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.borderSubtle),
+                    border: Border.all(color: colors.border),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_back_ios_new_rounded,
                     size: 18,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 onPressed: () {
@@ -73,7 +74,7 @@ class _PrayerStatisticsScreenState
               title: Text(
                 'Prayer Statistics',
                 style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -100,7 +101,7 @@ class _PrayerStatisticsScreenState
                         icon: Icons.check_circle_rounded,
                         label: 'Prayed',
                         value: '${periodStats.prayedCount}',
-                        color: AppColors.primary,
+                        color: colors.primary,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -219,12 +220,13 @@ class _PrayerStatisticsScreenState
   }
 
   Widget _buildPeriodSelector() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.pillRadius,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
@@ -237,6 +239,7 @@ class _PrayerStatisticsScreenState
   }
 
   Widget _buildPeriodTab(String label, StatsPeriod period) {
+    final colors = QibraColors.of(context);
     final isSelected = _selectedPeriod == period;
     return Expanded(
       child: GestureDetector(
@@ -255,7 +258,7 @@ class _PrayerStatisticsScreenState
             child: Text(
               label,
               style: AppTextStyles.labelSmall.copyWith(
-                color: isSelected ? AppColors.white : AppColors.textSecondary,
+                color: isSelected ? colors.onPrimary : colors.textSecondary,
                 fontWeight: FontWeight.w800,
                 fontSize: 11,
               ),
@@ -267,13 +270,14 @@ class _PrayerStatisticsScreenState
   }
 
   Widget _buildCompletionCard(PrayerStatistics stats) {
+    final colors = QibraColors.of(context);
     final percentage = stats.consistencyPercentage.round();
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadiusLarge,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [
@@ -286,7 +290,7 @@ class _PrayerStatisticsScreenState
                     Text(
                       'Prayer Completion',
                       style: AppTextStyles.titleSmall.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                       ),
@@ -298,7 +302,7 @@ class _PrayerStatisticsScreenState
                         Text(
                           stats.totalPrayers == 0 ? '—' : '$percentage',
                           style: AppTextStyles.displayLarge.copyWith(
-                            color: AppColors.textPrimary,
+                            color: colors.textPrimary,
                             fontWeight: FontWeight.w900,
                             height: 1.0,
                             fontSize: 48,
@@ -310,7 +314,7 @@ class _PrayerStatisticsScreenState
                             child: Text(
                               '%',
                               style: AppTextStyles.titleLarge.copyWith(
-                                color: AppColors.primary,
+                                color: colors.primary,
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
@@ -328,7 +332,7 @@ class _PrayerStatisticsScreenState
                 ? 'Mark prayers on the Prayer tab to see completion here.'
                 : '${stats.prayedCount} of ${stats.totalPrayers} recorded prayers were marked prayed.',
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -337,9 +341,9 @@ class _PrayerStatisticsScreenState
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: stats.totalPrayers == 0 ? 0 : percentage / 100,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+              backgroundColor: colors.primary.withValues(alpha: 0.15),
               valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  AlwaysStoppedAnimation<Color>(colors.primary),
               minHeight: 6,
             ),
           ),
@@ -354,10 +358,11 @@ class _PrayerStatisticsScreenState
     required String value,
     required Color color,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadius,
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
@@ -368,7 +373,7 @@ class _PrayerStatisticsScreenState
           Text(
             value,
             style: AppTextStyles.headlineSmall.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w900,
               fontSize: 24,
               height: 1.0,
@@ -390,6 +395,7 @@ class _PrayerStatisticsScreenState
   }
 
   Widget _buildStreakCard(PrayerStatistics stats) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -402,12 +408,12 @@ class _PrayerStatisticsScreenState
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.15),
+              color: colors.onPrimary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.local_fire_department_rounded,
-              color: AppColors.white,
+              color: colors.onPrimary,
               size: 28,
             ),
           ),
@@ -419,7 +425,7 @@ class _PrayerStatisticsScreenState
                 Text(
                   'Prayer Streak',
                   style: AppTextStyles.labelMedium.copyWith(
-                    color: AppColors.white.withValues(alpha: 0.85),
+                    color: colors.onPrimary.withValues(alpha: 0.85),
                     fontWeight: FontWeight.w700,
                     fontSize: 11,
                   ),
@@ -430,7 +436,7 @@ class _PrayerStatisticsScreenState
                     Text(
                       '${stats.currentStreak}',
                       style: AppTextStyles.displayMedium.copyWith(
-                        color: AppColors.white,
+                        color: colors.onPrimary,
                         fontWeight: FontWeight.w900,
                         height: 1.0,
                       ),
@@ -441,7 +447,7 @@ class _PrayerStatisticsScreenState
                       child: Text(
                         stats.currentStreak == 1 ? 'Day' : 'Days',
                         style: AppTextStyles.titleSmall.copyWith(
-                          color: AppColors.white.withValues(alpha: 0.9),
+                          color: colors.onPrimary.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -456,7 +462,7 @@ class _PrayerStatisticsScreenState
               Text(
                 'Best',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.white.withValues(alpha: 0.85),
+                  color: colors.onPrimary.withValues(alpha: 0.85),
                   fontWeight: FontWeight.w600,
                   fontSize: 10,
                 ),
@@ -464,7 +470,7 @@ class _PrayerStatisticsScreenState
               Text(
                 '${stats.longestStreak} Days',
                 style: AppTextStyles.titleSmall.copyWith(
-                  color: AppColors.white,
+                  color: colors.onPrimary,
                   fontWeight: FontWeight.w900,
                   fontSize: 13,
                 ),
@@ -477,13 +483,14 @@ class _PrayerStatisticsScreenState
   }
 
   Widget _buildWeeklyChart(List<_DayCount> weekly) {
+    final colors = QibraColors.of(context);
     const goal = 5.0;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadiusLarge,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -491,7 +498,7 @@ class _PrayerStatisticsScreenState
           Text(
             'Last 7 days',
             style: AppTextStyles.titleSmall.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -511,7 +518,7 @@ class _PrayerStatisticsScreenState
                         style: AppTextStyles.labelSmall.copyWith(
                           color: i == weekly.length - 1
                               ? const Color(0xFFC6A15B)
-                              : AppColors.textSecondary,
+                              : colors.textSecondary,
                           fontWeight: FontWeight.w800,
                           fontSize: 10,
                         ),
@@ -523,7 +530,7 @@ class _PrayerStatisticsScreenState
                         decoration: BoxDecoration(
                           color: i == weekly.length - 1
                               ? const Color(0xFFC6A15B)
-                              : AppColors.primary,
+                              : colors.primary,
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(6),
                             topRight: Radius.circular(6),
@@ -545,7 +552,7 @@ class _PrayerStatisticsScreenState
                   child: Text(
                     day.label,
                     style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textTertiary,
+                      color: colors.textTertiary,
                       fontWeight: FontWeight.w700,
                       fontSize: 10,
                     ),
@@ -560,6 +567,7 @@ class _PrayerStatisticsScreenState
   }
 
   Widget _buildAchievementsCard(PrayerStatistics stats) {
+    final colors = QibraColors.of(context);
     final badges = [
       _Badge('7 Days', stats.longestStreak >= 7),
       _Badge('30 Days', stats.longestStreak >= 30),
@@ -570,9 +578,9 @@ class _PrayerStatisticsScreenState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: AppRadius.cardRadiusLarge,
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -582,7 +590,7 @@ class _PrayerStatisticsScreenState
               Text(
                 'Milestones',
                 style: AppTextStyles.titleSmall.copyWith(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -590,7 +598,7 @@ class _PrayerStatisticsScreenState
               Text(
                 '$unlocked/${badges.length}',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -610,7 +618,7 @@ class _PrayerStatisticsScreenState
                             : Icons.lock_outline_rounded,
                         color: badges[i].unlocked
                             ? const Color(0xFFC6A15B)
-                            : AppColors.textTertiary,
+                            : colors.textTertiary,
                       ),
                       const SizedBox(height: 6),
                       Text(
@@ -618,8 +626,8 @@ class _PrayerStatisticsScreenState
                         textAlign: TextAlign.center,
                         style: AppTextStyles.labelSmall.copyWith(
                           color: badges[i].unlocked
-                              ? AppColors.textPrimary
-                              : AppColors.textTertiary,
+                              ? colors.textPrimary
+                              : colors.textTertiary,
                           fontWeight: FontWeight.w700,
                           fontSize: 9,
                         ),

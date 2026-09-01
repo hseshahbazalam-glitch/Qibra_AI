@@ -24,7 +24,7 @@ enum AppThemeMode {
   String toStorageString() => name;
 
   static AppThemeMode fromStorageString(String? value) {
-    if (value == null) return AppThemeMode.light;
+    if (value == null) return AppThemeMode.dark;
     return AppThemeMode.values.firstWhere(
       (mode) => mode.name == value,
       orElse: () => AppThemeMode.light,
@@ -73,7 +73,7 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
   final Ref _ref;
   SharedPreferences? _prefs;
 
-  ThemeNotifier(this._ref) : super(AppThemeMode.light) {
+  ThemeNotifier(this._ref) : super(AppThemeMode.dark) {
     _init();
   }
 
@@ -107,7 +107,7 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
   }
 
   Future<void> resetToDefault() async {
-    await setThemeMode(AppThemeMode.light);
+    await setThemeMode(AppThemeMode.dark);
   }
 }
 

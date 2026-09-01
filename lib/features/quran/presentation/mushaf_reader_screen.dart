@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/design_system/app_colors.dart';
+import '../../../core/a11y/app_a11y.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import '../../../shared/widgets/media/safe_image.dart';
 import '../../tafseer/presentation/tafseer_screen.dart';
 import 'surah_reader_screen.dart';
@@ -90,6 +91,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final currentPage = ref.watch(_currentPageProvider);
     final isNightMode = ref.watch(_isNightModeProvider);
     final showControls = ref.watch(_showControlsProvider);
@@ -140,6 +142,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   }
 
   Widget _buildTopBar(int currentPage, bool isNightMode) {
+    final colors = QibraColors.of(context);
     final isBookmarked = _bookmarkedPages.contains(currentPage);
 
     return Container(
@@ -147,9 +150,9 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       decoration: BoxDecoration(
         color: isNightMode
             ? Colors.black.withValues(alpha: 0.85)
-            : const Color(0xFF0A1F14).withValues(alpha: 0.95),
+            : colors.primary.withValues(alpha: 0.95),
         border: Border(
-          bottom: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
+          bottom: BorderSide(color: colors.accent.withValues(alpha: 0.3)),
         ),
       ),
       child: Row(
@@ -168,8 +171,8 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               children: [
                 Text(
                   _getSurahName(currentPage),
-                  style: const TextStyle(
-                    color: const Color(0xFF19312C),
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
@@ -177,7 +180,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 Text(
                   'Juz ${_getJuzForPage(currentPage)} • Page $currentPage',
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.7),
+                    color: colors.textPrimary.withValues(alpha: 0.7),
                     fontSize: 12,
                   ),
                 ),
@@ -205,13 +208,14 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   }
 
   Widget _buildBottomBar(int currentPage, bool isNightMode) {
+    final colors = QibraColors.of(context);
     return Container(
       decoration: BoxDecoration(
         color: isNightMode
             ? Colors.black.withValues(alpha: 0.85)
-            : const Color(0xFF0A1F14).withValues(alpha: 0.95),
+            : colors.primary.withValues(alpha: 0.95),
         border: Border(
-          top: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
+          top: BorderSide(color: colors.accent.withValues(alpha: 0.3)),
         ),
       ),
       child: Column(
@@ -224,7 +228,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 Text(
                   '1',
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.7),
+                    color: colors.textPrimary.withValues(alpha: 0.7),
                     fontSize: 11,
                   ),
                 ),
@@ -232,10 +236,10 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 3,
-                      activeTrackColor: AppColors.accent,
-                      inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
-                      thumbColor: AppColors.accent,
-                      overlayColor: AppColors.accent.withValues(alpha: 0.2),
+                      activeTrackColor: colors.accent,
+                      inactiveTrackColor: colors.onPrimary.withValues(alpha: 0.2),
+                      thumbColor: colors.accent,
+                      overlayColor: colors.accent.withValues(alpha: 0.2),
                       thumbShape: const RoundSliderThumbShape(
                         enabledThumbRadius: 8,
                       ),
@@ -258,7 +262,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 Text(
                   '604',
                   style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.7),
+                    color: colors.textPrimary.withValues(alpha: 0.7),
                     fontSize: 11,
                   ),
                 ),
@@ -287,17 +291,17 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 12),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.accent.withValues(alpha: 0.15),
+                        color: colors.accent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: AppColors.accent.withValues(alpha: 0.3),
+                          color: colors.accent.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
                         '$currentPage / 604',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: const Color(0xFF19312C),
+                        style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
@@ -323,7 +327,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
             decoration: BoxDecoration(
               border: Border(
-                top: BorderSide(color: AppColors.accent.withValues(alpha: 0.2)),
+                top: BorderSide(color: colors.accent.withValues(alpha: 0.2)),
               ),
             ),
             child: Row(
@@ -367,20 +371,21 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     required VoidCallback onTap,
     bool highlight = false,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
+        width: AppA11y.minTapTarget,
+        height: AppA11y.minTapTarget,
         decoration: BoxDecoration(
           color: highlight
-              ? AppColors.accent.withValues(alpha: 0.35)
-              : AppColors.accent.withValues(alpha: 0.15),
+              ? colors.accent.withValues(alpha: 0.35)
+              : colors.accent.withValues(alpha: 0.15),
           shape: BoxShape.circle,
         ),
         child: Icon(
           icon,
-          color: highlight ? AppColors.accent : Colors.white,
+          color: highlight ? colors.accent : colors.onPrimary,
           size: 20,
         ),
       ),
@@ -392,6 +397,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     required String label,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -402,12 +408,12 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: const Color(0xFF19312C), size: 22),
+            Icon(icon, color: colors.textPrimary, size: 22),
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(
-                color: const Color(0xFF19312C),
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
@@ -478,6 +484,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
 
   // ✅ MORE OPTIONS - Real menu
   void _showMoreOptions() {
+    final colors = QibraColors.of(context);
     HapticFeedback.selectionClick();
     final currentPage = ref.read(_currentPageProvider);
 
@@ -485,8 +492,8 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF1A2438),
+        decoration: BoxDecoration(
+          color: colors.card,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SafeArea(
@@ -499,7 +506,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 height: 4,
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: colors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -507,13 +514,13 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const Icon(Icons.more_horiz_rounded,
-                        color: AppColors.accent, size: 24),
+                    Icon(Icons.more_horiz_rounded,
+                        color: colors.accent, size: 24),
                     const SizedBox(width: 8),
                     Text(
                       'Page $currentPage Options',
-                      style: const TextStyle(
-                        color: const Color(0xFF19312C),
+                      style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
@@ -521,11 +528,11 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                   ],
                 ),
               ),
-              const Divider(color: Colors.white12, height: 1),
+              Divider(color: colors.border, height: 1),
               _menuOption(
                 icon: Icons.copy_rounded,
                 label: 'Copy Page Info',
-                color: const Color(0xFF2F6B5D),
+                color: colors.primarySoft,
                 onTap: () {
                   Navigator.pop(context);
                   _copyPageInfo(currentPage);
@@ -534,7 +541,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               _menuOption(
                 icon: Icons.share_rounded,
                 label: 'Share Page',
-                color: const Color(0xFF2F6B5D),
+                color: colors.primarySoft,
                 onTap: () {
                   Navigator.pop(context);
                   _sharePage(currentPage);
@@ -547,7 +554,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 label: _bookmarkedPages.contains(currentPage)
                     ? 'Remove Bookmark'
                     : 'Bookmark Page',
-                color: const Color(0xFFC6A15B),
+                color: colors.accent,
                 onTap: () {
                   Navigator.pop(context);
                   _toggleBookmark(currentPage);
@@ -556,7 +563,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               _menuOption(
                 icon: Icons.list_alt_rounded,
                 label: 'View All Bookmarks',
-                color: const Color(0xFFC6A15B),
+                color: colors.accent,
                 onTap: () {
                   Navigator.pop(context);
                   _showBookmarksList();
@@ -565,7 +572,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               _menuOption(
                 icon: Icons.info_outline_rounded,
                 label: 'Page Info',
-                color: const Color(0xFFC6A15B),
+                color: colors.accent,
                 onTap: () {
                   Navigator.pop(context);
                   _showPageInfo(currentPage);
@@ -585,6 +592,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return ListTile(
       onTap: onTap,
       leading: Container(
@@ -598,15 +606,15 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       ),
       title: Text(
         label,
-        style: const TextStyle(
-          color: const Color(0xFF19312C),
+        style: TextStyle(
+          color: colors.textPrimary,
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.arrow_forward_ios_rounded,
-        color: Colors.white38,
+        color: colors.textTertiary,
         size: 14,
       ),
     );
@@ -644,21 +652,22 @@ Join me on Qibra AI 🕌''';
 
   // ✅ SHOW PAGE INFO DIALOG
   void _showPageInfo(int page) {
+    final colors = QibraColors.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2438),
+        backgroundColor: colors.card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
         title: Row(
           children: [
-            const Icon(Icons.info_outline, color: AppColors.accent),
+            Icon(Icons.info_outline, color: colors.accent),
             const SizedBox(width: 8),
             Text(
               'Page $page',
-              style: const TextStyle(
-                color: const Color(0xFF19312C),
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -681,9 +690,9 @@ Join me on Qibra AI 🕌''';
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
+            child: Text(
               'Close',
-              style: TextStyle(color: AppColors.accent),
+              style: TextStyle(color: colors.goldText),
             ),
           ),
         ],
@@ -692,6 +701,7 @@ Join me on Qibra AI 🕌''';
   }
 
   Widget _infoRow(String label, String value) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -700,14 +710,14 @@ Join me on Qibra AI 🕌''';
           Text(
             label,
             style: TextStyle(
-              color: const Color(0xFF19312C).withValues(alpha: 0.7),
+              color: colors.textPrimary.withValues(alpha: 0.7),
               fontSize: 13,
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
-              color: const Color(0xFF19312C),
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
@@ -719,6 +729,7 @@ Join me on Qibra AI 🕌''';
 
   // ✅ BOOKMARKS LIST
   void _showBookmarksList() {
+    final colors = QibraColors.of(context);
     if (_bookmarkedPages.isEmpty) {
       _showToast('No bookmarks yet. Bookmark pages to see them here!');
       return;
@@ -736,8 +747,8 @@ Join me on Qibra AI 🕌''';
         minChildSize: 0.4,
         expand: false,
         builder: (_, controller) => Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF1A2438),
+          decoration: BoxDecoration(
+            color: colors.card,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
@@ -747,7 +758,7 @@ Join me on Qibra AI 🕌''';
                 height: 4,
                 margin: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: colors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -755,13 +766,13 @@ Join me on Qibra AI 🕌''';
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const Icon(Icons.bookmark_rounded,
-                        color: AppColors.accent, size: 24),
+                    Icon(Icons.bookmark_rounded,
+                        color: colors.accent, size: 24),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'Bookmarked Pages',
                       style: TextStyle(
-                        color: const Color(0xFF19312C),
+                        color: colors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
@@ -770,14 +781,14 @@ Join me on Qibra AI 🕌''';
                     Text(
                       '${sortedBookmarks.length} pages',
                       style: TextStyle(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                        color: colors.textPrimary.withValues(alpha: 0.6),
                         fontSize: 12,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Divider(color: Colors.white12, height: 1),
+              Divider(color: colors.border, height: 1),
               Expanded(
                 child: ListView.builder(
                   controller: controller,
@@ -788,7 +799,7 @@ Join me on Qibra AI 🕌''';
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.05),
+                        color: colors.textPrimary.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ListTile(
@@ -798,13 +809,13 @@ Join me on Qibra AI 🕌''';
                           HapticFeedback.mediumImpact();
                         },
                         leading: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: const BoxDecoration(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                AppColors.primary,
-                                AppColors.accent,
+                                colors.primary,
+                                colors.accent,
                               ],
                             ),
                             shape: BoxShape.circle,
@@ -812,8 +823,8 @@ Join me on Qibra AI 🕌''';
                           child: Center(
                             child: Text(
                               '$page',
-                              style: const TextStyle(
-                                color: const Color(0xFF19312C),
+                              style: TextStyle(
+                                color: colors.textPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -822,22 +833,22 @@ Join me on Qibra AI 🕌''';
                         ),
                         title: Text(
                           'Page $page',
-                          style: const TextStyle(
-                            color: const Color(0xFF19312C),
+                          style: TextStyle(
+                            color: colors.textPrimary,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         subtitle: Text(
                           '${_getSurahName(page)} • Juz ${_getJuzForPage(page)}',
                           style: TextStyle(
-                            color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                            color: colors.textPrimary.withValues(alpha: 0.6),
                             fontSize: 12,
                           ),
                         ),
                         trailing: IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.delete_outline_rounded,
-                            color: Colors.red,
+                            color: colors.error,
                           ),
                           onPressed: () async {
                             _toggleBookmark(page);
@@ -858,24 +869,25 @@ Join me on Qibra AI 🕌''';
 
   // ✅ GO TO PAGE - Real dialog
   void _showGoToPageSheet() {
+    final colors = QibraColors.of(context);
     HapticFeedback.selectionClick();
     final controller = TextEditingController();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2438),
+        backgroundColor: colors.card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.article_outlined, color: AppColors.accent),
+            Icon(Icons.article_outlined, color: colors.accent),
             SizedBox(width: 8),
             Text(
               'Go to Page',
               style: TextStyle(
-                color: const Color(0xFF19312C),
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -888,7 +900,7 @@ Join me on Qibra AI 🕌''';
             Text(
               'Enter page number (1 - 604)',
               style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.7),
+                color: colors.textPrimary.withValues(alpha: 0.7),
                 fontSize: 13,
               ),
             ),
@@ -900,8 +912,8 @@ Join me on Qibra AI 🕌''';
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
               ],
-              style: const TextStyle(
-                color: const Color(0xFF19312C),
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
               ),
@@ -909,10 +921,10 @@ Join me on Qibra AI 🕌''';
               decoration: InputDecoration(
                 hintText: 'e.g. 100',
                 hintStyle: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.3),
+                  color: colors.textPrimary.withValues(alpha: 0.3),
                 ),
                 filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.05),
+                fillColor: colors.onPrimary.withValues(alpha: 0.05),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -927,13 +939,13 @@ Join me on Qibra AI 🕌''';
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Cancel',
-              style: TextStyle(color: const Color(0xFF19312C).withValues(alpha: 0.7)),
+              style: TextStyle(color: colors.textPrimary.withValues(alpha: 0.7)),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+              backgroundColor: colors.primary,
+              foregroundColor: colors.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -978,11 +990,12 @@ Join me on Qibra AI 🕌''';
   }
 
   void _showToast(String message) {
+    final colors = QibraColors.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         duration: const Duration(seconds: 2),
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
@@ -1003,6 +1016,7 @@ class _MushafPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: EdgeInsets.only(
         left: 8,

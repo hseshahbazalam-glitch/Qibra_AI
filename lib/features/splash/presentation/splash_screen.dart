@@ -13,11 +13,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
+import 'package:qibra_ai/shared/widgets/media/pattern_backdrop.dart';
+import 'package:qibra_ai/shared/widgets/media/safe_image.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -194,15 +196,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: Stack(
         children: [
           _buildBackgroundGradient(),
           _buildRotatingPattern(size),
-          _buildFloatingParticles(size),
+          if (!MediaQuery.of(context).disableAnimations)
+            _buildFloatingParticles(size),
           _buildGlassOverlay(),
           SafeArea(
             child: Column(
@@ -231,25 +235,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildBackgroundGradient() {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [
-              Color(0xFFEEF1EA),
-              Color(0xFFF5F3EC),
-              Color(0xFFE8EBE3),
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
+      child: PatternBackdrop(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            SafeImage(
+              assetPath: AppAssets.splashBackground,
+              fit: BoxFit.cover,
+              fallback: SafeImageFallback.mosque,
+            ),
+            ColoredBox(color: colors.background.withValues(alpha: 0.35)),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildRotatingPattern(Size size) {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _patternController,
@@ -270,6 +275,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildFloatingParticles(Size size) {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _particleController,
@@ -286,17 +292,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildGlassOverlay() {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
         child: Container(
-          color: AppColors.background.withValues(alpha: 0.10),
+          color: colors.background.withValues(alpha: 0.10),
         ),
       ),
     );
   }
 
   Widget _buildBismillah() {
+    final colors = QibraColors.of(context);
     return SlideTransition(
       position: _bismillahSlide,
       child: FadeTransition(
@@ -305,38 +313,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
           child: Column(
             children: [
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [
-                    AppColors.accent,
-                    AppColors.accentBright,
-                    AppColors.accent,
-                  ],
-                ).createShader(bounds),
-                child: Text(
-                  AppIslamicConstants.bismillah,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.5,
-                    shadows: [
-                      Shadow(
-                        color: AppColors.accent.withValues(alpha: 0.60),
-                        blurRadius: 20,
-                      ),
-                    ],
-                  ),
-                  textDirection: TextDirection.rtl,
-                  textAlign: TextAlign.center,
+              Text(
+                AppIslamicConstants.bismillah,
+                style: TextStyle(
+                  fontFamily: 'Amiri',
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: colors.goldText,
+                  height: 1.5,
                 ),
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'In the name of Allah, the Most Gracious, the Most Merciful',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontStyle: FontStyle.italic,
                   letterSpacing: 0.5,
                 ),
@@ -350,6 +343,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildPremiumLogo() {
+    final colors = QibraColors.of(context);
     return AnimatedBuilder(
       animation: _logoController,
       builder: (context, child) {
@@ -369,19 +363,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               gradient: AppGradients.gold,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.accent
+                  color: colors.accent
                       .withValues(alpha: 0.60 * _logoGlow.value),
                   blurRadius: 40,
                   spreadRadius: 8,
                 ),
                 BoxShadow(
-                  color: AppColors.accent
+                  color: colors.accent
                       .withValues(alpha: 0.40 * _logoGlow.value),
                   blurRadius: 80,
                   spreadRadius: 16,
                 ),
                 BoxShadow(
-                  color: AppColors.primary
+                  color: colors.primary
                       .withValues(alpha: 0.20 * _logoGlow.value),
                   blurRadius: 120,
                   spreadRadius: 24,
@@ -397,7 +391,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.white.withValues(alpha: 0.40),
+                      color: colors.onPrimary.withValues(alpha: 0.40),
                       width: 1.5,
                     ),
                   ),
@@ -410,21 +404,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       height: 130,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.background.withValues(alpha: 0.90),
+                        color: colors.background.withValues(alpha: 0.90),
                         border: Border.all(
-                          color: AppColors.accent.withValues(alpha: 0.50),
+                          color: colors.accent.withValues(alpha: 0.50),
                           width: 2,
                         ),
                       ),
-                      child: Center(
-                        child: ShaderMask(
-                          shaderCallback: (bounds) =>
-                              AppGradients.gold.createShader(bounds),
-                          child: const Icon(
-                            Icons.mosque_rounded,
-                            size: 64,
-                            color: const Color(0xFF19312C),
-                          ),
+                      child: const Center(
+                        child: SafeImage(
+                          assetPath: AppAssets.logo,
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.contain,
+                          fallback: SafeImageFallback.logo,
                         ),
                       ),
                     ),
@@ -439,6 +431,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildAppNameReveal() {
+    final colors = QibraColors.of(context);
     const appName = 'QIBRA AI';
     final letters = appName.split('');
 
@@ -455,23 +448,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               opacity: letterProgress,
               child: Transform.translate(
                 offset: Offset(0, 20 * (1 - letterProgress)),
-                child: ShaderMask(
-                  shaderCallback: (bounds) =>
-                      AppGradients.gold.createShader(bounds),
-                  child: Text(
-                    letters[index],
-                    style: AppTextStyles.displaySmall.copyWith(
-                      color: const Color(0xFF19312C),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 6,
-                      height: 1.0,
-                      shadows: [
-                        Shadow(
-                          color: AppColors.accent.withValues(alpha: 0.60),
-                          blurRadius: 20,
-                        ),
-                      ],
-                    ),
+                child: Text(
+                  letters[index],
+                  style: AppTextStyles.displaySmall.copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 6,
+                    height: 1.0,
                   ),
                 ),
               ),
@@ -483,6 +466,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildDecorativeDivider() {
+    final colors = QibraColors.of(context);
     return FadeTransition(
       opacity: _taglineFade,
       child: Row(
@@ -495,14 +479,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               gradient: LinearGradient(
                 colors: [
                   Colors.transparent,
-                  AppColors.accent.withValues(alpha: 0.60),
+                  colors.accent.withValues(alpha: 0.60),
                 ],
               ),
             ),
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: Icon(Icons.star, color: AppColors.accent, size: 12),
+            child: Icon(Icons.star, color: colors.accent, size: 12),
           ),
           Container(
             width: 40,
@@ -510,7 +494,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.accent.withValues(alpha: 0.60),
+                  colors.accent.withValues(alpha: 0.60),
                   Colors.transparent,
                 ],
               ),
@@ -522,12 +506,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildTagline() {
+    final colors = QibraColors.of(context);
     return FadeTransition(
       opacity: _taglineFade,
       child: Text(
-        'Your Complete Islamic Companion',
+        'Quran, Hadith, prayer, and tools',
         style: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.textSecondary,
+          color: colors.textSecondary,
           letterSpacing: 2,
           fontWeight: FontWeight.w300,
         ),
@@ -536,6 +521,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Widget _buildLoadingIndicator() {
+    final colors = QibraColors.of(context);
     return AnimatedBuilder(
       animation: _loadingController,
       builder: (context, child) {
@@ -555,10 +541,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color:
-                      AppColors.accent.withValues(alpha: 0.30 + (wave * 0.70)),
+                      colors.accent.withValues(alpha: 0.30 + (wave * 0.70)),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.accent.withValues(alpha: wave * 0.60),
+                      color: colors.accent.withValues(alpha: wave * 0.60),
                       blurRadius: 12,
                       spreadRadius: 2,
                     ),
@@ -577,6 +563,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   // ============================================================
 
   Widget _buildPremiumFooter() {
+    final colors = QibraColors.of(context);
     return FadeTransition(
       opacity: _taglineFade,
       child: Column(
@@ -591,10 +578,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
+                  color: colors.primary.withValues(alpha: 0.15),
                   borderRadius: AppRadius.pillRadius,
                   border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.35),
+                    color: colors.primary.withValues(alpha: 0.35),
                   ),
                 ),
                 child: Row(
@@ -603,8 +590,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     Container(
                       width: 6,
                       height: 6,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
+                      decoration: BoxDecoration(
+                        color: colors.primary,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -612,7 +599,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     Text(
                       'v1.0.0',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.primary,
+                        color: colors.primary,
                         fontWeight: FontWeight.w800,
                         fontSize: 10,
                         letterSpacing: 1.0,
@@ -628,24 +615,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFFEF4444),
-                      Color(0xFFDC2626),
-                    ],
-                  ),
+                  color: colors.error,
                   borderRadius: AppRadius.pillRadius,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFEF4444).withValues(alpha: 0.35),
-                      blurRadius: 6,
-                    ),
-                  ],
                 ),
-                child: const Text(
+                child: Text(
                   'BETA',
                   style: TextStyle(
-                    color: AppColors.white,
+                    color: colors.onPrimary,
                     fontWeight: FontWeight.w900,
                     fontSize: 9,
                     letterSpacing: 1.5,
@@ -661,7 +637,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           Text(
             'Designed & Developed by',
             style: AppTextStyles.labelXSmall.copyWith(
-              color: AppColors.textTertiary.withValues(alpha: 0.70),
+              color: colors.textTertiary.withValues(alpha: 0.70),
               fontSize: 8,
               letterSpacing: 0.5,
             ),
@@ -692,7 +668,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           Text(
             '© 2026 QIBRA AI · All Rights Reserved',
             style: AppTextStyles.labelXSmall.copyWith(
-              color: AppColors.textTertiary.withValues(alpha: 0.50),
+              color: colors.textTertiary.withValues(alpha: 0.50),
               fontSize: 8,
               letterSpacing: 0.5,
             ),
@@ -711,7 +687,7 @@ class _IslamicPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.accent
+      ..color = const Color(0xFFC6A15B)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
@@ -760,7 +736,7 @@ class _ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final random = math.Random(42);
 
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 12; i++) {
       final baseX = random.nextDouble() * size.width;
       final baseY = random.nextDouble() * size.height;
       final offset = math.sin((animationValue * 2 * math.pi) + i);
@@ -768,7 +744,7 @@ class _ParticlePainter extends CustomPainter {
       final y = baseY + (offset * 30);
       final particleSize = 1.5 + random.nextDouble() * 2;
       final isGold = i % 3 == 0;
-      final color = isGold ? AppColors.accent : AppColors.primary;
+      final color = isGold ? const Color(0xFFC6A15B) : const Color(0xFF123F36);
       final alpha = 0.20 + (random.nextDouble() * 0.30);
 
       final paint = Paint()

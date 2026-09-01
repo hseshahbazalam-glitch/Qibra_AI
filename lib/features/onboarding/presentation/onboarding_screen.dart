@@ -15,11 +15,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/shared/widgets/buttons/app_button.dart';
+import 'package:qibra_ai/shared/widgets/media/safe_image.dart';
 
 // ============================================================
 // ONBOARDING SLIDE DATA MODEL
@@ -34,6 +35,7 @@ class _OnboardingSlide {
   final Color primaryColor;
   final Color secondaryColor;
   final List<Color> backgroundGradient;
+  final String? illustrationAsset;
 
   const _OnboardingSlide({
     required this.title,
@@ -44,6 +46,7 @@ class _OnboardingSlide {
     required this.primaryColor,
     required this.secondaryColor,
     required this.backgroundGradient,
+    this.illustrationAsset,
   });
 }
 
@@ -55,17 +58,18 @@ const List<_OnboardingSlide> _slides = [
   _OnboardingSlide(
     title: 'Read the Holy Quran',
     description:
-        'Access the complete Quran with beautiful Arabic text, audio recitations by renowned Qaris, and translations in multiple languages.',
+        'Access the bundled Arabic Quran and English translation. Recitation audio is not bundled in this build.',
     icon: Icons.menu_book_rounded,
     arabicText: 'اقْرَأْ',
     arabicTranslation: 'Read',
-    primaryColor: AppColors.primary,
-    secondaryColor: AppColors.primaryLight,
+    primaryColor: Color(0xFF123F36),
+    secondaryColor: Color(0xFF2F6B5D),
     backgroundGradient: [
       Color(0xFFF5F3EC),
       Color(0xFFEEF1EA),
       Color(0xFFE8EBE3),
     ],
+    illustrationAsset: AppAssets.onboarding2,
   ),
   _OnboardingSlide(
     title: 'Never Miss a Prayer',
@@ -74,18 +78,19 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.access_time_filled_rounded,
     arabicText: 'الصَّلَاة',
     arabicTranslation: 'Prayer',
-    primaryColor: AppColors.accent,
-    secondaryColor: AppColors.accentBright,
+    primaryColor: Color(0xFFC6A15B),
+    secondaryColor: Color(0xFFC6A15B),
     backgroundGradient: [
       Color(0xFFF5F3EC),
       Color(0xFFF8F1E3),
       Color(0xFFE8EBE3),
     ],
+    illustrationAsset: AppAssets.onboarding1,
   ),
   _OnboardingSlide(
     title: 'Islamic AI Assistant',
     description:
-        'Ask any Islamic question and get instant, authentic answers from our AI trained on Quran, Hadith, and scholarly texts.',
+        'Ask about bundled Quran and Hadith passages. Retrieval only — not a fatwa and not a scholar.',
     icon: Icons.smart_toy_rounded,
     arabicText: 'الْحِكْمَة',
     arabicTranslation: 'Wisdom',
@@ -96,6 +101,7 @@ const List<_OnboardingSlide> _slides = [
       Color(0xFFEEF1EA),
       Color(0xFFE8EBE3),
     ],
+    illustrationAsset: AppAssets.aiArt,
   ),
   _OnboardingSlide(
     title: 'Your Islamic Companion',
@@ -104,8 +110,8 @@ const List<_OnboardingSlide> _slides = [
     icon: Icons.mosque_rounded,
     arabicText: 'بِسْمِ اللَّه',
     arabicTranslation: 'In the name of Allah',
-    primaryColor: AppColors.accent,
-    secondaryColor: AppColors.primary,
+    primaryColor: Color(0xFFC6A15B),
+    secondaryColor: Color(0xFF123F36),
     backgroundGradient: [
       Color(0xFFF5F3EC),
       Color(0xFFEEF1EA),
@@ -272,6 +278,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final currentSlide = _slides[_currentPage];
     final isLastPage = _currentPage == _slides.length - 1;
     final size = MediaQuery.sizeOf(context);
@@ -338,6 +345,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildParticleBackground(Size size, _OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: _particleController,
@@ -360,6 +368,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildTopBar() {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
@@ -379,15 +388,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.accent.withValues(alpha: 0.40),
+                      color: colors.accent.withValues(alpha: 0.40),
                       blurRadius: 12,
                       spreadRadius: 1,
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.mosque_rounded,
-                  color: AppColors.background,
+                  color: colors.background,
                   size: 20,
                 ),
               ),
@@ -425,6 +434,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     required String label,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
@@ -447,7 +457,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             child: Text(
               label,
               style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -462,6 +472,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSlide(_OnboardingSlide slide, int index) {
+    final colors = QibraColors.of(context);
     // Parallax calculation
     final delta = (_pageOffset - index).clamp(-1.0, 1.0);
 
@@ -495,6 +506,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildIllustration(_OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return AnimatedBuilder(
       animation: _iconController,
       builder: (context, child) {
@@ -559,46 +571,56 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               ),
             ),
 
-            // Icon container with glassmorphism
-            ClipOval(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                child: Container(
-                  width: 110,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        slide.primaryColor.withValues(alpha: 0.30),
-                        slide.primaryColor.withValues(alpha: 0.10),
-                      ],
-                    ),
-                    border: Border.all(
-                      color: slide.primaryColor,
-                      width: 2,
-                    ),
-                  ),
-                  child: Center(
-                    child: ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
+            if (slide.illustrationAsset != null)
+              ClipOval(
+                child: SafeImage(
+                  assetPath: slide.illustrationAsset!,
+                  width: 150,
+                  height: 150,
+                  fit: BoxFit.cover,
+                  fallback: SafeImageFallback.pattern,
+                ),
+              )
+            else
+              ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    width: 110,
+                    height: 110,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: [
-                          slide.primaryColor,
-                          slide.secondaryColor,
+                          slide.primaryColor.withValues(alpha: 0.30),
+                          slide.primaryColor.withValues(alpha: 0.10),
                         ],
-                      ).createShader(bounds),
-                      child: Icon(
-                        slide.icon,
-                        size: 56,
-                        color: const Color(0xFF19312C),
+                      ),
+                      border: Border.all(
+                        color: slide.primaryColor,
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: [
+                            slide.primaryColor,
+                            slide.secondaryColor,
+                          ],
+                        ).createShader(bounds),
+                        child: Icon(
+                          slide.icon,
+                          size: 56,
+                          color: const Color(0xFF19312C),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -610,6 +632,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildContentCard(_OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return SlideTransition(
       position: _contentSlide,
       child: FadeTransition(
@@ -625,8 +648,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withValues(alpha: 0.10),
-                    Colors.white.withValues(alpha: 0.05),
+                    QibraColors.light.textPrimary.withValues(alpha: 0.10),
+                    QibraColors.light.textPrimary.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: AppRadius.cardRadiusLarge,
@@ -658,7 +681,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   Text(
                     slide.description,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                       height: 1.6,
                     ),
                     textAlign: TextAlign.center,
@@ -677,6 +700,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildArabicBadge(_OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -737,6 +761,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPageIndicators() {
+    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_slides.length, (index) {
@@ -783,6 +808,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     bool isLastPage,
     _OnboardingSlide slide,
   ) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xl2,
@@ -818,6 +844,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildNextButton(_OnboardingSlide slide) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: _handleNext,
       child: Container(
@@ -870,6 +897,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: ClipOval(
@@ -888,7 +916,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             ),
             child: Icon(
               icon,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               size: 24,
             ),
           ),

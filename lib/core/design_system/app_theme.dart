@@ -1,5 +1,5 @@
 // lib/core/design_system/app_theme.dart
-// QIBRA AI — Light-first theme with a refined forest-night dark mode.
+// QIBRA AI — Dark-first emerald + gold. Light Family A remains for migration.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +7,7 @@ import 'app_colors.dart';
 import 'app_design_system.dart';
 import 'app_typography.dart';
 import 'qibra_colors.dart';
+import 'qibra_colors_next.dart';
 
 abstract final class AppTheme {
   static ThemeData get light => _build(
@@ -34,21 +35,21 @@ abstract final class AppTheme {
   static ThemeData get dark => _build(
         brightness: Brightness.dark,
         palette: QibraColors.dark,
-        background: AppColorsDark.background,
-        surface: AppColorsDark.surface,
-        surfaceHigh: AppColorsDark.surfaceHigh,
-        surfaceHighest: AppColorsDark.surfaceElevated,
-        surfaceSheet: AppColorsDark.surface,
-        primary: AppColorsDark.primaryDeep,
-        onPrimary: AppColorsDark.textPrimary,
-        accent: AppColorsDark.accent,
-        onAccent: const Color(0xFF19312C),
-        textPrimary: AppColorsDark.textPrimary,
-        textSecondary: AppColorsDark.textSecondary,
-        border: AppColorsDark.border,
-        navBackground: AppColorsDark.navBackground,
-        navInactive: AppColorsDark.textTertiary,
-        inputBackground: AppColorsDark.surfaceElevated,
+        background: const Color(0xFF071512),
+        surface: const Color(0xFF102721),
+        surfaceHigh: const Color(0xFF14332A),
+        surfaceHighest: const Color(0xFF14332A),
+        surfaceSheet: const Color(0xFF0B1D19),
+        primary: const Color(0xFF2ED39A),
+        onPrimary: const Color(0xFF071512),
+        accent: const Color(0xFFD7AD5A),
+        onAccent: const Color(0xFF071512),
+        textPrimary: const Color(0xFFF4F7F4),
+        textSecondary: const Color(0xFFA9B8B2),
+        border: const Color(0xFF244139),
+        navBackground: const Color(0xFF0B1D19),
+        navInactive: const Color(0xFF71817B),
+        inputBackground: const Color(0xFF14332A),
         statusIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
       );
@@ -78,7 +79,24 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      extensions: [palette],
+      extensions: [
+        palette,
+        isDark ? QibraColorsNext.dark : QibraColorsNext.dark.copyWith(
+          bgCanvas: palette.background,
+          bgSurface: palette.backgroundSecondary,
+          bgCard: palette.card,
+          bgCardElevated: palette.cardMuted,
+          borderSubtle: palette.border,
+          emeraldPrimary: palette.primary,
+          emeraldDeep: palette.primarySoft,
+          goldIslamic: palette.accent,
+          goldSoft: palette.goldText,
+          textPrimary: palette.textPrimary,
+          textSecondary: palette.textSecondary,
+          textMuted: palette.textTertiary,
+          error: palette.error,
+        ),
+      ],
       scaffoldBackgroundColor: background,
       textTheme: AppTextTheme.textTheme.apply(
         bodyColor: textPrimary,
@@ -98,7 +116,7 @@ abstract final class AppTheme {
         onTertiary: onPrimary,
         tertiaryContainer: AppEmerald.s100,
         onTertiaryContainer: AppEmerald.s800,
-        error: AppColors.error,
+        error: isDark ? const Color(0xFFE5484D) : AppColors.error,
         onError: AppColors.white,
         errorContainer: AppSemanticColors.errorLight,
         onErrorContainer: AppSemanticColors.errorDark,
@@ -218,7 +236,7 @@ abstract final class AppTheme {
         ),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: isDark ? AppColorsDark.surfaceHigh : AppColors.primary,
+        backgroundColor: isDark ? const Color(0xFF14332A) : AppColors.primary,
         contentTextStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.white),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.cardRadius),
@@ -306,7 +324,7 @@ abstract final class AppSystemUI {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: AppColorsDark.navBackground,
+        systemNavigationBarColor: Color(0xFF0B1D19),
         systemNavigationBarIconBrightness: Brightness.light,
         systemNavigationBarDividerColor: Colors.transparent,
       ),

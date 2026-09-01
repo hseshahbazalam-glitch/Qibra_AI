@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/a11y/app_a11y.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
 
@@ -171,6 +173,7 @@ class _InheritanceCalculatorScreenState
   // MAIN CALCULATION — AWL + RADD + HALF SIBLINGS FIXED
   // ═══════════════════════════════════════════════════════════
   List<_ShareResult> _calculateShares(double estate) {
+    final colors = QibraColors.of(context);
     Map<String, _ShareResult> sharesMap = {};
     Map<String, double> fractions = {};
 
@@ -193,7 +196,7 @@ class _InheritanceCalculatorScreenState
         f,
         1,
         rule,
-        const Color(0xFF2F6B5D),
+        colors.primarySoft,
         Icons.man_rounded,
       );
     }
@@ -216,7 +219,7 @@ class _InheritanceCalculatorScreenState
           perWife,
           1,
           '$rule (shared among $_wifeCount wife${_wifeCount > 1 ? "s" : ""})',
-          const Color(0xFFC6A15B),
+          colors.accent,
           Icons.woman_rounded,
         );
       }
@@ -226,14 +229,14 @@ class _InheritanceCalculatorScreenState
     if (_hasFather) {
       if (hasChildren) {
         fractions['Father'] = 1 / 6;
-        sharesMap['Father'] = const _ShareResult(
+        sharesMap['Father'] = _ShareResult(
           'Father',
           'أَب',
           0,
           1 / 6,
           1,
           '1/6 fixed share + may get residual',
-          Color(0xFF123F36),
+          colors.primary,
           Icons.man_rounded,
         );
       }
@@ -265,7 +268,7 @@ class _InheritanceCalculatorScreenState
         f,
         1,
         rule,
-        const Color(0xFF2F6B5D),
+        colors.primarySoft,
         Icons.woman_rounded,
       );
     }
@@ -273,14 +276,14 @@ class _InheritanceCalculatorScreenState
     // Grandfather (if no father)
     if (_hasGrandfather && !_hasFather) {
       fractions['Grandfather'] = 1 / 6;
-      sharesMap['Grandfather'] = const _ShareResult(
+      sharesMap['Grandfather'] = _ShareResult(
         'Grandfather',
         'جَدّ',
         0,
         1 / 6,
         1,
         '1/6 — takes father\'s place',
-        Color(0xFF2F6B5D),
+        colors.primarySoft,
         Icons.elderly_rounded,
       );
     }
@@ -288,14 +291,14 @@ class _InheritanceCalculatorScreenState
     // Grandmother (if no mother)
     if (_hasGrandmother && !_hasMother) {
       fractions['Grandmother'] = 1 / 6;
-      sharesMap['Grandmother'] = const _ShareResult(
+      sharesMap['Grandmother'] = _ShareResult(
         'Grandmother',
         'جَدَّة',
         0,
         1 / 6,
         1,
         '1/6 — takes mother\'s place',
-        Color(0xFFC6A15B),
+        colors.accent,
         Icons.elderly_woman_rounded,
       );
     }
@@ -314,7 +317,7 @@ class _InheritanceCalculatorScreenState
         f,
         _daughters,
         rule,
-        const Color(0xFFC6A15B),
+        colors.accent,
         Icons.girl_rounded,
       );
     }
@@ -333,7 +336,7 @@ class _InheritanceCalculatorScreenState
         f,
         _granddaughters,
         _granddaughters == 1 ? '1/2' : '2/3',
-        const Color(0xFFC6A15B),
+        colors.accent,
         Icons.girl_rounded,
       );
     }
@@ -349,7 +352,7 @@ class _InheritanceCalculatorScreenState
         f,
         _sisters,
         _sisters == 1 ? '1/2' : '2/3',
-        const Color(0xFFC6A15B),
+        colors.accent,
         Icons.people_rounded,
       );
     }
@@ -369,7 +372,7 @@ class _InheritanceCalculatorScreenState
         f,
         maternalSiblings,
         rule,
-        const Color(0xFFC6A15B),
+        colors.accent,
         Icons.people_rounded,
       );
     }
@@ -416,7 +419,7 @@ class _InheritanceCalculatorScreenState
             sonFraction * _sons,
             _sons,
             '2:1 ratio with daughters — each son: ${(sonFraction * 100).toStringAsFixed(1)}%',
-            const Color(0xFF2F6B5D),
+            colors.primarySoft,
             Icons.boy_rounded,
           );
           sharesMap['Daughters'] = _ShareResult(
@@ -426,7 +429,7 @@ class _InheritanceCalculatorScreenState
             daughterFraction * _daughters,
             _daughters,
             '2:1 ratio with sons — each daughter: ${(daughterFraction * 100).toStringAsFixed(1)}%',
-            const Color(0xFFC6A15B),
+            colors.accent,
             Icons.girl_rounded,
           );
         } else {
@@ -438,7 +441,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _sons,
             'Equal residual share among $_sons son${_sons > 1 ? "s" : ""} (Asabah)',
-            const Color(0xFF2F6B5D),
+            colors.primarySoft,
             Icons.boy_rounded,
           );
         }
@@ -454,7 +457,7 @@ class _InheritanceCalculatorScreenState
           remainder,
           1,
           'Residual — no male children (Asabah)',
-          const Color(0xFF123F36),
+          colors.primary,
           Icons.man_rounded,
         );
         remainder = 0;
@@ -471,7 +474,7 @@ class _InheritanceCalculatorScreenState
           newF,
           1,
           '1/6 fixed + residual after daughters',
-          const Color(0xFF123F36),
+          colors.primary,
           Icons.man_rounded,
         );
         remainder = 0;
@@ -491,7 +494,7 @@ class _InheritanceCalculatorScreenState
             gsonF * _grandsons,
             _grandsons,
             '2:1 ratio (Asabah)',
-            const Color(0xFF2F6B5D),
+            colors.primarySoft,
             Icons.boy_rounded,
           );
           sharesMap['Granddaughters'] = _ShareResult(
@@ -501,7 +504,7 @@ class _InheritanceCalculatorScreenState
             gdaughterF * _granddaughters,
             _granddaughters,
             '2:1 ratio (Asabah)',
-            const Color(0xFFC6A15B),
+            colors.accent,
             Icons.girl_rounded,
           );
         } else {
@@ -513,7 +516,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _grandsons,
             'Equal residual (Asabah)',
-            const Color(0xFF2F6B5D),
+            colors.primarySoft,
             Icons.boy_rounded,
           );
         }
@@ -534,7 +537,7 @@ class _InheritanceCalculatorScreenState
             brotherF * _brothers,
             _brothers,
             '2:1 ratio with sisters (Asabah)',
-            const Color(0xFF2F6B5D),
+            colors.primarySoft,
             Icons.people_rounded,
           );
           sharesMap['Sisters'] = _ShareResult(
@@ -544,7 +547,7 @@ class _InheritanceCalculatorScreenState
             sisterF * _sisters,
             _sisters,
             '2:1 ratio with brothers',
-            const Color(0xFFC6A15B),
+            colors.accent,
             Icons.people_rounded,
           );
         } else {
@@ -556,7 +559,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _brothers,
             'Equal residual (Asabah)',
-            const Color(0xFF2F6B5D),
+            colors.primarySoft,
             Icons.people_rounded,
           );
         }
@@ -580,7 +583,7 @@ class _InheritanceCalculatorScreenState
             hbF * _halfBrothersFather,
             _halfBrothersFather,
             '2:1 ratio (Asabah)',
-            const Color(0xFF2F6B5D),
+            colors.primarySoft,
             Icons.people_rounded,
           );
           sharesMap['Half Sisters (Paternal)'] = _ShareResult(
@@ -590,7 +593,7 @@ class _InheritanceCalculatorScreenState
             hsF * _halfSistersFather,
             _halfSistersFather,
             '2:1 ratio',
-            const Color(0xFFC6A15B),
+            colors.accent,
             Icons.people_rounded,
           );
         } else {
@@ -602,7 +605,7 @@ class _InheritanceCalculatorScreenState
             remainder,
             _halfBrothersFather,
             'Equal residual (Asabah)',
-            const Color(0xFF2F6B5D),
+            colors.primarySoft,
             Icons.people_rounded,
           );
         }
@@ -618,7 +621,7 @@ class _InheritanceCalculatorScreenState
           remainder,
           1,
           'Residual (Asabah)',
-          const Color(0xFF2F6B5D),
+          colors.primarySoft,
           Icons.man_rounded,
         );
         remainder = 0;
@@ -713,9 +716,10 @@ class _InheritanceCalculatorScreenState
   }
 
   void _showSnackbar(String msg) {
+    final colors = QibraColors.of(context);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: const TextStyle(color: const Color(0xFF19312C))),
-      backgroundColor: const Color(0xFF123F36),
+      content: Text(msg, style: TextStyle(color: colors.textPrimary)),
+      backgroundColor: colors.primary,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(16),
@@ -724,8 +728,9 @@ class _InheritanceCalculatorScreenState
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -785,27 +790,28 @@ class _InheritanceCalculatorScreenState
 
   // ─── Disclaimer ─────────────────────────────────────────────
   Widget _buildDisclaimer() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.08),
+        color: colors.error.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
+        border: Border.all(color: colors.error.withValues(alpha: 0.4)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.warning_amber_rounded,
-              color: Colors.orange, size: 20),
+          Icon(Icons.warning_amber_rounded,
+              color: colors.error, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Important Notice',
                   style: TextStyle(
-                    color: Colors.orange,
+                    color: colors.error,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -817,7 +823,7 @@ class _InheritanceCalculatorScreenState
                   'variations. Please consult a qualified Islamic scholar '
                   'before making any actual distribution decisions.',
                   style: TextStyle(
-                    color: Colors.orange.withValues(alpha: 0.8),
+                    color: colors.error.withValues(alpha: 0.8),
                     fontSize: 11,
                     height: 1.5,
                   ),
@@ -832,15 +838,16 @@ class _InheritanceCalculatorScreenState
 
   // ─── Safety Gate — Phase 4: Mandatory confirmation ─────────────
   Widget _buildSafetyGate() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF2F6B5D).withValues(alpha: 0.08),
+        color: colors.primarySoft.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
             color: _understood
-                ? const Color(0xFF123F36).withValues(alpha: 0.4)
-                : Colors.orange.withValues(alpha: 0.3)),
+                ? colors.primary.withValues(alpha: 0.4)
+                : colors.goldText.withValues(alpha: 0.35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -850,7 +857,7 @@ class _InheritanceCalculatorScreenState
               Expanded(
                 child: Text('Calculation Method',
                     style: TextStyle(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.7),
+                        color: colors.textPrimary.withValues(alpha: 0.7),
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
               ),
@@ -858,19 +865,19 @@ class _InheritanceCalculatorScreenState
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.08),
+                    color: colors.textPrimary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8)),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _school,
                     isDense: true,
-                    style: const TextStyle(
-                        color: const Color(0xFF19312C),
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600),
-                    dropdownColor: const Color(0xFF141926),
-                    icon: const Icon(Icons.arrow_drop_down_rounded,
-                        color: Colors.white54, size: 18),
+                    dropdownColor: colors.card,
+                    icon: Icon(Icons.arrow_drop_down_rounded,
+                        color: colors.textSecondary, size: 18),
                     items: const [
                       DropdownMenuItem(
                           value: 'Hanafi',
@@ -896,7 +903,7 @@ class _InheritanceCalculatorScreenState
             Text(
               'Note: This calculator implements Sunni/Hanafi reference logic. Other schools may differ for some cases (e.g., Radd, grandfather). Result is for educational reference.',
               style: TextStyle(
-                  color: Colors.orange.withValues(alpha: 0.7),
+                  color: colors.goldText,
                   fontSize: 10,
                   height: 1.3),
             ),
@@ -911,12 +918,12 @@ class _InheritanceCalculatorScreenState
                 Checkbox(
                   value: _understood,
                   onChanged: (v) => setState(() => _understood = v ?? false),
-                  activeColor: const Color(0xFF123F36),
-                  checkColor: Colors.white,
+                  activeColor: colors.primary,
+                  checkColor: colors.onPrimary,
                   side: BorderSide(
                       color: _understood
-                          ? const Color(0xFF123F36)
-                          : Colors.orange.withValues(alpha: 0.5)),
+                          ? colors.primary
+                          : colors.goldText.withValues(alpha: 0.5)),
                 ),
                 const SizedBox(width: 4),
                 Expanded(
@@ -926,8 +933,8 @@ class _InheritanceCalculatorScreenState
                       'I understand this is an educational estimate and I will consult a qualified Islamic scholar before distributing inheritance.',
                       style: TextStyle(
                           color: _understood
-                              ? Colors.white.withValues(alpha: 0.8)
-                              : Colors.white.withValues(alpha: 0.5),
+                              ? colors.textPrimary
+                              : colors.textSecondary,
                           fontSize: 11,
                           height: 1.4),
                     ),
@@ -943,26 +950,31 @@ class _InheritanceCalculatorScreenState
 
   // ─── App Bar ────────────────────────────────────────────────
   SliverAppBar _buildAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 130,
       pinned: true,
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       leading: IconButton(
+        constraints: const BoxConstraints(
+          minWidth: AppA11y.minTapTarget,
+          minHeight: AppA11y.minTapTarget,
+        ),
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: const Color(0xFF19312C).withValues(alpha: 0.1),
+              color: colors.textPrimary.withValues(alpha: 0.1),
               shape: BoxShape.circle),
-          child: const Icon(Icons.arrow_back_rounded,
-              color: const Color(0xFF19312C), size: 20),
+          child: Icon(Icons.arrow_back_rounded,
+              color: colors.textPrimary, size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient:
-                LinearGradient(colors: [Color(0xFFEEF1EA), Color(0xFFF5F3EC)]),
+                LinearGradient(colors: [colors.backgroundSecondary, colors.background]),
           ),
           child: SafeArea(
             child: Padding(
@@ -970,19 +982,19 @@ class _InheritanceCalculatorScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('فَرَائِض',
+                  Text('فَرَائِض',
                       style: TextStyle(
-                          color: Color(0xFF2F6B5D),
+                          color: colors.primarySoft,
                           fontSize: 24,
                           fontFamily: 'Amiri')),
-                  const Text('Inheritance Calculator',
+                  Text('Inheritance Calculator',
                       style: TextStyle(
-                          color: const Color(0xFF19312C),
+                          color: colors.textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
                   Text('Islamic Law of Succession',
                       style: TextStyle(
-                          color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                          color: colors.textPrimary.withValues(alpha: 0.4),
                           fontSize: 12)),
                 ],
               ),
@@ -995,33 +1007,34 @@ class _InheritanceCalculatorScreenState
 
   // ─── Info Card ──────────────────────────────────────────────
   Widget _buildInfoCard() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2F6B5D).withValues(alpha: 0.06),
+        color: colors.primarySoft.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
         border:
-            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.2)),
+            Border.all(color: colors.primarySoft.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF2F6B5D).withValues(alpha: 0.12),
+              color: colors.primarySoft.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.info_outline_rounded,
-                color: Color(0xFF2F6B5D), size: 20),
+            child: Icon(Icons.info_outline_rounded,
+                color: colors.primarySoft, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('How It Works',
+                Text('How It Works',
                     style: TextStyle(
-                        color: Color(0xFF2F6B5D),
+                        color: colors.primarySoft,
                         fontSize: 13,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
@@ -1030,7 +1043,7 @@ class _InheritanceCalculatorScreenState
                   '2. Select family members\n'
                   '3. Calculate automatic Islamic shares',
                   style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                      color: colors.textPrimary.withValues(alpha: 0.5),
                       fontSize: 11,
                       height: 1.5),
                 ),
@@ -1044,22 +1057,24 @@ class _InheritanceCalculatorScreenState
 
   // ─── Deceased Gender ────────────────────────────────────────
   Widget _buildDeceasedGender() {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         Text('Deceased:',
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                color: colors.textPrimary.withValues(alpha: 0.5),
                 fontSize: 12,
                 fontWeight: FontWeight.w600)),
         const SizedBox(width: 12),
-        _genderChip('male', '👨', 'Male', const Color(0xFF2F6B5D)),
+        _genderChip('male', '👨', 'Male', colors.primarySoft),
         const SizedBox(width: 8),
-        _genderChip('female', '👩', 'Female', const Color(0xFFC6A15B)),
+        _genderChip('female', '👩', 'Female', colors.accent),
       ],
     );
   }
 
   Widget _genderChip(String value, String emoji, String label, Color color) {
+    final colors = QibraColors.of(context);
     final selected = _deceasedGender == value;
     return Expanded(
       child: GestureDetector(
@@ -1080,10 +1095,10 @@ class _InheritanceCalculatorScreenState
           decoration: BoxDecoration(
             color: selected
                 ? color.withValues(alpha: 0.15)
-                : const Color(0xFF141926),
+                : colors.card,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-                color: selected ? color : Colors.white.withValues(alpha: 0.05)),
+                color: selected ? color : colors.border),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1094,7 +1109,7 @@ class _InheritanceCalculatorScreenState
                   style: TextStyle(
                       color: selected
                           ? color
-                          : Colors.white.withValues(alpha: 0.4),
+                          : colors.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
             ],
@@ -1106,6 +1121,7 @@ class _InheritanceCalculatorScreenState
 
   // ─── Currency ───────────────────────────────────────────────
   Widget _buildCurrencySelector() {
+    final colors = QibraColors.of(context);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -1117,14 +1133,14 @@ class _InheritanceCalculatorScreenState
               margin: const EdgeInsets.only(right: 6),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: sel ? const Color(0xFF2F6B5D) : const Color(0xFF141926),
+                color: sel ? colors.primarySoft : colors.card,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(c,
                   style: TextStyle(
                       color: sel
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.4),
+                          ? colors.onPrimary
+                          : colors.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
             ),
@@ -1136,23 +1152,24 @@ class _InheritanceCalculatorScreenState
 
   // ─── Estate Input ───────────────────────────────────────────
   Widget _buildEstateInput() {
+    final colors = QibraColors.of(context);
     return Column(
       children: [
         _inputField(
             'Total Estate Value',
             'Total wealth of deceased',
             _estateController,
-            const Color(0xFF123F36),
+            colors.primary,
             Icons.account_balance_rounded),
         const SizedBox(height: 10),
         _inputField('Debts & Loans', 'Outstanding debts (deducted first)',
-            _debtController, const Color(0xFFEF4444), Icons.money_off_rounded),
+            _debtController, colors.error, Icons.money_off_rounded),
         const SizedBox(height: 10),
         _inputField(
             'Wasiyyah (Will)',
             'Max 1/3 of estate (optional)',
             _wasiyyahController,
-            const Color(0xFFC6A15B),
+            colors.accent,
             Icons.description_rounded),
       ],
     );
@@ -1160,10 +1177,11 @@ class _InheritanceCalculatorScreenState
 
   Widget _inputField(String label, String hint,
       TextEditingController controller, Color color, IconData icon) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withValues(alpha: 0.12)),
       ),
@@ -1183,8 +1201,8 @@ class _InheritanceCalculatorScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
-                    style: const TextStyle(
-                        color: const Color(0xFF19312C),
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600)),
                 TextField(
@@ -1196,7 +1214,7 @@ class _InheritanceCalculatorScreenState
                   decoration: InputDecoration(
                     hintText: hint,
                     hintStyle: TextStyle(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.15),
+                        color: colors.textPrimary.withValues(alpha: 0.15),
                         fontSize: 11),
                     prefixText: '${_currencySymbols[_currency]} ',
                     prefixStyle: TextStyle(
@@ -1216,13 +1234,14 @@ class _InheritanceCalculatorScreenState
 
   // ─── Section Label ──────────────────────────────────────────
   Widget _buildSectionLabel(String emoji, String label) {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         Text(emoji, style: const TextStyle(fontSize: 14)),
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                color: colors.textPrimary.withValues(alpha: 0.5),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0)),
@@ -1232,19 +1251,20 @@ class _InheritanceCalculatorScreenState
 
   // ─── Spouse Section ─────────────────────────────────────────
   Widget _buildSpouseSection() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Spouse',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                  color: colors.textPrimary.withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
@@ -1254,10 +1274,10 @@ class _InheritanceCalculatorScreenState
                 '👨',
                 _hasHusband,
                 (v) => setState(() => _hasHusband = v),
-                const Color(0xFF2F6B5D)),
+                colors.primarySoft),
           if (_deceasedGender == 'male') ...[
             _toggleRow('Wife', '👩', _hasWife,
-                (v) => setState(() => _hasWife = v), const Color(0xFFC6A15B)),
+                (v) => setState(() => _hasWife = v), colors.accent),
             if (_hasWife)
               _counterRow(
                   'Number of Wives',
@@ -1265,7 +1285,7 @@ class _InheritanceCalculatorScreenState
                   1,
                   4,
                   (v) => setState(() => _wifeCount = v),
-                  const Color(0xFFC6A15B)),
+                  colors.accent),
           ],
         ],
       ),
@@ -1274,40 +1294,41 @@ class _InheritanceCalculatorScreenState
 
   // ─── Parents Section ────────────────────────────────────────
   Widget _buildParentsSection() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Parents & Grandparents',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                  color: colors.textPrimary.withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _toggleRow('Father', '👨', _hasFather,
-              (v) => setState(() => _hasFather = v), const Color(0xFF123F36)),
+              (v) => setState(() => _hasFather = v), colors.primary),
           _toggleRow('Mother', '👩', _hasMother,
-              (v) => setState(() => _hasMother = v), const Color(0xFF2F6B5D)),
+              (v) => setState(() => _hasMother = v), colors.primarySoft),
           if (!_hasFather)
             _toggleRow(
                 'Grandfather',
                 '👴',
                 _hasGrandfather,
                 (v) => setState(() => _hasGrandfather = v),
-                const Color(0xFF2F6B5D)),
+                colors.primarySoft),
           if (!_hasMother)
             _toggleRow(
                 'Grandmother',
                 '👵',
                 _hasGrandmother,
                 (v) => setState(() => _hasGrandmother = v),
-                const Color(0xFFC6A15B)),
+                colors.accent),
         ],
       ),
     );
@@ -1315,36 +1336,37 @@ class _InheritanceCalculatorScreenState
 
   // ─── Children Section ───────────────────────────────────────
   Widget _buildChildrenSection() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Children & Grandchildren',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                  color: colors.textPrimary.withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _counterRow('Sons', _sons, 0, 20, (v) => setState(() => _sons = v),
-              const Color(0xFF2F6B5D)),
+              colors.primarySoft),
           _counterRow('Daughters', _daughters, 0, 20,
-              (v) => setState(() => _daughters = v), const Color(0xFFC6A15B)),
+              (v) => setState(() => _daughters = v), colors.accent),
           if (_sons == 0 && _daughters == 0) ...[
             _counterRow('Grandsons', _grandsons, 0, 20,
-                (v) => setState(() => _grandsons = v), const Color(0xFF2F6B5D)),
+                (v) => setState(() => _grandsons = v), colors.primarySoft),
             _counterRow(
                 'Granddaughters',
                 _granddaughters,
                 0,
                 20,
                 (v) => setState(() => _granddaughters = v),
-                const Color(0xFFC6A15B)),
+                colors.accent),
           ],
         ],
       ),
@@ -1353,26 +1375,27 @@ class _InheritanceCalculatorScreenState
 
   // ─── Siblings Section ───────────────────────────────────────
   Widget _buildSiblingsSection() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Full Siblings',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                  color: colors.textPrimary.withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _counterRow('Brothers', _brothers, 0, 20,
-              (v) => setState(() => _brothers = v), const Color(0xFF2F6B5D)),
+              (v) => setState(() => _brothers = v), colors.primarySoft),
           _counterRow('Sisters', _sisters, 0, 20,
-              (v) => setState(() => _sisters = v), const Color(0xFFC6A15B)),
+              (v) => setState(() => _sisters = v), colors.accent),
         ],
       ),
     );
@@ -1380,25 +1403,26 @@ class _InheritanceCalculatorScreenState
 
   // ─── Half Siblings Section (NEW — FIXED) ────────────────────
   Widget _buildHalfSiblingsSection() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Half Siblings',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                  color: colors.textPrimary.withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           Text('Paternal (same father)',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.3), fontSize: 10)),
+                  color: colors.textPrimary.withValues(alpha: 0.3), fontSize: 10)),
           const SizedBox(height: 8),
           _counterRow(
               'Paternal Half Brothers',
@@ -1406,18 +1430,18 @@ class _InheritanceCalculatorScreenState
               0,
               20,
               (v) => setState(() => _halfBrothersFather = v),
-              const Color(0xFF2F6B5D)),
+              colors.primarySoft),
           _counterRow(
               'Paternal Half Sisters',
               _halfSistersFather,
               0,
               20,
               (v) => setState(() => _halfSistersFather = v),
-              const Color(0xFFC6A15B)),
+              colors.accent),
           const SizedBox(height: 8),
           Text('Maternal (same mother)',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.3), fontSize: 10)),
+                  color: colors.textPrimary.withValues(alpha: 0.3), fontSize: 10)),
           const SizedBox(height: 8),
           _counterRow(
               'Maternal Half Brothers',
@@ -1425,14 +1449,14 @@ class _InheritanceCalculatorScreenState
               0,
               20,
               (v) => setState(() => _halfBrothersMother = v),
-              const Color(0xFFC6A15B)),
+              colors.accent),
           _counterRow(
               'Maternal Half Sisters',
               _halfSistersMother,
               0,
               20,
               (v) => setState(() => _halfSistersMother = v),
-              const Color(0xFFC6A15B)),
+              colors.accent),
         ],
       ),
     );
@@ -1440,24 +1464,25 @@ class _InheritanceCalculatorScreenState
 
   // ─── Other Section ──────────────────────────────────────────
   Widget _buildOtherSection() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Other Relatives',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                  color: colors.textPrimary.withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _toggleRow('Paternal Uncle', '👨', _hasUncle,
-              (v) => setState(() => _hasUncle = v), const Color(0xFF2F6B5D)),
+              (v) => setState(() => _hasUncle = v), colors.primarySoft),
         ],
       ),
     );
@@ -1466,6 +1491,7 @@ class _InheritanceCalculatorScreenState
   // ─── Toggle Row ─────────────────────────────────────────────
   Widget _toggleRow(String label, String emoji, bool value,
       ValueChanged<bool> onChanged, Color color) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1476,8 +1502,8 @@ class _InheritanceCalculatorScreenState
               child: Text(label,
                   style: TextStyle(
                       color: value
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.5),
+                          ? colors.textPrimary
+                          : colors.textSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500))),
           GestureDetector(
@@ -1490,7 +1516,7 @@ class _InheritanceCalculatorScreenState
               width: 44,
               height: 26,
               decoration: BoxDecoration(
-                color: value ? color : Colors.white.withValues(alpha: 0.08),
+                color: value ? color : colors.border,
                 borderRadius: BorderRadius.circular(13),
               ),
               child: AnimatedAlign(
@@ -1500,8 +1526,8 @@ class _InheritanceCalculatorScreenState
                   width: 20,
                   height: 20,
                   margin: const EdgeInsets.symmetric(horizontal: 3),
-                  decoration: const BoxDecoration(
-                      color: const Color(0xFF19312C), shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                      color: colors.textPrimary, shape: BoxShape.circle),
                 ),
               ),
             ),
@@ -1514,6 +1540,7 @@ class _InheritanceCalculatorScreenState
   // ─── Counter Row ────────────────────────────────────────────
   Widget _counterRow(String label, int value, int minVal, int maxVal,
       ValueChanged<int> onChanged, Color color) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1522,8 +1549,8 @@ class _InheritanceCalculatorScreenState
               child: Text(label,
                   style: TextStyle(
                       color: value > 0
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.5),
+                          ? colors.textPrimary
+                          : colors.textSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500))),
           GestureDetector(
@@ -1537,10 +1564,10 @@ class _InheritanceCalculatorScreenState
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.05),
+                  color: colors.textPrimary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8)),
               child: Icon(Icons.remove_rounded,
-                  color: const Color(0xFF19312C).withValues(alpha: 0.3), size: 16),
+                  color: colors.textPrimary.withValues(alpha: 0.3), size: 16),
             ),
           ),
           Container(
@@ -1549,7 +1576,7 @@ class _InheritanceCalculatorScreenState
             child: Text('$value',
                 style: TextStyle(
                     color:
-                        value > 0 ? color : Colors.white.withValues(alpha: 0.3),
+                        value > 0 ? color : colors.textTertiary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800)),
           ),
@@ -1576,6 +1603,7 @@ class _InheritanceCalculatorScreenState
 
   // ─── Calculate Button ───────────────────────────────────────
   Widget _buildCalculateButton() {
+    final colors = QibraColors.of(context);
     final enabled = _understood;
     return GestureDetector(
       onTap: enabled
@@ -1593,7 +1621,7 @@ class _InheritanceCalculatorScreenState
           decoration: BoxDecoration(
             gradient: LinearGradient(
                 colors: enabled
-                    ? [const Color(0xFF2F6B5D), const Color(0xFFC6A15B)]
+                    ? [colors.primarySoft, colors.accent]
                     : [
                         Colors.grey.withValues(alpha: 0.3),
                         Colors.grey.withValues(alpha: 0.2)
@@ -1602,7 +1630,7 @@ class _InheritanceCalculatorScreenState
             boxShadow: enabled
                 ? [
                     BoxShadow(
-                        color: const Color(0xFF2F6B5D).withValues(alpha: 0.3),
+                        color: colors.primarySoft.withValues(alpha: 0.3),
                         blurRadius: 16,
                         offset: const Offset(0, 6))
                   ]
@@ -1612,16 +1640,16 @@ class _InheritanceCalculatorScreenState
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.calculate_rounded,
-                  color: enabled ? Colors.white : Colors.white54, size: 22),
+                  color: enabled ? colors.onPrimary : colors.textSecondary, size: 22),
               const SizedBox(width: 10),
               Text('Calculate Shares',
                   style: TextStyle(
-                      color: enabled ? Colors.white : Colors.white54,
+                      color: enabled ? colors.onPrimary : colors.textSecondary,
                       fontSize: 16,
                       fontWeight: FontWeight.w700)),
               if (!enabled) ...[
                 const SizedBox(width: 8),
-                const Icon(Icons.lock_rounded, color: Colors.white30, size: 16),
+                Icon(Icons.lock_rounded, color: colors.textTertiary, size: 16),
               ],
             ],
           ),
@@ -1632,6 +1660,7 @@ class _InheritanceCalculatorScreenState
 
   // ─── Result Summary ─────────────────────────────────────────
   Widget _buildResultSummary() {
+    final colors = QibraColors.of(context);
     final debt = double.tryParse(_debtController.text) ?? 0;
     final wasiyyah = double.tryParse(_wasiyyahController.text) ?? 0;
     final maxW = (_totalEstate - debt) / 3;
@@ -1640,39 +1669,40 @@ class _InheritanceCalculatorScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-            colors: [Color(0xFFEEF1EA), Color(0xFF2D1B69)]),
+        gradient: LinearGradient(
+            colors: [colors.backgroundSecondary, colors.card]),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.3)),
+            Border.all(color: colors.primarySoft.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
-          const Text('DISTRIBUTION SUMMARY',
+          Text('DISTRIBUTION SUMMARY',
               style: TextStyle(
-                  color: Color(0xFF2F6B5D),
+                  color: colors.primarySoft,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2.0)),
           const SizedBox(height: 14),
           _summaryRow(
-              'Total Estate', _formatAmount(_totalEstate), Colors.white),
+              'Total Estate', _formatAmount(_totalEstate), colors.onPrimary),
           if (debt > 0)
             _summaryRow('Debts Deducted', '- ${_formatAmount(debt)}',
-                const Color(0xFFEF4444)),
+                colors.error),
           if (actualW > 0)
             _summaryRow('Wasiyyah (Will)', '- ${_formatAmount(actualW)}',
-                const Color(0xFFC6A15B)),
+                colors.accent),
           const Divider(color: Color(0xFF4A3F6B), height: 20),
           _summaryRow('Net Distributable', _formatAmount(_netEstate),
-              const Color(0xFF123F36)),
-          _summaryRow('Heirs', '${_results.length}', const Color(0xFF2F6B5D)),
+              colors.primary),
+          _summaryRow('Heirs', '${_results.length}', colors.primarySoft),
         ],
       ),
     );
   }
 
   Widget _summaryRow(String label, String value, Color color) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -1680,7 +1710,7 @@ class _InheritanceCalculatorScreenState
         children: [
           Text(label,
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.5), fontSize: 12)),
+                  color: colors.textPrimary.withValues(alpha: 0.5), fontSize: 12)),
           Text(value,
               style: TextStyle(
                   color: color, fontSize: 13, fontWeight: FontWeight.w700)),
@@ -1691,6 +1721,7 @@ class _InheritanceCalculatorScreenState
 
   // ─── Shares List ────────────────────────────────────────────
   Widget _buildSharesList() {
+    final colors = QibraColors.of(context);
     return Column(
       children: _results.map((r) {
         return Container(
@@ -1722,8 +1753,8 @@ class _InheritanceCalculatorScreenState
                         Row(
                           children: [
                             Text(r.label,
-                                style: const TextStyle(
-                                    color: const Color(0xFF19312C),
+                                style: TextStyle(
+                                    color: colors.textPrimary,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700)),
                             if (r.count > 1) ...[
@@ -1762,12 +1793,12 @@ class _InheritanceCalculatorScreenState
                               fontWeight: FontWeight.w900)),
                       Text('${(r.fraction * 100).toStringAsFixed(1)}%',
                           style: TextStyle(
-                              color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                              color: colors.textPrimary.withValues(alpha: 0.4),
                               fontSize: 10)),
                       if (r.count > 1)
                         Text('${_formatAmount(r.amount / r.count)} each',
                             style: TextStyle(
-                                color: const Color(0xFF19312C).withValues(alpha: 0.3),
+                                color: colors.textPrimary.withValues(alpha: 0.3),
                                 fontSize: 9)),
                     ],
                   ),
@@ -1788,7 +1819,7 @@ class _InheritanceCalculatorScreenState
                     Expanded(
                         child: Text(r.rule,
                             style: TextStyle(
-                                color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                                color: colors.textPrimary.withValues(alpha: 0.4),
                                 fontSize: 10,
                                 height: 1.3))),
                   ],
@@ -1803,21 +1834,22 @@ class _InheritanceCalculatorScreenState
 
   // ─── Pie Chart ──────────────────────────────────────────────
   Widget _buildPieChart() {
+    final colors = QibraColors.of(context);
     if (_results.isEmpty) return const SizedBox.shrink();
     final total = _results.fold<double>(0, (s, r) => s + r.amount);
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         children: [
           Text('VISUAL BREAKDOWN',
               style: TextStyle(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                  color: colors.textPrimary.withValues(alpha: 0.4),
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2.0)),
@@ -1846,7 +1878,7 @@ class _InheritanceCalculatorScreenState
                   const SizedBox(width: 6),
                   Text('${r.label} ${(r.fraction * 100).toStringAsFixed(0)}%',
                       style: TextStyle(
-                          color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                          color: colors.textPrimary.withValues(alpha: 0.5),
                           fontSize: 10)),
                 ],
               );
@@ -1859,25 +1891,26 @@ class _InheritanceCalculatorScreenState
 
   // ─── Reset Button ───────────────────────────────────────────
   Widget _buildResetButton() {
+    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: _resetAll,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF19312C).withValues(alpha: 0.05),
+          color: colors.textPrimary.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.1)),
+          border: Border.all(color: colors.textPrimary.withValues(alpha: 0.1)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.refresh_rounded,
-                color: const Color(0xFF19312C).withValues(alpha: 0.5), size: 18),
+                color: colors.textPrimary.withValues(alpha: 0.5), size: 18),
             const SizedBox(width: 8),
             Text('Reset All',
                 style: TextStyle(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                    color: colors.textPrimary.withValues(alpha: 0.5),
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
           ],
@@ -1888,24 +1921,25 @@ class _InheritanceCalculatorScreenState
 
   // ─── Islamic Note ───────────────────────────────────────────
   Widget _buildIslamicNote() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+        color: colors.cardMuted.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.15)),
+            Border.all(color: colors.primarySoft.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Text('📖', style: TextStyle(fontSize: 14)),
               SizedBox(width: 8),
               Text('Quran Reference',
                   style: TextStyle(
-                      color: Color(0xFF2F6B5D),
+                      color: colors.primarySoft,
                       fontSize: 12,
                       fontWeight: FontWeight.w700)),
             ],
@@ -1916,7 +1950,7 @@ class _InheritanceCalculatorScreenState
             'and His Messenger, He will admit him into Gardens beneath '
             'which rivers flow." — Quran 4:13',
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                color: colors.textPrimary.withValues(alpha: 0.6),
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
                 height: 1.5),
@@ -1927,7 +1961,7 @@ class _InheritanceCalculatorScreenState
             'Awl and Radd rules are applied automatically. '
             'For complex cases, always consult a qualified Islamic scholar.',
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.35),
+                color: colors.textPrimary.withValues(alpha: 0.35),
                 fontSize: 10,
                 height: 1.4),
           ),
@@ -1948,6 +1982,7 @@ class _PieChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final colors = QibraColors.light;
     if (total <= 0 || results.isEmpty) return;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width, size.height) / 2 - 10;
@@ -1969,7 +2004,7 @@ class _PieChartPainter extends CustomPainter {
       );
 
       final borderPaint = Paint()
-        ..color = const Color(0xFFF5F3EC)
+        ..color = colors.background
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
 
@@ -1985,7 +2020,7 @@ class _PieChartPainter extends CustomPainter {
     }
 
     final holePaint = Paint()
-      ..color = const Color(0xFFF5F3EC)
+      ..color = colors.background
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius * 0.5, holePaint);
   }

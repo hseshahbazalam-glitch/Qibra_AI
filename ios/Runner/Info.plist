@@ -50,9 +50,6 @@
 		<string>Qibra uses camera to scan products for halal verification.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Qibra can check product images for halal verification.</string>
-		<key>NSMicrophoneUsageDescription</key>
-		<string>Qibra AI needs microphone access for voice commands and speech recognition.</string>
-		<key>NSSpeechRecognitionUsageDescription</key>
-		<string>Qibra AI uses speech recognition to understand your voice commands.</string>
+
 	</dict>
 </plist>

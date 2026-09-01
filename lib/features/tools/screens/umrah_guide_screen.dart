@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 
 class UmrahGuideScreen extends StatefulWidget {
@@ -11,12 +12,12 @@ class UmrahGuideScreen extends StatefulWidget {
 class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   int _expandedIndex = -1;
 
-  final List<_UmrahStep> _steps = const [
+  final List<_UmrahStep> _steps = [
     _UmrahStep(
       number: 1,
       title: 'Enter Ihram',
       emoji: '🧕',
-      color: Color(0xFF2F6B5D),
+      color: QibraColors.light.primarySoft,
       description:
           'Before reaching Meeqat, take a bath (ghusl), put on Ihram garments. Men wear two white unstitched cloths. Women wear regular modest clothing.',
       details: [
@@ -35,7 +36,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 2,
       title: 'Recite Talbiyah',
       emoji: '🗣️',
-      color: Color(0xFFC6A15B),
+      color: QibraColors.light.accent,
       description:
           'Continuously recite the Talbiyah from the moment you enter Ihram until you begin Tawaf.',
       details: [
@@ -55,7 +56,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 3,
       title: 'Tawaf (7 Rounds)',
       emoji: '🕋',
-      color: Color(0xFF123F36),
+      color: QibraColors.light.primary,
       description:
           'Perform 7 rounds (circuits) around the Ka\'bah in anti-clockwise direction, starting from Hajar al-Aswad (Black Stone).',
       details: [
@@ -80,7 +81,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 4,
       title: 'Sa\'i (Safa & Marwah)',
       emoji: '🚶',
-      color: Color(0xFF2F6B5D),
+      color: QibraColors.light.primarySoft,
       description:
           'Walk between the hills of Safa and Marwah 7 times. Start at Safa and end at Marwah.',
       details: [
@@ -101,7 +102,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       number: 5,
       title: 'Halq or Taqsir',
       emoji: '✂️',
-      color: Color(0xFFC6A15B),
+      color: QibraColors.light.accent,
       description:
           'After completing Sa\'i, shave the head (Halq) or trim the hair (Taqsir) to exit the state of Ihram.',
       details: [
@@ -129,8 +130,9 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -167,28 +169,29 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   SliverAppBar _buildAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 130,
       pinned: true,
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-              color: const Color(0xFF19312C).withValues(alpha: 0.1),
+              color: colors.textPrimary.withValues(alpha: 0.1),
               shape: BoxShape.circle),
-          child: const Icon(Icons.arrow_back_rounded,
-              color: const Color(0xFF19312C), size: 20),
+          child: Icon(Icons.arrow_back_rounded,
+              color: colors.textPrimary, size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFFEEF1EA), Color(0xFFF5F3EC)]),
+                colors: [colors.backgroundSecondary, colors.background]),
           ),
           child: SafeArea(
             child: Padding(
@@ -196,19 +199,19 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('عُمْرَة',
+                  Text('عُمْرَة',
                       style: TextStyle(
-                          color: Color(0xFF2F6B5D),
+                          color: colors.primarySoft,
                           fontSize: 26,
                           fontFamily: 'Amiri')),
-                  const Text('Umrah Guide',
+                  Text('Umrah Guide',
                       style: TextStyle(
-                          color: const Color(0xFF19312C),
+                          color: colors.textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.bold)),
                   Text('Step-by-Step',
                       style: TextStyle(
-                          color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                          color: colors.textPrimary.withValues(alpha: 0.4),
                           fontSize: 12)),
                 ],
               ),
@@ -220,19 +223,20 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   Widget _buildOverviewCard() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-            colors: [Color(0xFFEEF1EA), Color(0xFF152E4A)]),
+        gradient: LinearGradient(
+                colors: [colors.backgroundSecondary, colors.card]),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.3)),
+            Border.all(color: colors.primarySoft.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Text('🕌', style: TextStyle(fontSize: 28)),
               SizedBox(width: 12),
@@ -241,12 +245,12 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                 children: [
                   Text('The Minor Pilgrimage',
                       style: TextStyle(
-                          color: Color(0xFF2F6B5D),
+                          color: colors.primarySoft,
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
                   Text('Sunnah Mu\'akkadah',
                       style: TextStyle(
-                          color: const Color(0xFF19312C),
+                          color: colors.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.w900)),
                 ],
@@ -257,7 +261,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
           Text(
             'Umrah can be performed any time of the year. It consists of 4 main rituals: Ihram, Tawaf, Sa\'i, and Halq/Taqsir.',
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                color: colors.textPrimary.withValues(alpha: 0.6),
                 fontSize: 12,
                 height: 1.5),
           ),
@@ -267,6 +271,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   Widget _buildQuickSteps() {
+    final colors = QibraColors.of(context);
     final quickSteps = ['Ihram', 'Talbiyah', 'Tawaf', 'Sa\'i', 'Halq'];
     final emojis = ['🧕', '🗣️', '🕋', '🚶', '✂️'];
 
@@ -280,10 +285,10 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
             width: 70,
             margin: const EdgeInsets.only(right: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF141926),
+              color: colors.card,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: const Color(0xFF2F6B5D).withValues(alpha: 0.12)),
+                  color: colors.primarySoft.withValues(alpha: 0.12)),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -291,8 +296,8 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                 Text(emojis[i], style: const TextStyle(fontSize: 22)),
                 const SizedBox(height: 4),
                 Text(quickSteps[i],
-                    style: const TextStyle(
-                        color: const Color(0xFF19312C),
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 10,
                         fontWeight: FontWeight.w600)),
               ],
@@ -304,13 +309,14 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   Widget _buildSectionLabel(String emoji, String label) {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         Text(emoji, style: const TextStyle(fontSize: 14)),
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                color: colors.textPrimary.withValues(alpha: 0.5),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0)),
@@ -319,6 +325,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   Widget _buildStepCard(_UmrahStep step, int index) {
+    final colors = QibraColors.of(context);
     final isExpanded = _expandedIndex == index;
 
     return GestureDetector(
@@ -332,12 +339,12 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
         decoration: BoxDecoration(
           color: isExpanded
               ? step.color.withValues(alpha: 0.06)
-              : const Color(0xFF141926),
+              : colors.card,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
               color: isExpanded
                   ? step.color.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.05)),
+                  : colors.textPrimary.withValues(alpha: 0.05)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,8 +372,8 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                               fontSize: 11,
                               fontWeight: FontWeight.w700)),
                       Text(step.title,
-                          style: const TextStyle(
-                              color: const Color(0xFF19312C),
+                          style: TextStyle(
+                              color: colors.textPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w800)),
                     ],
@@ -384,7 +391,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               const SizedBox(height: 8),
               Text(step.description,
                   style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.4), fontSize: 11),
+                      color: colors.textPrimary.withValues(alpha: 0.4), fontSize: 11),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis),
             ],
@@ -392,7 +399,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               const SizedBox(height: 12),
               Text(step.description,
                   style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                      color: colors.textPrimary.withValues(alpha: 0.6),
                       fontSize: 12,
                       height: 1.5)),
               const SizedBox(height: 14),
@@ -412,7 +419,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                         Expanded(
                             child: Text(d,
                                 style: TextStyle(
-                                    color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                                    color: colors.textPrimary.withValues(alpha: 0.5),
                                     fontSize: 12,
                                     height: 1.4))),
                       ],
@@ -442,14 +449,14 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                       const SizedBox(height: 6),
                       Text(step.duaTransliteration,
                           style: TextStyle(
-                              color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                              color: colors.textPrimary.withValues(alpha: 0.4),
                               fontSize: 10,
                               fontStyle: FontStyle.italic),
                           textAlign: TextAlign.center),
                       const SizedBox(height: 4),
                       Text(step.duaTranslation,
                           style: TextStyle(
-                              color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                              color: colors.textPrimary.withValues(alpha: 0.5),
                               fontSize: 11),
                           textAlign: TextAlign.center),
                     ],
@@ -464,6 +471,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   Widget _buildTipsGrid() {
+    final colors = QibraColors.of(context);
     return Wrap(
       spacing: 10,
       runSpacing: 10,
@@ -472,9 +480,9 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
           width: (MediaQuery.of(context).size.width - 50) / 2,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF141926),
+            color: colors.card,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+            border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,13 +490,13 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               Text(tip.emoji, style: const TextStyle(fontSize: 20)),
               const SizedBox(height: 8),
               Text(tip.title,
-                  style: const TextStyle(
-                      color: const Color(0xFF19312C),
+                  style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.w700)),
               Text(tip.subtitle,
                   style: TextStyle(
-                      color: const Color(0xFF19312C).withValues(alpha: 0.35),
+                      color: colors.textPrimary.withValues(alpha: 0.35),
                       fontSize: 10),
                   maxLines: 2),
             ],
@@ -499,24 +507,25 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   Widget _buildIslamicNote() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+        color: colors.cardMuted.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFF2F6B5D).withValues(alpha: 0.15)),
+            Border.all(color: colors.primarySoft.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Text('📖', style: TextStyle(fontSize: 14)),
               SizedBox(width: 8),
               Text('Hadith',
                   style: TextStyle(
-                      color: Color(0xFF2F6B5D),
+                      color: colors.primarySoft,
                       fontSize: 12,
                       fontWeight: FontWeight.w700)),
             ],
@@ -525,7 +534,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
           Text(
             '"Umrah to Umrah is an expiation for the sins committed between them." — Bukhari & Muslim',
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                color: colors.textPrimary.withValues(alpha: 0.6),
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
                 height: 1.5),

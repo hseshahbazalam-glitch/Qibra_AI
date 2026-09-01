@@ -7,9 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/app_strings.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_provider.dart' hide readingProgressProvider;
+import '../providers/reading_preferences_provider.dart';
 
 class SurahReaderScreen extends ConsumerStatefulWidget {
   final int surahNumber;
@@ -34,9 +36,20 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   int _playingAyah = 1;
   final Set<int> _bookmarkedAyahs = {};
 
+  String? _bundledTranslation(AyahModel ayah, ReadingPreferences prefs) {
+    final id = prefs.translationId.toLowerCase();
+    if (id.startsWith('ur')) {
+      final urdu = ayah.translationUrdu?.trim();
+      return (urdu == null || urdu.isEmpty) ? null : urdu;
+    }
+    final english = ayah.translation?.trim();
+    return (english == null || english.isEmpty) ? null : english;
+  }
+
   @override
   Widget build(BuildContext context) {
     final surahAsync = ref.watch(surahDetailProvider(widget.surahNumber));
+    final prefs = ref.watch(readingPreferencesProvider);
 
     return Scaffold(
       backgroundColor:
@@ -81,14 +94,15 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                     }
                     final int ayahIndex = index - 1 - bismillahOffset;
                     if (ayahIndex >= 0 && ayahIndex < surah.ayahs.length) {
-                      return _buildAyahCard(surah.ayahs[ayahIndex], surah);
+                      return _buildAyahCard(
+                          surah.ayahs[ayahIndex], surah, prefs);
                     }
                     if (ayahIndex == surah.ayahs.length) {
                       return Column(
                         children: [
                           const SizedBox(height: 16),
                           _buildMultiTranslationComparisonCard(
-                              surah.ayahs.first),
+                              surah.ayahs.first, prefs),
                         ],
                       );
                     }
@@ -184,6 +198,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   }
 
   Widget _buildControlPillsBar() {
+    final prefs = ref.watch(readingPreferencesProvider);
     return Container(
       color: const Color(0xFF061A13),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -292,9 +307,16 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
     );
   }
 
-  Widget _buildAyahCard(AyahModel ayah, SurahModel surah) {
-    final isBookmarked = _bookmarkedAyahs.contains(ayah.number);
-    final isPlayingThis = _isPlayingAudio && _playingAyah == ayah.number;
+  Widget _buildAyahCard(
+    AyahModel ayah,
+    SurahModel surah,
+    ReadingPreferences prefs,
+  ) {
+    final bookmarked = ref.watch(
+      isBookmarkedProvider((surah: surah.number, ayah: ayah.number)),
+    );
+    final isBookmarked = bookmarked;
+    final isPlayingThis = false;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -331,10 +353,13 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               ),
               const SizedBox(width: 8),
               InkWell(
-                onTap: () => setState(() {
-                  _isPlayingAudio = true;
-                  _playingAyah = ayah.number;
-                }),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(AppStrings.of(context).recitationNotBundled),
+                    ),
+                  );
+                },
                 child: const Icon(Icons.play_circle_fill_rounded,
                     color: Color(0xFF123F36), size: 22),
               ),
@@ -344,13 +369,17 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                       color: Color(0xFF71807A), size: 18),
                   onPressed: () {}),
               InkWell(
-                onTap: () => setState(() {
-                  if (isBookmarked) {
-                    _bookmarkedAyahs.remove(ayah.number);
-                  } else {
-                    _bookmarkedAyahs.add(ayah.number);
-                  }
-                }),
+                onTap: () {
+                  ref.read(bookmarksProvider.notifier).toggleBookmark(
+                        BookmarkModel(
+                          surahNumber: surah.number,
+                          ayahNumber: ayah.number,
+                          surahName: surah.name,
+                          ayahText: ayah.text,
+                          bookmarkedAt: DateTime.now(),
+                        ),
+                      );
+                },
                 child: Icon(
                     isBookmarked
                         ? Icons.bookmark_rounded
@@ -396,7 +425,13 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
     );
   }
 
-  Widget _buildMultiTranslationComparisonCard(AyahModel ayah) {
+  Widget _buildMultiTranslationComparisonCard(
+    AyahModel ayah,
+    ReadingPreferences prefs,
+  ) {
+    final english = ayah.translation?.trim();
+    final urdu = ayah.translationUrdu?.trim();
+    final strings = AppStrings.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -408,32 +443,15 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.language_rounded,
-                      color: Color(0xFF123F36), size: 16),
-                  SizedBox(width: 6),
-                  Text('Translation Languages (3)',
-                      style: TextStyle(
-                          color: const Color(0xFF19312C),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold)),
-                ],
-              ),
-              Row(
-                children: [
-                  _langChip('English', true),
-                  const SizedBox(width: 4),
-                  _langChip('हिन्दी', false),
-                  const SizedBox(width: 4),
-                  _langChip('اردو', false),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.add_circle_outline_rounded,
-                      color: Color(0xFF123F36), size: 16),
-                ],
-              ),
+              const Icon(Icons.language_rounded,
+                  color: Color(0xFF123F36), size: 16),
+              const SizedBox(width: 6),
+              const Text('Bundled translations',
+                  style: TextStyle(
+                      color: Color(0xFF19312C),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 12),
@@ -443,22 +461,17 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               Expanded(
                   child: _buildTranslationColumn(
                       lang: 'English',
-                      text:
-                          'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
-                      isRtl: false)),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: _buildTranslationColumn(
-                      lang: 'हिन्दी',
-                      text:
-                          'अल्लाह के नाम से जो बहुत मेहरबान, निहायत रहम वाला है।',
+                      text: (english != null && english.isNotEmpty)
+                          ? english
+                          : strings.translationUnavailable,
                       isRtl: false)),
               const SizedBox(width: 8),
               Expanded(
                   child: _buildTranslationColumn(
                       lang: 'اردو',
-                      text:
-                          'اللہ کے نام سے جو بڑا مہربان انتہائی رحم فرمانے والا ہے۔',
+                      text: (urdu != null && urdu.isNotEmpty)
+                          ? urdu
+                          : strings.translationUnavailable,
                       isRtl: true)),
             ],
           ),
@@ -549,7 +562,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Mishary Rashid Alafasy',
+                    const Text('Recitation not bundled',
                         style: TextStyle(
                             color: const Color(0xFF19312C),
                             fontSize: 11,
@@ -565,18 +578,21 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                       color: const Color(0xFF19312C), size: 20),
                   onPressed: () {}),
               InkWell(
-                onTap: () => setState(() => _isPlayingAudio = !_isPlayingAudio),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content:
+                          Text(AppStrings.of(context).recitationNotBundled),
+                    ),
+                  );
+                },
                 child: Container(
                   width: 32,
                   height: 32,
                   decoration: const BoxDecoration(
                       color: Color(0xFF123F36), shape: BoxShape.circle),
-                  child: Icon(
-                      _isPlayingAudio
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
-                      color: Colors.black,
-                      size: 20),
+                  child: const Icon(Icons.play_arrow_rounded,
+                      color: Colors.black, size: 20),
                 ),
               ),
               IconButton(
@@ -653,38 +669,54 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Translation Settings',
-                  style: TextStyle(
-                      color: const Color(0xFF19312C),
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              AppSwitchListTile(
-                title: const Text('Show Translation',
-                    style: TextStyle(color: const Color(0xFF19312C), fontSize: 13)),
-                subtitle: const Text('Display translation below Arabic',
-                    style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
-                value: true,
-                activeColor: const Color(0xFF123F36),
-                onChanged: (val) {},
+        return Consumer(
+          builder: (context, ref, _) {
+            final prefs = ref.watch(readingPreferencesProvider);
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Reading settings',
+                      style: TextStyle(
+                          color: Color(0xFF19312C),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  AppSwitchListTile(
+                    title: const Text('Show Translation',
+                        style:
+                            TextStyle(color: Color(0xFF19312C), fontSize: 13)),
+                    subtitle: const Text('Display bundled translation below Arabic',
+                        style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
+                    value: prefs.showTranslation,
+                    activeColor: const Color(0xFF123F36),
+                    onChanged: (val) {
+                      ref
+                          .read(readingPreferencesProvider.notifier)
+                          .setShowTranslation(val);
+                    },
+                  ),
+                  AppSwitchListTile(
+                    title: const Text('Show transliteration',
+                        style:
+                            TextStyle(color: Color(0xFF19312C), fontSize: 13)),
+                    subtitle: const Text(
+                        'Only when a bundled roman edition exists',
+                        style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
+                    value: prefs.showTransliteration,
+                    activeColor: const Color(0xFF123F36),
+                    onChanged: (val) {
+                      ref
+                          .read(readingPreferencesProvider.notifier)
+                          .setShowTransliteration(val);
+                    },
+                  ),
+                ],
               ),
-              AppSwitchListTile(
-                title: const Text('Auto Scroll',
-                    style: TextStyle(color: const Color(0xFF19312C), fontSize: 13)),
-                subtitle: const Text('Scroll to next ayah automatically',
-                    style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
-                value: false,
-                activeColor: const Color(0xFF123F36),
-                onChanged: (val) {},
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

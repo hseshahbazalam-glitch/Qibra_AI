@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/location/location_resolver.dart';
 
 /// Centralized Kaaba coordinates — single authoritative source
 /// AppConstants.kaabatullah 21.3891,39.8579 is the precise Kaaba (Masjid al-Haram) reference.
@@ -145,8 +146,12 @@ class QiblaService {
           _declinationNote(declination, position.latitude, position.longitude);
 
       // Get city name from coordinates (offline lookup)
-      final locationInfo =
-          _getLocationInfo(position.latitude, position.longitude);
+      final resolved =
+          LocationResolver.fromCoordinates(position.latitude, position.longitude);
+      final locationInfo = {
+        'city': resolved.city ?? 'UNKNOWN',
+        'country': resolved.country ?? 'UNKNOWN',
+      };
 
       // Save to cache
       await _saveToCache(
@@ -414,23 +419,14 @@ class QiblaService {
       }
     } catch (_) {}
 
-    // SAHI — Dynamic calculate karo:
-    const double defaultLat = 24.8607;
-    const double defaultLng = 67.0011;
-
-    return QiblaResult(
-      qiblaAngle: _calculateQiblaAngle(defaultLat, defaultLng),
-      latitude: defaultLat,
-      longitude: defaultLng,
-      distanceToMakkah: _calculateDistance(
-        defaultLat,
-        defaultLng,
-        _makkahLat,
-        _makkahLng,
-      ),
-      locationName: 'Default (Karachi)',
-      city: 'Karachi',
-      country: 'Pakistan',
+    return const QiblaResult(
+      qiblaAngle: 0,
+      latitude: 0,
+      longitude: 0,
+      distanceToMakkah: 0,
+      locationName: 'UNKNOWN',
+      city: 'UNKNOWN',
+      country: 'UNKNOWN',
       isFromCache: true,
     );
   }

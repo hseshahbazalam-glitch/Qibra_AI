@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/location/location_resolver.dart';
 import '../data/models/prayer_models.dart';
 import '../data/services/prayer_calculation_service.dart';
 
@@ -26,7 +27,17 @@ final prayerCalculationServiceProvider = Provider<PrayerCalculationService>(
 // SECTION 3 — LOCATION STATE
 // ============================================================
 
-enum LocationStatus { initial, loading, success, denied, disabled, error }
+enum LocationStatus {
+  initial,
+  loading,
+  success,
+  denied,
+  deniedForever,
+  disabled,
+  timeout,
+  unavailable,
+  error,
+}
 
 class LocationState {
   const LocationState({
@@ -44,7 +55,10 @@ class LocationState {
   bool get hasError =>
       status == LocationStatus.error ||
       status == LocationStatus.denied ||
-      status == LocationStatus.disabled;
+      status == LocationStatus.deniedForever ||
+      status == LocationStatus.disabled ||
+      status == LocationStatus.timeout ||
+      status == LocationStatus.unavailable;
 
   LocationState copyWith({
     LocationStatus? status,
@@ -146,32 +160,30 @@ class LocationNotifier extends StateNotifier<LocationState> {
 
       if (permission == LocationPermission.deniedForever) {
         state = state.copyWith(
-          status: LocationStatus.denied,
+          status: LocationStatus.deniedForever,
           error:
               'Location permission permanently denied. Enable from settings.',
         );
         return;
       }
 
-      debugPrint('[LOCATION] Getting current position...');
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 20),
       );
 
-      debugPrint(
-        '[LOCATION] Position: ${position.latitude}, ${position.longitude}',
+      final resolved = LocationResolver.fromCoordinates(
+        position.latitude,
+        position.longitude,
       );
-
-      const cityName = 'My Location';
-      const countryName = 'Auto-detected';
 
       final location = PrayerLocation(
         latitude: position.latitude,
         longitude: position.longitude,
-        city: cityName,
-        country: countryName,
-        countryCode: null,
+        city: resolved.city ?? 'UNKNOWN',
+        country: resolved.country ?? 'UNKNOWN',
+        countryCode: resolved.countryCode,
+        timezone: resolved.timezone,
         isManuallySet: false,
       );
 
@@ -181,11 +193,15 @@ class LocationNotifier extends StateNotifier<LocationState> {
       );
 
       await _cacheLocation(location);
-    } catch (e) {
-      debugPrint('[LOCATION] Error: $e');
+    } on TimeoutException {
+      state = state.copyWith(
+        status: LocationStatus.timeout,
+        error: 'Location timed out. You can set a city manually.',
+      );
+    } catch (_) {
       state = state.copyWith(
         status: LocationStatus.error,
-        error: 'Failed to get location. Check GPS and internet.',
+        error: 'Location unavailable. You can set a city manually.',
       );
     }
   }
@@ -797,6 +813,8 @@ Future<void> _scheduleAllAzanNotifications(
       isha: times.isha.time,
       prePrayerAlert: settings.enablePreReminder,
       preMinutes: settings.preReminderMinutes,
+      timezone: times.location.timezone ?? 'UNKNOWN',
+      locationKey: (times.location.city.isEmpty) ? 'UNKNOWN' : times.location.city,
     );
 
     debugPrint('✅ All prayer notifications scheduled');

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/l10n/app_strings.dart';
 
 class NavBarItem {
   final IconData icon;
@@ -83,33 +84,38 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
     final color = isActive ? colors.primary : colors.textTertiary;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isActive ? item.activeIcon : item.icon,
-              color: color,
-              size: compact ? 18 : 22,
-            ),
-            SizedBox(height: compact ? 2 : 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                item.label,
-                maxLines: 1,
-                softWrap: false,
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: color,
-                  fontSize: compact ? 9 : 11,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+    return Semantics(
+      button: true,
+      selected: isActive,
+      label: item.label,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isActive ? item.activeIcon : item.icon,
+                color: color,
+                size: compact ? 18 : 22,
+              ),
+              SizedBox(height: compact ? 2 : 4),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  item.label,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: color,
+                    fontSize: compact ? 9 : 11,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -186,42 +192,43 @@ class AppShellScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final strings = AppStrings.of(context);
     return Scaffold(
       backgroundColor: colors.background,
       body: child,
       bottomNavigationBar: AppBottomNav(
         activeIndex: _getActiveIndex(),
         onTap: _handleTap,
-        items: const [
+        items: [
           NavBarItem(
             icon: Icons.home_outlined,
             activeIcon: Icons.home_rounded,
-            label: 'Home',
+            label: strings.navHome,
           ),
           NavBarItem(
             icon: Icons.menu_book_outlined,
             activeIcon: Icons.menu_book_rounded,
-            label: 'Quran',
+            label: strings.navQuran,
           ),
           NavBarItem(
             icon: Icons.access_time_outlined,
             activeIcon: Icons.access_time_filled_rounded,
-            label: 'Prayer',
+            label: strings.navPrayer,
           ),
           NavBarItem(
             icon: Icons.library_books_outlined,
             activeIcon: Icons.library_books_rounded,
-            label: 'Hadith',
+            label: strings.navHadith,
           ),
           NavBarItem(
             icon: Icons.auto_awesome_outlined,
             activeIcon: Icons.auto_awesome_rounded,
-            label: 'AI',
+            label: strings.navAi,
           ),
           NavBarItem(
             icon: Icons.grid_view_outlined,
             activeIcon: Icons.grid_view_rounded,
-            label: 'More',
+            label: strings.navMore,
           ),
         ],
       ),

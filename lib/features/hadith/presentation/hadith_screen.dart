@@ -6,8 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/media/pattern_backdrop.dart';
+import '../../../shared/widgets/media/safe_image.dart';
+import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
@@ -43,28 +47,24 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     );
     final books = ref.watch(hadithBooksProvider);
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: ListView(
+    return QibraPage(
+      title: 'Hadith',
+      subtitle: 'The sayings of the Prophet ﷺ',
+      actions: [
+        QibraIconButton(
+          icon: Icons.search_rounded,
+          tooltip: 'Search',
+          onTap: () => _showSearchSheet(context),
+        ),
+        QibraIconButton(
+          icon: Icons.bookmark_border_rounded,
+          tooltip: 'Bookmarks',
+          onTap: () => context.go(AppRoutes.bookmarks),
+        ),
+      ],
+      child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            QibraScreenHeader(
-              title: 'Hadith',
-              subtitle: 'The sayings of the Prophet ﷺ',
-              actions: [
-                QibraIconButton(
-                  icon: Icons.search_rounded,
-                  tooltip: 'Search',
-                  onTap: () => _showSearchSheet(context),
-                ),
-                QibraIconButton(
-                  icon: Icons.bookmark_border_rounded,
-                  tooltip: 'Bookmarks',
-                  onTap: () => context.go(AppRoutes.bookmarks),
-                ),
-              ],
-            ),
             daily.when(
               data: (hadith) => _TodaysHadithCard(
                 hadith: hadith,
@@ -80,12 +80,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                   _copyHadith(context, hadith);
                 },
               ),
-              loading: () => const QibraCard(
-                child: SizedBox(
-                  height: 120,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              ),
+              loading: () => QibraStatus.skeleton(height: 140),
               error: (_, __) => const QibraEmptyState(
                 icon: Icons.menu_book_outlined,
                 title: 'Today\'s hadith is unavailable',
@@ -117,49 +112,53 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         )
                         .toList()
                     : bookList;
-                return SizedBox(
-                  height: 118,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: source.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
-                    itemBuilder: (context, index) {
-                      final book = source[index];
-                      return SizedBox(
-                        width: 160,
-                        child: QibraCard(
-                          padding: const EdgeInsets.all(14),
-                          onTap: () => _openBook(context, book.slug),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                book.name,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.titleSmall.copyWith(
-                                  color: colors.textPrimary,
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                book.totalHadiths > 0
-                                    ? '${book.totalHadiths} hadiths'
-                                    : book.author,
-                                style: AppTextStyles.labelSmall.copyWith(
-                                  color: colors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: source.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.55,
                   ),
+                  itemBuilder: (context, index) {
+                    final book = source[index];
+                    final author = book.author.isEmpty ? '—' : book.author;
+                    return QibraCard(
+                      padding: const EdgeInsets.all(14),
+                      onTap: () => _openBook(context, book.slug),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            book.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.titleSmall.copyWith(
+                              color: colors.textPrimary,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            book.totalHadiths > 0
+                                ? '${book.totalHadiths} hadiths'
+                                : author,
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: colors.goldText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
-              loading: () => const LinearProgressIndicator(minHeight: 2),
-              error: (_, __) => const SizedBox.shrink(),
+              loading: () => QibraStatus.skeleton(height: 160),
+              error: (_, __) => QibraStatus.error(
+                title: 'Collections unavailable',
+                message: 'Cached books will appear when they finish loading.',
+              ),
             ),
             const SizedBox(height: 20),
             SingleChildScrollView(
@@ -215,7 +214,6 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -224,7 +222,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     final info = db.getBookInfo(slug);
     final config = _collections.firstWhere(
       (c) => c['slug'] == slug,
-      orElse: () => {'name': 'Hadith Collection', 'author': 'Islamic Scholar'},
+      orElse: () => {'name': 'Hadith Collection', 'author': '—'},
     );
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -234,11 +232,13 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             slug: slug,
             name: info?.name ?? config['name']!,
             nameArabic: '',
-            author: config['author'] ?? 'Islamic Scholar',
+            author: (config['author'] == null || config['author']!.isEmpty)
+                ? '—'
+                : config['author']!,
             authorArabic: '',
             totalHadiths: info?.totalHadiths ?? 0,
             totalChapters: info?.sections.length ?? 0,
-            description: 'Authentic Hadith collection',
+            description: '',
             color: QibraColors.of(context).primary,
           ),
         ),
@@ -301,6 +301,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                           ),
                         ),
                         IconButton(
+                          tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark',
                           icon: Icon(
                             bookmarked
                                 ? Icons.bookmark_rounded
@@ -314,6 +315,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                           },
                         ),
                         IconButton(
+                          tooltip: 'Copy',
                           icon: Icon(Icons.copy_outlined, color: colors.primary),
                           onPressed: () => _copyHadith(context, hadith),
                         ),
@@ -479,7 +481,8 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
-        return SafeArea(
+        return PatternBackdrop(
+          child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(8, 16, 8, 24),
             shrinkWrap: true,
@@ -505,6 +508,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                 ),
             ],
           ),
+        ),
         );
       },
     );
@@ -534,11 +538,24 @@ class _TodaysHadithCard extends ConsumerWidget {
       );
     }
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith!.id));
+    final lang = ref.watch(hadithLanguageProvider);
+    final translation = hadithTextForLanguage(hadith!, lang);
     return QibraCard(
       accentBorder: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(
+            height: 88,
+            width: double.infinity,
+            child: SafeImage(
+              assetPath: AppAssets.hadithArt,
+              height: 88,
+              fit: BoxFit.cover,
+              fallback: SafeImageFallback.mosque,
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
             'Today\'s hadith',
             style: AppTextStyles.labelMedium.copyWith(
@@ -558,10 +575,11 @@ class _TodaysHadithCard extends ConsumerWidget {
               ),
             ),
           ],
-          if (hadith!.hasEnglish) ...[
+          if (lang != 'ar') ...[
             const SizedBox(height: 10),
             Text(
-              hadith!.textEnglish,
+              translation ??
+                  'Verified translation unavailable for this language.',
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodyMedium.copyWith(
@@ -614,6 +632,8 @@ class _HadithTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
+    final lang = ref.watch(hadithLanguageProvider);
+    final translation = hadithTextForLanguage(hadith, lang);
     return QibraCard(
       padding: const EdgeInsets.all(16),
       onTap: onTap,

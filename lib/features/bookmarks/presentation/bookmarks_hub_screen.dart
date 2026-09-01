@@ -63,6 +63,7 @@ class _BookmarksHubScreenState extends ConsumerState<BookmarksHubScreen>
         backgroundColor: colors.background,
         title: const Text('Bookmarks'),
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
             if (context.canPop()) {

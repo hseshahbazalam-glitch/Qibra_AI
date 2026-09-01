@@ -7,8 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:hijri/hijri_calendar.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../shared/widgets/media/pattern_backdrop.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/prayer_models.dart';
 import '../providers/prayer_provider.dart';
@@ -20,16 +22,29 @@ class PrayerTimesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final nextPrayer = ref.watch(nextPrayerProvider);
+    final currentPrayer = ref.watch(currentPrayerProvider);
     final dailyTimes = ref.watch(dailyPrayerTimesProvider);
     final location = ref.watch(locationProvider);
     final settings = ref.watch(prayerSettingsProvider);
     final records = ref.watch(prayerRecordsProvider);
     final hijri = HijriCalendar.now();
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: RefreshIndicator(
+    return QibraPage(
+      title: 'Prayer',
+      subtitle: '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH',
+      actions: [
+        QibraIconButton(
+          icon: Icons.notifications_none_rounded,
+          tooltip: 'Notifications',
+          onTap: () => context.push('/settings/notifications'),
+        ),
+        QibraIconButton(
+          icon: Icons.explore_outlined,
+          tooltip: 'Qibla',
+          onTap: () => context.go(AppRoutes.qibla),
+        ),
+      ],
+      child: RefreshIndicator(
           color: colors.primary,
           onRefresh: () async {
             await ref.read(locationProvider.notifier).fetchCurrentLocation();
@@ -37,25 +52,8 @@ class PrayerTimesScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
-              QibraScreenHeader(
-                title: 'Prayer',
-                subtitle:
-                    '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH',
-                actions: [
-                  QibraIconButton(
-                    icon: Icons.notifications_none_rounded,
-                    tooltip: 'Notifications',
-                    onTap: () => context.push('/settings/notifications'),
-                  ),
-                  QibraIconButton(
-                    icon: Icons.explore_outlined,
-                    tooltip: 'Qibla',
-                    onTap: () => context.go(AppRoutes.qibla),
-                  ),
-                ],
-              ),
-              QibraCard(
-                filled: true,
+              QibraHeroCard(
+                backgroundAsset: AppAssets.prayerArt,
                 child: nextPrayer == null
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,14 +61,14 @@ class PrayerTimesScreen extends ConsumerWidget {
                           Text(
                             'Next prayer',
                             style: AppTextStyles.labelMedium.copyWith(
-                              color: colors.onPrimary.withValues(alpha: 0.75),
+                              color: colors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             '—',
                             style: AppTextStyles.displaySmall.copyWith(
-                              color: colors.onPrimary,
+                              color: colors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -79,7 +77,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                                 ? 'Times will appear once they can be calculated.'
                                 : 'Enable location to calculate prayer times.',
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: colors.onPrimary.withValues(alpha: 0.8),
+                              color: colors.textSecondary,
                             ),
                           ),
                           if (!location.hasLocation) ...[
@@ -101,20 +99,20 @@ class PrayerTimesScreen extends ConsumerWidget {
                           Text(
                             'Next prayer',
                             style: AppTextStyles.labelMedium.copyWith(
-                              color: colors.onPrimary.withValues(alpha: 0.75),
+                              color: colors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             nextPrayer.prayer.type.name,
                             style: AppTextStyles.displaySmall.copyWith(
-                              color: colors.onPrimary,
+                              color: colors.textPrimary,
                             ),
                           ),
                           Text(
                             nextPrayer.prayer.type.arabicName,
                             style: AppArabicStyles.quranMedium.copyWith(
-                              color: colors.onPrimary,
+                              color: colors.goldText,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -123,14 +121,14 @@ class PrayerTimesScreen extends ConsumerWidget {
                               Text(
                                 nextPrayer.prayer.formattedTime,
                                 style: AppTextStyles.titleLarge.copyWith(
-                                  color: colors.onPrimary,
+                                  color: colors.textPrimary,
                                 ),
                               ),
                               const Spacer(),
                               Text(
                                 nextPrayer.formattedCountdown,
                                 style: AppTextStyles.titleMedium.copyWith(
-                                  color: colors.onPrimary,
+                                  color: colors.primary,
                                 ),
                               ),
                             ],
@@ -146,7 +144,15 @@ class PrayerTimesScreen extends ConsumerWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        location.location?.displayName ?? 'Location not set',
+                        () {
+                          final loc = location.location;
+                          if (loc == null) return 'Location not set';
+                          if (loc.city == 'UNKNOWN' ||
+                              loc.country == 'UNKNOWN') {
+                            return 'UNKNOWN';
+                          }
+                          return loc.displayName;
+                        }(),
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: colors.textPrimary,
                         ),
@@ -181,10 +187,11 @@ class PrayerTimesScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       for (final prayer in dailyTimes.prayers)
-                        if (prayer.type.isObligatory || settings.showSunrise)
+                        if (prayer.type.isObligatory)
                           _PrayerRow(
                             prayer: prayer,
                             isNext: nextPrayer?.prayer.type == prayer.type,
+                            isCurrent: currentPrayer?.type == prayer.type,
                             record: _recordFor(records, prayer.type),
                             onToggle: () => _togglePrayer(ref, prayer.type),
                           ),
@@ -230,6 +237,11 @@ class PrayerTimesScreen extends ConsumerWidget {
                       onTap: () => context.push(AppRoutes.prayerSchedule),
                     ),
                     QibraSoftButton(
+                      label: 'Statistics',
+                      icon: Icons.bar_chart_rounded,
+                      onTap: () => context.push(AppRoutes.prayerStatistics),
+                    ),
+                    QibraSoftButton(
                       label: 'Tahajjud',
                       icon: Icons.nights_stay_outlined,
                       onTap: () => context.push(AppRoutes.tahajjud),
@@ -240,7 +252,6 @@ class PrayerTimesScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -282,7 +293,8 @@ class PrayerTimesScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
-        return SafeArea(
+        return PatternBackdrop(
+          child: SafeArea(
           child: ListView(
             shrinkWrap: true,
             padding: const EdgeInsets.fromLTRB(8, 16, 8, 24),
@@ -325,6 +337,7 @@ class PrayerTimesScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
         );
       },
     );
@@ -335,12 +348,14 @@ class _PrayerRow extends StatelessWidget {
   const _PrayerRow({
     required this.prayer,
     required this.isNext,
+    this.isCurrent = false,
     required this.record,
     required this.onToggle,
   });
 
   final PrayerTime prayer;
   final bool isNext;
+  final bool isCurrent;
   final PrayerRecord? record;
   final VoidCallback onToggle;
 

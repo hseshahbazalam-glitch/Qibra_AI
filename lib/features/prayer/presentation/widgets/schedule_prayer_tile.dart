@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -31,6 +31,7 @@ class SchedulePrayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(
@@ -38,12 +39,12 @@ class SchedulePrayerTile extends StatelessWidget {
         vertical: 12,
       ),
       decoration: BoxDecoration(
-        color: isNext ? iconColor.withValues(alpha: 0.1) : AppColors.surface,
+        color: isNext ? iconColor.withValues(alpha: 0.1) : colors.surface,
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
           color: isNext
               ? iconColor.withValues(alpha: 0.5)
-              : AppColors.borderSubtle,
+              : colors.border,
           width: isNext ? 1.5 : 1,
         ),
       ),
@@ -51,8 +52,8 @@ class SchedulePrayerTile extends StatelessWidget {
         children: [
           // Icon circle
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
@@ -74,7 +75,7 @@ class SchedulePrayerTile extends StatelessWidget {
                     Text(
                       name,
                       style: AppTextStyles.titleSmall.copyWith(
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w800,
                         fontSize: 16,
                       ),
@@ -106,10 +107,10 @@ class SchedulePrayerTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   nameArabic,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Amiri',
                     fontSize: 13,
-                    color: Color(0xFFC6A15B),
+                    color: colors.goldText,
                     fontWeight: FontWeight.w600,
                   ),
                   textDirection: TextDirection.rtl,
@@ -122,7 +123,7 @@ class SchedulePrayerTile extends StatelessWidget {
           Text(
             time,
             style: AppTextStyles.titleSmall.copyWith(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontWeight: FontWeight.w800,
               fontSize: 15,
             ),
@@ -142,19 +143,19 @@ class SchedulePrayerTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: notificationEnabled
                     ? iconColor.withValues(alpha: 0.15)
-                    : AppColors.surface,
+                    : colors.surface,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: notificationEnabled
                       ? iconColor.withValues(alpha: 0.3)
-                      : AppColors.borderSubtle,
+                      : colors.border,
                 ),
               ),
               child: Icon(
                 notificationEnabled
                     ? Icons.notifications_active_rounded
                     : Icons.notifications_off_outlined,
-                color: notificationEnabled ? iconColor : AppColors.textTertiary,
+                color: notificationEnabled ? iconColor : colors.textTertiary,
                 size: 16,
               ),
             ),

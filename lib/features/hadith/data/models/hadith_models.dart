@@ -26,7 +26,7 @@ import 'package:flutter/material.dart';
 // ============================================================
 
 enum HadithGrade {
-  sahih('Sahih', 'صحيح', 'Authentic', Color(0xFF123F36)),
+  sahih('Sahih', 'صحيح', 'Sahih (collection grade, not independently verified)', Color(0xFF123F36)),
   hasan('Hasan', 'حسن', 'Good', Color(0xFF2F6B5D)),
   daif('Daif', 'ضعيف', 'Weak', Color(0xFFC6A15B)),
   mawdu('Mawdu', 'موضوع', 'Fabricated', Color(0xFFB42318)),

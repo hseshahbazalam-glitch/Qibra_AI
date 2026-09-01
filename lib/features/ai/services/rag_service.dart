@@ -1,19 +1,30 @@
-import 'package:flutter/foundation.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
+
+enum RetrievalMode { localRetrieval, remoteRetrieval, noContext }
 
 class RetrievedPassage {
   final String source;
   final String text;
   final double relevance;
   final String collection;
+  final String? edition;
+  final String? translator;
+  final String verificationStatus;
+  final String? reference;
 
   const RetrievedPassage({
     required this.source,
     required this.text,
     required this.relevance,
     required this.collection,
+    this.edition,
+    this.translator,
+    this.verificationStatus = 'UNKNOWN',
+    this.reference,
   });
+
+  bool get productionRagEligible => verificationStatus == 'VERIFIED';
 }
 
 class RagService {
@@ -28,7 +39,15 @@ class RagService {
     _hadithDb = db;
   }
 
-  /// Retrieves verified local Quran and Hadith passages for a query.
+  static RetrievalMode modeFor(
+    Iterable<RetrievedPassage> passages, {
+    bool remote = false,
+  }) {
+    if (passages.isEmpty) return RetrievalMode.noContext;
+    return remote ? RetrievalMode.remoteRetrieval : RetrievalMode.localRetrieval;
+  }
+
+  /// Retrieves local Quran and Hadith passages for a query. Not independently verified.
   Future<List<RetrievedPassage>> retrieve(
     String query, {
     int topK = 3,
@@ -48,12 +67,14 @@ class RagService {
               text: '${result.ayahText} — ${result.translation ?? ''}'.trim(),
               relevance: 0.9,
               collection: 'quran',
+              verificationStatus: 'UNKNOWN',
+              reference: '${result.surahNumber}:${result.ayahNumber}',
             ),
           );
         }
       }
-    } catch (error) {
-      debugPrint('[RAG] Quran search error: $error');
+    } catch (_) {
+      // Do not log query, Quran text, or exception payloads.
     }
 
     try {
@@ -69,12 +90,14 @@ class RagService {
               text: result.hadith.textEnglish,
               relevance: result.relevance,
               collection: 'hadith',
+              verificationStatus: 'UNKNOWN',
+              reference: result.hadith.displayReference,
             ),
           );
         }
       }
-    } catch (error) {
-      debugPrint('[RAG] Hadith search error: $error');
+    } catch (_) {
+      // Do not log query, Hadith text, or exception payloads.
     }
 
     results.sort((a, b) => b.relevance.compareTo(a.relevance));
@@ -82,16 +105,18 @@ class RagService {
     return results.take(topK).toList();
   }
 
-  /// Builds verified source context for an AI request.
+  /// Builds retrieved-passage context for an AI request. Never invent citations.
   Future<String> buildContextForQuery(String query) async {
     final passages = await retrieve(query, topK: 3);
 
-    if (passages.isEmpty) return '';
+    if (passages.isEmpty) {
+      return 'REFUSE: no retrieved passage. Do not invent Quran or Hadith.';
+    }
 
     final buffer = StringBuffer();
 
     buffer.writeln(
-      'Verified Qibra sources for this question (use these first and cite them):',
+      'Retrieved local passages (not independently verified). Cite only these:',
     );
 
     for (var index = 0; index < passages.length; index++) {
@@ -103,8 +128,8 @@ class RagService {
     }
 
     buffer.writeln(
-      'If no relevant passage above exists, say: '
-      '"I could not find a verified source — please consult a qualified scholar."',
+      'If no relevant passage above exists, say you could not find a retrieved '
+      'passage and will not invent Quran or Hadith.',
     );
 
     return buffer.toString();

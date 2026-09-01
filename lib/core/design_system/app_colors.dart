@@ -270,17 +270,17 @@ abstract final class AppColors {
 // ============================================================
 
 abstract final class AppColorsDark {
-  static const Color background = Color(0xFF121916);
-  static const Color backgroundSecondary = Color(0xFF171F1B);
-  static const Color surface = Color(0xFF1C2621);
-  static const Color surfaceElevated = Color(0xFF222E28);
-  static const Color surfaceHigh = Color(0xFF28352E);
-  static const Color primary = Color(0xFF8FB8A8);
-  static const Color primaryDeep = Color(0xFF2F6B5D);
-  static const Color accent = Color(0xFFC6A15B);
-  static const Color textPrimary = Color(0xFFF5F3EC);
-  static const Color textSecondary = Color(0xFF9AA8A2);
-  static const Color textTertiary = Color(0xFF7A8882);
-  static const Color border = Color(0xFF2A332E);
-  static const Color navBackground = Color(0xFF171F1B);
+  static const Color background = Color(0xFF071512);
+  static const Color backgroundSecondary = Color(0xFF0B1D19);
+  static const Color surface = Color(0xFF102721);
+  static const Color surfaceElevated = Color(0xFF14332A);
+  static const Color surfaceHigh = Color(0xFF14332A);
+  static const Color primary = Color(0xFF2ED39A);
+  static const Color primaryDeep = Color(0xFF0F8F68);
+  static const Color accent = Color(0xFFD7AD5A);
+  static const Color textPrimary = Color(0xFFF4F7F4);
+  static const Color textSecondary = Color(0xFFA9B8B2);
+  static const Color textTertiary = Color(0xFF71817B);
+  static const Color border = Color(0xFF244139);
+  static const Color navBackground = Color(0xFF0B1D19);
 }

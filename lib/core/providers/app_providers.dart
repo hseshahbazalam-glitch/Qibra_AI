@@ -15,6 +15,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants/app_constants.dart';
+import '../offline/data_status.dart';
+import '../offline/reachability.dart';
+
 // ============================================================
 // SECTION 1: SHARED PREFERENCES PROVIDER
 // ============================================================
@@ -63,16 +67,29 @@ final connectivityProvider = StreamProvider<List<ConnectivityResult>>((ref) {
   return Connectivity().onConnectivityChanged;
 });
 
-/// Simple boolean provider — is internet available?
-final isOnlineProvider = Provider<bool>((ref) {
+final reachabilityProvider = Provider<ReachabilityState>((ref) {
   final connectivity = ref.watch(connectivityProvider);
   return connectivity.maybeWhen(
     data: (results) {
-      return results.any(
-        (result) => result != ConnectivityResult.none,
+      return ReachabilityMapper.fromConnectivityLabels(
+        results.map((r) => r.name),
       );
     },
-    orElse: () => true,
+    orElse: () => const ReachabilityState(Reachability.unknown),
+  );
+});
+
+/// Simple boolean provider — unknown is NOT online.
+final isOnlineProvider = Provider<bool>((ref) {
+  return ref.watch(reachabilityProvider).isOnline;
+});
+
+/// Transport online ≠ Qibra API healthy. Health is never assumed.
+final serviceAvailabilityProvider = Provider<ServiceAvailability>((ref) {
+  return ServiceAvailability(
+    reachability: ref.watch(reachabilityProvider),
+    backendEnabled: AppApi.isBackendEnabled,
+    backendHealthy: false,
   );
 });
 

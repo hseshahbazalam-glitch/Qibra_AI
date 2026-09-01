@@ -19,16 +19,12 @@ class MoreScreen extends ConsumerWidget {
     final name = ref.watch(userDisplayNameProvider);
     final user = ref.watch(currentUserProvider);
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      body: SafeArea(
-        child: ListView(
+    return QibraPage(
+      title: 'More',
+      subtitle: 'Tools, saved items, and account',
+      child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            QibraScreenHeader(
-              title: 'More',
-              subtitle: 'Tools, saved items, and account',
-            ),
             QibraCard(
               onTap: () => context.go(AppRoutes.profile),
               child: Row(
@@ -150,7 +146,6 @@ class MoreScreen extends ConsumerWidget {
               ],
             ),
           ],
-        ),
       ),
     );
   }

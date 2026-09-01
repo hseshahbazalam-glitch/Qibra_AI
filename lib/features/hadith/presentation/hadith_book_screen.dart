@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design_system/qibra_colors.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
 import '../data/models/hadith_models.dart';
 import '../providers/hadith_provider.dart';
@@ -117,8 +118,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       children: [
-                        const Icon(Icons.error_outline_rounded,
-                            color: Colors.redAccent, size: 48),
+                        Icon(Icons.error_outline_rounded,
+                            color: QibraColors.light.error, size: 48),
                         const SizedBox(height: 12),
                         const Text(
                           'Failed to load hadiths',
@@ -155,10 +156,15 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       backgroundColor: const Color(0xFFF5F3EC),
       pinned: true,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: const Color(0xFF19312C), size: 18),
-        onPressed: () => Navigator.of(context).pop(),
+      leading: SizedBox(
+        width: 48,
+        height: 48,
+        child: IconButton(
+          tooltip: 'Back',
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Color(0xFF19312C), size: 18),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       title: Text(
         widget.book.name,
@@ -171,6 +177,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       centerTitle: true,
       actions: [
         IconButton(
+          tooltip: 'Display languages',
           icon: const Icon(Icons.display_settings_rounded,
               color: Color(0xFFC6A15B), size: 20),
           onPressed: () => _showDisplaySettingsDialog(context),
@@ -244,8 +251,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       '${widget.book.totalChapters}', const Color(0xFFC6A15B)),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: _buildStatChip(Icons.verified_rounded, 'Grade',
-                        'Authentic', const Color(0xFF2F6B5D)),
+                    child: _buildStatChip(Icons.help_outline_rounded, 'Grade',
+                        'UNKNOWN', const Color(0xFF71807A)),
                   ),
                 ],
               ),

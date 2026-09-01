@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 
 class HajjGuideScreen extends StatefulWidget {
@@ -11,12 +12,12 @@ class HajjGuideScreen extends StatefulWidget {
 class _HajjGuideScreenState extends State<HajjGuideScreen> {
   int _expandedIndex = -1;
 
-  final List<_HajjDay> _hajjDays = const [
+  final List<_HajjDay> _hajjDays = [
     _HajjDay(
       day: '8th Dhul Hijjah',
       title: 'Yawm al-Tarwiyah',
       emoji: '🕋',
-      color: Color(0xFFC6A15B),
+      color: QibraColors.light.accent,
       steps: [
         _HajjStep(
           'Enter Ihram',
@@ -45,7 +46,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '9th Dhul Hijjah',
       title: 'Yawm al-Arafah',
       emoji: '⛰️',
-      color: Color(0xFF123F36),
+      color: QibraColors.light.primary,
       steps: [
         _HajjStep(
           'Go to Arafah',
@@ -74,7 +75,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '10th Dhul Hijjah',
       title: 'Yawm al-Nahr (Eid)',
       emoji: '🐑',
-      color: Color(0xFFEF4444),
+      color: QibraColors.light.error,
       steps: [
         _HajjStep(
           'Rami al-Jamarat',
@@ -117,7 +118,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       day: '11th-13th Dhul Hijjah',
       title: 'Ayyam al-Tashreeq',
       emoji: '🏕️',
-      color: Color(0xFFC6A15B),
+      color: QibraColors.light.accent,
       steps: [
         _HajjStep(
           'Stay in Mina',
@@ -161,8 +162,9 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -199,29 +201,31 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   SliverAppBar _buildAppBar() {
+    final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 130,
       pinned: true,
-      backgroundColor: const Color(0xFFF5F3EC),
+      backgroundColor: colors.background,
       leading: IconButton(
+        tooltip: 'Back',
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF19312C).withValues(alpha: 0.1),
+            color: colors.textPrimary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.arrow_back_rounded,
-              color: const Color(0xFF19312C), size: 20),
+          child: Icon(Icons.arrow_back_rounded,
+              color: colors.textPrimary, size: 20),
         ),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFFF8F1E3), Color(0xFFF5F3EC)],
+              colors: [Color(0xFFF8F1E3), colors.background],
             ),
           ),
           child: SafeArea(
@@ -230,19 +234,19 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('حَجّ',
+                  Text('حَجّ',
                       style: TextStyle(
-                          color: Color(0xFFC6A15B),
+                          color: colors.goldText,
                           fontSize: 26,
                           fontFamily: 'Amiri')),
-                  const Text('Hajj Guide',
+                  Text('Hajj Guide',
                       style: TextStyle(
-                          color: const Color(0xFF19312C),
+                          color: colors.textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.bold)),
                   Text('Complete Step-by-Step',
                       style: TextStyle(
-                          color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                          color: colors.textPrimary.withValues(alpha: 0.4),
                           fontSize: 12)),
                 ],
               ),
@@ -254,19 +258,20 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   Widget _buildOverviewCard() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-            colors: [Color(0xFFF8F1E3), Color(0xFF2B1F00)]),
+        gradient: LinearGradient(
+            colors: [colors.card, colors.backgroundSecondary]),
         borderRadius: BorderRadius.circular(20),
         border:
-            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.3)),
+            Border.all(color: colors.accent.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Text('🕋', style: TextStyle(fontSize: 28)),
               SizedBox(width: 12),
@@ -275,12 +280,12 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                 children: [
                   Text('The Fifth Pillar',
                       style: TextStyle(
-                          color: Color(0xFFC6A15B),
+                          color: colors.accent,
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
                   Text('of Islam',
                       style: TextStyle(
-                          color: const Color(0xFF19312C),
+                          color: colors.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.w900)),
                 ],
@@ -291,7 +296,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
           Text(
             'Hajj is obligatory once in a lifetime for every Muslim who is physically and financially able. It takes place during 8th-13th Dhul Hijjah.',
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                color: colors.textPrimary.withValues(alpha: 0.6),
                 fontSize: 12,
                 height: 1.5),
           ),
@@ -301,6 +306,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   Widget _buildPillarsCard() {
+    final colors = QibraColors.of(context);
     final pillars = [
       const _PillarItem('Ihram', '🧕', 'Enter sacred state'),
       const _PillarItem('Arafah', '⛰️', 'Standing at Arafah'),
@@ -315,23 +321,23 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
             margin: EdgeInsets.only(right: p == pillars.last ? 0 : 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF141926),
+              color: colors.card,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: const Color(0xFFC6A15B).withValues(alpha: 0.12)),
+                  color: colors.accent.withValues(alpha: 0.12)),
             ),
             child: Column(
               children: [
                 Text(p.emoji, style: const TextStyle(fontSize: 22)),
                 const SizedBox(height: 6),
                 Text(p.name,
-                    style: const TextStyle(
-                        color: const Color(0xFF19312C),
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 11,
                         fontWeight: FontWeight.w700)),
                 Text(p.desc,
                     style: TextStyle(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.35),
+                        color: colors.textPrimary.withValues(alpha: 0.35),
                         fontSize: 8),
                     textAlign: TextAlign.center,
                     maxLines: 1),
@@ -344,13 +350,14 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   Widget _buildSectionLabel(String emoji, String label) {
+    final colors = QibraColors.of(context);
     return Row(
       children: [
         Text(emoji, style: const TextStyle(fontSize: 14)),
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                color: colors.textPrimary.withValues(alpha: 0.5),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0)),
@@ -359,6 +366,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   Widget _buildDayCard(_HajjDay day, int index) {
+    final colors = QibraColors.of(context);
     final isExpanded = _expandedIndex == index;
 
     return GestureDetector(
@@ -372,12 +380,12 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
         decoration: BoxDecoration(
           color: isExpanded
               ? day.color.withValues(alpha: 0.06)
-              : const Color(0xFF141926),
+              : colors.card,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
               color: isExpanded
                   ? day.color.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.05)),
+                  : colors.textPrimary.withValues(alpha: 0.05)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,8 +413,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                               fontSize: 11,
                               fontWeight: FontWeight.w700)),
                       Text(day.title,
-                          style: const TextStyle(
-                              color: const Color(0xFF19312C),
+                          style: TextStyle(
+                              color: colors.textPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w800)),
                     ],
@@ -431,6 +439,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   Widget _buildStepItem(_HajjStep step, Color color) {
+    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
@@ -450,14 +459,14 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(step.title,
-                    style: const TextStyle(
-                        color: const Color(0xFF19312C),
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 13,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 3),
                 Text(step.description,
                     style: TextStyle(
-                        color: const Color(0xFF19312C).withValues(alpha: 0.5),
+                        color: colors.textPrimary.withValues(alpha: 0.5),
                         fontSize: 11,
                         height: 1.4)),
                 if (step.arabic.isNotEmpty) ...[
@@ -475,7 +484,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                             style: TextStyle(
                                 fontFamily: 'Amiri',
                                 fontSize: 16,
-                                color: color,
+                                color: colors.textPrimary,
                                 height: 1.5),
                             textDirection: TextDirection.rtl,
                             textAlign: TextAlign.center),
@@ -483,7 +492,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                           const SizedBox(height: 4),
                           Text(step.transliteration,
                               style: TextStyle(
-                                  color: const Color(0xFF19312C).withValues(alpha: 0.4),
+                                  color: colors.textPrimary.withValues(alpha: 0.4),
                                   fontSize: 10,
                                   fontStyle: FontStyle.italic),
                               textAlign: TextAlign.center),
@@ -501,12 +510,13 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   Widget _buildChecklistCard() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141926),
+        color: colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF19312C).withValues(alpha: 0.05)),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         children: _checklist.asMap().entries.map((e) {
@@ -526,17 +536,17 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                     height: 24,
                     decoration: BoxDecoration(
                       color: item.isDone
-                          ? const Color(0xFF123F36)
-                          : Colors.white.withValues(alpha: 0.05),
+                          ? colors.primary
+                          : colors.textPrimary.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                           color: item.isDone
-                              ? const Color(0xFF123F36)
-                              : Colors.white.withValues(alpha: 0.15)),
+                              ? colors.primary
+                              : colors.textPrimary.withValues(alpha: 0.15)),
                     ),
                     child: item.isDone
-                        ? const Icon(Icons.check_rounded,
-                            color: const Color(0xFF19312C), size: 16)
+                        ? Icon(Icons.check_rounded,
+                            color: colors.textPrimary, size: 16)
                         : null,
                   ),
                   const SizedBox(width: 12),
@@ -544,13 +554,13 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                     item.label,
                     style: TextStyle(
                       color: item.isDone
-                          ? Colors.white.withValues(alpha: 0.4)
-                          : Colors.white,
+                          ? colors.textPrimary.withValues(alpha: 0.4)
+                          : colors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       decoration:
                           item.isDone ? TextDecoration.lineThrough : null,
-                      decorationColor: Colors.white.withValues(alpha: 0.3),
+                      decorationColor: colors.textPrimary.withValues(alpha: 0.3),
                     ),
                   ),
                 ],
@@ -563,24 +573,25 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   Widget _buildIslamicNote() {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+        color: colors.cardMuted.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFFC6A15B).withValues(alpha: 0.15)),
+            Border.all(color: colors.accent.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Text('📖', style: TextStyle(fontSize: 14)),
               SizedBox(width: 8),
               Text('Quran',
                   style: TextStyle(
-                      color: Color(0xFFC6A15B),
+                      color: colors.goldText,
                       fontSize: 12,
                       fontWeight: FontWeight.w700)),
             ],
@@ -589,7 +600,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
           Text(
             '"And proclaim to the people the Hajj; they will come to you on foot and on every lean camel; they will come from every distant pass." — Quran 22:27',
             style: TextStyle(
-                color: const Color(0xFF19312C).withValues(alpha: 0.6),
+                color: colors.textPrimary.withValues(alpha: 0.6),
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
                 height: 1.5),

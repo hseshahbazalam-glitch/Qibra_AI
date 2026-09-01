@@ -27,6 +27,7 @@ android/gradlew.bat
 android/local.properties
 android/**/GeneratedPluginRegistrant.java
 android/key.properties
+android/keystore.properties
 *.jks
 
 # iOS
@@ -69,6 +70,13 @@ android/key.properties
 
 # Env
 .env
+backend/.env
+backend/.venv
+backend/.pytest_cache/
+.pytest_cache/
+backend/__pycache__/
+**/__pycache__/
+*.pyc
 
 # Backups
 lib_backup*/
