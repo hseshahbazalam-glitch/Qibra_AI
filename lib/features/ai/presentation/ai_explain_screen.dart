@@ -309,18 +309,16 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           const SizedBox(height: 30),
           Text(
             'Listening...',
-            style: TextStyle(
+            style: AppTextStyles.titleLarge.copyWith(
               color: colors.textPrimary,
-              fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Speak now',
-            style: TextStyle(
+            style: AppTextStyles.bodyMedium.copyWith(
               color: colors.textSecondary,
-              fontSize: 14,
             ),
           ),
           if (_partialText.isNotEmpty) ...[
@@ -336,9 +334,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               child: Text(
                 _partialText,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: AppTextStyles.bodyLarge.copyWith(
                   color: colors.textPrimary,
-                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -408,9 +405,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 ),
                 child: Text(
                   'AYAH ${widget.ayahNumber}',
-                  style: TextStyle(
+                  style: AppTextStyles.labelXSmall.copyWith(
                     color: colors.goldText,
-                    fontSize: 10,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1,
                   ),
@@ -419,10 +415,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               const SizedBox(width: 8),
               Text(
                 widget.surahName ?? '',
-                style: TextStyle(
+                style: AppTextStyles.labelLarge.copyWith(
                   color: colors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -465,9 +459,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           const SizedBox(height: 20),
           Text(
             'Qibra AI Assistant',
-            style: TextStyle(
+            style: AppTextStyles.titleLarge.copyWith(
               color: colors.textPrimary,
-              fontSize: 22,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -475,9 +468,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           Text(
             'Type or speak to ask\nabout Islam or control the app',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: AppTextStyles.bodySmall.copyWith(
               color: colors.textSecondary,
-              fontSize: 13,
               height: 1.5,
             ),
           ),
@@ -496,9 +488,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 Expanded(
                   child: Text(
                     'Tap mic to speak — All languages supported',
-                    style: TextStyle(
+                    style: AppTextStyles.labelSmall.copyWith(
                       color: colors.textSecondary,
-                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -590,11 +581,10 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                       children: [
                         Text(
                           _formatTime(message.timestamp),
-                          style: TextStyle(
+                          style: AppTextStyles.labelXSmall.copyWith(
                             color: isUser
                                 ? colors.onPrimary.withValues(alpha: 0.7)
                                 : colors.textTertiary,
-                            fontSize: 10,
                           ),
                         ),
                         if (!isUser) ...[
@@ -654,9 +644,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       const SizedBox(height: 10),
       Text(
         'SOURCES',
-        style: TextStyle(
+        style: AppTextStyles.labelXSmall.copyWith(
           color: colors.textTertiary,
-          fontSize: 10,
           fontWeight: FontWeight.w800,
           letterSpacing: 1.6,
         ),
@@ -676,9 +665,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               ),
               child: Text(
                 tag,
-                style: TextStyle(
+                style: AppTextStyles.labelXSmall.copyWith(
                   color: colors.violetAi,
-                  fontSize: 10,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -698,9 +686,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       if (part.startsWith('**') && part.endsWith('**')) {
         spans.add(TextSpan(
           text: part.substring(2, part.length - 2),
-          style: TextStyle(
+          style: AppTextStyles.bodyMedium.copyWith(
             color: color,
-            fontSize: 14,
             height: 1.6,
             fontWeight: FontWeight.w800,
           ),
@@ -708,14 +695,20 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       } else {
         spans.add(TextSpan(
           text: part,
-          style: TextStyle(color: color, fontSize: 14, height: 1.6),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: color,
+            height: 1.6,
+          ),
         ));
       }
     }
 
     return SelectableText.rich(
       TextSpan(children: spans),
-      style: TextStyle(color: color, fontSize: 14, height: 1.6),
+      style: AppTextStyles.bodyMedium.copyWith(
+        color: color,
+        height: 1.6,
+      ),
     );
   }
 
@@ -744,7 +737,16 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: colors.border),
             ),
-            child: const _TypingDots(),
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  colors.textTertiary,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -798,9 +800,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               child: Center(
                 child: Text(
                   suggestions[index],
-                  style: TextStyle(
+                  style: AppTextStyles.labelMedium.copyWith(
                     color: colors.textPrimary,
-                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -868,15 +869,13 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               maxLines: null,
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => _sendMessage(),
-              style: TextStyle(
+              style: AppTextStyles.bodyMedium.copyWith(
                 color: colors.textPrimary,
-                fontSize: 14,
               ),
               decoration: InputDecoration(
                 hintText: 'Type or tap mic to speak...',
-                hintStyle: TextStyle(
+                hintStyle: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textTertiary,
-                  fontSize: 14,
                 ),
                 filled: true,
                 fillColor: colors.surfaceElevated,
@@ -978,68 +977,6 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ============================================================
-// TYPING DOTS ANIMATION
-// ============================================================
-
-class _TypingDots extends StatefulWidget {
-  const _TypingDots();
-
-  @override
-  State<_TypingDots> createState() => _TypingDotsState();
-}
-
-class _TypingDotsState extends State<_TypingDots>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    return SizedBox(
-      width: 40,
-      height: 16,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: List.generate(3, (index) {
-          return AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) {
-              final delay = index * 0.2;
-              final value = ((_controller.value - delay) % 1.0).clamp(0.0, 1.0);
-              final scale = 0.5 + (0.5 * (1 - (value * 2 - 1).abs()));
-              return Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  color: colors.textPrimary.withValues(alpha: scale),
-                  shape: BoxShape.circle,
-                ),
-              );
-            },
-          );
-        }),
       ),
     );
   }
