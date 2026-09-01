@@ -116,12 +116,6 @@ const _tools = [
     route: '/tools/ramadan',
   ),
   _Tool(
-    title: 'Sadaqah tracker',
-    subtitle: 'Log charity',
-    icon: Icons.volunteer_activism_outlined,
-    route: '/tools/sadaqah',
-  ),
-  _Tool(
     title: 'Dhikr',
     subtitle: 'Tasbih counter',
     icon: Icons.radio_button_checked,
