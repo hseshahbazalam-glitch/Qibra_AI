@@ -7,8 +7,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
@@ -519,7 +521,24 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
   Widget _buildMessageBubble(ChatMessage message) {
     final colors = QibraColors.of(context);
-    if (message.isTyping) return _buildTypingBubble();
+    if (message.isTyping) {
+      // Level 1 typewriter: while the /ai/ask stream is delivering deltas,
+      // render the growing answer in place of the three-dot bubble (the
+      // dots remain the fallback before the first delta arrives).
+      final chat = ref.read(chatProvider.notifier);
+      if (chat.liveAnswer.value.isEmpty) return _buildTypingBubble();
+      return ValueListenableBuilder<String>(
+        valueListenable: chat.liveAnswer,
+        builder: (context, live, _) => live.isEmpty
+            ? _buildTypingBubble()
+            : _buildMessageBubble(ChatMessage(
+                id: 'live',
+                content: live,
+                role: MessageRole.ai,
+                timestamp: DateTime.now(),
+              )),
+      );
+    }
 
     final isUser = message.isUser;
 
@@ -630,14 +649,33 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
   List<Widget> _sourceChips(String content) {
     final colors = QibraColors.of(context);
-    final tags = <String>{};
-    for (final match in RegExp(r'Quran\s+\d+:\d+', caseSensitive: false)
-        .allMatches(content)) {
-      tags.add(match.group(0)!);
+    // Level 1: numeric citation chips ([surah:ayah] from the model, or
+    // "Quran s:a" from the extractive fallback) are tappable and deep-link
+    // straight into the reader at that ayah. Other tags stay display-only.
+    final tags = <({String label, int? surah, int? ayah})>[];
+    final seen = <String>{};
+    void addTag(String label, int? surah, int? ayah) {
+      if (seen.add(label)) tags.add((label: label, surah: surah, ayah: ayah));
     }
-    for (final match in RegExp(r'\[(\d+)\]\s+([^:\n]+):').allMatches(content)) {
-      final label = match.group(2)?.trim();
-      if (label != null && label.isNotEmpty) tags.add(label);
+
+    for (final m in RegExp(r'\[(\d{1,3}):(\d{1,4})\]').allMatches(content)) {
+      final surah = int.parse(m.group(1)!);
+      final ayah = int.parse(m.group(2)!);
+      if (surah >= 1 && surah <= 114 && ayah >= 1) {
+        addTag('$surah:$ayah', surah, ayah);
+      }
+    }
+    for (final m in RegExp(r'Quran\s+(\d+):(\d+)', caseSensitive: false)
+        .allMatches(content)) {
+      final surah = int.parse(m.group(1)!);
+      final ayah = int.parse(m.group(2)!);
+      if (surah >= 1 && surah <= 114 && ayah >= 1) {
+        addTag(m.group(0)!, surah, ayah);
+      }
+    }
+    for (final m in RegExp(r'\[(\d+)\]\s+([^:\n]+):').allMatches(content)) {
+      final label = m.group(2)?.trim();
+      if (label != null && label.isNotEmpty) addTag(label, null, null);
     }
     if (tags.isEmpty) return const [];
     return [
@@ -656,21 +694,42 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
         runSpacing: 6,
         children: [
           for (final tag in tags)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: colors.violetAi.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colors.violetAi.withValues(alpha: 0.4)),
-              ),
-              child: Text(
-                tag,
-                style: AppTextStyles.labelXSmall.copyWith(
-                  color: colors.violetAi,
-                  fontWeight: FontWeight.w700,
+            Builder(builder: (context) {
+              final chip = Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colors.violetAi.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(8),
+                  border:
+                      Border.all(color: colors.violetAi.withValues(alpha: 0.4)),
                 ),
-              ),
-            ),
+                child: Text(
+                  tag.label,
+                  style: AppTextStyles.labelXSmall.copyWith(
+                    color: colors.violetAi,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              );
+              if (tag.surah == null) return chip;
+              return Tooltip(
+                message: 'Open in the reader',
+                triggerMode: TooltipTriggerMode.manual,
+                showDuration: const Duration(milliseconds: 600),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => context.push(Uri(
+                    path: AppRoutes.surahReader,
+                    queryParameters: {
+                      'surah': '${tag.surah}',
+                      'ayah': '${tag.ayah}',
+                    },
+                  ).toString()),
+                  child: chip,
+                ),
+              );
+            }),
         ],
       ),
     ];

@@ -78,13 +78,15 @@ abstract final class AppInfo {
 abstract final class AppApi {
   // --- Backend availability ---
   // When false, app runs anonymous-first (no server auth required).
-  // Set to true only when api.qibra.ai is deployed and ready.
+  // Set to true only once the Render service answers /health (docs/DEPLOY.md).
   static const bool isBackendEnabled = false;
 
   // --- Base URLs ---
 
-  /// Production API base URL
-  static const String baseUrlProduction = 'https://api.qibra.ai';
+  /// Production API base URL — live Render service (docs/DEPLOY.md).
+  /// The previously planned custom domain is retired; this is the single
+  /// source constant every network layer reads (ApiClient — nothing else).
+  static const String baseUrlProduction = 'https://qibra-ai.onrender.com';
 
   /// Development/Local API base URL
   static const String baseUrlDevelopment = 'http://localhost:8000';
@@ -94,11 +96,13 @@ abstract final class AppApi {
   /// Production build mein production URL
   static const String baseUrl = baseUrlProduction;
 
-  /// API version prefix
-  static const String apiVersion = '/v1';
+  /// API version prefix — the Render service mounts every route at the
+  /// ROOT (/ai/ask, /health); there is no /v1. Kept empty as the single
+  /// source so nothing re-introduces the old prefix. See docs/DEPLOY.md.
+  static const String apiVersion = '';
 
-  /// Full API URL (base + version)
-  static const String apiUrl = '$baseUrl$apiVersion';
+  /// Full API URL — identical to baseUrl (root-mounted backend).
+  static const String apiUrl = baseUrl;
 
   // --- Timeouts ---
   // P0.2: unified 20s timeout per audit (was 30s, too long for mobile)
@@ -165,6 +169,7 @@ abstract final class AppApi {
   static const String endpointHadithBookmarks = '/hadith/bookmarks';
 
   // AI endpoints
+  static const String endpointAiAsk = '/ai/ask';
   static const String endpointAiChat = '/ai/chat';
   static const String endpointAiChatHistory = '/ai/chat/history';
   static const String endpointAiIslamicQuestion = '/ai/question';
