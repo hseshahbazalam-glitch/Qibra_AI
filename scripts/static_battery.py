@@ -434,6 +434,40 @@ for fi in FILES.values():
                     err("G4", fi.path, j + off + 1, f"bare `context` in {name}.{mname} — {base} has no context field; add a BuildContext param")
                     break
 
+# ------------------------------------------------------------------- G5
+# G5a (owner device gate, Home crash): `Row(` whose DIRECT argument list
+# contains `crossAxisAlignment: CrossAxisAlignment.stretch`. A horizontal
+# Flex stretching its cross axis inside scrollable/unbounded parents throws
+# BoxConstraints(h: Infinity) at layout — always a bug in this codebase.
+# (Column-stretch is legal and untouched; the scan is per-Row, depth-aware.)
+# G5b (Inter font storm): any surviving `GoogleFonts.` reference. Inter and
+# Amiri are bundled pubspec families and the package was dropped, so a call
+# site cannot even compile. Expected: zero, config line included.
+STRETCH_ARG = re.compile(r"crossAxisAlignment:\s*CrossAxisAlignment\.stretch")
+for fi in FILES.values():
+    for m in re.finditer(r"\bRow\s*\(", fi.code):
+        depth, i, hit = 1, m.end(), False
+        while i < len(fi.code):
+            c = fi.code[i]
+            if c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            elif depth == 1 and STRETCH_ARG.match(fi.code, i):
+                hit = True
+                break
+            i += 1
+        if hit:
+            err("G5a", fi.path, fi.code.count("\n", 0, m.start()) + 1,
+                "Row with crossAxisAlignment.stretch — horizontal Flex cannot "
+                "stretch inside scrollables (use mainAxisSize/self-sizing children)")
+    for m in re.finditer(r"\bGoogleFonts\s*\.", fi.code):
+        err("G5b", fi.path, fi.code.count("\n", 0, m.start()) + 1,
+            "GoogleFonts call site — fonts are bundled families; remove the "
+            "reference (and keep the package out of pubspec)")
+
 # --------------------------------------------------- L design sweeps
 def in_stage(rel):
     return any(fnmatch.fnmatch(rel, g) for g in GLOBS)
