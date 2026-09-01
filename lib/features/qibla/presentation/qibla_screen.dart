@@ -342,7 +342,7 @@ class _CacheNotice extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: colors.cardElevated,
+        color: colors.cardMuted,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colors.border),
       ),
@@ -412,7 +412,7 @@ class _CompassDial extends StatelessWidget {
               height: 276,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colors.cardElevated,
+                color: colors.cardMuted,
                 border: Border.all(color: colors.border),
               ),
               child: Stack(
