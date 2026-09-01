@@ -94,7 +94,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
       text: '${name.arabic}\n${name.transliteration}\n${name.meaning}',
     ));
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Copied to clipboard', style: TextStyle(color: colors.textPrimary)),
+      content: Text('Copied to clipboard',
+          style: TextStyle(color: colors.textPrimary)),
       backgroundColor: colors.primary,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -179,8 +180,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
             decoration: BoxDecoration(
               color: colors.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: colors.primary.withValues(alpha: 0.16)),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.16)),
             ),
             child: Text(
               '99',
@@ -210,8 +210,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
         ),
         child: Row(
           children: [
-            Icon(Icons.search_rounded,
-                color: colors.textTertiary, size: 20),
+            Icon(Icons.search_rounded, color: colors.textTertiary, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: TextField(
@@ -220,8 +219,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                 style: TextStyle(color: colors.textPrimary, fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'Search by name or meaning...',
-                  hintStyle: TextStyle(
-                      color: colors.textTertiary, fontSize: 13),
+                  hintStyle:
+                      TextStyle(color: colors.textTertiary, fontSize: 13),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -258,8 +257,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           indicator: BoxDecoration(
             color: colors.primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-                color: colors.primary.withValues(alpha: 0.16)),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.16)),
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
@@ -312,9 +310,8 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? name.color.withValues(alpha: 0.08)
-                  : colors.card,
+              color:
+                  isSelected ? name.color.withValues(alpha: 0.08) : colors.card,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected
@@ -388,9 +385,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                               isFav
                                   ? Icons.favorite_rounded
                                   : Icons.favorite_border_rounded,
-                              color: isFav
-                                  ? colors.error
-                                  : colors.textTertiary,
+                              color: isFav ? colors.error : colors.textTertiary,
                               size: 20,
                             ),
                           ),
@@ -446,8 +441,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                       color: colors.accent.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                          color:
-                              colors.accent.withValues(alpha: 0.15)),
+                          color: colors.accent.withValues(alpha: 0.15)),
                     ),
                     child: Row(
                       children: [
@@ -527,10 +521,9 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                   fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Tap the heart on any name to save it',
-              style: TextStyle(
-                  color: colors.textSecondary, fontSize: 13),
+              style: TextStyle(color: colors.textSecondary, fontSize: 13),
             ),
           ],
         ),

@@ -118,7 +118,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
     _HajjDay(
       day: '11th-13th Dhul Hijjah',
       title: 'Ayyam al-Tashreeq',
-      icon: Icons.campground_rounded,
+      icon: Icons.nights_stay_rounded,
       color: QibraColors.light.accent,
       steps: [
         _HajjStep(
@@ -178,8 +178,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                 const SizedBox(height: 20),
                 _buildPillarsCard(),
                 const SizedBox(height: 24),
-                _buildSectionLabel(Icons.event_note_rounded,
-                    'DAY BY DAY GUIDE'),
+                _buildSectionLabel(
+                    Icons.event_note_rounded, 'DAY BY DAY GUIDE'),
                 const SizedBox(height: 12),
                 ..._hajjDays.asMap().entries.map(
                       (e) => Padding(
@@ -188,8 +188,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                       ),
                     ),
                 const SizedBox(height: 20),
-                _buildSectionLabel(Icons.checklist_rounded,
-                    'PACKING CHECKLIST'),
+                _buildSectionLabel(
+                    Icons.checklist_rounded, 'PACKING CHECKLIST'),
                 const SizedBox(height: 12),
                 _buildChecklistCard(),
                 const SizedBox(height: 20),
@@ -247,9 +247,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                           fontSize: 22,
                           fontWeight: FontWeight.bold)),
                   Text('Complete Step-by-Step',
-                      style: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: 12)),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 12)),
                 ],
               ),
             ),
@@ -266,8 +265,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: colors.accent.withValues(alpha: 0.16)),
+        border: Border.all(color: colors.accent.withValues(alpha: 0.16)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,9 +295,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
           Text(
             'Hajj is obligatory once in a lifetime for every Muslim who is physically and financially able. It takes place during 8th-13th Dhul Hijjah.',
             style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 12,
-                height: 1.5),
+                color: colors.textSecondary, fontSize: 12, height: 1.5),
           ),
         ],
       ),
@@ -309,13 +305,13 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   Widget _buildPillarsCard() {
     final colors = QibraColors.of(context);
     final pillars = [
-      const _PillarItem('Ihram', Icons.person_outline_rounded,
-          'Enter sacred state'),
-      const _PillarItem('Arafah', Icons.landscape_rounded,
-          'Standing at Arafah'),
+      const _PillarItem(
+          'Ihram', Icons.person_outline_rounded, 'Enter sacred state'),
+      const _PillarItem(
+          'Arafah', Icons.landscape_rounded, 'Standing at Arafah'),
       const _PillarItem('Tawaf', Icons.mosque_rounded, '7 rounds of Ka\'bah'),
-      const _PillarItem('Sa\'i', Icons.directions_walk_rounded,
-          'Safa & Marwah'),
+      const _PillarItem(
+          'Sa\'i', Icons.directions_walk_rounded, 'Safa & Marwah'),
     ];
 
     return Row(
@@ -327,8 +323,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
             decoration: BoxDecoration(
               color: colors.card,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                  color: colors.accent.withValues(alpha: 0.12)),
+              border: Border.all(color: colors.accent.withValues(alpha: 0.12)),
             ),
             child: Column(
               children: [
@@ -340,9 +335,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                         fontSize: 11,
                         fontWeight: FontWeight.w700)),
                 Text(p.desc,
-                    style: TextStyle(
-                        color: colors.textTertiary,
-                        fontSize: 8),
+                    style: TextStyle(color: colors.textTertiary, fontSize: 8),
                     textAlign: TextAlign.center,
                     maxLines: 1),
               ],
@@ -382,9 +375,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isExpanded
-              ? day.color.withValues(alpha: 0.06)
-              : colors.card,
+          color: isExpanded ? day.color.withValues(alpha: 0.06) : colors.card,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
               color: isExpanded
@@ -402,8 +393,8 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                   decoration: BoxDecoration(
                       color: day.color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12)),
-                  child: Center(
-                      child: Icon(day.icon, size: 22, color: day.color)),
+                  child:
+                      Center(child: Icon(day.icon, size: 22, color: day.color)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -581,8 +572,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       decoration: BoxDecoration(
         color: colors.cardMuted,
         borderRadius: BorderRadius.circular(14),
-        border:
-            Border.all(color: colors.accent.withValues(alpha: 0.15)),
+        border: Border.all(color: colors.accent.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

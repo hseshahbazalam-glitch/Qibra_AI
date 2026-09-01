@@ -219,8 +219,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: colors.primary.withValues(alpha: 0.16)),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.16)),
       ),
       child: Row(
         children: [
@@ -325,9 +324,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
               Text(
                 days[i],
                 style: TextStyle(
-                  color: isToday
-                      ? colors.primary
-                      : colors.textTertiary,
+                  color: isToday ? colors.primary : colors.textTertiary,
                   fontSize: 10,
                   fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                 ),
@@ -356,9 +353,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       : Text(
                           '${day.day}',
                           style: TextStyle(
-                            color: isToday
-                                ? colors.primary
-                                : colors.textTertiary,
+                            color:
+                                isToday ? colors.primary : colors.textTertiary,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -377,8 +373,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     final colors = QibraColors.of(context);
     return Row(
       children: [
-        Icon(Icons.insights_rounded, size: 16,
-            color: colors.textSecondary),
+        Icon(Icons.insights_rounded, size: 16, color: colors.textSecondary),
         const SizedBox(width: 8),
         Text(
           'YOUR HABITS',
@@ -433,8 +428,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           color: colors.error.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(14),
         ),
-        child: Icon(Icons.delete_rounded,
-            color: colors.error, size: 22),
+        child: Icon(Icons.delete_rounded, color: colors.error, size: 22),
       ),
       child: GestureDetector(
         onTap: () => _toggleHabit(index),
@@ -442,14 +436,10 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: todayDone
-                ? color.withValues(alpha: 0.08)
-                : colors.card,
+            color: todayDone ? color.withValues(alpha: 0.08) : colors.card,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: todayDone
-                  ? color.withValues(alpha: 0.16)
-                  : colors.border,
+              color: todayDone ? color.withValues(alpha: 0.16) : colors.border,
             ),
           ),
           child: Row(
@@ -625,7 +615,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.add_task_rounded,
+                          Icon(Icons.add_task_rounded,
                               size: 20, color: colors.primary),
                           const SizedBox(width: 14),
                           Expanded(
@@ -659,4 +649,3 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     );
   }
 }
-
