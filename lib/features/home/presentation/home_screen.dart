@@ -5,7 +5,7 @@
 //   1 greeting → 2 next prayer → 3 prayer context → 4 continue
 //   Quran → 5 Ask QIBRA AI → 6 daily content → 7 progress →
 //   8 quick actions.
-// Honesty rules: no weather (no real source wired), no audio
+// Honesty rules: no forecast chrome (no real source), no audio
 // player (recitation not bundled), grades show their qualifiers.
 // ============================================================
 

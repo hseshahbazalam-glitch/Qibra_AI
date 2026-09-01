@@ -3,8 +3,8 @@
 // QIBRA AI — HOME NIGHT HERO
 // Command-center hero: greeting, Hijri + location context,
 // next prayer with live countdown ring, calculation &
-// notification state. No weather (no real source is wired —
-// showing invented weather is forbidden). No audio chrome
+// notification state. No live-forecast chrome (no real data
+// source is wired — faking one is forbidden). No audio chrome
 // (recitation is not bundled).
 // ============================================================
 
@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hijri/hijri_calendar.dart';
 
 import '../../../../core/design_system/app_typography.dart';
+import '../../../../core/utils/countdown_format.dart';
 import '../../../../core/design_system/qibra_colors.dart';
 import '../../../../core/design_system/qibra_navy.dart';
 import '../../../../shared/widgets/qibra_countdown_ring.dart';
@@ -103,7 +104,7 @@ class HomeNightHero extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // ── Context chips: location + Hijri date (no weather) ─
+          // ── Context chips: location + Hijri date (no forecast) ─
           Wrap(
             spacing: 8,
             runSpacing: 6,
@@ -115,7 +116,6 @@ class HomeNightHero extends StatelessWidget {
               HomeContextChip(
                 icon: Icons.calendar_month,
                 label: hijriLabel,
-                accent: colors.accent,
               ),
               HomeContextChip(
                 icon: notificationsOn
@@ -149,18 +149,6 @@ class _NextPrayerBody extends ConsumerWidget {
   final String? methodShortName;
   final bool isLoading;
   final bool hasLocation;
-
-  static String _fmt(Duration d) {
-    if (d.isNegative) return 'Now';
-    if (d.inHours >= 1) {
-      return '${d.inHours}h ${d.inMinutes.remainder(60)}m';
-    }
-    if (d.inMinutes >= 1) {
-      return '${d.inMinutes}m '
-          '${d.inSeconds.remainder(60)}s';
-    }
-    return '${d.inSeconds}s';
-  }
 
   /// The ONLY Home widget subscribed to the 1-second ticker. Schedule
   /// data comes from the minute-granular provider; the countdown label
@@ -222,7 +210,7 @@ class _NextPrayerBody extends ConsumerWidget {
     final prayer = info.prayer;
     final remaining =
         prayer.adjustedTime.difference(tick ?? DateTime.now());
-    final countdownLabel = _fmt(remaining);
+    final countdownLabel = formatCountdownCompact(remaining);
     final semanticsLabel =
         'Next prayer ${prayer.type.name} at ${prayer.formattedTime}, '
         'countdown $countdownLabel remaining';
@@ -365,7 +353,7 @@ class _PrayerIdentity extends StatelessWidget {
             Text(
               prayer.type.arabicName,
               style: AppArabicStyles.quranSmall.copyWith(
-                color: colors.goldText,
+                color: colors.textPrimary,
               ),
             ),
           ],
@@ -428,9 +416,11 @@ class HomeContextChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: isDark ? 0.05 : 0.6),
+        color: isDark
+            ? colors.background.withValues(alpha: 0.72)
+            : Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: colors.border.withValues(alpha: 0.8)),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

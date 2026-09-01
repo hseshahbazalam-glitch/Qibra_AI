@@ -13,6 +13,7 @@ import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/qibra_colors.dart';
 import '../../../../core/design_system/qibra_navy.dart';
 import '../../../../shared/widgets/qibra_status.dart';
+import '../../../../shared/widgets/qibra_stat_card.dart';
 import '../../../../shared/widgets/qibra_ui.dart';
 import '../../../hadith/data/models/hadith_models.dart';
 import '../../../prayer/data/models/prayer_models.dart';
@@ -174,8 +175,8 @@ class HomeContinueReading extends StatelessWidget {
             children: [
               const _Medallion(
                 icon: Icons.menu_book_rounded,
-                tint: Color(0xFFF2D98F),
-                deep: Color(0xFF0E9F6E),
+                tint: QibraNavy.goldBright,
+                deep: QibraNavy.emeraldDeep,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -193,7 +194,7 @@ class HomeContinueReading extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       page == null
-                          ? 'Al-Fatiha — open the first surah'
+                          ? 'Al-Fatihah — the Opening'
                           : page!.surahName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -231,7 +232,7 @@ class HomeContinueReading extends StatelessWidget {
                 minHeight: 6,
                 backgroundColor: colors.border,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  overallProgress >= 1.0 ? colors.accent : colors.primary,
+                  colors.primary,
                 ),
               ),
             ),
@@ -300,7 +301,7 @@ class HomeAskAiCard extends StatelessWidget {
               gradient: QibraNavy.aiViolet,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: QibraNavy.violet.withValues(alpha: 0.35),
+                color: colors.violetAi.withValues(alpha: 0.35),
               ),
               boxShadow: QibraNavy.aiGlow,
             ),
@@ -319,12 +320,12 @@ class HomeAskAiCard extends StatelessWidget {
                       height: 44,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            QibraNavy.violet,
-                            QibraNavy.violetDeep,
+                            colors.violetAi,
+                            colors.aiAccentDeep,
                           ],
                         ),
                       ),
@@ -357,18 +358,18 @@ class HomeAskAiCard extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: QibraNavy.violet
+                                  color: colors.violetAi
                                       .withValues(alpha: 0.16),
                                   borderRadius: BorderRadius.circular(999),
                                   border: Border.all(
-                                    color: QibraNavy.violet
+                                    color: colors.violetAi
                                         .withValues(alpha: 0.4),
                                   ),
                                 ),
                                 child: Text(
                                   'Retrieval only — not a fatwa',
                                   style: AppTextStyles.labelSmall.copyWith(
-                                    color: const Color(0xFFC7ADFF),
+                                    color: colors.aiAccentSoft,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -383,20 +384,19 @@ class HomeAskAiCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 9),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: [
-                            QibraNavy.violet,
-                            QibraNavy.violetDeep,
+                            colors.violetAi,
+                            colors.aiAccentDeep,
                           ],
                         ),
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Ask',
-                        style: TextStyle(
+                        style: AppTextStyles.labelMedium.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
-                          fontSize: 13,
                         ),
                       ),
                     ),
@@ -434,18 +434,17 @@ class HomeAyahCard extends StatelessWidget {
     final translation = ayah.translation;
     return QibraCard(
       onTap: onTap,
-      accentBorder: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.format_quote, size: 15, color: colors.accent),
+              Icon(Icons.format_quote, size: 15, color: colors.primary),
               const SizedBox(width: 6),
               Text(
                 'AYAH OF THE DAY',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: colors.goldText,
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.4,
                 ),
@@ -687,14 +686,12 @@ class HomeProgressPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: _StatCard(
+          child: QibraStatCard(
             icon: Icons.local_fire_department_outlined,
-            iconColor: QibraNavy.orange,
             value: streak.currentStreak > 0 ? '${streak.currentStreak}' : '—',
             unit: streak.currentStreak == 1 ? 'day' : 'days',
             label: streak.currentStreak > 0
@@ -704,9 +701,8 @@ class HomeProgressPanel extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: _StatCard(
+          child: QibraStatCard(
             icon: Icons.auto_stories_rounded,
-            iconColor: colors.primary,
             value: '$todayPagesRead/$dailyGoalPages',
             unit: 'pages today',
             label: dailyGoalProgressLabel,
@@ -717,9 +713,8 @@ class HomeProgressPanel extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: _StatCard(
+          child: QibraStatCard(
             icon: Icons.mosque,
-            iconColor: QibraNavy.gold,
             value: prayerStreak > 0 ? '$prayerStreak' : '—',
             unit: prayerStreak == 1 ? 'day' : 'days',
             label: prayerStreak > 0
@@ -739,81 +734,6 @@ class HomeProgressPanel extends StatelessWidget {
     return todayPagesRead >= dailyGoalPages
         ? 'Daily goal met'
         : 'Daily goal';
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.icon,
-    required this.iconColor,
-    required this.value,
-    required this.unit,
-    required this.label,
-    this.progress,
-    this.footnote,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String value;
-  final String unit;
-  final String label;
-  final double? progress;
-  final String? footnote;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    return QibraCard(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: iconColor),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w800,
-                height: 1.05,
-              ),
-            ),
-          ),
-          Text(
-            unit,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.labelSmall
-                .copyWith(color: colors.textTertiary),
-          ),
-          if (progress != null) ...[
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 4,
-                backgroundColor: colors.border,
-                valueColor: AlwaysStoppedAnimation<Color>(iconColor),
-              ),
-            ),
-          ],
-          const SizedBox(height: 6),
-          Text(
-            footnote ?? label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.labelSmall
-                .copyWith(color: colors.textSecondary),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -928,7 +848,7 @@ class _Medallion extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [deep.withValues(alpha: 0.9), const Color(0xFF0A2536)],
+          colors: [deep.withValues(alpha: 0.9), QibraNavy.cardElevated],
         ),
         border: Border.all(color: tint.withValues(alpha: 0.45)),
       ),

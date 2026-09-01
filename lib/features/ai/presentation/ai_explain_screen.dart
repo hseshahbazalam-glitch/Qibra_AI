@@ -11,6 +11,7 @@ import 'package:avatar_glow/avatar_glow.dart';
 
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../shared/widgets/media/safe_image.dart';
 import '../../../shared/widgets/qibra_ui.dart';
@@ -286,7 +287,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 120,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF9B6CFF), Color(0xFF6C3CE6)],
+                  colors: [QibraNavy.violet, QibraNavy.violetDeep],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [

@@ -43,7 +43,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   static Color collectionAccent(String slug, Color fallback) {
     switch (slug) {
       case 'bukhari':
-        return QibraNavy.violet;
+        return QibraNavy.emerald;
       case 'muslim':
         return QibraNavy.blue;
       case 'tirmidhi':
@@ -53,7 +53,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
       case 'nasai':
         return QibraNavy.cyan;
       case 'ibnmajah':
-        return QibraNavy.violetDeep;
+        return QibraNavy.blue;
       case 'malik':
         return QibraNavy.orange;
       default:
@@ -184,7 +184,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                                 ? '${book.totalHadiths} hadiths'
                                 : author,
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: colors.goldText,
+                              color: colors.textTertiary,
                             ),
                           ),
                         ],
@@ -580,7 +580,6 @@ class _TodaysHadithCard extends ConsumerWidget {
     final lang = ref.watch(hadithLanguageProvider);
     final translation = hadithTextForLanguage(hadith!, lang);
     return QibraCard(
-      accentBorder: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

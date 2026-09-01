@@ -16,8 +16,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/l10n/app_strings.dart';
+import '../../../shared/widgets/qibra_stat_card.dart';
 import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/quran_models.dart';
@@ -108,7 +108,6 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
 
             // ── Continue reading ─────────────────────────────────
             QibraCard(
-              accentBorder: true,
               onTap: () {
                 final surah = page?.surahNumber ?? 1;
                 final ayah = page?.ayahNumber;
@@ -170,11 +169,8 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                       value: progress.overallProgress,
                       minHeight: 6,
                       backgroundColor: colors.border,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        progress.overallProgress >= 1.0
-                            ? colors.accent
-                            : colors.primary,
-                      ),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(colors.primary),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -193,29 +189,25 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
             Row(
               children: [
                 Expanded(
-                  child: _MiniStat(
+                  child: QibraStatCard(
                     icon: Icons.local_fire_department_outlined,
-                    iconColor: QibraNavy.orange,
                     value: progress.streak.currentStreak > 0
                         ? '${progress.streak.currentStreak}'
                         : '0',
-                    label: progress.streak.currentStreak == 1
-                        ? 'day streak'
-                        : 'day streak',
-                    hint: progress.hasReadToday
+                    unit: 'day streak',
+                    label: progress.hasReadToday
                         ? 'Done today'
                         : 'Read today to keep it alive',
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: _MiniStat(
+                  child: QibraStatCard(
                     icon: Icons.auto_stories_rounded,
-                    iconColor: colors.primary,
                     value:
                         '${progress.todayPagesRead}/${progress.dailyGoalPages}',
-                    label: 'pages today',
-                    hint: progress.todayPagesRead >= progress.dailyGoalPages
+                    unit: 'pages today',
+                    label: progress.todayPagesRead >= progress.dailyGoalPages
                         ? 'Daily goal met'
                         : 'Daily goal',
                     progress: progress.dailyGoalPages == 0
@@ -226,12 +218,11 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: _MiniStat(
+                  child: QibraStatCard(
                     icon: Icons.workspace_premium_outlined,
-                    iconColor: colors.accent,
                     value: '${progress.streak.longestStreak}',
-                    label: 'longest streak',
-                    hint: '${progress.streak.totalDaysRead} days read',
+                    unit: 'longest streak',
+                    label: '${progress.streak.totalDaysRead} days read',
                   ),
                 ),
               ],
@@ -353,7 +344,6 @@ class _VerseOfDayCard extends ConsumerWidget {
     ));
 
     return QibraCard(
-      accentBorder: true,
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,7 +395,7 @@ class _VerseOfDayCard extends ConsumerWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              _VerseAction(
+              QibraSoftButton(
                 icon: Icons.menu_book_rounded,
                 label: 'Read',
                 onTap: () {
@@ -415,7 +405,7 @@ class _VerseOfDayCard extends ConsumerWidget {
                   );
                 },
               ),
-              _VerseAction(
+              QibraSoftButton(
                 icon: bookmarked
                     ? Icons.bookmark_rounded
                     : Icons.bookmark_border_rounded,
@@ -433,7 +423,7 @@ class _VerseOfDayCard extends ConsumerWidget {
                       ));
                 },
               ),
-              _VerseAction(
+              QibraSoftButton(
                 icon: Icons.ios_share_rounded,
                 label: 'Copy',
                 onTap: () {
@@ -479,120 +469,9 @@ class _VerseOfDayCard extends ConsumerWidget {
   }
 }
 
-class _VerseAction extends StatelessWidget {
-  const _VerseAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
-        borderRadius: BorderRadius.circular(10),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            children: [
-              Icon(icon, size: 18, color: colors.primary),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.labelSmall.copyWith(
-                    color: colors.textPrimary, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 // ─────────────────────────────────────────────────────────────
 // Mini stats
 // ─────────────────────────────────────────────────────────────
-
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({
-    required this.icon,
-    required this.iconColor,
-    required this.value,
-    required this.label,
-    required this.hint,
-    this.progress,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String value;
-  final String label;
-  final String hint;
-  final double? progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    return QibraCard(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: iconColor),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w800,
-                height: 1.05,
-              ),
-            ),
-          ),
-          Text(label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  AppTextStyles.labelSmall.copyWith(color: colors.textTertiary)),
-          if (progress != null) ...[
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 4,
-                backgroundColor: colors.border,
-                valueColor: AlwaysStoppedAnimation<Color>(iconColor),
-              ),
-            ),
-          ],
-          const SizedBox(height: 6),
-          Text(hint,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  AppTextStyles.labelSmall.copyWith(color: colors.textSecondary)),
-        ],
-      ),
-    );
-  }
-}
 
 // ─────────────────────────────────────────────────────────────
 // Lists (behavior preserved from previous release)
@@ -673,7 +552,7 @@ class _JuzList extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(Icons.bookmark_added_outlined,
-                      size: 16, color: colors.accent),
+                      size: 16, color: colors.primary),
                   const SizedBox(width: 10),
                   Text(
                     'Juz ${i + 1}',

@@ -17,6 +17,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/design_system/qibra_navy.dart';
+import '../../../core/utils/countdown_format.dart';
 import '../../../shared/widgets/qibra_countdown_ring.dart';
 import '../../../shared/widgets/qibra_night_sky.dart';
 import '../../../shared/widgets/qibra_status.dart';
@@ -37,8 +38,10 @@ class PrayerTimesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final nextPrayer = ref.watch(nextPrayerProvider);
-    final currentPrayer = ref.watch(currentPrayerProvider);
+    final nextPrayer = ref.watch(nextPrayerInfoProvider);
+    final currentPrayerName = ref.watch(
+      currentPrayerProvider.select((p) => p?.type.name),
+    );
     final dailyTimes = ref.watch(dailyPrayerTimesProvider);
     final location = ref.watch(locationProvider);
     final settings = ref.watch(prayerSettingsProvider);
@@ -73,38 +76,18 @@ class PrayerTimesScreen extends ConsumerWidget {
               borderRadius: 24,
               child: _PrayerHeroBody(
                 nextPrayer: nextPrayer,
-                currentPrayer: currentPrayer,
+                currentPrayerName: currentPrayerName,
                 dailyTimes: dailyTimes,
                 settings: settings,
                 locationLabel: _locationLabel(location),
                 hasLocation: location.hasLocation,
                 isLoading: location.isLoading,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // ── Location + update ────────────────────────────────
-            QibraCard(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 10),
-              child: Row(
-                children: [
-                  Icon(Icons.place_outlined, color: colors.primary),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      _locationLabel(location),
-                      style: AppTextStyles.bodyMedium
-                          .copyWith(color: colors.textPrimary),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => ref
-                        .read(locationProvider.notifier)
-                        .fetchCurrentLocation(),
-                    child: const Text('Update'),
-                  ),
-                ],
+                onUpdateLocation: () {
+                  HapticFeedback.selectionClick();
+                  ref
+                      .read(locationProvider.notifier)
+                      .fetchCurrentLocation();
+                },
               ),
             ),
             const SizedBox(height: 24),
@@ -131,7 +114,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                         _PrayerRow(
                           prayer: prayer,
                           isNext: nextPrayer?.prayer.type == prayer.type,
-                          isCurrent: currentPrayer?.type == prayer.type,
+                          isCurrent: currentPrayerName == prayer.type.name,
                           record: _recordFor(records, prayer.type),
                           onToggle: () => _togglePrayer(ref, prayer.type),
                         )
@@ -434,17 +417,16 @@ class PrayerTimesScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: colors.accent.withValues(alpha: 0.08),
+                      color: QibraNavy.blue.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color:
-                              colors.accent.withValues(alpha: 0.35)),
+                          color: QibraNavy.blue.withValues(alpha: 0.35)),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(Icons.info_outline_rounded,
-                            size: 18, color: colors.accent),
+                            size: 18, color: QibraNavy.blue),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -471,27 +453,32 @@ class PrayerTimesScreen extends ConsumerWidget {
   }
 }
 
-class _PrayerHeroBody extends StatelessWidget {
+class _PrayerHeroBody extends ConsumerWidget {
   const _PrayerHeroBody({
     required this.nextPrayer,
-    required this.currentPrayer,
+    required this.currentPrayerName,
     required this.dailyTimes,
     required this.settings,
     required this.locationLabel,
     required this.hasLocation,
     required this.isLoading,
+    required this.onUpdateLocation,
   });
 
   final NextPrayerInfo? nextPrayer;
-  final PrayerTime? currentPrayer;
+  final String? currentPrayerName;
   final DailyPrayerTimes? dailyTimes;
   final PrayerSettings settings;
   final String locationLabel;
   final bool hasLocation;
   final bool isLoading;
+  final VoidCallback onUpdateLocation;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Only this small hero body subscribes to the 1s tick (P0 pattern);
+    // the tab-level ListView rebuilds at minute cadence only.
+    final tick = ref.watch(currentTimeProvider.select((a) => a.value));
     final colors = QibraColors.of(context);
     if (isLoading) {
       return QibraStatus.skeleton(height: 148);
@@ -524,6 +511,8 @@ class _PrayerHeroBody extends StatelessWidget {
       );
     }
     final prayer = info.prayer;
+    final remaining =
+        prayer.adjustedTime.difference(tick ?? DateTime.now());
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -556,7 +545,7 @@ class _PrayerHeroBody extends StatelessWidget {
                       Text(
                         prayer.type.arabicName,
                         style: AppArabicStyles.quranMedium
-                            .copyWith(color: colors.goldText),
+                            .copyWith(color: colors.textPrimary),
                       ),
                     ],
                   ),
@@ -566,10 +555,10 @@ class _PrayerHeroBody extends StatelessWidget {
                     style: AppTextStyles.titleSmall
                         .copyWith(color: colors.textSecondary),
                   ),
-                  if (currentPrayer != null) ...[
+                  if (currentPrayerName != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      'Current window: ${currentPrayer!.type.name}',
+                      'Current window: $currentPrayerName',
                       style: AppTextStyles.labelSmall
                           .copyWith(color: colors.textTertiary),
                     ),
@@ -579,14 +568,14 @@ class _PrayerHeroBody extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Semantics(
-              label:
-                  'Countdown to ${prayer.type.name}: ${info.formattedCountdown}',
+              label: 'Countdown to ${prayer.type.name}: '
+                  '${formatCountdownCompact(remaining)}',
               child: QibraCountdownRing(
                 progress: info.progress,
                 size: 108,
                 strokeWidth: 8,
                 child: Text(
-                  info.formattedCountdown,
+                  formatCountdownCompact(remaining),
                   style: AppTextStyles.titleMedium.copyWith(
                     color: colors.primary,
                     fontWeight: FontWeight.w800,
@@ -608,7 +597,11 @@ class _PrayerHeroBody extends StatelessWidget {
           runSpacing: 6,
           children: [
             _HeroChip(
-                icon: Icons.place_outlined, label: locationLabel),
+              icon: Icons.place_outlined,
+              label: locationLabel,
+              tooltip: 'Tap to update location from GPS',
+              onTap: onUpdateLocation,
+            ),
             if (dailyTimes != null)
               _HeroChip(
                   icon: Icons.calculate_outlined,
@@ -631,21 +624,31 @@ class _PrayerHeroBody extends StatelessWidget {
 }
 
 class _HeroChip extends StatelessWidget {
-  const _HeroChip({required this.icon, required this.label});
+  const _HeroChip({
+    required this.icon,
+    required this.label,
+    this.onTap,
+    this.tooltip,
+  });
 
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    Widget chip = Container(
+      padding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: isDark ? 0.05 : 0.6),
+        color: isDark
+            ? colors.background.withValues(alpha: 0.72)
+            : Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: colors.border.withValues(alpha: 0.8)),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -667,6 +670,19 @@ class _HeroChip extends StatelessWidget {
         ],
       ),
     );
+    if (onTap == null) return chip;
+    chip = Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: chip,
+      ),
+    );
+    if (tooltip != null) {
+      chip = Tooltip(message: tooltip!, child: chip);
+    }
+    return chip;
   }
 }
 
