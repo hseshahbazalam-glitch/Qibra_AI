@@ -964,6 +964,7 @@ class _IslamicEvent {
     required this.category,
     this.importance = 2,
   });
+}
 
 class _RamadanTip {
   const _RamadanTip(this.icon, this.title, this.note);
@@ -1065,5 +1066,4 @@ class _RamadanSunanCard extends StatelessWidget {
       ),
     );
   }
-}
 }

@@ -186,12 +186,12 @@ NikahGuideSection(
       Icons.campaign_rounded,
     ),
   ],
-),,
+),
 ];
 
 const nikahQuickFacts = <NikahQuickFact>[
 NikahQuickFact('Wali', 'Guardian required', Icons.person_rounded),
 NikahQuickFact('Mahr', 'Bride\'s right', Icons.diamond_rounded),
 NikahQuickFact('Witnesses', '2 males needed', Icons.groups_rounded),
-NikahQuickFact('Consent', 'Both must agree', Icons.check_circle_rounded),,
+NikahQuickFact('Consent', 'Both must agree', Icons.check_circle_rounded),
 ];
