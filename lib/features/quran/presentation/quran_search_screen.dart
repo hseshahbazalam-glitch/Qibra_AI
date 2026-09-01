@@ -6,7 +6,6 @@
 // ============================================================
 
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +15,6 @@ import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/utils/search_normalizer.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
-import '../data/models/quran_models.dart';
 import '../providers/quran_provider.dart';
 import 'surah_reader_screen.dart';
 
@@ -99,7 +97,7 @@ List<PopularTopic> _popularTopicsFor(QibraColors colors) => [
   PopularTopic(
     label: 'Faith',
     icon: Icons.light_mode_rounded,
-    color: colors.accent,
+    color: colors.primary,
     searchQuery: 'faith',
   ),
   PopularTopic(
@@ -329,94 +327,74 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
     final isFocused = _searchFocusNode.hasFocus;
     final hasText = _currentQuery.isNotEmpty;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.xl2),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(AppRadius.xl2),
-            border: Border.all(
-              color: isFocused
-                  ? colors.primary.withValues(alpha: 0.50)
-                  : colors.primary.withValues(alpha: 0.16),
-              width: 1.4,
-            ),
-            boxShadow: isFocused
-                ? [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.14),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : null,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(AppRadius.xl2),
+        border: Border.all(
+          color: isFocused ? colors.primary : colors.border,
+        ),
+      ),
+      child: TextField(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: colors.textPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        cursorColor: colors.primary,
+        textInputAction: TextInputAction.search,
+        onSubmitted: _performSearch,
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md + 4,
           ),
-          child: TextField(
-            controller: _searchController,
-            focusNode: _searchFocusNode,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-            cursorColor: colors.primary,
-            textInputAction: TextInputAction.search,
-            onSubmitted: _performSearch,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.md + 4,
-              ),
-              border: InputBorder.none,
-              prefixIcon: Icon(
-                Icons.search_rounded,
-                color: colors.primary.withValues(alpha: 0.90),
-                size: 24,
-              ),
-              hintText: 'Search Quran (English or Arabic)...',
-              hintStyle: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textTertiary,
-                fontWeight: FontWeight.w500,
-              ),
-              suffixIcon: hasText
-                  ? IconButton(
-                      onPressed: _clearSearch,
-                      icon: Icon(
-                        Icons.close_rounded,
-                        color: colors.textSecondary,
-                        size: 20,
-                      ),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.only(right: AppSpacing.md),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xs + 2,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                        child: Text(
-                          '6236',
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: colors.primary,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 10,
-                          ),
-                        ),
+          border: InputBorder.none,
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: colors.primary,
+            size: 24,
+          ),
+          hintText: 'Search Quran (English or Arabic)...',
+          hintStyle: AppTextStyles.bodyMedium.copyWith(
+            color: colors.textTertiary,
+            fontWeight: FontWeight.w500,
+          ),
+          suffixIcon: hasText
+              ? IconButton(
+                  onPressed: _clearSearch,
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: colors.textSecondary,
+                    size: 20,
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.md),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xs + 2,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Text(
+                      '6236',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-            ),
-          ),
+                  ),
+                ),
         ),
       ),
     );
   }
-
   // ── Body ──────────────────────────────────────────────────
 
   Widget _buildBody(SearchState searchState, List<String> recentSearches) {
@@ -519,7 +497,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             children: [
               Icon(
                 Icons.trending_up_rounded,
-                color: colors.accent,
+                color: colors.primary,
                 size: 18,
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -570,18 +548,9 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.primary.withValues(alpha: 0.14),
-            colors.accent.withValues(alpha: 0.08),
-          ],
-        ),
+        color: colors.card,
         borderRadius: BorderRadius.circular(AppRadius.xl2),
-        border: Border.all(
-          color: colors.accent.withValues(alpha: 0.20),
-        ),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,12 +561,13 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: colors.accent.withValues(alpha: 0.16),
+                  color: colors.cardMuted,
                   shape: BoxShape.circle,
+                  border: Border.all(color: colors.border),
                 ),
                 child: Icon(
                   Icons.lightbulb_outline_rounded,
-                  color: colors.accent,
+                  color: colors.textSecondary,
                   size: 18,
                 ),
               ),
@@ -660,7 +630,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
               itemBuilder: (context, index) => Container(
                 height: 140,
                 decoration: BoxDecoration(
-                  color: colors.cardMuted.withValues(alpha: 0.60),
+                  color: colors.cardMuted,
                   borderRadius: BorderRadius.circular(AppRadius.xl2),
                 ),
               ),
@@ -869,18 +839,9 @@ class _SearchResultCard extends StatelessWidget {
         splashColor: colors.primary.withValues(alpha: 0.10),
         child: Ink(
           decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.90),
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(AppRadius.xl2),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.14),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: colors.primary.withValues(alpha: 0.10),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            border: Border.all(color: colors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -892,7 +853,7 @@ class _SearchResultCard extends StatelessWidget {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: colors.surface.withValues(alpha: 0.60),
+                  color: colors.surface,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(AppRadius.xl2),
                     topRight: Radius.circular(AppRadius.xl2),
@@ -904,12 +865,7 @@ class _SearchResultCard extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            colors.primary.withValues(alpha: 0.90),
-                            colors.accent.withValues(alpha: 0.70),
-                          ],
-                        ),
+                        color: colors.primary,
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -950,24 +906,17 @@ class _SearchResultCard extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: result.isArabicMatch
-                            ? colors.accent.withValues(alpha: 0.14)
-                            : colors.primarySoft.withValues(alpha: 0.14),
+                        color: colors.cardMuted,
                         borderRadius: BorderRadius.circular(AppRadius.full),
-                        border: Border.all(
-                          color: result.isArabicMatch
-                              ? colors.accent.withValues(alpha: 0.24)
-                              : colors.primarySoft.withValues(alpha: 0.24),
-                        ),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Text(
                         result.isArabicMatch ? 'AR' : 'EN',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: result.isArabicMatch
                               ? colors.textPrimary
-                              : colors.primarySoft,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 10,
+                              : colors.textSecondary,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -1025,7 +974,7 @@ class _SearchResultCard extends StatelessWidget {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: colors.surface.withValues(alpha: 0.40),
+                  color: colors.surface,
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(AppRadius.xl2),
                     bottomRight: Radius.circular(AppRadius.xl2),
@@ -1142,11 +1091,9 @@ class _RecentSearchChip extends StatelessWidget {
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.78),
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(AppRadius.full),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.14),
-            ),
+            border: Border.all(color: colors.border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1207,11 +1154,9 @@ class _TopicCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Ink(
           decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.80),
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(
-              color: topic.color.withValues(alpha: 0.24),
-            ),
+            border: Border.all(color: colors.border),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1273,11 +1218,9 @@ class _CircleButton extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.82),
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.14),
-            ),
+            border: Border.all(color: colors.border),
           ),
           child: Icon(icon, size: 20, color: colors.textPrimary),
         ),
