@@ -477,7 +477,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
             width: 3,
             height: 22,
             decoration: BoxDecoration(
-              gradient: AppGradients.emerald,
+              color: colors.primary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),

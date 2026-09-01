@@ -110,14 +110,6 @@ class _NavItem extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: color,
                   borderRadius: BorderRadius.circular(999),
-                  boxShadow: isActive
-                      ? [
-                          BoxShadow(
-                            color: color.withValues(alpha: 0.65),
-                            blurRadius: 9,
-                          ),
-                        ]
-                      : null,
                 ),
               ),
               Icon(

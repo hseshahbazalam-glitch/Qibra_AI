@@ -7,8 +7,6 @@
 //              animated illustrations, and premium UX.
 // ============================================================
 
-import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -145,7 +143,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   late Animation<double> _iconRotation;
 
   // ── PARTICLE ANIMATION ───────────────────────────────
-  late AnimationController _particleController;
 
   // ── CONTENT ANIMATION ────────────────────────────────
   late AnimationController _contentController;
@@ -187,12 +184,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       curve: Curves.easeOutCubic,
     ));
 
-    // Particle background
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat();
-
     // Content animation
     _contentController = AnimationController(
       vsync: this,
@@ -224,7 +215,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   void dispose() {
     _pageController.dispose();
     _iconController.dispose();
-    _particleController.dispose();
     _contentController.dispose();
     super.dispose();
   }
@@ -279,29 +269,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
     final currentSlide = _slides[_currentPage];
     final isLastPage = _currentPage == _slides.length - 1;
-    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       body: Stack(
         children: [
-          // ── LAYER 1: Animated background gradient ──
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 800),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: currentSlide.backgroundGradient,
-                stops: const [0.0, 0.5, 1.0],
-              ),
+          // ── LAYER 1: Solid background ──
+          Positioned.fill(
+            child: ColoredBox(
+              color: currentSlide.backgroundGradient.first,
             ),
           ),
-
-          // ── LAYER 2: Floating particles ──
-          _buildParticleBackground(size, currentSlide),
 
           // ── LAYER 3: Content ──
           SafeArea(
@@ -342,29 +321,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   // ══════════════════════════════════════════
-  // PARTICLE BACKGROUND
-  // ══════════════════════════════════════════
-
-  Widget _buildParticleBackground(Size size, _OnboardingSlide slide) {
-    final colors = QibraColors.of(context);
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _OnboardingParticlePainter(
-              animationValue: _particleController.value,
-              primaryColor: slide.primaryColor,
-              secondaryColor: slide.secondaryColor,
-            ),
-            size: size,
-          );
-        },
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
   // TOP BAR — Logo + Skip
   // ══════════════════════════════════════════
 
@@ -385,15 +341,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  gradient: AppGradients.gold,
+                  color: colors.accent,
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.accent.withValues(alpha: 0.40),
-                      blurRadius: 12,
-                      spreadRadius: 1,
-                    ),
-                  ],
                 ),
                 child: Icon(
                   Icons.mosque_rounded,
@@ -402,16 +351,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppGradients.gold.createShader(bounds),
-                child: Text(
-                  AppInfo.appName,
-                  style: AppTextStyles.titleMedium.copyWith(
-                    color: QibraNavy.textPrimary,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2,
-                  ),
+              Text(
+                AppInfo.appName,
+                style: AppTextStyles.titleMedium.copyWith(
+                  color: colors.goldText,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
                 ),
               ),
             ],
@@ -438,42 +383,33 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: AppRadius.pillRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: QibraNavy.card.withValues(alpha: 0.10),
-              borderRadius: AppRadius.pillRadius,
-              border: Border.all(
-                color: QibraNavy.hairlineStrong.withValues(alpha: 0.20),
-                width: 1,
-              ),
-            ),
-            child: Text(
-              label,
-              style: AppTextStyles.labelMedium.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: AppRadius.pillRadius,
+          border: Border.all(color: colors.border, width: 1),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
     );
   }
 
+
   // ══════════════════════════════════════════
   // SINGLE SLIDE
   // ══════════════════════════════════════════
 
   Widget _buildSlide(_OnboardingSlide slide, int index) {
-    final colors = QibraColors.of(context);
     // Parallax calculation
     final delta = (_pageOffset - index).clamp(-1.0, 1.0);
 
@@ -507,7 +443,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildIllustration(_OnboardingSlide slide) {
-    final colors = QibraColors.of(context);
     return AnimatedBuilder(
       animation: _iconController,
       builder: (context, child) {
@@ -524,24 +459,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         height: 200,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              slide.primaryColor.withValues(alpha: 0.30),
-              slide.primaryColor.withValues(alpha: 0.05),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: slide.primaryColor.withValues(alpha: 0.40),
-              blurRadius: 60,
-              spreadRadius: 10,
-            ),
-            BoxShadow(
-              color: slide.primaryColor.withValues(alpha: 0.20),
-              blurRadius: 120,
-              spreadRadius: 20,
-            ),
-          ],
+          color: slide.primaryColor.withValues(alpha: 0.12),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -553,7 +471,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: slide.primaryColor.withValues(alpha: 0.30),
+                  color: slide.primaryColor.withValues(alpha: 0.16),
                   width: 1,
                 ),
               ),
@@ -566,7 +484,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: slide.primaryColor.withValues(alpha: 0.50),
+                  color: slide.primaryColor.withValues(alpha: 0.24),
                   width: 1.5,
                 ),
               ),
@@ -585,40 +503,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               )
             else
               ClipOval(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                  child: Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          slide.primaryColor.withValues(alpha: 0.30),
-                          slide.primaryColor.withValues(alpha: 0.10),
-                        ],
-                      ),
-                      border: Border.all(
-                        color: slide.primaryColor,
-                        width: 2,
-                      ),
+                child: Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: slide.primaryColor.withValues(alpha: 0.12),
+                    border: Border.all(
+                      color: slide.primaryColor,
+                      width: 2,
                     ),
-                    child: Center(
-                      child: ShaderMask(
-                        shaderCallback: (bounds) => LinearGradient(
-                          colors: [
-                            slide.primaryColor,
-                            slide.secondaryColor,
-                          ],
-                        ).createShader(bounds),
-                        child: Icon(
-                          slide.icon,
-                          size: 56,
-                          color: QibraNavy.textPrimary,
-                        ),
-                      ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      slide.icon,
+                      size: 56,
+                      color: slide.primaryColor,
                     ),
                   ),
                 ),
@@ -639,24 +539,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       position: _contentSlide,
       child: FadeTransition(
         opacity: _contentFade,
-        child: ClipRRect(
-          borderRadius: AppRadius.cardRadiusLarge,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
+        child: Container(
               padding: const EdgeInsets.all(AppSpacing.xl2),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withValues(alpha: 0.10),
-                    Colors.white.withValues(alpha: 0.05),
-                  ],
-                ),
+                color: colors.card,
                 borderRadius: AppRadius.cardRadiusLarge,
                 border: Border.all(
-                  color: QibraNavy.hairlineStrong.withValues(alpha: 0.15),
+                  color: colors.border,
                   width: 1,
                 ),
               ),
@@ -691,8 +580,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 ],
               ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -702,22 +589,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildArabicBadge(_OnboardingSlide slide) {
-    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            slide.primaryColor.withValues(alpha: 0.20),
-            slide.secondaryColor.withValues(alpha: 0.15),
-          ],
-        ),
+        color: slide.primaryColor.withValues(alpha: 0.12),
         borderRadius: AppRadius.pillRadius,
         border: Border.all(
-          color: slide.primaryColor.withValues(alpha: 0.40),
+          color: slide.primaryColor.withValues(alpha: 0.16),
           width: 1,
         ),
       ),
@@ -738,7 +619,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             width: 3,
             height: 3,
             decoration: BoxDecoration(
-              color: slide.primaryColor.withValues(alpha: 0.50),
+              color: slide.primaryColor,
               shape: BoxShape.circle,
             ),
           ),
@@ -761,12 +642,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPageIndicators() {
-    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_slides.length, (index) {
         final isActive = index == _currentPage;
-        final slide = _slides[_currentPage];
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 400),
@@ -776,24 +655,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           height: 8,
           decoration: BoxDecoration(
             borderRadius: AppRadius.pillRadius,
-            gradient: isActive
-                ? LinearGradient(
-                    colors: [
-                      slide.primaryColor,
-                      slide.secondaryColor,
-                    ],
-                  )
-                : null,
-            color: isActive ? null : QibraNavy.textMuted,
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: slide.primaryColor.withValues(alpha: 0.60),
-                      blurRadius: 12,
-                      spreadRadius: 1,
-                    ),
-                  ]
-                : null,
+            color: isActive ? slide.primaryColor : QibraNavy.textMuted,
           ),
         );
       }),
@@ -808,7 +670,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     bool isLastPage,
     _OnboardingSlide slide,
   ) {
-    final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xl2,
@@ -844,28 +705,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // ══════════════════════════════════════════
 
   Widget _buildNextButton(_OnboardingSlide slide) {
-    final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: _handleNext,
       child: Container(
         height: 56,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              slide.primaryColor,
-              slide.secondaryColor,
-            ],
-          ),
+          color: slide.primaryColor,
           borderRadius: AppRadius.buttonRadiusLg,
-          boxShadow: [
-            BoxShadow(
-              color: slide.primaryColor.withValues(alpha: 0.50),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -900,93 +746,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: onTap,
-      child: ClipOval(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: QibraNavy.textPrimary.withValues(alpha: 0.10),
-              border: Border.all(
-                color: QibraNavy.hairlineStrong.withValues(alpha: 0.20),
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              icon,
-              color: colors.textPrimary,
-              size: 24,
-            ),
-          ),
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: colors.card,
+          border: Border.all(color: colors.border),
+        ),
+        child: Icon(
+          icon,
+          color: colors.textPrimary,
+          size: 24,
         ),
       ),
     );
   }
-}
-
-// ============================================================
-// ONBOARDING PARTICLE PAINTER
-// ============================================================
-
-class _OnboardingParticlePainter extends CustomPainter {
-  final double animationValue;
-  final Color primaryColor;
-  final Color secondaryColor;
-
-  _OnboardingParticlePainter({
-    required this.animationValue,
-    required this.primaryColor,
-    required this.secondaryColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final random = math.Random(42);
-
-    // Draw 25 floating particles
-    for (int i = 0; i < 25; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      // Floating motion
-      final offset = math.sin(
-        (animationValue * 2 * math.pi) + i,
-      );
-
-      final x = baseX + (offset * 25);
-      final y = baseY + (offset * 35);
-
-      final particleSize = 1.5 + random.nextDouble() * 2.5;
-      final isSecondary = i % 3 == 0;
-      final color = isSecondary ? secondaryColor : primaryColor;
-      final alpha = 0.20 + (random.nextDouble() * 0.30);
-
-      final paint = Paint()
-        ..color = color.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(Offset(x, y), particleSize, paint);
-
-      // Glow
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: alpha * 0.3)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize * 3,
-        glowPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(
-    covariant _OnboardingParticlePainter oldDelegate,
-  ) =>
-      oldDelegate.animationValue != animationValue ||
-      oldDelegate.primaryColor != primaryColor;
 }

@@ -6,8 +6,6 @@
 // ============================================================
 
 import 'dart:async';
-import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,12 +28,9 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _patternController;
-  late AnimationController _particleController;
   late AnimationController _logoController;
   late Animation<double> _logoScale;
   late Animation<double> _logoFade;
-  late Animation<double> _logoGlow;
   late AnimationController _bismillahController;
   late Animation<double> _bismillahFade;
   late Animation<Offset> _bismillahSlide;
@@ -43,7 +38,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late Animation<double> _nameReveal;
   late AnimationController _taglineController;
   late Animation<double> _taglineFade;
-  late AnimationController _loadingController;
 
   // Timers are tracked so widget tests and rapid navigation never leave
   // delayed callbacks alive after this screen is disposed.
@@ -52,16 +46,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void initState() {
     super.initState();
-
-    _patternController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 40),
-    )..repeat();
-
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    )..repeat();
 
     _logoController = AnimationController(
       vsync: this,
@@ -76,13 +60,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       CurvedAnimation(
         parent: _logoController,
         curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
-      ),
-    );
-
-    _logoGlow = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
       ),
     );
 
@@ -123,11 +100,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _taglineFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _taglineController, curve: Curves.easeIn),
     );
-
-    _loadingController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat();
 
     _startAnimationSequence();
     _scheduleNavigation();
@@ -184,29 +156,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     }
     _pendingTimers.clear();
 
-    _patternController.dispose();
-    _particleController.dispose();
     _logoController.dispose();
     _bismillahController.dispose();
     _nameController.dispose();
     _taglineController.dispose();
-    _loadingController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       backgroundColor: colors.background,
       body: Stack(
         children: [
           _buildBackgroundGradient(),
-          _buildRotatingPattern(size),
-          if (!MediaQuery.of(context).disableAnimations)
-            _buildFloatingParticles(size),
           _buildGlassOverlay(),
           SafeArea(
             child: Column(
@@ -253,52 +218,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  Widget _buildRotatingPattern(Size size) {
-    final colors = QibraColors.of(context);
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _patternController,
-        builder: (context, child) {
-          return Transform.rotate(
-            angle: _patternController.value * 2 * math.pi,
-            child: Opacity(
-              opacity: 0.06,
-              child: CustomPaint(
-                painter: _IslamicPatternPainter(),
-                size: Size(size.width * 2, size.height * 2),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildFloatingParticles(Size size) {
-    final colors = QibraColors.of(context);
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _ParticlePainter(
-              animationValue: _particleController.value,
-            ),
-            size: size,
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildGlassOverlay() {
     final colors = QibraColors.of(context);
     return Positioned.fill(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
-        child: Container(
-          color: colors.background.withValues(alpha: 0.10),
-        ),
+      child: Container(
+        color: colors.background.withValues(alpha: 0.10),
       ),
     );
   }
@@ -352,84 +276,57 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           child: ScaleTransition(scale: _logoScale, child: child),
         );
       },
-      child: AnimatedBuilder(
-        animation: _logoGlow,
-        builder: (context, child) {
-          return Container(
-            width: 160,
-            height: 160,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: AppGradients.gold,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.accent
-                      .withValues(alpha: 0.60 * _logoGlow.value),
-                  blurRadius: 40,
-                  spreadRadius: 8,
+      child: Container(
+        width: 160,
+        height: 160,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: colors.accent,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 145,
+              height: 145,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: colors.onPrimary.withValues(alpha: 0.24),
+                  width: 1.5,
                 ),
-                BoxShadow(
-                  color: colors.accent
-                      .withValues(alpha: 0.40 * _logoGlow.value),
-                  blurRadius: 80,
-                  spreadRadius: 16,
-                ),
-                BoxShadow(
-                  color: colors.primary
-                      .withValues(alpha: 0.20 * _logoGlow.value),
-                  blurRadius: 120,
-                  spreadRadius: 24,
-                ),
-              ],
+              ),
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 145,
-                  height: 145,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: colors.onPrimary.withValues(alpha: 0.40),
-                      width: 1.5,
-                    ),
+            ClipOval(
+              child: Container(
+                width: 130,
+                height: 130,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colors.background,
+                  border: Border.all(
+                    color: colors.accent.withValues(alpha: 0.24),
+                    width: 2,
                   ),
                 ),
-                ClipOval(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      width: 130,
-                      height: 130,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colors.background.withValues(alpha: 0.90),
-                        border: Border.all(
-                          color: colors.accent.withValues(alpha: 0.50),
-                          width: 2,
-                        ),
-                      ),
-                      child: const Center(
-                        child: SafeImage(
-                          assetPath: AppAssets.logo,
-                          width: 96,
-                          height: 96,
-                          cacheWidth: 288,
-                          fit: BoxFit.contain,
-                          fallback: SafeImageFallback.logo,
-                        ),
-                      ),
-                    ),
+                child: const Center(
+                  child: SafeImage(
+                    assetPath: AppAssets.logo,
+                    width: 96,
+                    height: 96,
+                    cacheWidth: 288,
+                    fit: BoxFit.contain,
+                    fallback: SafeImageFallback.logo,
                   ),
                 ),
-              ],
+              ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
+
 
   Widget _buildAppNameReveal() {
     final colors = QibraColors.of(context);
@@ -477,12 +374,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             width: 40,
             height: 1,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  colors.accent.withValues(alpha: 0.60),
-                ],
-              ),
+              color: colors.border,
             ),
           ),
           Padding(
@@ -493,12 +385,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             width: 40,
             height: 1,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colors.accent.withValues(alpha: 0.60),
-                  Colors.transparent,
-                ],
-              ),
+              color: colors.border,
             ),
           ),
         ],
@@ -523,41 +410,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Widget _buildLoadingIndicator() {
     final colors = QibraColors.of(context);
-    return AnimatedBuilder(
-      animation: _loadingController,
-      builder: (context, child) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(3, (index) {
-            final delay = index * 0.15;
-            final animationValue =
-                (_loadingController.value - delay).clamp(0.0, 1.0);
-            final wave = math.sin(animationValue * math.pi);
-
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color:
-                      colors.accent.withValues(alpha: 0.30 + (wave * 0.70)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.accent.withValues(alpha: wave * 0.60),
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        );
-      },
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: CircularProgressIndicator(
+        strokeWidth: 2.5,
+        valueColor: AlwaysStoppedAnimation<Color>(colors.accent),
+      ),
     );
   }
+
 
   // ============================================================
   // PREMIUM FOOTER — NEW DESIGN with Shahbaz Alam
@@ -582,7 +444,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   color: colors.primary.withValues(alpha: 0.15),
                   borderRadius: AppRadius.pillRadius,
                   border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.35),
+                    color: colors.primary.withValues(alpha: 0.16),
                   ),
                 ),
                 child: Row(
@@ -644,22 +506,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             ),
           ),
           const SizedBox(height: 3),
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [
-                Color(0xFFC6A15B),
-                Color(0xFFB8960C),
-                Color(0xFFC6A15B),
-              ],
-            ).createShader(bounds),
-            child: Text(
-              'SHAHBAZ ALAM',
-              style: AppTextStyles.labelSmall.copyWith(
-                color: const Color(0xFF19312C),
-                fontWeight: FontWeight.w900,
-                fontSize: 12,
-                letterSpacing: 2.5,
-              ),
+          Text(
+            'SHAHBAZ ALAM',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: colors.goldText,
+              fontWeight: FontWeight.w900,
+              fontSize: 12,
+              letterSpacing: 2.5,
             ),
           ),
 
@@ -678,92 +531,4 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ),
     );
   }
-}
-
-// ============================================================
-// ISLAMIC PATTERN PAINTER
-// ============================================================
-
-class _IslamicPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFC6A15B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 4;
-
-    for (int i = 0; i < 8; i++) {
-      final angle = (i * math.pi / 4);
-      final path = Path();
-
-      for (int j = 0; j < 8; j++) {
-        final r = j % 2 == 0 ? radius : radius * 0.6;
-        final x = center.dx + r * math.cos(angle + (j * math.pi / 4));
-        final y = center.dy + r * math.sin(angle + (j * math.pi / 4));
-
-        if (j == 0) {
-          path.moveTo(x, y);
-        } else {
-          path.lineTo(x, y);
-        }
-      }
-
-      path.close();
-      canvas.drawPath(path, paint);
-    }
-
-    for (int i = 1; i <= 5; i++) {
-      canvas.drawCircle(center, radius * i * 0.3, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ============================================================
-// FLOATING PARTICLES PAINTER
-// ============================================================
-
-class _ParticlePainter extends CustomPainter {
-  final double animationValue;
-
-  _ParticlePainter({required this.animationValue});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final random = math.Random(42);
-
-    for (int i = 0; i < 12; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-      final offset = math.sin((animationValue * 2 * math.pi) + i);
-      final x = baseX + (offset * 20);
-      final y = baseY + (offset * 30);
-      final particleSize = 1.5 + random.nextDouble() * 2;
-      final isGold = i % 3 == 0;
-      final color = isGold ? const Color(0xFFC6A15B) : const Color(0xFF123F36);
-      final alpha = 0.20 + (random.nextDouble() * 0.30);
-
-      final paint = Paint()
-        ..color = color.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(Offset(x, y), particleSize, paint);
-
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: alpha * 0.3)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-
-      canvas.drawCircle(Offset(x, y), particleSize * 3, glowPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _ParticlePainter oldDelegate) =>
-      oldDelegate.animationValue != animationValue;
 }

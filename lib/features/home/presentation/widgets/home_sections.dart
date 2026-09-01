@@ -298,12 +298,11 @@ class HomeAskAiCard extends StatelessWidget {
           color: Colors.transparent,
           child: Ink(
             decoration: BoxDecoration(
-              gradient: QibraNavy.aiViolet,
+              color: QibraNavy.cardElevated,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: colors.violetAi.withValues(alpha: 0.35),
+                color: colors.violetAi.withValues(alpha: 0.24),
               ),
-              boxShadow: QibraNavy.aiGlow,
             ),
             child: InkWell(
               onTap: () {
@@ -320,14 +319,7 @@ class HomeAskAiCard extends StatelessWidget {
                       height: 44,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            colors.violetAi,
-                            colors.aiAccentDeep,
-                          ],
-                        ),
+                        color: colors.violetAi,
                       ),
                       child: const Icon(Icons.auto_awesome_rounded,
                           color: Colors.white, size: 22),
@@ -384,12 +376,7 @@ class HomeAskAiCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 9),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            colors.violetAi,
-                            colors.aiAccentDeep,
-                          ],
-                        ),
+                        color: colors.violetAi,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -844,12 +831,8 @@ class _Medallion extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [deep.withValues(alpha: 0.9), QibraNavy.cardElevated],
-        ),
-        border: Border.all(color: tint.withValues(alpha: 0.45)),
+        color: QibraNavy.cardElevated,
+        border: Border.all(color: tint.withValues(alpha: 0.24)),
       ),
       child: Icon(icon, color: tint, size: 22),
     );

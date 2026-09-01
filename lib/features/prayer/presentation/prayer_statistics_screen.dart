@@ -252,7 +252,7 @@ class _PrayerStatisticsScreenState
           duration: const Duration(milliseconds: 250),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            gradient: isSelected ? AppGradients.emerald : null,
+            color: isSelected ? colors.primary : null,
             borderRadius: AppRadius.pillRadius,
           ),
           child: Center(

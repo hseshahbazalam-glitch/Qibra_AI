@@ -294,7 +294,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 width: 3,
                 height: 18,
                 decoration: BoxDecoration(
-                  gradient: AppGradients.emerald,
+                  color: colors.primary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

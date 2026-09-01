@@ -21,7 +21,6 @@ class QibraCountdownRing extends StatelessWidget {
     required this.child,
     this.size = 96,
     this.strokeWidth = 7,
-    this.glow = true,
   });
 
   /// 0.0 → 1.0 elapsed fraction of the current prayer interval.
@@ -29,7 +28,6 @@ class QibraCountdownRing extends StatelessWidget {
   final Widget child;
   final double size;
   final double strokeWidth;
-  final bool glow;
 
   @override
   Widget build(BuildContext context) {
@@ -39,20 +37,7 @@ class QibraCountdownRing extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: glow
-              ? [
-                  BoxShadow(
-                    color: active.withValues(alpha: 0.22),
-                    blurRadius: 18,
-                    spreadRadius: 0,
-                  ),
-                ]
-              : null,
-        ),
-        child: CustomPaint(
+      child: CustomPaint(
           painter: _CountdownRingPainter(
             progress: progress,
             strokeWidth: strokeWidth,
@@ -69,7 +54,6 @@ class QibraCountdownRing extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 

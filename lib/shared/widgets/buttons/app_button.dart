@@ -182,16 +182,10 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton>
           height: config.height,
           width: widget.fullWidth ? double.infinity : null,
           decoration: BoxDecoration(
-            gradient: isDisabled
-                ? LinearGradient(
-                    colors: [
-                      colors.primary.withValues(alpha: 0.40),
-                      colors.primary.withValues(alpha: 0.40),
-                    ],
-                  )
-                : AppGradients.emerald,
+            color: isDisabled
+                ? colors.primary.withValues(alpha: 0.40)
+                : colors.primary,
             borderRadius: BorderRadius.circular(config.borderRadius),
-            boxShadow: isDisabled ? null : AppShadows.emeraldGlow,
           ),
           child: Padding(
             padding: config.padding,
@@ -508,16 +502,10 @@ class _AppGoldButtonState extends State<AppGoldButton>
           height: config.height,
           width: widget.fullWidth ? double.infinity : null,
           decoration: BoxDecoration(
-            gradient: isDisabled
-                ? LinearGradient(
-                    colors: [
-                      colors.accent.withValues(alpha: 0.40),
-                      colors.goldText.withValues(alpha: 0.40),
-                    ],
-                  )
-                : AppGradients.gold,
+            color: isDisabled
+                ? colors.accent.withValues(alpha: 0.40)
+                : colors.accent,
             borderRadius: BorderRadius.circular(config.borderRadius),
-            boxShadow: isDisabled ? null : AppShadows.goldGlow,
           ),
           child: Padding(
             padding: config.padding,
@@ -770,7 +758,6 @@ class _AppIconBtnState extends State<AppIconBtn>
                         width: 1.5,
                       )
                     : null,
-                boxShadow: widget.isFilled ? AppShadows.emeraldGlow : null,
               ),
               child: Icon(
                 widget.icon,

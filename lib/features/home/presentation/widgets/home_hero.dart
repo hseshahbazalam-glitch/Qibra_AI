@@ -306,12 +306,6 @@ class _PrayerIdentity extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: colors.primary,
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.primary.withValues(alpha: 0.6),
-                    blurRadius: 8,
-                  ),
-                ],
               ),
             ),
             const SizedBox(width: 6),
