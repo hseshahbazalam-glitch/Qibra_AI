@@ -12,6 +12,7 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 
 import '../providers/prayer_provider.dart';
 import '../data/models/prayer_models.dart';
@@ -245,18 +246,9 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF1A2748),
-                      Color(0xFFEEF1EA),
-                    ],
-                  ),
+                  color: colors.card,
                   borderRadius: AppRadius.cardRadiusLarge,
-                  border: Border.all(
-                    color: const Color(0xFF2F6B5D).withValues(alpha: 0.3),
-                  ),
+                  border: Border.all(color: colors.border),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,11 +259,10 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF2F6B5D).withValues(alpha: 0.2),
+                            color: colors.primarySoft,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: const Color(0xFF2F6B5D),
+                              color: colors.primary,
                               width: 2,
                             ),
                           ),
@@ -279,7 +270,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                             displayType == null
                                 ? Icons.access_time_rounded
                                 : _getIcon(displayType),
-                            color: const Color(0xFF2F6B5D),
+                            color: colors.primary,
                             size: 28,
                           ),
                         ),
@@ -294,14 +285,14 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      colors.onPrimary.withValues(alpha: 0.15),
+                                  color: colors.primary
+                                      .withValues(alpha: 0.12),
                                   borderRadius: AppRadius.pillRadius,
                                 ),
                                 child: Text(
                                   'NEXT PRAYER',
                                   style: AppTextStyles.labelSmall.copyWith(
-                                    color: colors.onPrimary,
+                                    color: colors.primary,
                                     fontWeight: FontWeight.w800,
                                     fontSize: 9,
                                     letterSpacing: 1.5,
@@ -315,7 +306,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                                     displayName,
                                     style:
                                         AppTextStyles.headlineMedium.copyWith(
-                                      color: colors.onPrimary,
+                                      color: colors.textPrimary,
                                       fontWeight: FontWeight.w900,
                                     ),
                                   ),
@@ -324,11 +315,9 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                                     padding: const EdgeInsets.only(bottom: 4),
                                     child: Text(
                                       displayArabic,
-                                      style: AppArabicStyles
-                                          .quranBold
+                                      style: AppArabicStyles.quranBold
                                           .copyWith(
-                                        color:
-                                            const Color(0xFFC6A15B),
+                                        color: colors.textSecondary,
                                       ),
                                       textDirection: TextDirection.rtl,
                                     ),
@@ -344,14 +333,14 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                             Text(
                               displayTime,
                               style: AppTextStyles.titleLarge.copyWith(
-                                color: colors.onPrimary,
+                                color: colors.textPrimary,
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
                             Text(
                               displayType?.description ?? '',
                               style: AppTextStyles.labelSmall.copyWith(
-                                color: colors.onPrimary.withValues(alpha: 0.6),
+                                color: colors.textTertiary,
                               ),
                             ),
                           ],
@@ -363,41 +352,31 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: colors.surface,
                         borderRadius: AppRadius.buttonRadius,
-                        border: Border.all(
-                          color: colors.onPrimary.withValues(alpha: 0.1),
-                        ),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.timer_outlined,
-                            color: Color(0xFFC6A15B),
+                            color: colors.primary,
                             size: 18,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'in ',
                             style: AppTextStyles.bodyMedium.copyWith(
-                              color: colors.onPrimary.withValues(alpha: 0.7),
+                              color: colors.textSecondary,
                             ),
                           ),
                           Text(
                             formattedCountdown,
-                            style: TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 20,
-                              color: const Color(0xFFC6A15B),
-                              fontWeight: FontWeight.w900,
-                              shadows: [
-                                Shadow(
-                                  color: const Color(0xFFC6A15B)
-                                      .withValues(alpha: 0.5),
-                                  blurRadius: 8,
-                                ),
-                              ],
+                            style: AppTextStyles.titleMedium.copyWith(
+                              color: colors.primary,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
@@ -415,7 +394,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
               child: _buildInfoCard(
                 icon: Icons.tune_rounded,
-                iconColor: const Color(0xFF2F6B5D),
+                iconColor: colors.primary,
                 title: 'Method: ${_getMethodName(settings.calculationMethod)}',
                 onTap: _showMethodSelector,
               ),
@@ -428,7 +407,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
               child: _buildInfoCard(
                 icon: Icons.location_on_rounded,
-                iconColor: const Color(0xFFC6A15B),
+                iconColor: colors.textSecondary,
                 title: 'My Location',
                 subtitle: location.location?.displayName ?? 'Auto-detected',
                 onTap: _showLocationOptions,
@@ -440,26 +419,8 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 3,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      gradient: AppGradients.gold,
-                      borderRadius: AppRadius.pillRadius,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "TODAY'S SCHEDULE",
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: colors.accent,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2.0,
-                    ),
-                  ),
-                ],
+              child: const QibraSectionHeader(
+                title: "Today's schedule",
               ),
             ),
           ),
@@ -485,7 +446,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                     color: colors.primary.withValues(alpha: 0.1),
                     borderRadius: AppRadius.cardRadius,
                     border: Border.all(
-                      color: colors.primary.withValues(alpha: 0.4),
+                      color: colors.primary.withValues(alpha: 0.16),
                     ),
                   ),
                   child: Row(
@@ -773,7 +734,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                       subtitle: Text(
                         _getArabicName(entry.key),
                         style: AppArabicStyles.quranSmall.copyWith(
-                          color: const Color(0xFFC6A15B),
+                          color: colors.textSecondary,
                           height: 1.2,
                         ),
                         textDirection: TextDirection.rtl,
@@ -1007,7 +968,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
   Widget _makePrayer(PrayerType type, String time, bool isNext) {
     return SchedulePrayerTile(
       icon: _getIcon(type),
-      iconColor: _getColor(type),
+      iconColor: _getColor(context, type),
       name: _getName(type),
       nameArabic: _getArabicName(type),
       time: time,
@@ -1095,21 +1056,12 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
     }
   }
 
-  Color _getColor(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return const Color(0xFF2F6B5D);
-      case PrayerType.sunrise:
-        return const Color(0xFFC6A15B);
-      case PrayerType.dhuhr:
-        return const Color(0xFFC6A15B);
-      case PrayerType.asr:
-        return QibraColors.light.error;
-      case PrayerType.maghrib:
-        return const Color(0xFFC6A15B);
-      case PrayerType.isha:
-        return const Color(0xFF2F6B5D);
-    }
+  Color _getColor(BuildContext context, PrayerType type) {
+    // Single honest accent: prayers are primary; the informational
+    // sunrise marker stays neutral instead of inventing per-prayer hues.
+    final colors = QibraColors.of(context);
+    if (type == PrayerType.sunrise) return colors.textTertiary;
+    return colors.primary;
   }
 
   String _getDayName(int weekday) {

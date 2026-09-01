@@ -63,8 +63,16 @@ class QibraNightSkyBackdrop extends StatelessWidget {
                   child: CustomPaint(
                     painter: _NightSkyPainter(
                       silhouette: silhouette,
-                      star: colors.textSecondary,
-                      moon: colors.accent,
+                      // Deep pass (Stage C): stars ride textPrimary so
+                      // they read as pinpoints instead of vanishing into
+                      // the navy; the crescent uses bright gold with a
+                      // stronger halo for real moon-vs-sky contrast.
+                      star: isDark
+                          ? colors.textPrimary
+                          : colors.textSecondary,
+                      moon: isDark
+                          ? QibraNavy.goldBright
+                          : colors.accent,
                       isDark: isDark,
                     ),
                   ),
@@ -181,7 +189,7 @@ class _NightSkyPainter extends CustomPainter {
       Paint()
         ..shader = RadialGradient(
           colors: [
-            moon.withValues(alpha: isDark ? 0.20 : 0.10),
+            moon.withValues(alpha: isDark ? 0.26 : 0.10),
             Colors.transparent,
           ],
         ).createShader(Rect.fromCircle(center: moonC, radius: moonR * 2.2)),
@@ -194,11 +202,11 @@ class _NightSkyPainter extends CustomPainter {
         radius: moonR * 0.88,
       ));
     final crescent = Path.combine(PathOperation.difference, disc, bite);
-    // Slightly dimmed in dark so foreground chips/labels keep contrast
-    // when they overlap the moon zone (Stage A collision fix).
+    // Held just under full alpha so chips/labels that clip the moon
+    // zone stay legible (Stage A collision fix, re-tuned in Stage C).
     canvas.drawPath(
       crescent,
-      Paint()..color = moon.withValues(alpha: isDark ? 0.78 : 1.0),
+      Paint()..color = moon.withValues(alpha: isDark ? 0.92 : 1.0),
     );
 
     // Mosque silhouette — skyline anchored to the bottom edge.

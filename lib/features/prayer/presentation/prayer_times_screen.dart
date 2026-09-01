@@ -169,8 +169,8 @@ class PrayerTimesScreen extends ConsumerWidget {
                       color: QibraNavy.blue.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color:
-                              QibraNavy.blue.withValues(alpha: 0.35)),
+                          color: QibraNavy.blue
+                              .withValues(alpha: 0.16)),
                     ),
                     child: Icon(Icons.help_outline_rounded,
                         color: QibraNavy.blue, size: 20),
@@ -420,7 +420,8 @@ class PrayerTimesScreen extends ConsumerWidget {
                       color: QibraNavy.blue.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: QibraNavy.blue.withValues(alpha: 0.35)),
+                          color: QibraNavy.blue
+                              .withValues(alpha: 0.16)),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -589,7 +590,7 @@ class _PrayerHeroBody extends ConsumerWidget {
         const SizedBox(height: 14),
         Container(
           height: 1,
-          color: colors.border.withValues(alpha: 0.7),
+          color: colors.border,
         ),
         const SizedBox(height: 10),
         Wrap(
@@ -744,7 +745,7 @@ class _SunriseRow extends StatelessWidget {
     return ListTile(
       dense: true,
       leading: Icon(prayer.type.icon,
-          color: colors.accent.withValues(alpha: 0.85), size: 20),
+          color: colors.textSecondary, size: 20),
       title: Text(
         'Sunrise',
         style: AppTextStyles.titleSmall
@@ -791,8 +792,9 @@ class _PrayerRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         color: isNext ? colors.primary.withValues(alpha: 0.06) : null,
         border: Border.all(
-          color:
-              isNext ? colors.primary.withValues(alpha: 0.35) : Colors.transparent,
+          color: isNext
+              ? colors.primary.withValues(alpha: 0.16)
+              : Colors.transparent,
         ),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
