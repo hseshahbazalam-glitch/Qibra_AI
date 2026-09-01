@@ -477,5 +477,45 @@ void main() {
               .contains('SearchNormalizer.allMatches'),
           isTrue);
     });
+
+    test('every relative import/part directive in lib/ resolves on disk', () {
+      // Regression guard for the Stage-3 device-find: a relative import
+      // with the wrong number of ../ silently passes bracket sweeps but
+      // kills `flutter analyze`.
+      final broken = <String>[];
+      final importRe = RegExp(r"import '(\.{1,2}/[^']+\.dart)'");
+      final partRe = RegExp(r"part '([^'/][^']*\.dart)'");
+      String resolve(String dir, String rel) {
+        final segs = <String>[];
+        for (final s in [...dir.split('/'), ...rel.split('/')]) {
+          if (s == '..') {
+            if (segs.isNotEmpty) segs.removeLast();
+          } else if (s != '.' && s.isNotEmpty) {
+            segs.add(s);
+          }
+        }
+        return segs.join('/');
+      }
+
+      for (final f
+          in Directory('lib').listSync(recursive: true).whereType<File>()) {
+        if (!f.path.endsWith('.dart')) continue;
+        final src = f.readAsStringSync();
+        final dir = File(f.path).parent.path;
+        for (final m in importRe.allMatches(src)) {
+          final t = resolve(dir, m.group(1)!);
+          if (!File(t).existsSync()) {
+            broken.add('${f.path} -> ${m.group(1)}');
+          }
+        }
+        for (final m in partRe.allMatches(src)) {
+          final p = m.group(1)!;
+          if (!File(resolve(dir, p)).existsSync()) {
+            broken.add('${f.path} part->$p');
+          }
+        }
+      }
+      expect(broken, isEmpty, reason: 'unresolvable relative imports/parts');
+    });
   });
 }

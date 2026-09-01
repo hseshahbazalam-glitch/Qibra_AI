@@ -76,4 +76,8 @@ source, no invented hadith grades, no guessed ayah references.**
 ## 5. Verification ledger (honesty)
 - **Executed (sandbox):** interpolation-aware bracket-balance on every touched file (all OK); import-resolution, member-existence (QibraNavy/QibraColors/AppTextStyles/AppRoutes/notifier setters), route-existence (`/quran/surahs|search|bookmarks`, `/bookmarks`), pubspec assets + AppAssets paths; emoji/hex/weather scans = 0 residual; line-count conservation across all 4 part-splits (+5 wrapper lines each).
 - **Executed (owner, device):** Stage-1 approved; Stage-2 approved after analyze/run.
+- **Device-analyze correction (Stage 3):** owner's `flutter analyze` caught 7 issues, fixed and pushed in `7f08e77`. Two classes my static sweep missed:
+  1. relative-import **depth** (quran_repository → SearchNormalizer resolved to `lib/features/quran/core/...`);
+  2. an **icon name not in Flutter's Icons class** (`elderhood_rounded` — that glyph is Material Symbols; `elderly_rounded` is the materialicons2 name).
+  Post-fix sweep (sandbox): every relative `import`/`part` in all touched files resolves on disk, and all 21 icon identifiers introduced by Stage 3 were checked against the materialicons set (the 5 with no other repo usage — `bolt/group/public/receipt_long/savings` + `_rounded` variants — confirmed valid). Long-line drift is `dart format`'s to normalize, not an analyzer error under this repo's `flutter_lints` config.
 - **NOT executed:** `flutter analyze`, `flutter test`, `./gradlew`, any build — **no Flutter/Android SDK in this sandbox** (network-blocked installs). Every claim above is static-analysis or owner-verified only. Nothing in this report asserts a passing test that was not run.
