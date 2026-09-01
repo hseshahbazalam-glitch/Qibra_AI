@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -129,11 +130,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
         bottom: 16,
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [colors.backgroundSecondary, colors.background],
-        ),
+        color: colors.surface,
       ),
       child: Row(
         children: [
@@ -160,11 +157,11 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
               children: [
                 Text(
                   'أَسْمَاءُ اللَّهِ الْحُسْنَى',
-                  style: TextStyle(
-                    color: colors.primarySoft,
+                  style: AppArabicStyles.quranSmall.copyWith(
                     fontSize: 18,
-                    fontFamily: 'Amiri',
+                    color: colors.primary,
                   ),
+                  textDirection: TextDirection.rtl,
                 ),
                 Text(
                   '99 Names of Allah',
@@ -180,15 +177,15 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: colors.primarySoft.withValues(alpha: 0.15),
+              color: colors.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                  color: colors.primarySoft.withValues(alpha: 0.3)),
+                  color: colors.primary.withValues(alpha: 0.16)),
             ),
             child: Text(
               '99',
               style: TextStyle(
-                color: colors.primarySoft,
+                color: colors.primary,
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
               ),
@@ -209,12 +206,12 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
         decoration: BoxDecoration(
           color: colors.card,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.textPrimary.withValues(alpha: 0.08)),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           children: [
             Icon(Icons.search_rounded,
-                color: colors.textPrimary.withValues(alpha: 0.3), size: 20),
+                color: colors.textTertiary, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: TextField(
@@ -224,7 +221,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                 decoration: InputDecoration(
                   hintText: 'Search by name or meaning...',
                   hintStyle: TextStyle(
-                      color: colors.textPrimary.withValues(alpha: 0.2), fontSize: 13),
+                      color: colors.textTertiary, fontSize: 13),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -237,7 +234,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                   _onSearch('');
                 },
                 child: Icon(Icons.close_rounded,
-                    color: colors.textPrimary.withValues(alpha: 0.3), size: 18),
+                    color: colors.textTertiary, size: 18),
               ),
           ],
         ),
@@ -259,15 +256,15 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
         child: TabBar(
           controller: _tabController,
           indicator: BoxDecoration(
-            color: colors.primarySoft.withValues(alpha: 0.2),
+            color: colors.primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: colors.primarySoft.withValues(alpha: 0.4)),
+                color: colors.primary.withValues(alpha: 0.16)),
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
-          labelColor: colors.primarySoft,
-          unselectedLabelColor: colors.textPrimary.withValues(alpha: 0.35),
+          labelColor: colors.primary,
+          unselectedLabelColor: colors.textTertiary,
           labelStyle:
               const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
           tabs: const [
@@ -321,19 +318,10 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected
-                    ? name.color.withValues(alpha: 0.4)
-                    : colors.textPrimary.withValues(alpha: 0.05),
+                    ? name.color.withValues(alpha: 0.16)
+                    : colors.border,
                 width: isSelected ? 1.5 : 1,
               ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: name.color.withValues(alpha: 0.1),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      )
-                    ]
-                  : null,
             ),
             child: Column(
               children: [
@@ -347,7 +335,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                         color: name.color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                            color: name.color.withValues(alpha: 0.2)),
+                            color: name.color.withValues(alpha: 0.16)),
                       ),
                       child: Center(
                         child: Text(
@@ -369,11 +357,9 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                         children: [
                           Text(
                             name.arabic,
-                            style: TextStyle(
-                              fontFamily: 'Amiri',
+                            style: AppArabicStyles.quranBold.copyWith(
                               fontSize: 20,
                               color: name.color,
-                              fontWeight: FontWeight.w700,
                               height: 1.3,
                             ),
                             textDirection: TextDirection.rtl,
@@ -471,7 +457,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                           child: Text(
                             name.reference,
                             style: TextStyle(
-                              color: colors.textPrimary.withValues(alpha: 0.5),
+                              color: colors.textSecondary,
                               fontSize: 11,
                               fontStyle: FontStyle.italic,
                               height: 1.4,
@@ -500,7 +486,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           child: Text(
             label,
             style: TextStyle(
-              color: color.withValues(alpha: 0.6),
+              color: color,
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
@@ -510,7 +496,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           child: Text(
             value,
             style: TextStyle(
-              color: colors.textPrimary.withValues(alpha: 0.7),
+              color: colors.textPrimary,
               fontSize: 11,
               height: 1.4,
             ),
@@ -541,10 +527,10 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                   fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
-            Text(
+            const Text(
               'Tap the heart on any name to save it',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.4), fontSize: 13),
+                  color: colors.textSecondary, fontSize: 13),
             ),
           ],
         ),
@@ -563,7 +549,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           decoration: BoxDecoration(
             color: name.color.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: name.color.withValues(alpha: 0.2)),
+            border: Border.all(color: name.color.withValues(alpha: 0.16)),
           ),
           child: Row(
             children: [
@@ -577,8 +563,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                 child: Center(
                   child: Text(
                     name.arabic.split(' ').first,
-                    style: TextStyle(
-                      fontFamily: 'Amiri',
+                    style: AppArabicStyles.quranSmall.copyWith(
                       fontSize: 18,
                       color: name.color,
                     ),
@@ -602,7 +587,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                     Text(
                       name.meaning,
                       style: TextStyle(
-                        color: colors.textPrimary.withValues(alpha: 0.5),
+                        color: colors.textSecondary,
                         fontSize: 12,
                       ),
                     ),
