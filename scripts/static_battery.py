@@ -40,6 +40,13 @@
 # sites, L8 empty widget bodies / bracket balance (historical corruption).
 # L2 alpha budget is a warning list (documented scrims/dims allowed).
 #
+# PROCESS RULE (owner, 2026-09-02): when a script inserts generated
+# blocks into a file, anchor on a unique NAMED marker (e.g. the closing
+# brace of a specific class or a sentinel comment), NEVER on raw line
+# numbers or rstrip('}') file-tail position — G10/G11 exist because both
+# shortcuts shipped compile-breaking code through an otherwise-green
+# battery. A clean run is necessary, not sufficient.
+#
 # Known limits: Windows path blind spot — every test/script that walks
 # `Directory(…)` MUST normalize with replaceAll(r'\', '/') before
 # substring matching (phase17/19 guards do; stage_c's checks are separator-
@@ -664,6 +671,47 @@ for fi in FILES.values():
                 "due() filters pending-only while this file declares retry "
                 "semantics — failed ops with a retry date never become due "
                 "(offline queue deadlock)")
+
+# ------------------------------------------------------------------- G10/G11
+# G10 double-comma (owner device gate 2026-09-02, lean pass: two `,,` in
+# nikah_guide_data.dart survived a `color:`-line deletion in a generated
+# data file — balance scans balance-blind to it, Dart does not compile
+# it). Any `,,` in comment/string-stripped code is a finding.
+for fi in FILES.values():
+    for mm in re.finditer(r",,", fi.code):
+        err("G10", fi.path, fi.code.count("\n", 0, mm.start()) + 1,
+            "double comma `,` `,` — dangling entry from an edit that "
+            "deleted a list item body but not its trailing comma")
+
+# G11 accidental nesting (owner device gate 2026-09-02, lean pass: the
+# two Ramadan calendar classes landed INSIDE _IslamicEvent because a
+# generated block was appended before the file's final `}` anchored on
+# raw position. Dart forbids nested classes; note the bug sat at column
+# ZERO, so an indent-only check would miss it — brace-depth catches it).
+# Rule: a class/enum/mixin declaration at brace depth > 0 is a finding.
+NESTED_DECL = re.compile(
+    r"^(?:\s*)(?:abstract\s+|final\s+|base\s+|sealed\s+|interface\s+)*"
+    r"(?:class|enum|mixin)\s+(_?\w+)", re.M)
+for fi in FILES.values():
+    code = fi.code
+    depth = 0
+    starts = [m.start() for m in NESTED_DECL.finditer(code)]
+    pos = 0
+    for i, c in enumerate(code):
+        if i in (0,):
+            continue
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+        while pos < len(starts) and starts[pos] <= i:
+            if depth > 0:
+                ln = code.count("\n", 0, starts[pos]) + 1
+                err("G11", fi.path, ln,
+                    "class/enum/mixin declared inside braces — Dart "
+                    "forbids nested classes (generated-block insertion "
+                    "anchor bug)")
+            pos += 1
 
 # ------------------------------------------------------------------- report
 print(f"static battery: {len(FILES)} dart files under {LIB}")
