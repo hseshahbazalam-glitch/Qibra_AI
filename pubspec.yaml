@@ -146,23 +146,24 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo/qibra_logo.png"
+  image_path: "assets/icons/app_icon_master.png"
   min_sdk_android: 21
-  adaptive_icon_background: "#071512"
-  adaptive_icon_foreground: "assets/images/logo/qibra_logo.png"
+  adaptive_icon_background: "#020B14"
+  adaptive_icon_foreground: "assets/icons/adaptive_foreground.png"
+  adaptive_icon_monochrome: "assets/icons/adaptive_monochrome.png"
   remove_alpha_ios: true
 
 # ============================================================
 # SPLASH SCREEN CONFIGURATION
 # ============================================================
 flutter_native_splash:
-  color: "#020A08"
-  image: assets/images/logo/qibra_logo.png
+  color: "#020B14"
+  image: assets/icons/splash_emblem.png
 
   android_12:
-    image: assets/images/logo/qibra_logo.png
-    color: "#020A08"
-    icon_background_color: "#0D3320"
+    image: assets/icons/adaptive_foreground.png
+    color: "#020B14"
+    icon_background_color: "#020B14"
 
   android: true
   ios: true
