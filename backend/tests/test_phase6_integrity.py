@@ -57,17 +57,32 @@ def test_urdu_row_counts_and_tahir_empty_not_filled():
     assert tahir["empty_text"] == 217
 
 
-def test_no_tafsir_asset():
+def test_tafsir_asset_bundled_with_pinned_provenance():
+    # Retired guard (content pass 2026-09-02, owner-approved): the abridged
+    # English Ibn Kathir dataset IS bundled now — but only with pinned
+    # upstream provenance and a non-VERIFIED license posture.
     root = repo_root()
-    hits = list((root / "assets").rglob("*tafsir*")) + list((root / "assets").rglob("*tafseer*"))
-    assert hits == []
+    asset = root / "assets" / "data" / "tafsir" / "ibn_kathir_en.json"
+    assert asset.exists()
+    import json as _json
+
+    data = _json.loads(asset.read_text(encoding="utf-8"))
+    meta = data["metadata"]
+    assert meta["license"] == "UNKNOWN"
+    assert meta["upstream_repo"] == "https://github.com/spa5k/tafsir_api"
+    assert len(meta["upstream_commit"]) == 40
+    assert meta["credit"] == "Tafsir Ibn Kathir (abridged, Eng. tr.)"
+    assert len(data["surahs"]) == 114
 
 
-def test_hadith_no_duplicate_ids_tirmidhi_urdu_missing():
+
+def test_hadith_no_duplicate_ids_all_files_present():
+    # Content pass (2026-09-02) backfilled tirmidhi/urdu.json from the same
+    # dataset family; the old expectation that it be MISSING is retired.
     rows = scan_hadith()
     assert len(rows) == 21
     missing = [r for r in rows if not r["exists"]]
-    assert [r["path"] for r in missing] == ["assets/data/hadith/tirmidhi/urdu.json"]
+    assert missing == []
     for row in rows:
         if not row["exists"]:
             continue
@@ -79,7 +94,7 @@ def test_hadith_no_duplicate_ids_tirmidhi_urdu_missing():
 def test_hadith_dir_layout():
     root = hadith_dir()
     assert (root / "bukhari" / "english.json").exists()
-    assert not (root / "tirmidhi" / "urdu.json").exists()
+    assert (root / "tirmidhi" / "urdu.json").exists()  # backfilled in content pass
 
 
 def test_manifest_never_verified_without_license_file():
@@ -93,7 +108,11 @@ def test_manifest_never_verified_without_license_file():
     asad = next(r for r in manifest["sources"] if r["id"] == "quran_en_asad")
     assert asad["status"] == "REQUIRES_PERMISSION"
     tafsir = next(r for r in manifest["sources"] if r["id"] == "tafsir_ibn_kathir")
-    assert tafsir["status"] == "DO_NOT_DISTRIBUTE"
+    # Content pass bundled the abridged English dataset verbatim (owner-
+    # approved 2026-09-02). Status moves DO_NOT_DISTRIBUTE -> REQUIRES_PERMISSION:
+    # still NOT VERIFIED — translation rights are undocumented; a license file
+    # in-repo is the only path to VERIFIED (note #1 above stays enforced).
+    assert tafsir["status"] == "REQUIRES_PERMISSION"
 
 
 def test_content_production_ready_stays_false():
