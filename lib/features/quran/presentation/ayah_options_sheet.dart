@@ -143,7 +143,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                       child: Text(
                         'AYAH ${widget.ayahNumber}',
                         style: TextStyle(
-                          color: colors.goldText,
+                          color: colors.primary,
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1,
@@ -207,7 +207,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                         ? Icons.star_rounded
                         : Icons.star_border_rounded,
                     color: _isFavorite
-                        ? colors.goldText
+                        ? colors.primary
                         : colors.textTertiary,
                     size: 22,
                   ),

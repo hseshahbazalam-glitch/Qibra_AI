@@ -117,7 +117,7 @@ List<PopularTopic> _popularTopicsFor(QibraColors colors) => [
   PopularTopic(
     label: 'Charity',
     icon: Icons.volunteer_activism_rounded,
-    color: colors.goldText,
+    color: colors.primary,
     searchQuery: 'charity',
   ),
 ];
@@ -299,7 +299,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                     Text(
                       'Explore the Quran',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: colors.goldText,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.4,
                       ),
@@ -964,7 +964,7 @@ class _SearchResultCard extends StatelessWidget {
                         result.isArabicMatch ? 'AR' : 'EN',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: result.isArabicMatch
-                              ? colors.goldText
+                              ? colors.textPrimary
                               : colors.primarySoft,
                           fontWeight: FontWeight.w800,
                           fontSize: 10,
@@ -1090,9 +1090,9 @@ class _SearchResultCard extends StatelessWidget {
       matches.add(TextSpan(
         text: text.substring(m.start, m.end),
         style: style.copyWith(
-          color: colors.goldText,
+          color: colors.primary,
           fontWeight: FontWeight.w800,
-          backgroundColor: colors.goldText.withValues(alpha: 0.12),
+          backgroundColor: colors.primary.withValues(alpha: 0.14),
         ),
       ));
       lastIndex = m.end;

@@ -300,7 +300,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               Text(
                 'Al-Quran Al-Kareem',
                 style: AppTextStyles.labelLarge.copyWith(
-                  color: colors.goldText,
+                  color: colors.textPrimary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -403,11 +403,12 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                     width: 52,
                     height: 52,
                     decoration: BoxDecoration(
-                      gradient: AppGradients.gold,
+                      color: colors.primary,
                       borderRadius: BorderRadius.circular(AppRadius.xl),
+                      border: Border.all(color: colors.border),
                       boxShadow: [
                         BoxShadow(
-                          color: colors.accent.withValues(alpha: 0.24),
+                          color: colors.primary.withValues(alpha: 0.24),
                           blurRadius: 14,
                           offset: const Offset(0, 5),
                         ),
@@ -415,7 +416,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                     ),
                     child: const Icon(
                       Icons.menu_book_rounded,
-                      color: Colors.black87,
+                      color: Colors.white,
                       size: 26,
                     ),
                   ),

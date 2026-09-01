@@ -10,7 +10,6 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/providers/auth_provider.dart';
 import '../../../shared/widgets/media/safe_image.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 
@@ -83,7 +82,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'May Allah accept your worship 🤲',
+                'May Allah accept your worship',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textSecondary,
                 ),
@@ -94,6 +93,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 title: 'Edit Profile',
                 subtitle: 'Name, email, photo',
                 accent: colors.primary,
+                onTap: () => context.push(AppRoutes.profileSetup),
               ),
               _buildTile(
                 icon: Icons.notifications_active_rounded,
@@ -101,36 +101,6 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 subtitle: 'Adhan, reminders, alerts',
                 accent: colors.accent,
                 onTap: () => context.push('/settings/notifications'),
-              ),
-              _buildTile(
-                icon: Icons.translate_rounded,
-                title: 'Language',
-                subtitle: 'English / العربية / اردو',
-                accent: colors.primarySoft,
-              ),
-              _buildTile(
-                icon: Icons.palette_rounded,
-                title: 'Appearance',
-                subtitle: 'Theme, font size',
-                accent: colors.accent,
-              ),
-              _buildTile(
-                icon: Icons.shield_rounded,
-                title: 'Privacy & Security',
-                subtitle: 'Data, permissions',
-                accent: colors.success,
-              ),
-              _buildTile(
-                icon: Icons.help_outline_rounded,
-                title: 'Help & Support',
-                subtitle: 'FAQ, contact us',
-                accent: colors.info,
-              ),
-              _buildTile(
-                icon: Icons.logout_rounded,
-                title: 'Sign Out',
-                subtitle: 'Log out of your account',
-                accent: colors.error,
               ),
             ],
           ),

@@ -692,7 +692,7 @@ Join me on Qibra AI 🕌''';
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Close',
-              style: TextStyle(color: colors.goldText),
+              style: TextStyle(color: colors.primary),
             ),
           ),
         ],

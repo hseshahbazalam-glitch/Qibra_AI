@@ -360,12 +360,12 @@ class _VerseOfDayCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.auto_stories_rounded, size: 15, color: colors.goldText),
+              Icon(Icons.auto_stories_rounded, size: 15, color: colors.primary),
               const SizedBox(width: 6),
               Text(
                 'AYAH OF THE DAY',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: colors.goldText,
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.5,
                 ),
@@ -642,7 +642,7 @@ class _SurahTile extends StatelessWidget {
             Text(
               surah.nameArabic,
               style: AppArabicStyles.quranSmall
-                  .copyWith(color: colors.goldText),
+                  .copyWith(color: colors.textPrimary),
             ),
           ],
         ),
