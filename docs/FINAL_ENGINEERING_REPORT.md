@@ -81,3 +81,20 @@ source, no invented hadith grades, no guessed ayah references.**
   2. an **icon name not in Flutter's Icons class** (`elderhood_rounded` — that glyph is Material Symbols; `elderly_rounded` is the materialicons2 name).
   Post-fix sweep (sandbox): every relative `import`/`part` in all touched files resolves on disk, and all 21 icon identifiers introduced by Stage 3 were checked against the materialicons set (the 5 with no other repo usage — `bolt/group/public/receipt_long/savings` + `_rounded` variants — confirmed valid). Long-line drift is `dart format`'s to normalize, not an analyzer error under this repo's `flutter_lints` config.
 - **NOT executed:** `flutter analyze`, `flutter test`, `./gradlew`, any build — **no Flutter/Android SDK in this sandbox** (network-blocked installs). Every claim above is static-analysis or owner-verified only. Nothing in this report asserts a passing test that was not run.
+
+---
+
+## 6. Device-fix pass (post-Stage-3, owner-reported bugs)
+
+| Area | Fix | Commit |
+|---|---|---|
+| **P0** Home freeze on scroll | 1s ticker isolated to the hero's `_NextPrayerBody` (ConsumerWidget); Home root now watches only minute-granular `nextPrayerInfoProvider` selects (TYPE for the strip, HOUR for the greeting). ListView builds once; ~92px subtree ticks. | `026fb8d` |
+| **P0** Asset weight | 10 oversized PNGs → ≤768px + quantized (ImageMagick). `assets/images` 14.9MB → **1.51MB**. `SafeImage.cacheWidth` added; set at every large-art call site. | `026fb8d` |
+| **P1** Quran gold overload | 13 goldText/AppGradients.gold sites in the Quran feature → 0: labels→textPrimary/textSecondary, actions→emerald `primary`, Arabic names→textPrimary, search highlight→emerald-on-emerald-wash, gold CTA tile→flat emerald + hairline. Ayah opening is calm navy/emerald. | `80aa920` |
+| **P1** Profile dead tiles | Language / Appearance / Privacy / Help / Sign Out DELETED; Notifications kept; **'Edit Profile' (also dead, not in the report) now routes to the real profileSetup flow**. 🤲 removed from du'a text. | `80aa920` |
+| **P2** Orphan assets | Deleted unreferenced: empty_state, onboarding_3, quran_art, prayer_art, entire animations/*.json set (no lottie dep) + pubspec dirs; AppAssets + asset-check pruned; check-list verified against disk. | `72bddba` |
+| **P2** Legacy colors | 207 hard-coded ivory-era `Color(0xFF…)` replaced across notification_settings / duas_home / dua_detail / hadith_book / prayer_statistics / onboarding with QibraNavy/QibraColors tokens (role-aware, skin-inverted correctly). Zero `0xFF` + zero `QibraColors.light` misuse in the six. | `72bddba` |
+| **P2** Emoji | All six screens' UI emoji → Material icons (incl. dua category glyphs mapped via `_categoryGlyph`; data-model keys untouched) + copy/share templates de-emoji'd. | `72bddba` |
+
+**Verification for this pass:** full relative-import/part resolution sweep (0 broken), duplicate-import scan, brace balance on all changed files, emoji/legacy-hex residual scans (0), phase17/18/19 assertions dry-run against the final tree (all hold, incl. contrast goldText #6B542B untouched). `flutter analyze` / `flutter test` still NOT executed here (no SDK) — owner device run is the gate.
+
