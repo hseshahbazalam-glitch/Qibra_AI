@@ -269,147 +269,6 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
     );
   }
 
-  // ─── APP BAR ─────────────────────────
-
-  Widget _buildAppBar() {
-    final colors = QibraColors.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(bottom: BorderSide(color: colors.border)),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.pop(context);
-            },
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: colors.surfaceElevated,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: colors.textPrimary,
-                size: 18,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [colors.primarySoft, colors.accent],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primarySoft.withValues(alpha: 0.4),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child:
-                Icon(Icons.auto_awesome, color: colors.textPrimary, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Qibra AI',
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _isSpeaking
-                            ? colors.accent
-                            : (_isListening
-                                ? colors.error
-                                : colors.primarySoft),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _isSpeaking
-                          ? 'Speaking...'
-                          : (_isListening
-                              ? 'Listening...'
-                              : 'Retrieval only — not a fatwa'),
-                      style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Auto speak toggle
-          GestureDetector(
-            onTap: _toggleAutoSpeak,
-            child: Container(
-              width: 48,
-              height: 48,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: _autoSpeak
-                    ? colors.primarySoft.withValues(alpha: 0.2)
-                    : colors.surfaceElevated,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _autoSpeak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-                color: _autoSpeak
-                    ? colors.primarySoft
-                    : colors.textPrimary,
-                size: 18,
-              ),
-            ),
-          ),
-          // Clear chat
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              _showClearDialog();
-            },
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: colors.surfaceElevated,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.delete_outline_rounded,
-                color: colors.textPrimary,
-                size: 18,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ─── LISTENING VIEW ─────────────────────────
 
   Widget _buildListeningView() {
@@ -419,20 +278,20 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           AvatarGlow(
-            glowColor: colors.primarySoft,
+            glowColor: colors.violetAi,
             duration: const Duration(milliseconds: 2000),
             repeat: true,
             child: Container(
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colors.primarySoft, colors.accent],
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF9B6CFF), Color(0xFF6C3CE6)],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: colors.primarySoft.withValues(alpha: 0.6),
+                    color: colors.violetAi.withValues(alpha: 0.6),
                     blurRadius: 30,
                     spreadRadius: 10,
                   ),
@@ -791,7 +650,17 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
     }
     if (tags.isEmpty) return const [];
     return [
-      const SizedBox(height: 8),
+      const SizedBox(height: 10),
+      Text(
+        'SOURCES',
+        style: TextStyle(
+          color: colors.textTertiary,
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.6,
+        ),
+      ),
+      const SizedBox(height: 6),
       Wrap(
         spacing: 6,
         runSpacing: 6,
@@ -892,12 +761,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   Widget _buildSuggestedQuestions() {
     final colors = QibraColors.of(context);
     final suggestions = [
-      '🎤 Tap mic to speak',
-      '🕌 Tahajjud alarm 2 baje',
-      '📖 Quran kholo',
-      '🕋 Qibla dikhao',
-      '🤲 Namaz kaise padhein',
-      '💚 Zakat calculator kholo',
+      'Tap mic to speak',
+      'What time is Tahajjud?',
+      'Open the Quran',
+      'Show Qibla direction',
+      'How do I perform wudu?',
+      'Open Zakat calculator',
     ];
 
     return Container(
@@ -914,7 +783,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               if (index == 0) {
                 _toggleVoice();
               } else {
-                _controller.text = suggestions[index].substring(3);
+                _controller.text = suggestions[index];
                 _sendMessage();
               }
             },

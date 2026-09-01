@@ -9,6 +9,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/design_system/qibra_navy.dart';
 import '../../../shared/widgets/media/pattern_backdrop.dart';
 import '../../../shared/widgets/media/safe_image.dart';
 import '../../../shared/widgets/qibra_status.dart';
@@ -37,6 +38,28 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     {'name': 'Sunan Ibn Majah', 'slug': 'ibnmajah', 'author': 'Imam Ibn Majah'},
     {'name': 'Muwatta Malik', 'slug': 'malik', 'author': 'Imam Malik'},
   ];
+
+  /// Subtle per-collection accents (same navy system — not a rainbow).
+  static Color collectionAccent(String slug, Color fallback) {
+    switch (slug) {
+      case 'bukhari':
+        return QibraNavy.violet;
+      case 'muslim':
+        return QibraNavy.blue;
+      case 'tirmidhi':
+        return QibraNavy.emerald;
+      case 'abudawud':
+        return QibraNavy.gold;
+      case 'nasai':
+        return QibraNavy.cyan;
+      case 'ibnmajah':
+        return QibraNavy.violetDeep;
+      case 'malik':
+        return QibraNavy.orange;
+      default:
+        return fallback;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,19 +148,35 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                   itemBuilder: (context, index) {
                     final book = source[index];
                     final author = book.author.isEmpty ? '—' : book.author;
+                    final accent = collectionAccent(book.slug, colors.primary);
                     return QibraCard(
                       padding: const EdgeInsets.all(14),
                       onTap: () => _openBook(context, book.slug),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            book.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.titleSmall.copyWith(
-                              color: colors.textPrimary,
-                            ),
+                          Row(
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: accent,
+                                ),
+                              ),
+                              const SizedBox(width: 7),
+                              Expanded(
+                                child: Text(
+                                  book.name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.titleSmall.copyWith(
+                                    color: colors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           const Spacer(),
                           Text(
@@ -588,11 +627,40 @@ class _TodaysHadithCard extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: 10),
-          Text(
-            hadith!.displayReference,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: colors.textTertiary,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  hadith!.displayReference,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.textTertiary,
+                  ),
+                ),
+              ),
+              if (hadith!.grade != HadithGrade.unknown)
+                Container(
+                  margin: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: colors.accent.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                        color: colors.accent.withValues(alpha: 0.4)),
+                  ),
+                  child: Text(
+                    hadith!.grade == HadithGrade.sahih
+                        ? 'Grade: ${hadith!.grade.label} · collection grade'
+                        : 'Grade: ${hadith!.grade.label}',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: colors.goldText,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Row(
