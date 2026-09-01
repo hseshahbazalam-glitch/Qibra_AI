@@ -38,6 +38,12 @@ class Settings:
     content_production_ready: bool = False
     billing_production_ready: bool = False
     analytics_production_ready: bool = False
+    # Groq (LLM) — the API key lives ONLY in the environment (Render env var
+    # GROQ_API_KEY). Never a default, never a file, never logged.
+    groq_api_key: str = os.environ.get("GROQ_API_KEY", "")
+    groq_model: str = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+    groq_timeout_seconds: float = float(os.environ.get("GROQ_TIMEOUT_SECONDS", "30"))
+
     notifications_local_only: bool = True
     precise_location_stored_on_server: bool = False
 
