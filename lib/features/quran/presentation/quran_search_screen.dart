@@ -938,12 +938,8 @@ class _SearchResultCard extends StatelessWidget {
                   textDirection: TextDirection.rtl,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
-                    fontSize: 20,
-                    color: colors.textPrimary,
-                    height: 2.0,
-                  ),
+                  style: AppArabicStyles.quranMedium
+                      .copyWith(color: colors.textPrimary),
                 ),
               ),
 

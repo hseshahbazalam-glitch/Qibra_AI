@@ -46,10 +46,14 @@ class SurahReaderScreen extends ConsumerStatefulWidget {
     super.key,
     required this.surahNumber,
     this.initialAyah,
+    this.initialTab,
   });
 
   final int surahNumber;
   final int? initialAyah;
+
+  /// One of 'Arabic' | 'Translation' | 'Transliteration'.
+  final String? initialTab;
 
   @override
   ConsumerState<SurahReaderScreen> createState() => _SurahReaderScreenState();
@@ -61,9 +65,17 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   /// Text-size stops offered by the pill and the settings sheet.
   static const scales = <double>[1.0, 1.25, 1.5];
 
-  String _activeTab = 'Arabic';
+  late final String _activeTab;
   final ScrollController _scroll = ScrollController();
   bool _didInitialScroll = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _activeTab = _tabs.contains(widget.initialTab)
+        ? widget.initialTab!
+        : 'Arabic';
+  }
 
   @override
   void dispose() {
@@ -414,7 +426,8 @@ class _AyahCard extends ConsumerWidget {
 
     final arabicSize =
         AppFontSize.arabicMedium * prefs.fontScale;
-    final showTranslation = activeTab != 'Arabic' && prefs.showTranslation;
+    final showTranslation = activeTab == 'Translation' ||
+        (activeTab != 'Arabic' && prefs.showTranslation);
     final showTranslit =
         activeTab == 'Transliteration' && prefs.showTransliteration;
     final translation = _translationFor(ayah, prefs);

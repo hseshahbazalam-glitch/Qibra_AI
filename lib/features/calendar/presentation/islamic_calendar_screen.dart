@@ -867,11 +867,10 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                 Text(
                   event.nameArabic,
                   textDirection: TextDirection.rtl,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
-                    fontSize: 13,
+                  style: AppArabicStyles.quranSmall.copyWith(
                     color: event.color,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    height: 1.4,
                   ),
                 ),
                 const SizedBox(height: 2),

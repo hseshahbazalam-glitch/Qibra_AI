@@ -180,7 +180,7 @@ class ReadingProgressRepository {
   // ── Initialize ─────────────────────────────────────────────
   Future<void> initialize() async {
     _prefs ??= await SharedPreferences.getInstance();
-    debugPrint('[READING_PROGRESS] ✅ Repository initialized');
+    debugPrint('[READING_PROGRESS] repository initialized');
   }
 
   Future<SharedPreferences> get _p async {
@@ -207,9 +207,9 @@ class ReadingProgressRepository {
       // Update today's pages
       await _updateTodayPages();
 
-      debugPrint('[READING_PROGRESS] 💾 Saved page ${page.pageNumber}');
+      debugPrint('[READING_PROGRESS] saved page ${page.pageNumber}');
     } catch (e) {
-      debugPrint('[READING_PROGRESS] ❌ Save error: $e');
+      debugPrint('[READING_PROGRESS] save error: $e');
     }
   }
 
@@ -224,7 +224,7 @@ class ReadingProgressRepository {
       if (json == null) return null;
       return MushafPageModel.fromJson(jsonDecode(json) as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('[READING_PROGRESS] ❌ Get page error: $e');
+      debugPrint('[READING_PROGRESS] get page error: $e');
       return null;
     }
   }
@@ -239,7 +239,7 @@ class ReadingProgressRepository {
       await prefs.setString(_keyLastRead, jsonEncode(lastRead.toJson()));
       debugPrint('[READING_PROGRESS] LastRead saved');
     } catch (e) {
-      debugPrint('[READING_PROGRESS] ❌ LastRead save error: $e');
+      debugPrint('[READING_PROGRESS] last-read save error: $e');
     }
   }
 
@@ -325,7 +325,7 @@ class ReadingProgressRepository {
 
       await prefs.setString(_keyStreak, jsonEncode(updated.toJson()));
     } catch (e) {
-      debugPrint('[READING_PROGRESS] ❌ Streak update error: $e');
+      debugPrint('[READING_PROGRESS] streak update error: $e');
     }
   }
 
@@ -362,7 +362,7 @@ class ReadingProgressRepository {
       await prefs.setString(_keyReadingHistory,
           jsonEncode(trimmed.map((e) => e.toJson()).toList()));
     } catch (e) {
-      debugPrint('[READING_PROGRESS] ❌ History update error: $e');
+      debugPrint('[READING_PROGRESS] history update error: $e');
     }
   }
 
@@ -415,7 +415,7 @@ class ReadingProgressRepository {
         await prefs.setInt(_keyTodayPages, current + 1);
       }
     } catch (e) {
-      debugPrint('[READING_PROGRESS] ❌ Today pages error: $e');
+      debugPrint('[READING_PROGRESS] today pages error: $e');
     }
   }
 
@@ -447,6 +447,6 @@ class ReadingProgressRepository {
     await prefs.remove(_keyReadingHistory);
     await prefs.remove(_keyTodayPages);
     await prefs.remove(_keyTodayDate);
-    debugPrint('[READING_PROGRESS] 🗑️ All data cleared');
+    debugPrint('[READING_PROGRESS] all data cleared');
   }
 }

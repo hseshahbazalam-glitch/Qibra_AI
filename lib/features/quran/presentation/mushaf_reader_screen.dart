@@ -227,7 +227,8 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     HapticFeedback.mediumImpact();
     context.push(
       '${AppRoutes.surahReader}?surah=$surah'
-      '&ayah=${_firstAyahOfSurahOnPage(page, surah) ?? ''}',
+      '&ayah=${_firstAyahOfSurahOnPage(page, surah) ?? 1}'
+      '&tab=Translation',
     );
   }
 

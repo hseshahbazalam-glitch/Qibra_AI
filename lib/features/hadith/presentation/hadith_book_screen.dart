@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/utils/search_normalizer.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
@@ -605,12 +606,10 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           child: SelectableText(
                             hadith.textArabic,
                             textAlign: TextAlign.right,
-                            style: const TextStyle(
-                                color: QibraNavy.textPrimary,
-                                fontFamily: 'Amiri',
-                                fontSize: 19,
-                                height: 1.8,
-                                fontWeight: FontWeight.bold),
+                            style: AppArabicStyles.quranBold
+                                .copyWith(
+                                    color: QibraNavy.textPrimary,
+                                    height: 1.8),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -785,12 +784,9 @@ class _HadithCard extends ConsumerWidget {
                 ),
                 child: Text(
                   hadith.textArabic,
-                  style: const TextStyle(
+                  style: AppArabicStyles.quranBold.copyWith(
                       color: QibraNavy.textPrimary,
-                      fontFamily: 'Amiri',
-                      fontSize: 17,
-                      height: 1.7,
-                      fontWeight: FontWeight.bold),
+                      height: 1.7),
                   textAlign: TextAlign.right,
                 ),
               ),

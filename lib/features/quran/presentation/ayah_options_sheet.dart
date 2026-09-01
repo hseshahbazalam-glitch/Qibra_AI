@@ -432,13 +432,16 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
   // ─────────────────────────────────────────────────
 
   void _openTranslation() {
+    // The label must match the behavior: open the reader in its
+    // translation view (Tafsir has its own tile).
     Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => TafseerScreen(
+        builder: (_) => SurahReaderScreen(
           surahNumber: widget.surahNumber,
           initialAyah: widget.ayahNumber,
+          initialTab: 'Translation',
         ),
       ),
     );

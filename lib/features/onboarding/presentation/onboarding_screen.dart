@@ -726,9 +726,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         children: [
           Text(
             slide.arabicText,
-            style: TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 18,
+            style: AppArabicStyles.quranSmall.copyWith(
               fontWeight: FontWeight.w700,
               color: slide.primaryColor,
               height: 1.0,

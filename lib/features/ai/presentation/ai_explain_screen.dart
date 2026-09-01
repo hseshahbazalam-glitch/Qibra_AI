@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 
 import '../../../core/design_system/app_design_system.dart';
+import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -431,9 +432,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             widget.ayahText ?? '',
             textAlign: TextAlign.right,
             textDirection: TextDirection.rtl,
-            style: TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 20,
+            style: AppArabicStyles.hadithArabic.copyWith(
               color: colors.textPrimary,
               height: 1.8,
             ),

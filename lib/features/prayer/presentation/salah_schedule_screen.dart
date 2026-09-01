@@ -324,11 +324,11 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                                     padding: const EdgeInsets.only(bottom: 4),
                                     child: Text(
                                       displayArabic,
-                                      style: const TextStyle(
-                                        fontFamily: 'Amiri',
-                                        fontSize: 20,
-                                        color: Color(0xFFC6A15B),
-                                        fontWeight: FontWeight.w700,
+                                      style: AppArabicStyles
+                                          .quranBold
+                                          .copyWith(
+                                        color:
+                                            const Color(0xFFC6A15B),
                                       ),
                                       textDirection: TextDirection.rtl,
                                     ),
@@ -772,10 +772,9 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                       ),
                       subtitle: Text(
                         _getArabicName(entry.key),
-                        style: const TextStyle(
-                          fontFamily: 'Amiri',
-                          color: Color(0xFFC6A15B),
-                          fontSize: 13,
+                        style: AppArabicStyles.quranSmall.copyWith(
+                          color: const Color(0xFFC6A15B),
+                          height: 1.2,
                         ),
                         textDirection: TextDirection.rtl,
                       ),

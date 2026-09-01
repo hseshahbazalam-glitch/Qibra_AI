@@ -416,10 +416,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           shaderCallback: (bounds) => AppGradients.gold.createShader(bounds),
           child: Text(
             'السَّلامُ عَلَيْكُم',
-            style: TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+            style: AppArabicStyles.quranBold.copyWith(
               color: colors.textPrimary,
               height: 1.0,
             ),
