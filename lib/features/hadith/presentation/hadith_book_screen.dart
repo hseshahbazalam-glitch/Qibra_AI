@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/utils/search_normalizer.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
 import '../data/models/hadith_models.dart';
 import '../providers/hadith_provider.dart';
@@ -60,10 +61,12 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     ? hadiths
                     : hadiths.where((h) {
                         final q = _searchQuery.toLowerCase();
+                        // Stage 3: diacritic/hamza-folded Arabic + Urdu,
+                        // case-insensitive English.
                         return h.hadithNumber.toString().contains(q) ||
-                            h.textEnglish.toLowerCase().contains(q) ||
-                            h.textUrdu.contains(_searchQuery) ||
-                            h.textArabic.contains(_searchQuery);
+                            SearchNormalizer.contains(h.textEnglish, _searchQuery) ||
+                            SearchNormalizer.contains(h.textUrdu, _searchQuery) ||
+                            SearchNormalizer.contains(h.textArabic, _searchQuery);
                       }).toList();
 
                 if (filtered.isEmpty) {

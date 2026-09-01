@@ -13,6 +13,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/utils/search_normalizer.dart';
 import '../models/quran_models.dart';
 
 // Top-level helpers for Isolate (must be top-level for compute/Isolate.run)
@@ -324,7 +325,6 @@ class QuranRepository {
     }
 
     final results = <SearchResultModel>[];
-    final lowerQuery = query.toLowerCase().trim();
 
     if (_cachedSurahsMap == null) return results;
 
@@ -332,8 +332,8 @@ class QuranRepository {
       final surah = entry.value;
 
       for (final ayah in surah.ayahs) {
-        // Arabic text search
-        if (ayah.text.contains(query)) {
+        // Arabic text search — Stage 3: diacritic/hamza-folded matching.
+        if (SearchNormalizer.contains(ayah.text, query)) {
           results.add(SearchResultModel(
             surahNumber: surah.number,
             surahName: surah.name,
@@ -349,7 +349,7 @@ class QuranRepository {
         // English translation search
         final translation = _getTranslationEn(ayah.numberInQuran);
         if (translation != null &&
-            translation.toLowerCase().contains(lowerQuery)) {
+            SearchNormalizer.contains(translation, query)) {
           results.add(SearchResultModel(
             surahNumber: surah.number,
             surahName: surah.name,
@@ -379,11 +379,10 @@ class QuranRepository {
     // To keep Arabic matching correct, we run the loop in isolate with copied data
     return Isolate.run(() {
       final results = <SearchResultModel>[];
-      final lowerQuery = query.toLowerCase().trim();
       for (final entry in surahsSnapshot.entries) {
         final surah = entry.value;
         for (final ayah in surah.ayahs) {
-          if (ayah.text.contains(query)) {
+          if (SearchNormalizer.contains(ayah.text, query)) {
             final trans = translationsSnapshot?[ayah.numberInQuran];
             results.add(SearchResultModel(
               surahNumber: surah.number,
@@ -397,7 +396,7 @@ class QuranRepository {
             continue;
           }
           final trans = translationsSnapshot?[ayah.numberInQuran];
-          if (trans != null && trans.toLowerCase().contains(lowerQuery)) {
+          if (trans != null && SearchNormalizer.contains(trans, query)) {
             results.add(SearchResultModel(
               surahNumber: surah.number,
               surahName: surah.name,

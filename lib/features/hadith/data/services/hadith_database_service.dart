@@ -8,6 +8,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/utils/search_normalizer.dart';
+
 // ============================================================
 // LOCAL HADITH MODEL
 // ============================================================
@@ -392,12 +394,12 @@ class HadithDatabaseService {
         double relevance = 0;
         String matchedIn = '';
 
-        if (hadith.textEnglish.toLowerCase().contains(lowerQuery)) {
+        if (SearchNormalizer.contains(hadith.textEnglish, query)) {
           relevance = _calculateRelevance(hadith.textEnglish, lowerQuery);
           matchedIn = 'english';
         }
 
-        if (hadith.textArabic.contains(query)) {
+        if (SearchNormalizer.contains(hadith.textArabic, query)) {
           const arabicRelevance = 0.9;
           if (arabicRelevance > relevance) {
             relevance = arabicRelevance;
@@ -405,7 +407,7 @@ class HadithDatabaseService {
           }
         }
 
-        if (hadith.textUrdu.contains(query)) {
+        if (SearchNormalizer.contains(hadith.textUrdu, query)) {
           const urduRelevance = 0.85;
           if (urduRelevance > relevance) {
             relevance = urduRelevance;
@@ -413,7 +415,7 @@ class HadithDatabaseService {
           }
         }
 
-        if (hadith.chapterName.toLowerCase().contains(lowerQuery)) {
+        if (SearchNormalizer.contains(hadith.chapterName, query)) {
           if (relevance == 0) {
             relevance = 0.5;
             matchedIn = 'chapter';
