@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../providers/tasbih_provider.dart';
@@ -86,7 +87,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                 color: colors.textPrimary, size: 20),
             const SizedBox(width: AppSpacing.sm),
             Text(
-              'MashaAllah! Target achieved 🎉',
+              'MashaAllah! Target achieved',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -117,7 +118,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
-                '🏆 Daily Goal Complete! Barakallahu feek!',
+                'Daily Goal Complete! Barakallahu feek!',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w800,
@@ -434,7 +435,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [colors.accent, Color(0xFFB8860B)],
+                colors: [colors.accent, QibraNavy.gold],
               ),
               shape: BoxShape.circle,
             ),
@@ -547,7 +548,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
                 ),
                 const SizedBox(width: 4),
                 if (state.isDailyGoalComplete)
-                  const Text('🏆', style: TextStyle(fontSize: 18)),
+                  const Icon(Icons.emoji_events_rounded, size: 18),
               ],
             ),
             const SizedBox(height: 8),
@@ -1333,7 +1334,7 @@ class _StatisticsScreen extends ConsumerWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [colors.accent, Color(0xFFB8860B)],
+                    colors: [colors.accent, QibraNavy.gold],
                   ),
                   borderRadius: BorderRadius.circular(AppRadius.xl2),
                 ),
@@ -1421,17 +1422,17 @@ class _StatisticsScreen extends ConsumerWidget {
               const SizedBox(height: AppSpacing.md),
               _achievementRow(context, 'Starter', 0, state.totalCount,
                   state.achievementLevel >= 0),
-              _achievementRow(context, 'Beginner 🌸', 100, state.totalCount,
+              _achievementRow(context, 'Beginner', 100, state.totalCount,
                   state.achievementLevel >= 1),
-              _achievementRow(context, 'Rising Star 🌱', 1000, state.totalCount,
+              _achievementRow(context, 'Rising Star', 1000, state.totalCount,
                   state.achievementLevel >= 2),
-              _achievementRow(context, 'Intermediate 💎', 5000, state.totalCount,
+              _achievementRow(context, 'Intermediate', 5000, state.totalCount,
                   state.achievementLevel >= 3),
-              _achievementRow(context, 'Advanced 🌟', 10000, state.totalCount,
+              _achievementRow(context, 'Advanced', 10000, state.totalCount,
                   state.achievementLevel >= 4),
-              _achievementRow(context, 'Expert ⭐', 50000, state.totalCount,
+              _achievementRow(context, 'Expert', 50000, state.totalCount,
                   state.achievementLevel >= 5),
-              _achievementRow(context, 'Master 🏆', 100000, state.totalCount,
+              _achievementRow(context, 'Master', 100000, state.totalCount,
                   state.achievementLevel >= 6),
             ],
           ),
@@ -1529,13 +1530,10 @@ class _StatisticsScreen extends ConsumerWidget {
             ),
           ),
           if (unlocked)
-            Text(
-              '✓',
-              style: TextStyle(
-                color: colors.primary,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            Icon(
+              Icons.check_circle_rounded,
+              color: colors.primary,
+              size: 20,
             ),
         ],
       ),

@@ -91,7 +91,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
       text: '${name.arabic}\n${name.transliteration}\n${name.meaning}',
     ));
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Copied! 📋', style: TextStyle(color: colors.textPrimary)),
+      content: Text('Copied to clipboard', style: TextStyle(color: colors.textPrimary)),
       backgroundColor: colors.primary,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -463,7 +463,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
                     ),
                     child: Row(
                       children: [
-                        const Text('📖', style: TextStyle(fontSize: 12)),
+                        const Icon(Icons.menu_book_rounded, size: 14),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -529,7 +529,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('💜', style: TextStyle(fontSize: 48)),
+            const Icon(Icons.favorite_rounded, size: 48),
             const SizedBox(height: 12),
             Text(
               'No Favorites Yet',
@@ -540,7 +540,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
             ),
             const SizedBox(height: 6),
             Text(
-              'Tap ❤️ on any name to save it',
+              'Tap the heart on any name to save it',
               style: TextStyle(
                   color: colors.textPrimary.withValues(alpha: 0.4), fontSize: 13),
             ),
@@ -644,11 +644,11 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _statItem('📿', '99', 'Total Names'),
+                _statItem(Icons.menu_book_rounded, '99', 'Total Names'),
                 _divider(),
-                _statItem('💜', '${_favorites.length}', 'Favorites'),
+                _statItem(Icons.favorite_rounded, '${_favorites.length}', 'Favorites'),
                 _divider(),
-                _statItem('✅', '${_favorites.length}', 'Learned'),
+                _statItem(Icons.verified_rounded, '${_favorites.length}', 'Learned'),
               ],
             ),
           ),
@@ -668,7 +668,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
               children: [
                 Row(
                   children: [
-                    Text('📖', style: TextStyle(fontSize: 14)),
+                    Icon(Icons.menu_book_rounded, size: 14),
                     SizedBox(width: 8),
                     Text(
                       'Hadith',
@@ -698,7 +698,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           // Groups
           _buildGroupCard(
               'Names of Mercy',
-              '💚',
+              Icons.favorite_rounded,
               colors.primary,
               _allNames
                   .where((n) =>
@@ -707,7 +707,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           const SizedBox(height: 12),
           _buildGroupCard(
               'Names of Power',
-              '⚡',
+              Icons.bolt_rounded,
               colors.accent,
               _allNames
                   .where((n) =>
@@ -716,7 +716,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
           const SizedBox(height: 12),
           _buildGroupCard(
               'Names of Knowledge',
-              '📚',
+              Icons.school_rounded,
               colors.primarySoft,
               _allNames
                   .where((n) =>
@@ -728,11 +728,11 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
     );
   }
 
-  Widget _statItem(String emoji, String value, String label) {
+  Widget _statItem(IconData icon, String value, String label) {
     final colors = QibraColors.of(context);
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
+        Icon(icon, size: 20, color: colors.accent),
         const SizedBox(height: 4),
         Text(
           value,
@@ -760,7 +760,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
   }
 
   Widget _buildGroupCard(
-      String title, String emoji, Color color, List<_AsmaName> names) {
+      String title, IconData icon, Color color, List<_AsmaName> names) {
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -774,7 +774,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
         children: [
           Row(
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 16)),
+              Icon(icon, size: 16, color: color),
               const SizedBox(width: 8),
               Text(
                 title,

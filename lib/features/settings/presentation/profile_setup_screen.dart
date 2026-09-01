@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
@@ -50,7 +51,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   DateTime? _dateOfBirth;
   String _selectedGender = 'male';
   String _selectedCountry = 'Pakistan';
-  String _selectedCountryFlag = '🇵🇰';
   String _selectedMadhab = 'Hanafi';
   String _selectedPrayerMethod = 'Karachi';
   bool _hasAvatar = false;
@@ -66,18 +66,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
   // ── COUNTRY LIST ─────────────────────────────────────
   final List<Map<String, String>> _countries = [
-    {'name': 'Pakistan', 'flag': '🇵🇰', 'code': '+92'},
-    {'name': 'India', 'flag': '🇮🇳', 'code': '+91'},
-    {'name': 'Saudi Arabia', 'flag': '🇸🇦', 'code': '+966'},
-    {'name': 'UAE', 'flag': '🇦🇪', 'code': '+971'},
-    {'name': 'Turkey', 'flag': '🇹🇷', 'code': '+90'},
-    {'name': 'Egypt', 'flag': '🇪🇬', 'code': '+20'},
-    {'name': 'Indonesia', 'flag': '🇮🇩', 'code': '+62'},
-    {'name': 'Malaysia', 'flag': '🇲🇾', 'code': '+60'},
-    {'name': 'Bangladesh', 'flag': '🇧🇩', 'code': '+880'},
-    {'name': 'United Kingdom', 'flag': '🇬🇧', 'code': '+44'},
-    {'name': 'United States', 'flag': '🇺🇸', 'code': '+1'},
-    {'name': 'Canada', 'flag': '🇨🇦', 'code': '+1'},
+    {'name': 'Pakistan', 'code': '+92'},
+    {'name': 'India', 'code': '+91'},
+    {'name': 'Saudi Arabia', 'code': '+966'},
+    {'name': 'UAE', 'code': '+971'},
+    {'name': 'Turkey', 'code': '+90'},
+    {'name': 'Egypt', 'code': '+20'},
+    {'name': 'Indonesia', 'code': '+62'},
+    {'name': 'Malaysia', 'code': '+60'},
+    {'name': 'Bangladesh', 'code': '+880'},
+    {'name': 'United Kingdom', 'code': '+44'},
+    {'name': 'United States', 'code': '+1'},
+    {'name': 'Canada', 'code': '+1'},
   ];
 
   @override
@@ -210,7 +210,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               top: Radius.circular(24),
             ),
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: Colors.white.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
@@ -222,7 +222,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.30),
+                  color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -355,7 +355,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           children: [
             const Icon(
               Icons.check_circle,
-              color: const Color(0xFF19312C),
+              color: QibraNavy.textPrimary,
               size: 20,
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -428,7 +428,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               top: Radius.circular(24),
             ),
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: Colors.white.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
@@ -439,7 +439,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.30),
+                  color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -462,7 +462,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                         HapticFeedback.selectionClick();
                         setState(() {
                           _selectedCountry = country['name']!;
-                          _selectedCountryFlag = country['flag']!;
                         });
                         Navigator.pop(context);
                       },
@@ -482,22 +481,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                               : null,
                           color: isSelected
                               ? null
-                              : QibraColors.light.textPrimary.withValues(alpha: 0.05),
+                              : Colors.white.withValues(alpha: 0.05),
                           borderRadius: AppRadius.cardRadius,
                           border: Border.all(
                             color: isSelected
                                 ? colors.primary
-                                : QibraColors.light.textPrimary.withValues(alpha: 0.10),
+                                : Colors.white.withValues(alpha: 0.10),
                             width: 1,
                           ),
                         ),
                         child: Row(
                           children: [
-                            Text(
-                              country['flag']!,
-                              style: const TextStyle(fontSize: 24),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: Text(
                                 country['name']!,
@@ -559,7 +553,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               children: [
                 Icon(
                   Icons.check_circle,
-                  color: const Color(0xFF19312C),
+                  color: QibraNavy.textPrimary,
                   size: 20,
                 ),
                 SizedBox(width: AppSpacing.sm),
@@ -651,8 +645,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             center: Alignment.topCenter,
             radius: 1.5,
             colors: [
-              Color(0xFFEEF1EA),
-              Color(0xFFF5F3EC),
+              QibraNavy.card,
+              QibraNavy.surface,
               colors.background,
             ],
             stops: [0.0, 0.5, 1.0],
@@ -702,15 +696,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF19312C).withValues(alpha: 0.10),
+                  color: Colors.white.withValues(alpha: 0.05),
                   border: Border.all(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.07),
                     width: 1,
                   ),
                 ),
                 child: const Icon(
                   Icons.arrow_back_rounded,
-                  color: const Color(0xFF19312C),
+                  color: QibraNavy.textPrimary,
                   size: 20,
                 ),
               ),
@@ -723,10 +717,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             vertical: AppSpacing.xs,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFF19312C).withValues(alpha: 0.10),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: AppRadius.pillRadius,
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.15),
+              color: Colors.white.withValues(alpha: 0.07),
               width: 1,
             ),
           ),
@@ -739,7 +733,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 child: Text(
                   '3',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: const Color(0xFF19312C),
+                    color: QibraNavy.textPrimary,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -805,7 +799,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                           ),
                           child: const Icon(
                             Icons.person_rounded,
-                            color: const Color(0xFF19312C),
+                            color: QibraNavy.textPrimary,
                             size: 60,
                           ),
                         )
@@ -814,7 +808,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                               AppGradients.emerald.createShader(bounds),
                           child: const Icon(
                             Icons.person_add_alt_1_rounded,
-                            color: const Color(0xFF19312C),
+                            color: QibraNavy.textPrimary,
                             size: 48,
                           ),
                         ),
@@ -869,7 +863,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           child: Text(
             'ALMOST THERE',
             style: AppTextStyles.labelSmall.copyWith(
-              color: const Color(0xFF19312C),
+              color: QibraNavy.textPrimary,
               letterSpacing: 3,
               fontWeight: FontWeight.w800,
             ),
@@ -915,13 +909,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                QibraColors.light.textPrimary.withValues(alpha: 0.08),
-                QibraColors.light.textPrimary.withValues(alpha: 0.03),
+                Colors.white.withValues(alpha: 0.08),
+                Colors.white.withValues(alpha: 0.03),
               ],
             ),
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: Colors.white.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
@@ -997,8 +991,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               // Country
               _buildPickerField(
                 label: 'Country',
-                icon: Icons.flag_outlined,
-                value: '$_selectedCountryFlag  $_selectedCountry',
+                icon: Icons.public_rounded,
+                value: _selectedCountry,
                 placeholder: 'Select country',
                 onTap: _pickCountry,
               ),
@@ -1056,7 +1050,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         validator: validator,
         keyboardType: keyboardType,
         style: AppTextStyles.bodyMedium.copyWith(
-          color: const Color(0xFF19312C),
+          color: QibraNavy.textPrimary,
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
@@ -1076,8 +1070,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           ),
           filled: true,
           fillColor: isFocused
-              ? QibraColors.light.textPrimary.withValues(alpha: 0.05)
-              : QibraColors.light.textPrimary.withValues(alpha: 0.02),
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.white.withValues(alpha: 0.02),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
@@ -1085,14 +1079,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           border: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: Colors.white.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
+              color: Colors.white.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
@@ -1142,10 +1136,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: const Color(0xFF19312C).withValues(alpha: 0.02),
+          color: Colors.white.withValues(alpha: 0.03),
           borderRadius: AppRadius.cardRadius,
           border: Border.all(
-            color: const Color(0xFF19312C).withValues(alpha: 0.10),
+            color: Colors.white.withValues(alpha: 0.05),
             width: 1,
           ),
         ),
@@ -1243,12 +1237,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                     ],
                   )
                 : null,
-            color: isSelected ? null : QibraColors.light.textPrimary.withValues(alpha: 0.02),
+            color: isSelected ? null : Colors.white.withValues(alpha: 0.02),
             borderRadius: AppRadius.cardRadius,
             border: Border.all(
               color: isSelected
                   ? colors.primary
-                  : QibraColors.light.textPrimary.withValues(alpha: 0.10),
+                  : Colors.white.withValues(alpha: 0.10),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -1386,10 +1380,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         horizontal: AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFF19312C).withValues(alpha: 0.02),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: const Color(0xFF19312C).withValues(alpha: 0.10),
+          color: Colors.white.withValues(alpha: 0.05),
           width: 1,
         ),
       ),
@@ -1403,7 +1397,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           color: colors.textSecondary,
         ),
         style: AppTextStyles.bodyMedium.copyWith(
-          color: const Color(0xFF19312C),
+          color: QibraNavy.textPrimary,
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
@@ -1430,7 +1424,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             child: Text(
               item,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: const Color(0xFF19312C),
+                color: QibraNavy.textPrimary,
               ),
             ),
           );
@@ -1489,14 +1483,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                       children: [
                         const Icon(
                           Icons.check_circle_rounded,
-                          color: const Color(0xFF19312C),
+                          color: QibraNavy.textPrimary,
                           size: 22,
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Text(
                           'Save & Continue',
                           style: AppTextStyles.buttonLarge.copyWith(
-                            color: const Color(0xFF19312C),
+                            color: QibraNavy.textPrimary,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.5,
                           ),
@@ -1554,7 +1548,7 @@ class _ProfileParticlePainter extends CustomPainter {
 
       final particleSize = 1.5 + random.nextDouble() * 2;
       final isGold = i % 3 == 0;
-      final color = isGold ? const Color(0xFFC6A15B) : const Color(0xFF123F36);
+      final color = isGold ? QibraNavy.gold : QibraNavy.emeraldDeep;
       final alpha = 0.15 + (random.nextDouble() * 0.25);
 
       final paint = Paint()

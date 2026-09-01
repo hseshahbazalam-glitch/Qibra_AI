@@ -7,6 +7,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/design_system/qibra_navy.dart';
+import '../logic/zakat_calculator.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,9 +38,10 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
   // FIX: _nisabThreshold properly used in calculate + reset
   double _nisabThreshold = 0;
 
-  static const double _zakatRate = 0.025;
-  static const double _goldNisabGrams = 87.48;
-  static const double _silverNisabGrams = 612.36;
+  // Delegates to ZakatCalculator (pure, unit-tested) — aliases kept for
+  // the nisab info rows' display strings.
+  static const double _goldNisabGrams = ZakatCalculator.goldNisabGrams;
+  static const double _silverNisabGrams = ZakatCalculator.silverNisabGrams;
 
   // P0.3 FIX: Explicit source & editable pricing
   // Default silver price — MUST be shown with source/lastUpdated
@@ -118,34 +121,31 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
     final property = double.tryParse(_propertyController.text) ?? 0;
     final debt = double.tryParse(_debtController.text) ?? 0;
 
-    final total = gold + silver + cash + investment + property - debt;
-
     final double silverPrice = _silverPricePerGram[_currency] ?? 280.0;
-    final double nisabThreshold = _silverNisabGrams * silverPrice;
+    final outcome = ZakatCalculator.evaluate(
+      gold: gold,
+      silver: silver,
+      cash: cash,
+      investments: investment,
+      property: property,
+      debts: debt,
+      silverPricePerGram: silverPrice,
+    );
 
     setState(() {
-      _totalWealth = total;
-      // FIX: Uncommented — now properly assigned
-      _nisabThreshold = nisabThreshold;
-
-      if (_totalWealth <= 0) {
-        _zakatAmount = 0;
-        _zakatDue = false;
-        _nisabMessage = 'Please enter your wealth details.';
-      } else if (_totalWealth < _nisabThreshold) {
-        _zakatAmount = 0;
-        _zakatDue = false;
-        _nisabMessage = 'Your wealth is below Nisab threshold '
-            '(${_formatAmount(_nisabThreshold)}). '
-            'Zakat is not obligatory.';
-      } else {
-        _zakatAmount = _totalWealth * _zakatRate;
-        _zakatDue = true;
-        _nisabMessage = 'Your wealth exceeds Nisab '
-            '(${_formatAmount(_nisabThreshold)}). '
-            'Zakat is obligatory.';
-      }
-
+      _totalWealth = outcome.totalWealth;
+      _nisabThreshold = outcome.nisabThreshold;
+      _zakatAmount = outcome.zakatAmount;
+      _zakatDue = outcome.isDue;
+      _nisabMessage = switch (outcome.kind) {
+        ZakatOutcomeKind.emptyInput => 'Please enter your wealth details.',
+        ZakatOutcomeKind.belowNisab => 'Your wealth is below Nisab threshold '
+            '(${_formatAmount(outcome.nisabThreshold)}). '
+            'Zakat is not obligatory.',
+        ZakatOutcomeKind.due => 'Your wealth exceeds Nisab '
+            '(${_formatAmount(outcome.nisabThreshold)}). '
+            'Zakat is obligatory.',
+      };
       _showResult = true;
     });
   }
@@ -197,7 +197,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                 const SizedBox(height: 20),
                 _buildCurrencySelector(),
                 const SizedBox(height: 20),
-                _buildSectionLabel('💰', 'ASSETS'),
+                _buildSectionLabel(Icons.savings_rounded, 'ASSETS'),
                 const SizedBox(height: 12),
                 _buildInputCard(
                   icon: Icons.diamond_rounded,
@@ -212,7 +212,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   label: 'Silver Value',
                   hint: 'Value of silver you own',
                   controller: _silverController,
-                  color: const Color(0xFFC0C0C0),
+                  color: QibraNavy.textSecondary,
                 ),
                 const SizedBox(height: 12),
                 _buildInputCard(
@@ -239,7 +239,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                   color: colors.primarySoft,
                 ),
                 const SizedBox(height: 20),
-                _buildSectionLabel('📋', 'LIABILITIES'),
+                _buildSectionLabel(Icons.receipt_long_rounded, 'LIABILITIES'),
                 const SizedBox(height: 12),
                 _buildInputCard(
                   icon: Icons.money_off_rounded,
@@ -324,7 +324,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('💚', style: TextStyle(fontSize: 12)),
+                        Icon(Icons.favorite_rounded, size: 14, color: colors.primary),
                         SizedBox(width: 4),
                         Text(
                           'Zakat Calculator',
@@ -368,7 +368,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
   Widget _buildNisabInfoCard() {
     final colors = QibraColors.of(context);
     final double silverPrice = _silverPricePerGram[_currency] ?? 280.0;
-    final double nisab = _silverNisabGrams * silverPrice;
+    final double nisab = ZakatCalculator.nisabForSilverPrice(silverPrice);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -688,11 +688,11 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
 
   // ─── Section Label ───────────────────────────────────────────
 
-  Widget _buildSectionLabel(String emoji, String label) {
+  Widget _buildSectionLabel(IconData icon, String label) {
     final colors = QibraColors.of(context);
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
+        Icon(icon, size: 16, color: colors.textPrimary.withValues(alpha: 0.5)),
         const SizedBox(width: 8),
         Text(
           label,
@@ -939,7 +939,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
           const SizedBox(height: 16),
           if (gold > 0) _breakdownRow('Gold', gold, colors.accent),
           if (silver > 0)
-            _breakdownRow('Silver', silver, const Color(0xFFC0C0C0)),
+            _breakdownRow('Silver', silver, QibraNavy.textSecondary),
           if (cash > 0)
             _breakdownRow('Cash & Bank', cash, colors.primary),
           if (investment > 0)
@@ -1053,7 +1053,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         children: [
           Row(
             children: [
-              Text('📖', style: TextStyle(fontSize: 14)),
+              Icon(Icons.menu_book_rounded, size: 14),
               SizedBox(width: 8),
               Text(
                 'Islamic Reminder',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/a11y/app_a11y.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../logic/inheritance_estimator.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
 
@@ -91,68 +92,46 @@ class _InheritanceCalculatorScreenState
     final debt = double.tryParse(_debtController.text) ?? 0;
     final wasiyyah = double.tryParse(_wasiyyahController.text) ?? 0;
 
-    if (estate <= 0) {
-      _showSnackbar('Please enter total estate value');
+    // Stage 3: validation + net-estate + 1/3 wasiyyah cap live in the pure
+    // InheritanceEstimator (unit-tested); the share engine stays here.
+    final pre = InheritanceEstimator.evaluate(
+      estate: estate,
+      debts: debt,
+      wasiyyah: wasiyyah,
+      deceasedGender: _deceasedGender,
+      hasHusband: _hasHusband,
+      hasWife: _hasWife,
+      hasFather: _hasFather,
+      hasMother: _hasMother,
+      hasGrandfather: _hasGrandfather,
+      hasGrandmother: _hasGrandmother,
+      sons: _sons,
+      daughters: _daughters,
+      grandsons: _grandsons,
+      granddaughters: _granddaughters,
+      brothers: _brothers,
+      sisters: _sisters,
+      halfBrothersFather: _halfBrothersFather,
+      halfSistersFather: _halfSistersFather,
+      halfBrothersMother: _halfBrothersMother,
+      halfSistersMother: _halfSistersMother,
+      hasUncle: _hasUncle,
+    );
+    if (pre is InheritancePrecheckFailure) {
+      _showSnackbar(pre.message);
       return;
     }
-
-    // Validate heir selection
-    if (!_hasHusband &&
-        !_hasWife &&
-        !_hasFather &&
-        !_hasMother &&
-        !_hasGrandfather &&
-        !_hasGrandmother &&
-        _sons == 0 &&
-        _daughters == 0 &&
-        _grandsons == 0 &&
-        _granddaughters == 0 &&
-        _brothers == 0 &&
-        _sisters == 0 &&
-        _halfBrothersFather == 0 &&
-        _halfSistersFather == 0 &&
-        _halfBrothersMother == 0 &&
-        _halfSistersMother == 0 &&
-        !_hasUncle) {
-      _showSnackbar('Please select at least one heir');
-      return;
-    }
-
-    // Invalid spouse combinations (spouse + spouse, or mismatched gender)
-    if (_hasHusband && _hasWife) {
+    final result = pre as InheritancePrecheckResult;
+    if (result.wasiyyahCapped) {
       _showSnackbar(
-          'Cannot have both husband and wife as heirs — invalid combination');
-      return;
-    }
-    if (_deceasedGender == 'male' && _hasHusband) {
-      _showSnackbar('Deceased is male — husband cannot be an heir');
-      return;
-    }
-    if (_deceasedGender == 'female' && _hasWife) {
-      _showSnackbar('Deceased is female — wife cannot be an heir');
-      return;
-    }
-
-    double remaining = estate - debt;
-    if (remaining <= 0) {
-      _showSnackbar('Debts exceed estate — no inheritance to distribute');
-      return;
-    }
-
-    final maxWasiyyah = remaining / 3;
-    double actualWasiyyah = wasiyyah;
-    if (wasiyyah > maxWasiyyah) {
-      actualWasiyyah = maxWasiyyah;
-      _showSnackbar(
-        'Wasiyyah (will) cannot exceed 1/3 of remaining estate per Sharia. Capped to ${_formatAmount(maxWasiyyah)} (requires heirs\' consent to exceed).',
+        'Wasiyyah (will) cannot exceed 1/3 of remaining estate per Sharia. Capped to ${_formatAmount(result.wasiyyahCap)} (requires heirs\' consent to exceed).',
       );
     }
-    remaining -= actualWasiyyah;
 
     _totalEstate = estate;
-    _netEstate = remaining;
+    _netEstate = result.netEstate;
 
-    _results = _calculateShares(remaining);
+    _results = _calculateShares(result.netEstate);
 
     // Validation: total fractions must sum to 1.0 ± 0.005, total amount == _netEstate
     final totalFrac = _results.fold<double>(0, (sum, r) => sum + r.fraction);
@@ -750,7 +729,7 @@ class _InheritanceCalculatorScreenState
                 const SizedBox(height: 16),
                 _buildEstateInput(),
                 const SizedBox(height: 20),
-                _buildSectionLabel('👨‍👩‍👧‍👦', 'FAMILY MEMBERS'),
+                _buildSectionLabel(Icons.group_rounded, 'FAMILY MEMBERS'),
                 const SizedBox(height: 12),
                 _buildSpouseSection(),
                 const SizedBox(height: 12),
@@ -1066,14 +1045,14 @@ class _InheritanceCalculatorScreenState
                 fontSize: 12,
                 fontWeight: FontWeight.w600)),
         const SizedBox(width: 12),
-        _genderChip('male', '👨', 'Male', colors.primarySoft),
+        _genderChip('male', Icons.male_rounded, 'Male', colors.primarySoft),
         const SizedBox(width: 8),
-        _genderChip('female', '👩', 'Female', colors.accent),
+        _genderChip('female', Icons.female_rounded, 'Female', colors.accent),
       ],
     );
   }
 
-  Widget _genderChip(String value, String emoji, String label, Color color) {
+  Widget _genderChip(String value, IconData icon, String label, Color color) {
     final colors = QibraColors.of(context);
     final selected = _deceasedGender == value;
     return Expanded(
@@ -1103,7 +1082,12 @@ class _InheritanceCalculatorScreenState
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 14)),
+              Icon(
+                icon,
+                size: 14,
+                color:
+                    selected ? color : colors.textSecondary,
+              ),
               const SizedBox(width: 6),
               Text(label,
                   style: TextStyle(
@@ -1233,11 +1217,15 @@ class _InheritanceCalculatorScreenState
   }
 
   // ─── Section Label ──────────────────────────────────────────
-  Widget _buildSectionLabel(String emoji, String label) {
+  Widget _buildSectionLabel(IconData icon, String label) {
     final colors = QibraColors.of(context);
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 14)),
+        Icon(
+            icon,
+            size: 14,
+            color: colors.textPrimary.withValues(alpha: 0.5),
+        ),
         const SizedBox(width: 8),
         Text(label,
             style: TextStyle(
@@ -1270,13 +1258,12 @@ class _InheritanceCalculatorScreenState
           const SizedBox(height: 10),
           if (_deceasedGender == 'female')
             _toggleRow(
-                'Husband',
-                '👨',
+                'Husband', Icons.man_rounded,
                 _hasHusband,
                 (v) => setState(() => _hasHusband = v),
                 colors.primarySoft),
           if (_deceasedGender == 'male') ...[
-            _toggleRow('Wife', '👩', _hasWife,
+            _toggleRow('Wife', Icons.woman_rounded, _hasWife,
                 (v) => setState(() => _hasWife = v), colors.accent),
             if (_hasWife)
               _counterRow(
@@ -1311,21 +1298,19 @@ class _InheritanceCalculatorScreenState
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
-          _toggleRow('Father', '👨', _hasFather,
+          _toggleRow('Father', Icons.man_rounded, _hasFather,
               (v) => setState(() => _hasFather = v), colors.primary),
-          _toggleRow('Mother', '👩', _hasMother,
+          _toggleRow('Mother', Icons.woman_rounded, _hasMother,
               (v) => setState(() => _hasMother = v), colors.primarySoft),
           if (!_hasFather)
             _toggleRow(
-                'Grandfather',
-                '👴',
+                'Grandfather', Icons.elderhood_rounded,
                 _hasGrandfather,
                 (v) => setState(() => _hasGrandfather = v),
                 colors.primarySoft),
           if (!_hasMother)
             _toggleRow(
-                'Grandmother',
-                '👵',
+                'Grandmother', Icons.elderhood_rounded,
                 _hasGrandmother,
                 (v) => setState(() => _hasGrandmother = v),
                 colors.accent),
@@ -1481,7 +1466,7 @@ class _InheritanceCalculatorScreenState
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
-          _toggleRow('Paternal Uncle', '👨', _hasUncle,
+          _toggleRow('Paternal Uncle', Icons.man_rounded, _hasUncle,
               (v) => setState(() => _hasUncle = v), colors.primarySoft),
         ],
       ),
@@ -1489,14 +1474,19 @@ class _InheritanceCalculatorScreenState
   }
 
   // ─── Toggle Row ─────────────────────────────────────────────
-  Widget _toggleRow(String label, String emoji, bool value,
+  Widget _toggleRow(String label, IconData icon, bool value,
       ValueChanged<bool> onChanged, Color color) {
     final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
+          Icon(
+              icon,
+              size: 16,
+              color:
+                  value ? colors.accent : colors.textSecondary,
+          ),
           const SizedBox(width: 10),
           Expanded(
               child: Text(label,
@@ -1935,7 +1925,7 @@ class _InheritanceCalculatorScreenState
         children: [
           Row(
             children: [
-              Text('📖', style: TextStyle(fontSize: 14)),
+              Icon(Icons.menu_book_rounded, size: 14),
               SizedBox(width: 8),
               Text('Quran Reference',
                   style: TextStyle(

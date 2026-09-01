@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/utils/search_normalizer.dart';
 import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../data/models/quran_models.dart';
@@ -1073,36 +1074,30 @@ class _SearchResultCard extends StatelessWidget {
           style: style, maxLines: 3, overflow: TextOverflow.ellipsis);
     }
 
-    final lowerText = text.toLowerCase();
-    final lowerQuery = query.toLowerCase();
+    // Diacritic/hamza-aware matching (Stage 3: SearchNormalizer) — spans
+    // come back in ORIGINAL-text coordinates, so highlights never shift.
+    final spans = SearchNormalizer.allMatches(text, query);
     final matches = <TextSpan>[];
     int lastIndex = 0;
 
-    int index = lowerText.indexOf(lowerQuery);
-    while (index != -1) {
-      // Text before match
-      if (index > lastIndex) {
+    for (final m in spans) {
+      if (m.start > lastIndex) {
         matches.add(TextSpan(
-          text: text.substring(lastIndex, index),
+          text: text.substring(lastIndex, m.start),
           style: style,
         ));
       }
-
-      // Matched text
       matches.add(TextSpan(
-        text: text.substring(index, index + query.length),
+        text: text.substring(m.start, m.end),
         style: style.copyWith(
           color: colors.goldText,
           fontWeight: FontWeight.w800,
           backgroundColor: colors.goldText.withValues(alpha: 0.12),
         ),
       ));
-
-      lastIndex = index + query.length;
-      index = lowerText.indexOf(lowerQuery, lastIndex);
+      lastIndex = m.end;
     }
 
-    // Remaining text
     if (lastIndex < text.length) {
       matches.add(TextSpan(
         text: text.substring(lastIndex),
@@ -1111,7 +1106,7 @@ class _SearchResultCard extends StatelessWidget {
     }
 
     return RichText(
-      text: TextSpan(children: matches),
+      text: TextSpan(children: matches, style: style),
       maxLines: 3,
       overflow: TextOverflow.ellipsis,
     );
