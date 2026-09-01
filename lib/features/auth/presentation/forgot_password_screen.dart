@@ -7,8 +7,6 @@
 //              animated illustrations, and premium success state.
 // ============================================================
 
-import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -48,12 +46,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   String? _sentEmail;
 
   // ── ANIMATIONS ───────────────────────────────────────
-  late AnimationController _particleController;
   late AnimationController _entranceController;
   late Animation<double> _entranceFade;
 
-  late AnimationController _iconPulseController;
-  late Animation<double> _iconPulse;
 
   late AnimationController _successController;
   late Animation<double> _successScale;
@@ -69,12 +64,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
       if (_emailFocus.hasFocus) HapticFeedback.selectionClick();
     });
 
-    // Particles
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 15),
-    )..repeat();
-
     // Entrance
     _entranceController = AnimationController(
       vsync: this,
@@ -87,20 +76,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
     ).animate(CurvedAnimation(
       parent: _entranceController,
       curve: Curves.easeIn,
-    ));
-
-    // Icon pulse
-    _iconPulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-
-    _iconPulse = Tween<double>(
-      begin: 0.95,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _iconPulseController,
-      curve: Curves.easeInOut,
     ));
 
     // Success animation
@@ -132,9 +107,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   void dispose() {
     _emailController.dispose();
     _emailFocus.dispose();
-    _particleController.dispose();
     _entranceController.dispose();
-    _iconPulseController.dispose();
     _successController.dispose();
     super.dispose();
   }
@@ -227,17 +200,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       body: Stack(
         children: [
           // ── LAYER 1: Background ──
           _buildBackground(),
-
-          // ── LAYER 2: Particles ──
-          _buildParticles(size),
 
           // ── LAYER 3: Content ──
           SafeArea(
@@ -269,45 +237,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topCenter,
-            radius: 1.5,
-            colors: _emailSent
-                ? [
-                    colors.success.withValues(alpha: 0.20),
-                    colors.cardMuted,
-                    colors.background,
-                  ]
-                : [
-                    colors.background,
-                    colors.cardMuted,
-                    colors.background,
-                  ],
-            stops: const [0.0, 0.5, 1.0],
-          ),
+          color: _emailSent ? colors.cardMuted : colors.background,
         ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // PARTICLES
-  // ══════════════════════════════════════════
-
-  Widget _buildParticles(Size size) {
-    final colors = QibraColors.of(context);
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _ForgotParticlePainter(
-              animationValue: _particleController.value,
-              isSuccess: _emailSent,
-            ),
-            size: size,
-          );
-        },
       ),
     );
   }
@@ -317,7 +248,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildFormState() {
-    final colors = QibraColors.of(context);
     return Column(
       key: const ValueKey('form'),
       children: [
@@ -359,7 +289,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSuccessState() {
-    final colors = QibraColors.of(context);
     return Column(
       key: const ValueKey('success'),
       children: [
@@ -421,7 +350,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHeader() {
-    final colors = QibraColors.of(context);
     return AuthHeader(
       onBackTap: () => context.go(AppRoutes.login),
     );
@@ -433,47 +361,21 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
 
   Widget _buildAnimatedIcon() {
     final colors = QibraColors.of(context);
-    return ScaleTransition(
-      scale: _iconPulse,
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              colors.primary.withValues(alpha: 0.30),
-              colors.primary.withValues(alpha: 0.05),
-            ],
-          ),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: 0.50),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.40),
-              blurRadius: 40,
-              spreadRadius: 8,
-            ),
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.20),
-              blurRadius: 80,
-              spreadRadius: 16,
-            ),
-          ],
+    return Container(
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: colors.card,
+        border: Border.all(
+          color: colors.primary.withValues(alpha: 0.24),
+          width: 2,
         ),
-        child: Center(
-          child: ShaderMask(
-            shaderCallback: (bounds) =>
-                AppGradients.emerald.createShader(bounds),
-            child: Icon(
-              Icons.lock_reset_rounded,
-              color: colors.textPrimary,
-              size: 48,
-            ),
-          ),
-        ),
+      ),
+      child: Icon(
+        Icons.lock_reset_rounded,
+        color: colors.primary,
+        size: 48,
       ),
     );
   }
@@ -489,24 +391,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
       height: 120,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            colors.success.withValues(alpha: 0.30),
-            colors.success.withValues(alpha: 0.05),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.success.withValues(alpha: 0.50),
-            blurRadius: 40,
-            spreadRadius: 8,
-          ),
-          BoxShadow(
-            color: colors.success.withValues(alpha: 0.30),
-            blurRadius: 80,
-            spreadRadius: 16,
-          ),
-        ],
+        color: colors.success.withValues(alpha: 0.12),
       ),
       child: Center(
         child: Container(
@@ -515,16 +400,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: colors.success,
-            boxShadow: [
-              BoxShadow(
-                color: colors.success.withValues(alpha: 0.60),
-                blurRadius: 24,
-              ),
-            ],
           ),
           child: Icon(
             Icons.mark_email_read_rounded,
-            color: colors.textPrimary,
+            color: colors.onPrimary,
             size: 48,
           ),
         ),
@@ -540,15 +419,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
     final colors = QibraColors.of(context);
     return Column(
       children: [
-        ShaderMask(
-          shaderCallback: (bounds) => AppGradients.emerald.createShader(bounds),
-          child: Text(
-            'PASSWORD RECOVERY',
-            style: AppTextStyles.labelSmall.copyWith(
-              color: colors.textPrimary,
-              letterSpacing: 3,
-              fontWeight: FontWeight.w800,
-            ),
+        Text(
+          'PASSWORD RECOVERY',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: colors.goldText,
+            letterSpacing: 3,
+            fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -608,15 +484,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                colors.primary.withValues(alpha: 0.20),
-                colors.primary.withValues(alpha: 0.10),
-              ],
-            ),
+            color: colors.primary.withValues(alpha: 0.12),
             borderRadius: AppRadius.pillRadius,
             border: Border.all(
-              color: colors.primary.withValues(alpha: 0.40),
+              color: colors.primary.withValues(alpha: 0.16),
               width: 1,
             ),
           ),
@@ -649,24 +520,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
 
   Widget _buildFormCard() {
     final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadiusLarge,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
+    return Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                QibraColors.light.textPrimary.withValues(alpha: 0.08),
-                QibraColors.light.textPrimary.withValues(alpha: 0.03),
-              ],
-            ),
+            color: colors.card,
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: colors.textPrimary.withValues(alpha: 0.10),
+              color: colors.border,
               width: 1,
             ),
           ),
@@ -709,8 +569,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
               _buildSendButton(),
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -723,15 +581,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colors.error.withValues(alpha: 0.20),
-            colors.error.withValues(alpha: 0.10),
-          ],
-        ),
+        color: colors.error.withValues(alpha: 0.12),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: colors.error.withValues(alpha: 0.40),
+          color: colors.error.withValues(alpha: 0.24),
           width: 1,
         ),
       ),
@@ -740,7 +593,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: colors.error.withValues(alpha: 0.20),
+              color: colors.error.withValues(alpha: 0.16),
               borderRadius: AppRadius.pillRadius,
             ),
             child: Icon(
@@ -769,7 +622,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPremiumTextField() {
-    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: _emailController,
       focusNode: _emailFocus,
@@ -790,7 +642,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSendButton() {
-    final colors = QibraColors.of(context);
     return AuthButton(
       label: 'Send Reset Link',
       onTap: _handleSendResetLink,
@@ -805,22 +656,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
 
   Widget _buildInfoCard() {
     final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadiusLarge,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-        child: Container(
+    return Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                QibraColors.light.textPrimary.withValues(alpha: 0.08),
-                QibraColors.light.textPrimary.withValues(alpha: 0.03),
-              ],
-            ),
+            color: colors.card,
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: colors.textPrimary.withValues(alpha: 0.10),
+              color: colors.border,
               width: 1,
             ),
           ),
@@ -833,15 +675,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          colors.accent.withValues(alpha: 0.30),
-                          colors.accent.withValues(alpha: 0.10),
-                        ],
-                      ),
                       shape: BoxShape.circle,
+                      color: colors.accent.withValues(alpha: 0.12),
                       border: Border.all(
-                        color: colors.accent.withValues(alpha: 0.40),
+                        color: colors.accent.withValues(alpha: 0.16),
                         width: 1,
                       ),
                     ),
@@ -881,15 +718,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colors.accent.withValues(alpha: 0.15),
-                      colors.accent.withValues(alpha: 0.05),
-                    ],
-                  ),
+                  color: colors.accent.withValues(alpha: 0.12),
                   borderRadius: AppRadius.buttonRadius,
                   border: Border.all(
-                    color: colors.accent.withValues(alpha: 0.40),
+                    color: colors.accent.withValues(alpha: 0.16),
                     width: 1,
                   ),
                 ),
@@ -915,8 +747,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -933,23 +763,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                colors.primary.withValues(alpha: 0.30),
-                colors.primary.withValues(alpha: 0.10),
-              ],
-            ),
+            color: colors.primary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
             border: Border.all(
-              color: colors.primary.withValues(alpha: 0.50),
+              color: colors.primary.withValues(alpha: 0.24),
               width: 1.5,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: colors.primary.withValues(alpha: 0.20),
-                blurRadius: 8,
-              ),
-            ],
           ),
           child: Center(
             child: Text(
@@ -993,29 +812,22 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
             width: double.infinity,
             height: 56,
             decoration: BoxDecoration(
-              gradient: AppGradients.emerald,
+              color: colors.primary,
               borderRadius: AppRadius.buttonRadiusLg,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.50),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.mail_rounded,
-                  color: colors.textPrimary,
+                  color: colors.onPrimary,
                   size: 22,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   'Open Email App',
                   style: AppTextStyles.buttonLarge.copyWith(
-                    color: colors.textPrimary,
+                    color: colors.onPrimary,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.5,
                   ),
@@ -1030,21 +842,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
         // Resend button
         GestureDetector(
           onTap: _isLoading ? null : _handleResend,
-          child: ClipRRect(
-            borderRadius: AppRadius.buttonRadiusLg,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                width: double.infinity,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: colors.textPrimary.withValues(alpha: 0.05),
-                  borderRadius: AppRadius.buttonRadiusLg,
-                  border: Border.all(
-                    color: colors.accent.withValues(alpha: 0.40),
-                    width: 1.5,
-                  ),
-                ),
+          child: Container(
+            width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              color: colors.card,
+              borderRadius: AppRadius.buttonRadiusLg,
+              border: Border.all(
+                color: colors.accent.withValues(alpha: 0.16),
+                width: 1.5,
+              ),
+            ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -1060,33 +868,23 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
                         ),
                       )
                     else
-                      ShaderMask(
-                        shaderCallback: (bounds) =>
-                            AppGradients.gold.createShader(bounds),
-                        child: Icon(
-                          Icons.refresh_rounded,
-                          color: colors.textPrimary,
-                          size: 20,
-                        ),
+                      Icon(
+                        Icons.refresh_rounded,
+                        color: colors.accent,
+                        size: 20,
                       ),
                     const SizedBox(width: AppSpacing.sm),
-                    ShaderMask(
-                      shaderCallback: (bounds) =>
-                          AppGradients.gold.createShader(bounds),
-                      child: Text(
-                        _isLoading ? 'Sending...' : 'Resend Link',
-                        style: AppTextStyles.buttonMedium.copyWith(
-                          color: colors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
-                        ),
+                    Text(
+                      _isLoading ? 'Sending...' : 'Resend Link',
+                      style: AppTextStyles.buttonMedium.copyWith(
+                        color: colors.accent,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
         ),
       ],
     );
@@ -1123,67 +921,4 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
       ),
     );
   }
-}
-
-// ============================================================
-// FORGOT PARTICLE PAINTER
-// ============================================================
-
-class _ForgotParticlePainter extends CustomPainter {
-  final double animationValue;
-  final bool isSuccess;
-
-  _ForgotParticlePainter({
-    required this.animationValue,
-    required this.isSuccess,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
-    final random = math.Random(44);
-
-    for (int i = 0; i < 22; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      final offset = math.sin(
-        (animationValue * 2 * math.pi) + i,
-      );
-
-      final x = baseX + (offset * 25);
-      final y = baseY + (offset * 35);
-
-      final particleSize = 1.5 + random.nextDouble() * 2;
-      final isGold = i % 3 == 0;
-      final color = isSuccess
-          ? (isGold ? colors.accent : colors.success)
-          : (isGold ? colors.accent : colors.primary);
-      final alpha = 0.15 + (random.nextDouble() * 0.25);
-
-      final paint = Paint()
-        ..color = color.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(Offset(x, y), particleSize, paint);
-
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: alpha * 0.3)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize * 4,
-        glowPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(
-    covariant _ForgotParticlePainter oldDelegate,
-  ) =>
-      oldDelegate.animationValue != animationValue ||
-      oldDelegate.isSuccess != isSuccess;
 }

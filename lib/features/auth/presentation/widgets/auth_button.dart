@@ -10,13 +10,11 @@ class AuthButton extends StatelessWidget {
     required this.onTap,
     this.isLoading = false,
     this.height = 56,
-    this.gradient,
     this.borderColor,
     this.backgroundColor,
     this.leadingIcon,
     this.trailingIcon,
-    this.textColor = Colors.white,
-    this.pulseAnimation,
+    this.textColor,
     this.enabled = true,
   });
 
@@ -24,13 +22,11 @@ class AuthButton extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isLoading;
   final double height;
-  final LinearGradient? gradient;
   final Color? borderColor;
   final Color? backgroundColor;
   final IconData? leadingIcon;
   final IconData? trailingIcon;
-  final Color textColor;
-  final Animation<double>? pulseAnimation;
+  final Color? textColor;
   final bool enabled;
 
   @override
@@ -42,23 +38,13 @@ class AuthButton extends StatelessWidget {
         duration: const Duration(milliseconds: 300),
         height: height,
         decoration: BoxDecoration(
-          gradient: gradient ?? AppGradients.emerald,
-          color: backgroundColor,
+          color: backgroundColor ?? colors.primary,
           borderRadius: AppRadius.buttonRadiusLg,
           border: borderColor != null
               ? Border.all(
                   color: borderColor!,
                   width: 1.5,
                 )
-              : null,
-          boxShadow: !isLoading
-              ? [
-                  BoxShadow(
-                    color: colors.primary.withValues(alpha: 0.50),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ]
               : null,
         ),
         child: Center(
@@ -68,7 +54,7 @@ class AuthButton extends StatelessWidget {
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black87),
                   ),
                 )
               : Row(
@@ -77,7 +63,7 @@ class AuthButton extends StatelessWidget {
                     if (leadingIcon != null) ...[
                       Icon(
                         leadingIcon,
-                        color: textColor,
+                        color: textColor ?? colors.onPrimary,
                         size: 20,
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -85,7 +71,7 @@ class AuthButton extends StatelessWidget {
                     Text(
                       label,
                       style: AppTextStyles.buttonLarge.copyWith(
-                        color: textColor,
+                        color: textColor ?? colors.onPrimary,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.5,
                       ),
@@ -94,7 +80,7 @@ class AuthButton extends StatelessWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Icon(
                         trailingIcon,
-                        color: textColor,
+                        color: textColor ?? colors.onPrimary,
                         size: 22,
                       ),
                     ],
@@ -114,19 +100,6 @@ class AuthButton extends StatelessWidget {
       ),
     );
 
-    if (pulseAnimation == null) {
-      return accessibleButton;
-    }
-
-    return AnimatedBuilder(
-      animation: pulseAnimation!,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: isLoading ? 1.0 : pulseAnimation!.value * 0.02 + 0.98,
-          child: child,
-        );
-      },
-      child: accessibleButton,
-    );
+    return accessibleButton;
   }
 }

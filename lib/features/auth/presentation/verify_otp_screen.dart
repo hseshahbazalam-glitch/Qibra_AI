@@ -8,8 +8,6 @@
 // ============================================================
 
 import 'dart:async';
-import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
@@ -55,10 +53,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   bool _canResend = false;
 
   // ── ANIMATION CONTROLLERS ────────────────────────────
-  late AnimationController _particleController;
 
-  late AnimationController _iconPulseController;
-  late Animation<double> _iconPulse;
 
   late AnimationController _successController;
   late Animation<double> _successScale;
@@ -81,28 +76,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         }
       });
     }
-
-    // ── Particle animation (continuous) ──
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 15),
-    )..repeat();
-
-    // ── Icon pulse animation (breathing) ──
-    _iconPulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-
-    _iconPulse = Tween<double>(
-      begin: 0.95,
-      end: 1.05,
-    ).animate(
-      CurvedAnimation(
-        parent: _iconPulseController,
-        curve: Curves.easeInOut,
-      ),
-    );
 
     // ── Success animation ──
     _successController = AnimationController(
@@ -176,8 +149,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
     // Cancel timer
     _timer?.cancel();
     // Dispose animation controllers
-    _particleController.dispose();
-    _iconPulseController.dispose();
     _successController.dispose();
     _entranceController.dispose();
     super.dispose();
@@ -408,8 +379,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    final size = MediaQuery.sizeOf(context);
     final displayEmail = widget.email ?? 'your email';
 
     return Scaffold(
@@ -417,9 +386,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         children: [
           // Layer 1: Animated background
           _buildBackground(),
-
-          // Layer 2: Floating particles
-          _buildParticles(size),
 
           // Layer 3: Main content
           SafeArea(
@@ -453,48 +419,10 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   Widget _buildBackground() {
     final colors = QibraColors.of(context);
     return Positioned.fill(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 800),
+      child: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topCenter,
-            radius: 1.5,
-            colors: _isVerified
-                ? [
-                    colors.success.withValues(alpha: 0.20),
-                    colors.cardMuted,
-                    colors.background,
-                  ]
-                : [
-                    const Color(0xFFF8F1E3),
-                    colors.cardMuted,
-                    colors.background,
-                  ],
-            stops: const [0.0, 0.5, 1.0],
-          ),
+          color: _isVerified ? colors.cardMuted : colors.background,
         ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // FLOATING PARTICLES
-  // ══════════════════════════════════════════
-
-  Widget _buildParticles(Size size) {
-    final colors = QibraColors.of(context);
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _OtpParticlePainter(
-              animationValue: _particleController.value,
-              isSuccess: _isVerified,
-            ),
-            size: size,
-          );
-        },
       ),
     );
   }
@@ -504,7 +432,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildVerifyState(String displayEmail) {
-    final colors = QibraColors.of(context);
     return Column(
       key: const ValueKey('verify'),
       children: [
@@ -553,7 +480,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSuccessState() {
-    final colors = QibraColors.of(context);
     return Column(
       key: const ValueKey('success'),
       children: [
@@ -592,13 +518,11 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHeader() {
-    final colors = QibraColors.of(context);
     return AuthHeader(
       onBackTap: () => context.go(AppRoutes.login),
       stepNumber: 2,
       totalSteps: 3,
       stepLabel: 'Verify',
-      stepGradient: AppGradients.gold,
     );
   }
 
@@ -608,71 +532,45 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
 
   Widget _buildTimerIcon() {
     final colors = QibraColors.of(context);
-    return ScaleTransition(
-      scale: _iconPulse,
-      child: SizedBox(
-        width: 120,
-        height: 120,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Circular progress ring
-            SizedBox(
-              width: 120,
-              height: 120,
-              child: CircularProgressIndicator(
-                value: _timerProgress,
-                strokeWidth: 3,
-                backgroundColor: QibraColors.light.textPrimary.withValues(alpha: 0.10),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _canResend ? colors.success : colors.accent,
-                ),
+    return SizedBox(
+      width: 120,
+      height: 120,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Circular progress ring
+          SizedBox(
+            width: 120,
+            height: 120,
+            child: CircularProgressIndicator(
+              value: _timerProgress,
+              strokeWidth: 3,
+              backgroundColor: colors.border,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                _canResend ? colors.success : colors.accent,
               ),
             ),
+          ),
 
-            // Inner glowing circle
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    colors.accent.withValues(alpha: 0.30),
-                    colors.accent.withValues(alpha: 0.05),
-                  ],
-                ),
-                border: Border.all(
-                  color: colors.accent.withValues(alpha: 0.50),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.accent.withValues(alpha: 0.40),
-                    blurRadius: 30,
-                    spreadRadius: 4,
-                  ),
-                  BoxShadow(
-                    color: colors.accent.withValues(alpha: 0.20),
-                    blurRadius: 60,
-                    spreadRadius: 8,
-                  ),
-                ],
-              ),
-              child: Center(
-                child: ShaderMask(
-                  shaderCallback: (bounds) =>
-                      AppGradients.gold.createShader(bounds),
-                  child: Icon(
-                    Icons.security_rounded,
-                    color: colors.textPrimary,
-                    size: 48,
-                  ),
-                ),
+          // Inner icon circle
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colors.card,
+              border: Border.all(
+                color: colors.accent.withValues(alpha: 0.24),
+                width: 2,
               ),
             ),
-          ],
-        ),
+            child: Icon(
+              Icons.security_rounded,
+              color: colors.accent,
+              size: 48,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -686,15 +584,12 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
     return Column(
       children: [
         // VERIFICATION label
-        ShaderMask(
-          shaderCallback: (bounds) => AppGradients.gold.createShader(bounds),
-          child: Text(
-            'VERIFICATION',
-            style: AppTextStyles.labelSmall.copyWith(
-              color: colors.textPrimary,
-              letterSpacing: 3,
-              fontWeight: FontWeight.w800,
-            ),
+        Text(
+          'VERIFICATION',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: colors.goldText,
+            letterSpacing: 3,
+            fontWeight: FontWeight.w800,
           ),
         ),
 
@@ -748,24 +643,13 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
 
   Widget _buildFormCard() {
     final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadiusLarge,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
+    return Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                QibraColors.light.textPrimary.withValues(alpha: 0.08),
-                QibraColors.light.textPrimary.withValues(alpha: 0.03),
-              ],
-            ),
+            color: colors.card,
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: colors.textPrimary.withValues(alpha: 0.10),
+              color: colors.border,
               width: 1,
             ),
           ),
@@ -786,8 +670,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
               _buildVerifyButton(),
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -796,7 +678,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildOtpBoxes() {
-    final colors = QibraColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(6, (index) {
@@ -816,46 +697,20 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
       width: 48,
       height: 56,
       decoration: BoxDecoration(
+        // Filled state wash
+        color: hasValue
+            ? colors.primary.withValues(alpha: 0.12)
+            : colors.cardMuted,
         borderRadius: AppRadius.buttonRadius,
-        // Filled state gradient
-        gradient: hasValue
-            ? LinearGradient(
-                colors: [
-                  colors.primary.withValues(alpha: 0.20),
-                  colors.primary.withValues(alpha: 0.10),
-                ],
-              )
-            : null,
-        // Empty state color
-        color: hasValue ? null : QibraColors.light.textPrimary.withValues(alpha: 0.05),
         // Border color based on state
         border: Border.all(
           color: hasError
               ? colors.error
-              : isFocused
+              : isFocused || hasValue
                   ? colors.primary
-                  : hasValue
-                      ? colors.primary.withValues(alpha: 0.50)
-                      : QibraColors.light.textPrimary.withValues(alpha: 0.15),
+                  : colors.border,
           width: isFocused || hasValue ? 2 : 1,
         ),
-        // Glow shadow based on state
-        boxShadow: isFocused && !hasError
-            ? [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.40),
-                  blurRadius: 12,
-                  spreadRadius: 0,
-                ),
-              ]
-            : hasValue && !hasError
-                ? [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.20),
-                      blurRadius: 8,
-                    ),
-                  ]
-                : null,
       ),
       child: TextField(
         controller: _controllers[index],
@@ -889,15 +744,10 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colors.error.withValues(alpha: 0.20),
-            colors.error.withValues(alpha: 0.10),
-          ],
-        ),
+        color: colors.error.withValues(alpha: 0.12),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: colors.error.withValues(alpha: 0.40),
+          color: colors.error.withValues(alpha: 0.24),
           width: 1,
         ),
       ),
@@ -906,7 +756,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: colors.error.withValues(alpha: 0.20),
+              color: colors.error.withValues(alpha: 0.16),
               borderRadius: AppRadius.pillRadius,
             ),
             child: Icon(
@@ -935,7 +785,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
   // ══════════════════════════════════════════
 
   Widget _buildVerifyButton() {
-    final colors = QibraColors.of(context);
     return AuthButton(
       label: 'Verify Code',
       onTap: _handleVerify,
@@ -955,31 +804,19 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           // Resend button (enabled)
           ? GestureDetector(
               onTap: _isLoading ? null : _handleResend,
-              child: ClipRRect(
-                borderRadius: AppRadius.pillRadius,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 15,
-                    sigmaY: 15,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.pillRadius,
+                  border: Border.all(
+                    color: colors.primary.withValues(alpha: 0.16),
+                    width: 1.5,
                   ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                      vertical: AppSpacing.sm,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          colors.primary.withValues(alpha: 0.20),
-                          colors.primary.withValues(alpha: 0.10),
-                        ],
-                      ),
-                      borderRadius: AppRadius.pillRadius,
-                      border: Border.all(
-                        color: colors.primary.withValues(alpha: 0.40),
-                        width: 1.5,
-                      ),
-                    ),
+                ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -999,9 +836,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                       ],
                     ),
                   ),
-                ),
-              ),
-            )
+                )
           // Timer countdown
           : Column(
               children: [
@@ -1021,7 +856,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                     color: colors.accent.withValues(alpha: 0.15),
                     borderRadius: AppRadius.pillRadius,
                     border: Border.all(
-                      color: colors.accent.withValues(alpha: 0.30),
+                      color: colors.accent.withValues(alpha: 0.16),
                       width: 1,
                     ),
                   ),
@@ -1045,25 +880,16 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
 
   Widget _buildHelpInfoCard() {
     final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                QibraColors.light.textPrimary.withValues(alpha: 0.06),
-                QibraColors.light.textPrimary.withValues(alpha: 0.02),
-              ],
-            ),
-            borderRadius: AppRadius.cardRadius,
-            border: Border.all(
-              color: colors.textPrimary.withValues(alpha: 0.08),
-              width: 1,
-            ),
-          ),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: AppRadius.cardRadius,
+        border: Border.all(
+          color: colors.border,
+          width: 1,
+        ),
+      ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1104,8 +930,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -1152,24 +976,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
       height: 140,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            colors.success.withValues(alpha: 0.30),
-            colors.success.withValues(alpha: 0.05),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.success.withValues(alpha: 0.50),
-            blurRadius: 50,
-            spreadRadius: 10,
-          ),
-          BoxShadow(
-            color: colors.success.withValues(alpha: 0.30),
-            blurRadius: 100,
-            spreadRadius: 20,
-          ),
-        ],
+        color: colors.success.withValues(alpha: 0.12),
       ),
       child: Center(
         child: Container(
@@ -1177,22 +984,11 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
           height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                colors.success,
-                colors.success.withValues(alpha: 0.70),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: colors.success.withValues(alpha: 0.60),
-                blurRadius: 30,
-              ),
-            ],
+            color: colors.success,
           ),
           child: Icon(
             Icons.check_rounded,
-            color: colors.textPrimary,
+            color: colors.onPrimary,
             size: 60,
           ),
         ),
@@ -1208,22 +1004,14 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
     final colors = QibraColors.of(context);
     return Column(
       children: [
-        // Gradient "Verified!" text
-        ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
-            colors: [
-              colors.success,
-              colors.success.withValues(alpha: 0.70),
-            ],
-          ).createShader(bounds),
-          child: Text(
-            'Verified!',
-            style: AppTextStyles.displaySmall.copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w900,
-              fontSize: 40,
-              letterSpacing: -1,
-            ),
+        // Verified! text
+        Text(
+          'Verified!',
+          style: AppTextStyles.displaySmall.copyWith(
+            color: colors.success,
+            fontWeight: FontWeight.w900,
+            fontSize: 40,
+            letterSpacing: -1,
           ),
         ),
 
@@ -1270,83 +1058,4 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
       ],
     );
   }
-}
-
-// ============================================================
-// FLOATING PARTICLE PAINTER
-// ============================================================
-
-class _OtpParticlePainter extends CustomPainter {
-  final double animationValue;
-  final bool isSuccess;
-
-  _OtpParticlePainter({
-    required this.animationValue,
-    required this.isSuccess,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
-    final random = math.Random(33);
-
-    // Draw 22 floating particles
-    for (int i = 0; i < 22; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      // Smooth floating motion using sin wave
-      final offset = math.sin(
-        (animationValue * 2 * math.pi) + i,
-      );
-
-      final x = baseX + (offset * 25);
-      final y = baseY + (offset * 35);
-
-      // Particle size varies
-      final particleSize = 1.5 + random.nextDouble() * 2;
-
-      // Color: alternate between gold and emerald/success
-      final isGold = i % 3 == 0;
-      final color = isSuccess
-          ? (isGold ? colors.accent : colors.success)
-          : (isGold ? colors.accent : colors.primary);
-
-      // Random opacity for depth
-      final alpha = 0.15 + (random.nextDouble() * 0.25);
-
-      // Draw solid particle
-      final paint = Paint()
-        ..color = color.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize,
-        paint,
-      );
-
-      // Draw glow around particle
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: alpha * 0.3)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(
-          BlurStyle.normal,
-          10,
-        );
-
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize * 4,
-        glowPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(
-    covariant _OtpParticlePainter oldDelegate,
-  ) =>
-      oldDelegate.animationValue != animationValue ||
-      oldDelegate.isSuccess != isSuccess;
 }

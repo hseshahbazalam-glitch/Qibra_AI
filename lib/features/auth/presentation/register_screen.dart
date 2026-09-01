@@ -7,8 +7,6 @@
 //              password strength, and premium UX.
 // ============================================================
 
-import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -124,7 +122,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   bool _isConfirmFocused = false;
 
   // ── ANIMATIONS ───────────────────────────────────────
-  late AnimationController _particleController;
   late AnimationController _entranceController;
   late Animation<double> _entranceFade;
   late Animation<Offset> _entranceSlide;
@@ -155,12 +152,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
         HapticFeedback.selectionClick();
       }
     });
-
-    // Particles
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 15),
-    )..repeat();
 
     // Entrance
     _entranceController = AnimationController(
@@ -197,7 +188,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
     _emailFocus.dispose();
     _passwordFocus.dispose();
     _confirmPasswordFocus.dispose();
-    _particleController.dispose();
     _entranceController.dispose();
     super.dispose();
   }
@@ -335,8 +325,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    final size = MediaQuery.sizeOf(context);
     final authState = ref.watch(authProvider);
     final isLoading = authState.isLoading;
 
@@ -345,9 +333,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
         children: [
           // ── LAYER 1: Background ──
           _buildBackground(),
-
-          // ── LAYER 2: Particles ──
-          _buildParticles(size),
 
           // ── LAYER 3: Content ──
           SafeArea(
@@ -406,38 +391,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topCenter,
-            radius: 1.5,
-            colors: [
-              colors.background,
-              colors.cardMuted,
-              colors.background,
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
+          color: colors.background,
         ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // PARTICLES
-  // ══════════════════════════════════════════
-
-  Widget _buildParticles(Size size) {
-    final colors = QibraColors.of(context);
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _RegisterParticlePainter(
-              animationValue: _particleController.value,
-            ),
-            size: size,
-          );
-        },
       ),
     );
   }
@@ -447,13 +402,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildHeader() {
-    final colors = QibraColors.of(context);
     return AuthHeader(
       onBackTap: () => context.go(AppRoutes.login),
       stepNumber: 1,
       totalSteps: 3,
       stepLabel: 'Sign Up',
-      stepGradient: AppGradients.emerald,
     );
   }
 
@@ -467,15 +420,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Small tag
-        ShaderMask(
-          shaderCallback: (bounds) => AppGradients.emerald.createShader(bounds),
-          child: Text(
-            'JOIN QIBRA AI',
-            style: AppTextStyles.labelSmall.copyWith(
-              color: colors.textPrimary,
-              letterSpacing: 3,
-              fontWeight: FontWeight.w800,
-            ),
+        Text(
+          'JOIN QIBRA AI',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: colors.primary,
+            letterSpacing: 3,
+            fontWeight: FontWeight.w800,
           ),
         ),
 
@@ -509,24 +459,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
   Widget _buildFormCard(AuthState authState, bool isLoading) {
     final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadiusLarge,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
+    return Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                QibraColors.light.textPrimary.withValues(alpha: 0.08),
-                QibraColors.light.textPrimary.withValues(alpha: 0.03),
-              ],
-            ),
+            color: colors.card,
             borderRadius: AppRadius.cardRadiusLarge,
             border: Border.all(
-              color: colors.textPrimary.withValues(alpha: 0.10),
+              color: colors.border,
               width: 1,
             ),
           ),
@@ -642,13 +581,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                 },
                 isLoading: false,
                 height: 48,
-                gradient: LinearGradient(
-                    colors: [colors.primary, colors.primary]),
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -661,15 +596,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colors.error.withValues(alpha: 0.20),
-            colors.error.withValues(alpha: 0.10),
-          ],
-        ),
+        color: colors.error.withValues(alpha: 0.12),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: colors.error.withValues(alpha: 0.40),
+          color: colors.error.withValues(alpha: 0.24),
           width: 1,
         ),
       ),
@@ -678,7 +608,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: colors.error.withValues(alpha: 0.20),
+              color: colors.error.withValues(alpha: 0.16),
               borderRadius: AppRadius.pillRadius,
             ),
             child: Icon(
@@ -729,7 +659,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
     required bool enabled,
     required void Function(String)? onSubmitted,
   }) {
-    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: controller,
       focusNode: focusNode,
@@ -762,7 +691,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
     required TextInputAction textInputAction,
     required void Function(String)? onSubmitted,
   }) {
-    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: controller,
       focusNode: focusNode,
@@ -801,7 +729,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   height: 6,
                   decoration: BoxDecoration(
                     borderRadius: AppRadius.pillRadius,
-                    color: colors.textPrimary.withValues(alpha: 0.10),
+                    color: colors.cardMuted,
                   ),
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
@@ -809,20 +737,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            _passwordStrength.color,
-                            _passwordStrength.color.withValues(alpha: 0.60),
-                          ],
-                        ),
+                        color: _passwordStrength.color,
                         borderRadius: AppRadius.pillRadius,
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                _passwordStrength.color.withValues(alpha: 0.50),
-                            blurRadius: 8,
-                          ),
-                        ],
                       ),
                     ),
                   ),
@@ -843,7 +759,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   color: _passwordStrength.color.withValues(alpha: 0.15),
                   borderRadius: AppRadius.pillRadius,
                   border: Border.all(
-                    color: _passwordStrength.color.withValues(alpha: 0.30),
+                    color: _passwordStrength.color.withValues(alpha: 0.16),
                     width: 1,
                   ),
                 ),
@@ -924,27 +840,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             height: 16,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: met ? AppGradients.emerald : null,
-              color: met ? null : QibraColors.light.textPrimary.withValues(alpha: 0.10),
+              color: met ? colors.primary : colors.cardMuted,
               border: Border.all(
-                color: met
-                    ? colors.primary
-                    : QibraColors.light.textPrimary.withValues(alpha: 0.20),
+                color: met ? colors.primary : colors.border,
                 width: 1,
               ),
-              boxShadow: met
-                  ? [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: 0.40),
-                        blurRadius: 6,
-                      ),
-                    ]
-                  : null,
             ),
             child: met
                 ? Icon(
                     Icons.check_rounded,
-                    color: colors.textPrimary,
+                    color: colors.onPrimary,
                     size: 10,
                   )
                 : null,
@@ -982,28 +887,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             height: 20,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
-              gradient: _acceptedTerms ? AppGradients.emerald : null,
-              color:
-                  _acceptedTerms ? null : QibraColors.light.textPrimary.withValues(alpha: 0.05),
+              color: _acceptedTerms
+                  ? colors.primary
+                  : colors.cardMuted,
               border: Border.all(
-                color: _acceptedTerms
-                    ? colors.primary
-                    : QibraColors.light.textPrimary.withValues(alpha: 0.20),
+                color: _acceptedTerms ? colors.primary : colors.border,
                 width: 1.5,
               ),
-              boxShadow: _acceptedTerms
-                  ? [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: 0.40),
-                        blurRadius: 8,
-                      ),
-                    ]
-                  : null,
             ),
             child: _acceptedTerms
                 ? Icon(
                     Icons.check_rounded,
-                    color: colors.textPrimary,
+                    color: colors.onPrimary,
                     size: 14,
                   )
                 : null,
@@ -1051,7 +946,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   // ══════════════════════════════════════════
 
   Widget _buildRegisterButton(bool isLoading) {
-    final colors = QibraColors.of(context);
     return AuthButton(
       label: 'Create Account',
       onTap: _handleRegister,
@@ -1080,74 +974,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
             HapticFeedback.selectionClick();
             context.go(AppRoutes.login);
           },
-          child: ShaderMask(
-            shaderCallback: (bounds) => AppGradients.gold.createShader(bounds),
-            child: Text(
-              'Sign In',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w800,
-              ),
+          child: Text(
+            'Sign In',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: colors.goldText,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
       ],
     );
   }
-}
-
-// ============================================================
-// REGISTER PARTICLE PAINTER
-// ============================================================
-
-class _RegisterParticlePainter extends CustomPainter {
-  final double animationValue;
-
-  _RegisterParticlePainter({required this.animationValue});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
-    final random = math.Random(66);
-
-    for (int i = 0; i < 22; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      final offset = math.sin(
-        (animationValue * 2 * math.pi) + i,
-      );
-
-      final x = baseX + (offset * 25);
-      final y = baseY + (offset * 35);
-
-      final particleSize = 1.5 + random.nextDouble() * 2;
-      final isGold = i % 3 == 0;
-      final color = isGold ? colors.accent : colors.primary;
-      final alpha = 0.15 + (random.nextDouble() * 0.25);
-
-      final paint = Paint()
-        ..color = color.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(Offset(x, y), particleSize, paint);
-
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: alpha * 0.3)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize * 4,
-        glowPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(
-    covariant _RegisterParticlePainter oldDelegate,
-  ) =>
-      oldDelegate.animationValue != animationValue;
 }
