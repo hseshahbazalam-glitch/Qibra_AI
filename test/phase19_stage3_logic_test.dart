@@ -504,7 +504,7 @@ void main() {
       final partRe = RegExp(r"part '([^'/][^']*\.dart)'");
       String resolve(String dir, String rel) {
         final segs = <String>[];
-        for (final s in [...dir.split('/'), ...rel.split('/')]) {
+        for (final s in [...dir.replaceAll('\\', '/').split('/'), ...rel.split('/')]) {
           if (s == '..') {
             if (segs.isNotEmpty) segs.removeLast();
           } else if (s != '.' && s.isNotEmpty) {
@@ -518,7 +518,7 @@ void main() {
           in Directory('lib').listSync(recursive: true).whereType<File>()) {
         if (!f.path.endsWith('.dart')) continue;
         final src = f.readAsStringSync();
-        final dir = File(f.path).parent.path;
+        final dir = File(f.path).parent.path.replaceAll('\\', '/');
         for (final m in importRe.allMatches(src)) {
           final t = resolve(dir, m.group(1)!);
           if (!File(t).existsSync()) {
