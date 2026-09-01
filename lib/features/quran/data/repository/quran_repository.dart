@@ -13,7 +13,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/utils/search_normalizer.dart';
+import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import '../models/quran_models.dart';
 
 // Top-level helpers for Isolate (must be top-level for compute/Isolate.run)

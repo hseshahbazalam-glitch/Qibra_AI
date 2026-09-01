@@ -2,7 +2,6 @@
 
 part of 'inheritance_calculator_screen.dart';
 
-
 // ══════════════════════════════════════════════════════════
 // Moved by Stage 3 file split — same library (part file),
 // private classes/fields still resolve. Behavior unchanged.
@@ -14,9 +13,9 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
     return Row(
       children: [
         Icon(
-            icon,
-            size: 14,
-            color: colors.textPrimary.withValues(alpha: 0.5),
+          icon,
+          size: 14,
+          color: colors.textPrimary.withValues(alpha: 0.5),
         ),
         const SizedBox(width: 8),
         Text(label,
@@ -49,22 +48,14 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           if (_deceasedGender == 'female')
-            _toggleRow(
-                'Husband', Icons.man_rounded,
-                _hasHusband,
-                (v) => setState(() => _hasHusband = v),
-                colors.primarySoft),
+            _toggleRow('Husband', Icons.man_rounded, _hasHusband,
+                (v) => setState(() => _hasHusband = v), colors.primarySoft),
           if (_deceasedGender == 'male') ...[
             _toggleRow('Wife', Icons.woman_rounded, _hasWife,
                 (v) => setState(() => _hasWife = v), colors.accent),
             if (_hasWife)
-              _counterRow(
-                  'Number of Wives',
-                  _wifeCount,
-                  1,
-                  4,
-                  (v) => setState(() => _wifeCount = v),
-                  colors.accent),
+              _counterRow('Number of Wives', _wifeCount, 1, 4,
+                  (v) => setState(() => _wifeCount = v), colors.accent),
           ],
         ],
       ),
@@ -95,17 +86,11 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           _toggleRow('Mother', Icons.woman_rounded, _hasMother,
               (v) => setState(() => _hasMother = v), colors.primarySoft),
           if (!_hasFather)
-            _toggleRow(
-                'Grandfather', Icons.elderhood_rounded,
-                _hasGrandfather,
-                (v) => setState(() => _hasGrandfather = v),
-                colors.primarySoft),
+            _toggleRow('Grandfather', Icons.elderly_rounded, _hasGrandfather,
+                (v) => setState(() => _hasGrandfather = v), colors.primarySoft),
           if (!_hasMother)
-            _toggleRow(
-                'Grandmother', Icons.elderhood_rounded,
-                _hasGrandmother,
-                (v) => setState(() => _hasGrandmother = v),
-                colors.accent),
+            _toggleRow('Grandmother', Icons.elderly_rounded, _hasGrandmother,
+                (v) => setState(() => _hasGrandmother = v), colors.accent),
         ],
       ),
     );
@@ -137,13 +122,8 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           if (_sons == 0 && _daughters == 0) ...[
             _counterRow('Grandsons', _grandsons, 0, 20,
                 (v) => setState(() => _grandsons = v), colors.primarySoft),
-            _counterRow(
-                'Granddaughters',
-                _granddaughters,
-                0,
-                20,
-                (v) => setState(() => _granddaughters = v),
-                colors.accent),
+            _counterRow('Granddaughters', _granddaughters, 0, 20,
+                (v) => setState(() => _granddaughters = v), colors.accent),
           ],
         ],
       ),
@@ -199,7 +179,8 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           const SizedBox(height: 4),
           Text('Paternal (same father)',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.3), fontSize: 10)),
+                  color: colors.textPrimary.withValues(alpha: 0.3),
+                  fontSize: 10)),
           const SizedBox(height: 8),
           _counterRow(
               'Paternal Half Brothers',
@@ -208,32 +189,18 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
               20,
               (v) => setState(() => _halfBrothersFather = v),
               colors.primarySoft),
-          _counterRow(
-              'Paternal Half Sisters',
-              _halfSistersFather,
-              0,
-              20,
-              (v) => setState(() => _halfSistersFather = v),
-              colors.accent),
+          _counterRow('Paternal Half Sisters', _halfSistersFather, 0, 20,
+              (v) => setState(() => _halfSistersFather = v), colors.accent),
           const SizedBox(height: 8),
           Text('Maternal (same mother)',
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.3), fontSize: 10)),
+                  color: colors.textPrimary.withValues(alpha: 0.3),
+                  fontSize: 10)),
           const SizedBox(height: 8),
-          _counterRow(
-              'Maternal Half Brothers',
-              _halfBrothersMother,
-              0,
-              20,
-              (v) => setState(() => _halfBrothersMother = v),
-              colors.accent),
-          _counterRow(
-              'Maternal Half Sisters',
-              _halfSistersMother,
-              0,
-              20,
-              (v) => setState(() => _halfSistersMother = v),
-              colors.accent),
+          _counterRow('Maternal Half Brothers', _halfBrothersMother, 0, 20,
+              (v) => setState(() => _halfBrothersMother = v), colors.accent),
+          _counterRow('Maternal Half Sisters', _halfSistersMother, 0, 20,
+              (v) => setState(() => _halfSistersMother = v), colors.accent),
         ],
       ),
     );
@@ -274,18 +241,15 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Row(
         children: [
           Icon(
-              icon,
-              size: 16,
-              color:
-                  value ? colors.accent : colors.textSecondary,
+            icon,
+            size: 16,
+            color: value ? colors.accent : colors.textSecondary,
           ),
           const SizedBox(width: 10),
           Expanded(
               child: Text(label,
                   style: TextStyle(
-                      color: value
-                          ? colors.textPrimary
-                          : colors.textSecondary,
+                      color: value ? colors.textPrimary : colors.textSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500))),
           GestureDetector(
@@ -330,9 +294,8 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           Expanded(
               child: Text(label,
                   style: TextStyle(
-                      color: value > 0
-                          ? colors.textPrimary
-                          : colors.textSecondary,
+                      color:
+                          value > 0 ? colors.textPrimary : colors.textSecondary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500))),
           GestureDetector(
@@ -357,8 +320,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
             alignment: Alignment.center,
             child: Text('$value',
                 style: TextStyle(
-                    color:
-                        value > 0 ? color : colors.textTertiary,
+                    color: value > 0 ? color : colors.textTertiary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800)),
           ),
@@ -422,7 +384,8 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.calculate_rounded,
-                  color: enabled ? colors.onPrimary : colors.textSecondary, size: 22),
+                  color: enabled ? colors.onPrimary : colors.textSecondary,
+                  size: 22),
               const SizedBox(width: 10),
               Text('Calculate Shares',
                   style: TextStyle(
@@ -451,11 +414,10 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-            colors: [colors.backgroundSecondary, colors.card]),
+        gradient:
+            LinearGradient(colors: [colors.backgroundSecondary, colors.card]),
         borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: colors.primarySoft.withValues(alpha: 0.3)),
+        border: Border.all(color: colors.primarySoft.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -469,14 +431,14 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           _summaryRow(
               'Total Estate', _formatAmount(_totalEstate), colors.onPrimary),
           if (debt > 0)
-            _summaryRow('Debts Deducted', '- ${_formatAmount(debt)}',
-                colors.error),
+            _summaryRow(
+                'Debts Deducted', '- ${_formatAmount(debt)}', colors.error),
           if (actualW > 0)
             _summaryRow('Wasiyyah (Will)', '- ${_formatAmount(actualW)}',
                 colors.accent),
           const Divider(color: Color(0xFF4A3F6B), height: 20),
-          _summaryRow('Net Distributable', _formatAmount(_netEstate),
-              colors.primary),
+          _summaryRow(
+              'Net Distributable', _formatAmount(_netEstate), colors.primary),
           _summaryRow('Heirs', '${_results.length}', colors.primarySoft),
         ],
       ),
@@ -492,7 +454,8 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Text(label,
               style: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.5), fontSize: 12)),
+                  color: colors.textPrimary.withValues(alpha: 0.5),
+                  fontSize: 12)),
           Text(value,
               style: TextStyle(
                   color: color, fontSize: 13, fontWeight: FontWeight.w700)),
@@ -580,7 +543,8 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                       if (r.count > 1)
                         Text('${_formatAmount(r.amount / r.count)} each',
                             style: TextStyle(
-                                color: colors.textPrimary.withValues(alpha: 0.3),
+                                color:
+                                    colors.textPrimary.withValues(alpha: 0.3),
                                 fontSize: 9)),
                     ],
                   ),
@@ -601,7 +565,8 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                     Expanded(
                         child: Text(r.rule,
                             style: TextStyle(
-                                color: colors.textPrimary.withValues(alpha: 0.4),
+                                color:
+                                    colors.textPrimary.withValues(alpha: 0.4),
                                 fontSize: 10,
                                 height: 1.3))),
                   ],
@@ -709,8 +674,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       decoration: BoxDecoration(
         color: colors.cardMuted.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border:
-            Border.all(color: colors.primarySoft.withValues(alpha: 0.15)),
+        border: Border.all(color: colors.primarySoft.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -752,7 +716,6 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
     );
   }
 }
-
 
 // ═══════════════════════════════════════════════════════════
 // PIE CHART PAINTER
