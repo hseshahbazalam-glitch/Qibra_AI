@@ -468,6 +468,106 @@ for fi in FILES.values():
             "GoogleFonts call site — fonts are bundled families; remove the "
             "reference (and keep the package out of pubspec)")
 
+# ------------------------------------------------------------------- G6
+# G6 duplicate top-level declarations (owner device gate, today:
+# `class HabitTemplate` declared twice in habit_defaults.dart — an
+# invisible-in-diff compile error). Type names at column 0 per FILE;
+# then cross-FILE within each library (file + its `part`s share one
+# namespace; a name declared in both parent and part is also a dup).
+TOPLEVEL_DECL = re.compile(
+    r"^(?:abstract\s+|sealed\s+|final\s+|base\s+|interface\s+|utility\s+)*"
+    r"(?:class|enum|mixin|extension|typedef)\s+([A-Za-z_]\w*)", re.M)
+
+
+def toplevel_decls(text):
+    return [(m.group(1), text.count("\n", 0, m.start()) + 1)
+            for m in TOPLEVEL_DECL.finditer(text)]
+
+
+for fi in FILES.values():
+    seen = {}
+    for name, ln in toplevel_decls(fi.code):
+        if name in seen:
+            err("G6", fi.path, ln,
+                f"duplicate top-level declaration '{name}' "
+                f"(also line {seen[name]} in this file)")
+        else:
+            seen[name] = ln
+for fi in FILES.values():
+    if fi.is_part or not fi.parts:
+        continue
+    byname = {}
+    for name, ln in toplevel_decls(fi.code):
+        byname.setdefault(name, []).append((fi.path, ln))
+    for upath in fi.parts:
+        pf = FILES.get((fi.path.parent / upath).resolve())
+        if pf is None:
+            continue
+        for name, ln in toplevel_decls(pf.code):
+            byname.setdefault(name, []).append((pf.path, ln))
+    for name, locs in byname.items():
+        if len(locs) < 2:
+            continue
+        distinct_files = {p for p, _ in locs}
+        if len(distinct_files) < 2:
+            continue  # same-file dups already reported above
+        first_f, first_l = locs[0]
+        for p, l in locs[1:]:
+            err("G6", p, l, f"top-level '{name}' also declared at "
+                f"{pathlib.Path(first_f).name}:{first_l} — one library, "
+                f"one namespace (part files count)")
+
+# ------------------------------------------------------------------- G7
+# G7 const-with-runtime-colors (owner device gate, today: 9 sites).
+# `const Widget(... color: colors.x ...)` cannot compile: the local
+# `colors` is `QibraColors.of(context)` — runtime. Any `const <Ident>(`
+# whose argument span contains `colors.` is flagged (strings/comments are
+# already stripped; `QibraColors.light…` consts are legitimate and do not
+# match the lowercase `colors.` token).
+CONST_INV = re.compile(r"\bconst\s+[A-Z]\w*\s*\(")
+for fi in FILES.values():
+    code = fi.code
+    skip_to = 0
+    for m in CONST_INV.finditer(code):
+        if m.start() < skip_to:
+            continue
+        d, i = 1, m.end()
+        while i < len(code):
+            c = code[i]
+            if c == "(":
+                d += 1
+            elif c == ")":
+                d -= 1
+                if d == 0:
+                    break
+            i += 1
+        if re.search(r"\bcolors\.", code[m.end():i]):
+            err("G7", fi.path, code.count("\n", 0, m.start()) + 1,
+                "const invocation with runtime `colors.` in its arguments — "
+                "drop the const")
+            skip_to = i  # don't double-report nested consts
+
+# ------------------------------------------------------------------- G8
+# G8 icon-name validation (owner: 3 hallucination strikes so far —
+# elderhood_rounded, campground_rounded, campground). Every `Icons.<name>`
+# must exist in the bundled Flutter metadata scripts/data/
+# flutter_icons_stable.txt (see README-icons.md there: the npm
+# material-icons set alone is insufficient — base-only, 250 false
+# positives on _rounded/_outlined names).
+
+ICON_META = pathlib.Path(__file__).resolve().parent / "data" / "flutter_icons_stable.txt"
+if ICON_META.exists():
+    ICON_SET = set(ICON_META.read_text(encoding="utf-8").split())
+    for fi in FILES.values():
+        for m in re.finditer(r"\bIcons\.([A-Za-z0-9_]+)", fi.code):
+            if m.group(1) not in ICON_SET:
+                err("G8", fi.path, fi.code.count("\n", 0, m.start()) + 1,
+                    f"Icons.{m.group(1)} is not a Flutter Material icon "
+                    f"(not in bundled icons.dart metadata)")
+else:
+    ERRORS.append("G8 metadata missing: scripts/data/flutter_icons_stable.txt "
+                  "(regenerate — see scripts/data/README-icons.md)")
+
 # --------------------------------------------------- L design sweeps
 def in_stage(rel):
     return any(fnmatch.fnmatch(rel, g) for g in GLOBS)
