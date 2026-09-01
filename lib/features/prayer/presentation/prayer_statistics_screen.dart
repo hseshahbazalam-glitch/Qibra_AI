@@ -111,7 +111,7 @@ class _PrayerStatisticsScreenState
                         icon: Icons.mosque_rounded,
                         label: 'In mosque',
                         value: '${periodStats.inMosqueCount}',
-                        color: QibraNavy.emerald,
+                        color: colors.primary,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -365,7 +365,7 @@ class _PrayerStatisticsScreenState
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: AppRadius.cardRadius,
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.16)),
       ),
       child: Column(
         children: [

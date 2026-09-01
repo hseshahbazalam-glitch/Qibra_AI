@@ -265,7 +265,7 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
                   decoration: BoxDecoration(
                     color: colors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
+                    border: Border.all(color: colors.primary.withValues(alpha: 0.16)),
                   ),
                   child: Icon(Icons.mosque_rounded,
                       color: colors.primary, size: 24),
@@ -322,7 +322,7 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
                   decoration: BoxDecoration(
                     color: colors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
+                    border: Border.all(color: colors.primary.withValues(alpha: 0.16)),
                   ),
                   child: Center(
                     child: Text(

@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/utils/search_normalizer.dart';
@@ -275,7 +274,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.16)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -618,11 +617,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: QibraNavy.surface,
+                            color: QibraNavy.card,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                                color: QibraNavy.emeraldDeep
-                                    .withValues(alpha: 0.2)),
+                            border: Border.all(color: QibraNavy.hairline),
                           ),
                           child: SelectableText(
                             hadith.textUrdu,
@@ -797,10 +794,9 @@ class _HadithCard extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: QibraNavy.surface,
+                  color: QibraNavy.card,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: QibraNavy.emeraldDeep.withValues(alpha: 0.2)),
+                  border: Border.all(color: QibraNavy.hairline),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
