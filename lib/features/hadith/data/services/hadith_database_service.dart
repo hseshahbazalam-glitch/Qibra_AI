@@ -10,6 +10,20 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/utils/search_normalizer.dart';
 
+
+// Top-level so Isolate.run closures can capture it (owner ANR fix 2026-09-02).
+double hadithRelevanceFor(String text, String query) {
+  final lowerText = text.toLowerCase();
+
+  if (lowerText.startsWith(query)) return 1.0;
+  if (lowerText.contains(' $query ')) return 0.9;
+  if (lowerText.contains(' $query')) return 0.85;
+
+  final occurrences = query.allMatches(lowerText).length;
+  return (0.5 + (occurrences * 0.1)).clamp(0.0, 0.8);
+}
+
+
 // ============================================================
 // LOCAL HADITH MODEL
 // ============================================================
@@ -446,15 +460,70 @@ class HadithDatabaseService {
     return all;
   }
 
-  double _calculateRelevance(String text, String query) {
-    final lowerText = text.toLowerCase();
+  double _calculateRelevance(String text, String query) =>
+      hadithRelevanceFor(text, query);
 
-    if (lowerText.startsWith(query)) return 1.0;
-    if (lowerText.contains(' $query ')) return 0.9;
-    if (lowerText.contains(' $query')) return 0.85;
-
-    final occurrences = query.allMatches(lowerText).length;
-    return (0.5 + (occurrences * 0.1)).clamp(0.0, 0.8);
+  /// Batch search off the main isolate (AI Roman-Urdu bridge, owner
+  /// 2026-09-02): all terms in ONE background scan of the 36k-hadith
+  /// index; per-term hits, relevance-ranked, capped at [maxPerQuery].
+  /// The synchronous per-term scan was the ANR source in chat send.
+  Future<List<List<LocalSearchResult>>> searchBatchOffMain(
+    List<String> queries, {
+    int maxPerQuery = 3,
+  }) async {
+    if (queries.isEmpty) return [for (final _ in queries) <LocalSearchResult>[]];
+    if (!_isInitialized) return [for (final _ in queries) <LocalSearchResult>[]];
+    final booksSnapshot = Map<String, List<LocalHadith>>.of(_bookData);
+    final terms = queries.map((q) => q.toLowerCase().trim()).toList();
+    return Isolate.run(() {
+      final hits = <List<LocalSearchResult>>[
+        for (final _ in queries) <LocalSearchResult>[],
+      ];
+      for (final entry in booksSnapshot.entries) {
+        for (final hadith in entry.value) {
+          for (var qi = 0; qi < queries.length; qi++) {
+            if (hits[qi].length >= maxPerQuery * 4) continue;
+            final q = queries[qi];
+            final lq = terms[qi];
+            double relevance = 0;
+            String matchedIn = '';
+            if (SearchNormalizer.contains(hadith.textEnglish, q)) {
+              relevance = hadithRelevanceFor(hadith.textEnglish, lq);
+              matchedIn = 'english';
+            }
+            if (SearchNormalizer.contains(hadith.textArabic, q) &&
+                0.9 > relevance) {
+              relevance = 0.9;
+              matchedIn = 'arabic';
+            }
+            if (SearchNormalizer.contains(hadith.textUrdu, q) &&
+                0.85 > relevance) {
+              relevance = 0.85;
+              matchedIn = 'urdu';
+            }
+            if (SearchNormalizer.contains(hadith.chapterName, q) &&
+                relevance == 0) {
+              relevance = 0.5;
+              matchedIn = 'chapter';
+            }
+            if (relevance > 0) {
+              hits[qi].add(LocalSearchResult(
+                hadith: hadith,
+                relevance: relevance,
+                matchedIn: matchedIn,
+              ));
+            }
+          }
+        }
+      }
+      for (var qi = 0; qi < queries.length; qi++) {
+        hits[qi].sort((a, b) => b.relevance.compareTo(a.relevance));
+        if (hits[qi].length > maxPerQuery) {
+          hits[qi] = hits[qi].sublist(0, maxPerQuery);
+        }
+      }
+      return hits;
+    });
   }
 
   int _parseHadithNumber(dynamic value) {

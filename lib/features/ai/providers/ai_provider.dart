@@ -127,12 +127,16 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       }
 
       // RAG — local keyword retrieve (works offline). Never invent passages.
+      // ONE pass per message: context is formatted from the same passages
+      // (the old buildContextForQuery + retrieve pair ran the whole bridge
+      // twice — main-thread ANR, owner 2026-09-02).
       String ragContext = '';
       try {
-        ragContext =
-            await RagService.instance.buildContextForQuery(userMessage);
         _lastRetrieved =
             await RagService.instance.retrieve(userMessage, topK: 3);
+        ragContext = _lastRetrieved.isEmpty
+            ? RagService.refuseContext
+            : RagService.contextFrom(_lastRetrieved);
       } catch (_) {
         _lastRetrieved = [];
       }
@@ -214,18 +218,33 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         await _streamAsk(finalMessage, corpus, historyForServer,
             showLive: !actionish);
         return;
-      } catch (_) {
+      } catch (e) {
         liveAnswer.value = '';
+        // A timeout is final — retrying non-stream would stack a second
+        // 90s wait on top of the first (owner: hard ceiling, 2026-09-02).
+        final isTimeout = e is TimeoutException ||
+            (e is DioException &&
+                (e.type == DioExceptionType.receiveTimeout ||
+                    e.type == DioExceptionType.connectionTimeout));
+        if (isTimeout) {
+          removeTypingIndicator();
+          addAIMessage(
+              'The server is slow to respond (it may be starting up — that '
+              'takes about a minute). Please try again shortly.');
+          return;
+        }
       }
 
       try {
         final resp = await ApiClient.instance
-            .post(AppApi.endpointAiAsk, data: {
+            .post(AppApi.endpointAiAsk,
+                options: Options(extra: const {'noRetry': true}),
+                data: {
           'query': finalMessage,
           'corpus': corpus,
           'history': historyForServer,
           'stream': false,
-        }).timeout(AppApi.receiveTimeout);
+        }).timeout(AppApi.aiAskTimeout);
         await _finishBackendAnswer(resp.data, query: userMessage);
         return;
       } on ApiException catch (e) {
@@ -235,7 +254,8 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
           addAIMessage('No internet connection. AI requires internet.');
         } else if (e.type == ApiErrorType.timeout) {
           addAIMessage(
-              'AI request timed out. Please check your connection and try again.');
+              'The server is slow to respond (it may be starting up — that '
+              'takes about a minute). Please try again shortly.');
         } else {
           addAIMessage(
               'AI service unavailable (${e.statusCode ?? ''}). Please try later.');
@@ -244,8 +264,10 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       }
     } on TimeoutException {
       removeTypingIndicator();
+      liveAnswer.value = '';
       addAIMessage(
-          'AI request timed out. Please check your connection and try again.');
+          'The server is slow to respond (it may be starting up — that '
+          'takes about a minute). Please try again shortly.');
     } catch (e) {
       removeTypingIndicator();
       final msg = e.toString().toLowerCase();
@@ -314,7 +336,10 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       },
       options: Options(
         responseType: ResponseType.stream,
-        receiveTimeout: const Duration(seconds: 120),
+        // 90s ceiling (owner 2026-09-02): Render free-tier cold start is
+        // 50-60s; 120s left the chat feeling frozen before failing.
+        receiveTimeout: AppApi.aiAskTimeout,
+        extra: const {'noRetry': true},
         headers: const {'Accept': 'text/event-stream'},
       ),
     );
@@ -322,6 +347,9 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     final acc = StringBuffer();
     var pending = '';
     var fallbackAnswer = '';
+    // UI stays responsive while asking (owner gate): coalesce typewriter
+    // repaints to <= ~16/s; the full text lands via _handleAIResponse.
+    final paintClock = Stopwatch();
     await for (final chunk in stream) {
       pending += utf8.decode(chunk, allowMalformed: true);
       while (pending.contains('\n')) {
@@ -341,7 +369,18 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
             acc.write(ev['text']);
             // Action payloads stream silently — the raw JSON would flash
             // in the bubble before _handleAIResponse consumes it.
-            if (showLive) liveAnswer.value = acc.toString();
+            if (showLive &&
+                (!paintClock.isRunning ||
+                    paintClock.elapsedMilliseconds >= 60)) {
+              paintClock
+                ..stop()
+                ..reset()
+                ..start();
+              liveAnswer.value = acc.toString();
+            }
+            // Strictly async per chunk: hand the event loop back between
+            // chunks so input/paint never queue behind parsing.
+            await Future<void>.value();
             break;
           case 'fallback':
             fallbackAnswer = (ev['answer'] as String?) ?? '';

@@ -116,6 +116,11 @@ abstract final class AppApi {
   /// Send timeout — data bhejne ka max time
   static const Duration sendTimeout = Duration(seconds: 20);
 
+  /// AI ask budget — Render free tier cold start is 50-60s, so 20s
+  /// receiveTimeout cut it off and 120s hung the chat feel. Owner
+  /// 2026-09-02: hard 90s ceiling on both stream and non-stream paths.
+  static const Duration aiAskTimeout = Duration(seconds: 90);
+
   // --- Retry Configuration ---
 
   /// Maximum retry attempts on failure

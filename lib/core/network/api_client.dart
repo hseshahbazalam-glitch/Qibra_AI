@@ -141,6 +141,9 @@ class ApiClient {
   }
 
   bool _shouldRetry(DioException e) {
+    // Callers can opt out per request (AI ask: one attempt under a hard
+    // 90s ceiling — retries would stack to ~370s on a cold Render tier).
+    if (e.requestOptions.extra['noRetry'] == true) return false;
     return e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.connectionError ||

@@ -1,4 +1,5 @@
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
+import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
 
 enum RetrievalMode { localRetrieval, remoteRetrieval, noContext }
@@ -192,8 +193,18 @@ class RagService {
     'charity', 'forgive', 'merciful', 'guidance', 'righteous', 'patience',
   };
 
+  /// Shared refuse sentinel — the provider gate and context builder agree
+  /// on this exact prefix (single source).
+  static const String refuseContext =
+      'REFUSE: no retrieved passage. Do not invent Quran or Hadith.';
+
   /// Retrieves local Quran and Hadith passages for a query — via the Roman
   /// Urdu bridge and typo corrections when needed. Not independently verified.
+  ///
+  /// ANR fix (owner 2026-09-02): the whole bridge plan (raw query +
+  /// expansions + typo retries) is searched in TWO batched background
+  /// scans — one over the Quran, one over the 36k-hadith index — instead of
+  /// a synchronous per-term scan storm on the main isolate.
   Future<List<RetrievedPassage>> retrieve(
     String query, {
     int topK = 3,
@@ -211,24 +222,24 @@ class RagService {
       }
     }
 
-    absorb(await _retrieveOnce(query, topK));
-
-    for (final term in expandQuery(query).take(6)) {
-      absorb(await _retrieveOnce(term, topK));
-    }
+    final primary = <String>[query, ...expandQuery(query).take(6)];
+    await _collect(primary, topK, absorb);
 
     if (merged.isEmpty) {
-      // Typo tolerance (owner): retry each word with Levenshtein-1
-      // corrections, and bridge-expand the corrected word.
+      // Typo tolerance (owner): Levenshtein-1 corrections per word,
+      // bridge-expanded, in one second batched pass.
+      final typoTerms = <String>[];
       for (final token in _queryTokens(query)) {
         for (final fix in correctionsFor(token).take(2)) {
-          absorb(await _retrieveOnce(fix, topK));
-          for (final term in expandQuery(fix).take(2)) {
-            absorb(await _retrieveOnce(term, topK));
+          if (!typoTerms.contains(fix)) typoTerms.add(fix);
+          for (final v in expandQuery(fix).take(2)) {
+            if (!typoTerms.contains(v)) typoTerms.add(v);
           }
-          if (merged.isNotEmpty) break;
         }
-        if (merged.isNotEmpty) break;
+        if (typoTerms.length >= 8) break;
+      }
+      if (typoTerms.isNotEmpty) {
+        await _collect(typoTerms, topK, absorb);
       }
     }
 
@@ -237,28 +248,17 @@ class RagService {
     return results.take(topK).toList();
   }
 
-  Future<List<RetrievedPassage>> _retrieveOnce(
-    String query,
+  Future<void> _collect(
+    List<String> terms,
     int topK,
+    void Function(Iterable<RetrievedPassage>) absorb,
   ) async {
-
-    final results = <RetrievedPassage>[];
-
     try {
       if (_quranRepo.isInitialized) {
-        final searchResults = await _quranRepo.search(query);
-
-        for (final result in searchResults.take(topK)) {
-          results.add(
-            RetrievedPassage(
-              source: 'Quran ${result.surahNumber}:${result.ayahNumber}',
-              text: '${result.ayahText} — ${result.translation ?? ''}'.trim(),
-              relevance: 0.9,
-              collection: 'quran',
-              verificationStatus: 'UNKNOWN',
-              reference: '${result.surahNumber}:${result.ayahNumber}',
-            ),
-          );
+        final batches =
+            await _quranRepo.searchBatchOffMain(terms, perQuery: topK);
+        for (final batch in batches) {
+          absorb([for (final r in batch) _passageFromQuran(r)]);
         }
       }
     } catch (_) {
@@ -267,30 +267,38 @@ class RagService {
 
     try {
       final db = _hadithDb;
-
       if (db != null && db.isInitialized) {
-        final hadithResults = db.search(query, maxResults: topK);
-
-        for (final result in hadithResults) {
-          results.add(
-            RetrievedPassage(
-              source: result.hadith.displayReference,
-              text: result.hadith.textEnglish,
-              relevance: result.relevance,
-              collection: 'hadith',
-              verificationStatus: 'UNKNOWN',
-              reference: result.hadith.displayReference,
-            ),
-          );
+        final batches =
+            await db.searchBatchOffMain(terms, maxPerQuery: topK);
+        for (final batch in batches) {
+          absorb([for (final r in batch) _passageFromHadith(r)]);
         }
       }
     } catch (_) {
       // Do not log query, Hadith text, or exception payloads.
     }
+  }
 
-    results.sort((a, b) => b.relevance.compareTo(a.relevance));
+  static RetrievedPassage _passageFromQuran(SearchResultModel result) {
+    return RetrievedPassage(
+      source: 'Quran ${result.surahNumber}:${result.ayahNumber}',
+      text: '${result.ayahText} — ${result.translation ?? ''}'.trim(),
+      relevance: 0.9,
+      collection: 'quran',
+      verificationStatus: 'UNKNOWN',
+      reference: '${result.surahNumber}:${result.ayahNumber}',
+    );
+  }
 
-    return results.take(topK).toList();
+  static RetrievedPassage _passageFromHadith(LocalSearchResult result) {
+    return RetrievedPassage(
+      source: result.hadith.displayReference,
+      text: result.hadith.textEnglish,
+      relevance: result.relevance,
+      collection: 'hadith',
+      verificationStatus: 'UNKNOWN',
+      reference: result.hadith.displayReference,
+    );
   }
 
   /// Builds retrieved-passage context for an AI request. Never invent citations.
@@ -298,8 +306,15 @@ class RagService {
     final passages = await retrieve(query, topK: 3);
 
     if (passages.isEmpty) {
-      return 'REFUSE: no retrieved passage. Do not invent Quran or Hadith.';
+      return refuseContext;
     }
+
+    return contextFrom(passages);
+  }
+
+  /// Formats retrieved passages as grounded context — pure, sync, reused by
+  /// the provider so retrieval runs ONCE per message (ANR fix).
+  static String contextFrom(List<RetrievedPassage> passages) {
 
     final buffer = StringBuffer();
 

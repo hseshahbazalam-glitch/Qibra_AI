@@ -368,6 +368,63 @@ class QuranRepository {
     return results;
   }
 
+  /// Batch search off the main isolate (AI Roman-Urdu bridge, owner
+  /// 2026-09-02): scans every term in ONE background pass and returns
+  /// per-term hits (max [perQuery] each). The per-term isolate-spawn path
+  /// the bridge used before copied the full surah snapshot on the main
+  /// thread N times — the ANR. Same folding matcher as the search UI.
+  Future<List<List<SearchResultModel>>> searchBatchOffMain(
+    List<String> queries, {
+    int perQuery = 3,
+  }) async {
+    if (queries.isEmpty) return [for (final _ in queries) <SearchResultModel>[]];
+    await _ensureInitialized();
+    final surahsSnapshot = _cachedSurahsMap;
+    final translationsSnapshot = _cachedTranslationsEn;
+    if (surahsSnapshot == null) {
+      return [for (final _ in queries) <SearchResultModel>[]];
+    }
+    return Isolate.run(() {
+      final hits = <List<SearchResultModel>>[
+        for (final _ in queries) <SearchResultModel>[],
+      ];
+      for (final entry in surahsSnapshot.entries) {
+        final surah = entry.value;
+        for (final ayah in surah.ayahs) {
+          final trans = translationsSnapshot?[ayah.numberInQuran];
+          for (var qi = 0; qi < queries.length; qi++) {
+            if (hits[qi].length >= perQuery) continue;
+            final q = queries[qi];
+            if (SearchNormalizer.contains(ayah.text, q)) {
+              hits[qi].add(SearchResultModel(
+                surahNumber: surah.number,
+                surahName: surah.name,
+                ayahNumber: ayah.number,
+                ayahText: ayah.text,
+                translation: trans,
+                matchedText: q,
+                matchType: 0,
+              ));
+              continue;
+            }
+            if (trans != null && SearchNormalizer.contains(trans, q)) {
+              hits[qi].add(SearchResultModel(
+                surahNumber: surah.number,
+                surahName: surah.name,
+                ayahNumber: ayah.number,
+                ayahText: ayah.text,
+                translation: trans,
+                matchedText: q,
+                matchType: 1,
+              ));
+            }
+          }
+        }
+      }
+      return hits;
+    });
+  }
+
   // Isolate helper for heavy search (Phase 4 P1-4)
   Future<List<SearchResultModel>> _searchInIsolate(String query) async {
     // Snapshot needed data for isolate (avoid capturing entire repo which is not transferable)
