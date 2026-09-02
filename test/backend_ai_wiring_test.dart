@@ -114,6 +114,54 @@ void main() {
     });
   });
 
+  group('no-hits may still ask the backend (owner 2026-09-02)', () {
+    test('empty retrieval falls through to the labelled backend answer', () {
+      final provider =
+          File('lib/features/ai/providers/ai_provider.dart').readAsStringSync();
+      expect(provider.contains('final canAskBackend = AppApi.isBackendEnabled && !offline;'),
+          isTrue);
+      expect(provider.contains('if (!actionish && noLocalHits && !canAskBackend)'),
+          isTrue);
+      expect(provider.contains('_localRefusalFor(userMessage)'), isTrue);
+      expect(
+        provider.contains(
+            'Is sawal ka koi retrieved Quran ya Hadith passage nahi mila.'),
+        isTrue,
+        reason: 'local refusal mirrors Roman Urdu queries',
+      );
+      expect(provider.contains('_finishBackendAnswer(resp.data, query: userMessage)'),
+          isTrue);
+      expect(provider.contains('serverText.trim().isNotEmpty'), isTrue,
+          reason: 'the backend scholar-refusal text must be surfaced verbatim');
+    });
+
+    test('the app bridge is the retrieval front door', () {
+      final rag =
+          File('lib/features/ai/services/rag_service.dart').readAsStringSync();
+      expect(rag.contains('static const Map<String, List<String>> romanUrduBridge'),
+          isTrue);
+      expect(rag.contains('static List<String> expandQuery(String query)'), isTrue);
+      expect(rag.contains('static List<String> correctionsFor(String token)'),
+          isTrue);
+      expect(rag.contains('static bool looksRomanUrdu(String query)'), isTrue);
+      expect(rag.contains('absorb(await _retrieveOnce(query, topK));'), isTrue);
+    });
+
+    test('backend ships the labelled general-knowledge contract', () {
+      final client = File('backend/app/groq_client.py').readAsStringSync();
+      expect(
+        client.contains(
+            '"General knowledge answer \u2014 no specific passage was retrieved. "'),
+        isTrue,
+      );
+      expect(client.contains('def is_fatwa_query('), isTrue);
+      expect(client.contains('def fatwa_refusal_message('), isTrue);
+      final router = File('backend/app/routers/ai.py').readAsStringSync();
+      expect(router.contains('return await _general(body)'), isTrue);
+      expect(router.contains('GENERAL_LABEL'), isTrue);
+    });
+  });
+
   group('docs', () {
     test('DEPLOY.md pins the live Render origin', () {
       final doc = File('docs/DEPLOY.md').readAsStringSync();

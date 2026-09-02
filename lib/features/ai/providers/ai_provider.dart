@@ -138,14 +138,18 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       }
 
       final actionish = _isActionCommand(userMessage);
-      if (!actionish &&
-          (ragContext.startsWith('REFUSE:') || _lastRetrieved.isEmpty)) {
+      final canAskBackend = AppApi.isBackendEnabled && !offline;
+      final noLocalHits =
+          ragContext.startsWith('REFUSE:') || _lastRetrieved.isEmpty;
+      if (!actionish && noLocalHits && !canAskBackend) {
         removeTypingIndicator();
-        addAIMessage(
-          'I could not find a retrieved Quran or Hadith passage for that. I will not invent one.',
-        );
+        addAIMessage(_localRefusalFor(userMessage));
         return;
       }
+      // No local hits but the backend is reachable: ask anyway with an
+      // empty corpus. The backend answers general Islamic knowledge ONLY
+      // behind its visible label and hard-refuses fatwa-class questions
+      // (owner rule 2026-09-02) — the client never fabricates either way.
 
       // Offline / backend disabled: honest extractive passthrough of the
       // local retrieval — never a fabricated answer (phase-1 rule, kept).
@@ -222,7 +226,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
           'history': historyForServer,
           'stream': false,
         }).timeout(AppApi.receiveTimeout);
-        await _finishBackendAnswer(resp.data);
+        await _finishBackendAnswer(resp.data, query: userMessage);
         return;
       } on ApiException catch (e) {
         removeTypingIndicator();
@@ -289,6 +293,14 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     'OPEN_HOME',
   };
 
+  /// Honest no-passages message, in the language the user typed in.
+  String _localRefusalFor(String query) =>
+      RagService.looksRomanUrdu(query)
+          ? 'Is sawal ka koi retrieved Quran ya Hadith passage nahi mila. '
+              'Hum khud se koi ayat ya hadith ghadna (invent) nahi karenge.'
+          : 'I could not find a retrieved Quran or Hadith passage for that. '
+              'I will not invent one.';
+
   Future<void> _streamAsk(String query, List<Map<String, dynamic>> corpus,
       List<Map<String, String>> history, {bool showLive = true}) async {
     final resp = await ApiClient.instance.dio.post<dynamic>(
@@ -349,13 +361,17 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     await _handleAIResponse(text);
   }
 
-  Future<void> _finishBackendAnswer(dynamic data) async {
+  Future<void> _finishBackendAnswer(dynamic data, {String? query}) async {
     removeTypingIndicator();
     liveAnswer.value = '';
     if (data is Map) {
       if (data['refused'] == true) {
-        addAIMessage(
-            'I could not find a retrieved Quran or Hadith passage for that. I will not invent one.');
+        // Server-side refusals (fatwa-class scholar-refusal) carry their own
+        // language-mirrored text — show it instead of a canned English line.
+        final serverText = (data['answer'] as String?) ?? '';
+        addAIMessage(serverText.trim().isNotEmpty
+            ? serverText
+            : _localRefusalFor(query ?? ''));
         return;
       }
       final aiResponse = (data['answer'] as String?) ?? '';
