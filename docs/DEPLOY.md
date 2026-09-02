@@ -46,7 +46,13 @@ kept `false` in-repo until the owner flips it after device testing.
 1. Render → New Web Service → connect repo, branch `arena/01a05b41-qibra-ai`.
 2. Root directory `backend`; Runtime Python 3; version **3.12.7**; commands as above.
 3. Add env vars from the table (secret values only in the dashboard).
-4. Verify: `GET /health` → 200; `POST /ai/ask` with `{"query":"x","corpus":[]}` → `{"refused":true,...}`.
+4. Verify: `GET /health` → 200. `POST /ai/ask` with `{"query":"x","corpus":[]}` →
+   `{"refused":true,...}` without `GROQ_API_KEY`, and with the key → a
+   labelled general-knowledge answer (`general_knowledge: true`, answer
+   prefixed "General knowledge answer — no specific passage was
+   retrieved. Please verify with the Quran/scholars."). Fatwa-class
+   queries stay a hard refusal in either case, and the refusal text
+   mirrors the query language (Roman Urdu in → Roman Urdu out).
 5. Local parity tests: `cd backend && python -m pytest tests -q` (mocked Groq — no key needed).
 
 ## Rollback

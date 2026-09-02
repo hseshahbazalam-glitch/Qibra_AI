@@ -119,11 +119,18 @@ def test_stream_groq_down_emits_fallback_event(monkeypatch):
     assert fb and fb[0]["answer"] == "Allah is most merciful"
 
 
-def test_empty_corpus_refusal_shape_unchanged(monkeypatch):
+def test_empty_corpus_with_model_down_still_refuses(monkeypatch):
+    # General-knowledge fallback (phase 17) needs the model; with it down,
+    # the honest level-0 refusal shape still stands.
+    async def boom(messages):
+        raise groq_client.GroqError("groq_unavailable")
+
     monkeypatch.setattr(groq_client, "enabled", lambda: True)
+    monkeypatch.setattr(groq_client, "chat", boom)
     with fresh_client() as client:
-        body = client.post("/ai/ask", json={"query": "anything", "corpus": [], "stream": True}).json()
+        body = client.post("/ai/ask", json={"query": "anything", "corpus": []}).json()
     assert body["refused"] is True and body["answer"] is None
+    assert body.get("grounded_model") is False
 
 
 def test_system_prompt_carries_the_four_rules():

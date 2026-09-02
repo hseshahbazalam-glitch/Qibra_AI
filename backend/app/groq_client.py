@@ -61,6 +61,107 @@ class GroqError(Exception):
     """Upstream unavailable/erroring — callers fall back to extractive RAG."""
 
 
+# --- General-knowledge fallback (owner 2026-09-02) ---------------------
+# No retrieved passages no longer means a hard refusal for knowledge
+# questions: the answer ships with a visible label and the citation
+# guarantee is replaced by a ban on specific numbers. Fatwa-class stays a
+# hard refusal, and refusal text mirrors the query language.
+
+GENERAL_LABEL = (
+    "General knowledge answer — no specific passage was retrieved. "
+    "Please verify with the Quran/scholars."
+)
+
+FATWA_DISCLAIMER = "Disclaimer: AI cannot give fatwa. Please consult a qualified scholar."
+
+_FATWA_MARKERS = (
+    "fatwa", "halal", "haram", "haraam", "permissible", "impermissible",
+    "ruling", "divorce", "talaq", "jaiz", "jayaz", "najaiz", "hukm",
+)
+
+_ROMAN_URDU_TOKENS = {
+    "hai", "h", "kya", "kiya", "kyu", "kyun", "kyon", "kaise", "kese",
+    "ka", "ki", "ke", "ko", "kaun", "karo", "karta", "karti", "kar",
+    "bata", "batao", "chahiye", "chahye", "nahi", "nahin", "kyonke",
+    "liye", "se", "say", "par", "mein", "main", "apna", "apni", "aap",
+    "tum", "hamara", "hamari", "mera", "meri", "wala", "wali", "tha",
+    "thi", "tha", "hoga", "hogi", "sakta", "sakti",
+}
+
+# Same words the app-side Roman Urdu bridge keys on (client is the source
+# of truth there; this list only drives the language of server-side
+# canned messages, so a small overlap is acceptable and self-contained).
+_ROMAN_URDU_ISLAMIC_WORDS = {
+    "namaz", "roza", "dua", "sabr", "jannah", "jahannam", "paani",
+    "taubah", "nabi", "farz", "sunnat", "wuzu", "ghusl", "iman",
+    "qibla", "hajat", "pakeezgi",
+}
+
+
+def is_fatwa_query(text: str) -> bool:
+    """Deterministic fatwa gate for the ungrounded path — deliberately
+    conservative; the prompt rule stays the backstop when passages exist."""
+    low = text.lower()
+    return any(marker in low for marker in _FATWA_MARKERS)
+
+
+def is_roman_urdu(text: str) -> bool:
+    import re
+
+    tokens = set(re.findall(r"[a-z']+", text.lower()))
+    if not tokens:
+        return False
+    return bool(tokens & _ROMAN_URDU_TOKENS) or bool(
+        tokens & _ROMAN_URDU_ISLAMIC_WORDS
+    )
+
+
+def fatwa_refusal_message(text: str) -> str:
+    if is_roman_urdu(text):
+        return (
+            "Yeh sawal ka hukm sirf ek qualified scholar de sakta hai — "
+            "AI fatwa nahi deta. " + FATWA_DISCLAIMER
+        )
+    return (
+        "This question needs a qualified scholar — AI cannot rule on it. "
+        + FATWA_DISCLAIMER
+    )
+
+
+GENERAL_SYSTEM_PROMPT = """You are Qibra AI, an Islamic assistant.
+NO passages were retrieved for this question. Answer from well-known,
+general Islamic knowledge only.
+
+HARD RULES:
+1. NEVER quote, invent or guess specific ayat numbers, hadith numbers,
+   chapter numbers or grading. Refer to surahs or topics by name only.
+2. The system prefixes a general-knowledge notice before your reply. Do not
+   repeat, rephrase or reference it yourself.
+3. FATWA-CLASS questions (permissible/not, rulings, divorce, inheritance
+   disputes, personal religious verdicts): do not answer them. Say only
+   that a qualified scholar must be consulted, and end with exactly:
+   "Disclaimer: AI cannot give fatwa. Please consult a qualified scholar."
+4. Detect the user's language and reply in EXACTLY that language. A Roman
+   Urdu question gets a Roman Urdu reply — including any refusal.
+5. If the user message is a short app-control command (not a question),
+   reply with ONLY this JSON in a ```json fence and nothing else:
+   {"action": "<NAME>", "params": {..}, "reply": "<one short line>"}
+
+STYLE: short paragraphs, no markdown headings, no emoji. You are not a
+mufti and never pretend to be one."""
+
+
+def build_general_messages(query: str, history: list[dict]) -> list[dict]:
+    messages = [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}]
+    for turn in history[-20:]:
+        if turn.get("role") in ("user", "assistant") and isinstance(
+            turn.get("content"), str
+        ):
+            messages.append({"role": turn["role"], "content": turn["content"]})
+    messages.append({"role": "user", "content": f"QUESTION: {query}"})
+    return messages
+
+
 def enabled() -> bool:
     return bool(get_settings().groq_api_key.strip())
 
