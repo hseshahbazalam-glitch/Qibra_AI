@@ -146,7 +146,8 @@ void main() {
       expect(rag.contains('static List<String> correctionsFor(String token)'),
           isTrue);
       expect(rag.contains('static bool looksRomanUrdu(String query)'), isTrue);
-      expect(rag.contains('absorb(await _retrieveOnce(query, topK));'), isTrue);
+      expect(rag.contains('final primary = <String>[query, ...expandQuery(query).take(6)];'),
+          isTrue);
     });
 
     test('backend ships the labelled general-knowledge contract', () {
