@@ -47,10 +47,12 @@ void main() {
           reason: 'the backend has no /ai/chat — it must not be referenced');
     });
 
-    test('isBackendEnabled stays false until the owner flips it', () {
+    test('backend is enabled (owner flip 2026-09-02, abee22e)', () {
       expect(
-        constants.contains('static const bool isBackendEnabled = false;'),
+        constants.contains('static const bool isBackendEnabled = true;'),
         isTrue,
+        reason: 're-check before flipping back: the honest no-backend '
+            'branches in ChatNotifier still exist for the false state',
       );
     });
   });
