@@ -34,6 +34,10 @@
 #                      reference after a local was stripped is a compile fail
 #                      invisible to the battery; only the device gate catches
 #                      that class. Same for the onboarding slide refactor.
+#                      G12 narrows that limit for one tractable class:
+#                      curated symbol -> required import (Isolate/jsonDecode/
+#                      File/compute/...), lexer-level, retro-proven at the
+#                      eb9597d missing-dart:isolate compile error.
 #
 # Design gates (all files): L3 dangling Amiri literal, L4
 # colors.cardElevated (not a QibraColors field), L5 const QibraStatus call
@@ -712,6 +716,92 @@ for fi in FILES.values():
                     "forbids nested classes (generated-block insertion "
                     "anchor bug)")
             pos += 1
+
+# ------------------------------------------------------------------------ G12
+# G12 curated usage-vs-import (owner device gate 2026-09-02, ANR batch
+# pass: `Isolate.run` landed in hadith_database_service.dart while the file
+# imports only dart:convert + flutter — the general G4 limit says static
+# gates cannot see undefined identifiers, but THIS class is tractable
+# without type inference: a small curated symbol table, lexer-level scan.
+# Retro-proven at eb9597d: exactly one G12 finding, the bug itself.
+G12_PROVIDER = {
+    "dart:isolate": {"Isolate", "TransferableTypedData", "RawReceivePort",
+                     "IsolateNameServer"},
+    "dart:io": {"File", "Directory", "Platform", "Process", "ProcessException",
+                "RandomAccessFile", "FileStat", "FileSystemEntity", "exit",
+                "stdout", "stderr", "stdin", "sleep"},
+    "dart:convert": {"jsonDecode", "jsonEncode", "utf8", "utf16", "latin1",
+                     "base64", "base64Encode", "base64Decode", "LineSplitter",
+                     "JsonEncoder", "JsonDecoder", "json"},
+    "dart:math": {"Random"},
+    "dart:async": {"Timer", "StreamController", "Completer", "StreamQueue",
+                   "StreamGroup", "scheduleMicrotask", "unawaited", "Zone",
+                   "runZoned", "runZonedGuarded"},
+}
+# package:flutter/foundation re-exports this surface (compute/debugPrint/
+# kIsWeb — the owner's flagged trio); any of the heavy flutter entrypoints
+# re-exports foundation itself, so they count too.
+G12_FOUNDATION = {"compute", "debugPrint", "kIsWeb", "kDebugMode",
+                  "kProfileMode", "kReleaseMode", "listEquals", "protected",
+                  "visibleForTesting", "mustCallSuper"}
+G12_FLUTTER_EXPORTERS = {
+    "package:flutter/material.dart", "package:flutter/widgets.dart",
+    "package:flutter/services.dart", "package:flutter/cupertino.dart",
+    "package:flutter/foundation.dart",
+}
+G12_ALL = {}
+for _uri, _syms in G12_PROVIDER.items():
+    for _sym in _syms:
+        G12_ALL.setdefault(_sym, set()).add(_uri)
+for _sym in G12_FOUNDATION:
+    G12_ALL.setdefault(_sym, set()).add("flutter/foundation")
+
+
+# Per-symbol usage patterns. `json` needs one: Map<String, dynamic> json
+# is the parameter name in EVERY fromJson in this codebase, and matching it
+# as the dart:convert codec global would be a false positive factory. Only
+# receiver usage (json.encode/decode/tryParse/fuse) needs the import.
+G12_USAGE = {
+    "json": r"(?<![\w$.])json\s*\.\s*(?:encode|decode|tryParse|fuse)\b",
+}
+
+
+def _g12_locally_defined(code, sym):
+    """A file that defines the name itself (class, top-level fn/getter,
+    const/final) is its own provider — never flag it."""
+    return re.search(
+        r"^(?:\s*)(?:abstract\s+|final\s+|base\s+|sealed\s+|interface\s+)*"
+        r"(?:class|enum|mixin|extension|typedef)\s+" + sym + r"\b"
+        r"|^\s*(?:const|final|late|var)[\w<>?, .]*\b" + sym + r"\b"
+        r"|^\s*[\w<>?, .]+\s+" + sym + r"\s*[<(=]",
+        code, re.M,
+    ) is not None
+
+
+for fi in FILES.values():
+    if fi.is_part:
+        continue  # imports live in the parent library
+    have = set(fi.imports)
+    provided = set()
+    for uri in have:
+        provided |= G12_PROVIDER.get(uri, set())
+    if have & G12_FLUTTER_EXPORTERS:
+        provided |= G12_FOUNDATION
+    for sym, uris in sorted(G12_ALL.items()):
+        if (sym in provided) or (sym in fi.defs):
+            continue
+        if _g12_locally_defined(fi.code, sym):
+            continue
+        m = re.search(G12_USAGE.get(sym, r"(?<![\w$.])" + sym + r"\b"),
+                      fi.code)
+        if m:
+            ln = fi.code.count("\n", 0, m.start()) + 1
+            want = ", ".join(sorted(uris))
+            err("G12", fi.path, ln,
+                f"'{sym}' used but no '{want}' import — curated "
+                "usage-vs-import check (flutter/foundation also provides "
+                "compute/debugPrint/kIsWeb; material/widgets/services/"
+                "cupertino re-export it)")
 
 # ------------------------------------------------------------------- report
 print(f"static battery: {len(FILES)} dart files under {LIB}")
