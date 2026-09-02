@@ -929,7 +929,11 @@ Juz: ${juz ?? '—'}''';
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: colors.border),
                         ),
-                        child: ListTile(
+                        // Material between the tile and this Container's
+                        // decoration (owner 2026-09-02 ink-assertion sweep).
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
                           onTap: () {
                             Navigator.pop(sheetContext);
                             _pageController.jumpToPage(page - 1);
@@ -975,6 +979,7 @@ Juz: ${juz ?? '—'}''';
                               Navigator.pop(sheetContext);
                             },
                           ),
+                        ),
                         ),
                       ),
                     );

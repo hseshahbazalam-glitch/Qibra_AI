@@ -47,6 +47,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
   final VoiceService _voice = VoiceService();
 
+  // Level 3 — voice INPUT ships with RECORD_AUDIO + manifest wiring. The
+  // mic entry points are hidden until then (owner 2026-09-02: no dead
+  // buttons; permission intentionally NOT added yet). final (not const) so
+  // the gated subtree stays lint-clean for when the flag flips.
+  static final bool _voiceInputEnabled = false;
+
   bool _isListening = false;
   bool _isSpeaking = false;
 
@@ -302,7 +308,9 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 ],
               ),
               child: Icon(
-                Icons.mic_rounded,
+                _voiceInputEnabled
+                    ? Icons.mic_rounded
+                    : Icons.auto_awesome_rounded,
                 color: colors.textPrimary,
                 size: 60,
               ),
@@ -468,7 +476,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Type or speak to ask\nabout Islam or control the app',
+            'Type to ask\nabout Islam or control the app',
             textAlign: TextAlign.center,
             style: AppTextStyles.bodySmall.copyWith(
               color: colors.textSecondary,
@@ -485,11 +493,11 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.mic_rounded, color: colors.violetAi, size: 16),
+                Icon(Icons.keyboard_rounded, color: colors.violetAi, size: 16),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Tap mic to speak — All languages supported',
+                    'Type your question — answers cite retrieved passages',
                     style: AppTextStyles.labelSmall.copyWith(
                       color: colors.textSecondary,
                     ),
@@ -823,7 +831,6 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   Widget _buildSuggestedQuestions() {
     final colors = QibraColors.of(context);
     final suggestions = [
-      'Tap mic to speak',
       'What time is Tahajjud?',
       'Open the Quran',
       'Show Qibla direction',
@@ -842,12 +849,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           return GestureDetector(
             onTap: () {
               HapticFeedback.selectionClick();
-              if (index == 0) {
-                _toggleVoice();
-              } else {
-                _controller.text = suggestions[index];
-                _sendMessage();
-              }
+              _controller.text = suggestions[index];
+              _sendMessage();
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -884,7 +887,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       ),
       child: Row(
         children: [
-          // Mic Button
+          // Mic Button — gated: dead without RECORD_AUDIO wiring (Level 3).
+          if (_voiceInputEnabled)
           GestureDetector(
             onTap: _toggleVoice,
             child: AnimatedContainer(
@@ -932,7 +936,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 color: colors.textPrimary,
               ),
               decoration: InputDecoration(
-                hintText: 'Type or tap mic to speak...',
+                hintText: 'Ask about Islam or control the app...',
                 hintStyle: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textTertiary,
                 ),

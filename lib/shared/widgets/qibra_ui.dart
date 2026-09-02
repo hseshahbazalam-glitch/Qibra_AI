@@ -190,7 +190,11 @@ class QibraHeroCard extends StatelessWidget {
         ],
       ),
     );
-    if (onTap == null) return card;
+    if (onTap == null) {
+      // Ink needs a Material ancestor: a ListTile inside a non-tappable
+      // decorated card spammed debug assertions (owner 2026-09-02).
+      return Material(type: MaterialType.transparency, child: card);
+    }
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -233,7 +237,11 @@ class QibraCard extends StatelessWidget {
       child: child,
     );
 
-    if (onTap == null) return card;
+    if (onTap == null) {
+      // Ink needs a Material ancestor: a ListTile inside a non-tappable
+      // decorated card spammed debug assertions (owner 2026-09-02).
+      return Material(type: MaterialType.transparency, child: card);
+    }
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -398,21 +406,35 @@ class QibraChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    // Owner 2026-09-02 (debug-console flood): ChoiceChip drives an internal
+    // ListTile and paints its own decorated surface (card bg + border +
+    // radius 20) — the assertion machine. Same pill, honest Material:
+    // selection colors move onto this Material, no embedded tile anywhere.
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
-        showCheckmark: false,
-        selectedColor: colors.primary.withValues(alpha: 0.12),
-        backgroundColor: colors.card,
-        labelStyle: AppTextStyles.labelMedium.copyWith(
-          color: selected ? colors.primary : colors.textSecondary,
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+      child: Material(
+        color: selected
+            ? colors.primary.withValues(alpha: 0.12)
+            : colors.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: selected ? colors.primary : colors.border),
         ),
-        side: BorderSide(color: selected ? colors.primary : colors.border),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            child: Text(
+              label,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: selected ? colors.primary : colors.textSecondary,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

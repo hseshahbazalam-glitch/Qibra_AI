@@ -798,7 +798,11 @@ class _PrayerRow extends StatelessWidget {
         ),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      child: ListTile(
+      // Ink needs a Material between the tile and this Container's
+      // decoration (owner 2026-09-02 assertion-spam fix).
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListTile(
         onTap: onToggle,
         leading: Icon(
           prayer.type.icon,
@@ -866,6 +870,7 @@ class _PrayerRow extends StatelessWidget {
               color: prayed ? colors.primary : colors.textTertiary,
             ),
           ],
+        ),
         ),
       ),
     );
