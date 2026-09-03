@@ -14,6 +14,7 @@ import '../../../core/utils/search_normalizer.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
 import '../data/models/hadith_models.dart';
 import '../providers/hadith_provider.dart';
+import 'hadith_related_section.dart';
 
 class HadithBookScreen extends ConsumerStatefulWidget {
   final HadithBook book;
@@ -504,6 +505,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   }
 
   void _showHadithDetailSheet(BuildContext context, HadithModel hadith) {
+    // P1 · Item 4 — opening a hadith detail (here or on the hadith
+    // home sheet) is the one true view event; record it in the LRU.
+    recordHadithView(ref, hadith);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -650,6 +654,11 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           ),
                         ),
                       ],
+                      HadithMoreFromChapter(
+                        hadith: hadith,
+                        onOpen: (ctx, target) =>
+                            _showHadithDetailSheet(ctx, target),
+                      ),
                     ],
                   ),
                 ),

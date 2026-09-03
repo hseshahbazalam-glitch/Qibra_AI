@@ -16,8 +16,10 @@ import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
+import '../data/services/hadith_view_history.dart';
 import '../providers/hadith_provider.dart';
 import 'hadith_book_screen.dart';
+import 'hadith_related_section.dart';
 
 class HadithScreen extends ConsumerStatefulWidget {
   const HadithScreen({super.key});
@@ -109,6 +111,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                 title: 'Today\'s hadith is unavailable',
               ),
             ),
+            _buildRecentlyRead(ref.watch(hadithHistoryProvider)),
             const SizedBox(height: 24),
             QibraSectionHeader(
               title: 'Collections',
@@ -285,6 +288,44 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     );
   }
 
+  // P1 · Item 4 — Recently Read (persisted LRU, cap 50). Renders
+  // nothing while history is empty; the Clear action clears the real
+  // store, not just the view.
+  Widget _buildRecentlyRead(AsyncValue<List<HadithModel>> history) {
+    final items = history.valueOrNull ?? const <HadithModel>[];
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        QibraSectionHeader(
+          title: 'Recently Read',
+          actionLabel: 'Clear',
+          onAction: () async {
+            await HadithViewHistory.clear();
+            if (!mounted) return;
+            ref.invalidate(hadithHistoryProvider);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Reading history cleared')),
+            );
+          },
+        ),
+        SizedBox(
+          height: 108,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, i) => _RecentlyReadCard(
+              hadith: items[i],
+              onTap: () => _showDetail(context, items[i]),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
   void _copyHadith(BuildContext context, HadithModel hadith) {
     final text =
         '${hadith.textArabic}\n\n${hadith.textEnglish}\n\n— ${hadith.displayReference}';
@@ -296,6 +337,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
 
   void _showDetail(BuildContext context, HadithModel hadith) {
     final colors = QibraColors.of(context);
+    // P1 · Item 4 — opening a hadith detail (here or in the book
+    // reader) is the one true view event; record it in the LRU.
+    recordHadithView(ref, hadith);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -416,6 +460,10 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         _openBook(context, hadith.bookSlug);
                       },
                       child: Text('Open ${hadith.bookName}'),
+                    ),
+                    HadithMoreFromChapter(
+                      hadith: hadith,
+                      onOpen: (ctx, target) => _showDetail(ctx, target),
                     ),
                   ],
                 );
@@ -762,6 +810,71 @@ class _HadithTile extends ConsumerWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// RECENTLY READ CARD (P1 · Item 4)
+// ============================================================
+
+class _RecentlyReadCard extends StatelessWidget {
+  const _RecentlyReadCard({required this.hadith, required this.onTap});
+
+  final HadithModel hadith;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final preview = hadith.textEnglish.trim().replaceAll(RegExp(r'\s+'), ' ');
+    return SizedBox(
+      width: 190,
+      child: Material(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(14),
+        shape:
+            RoundedRectangleBorder(side: BorderSide(color: colors.border)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hadith.bookName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: colors.primary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Expanded(
+                  child: Text(
+                    preview.isEmpty ? hadith.displayReference : preview,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: colors.textSecondary,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '#${hadith.hadithNumber}',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

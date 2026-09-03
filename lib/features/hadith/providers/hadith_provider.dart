@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
+import '../data/services/hadith_view_history.dart';
 
 /// Hadith display language is independent of UI locale.
 /// Only bundled languages: en, ar, ur. Hindi and others stay unresolved.
@@ -172,6 +173,32 @@ final dailyHadithProvider = FutureProvider<HadithModel?>((ref) async {
   if (local == null) return null;
   return localToHadithModel(local);
 });
+
+// ============================================================
+// RECENTLY READ (P1 · Item 4)
+// ============================================================
+// Reflects the persisted LRU list; refs that no longer resolve in the
+// bundled corpus are dropped silently (honest: nothing ghost-shown).
+
+final hadithHistoryProvider = FutureProvider<List<HadithModel>>((ref) async {
+  await ref.watch(hadithDatabaseInitProvider.future);
+  final db = ref.watch(hadithDatabaseProvider);
+  final out = <HadithModel>[];
+  for (final raw in await HadithViewHistory.entries()) {
+    final r = HadithViewHistory.parseRef(raw);
+    if (r == null) continue;
+    final local = db.getHadith(r.bookSlug, r.hadithNumber);
+    if (local != null) out.add(localToHadithModel(local));
+  }
+  return out;
+});
+
+/// Single recording seam for "a hadith detail was opened": persists the
+/// LRU entry and refreshes any listener (e.g. the home Recently Read row).
+Future<void> recordHadithView(WidgetRef ref, HadithModel hadith) async {
+  await HadithViewHistory.record(hadith.bookSlug, hadith.hadithNumber);
+  ref.invalidate(hadithHistoryProvider);
+}
 
 final randomHadithProvider = FutureProvider<HadithModel?>((ref) async {
   await ref.watch(hadithDatabaseInitProvider.future);
