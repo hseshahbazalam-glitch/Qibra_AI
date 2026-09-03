@@ -833,9 +833,10 @@ class _RecentlyReadCard extends StatelessWidget {
       width: 190,
       child: Material(
         color: colors.card,
-        borderRadius: BorderRadius.circular(14),
-        shape:
-            RoundedRectangleBorder(side: BorderSide(color: colors.border)),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: colors.border),
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: onTap,

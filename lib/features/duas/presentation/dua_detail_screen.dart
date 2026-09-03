@@ -839,7 +839,6 @@ Shared via QIBRA AI''';
   Widget _buildReminderCard(QibraColors colors) {
     return Material(
       color: colors.surface,
-      borderRadius: BorderRadius.circular(16),
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colors.border),
         borderRadius: BorderRadius.circular(16),
@@ -847,28 +846,34 @@ Shared via QIBRA AI''';
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AppSwitchListTile(
-            value: _reminderOn,
-            dense: true,
-            onChanged: _reminderBusy ? null : _toggleReminder,
-            secondary: Icon(
-              _reminderOn
-                  ? Icons.notifications_active_rounded
-                  : Icons.notifications_none_rounded,
-              color: QibraNavy.emerald,
-              size: 22,
-            ),
-            title: Text(
-              'Daily Reminder',
-              style: AppTextStyles.labelMedium
-                  .copyWith(color: colors.textPrimary),
-            ),
-            subtitle: Text(
-              _reminderOn
-                  ? 'Sends a daily reminder at ${_reminderAt.label}'
-                  : 'Get a daily nudge to recite this dua',
-              style: AppTextStyles.labelSmall
-                  .copyWith(color: colors.textSecondary),
+          // Material-owned ink, the proven QibraCard/QibraChip pattern:
+          // the SwitchListTile gets its own transparency Material so the
+          // decorated card never sits between the tile and its Material.
+          Material(
+            type: MaterialType.transparency,
+            child: AppSwitchListTile(
+              value: _reminderOn,
+              dense: true,
+              onChanged: _reminderBusy ? null : _toggleReminder,
+              secondary: Icon(
+                _reminderOn
+                    ? Icons.notifications_active_rounded
+                    : Icons.notifications_none_rounded,
+                color: QibraNavy.emerald,
+                size: 22,
+              ),
+              title: Text(
+                'Daily Reminder',
+                style: AppTextStyles.labelMedium
+                    .copyWith(color: colors.textPrimary),
+              ),
+              subtitle: Text(
+                _reminderOn
+                    ? 'Sends a daily reminder at ${_reminderAt.label}'
+                    : 'Get a daily nudge to recite this dua',
+                style: AppTextStyles.labelSmall
+                    .copyWith(color: colors.textSecondary),
+              ),
             ),
           ),
           if (_reminderOn)
