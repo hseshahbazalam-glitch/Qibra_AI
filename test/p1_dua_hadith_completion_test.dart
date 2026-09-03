@@ -206,6 +206,9 @@ void main() {
       expect(main.contains('NotificationService.onNotificationTap'), isTrue);
       expect(main.contains("startsWith('dua:')"), isTrue);
       expect(main.contains('AppRoutes.duaDetail'), isTrue);
+      expect(main.contains('WidgetsFlutterBinding.instance'), isFalse,
+          reason: 'no such static on stable Flutter — '
+              'WidgetsBinding.instance is the version-safe receiver (G13)');
 
       final router = File('lib/core/router/app_router.dart').readAsStringSync();
       expect(router.contains('navigatorKey: rootNavigatorKey'), isTrue);

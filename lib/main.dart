@@ -102,7 +102,7 @@ void main() async {
         // Cold start: the router's navigator may not exist yet for a
         // frame or two — retry on post-frame, then give up quietly.
         if (attemptsLeft > 0) {
-          WidgetsFlutterBinding.instance
+          WidgetsBinding.instance
               .addPostFrameCallback((_) => navigate(attemptsLeft - 1));
         }
         return;
