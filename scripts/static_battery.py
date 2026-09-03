@@ -47,6 +47,14 @@
 #                      Retro-proven at 9d92800: exactly one finding — the
 #                      tap-routing retry in main.dart, reported by the
 #                      owner's device compile.
+#   G14 material-shape `Material(` must not take BOTH shape: and
+#                      borderRadius: as direct arguments — Flutter debug
+#                      asserts !(shape != null && borderRadius != null).
+#                      Depth-aware named-arg scan on stripped code: radius
+#                      nested inside the ShapeBorder is the legal spelling
+#                      and never counts. Retro-proven at 8992f2e: exactly
+#                      two findings, the P1 card bugs from the owner's
+#                      device assertion batch.
 #
 # Design gates (all files): L3 dangling Amiri literal, L4
 # colors.cardElevated (not a QibraColors field), L5 const QibraStatus call
@@ -831,6 +839,49 @@ for fi in FILES.values():
             "WidgetsBinding.instance (version-safe on old and new Flutter); "
             "ensureInitialized() remains the only WidgetsFlutterBinding "
             "static allowed here")
+
+# ------------------------------------------------------------------------ G14
+# G14 Material shape/borderRadius double-spec deny (owner device gate
+# 2026-09-03, P1 assertions batch: two new cards handed one Material both
+# `shape:` and `borderRadius:`, tripping Material's debug assert). Same
+# family as the ink-sweep mandate: decorations must be stated once, on the
+# widget that owns them. Depth-aware scan (parens are trusted because
+# fi.code has already had string literals and comments stripped): only
+# DIRECT named arguments of the Material( call count — the legal
+# `shape: RoundedRectangleBorder(borderRadius: …)` spelling keeps its
+# radius at depth 2 and is never flagged.
+G14_SHAPE = re.compile(r"(?<![\w$.])shape\s*:")
+G14_RADIUS = re.compile(r"(?<![\w$.])borderRadius\s*:")
+
+for fi in FILES.values():
+    code = fi.code
+    for mm in re.finditer(r"\bMaterial\s*\(", code):
+        i = mm.end()
+        depth = 1
+        shape = radius = False
+        while i < len(code) and depth:
+            c = code[i]
+            if c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+            elif depth == 1:
+                ms = G14_SHAPE.match(code, i)
+                if ms:
+                    shape = True
+                    i = ms.end()
+                    continue
+                mr = G14_RADIUS.match(code, i)
+                if mr:
+                    radius = True
+                    i = mr.end()
+                    continue
+            i += 1
+        if shape and radius:
+            ln = code.count("\n", 0, mm.start()) + 1
+            err("G14", fi.path, ln,
+                "Material takes both 'shape:' and 'borderRadius:' — debug "
+                "assert fires; keep the radius inside the ShapeBorder only")
 
 # ------------------------------------------------------------------- report
 print(f"static battery: {len(FILES)} dart files under {LIB}")
