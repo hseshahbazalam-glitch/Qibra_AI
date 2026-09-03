@@ -4,6 +4,7 @@ import 'package:qibra_ai/features/calendar/presentation/islamic_calendar_screen.
 import 'package:qibra_ai/features/settings/presentation/settings_screen.dart';
 import 'package:qibra_ai/features/qibla/presentation/qibla_screen.dart';
 import 'package:qibra_ai/features/duas/presentation/duas_home_screen.dart';
+import 'package:qibra_ai/features/duas/presentation/dua_detail_screen.dart';
 import 'package:qibra_ai/features/tools/screens/tools_hub_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -92,9 +93,14 @@ class _ErrorScreen extends StatelessWidget {
   }
 }
 
+/// Root navigator key — lets platform-level events (notification
+/// taps) route through the same GoRouter the UI uses.
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = _RouterRefreshNotifier(ref);
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: false,
     refreshListenable: refreshNotifier,
@@ -130,6 +136,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: AppRoutes.onboarding,
           name: 'onboarding',
           builder: (context, state) => const OnboardingScreen()),
+      // P1 · Item 1 — tap target for dua-reminder notifications.
+      // Top-level (over any tab); id travels as a query param so the
+      // location stays restorable. Empty/unknown id shows the honest
+      // "Dua not found" state, never a stub.
+      GoRoute(
+          path: AppRoutes.duaDetail,
+          name: 'dua-detail',
+          builder: (context, state) =>
+              DuaDetailScreen(duaId: state.uri.queryParameters['id'] ?? '')),
       GoRoute(
           path: AppRoutes.login,
           name: 'login',

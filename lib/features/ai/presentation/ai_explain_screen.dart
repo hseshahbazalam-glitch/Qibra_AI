@@ -29,12 +29,22 @@ class AIExplainScreen extends ConsumerStatefulWidget {
     this.surahName,
     this.ayahNumber,
     this.surahNumber,
+    // P1 · Item 2 — dua context (the dua screen's "Ask AI" entry).
+    this.duaTitle,
+    this.duaArabic,
+    this.duaTranslation,
   });
 
   final String? ayahText;
   final String? surahName;
   final int? ayahNumber;
   final int? surahNumber;
+  final String? duaTitle;
+  final String? duaArabic;
+  final String? duaTranslation;
+
+  bool get _hasDuaContext =>
+      ayahText == null && duaTitle != null && duaTitle!.isNotEmpty;
 
   @override
   ConsumerState<AIExplainScreen> createState() => _AIExplainScreenState();
@@ -75,7 +85,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       await _initVoice();
 
       // Initial ayah message
-      if (widget.ayahText != null) {
+      if (widget.ayahText != null || widget._hasDuaContext) {
         _sendInitialMessage();
       }
     });
@@ -139,6 +149,26 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   }
 
   void _sendInitialMessage() async {
+    if (widget._hasDuaContext) {
+      // Dua opened via the detail screen's Ask-AI action: the dua's own
+      // title + bundled translation are passed as the question context.
+      final translation = (widget.duaTranslation ?? '').trim();
+      final arabic = (widget.duaArabic ?? '').trim();
+      final parts = <String>[
+        if (translation.isNotEmpty) 'English translation: "$translation"',
+        if (arabic.isNotEmpty) 'Arabic: "$arabic"',
+      ];
+      final context = parts.isEmpty
+          ? 'Dua: "${widget.duaTitle}"'
+          : 'Dua: "${widget.duaTitle}" — ${parts.join(' — ')}';
+      await ref.read(chatProvider.notifier).sendMessage(
+            'What is the significance of this dua?',
+            context: context,
+          );
+      _scrollToBottom();
+      _autoSpeakLastMessage();
+      return;
+    }
     final question =
         'Please explain this ayah: "${widget.ayahText}" from ${widget.surahName} (${widget.surahNumber}:${widget.ayahNumber})';
     await ref.read(chatProvider.notifier).sendMessage(
@@ -260,6 +290,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       child: Column(
         children: [
           if (widget.ayahText != null) _buildAyahContext(),
+          if (widget._hasDuaContext) _buildDuaContext(),
           Expanded(
             child: _isListening
                 ? _buildListeningView()
@@ -267,8 +298,10 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                     ? _buildEmptyState()
                     : _buildMessagesList(messages)),
           ),
-          if (messages.isEmpty && widget.ayahText == null && !_isListening)
-            _buildSuggestedQuestions(),
+          if (messages.isEmpty &&
+              widget.ayahText == null &&
+              !widget._hasDuaContext &&
+              !_isListening) _buildSuggestedQuestions(),
           Container(
             padding: EdgeInsets.only(bottom: bottomPadding),
             color: colors.card,
@@ -441,6 +474,86 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               height: 1.8,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // ─── DUA CONTEXT (P1 · Item 2) ─────────────────────────
+
+  Widget _buildDuaContext() {
+    final colors = QibraColors.of(context);
+    final arabic = (widget.duaArabic ?? '').trim();
+    final translation = (widget.duaTranslation ?? '').trim();
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors.primary.withValues(alpha: 0.2),
+            colors.accent.withValues(alpha: 0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.accent.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: colors.accent.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'DUA',
+                  style: AppTextStyles.labelXSmall.copyWith(
+                    color: colors.goldText,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.duaTitle ?? '',
+                  style: AppTextStyles.labelLarge.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          if (arabic.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              arabic,
+              textAlign: TextAlign.right,
+              textDirection: TextDirection.rtl,
+              style: AppArabicStyles.hadithArabic.copyWith(
+                color: colors.textPrimary,
+                height: 1.8,
+              ),
+            ),
+          ],
+          if (translation.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              translation,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: colors.textSecondary,
+                height: 1.5,
+              ),
+            ),
+          ],
         ],
       ),
     );

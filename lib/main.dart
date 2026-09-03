@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/services/notification_service.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/constants/app_assets_check.dart';
@@ -86,6 +87,31 @@ void main() async {
   } catch (e) {
     debugPrint('⚠️ Quran data loading failed: $e');
   }
+
+  // ─── Notification tap routing (P1 · Item 1) ─────────────────
+  // 'dua:<id>' payloads open that dua's detail through the router.
+  // All other payloads keep existing behavior (tap foregrounds the
+  // app; the prayer/adhkar channels never navigated and still don't).
+  NotificationService.onNotificationTap = (payload) {
+    if (!payload.startsWith('dua:')) return;
+    final id = Uri.encodeComponent(payload.substring('dua:'.length));
+    if (id.isEmpty) return;
+    void navigate(int attemptsLeft) {
+      final ctx = rootNavigatorKey.currentContext;
+      if (ctx == null) {
+        // Cold start: the router's navigator may not exist yet for a
+        // frame or two — retry on post-frame, then give up quietly.
+        if (attemptsLeft > 0) {
+          WidgetsFlutterBinding.instance
+              .addPostFrameCallback((_) => navigate(attemptsLeft - 1));
+        }
+        return;
+      }
+      GoRouter.of(ctx).push('${AppRoutes.duaDetail}?id=$id');
+    }
+
+    navigate(30);
+  };
 
   // ─── Boot Info ─────────────────────────
   _printBootInfo();

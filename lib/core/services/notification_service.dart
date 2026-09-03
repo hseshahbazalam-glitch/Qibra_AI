@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../notifications/dua_reminder_policy.dart';
 import '../notifications/notification_reconcile.dart';
 
 /// Local notifications only. Scheduling uses inexact alarms.
@@ -25,6 +26,38 @@ class NotificationService {
 
   static void markTimeZonesInitialized() {
     _timeZonesReady = true;
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // NOTIFICATION TAP ROUTING (P1)
+  // ────────────────────────────────────────────────────────────
+  // The plugin hands us the payload on any tap; routing decisions
+  // live outside this service. The app root subscribes via
+  // [onNotificationTap]; taps that arrive before the listener is
+  // installed are buffered once (cold-start taps), then cleared.
+
+  static void Function(String payload)? _tapHandler;
+  static String? _pendingTapPayload;
+
+  /// Subscribe (pass null to unsubscribe). A buffered cold-start
+  /// payload is delivered immediately on subscribe and consumed.
+  static set onNotificationTap(void Function(String payload)? handler) {
+    _tapHandler = handler;
+    final pending = _pendingTapPayload;
+    if (handler != null && pending != null) {
+      _pendingTapPayload = null;
+      handler(pending);
+    }
+  }
+
+  static void dispatchNotificationTap(String? payload) {
+    if (payload == null || payload.isEmpty) return;
+    final handler = _tapHandler;
+    if (handler == null) {
+      _pendingTapPayload = payload;
+      return;
+    }
+    handler(payload);
   }
 
   static const int _fajrId = 1001;
@@ -61,7 +94,9 @@ class NotificationService {
           requestSoundPermission: true,
         ),
       ),
-      onDidReceiveNotificationResponse: (NotificationResponse response) {},
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        dispatchNotificationTap(response.payload);
+      },
     );
 
     await _createChannels();
@@ -338,6 +373,75 @@ class NotificationService {
       payload: 'evening_adhkar',
       daily: true,
     );
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // DUA REMINDERS (P1 · Item 1)
+  // ────────────────────────────────────────────────────────────
+  // Per-dua daily reminder at a user-changeable time. Same proven
+  // mechanism as the adhkar/Tahajjud reminders (zonedSchedule with
+  // DateTimeComponents.time, inexact alarms, islamic_channel) — no
+  // new plugin, no new permission. Enabled state persists in prefs
+  // (same pattern as the morning/evening adhkar flags), so the
+  // toggle survives restarts and reflects the real schedule.
+  // The notification payload 'dua:<id>' is routed by the app root
+  // (see onNotificationTap) to open that dua's detail.
+
+  /// Install or update the daily reminder for [duaId] at hour:minute.
+  Future<void> setDuaReminder({
+    required String duaId,
+    required String title,
+    required String body,
+    required int hour,
+    required int minute,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = List<String>.from(
+      prefs.getStringList(DuaReminderPolicy.storageKey) ?? const <String>[],
+    )..removeWhere((e) => e.startsWith('$duaId|'));
+    final entry = DuaReminderPolicy.encodeEntry(duaId, hour, minute);
+    stored.add(entry);
+    await prefs.setStringList(DuaReminderPolicy.storageKey, stored);
+
+    final id = NotificationReconcile.stableId('dua|$duaId');
+    await _plugin.cancel(id: id);
+
+    final now = DateTime.now();
+    final scheduledDate = DuaReminderTime(hour, minute).nextOccurrence(now);
+
+    await _scheduleNotification(
+      id: id,
+      title: DuaReminderPolicy.truncateTitle(title),
+      body: DuaReminderPolicy.truncateBody(body),
+      scheduledDate: scheduledDate,
+      channelId: 'islamic_channel',
+      channelName: 'Islamic Reminders',
+      payload: 'dua:$duaId',
+      daily: true,
+    );
+  }
+
+  /// Remove the reminder for [duaId] (prefs + pending notification).
+  Future<void> removeDuaReminder(String duaId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = List<String>.from(
+      prefs.getStringList(DuaReminderPolicy.storageKey) ?? const <String>[],
+    )..removeWhere((e) => e.startsWith('$duaId|'));
+    await prefs.setStringList(DuaReminderPolicy.storageKey, stored);
+
+    await _plugin.cancel(id: NotificationReconcile.stableId('dua|$duaId'));
+  }
+
+  /// Currently-enabled reminder time for [duaId], or null when off.
+  Future<DuaReminderTime?> duaReminderFor(String duaId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getStringList(DuaReminderPolicy.storageKey) ??
+        const <String>[];
+    for (final raw in stored) {
+      final parsed = DuaReminderPolicy.parseEntry(raw);
+      if (parsed != null && parsed.duaId == duaId) return parsed.time;
+    }
+    return null;
   }
 
   // ────────────────────────────────────────────────────────────

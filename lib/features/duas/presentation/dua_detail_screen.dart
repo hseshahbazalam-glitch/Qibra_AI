@@ -12,7 +12,11 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import '../../../core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import '../../../core/notifications/dua_reminder_policy.dart';
+import '../../../core/services/notification_service.dart';
+import '../../../shared/widgets/controls/app_switch_tile.dart';
 import '../../../shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/features/ai/presentation/ai_explain_screen.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
 
 class DuaDetailScreen extends ConsumerStatefulWidget {
@@ -28,6 +32,121 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   bool _showTransliteration = true;
   bool _showUrdu = true;
   bool _showEnglish = true;
+
+  // P1 · Item 1 — daily reminder state. Loaded from the real
+  // scheduler-backed prefs (no optimistic UI): the card renders only
+  // once the stored state is known.
+  DuaReminderTime _reminderAt = const DuaReminderTime(8, 0);
+  bool _reminderOn = false;
+  bool _reminderLoaded = false;
+  bool _reminderBusy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReminderState();
+  }
+
+  Future<void> _loadReminderState() async {
+    final dua = ref.read(duaByIdProvider(widget.duaId));
+    final fallback = dua == null
+        ? const DuaReminderTime(8, 0)
+        : DuaReminderPolicy.defaultFor(
+            category: dua.category, titleEnglish: dua.titleEnglish);
+    final stored =
+        await NotificationService.instance.duaReminderFor(widget.duaId);
+    if (!mounted) return;
+    setState(() {
+      _reminderAt = stored ?? fallback;
+      _reminderOn = stored != null;
+      _reminderLoaded = true;
+    });
+  }
+
+  String get _reminderBodyText {
+    final dua = ref.read(duaByIdProvider(widget.duaId));
+    if (dua == null) return 'Time for your dua';
+    return dua.arabic.trim().isNotEmpty ? dua.arabic : dua.translationEnglish;
+  }
+
+  Future<void> _toggleReminder(bool on) async {
+    final dua = ref.read(duaByIdProvider(widget.duaId));
+    if (dua == null || _reminderBusy) return;
+    HapticFeedback.selectionClick();
+    setState(() => _reminderBusy = true);
+    if (on) {
+      await NotificationService.instance.setDuaReminder(
+        duaId: widget.duaId,
+        title: dua.titleEnglish,
+        body: _reminderBodyText,
+        hour: _reminderAt.hour,
+        minute: _reminderAt.minute,
+      );
+    } else {
+      await NotificationService.instance.removeDuaReminder(widget.duaId);
+    }
+    if (!mounted) return;
+    setState(() {
+      _reminderOn = on;
+      _reminderBusy = false;
+    });
+    _showReminderSnack(on
+        ? 'Daily reminder set for ${_reminderAt.label}'
+        : 'Reminder turned off');
+  }
+
+  Future<void> _editReminderTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime:
+          TimeOfDay(hour: _reminderAt.hour, minute: _reminderAt.minute),
+      builder: (ctx, child) => Theme(
+        data: ThemeData.dark().copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: QibraNavy.emerald,
+            surface: QibraNavy.textPrimary,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked == null || !mounted) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _reminderAt = DuaReminderTime(picked.hour, picked.minute);
+    });
+    if (_reminderOn) {
+      final dua = ref.read(duaByIdProvider(widget.duaId));
+      if (dua == null) return;
+      // Re-arm the one true daily schedule at the new wall-clock time.
+      await NotificationService.instance.setDuaReminder(
+        duaId: widget.duaId,
+        title: dua.titleEnglish,
+        body: _reminderBodyText,
+        hour: picked.hour,
+        minute: picked.minute,
+      );
+      if (!mounted) return;
+      _showReminderSnack('Reminder moved to ${_reminderAt.label}');
+    }
+  }
+
+  void _showReminderSnack(String message) {
+    final colors = QibraColors.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message,
+            style: AppTextStyles.labelMedium
+                .copyWith(color: colors.onPrimary)),
+        backgroundColor: QibraNavy.emeraldDeep,
+        behavior: SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +210,26 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                         .read(favoriteDuaIdsProvider.notifier)
                         .toggleFavorite(dua.id);
                   },
+                ),
+                // P1 · Item 2 — Ask AI about this dua (violet marks
+                // the AI surface). Reuses the existing explain screen
+                // with this dua's real bundled text as the context.
+                IconButton(
+                  tooltip: 'Explain with AI',
+                  icon: const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: QibraNavy.violet,
+                  ),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AIExplainScreen(
+                        duaTitle: dua.titleEnglish,
+                        duaArabic: dua.arabic,
+                        duaTranslation: dua.translationEnglish,
+                      ),
+                    ),
+                  ),
                 ),
                 // Share button
                 IconButton(
@@ -180,6 +319,10 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                       content: dua.benefits,
                       isHighlighted: true,
                     ),
+                    if (_reminderLoaded) ...[
+                      const SizedBox(height: 16),
+                      _buildReminderCard(colors),
+                    ],
                     const SizedBox(height: 120),
                   ],
                 ),
@@ -683,6 +826,67 @@ Shared via QIBRA AI''';
         ),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // ============================================================
+  // DAILY REMINDER CARD (P1 · Item 1)
+  // Real state only: driven by the persisted scheduler prefs and the
+  // time picker; the toggle reflects what NotificationService holds.
+  // ============================================================
+
+  Widget _buildReminderCard(QibraColors colors) {
+    return Material(
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(16),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: colors.border),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppSwitchListTile(
+            value: _reminderOn,
+            dense: true,
+            onChanged: _reminderBusy ? null : _toggleReminder,
+            secondary: Icon(
+              _reminderOn
+                  ? Icons.notifications_active_rounded
+                  : Icons.notifications_none_rounded,
+              color: QibraNavy.emerald,
+              size: 22,
+            ),
+            title: Text(
+              'Daily Reminder',
+              style: AppTextStyles.labelMedium
+                  .copyWith(color: colors.textPrimary),
+            ),
+            subtitle: Text(
+              _reminderOn
+                  ? 'Sends a daily reminder at ${_reminderAt.label}'
+                  : 'Get a daily nudge to recite this dua',
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: colors.textSecondary),
+            ),
+          ),
+          if (_reminderOn)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _reminderBusy ? null : _editReminderTime,
+                icon: Icon(Icons.schedule_rounded,
+                    size: 15, color: colors.primary),
+                label: Text(
+                  '${_reminderAt.label} · Change',
+                  style: AppTextStyles.labelSmall.copyWith(
+                      color: colors.primary),
+                ),
+              ),
+            ),
+          const SizedBox(height: 4),
+        ],
       ),
     );
   }
