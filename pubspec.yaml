@@ -40,6 +40,10 @@ dependencies:
 
   # --- AUDIO ---
   audioplayers: ^6.1.0
+  # just_audio: the single app-wide Quran player (streaming + offline
+  # tilawat). audioplayers above stays for the notification-sound preview
+  # in settings only — the Quran player is just_audio, one instance, ever.
+  just_audio: ^0.9.40
   path_provider: ^2.1.3
 
   # --- PERMISSIONS ---
