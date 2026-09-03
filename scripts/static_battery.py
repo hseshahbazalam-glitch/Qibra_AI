@@ -38,6 +38,15 @@
 #                      curated symbol -> required import (Isolate/jsonDecode/
 #                      File/compute/...), lexer-level, retro-proven at the
 #                      eb9597d missing-dart:isolate compile error.
+#   G13 binding-deny   lib/** must not call `WidgetsFlutterBinding.instance`
+#                      — no such static exists on stable Flutter (the class
+#                      provides ensureInitialized(); the version-safe
+#                      receiver is `WidgetsBinding.instance`). The
+#                      API-assumption twin of G12: agent-local assumptions
+#                      about framework APIs must not leak to device builds.
+#                      Retro-proven at 9d92800: exactly one finding — the
+#                      tap-routing retry in main.dart, reported by the
+#                      owner's device compile.
 #
 # Design gates (all files): L3 dangling Amiri literal, L4
 # colors.cardElevated (not a QibraColors field), L5 const QibraStatus call
@@ -802,6 +811,26 @@ for fi in FILES.values():
                 "usage-vs-import check (flutter/foundation also provides "
                 "compute/debugPrint/kIsWeb; material/widgets/services/"
                 "cupertino re-export it)")
+
+# ------------------------------------------------------------------------ G13
+# G13 binding-instance deny (owner device gate 2026-09-03, P1 tap-routing
+# pass: `WidgetsFlutterBinding.instance` was written against a static that
+# does not exist on stable Flutter — member-not-found compile error. The
+# banned receiver is a hard denylist, not a lookup table: only two spellings
+# are correct in this repo (`WidgetsBinding.instance`, and
+# `WidgetsFlutterBinding.ensureInitialized()` which stays legal because the
+# pattern requires `.instance`). Matched on fi.code, so comments and string
+# literals never fire it.
+G13_DENY = re.compile(r"WidgetsFlutterBinding\s*\.\s*instance\b")
+
+for fi in FILES.values():
+    for m in G13_DENY.finditer(fi.code):
+        ln = fi.code.count("\n", 0, m.start()) + 1
+        err("G13", fi.path, ln,
+            "WidgetsFlutterBinding has no static 'instance' — use "
+            "WidgetsBinding.instance (version-safe on old and new Flutter); "
+            "ensureInitialized() remains the only WidgetsFlutterBinding "
+            "static allowed here")
 
 # ------------------------------------------------------------------- report
 print(f"static battery: {len(FILES)} dart files under {LIB}")
