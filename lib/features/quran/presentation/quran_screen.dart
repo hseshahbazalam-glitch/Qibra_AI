@@ -16,7 +16,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/l10n/app_strings.dart';
 import '../../../shared/widgets/qibra_stat_card.dart';
 import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
@@ -436,31 +435,10 @@ class _VerseOfDayCard extends ConsumerWidget {
                   );
                 },
               ),
-              // Honesty: recitation audio is NOT bundled → no fake player.
-              Tooltip(
-                message:
-                    'Audio recitation files are not part of this build.',
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: colors.border.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.volume_off_outlined,
-                          size: 14, color: colors.textTertiary),
-                      const SizedBox(width: 5),
-                      Text(
-                        AppStrings.of(context).recitationNotBundled,
-                        style: AppTextStyles.labelSmall.copyWith(
-                            color: colors.textTertiary),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // Audio stage: the stale 'recitation not bundled' badge was
+              // removed because it now claims something false — recitation
+              // streams (see the reader + mini player). Nothing fake is put
+              // in its place; the daily-ayah card keeps only real actions.
             ],
           ),
         ],

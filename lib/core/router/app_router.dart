@@ -25,6 +25,7 @@ import 'package:qibra_ai/features/prayer/presentation/salah_schedule_screen.dart
 import 'package:qibra_ai/features/prayer/presentation/prayer_statistics_screen.dart';
 import 'package:qibra_ai/features/prayer/presentation/tahajjud_details_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/quran_screen.dart';
+import 'package:qibra_ai/features/quran/presentation/quran_mini_player.dart';
 import 'package:qibra_ai/features/quran/presentation/mushaf_reader_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/quran_search_screen.dart';
@@ -218,7 +219,24 @@ final routerProvider = Provider<GoRouter>((ref) {
           onHadithTap: () => context.go(AppRoutes.hadith),
           onAiTap: () => context.go(AppRoutes.aiChat),
           onMoreTap: () => context.go(AppRoutes.more),
-          child: child,
+          // Quran recitation mini bar: renders ONLY while the single
+          // app-wide player is active (hidden when idle), so it
+          // persists across tab navigation and never overlays an idle
+          // UI with chrome that would need fake state to look alive.
+          child: Stack(
+            children: [
+              Positioned.fill(child: child),
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  top: false,
+                  child: QuranMiniPlayer(),
+                ),
+              ),
+            ],
+          ),
         ),
         routes: [
           GoRoute(

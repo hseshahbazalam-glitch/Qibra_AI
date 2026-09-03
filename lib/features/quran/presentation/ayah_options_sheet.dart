@@ -10,7 +10,9 @@ import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../../tafseer/presentation/tafseer_screen.dart';
+import '../data/audio/tilawat.dart';
 import '../data/models/quran_models.dart';
+import '../providers/quran_audio_provider.dart';
 import 'surah_reader_screen.dart';
 
 Future<void> showAyahOptions({
@@ -266,12 +268,64 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
   }
 
   Widget _buildSecondaryActions() {
-    // No recitation player here — audio files are not bundled with
-    // the app, so a Play tile would be a dead end (deleted, not wired).
+    // Audio stage: a REAL Listen action driven by the single app-wide
+    // player. It disables only when playback of THIS ayah has failed
+    // (the mini bar carries the explicit Retry) — never a dead tile.
+    final audio = ref.watch(quranAudioProvider.select((s) =>
+        s.active &&
+                s.surahNumber == widget.surahNumber &&
+                s.ayahNumber == widget.ayahNumber
+            ? s
+            : null));
+    final failedHere = audio != null && audio.phase == QuranAudioPhase.failed;
+    final listenLabel = audio == null
+        ? 'Listen'
+        : (failedHere
+            ? 'Unavailable'
+            : (audio.buffering || audio.phase == QuranAudioPhase.loading
+                ? 'Loading…'
+                : (audio.isPlaying ? 'Pause' : 'Resume')));
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
+          _actionButton(
+            icon: failedHere
+                ? Icons.error_outline_rounded
+                : (audio != null &&
+                        (audio.buffering ||
+                            audio.phase == QuranAudioPhase.loading)
+                    ? Icons.hourglass_empty_rounded
+                    : (audio != null && audio.isPlaying
+                        ? Icons.pause_circle_filled_rounded
+                        : Icons.play_circle_outline_rounded)),
+            label: listenLabel,
+            isActive: audio != null && audio.isPlaying,
+            onTap: failedHere
+                ? null
+                : () {
+                    final ctl = ref.read(quranAudioProvider.notifier);
+                    if (audio != null) {
+                      ctl.toggle();
+                      return;
+                    }
+                    final g = Tilawat.globalAyahNumber(
+                      surah: widget.surahNumber,
+                      ayah: widget.ayahNumber,
+                      numberInQuran: widget.ayah?.numberInQuran ?? 0,
+                    );
+                    Navigator.of(context).pop();
+                    ctl.playAyah(
+                      surahNumber: widget.surahNumber,
+                      surahName: widget.surahName,
+                      ayah: PlayableAyah(
+                        surah: widget.surahNumber,
+                        ayah: widget.ayahNumber,
+                        global: g,
+                      ),
+                    );
+                  },
+          ),
           _actionButton(
             icon: _isBookmarked
                 ? Icons.bookmark_rounded
@@ -298,16 +352,18 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
   Widget _actionButton({
     required IconData icon,
     required String label,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     bool isActive = false,
   }) {
     final colors = QibraColors.of(context);
     return Expanded(
       child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
+        onTap: onTap == null
+            ? null
+            : () {
+                HapticFeedback.selectionClick();
+                onTap();
+              },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
@@ -337,7 +393,9 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                   label,
                   textAlign: TextAlign.center,
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: colors.textSecondary,
+                    color: onTap == null
+                        ? colors.textTertiary
+                        : colors.textSecondary,
                     height: 1.2,
                   ),
                 ),

@@ -5,10 +5,12 @@
 // What changed vs the legacy screen (audit findings):
 //  • 76 hardcoded hexes -> QibraColors tokens (theme-driven:
 //    navy by default, sanctioned ivory when the app theme is light).
-//  • Deleted the floating audio-player bar: it carried a mic chip,
-//    skip controls and fabricated 00:09/01:01 timestamps for audio
-//    that is NOT bundled. The honesty notice now lives as plain
-//    text in the reading-settings sheet (no fake player chrome).
+//  • The deleted floating audio-player bar (fabricated 00:09/01:01
+//    timestamps for unbundled audio) is GONE for good; the audio stage
+//    restored recitation as REAL: a single app-wide just_audio player
+//    (stream + offline), per-ayah play with live position from the
+//    player's own streams, and a mini bar in the shell that renders
+//    only while the player is active. Nothing here may fake a time.
 //  • Deleted dead affordances: no-op search/bookmark appbar icons
 //    (they now route to the real screens), the font-family pill
 //    (labelled with the Amiri font that is not bundled as a local
@@ -32,14 +34,34 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
+import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
 import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
+import '../data/audio/tilawat.dart';
 import '../data/models/quran_models.dart';
+import '../providers/quran_audio_provider.dart';
+import '../providers/quran_download_provider.dart';
 import '../providers/quran_provider.dart' hide readingProgressProvider;
 import '../providers/reading_preferences_provider.dart';
 import 'ayah_options_sheet.dart';
+
+/// The reader's auto-advance queue, built from the REAL ayah list with
+/// the app's own global ayah numbers (numberInQuran; QuranMeta prefix
+/// sum as fallback). No invented entries.
+List<PlayableAyah> tilawatQueueFor(SurahModel surah) => [
+      for (final a in surah.ayahs)
+        PlayableAyah(
+          surah: surah.number,
+          ayah: a.number,
+          global: Tilawat.globalAyahNumber(
+            surah: surah.number,
+            ayah: a.number,
+            numberInQuran: a.numberInQuran,
+          ),
+        ),
+    ];
 
 class SurahReaderScreen extends ConsumerStatefulWidget {
   const SurahReaderScreen({
@@ -74,6 +96,11 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
     super.initState();
     _activeTab =
         _tabs.contains(widget.initialTab) ? widget.initialTab! : 'Arabic';
+    // Download status is read back from disk — check the real files.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(quranDownloadProvider.notifier).checkSurah(widget.surahNumber);
+    });
   }
 
   @override
@@ -109,6 +136,18 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
     final prefs = ref.watch(readingPreferencesProvider);
     final colors = QibraColors.of(context);
     final surah = surahAsync.value;
+    // Narrow selects so unrelated playback (or per-tick position
+    // updates of a DIFFERENT track) never rebuild this list.
+    //  -1: not playing this surah · 1: loading/buffering · 2: playing
+    //   0: paused or failed on this surah (tap resumes/retries)
+    final audioMark = ref.watch(quranAudioProvider.select((s) {
+      if (s.surahNumber != widget.surahNumber || !s.active) return -1;
+      if (s.buffering || s.phase == QuranAudioPhase.loading) return 1;
+      if (s.isPlaying) return 2;
+      return 0;
+    }));
+    final dlStatus = ref.watch(quranDownloadProvider
+        .select((m) => m[widget.surahNumber] ?? const SurahAudioStatus()));
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -116,6 +155,83 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
         title: surah?.name ?? 'Surah ${widget.surahNumber}',
         subtitle: surah == null ? null : 'Surah ${surah.number} of 114',
         actions: [
+          IconButton(
+            tooltip: audioMark == 2
+                ? 'Pause recitation'
+                : (audioMark == 1
+                    ? 'Buffering…'
+                    : (audioMark == 0
+                        ? 'Resume / retry recitation'
+                        : 'Play surah (auto-advances through the ayahs)')),
+            icon: audioMark == 1
+                ? SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colors.primary,
+                    ),
+                  )
+                : Icon(
+                    audioMark == 2
+                        ? Icons.pause_circle_outline_rounded
+                        : Icons.play_circle_outline_rounded,
+                    color: audioMark == -1
+                        ? colors.textSecondary
+                        : colors.primary,
+                  ),
+            onPressed: () {
+              final s = ref.read(surahDetailProvider(widget.surahNumber)).value;
+              if (s == null || s.ayahs.isEmpty) return;
+              final ctl = ref.read(quranAudioProvider.notifier);
+              if (audioMark == -1) {
+                ctl.startQueue(
+                  surahNumber: s.number,
+                  surahName: s.name,
+                  queue: tilawatQueueFor(s),
+                  startIndex: 0,
+                );
+              } else {
+                ctl.toggle();
+              }
+            },
+          ),
+          IconButton(
+            tooltip: dlStatus.label,
+            onPressed: dlStatus.checking || dlStatus.downloading
+                ? null
+                : () {
+                    final ctl = ref.read(quranDownloadProvider.notifier);
+                    if (dlStatus.downloaded) {
+                      _confirmDeleteDownload(ctl, dlStatus);
+                    } else {
+                      ctl.startDownload(widget.surahNumber);
+                    }
+                  },
+            icon: dlStatus.checking || dlStatus.downloading
+                ? SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: dlStatus.downloading
+                          ? colors.primary
+                          : colors.textTertiary,
+                    ),
+                  )
+                : Icon(
+                    dlStatus.downloaded
+                        ? Icons.download_done_rounded
+                        : (dlStatus.failed > 0
+                            ? Icons.sync_problem_rounded
+                            : Icons.download_rounded),
+                    color: dlStatus.downloaded
+                        ? QibraNavy.emerald
+                        : (dlStatus.failed > 0
+                            ? QibraNavy.red
+                            : colors.textSecondary),
+                  ),
+          ),
           IconButton(
             tooltip: 'Search the Quran',
             icon: const Icon(Icons.search_rounded),
@@ -210,6 +326,53 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
           onRetry: () =>
               ref.invalidate(surahDetailProvider(widget.surahNumber)),
         ),
+      ),
+    );
+  }
+
+  /// Real disk facts only: size and counts are the ones checkSurah()
+  /// read back from the filesystem.
+  void _confirmDeleteDownload(
+      QuranDownloadController ctl, SurahAudioStatus st) {
+    final colors = QibraColors.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: QibraColors.of(dialogContext).card,
+        title: Text(
+          'Offline recitation',
+          style: AppTextStyles.titleSmall
+              .copyWith(color: QibraColors.of(dialogContext).textPrimary),
+        ),
+        content: Text(
+          '${st.done}/${st.total} files on disk · '
+          '${SurahAudioStatus.bytesLabel(st.bytes)}. '
+          'Delete this surah\'s download?',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: QibraColors.of(dialogContext).textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              'Keep',
+              style: AppTextStyles.labelMedium
+                  .copyWith(color: QibraColors.of(dialogContext).textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              ctl.deleteDownload(widget.surahNumber);
+            },
+            child: Text(
+              'Delete',
+              style: AppTextStyles.labelMedium
+                  .copyWith(color: colors.textSecondary),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -419,6 +582,14 @@ class _AyahCard extends ConsumerWidget {
       isBookmarkedProvider((surah: surah.number, ayah: ayah.number)),
     );
     final strings = AppStrings.of(context);
+    // Only the card the single player is actually on re-renders with
+    // position ticks; all other cards stay static (narrow select).
+    final cur = ref.watch(quranAudioProvider.select((s) =>
+        s.active &&
+                s.surahNumber == surah.number &&
+                s.ayahNumber == ayah.number
+            ? s
+            : null));
 
     final arabicSize = AppFontSize.arabicMedium * prefs.fontScale;
     final showTranslation = activeTab == 'Translation' ||
@@ -462,6 +633,54 @@ class _AyahCard extends ConsumerWidget {
                   ),
                 ),
                 const Spacer(),
+                IconButton(
+                  tooltip: cur == null
+                      ? 'Play from here'
+                      : (cur.phase == QuranAudioPhase.failed
+                          ? 'Retry'
+                          : (cur.isPlaying
+                              ? 'Pause'
+                              : (cur.buffering ||
+                                      cur.phase == QuranAudioPhase.loading
+                                  ? 'Buffering…'
+                                  : 'Resume'))),
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    final ctl = ref.read(quranAudioProvider.notifier);
+                    if (cur != null) {
+                      ctl.toggle();
+                      return;
+                    }
+                    final idx =
+                        surah.ayahs.indexWhere((a) => a.number == ayah.number);
+                    ctl.startQueue(
+                      surahNumber: surah.number,
+                      surahName: surah.name,
+                      queue: tilawatQueueFor(surah),
+                      startIndex: idx < 0 ? 0 : idx,
+                    );
+                  },
+                  icon: cur != null &&
+                          (cur.buffering ||
+                              cur.phase == QuranAudioPhase.loading)
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colors.primary,
+                          ),
+                        )
+                      : Icon(
+                          cur != null && cur.isPlaying
+                              ? Icons.pause_circle_filled_rounded
+                              : Icons.play_circle_outline_rounded,
+                          color: cur == null
+                              ? colors.textTertiary
+                              : colors.primary,
+                          size: 20,
+                        ),
+                ),
                 IconButton(
                   tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark ayah',
                   onPressed: () {
@@ -516,6 +735,40 @@ class _AyahCard extends ConsumerWidget {
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textSecondary,
                   height: 1.5,
+                ),
+              ),
+            ],
+            // Playback UI for THIS ayah exists only while the player is
+            // on it: real reported progress, an honest indeterminate
+            // line while buffering, and the truthful failure copy.
+            if (cur != null) ...[
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: cur.progress != null
+                    ? LinearProgressIndicator(
+                        value: cur.progress,
+                        minHeight: 3,
+                        color: colors.primary,
+                        backgroundColor: colors.border,
+                      )
+                    : const LinearProgressIndicator(minHeight: 3),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                cur.phase == QuranAudioPhase.failed
+                    ? (cur.error ?? Tilawat.offlineFailureMessage)
+                    : (cur.buffering || cur.phase == QuranAudioPhase.loading
+                        ? 'Buffering…'
+                        : (cur.duration != null
+                            ? '${Tilawat.clockLabel(cur.position)} / '
+                                '${Tilawat.clockLabel(cur.duration!)}'
+                            : Tilawat.clockLabel(cur.position))),
+                textAlign: TextAlign.right,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: cur.phase == QuranAudioPhase.failed
+                      ? QibraNavy.red
+                      : colors.textTertiary,
                 ),
               ),
             ],
@@ -661,7 +914,6 @@ class _ReadingSettingsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final prefs = ref.watch(readingPreferencesProvider);
-    final strings = AppStrings.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -731,7 +983,10 @@ class _ReadingSettingsSheet extends ConsumerWidget {
             Container(height: 1, color: colors.border),
             const SizedBox(height: 10),
             Text(
-              strings.recitationNotBundled,
+              'Recitation (Mishary Alafasy) streams from everyayah.com with '
+              'a cdn.islamic.network fallback; the download action in the '
+              'app bar saves a surah to this device for offline play. No '
+              'audio files are bundled with the app.',
               style:
                   AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
             ),
