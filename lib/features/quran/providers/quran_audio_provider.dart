@@ -7,12 +7,14 @@
 // Phases: idle / loading / playing / paused / failed. Position and
 // duration come ONLY from the player's real streams — while the
 // player has not reported a duration, none is shown (no invented
-// totals). Auto-advance walks the real ayah queue and stops at the
-// end of the surah. Source ladder (local file → primary URL →
-// fallback URL once → honest failure) is the pure Tilawat.advance
-// logic unit-tested in isolation; the provider just executes it.
-// Focus: setHandleInterruptions(true) — just_audio's default session
-// handling pauses for phone calls; no manifest edits.
+// totals). Auto-advance walks the real ayah queue and stops at the end
+// of the surah. The source ladder (local file → primary URL → fallback
+// URL once → honest failure) is the pure Tilawat.advance logic
+// unit-tested in isolation; the provider just executes it.
+// Interruption handling (phone-call auto-pause) rides the AudioPlayer
+// constructor default handleInterruptions: true — never an optional
+// setter call (0.9.46 has no setHandleInterruptions; see build()).
+// No manifest edits.
 
 import 'dart:async';
 
@@ -119,7 +121,10 @@ class QuranAudioController extends Notifier<QuranAudioState> {
   @override
   QuranAudioState build() {
     _player = AudioPlayer();
-    unawaited(_player.setHandleInterruptions(true));
+    // handleInterruptions is the CONSTRUCTOR DEFAULT (true) in just_audio —
+    // there is deliberately no setHandleInterruptions() call: that method
+    // does not exist in 0.9.46, the version this app resolves to (device
+    // build report 2026-09-03; same trap class as gate G13).
 
     _subs.add(_player.playerStateStream.listen((ps) {
       if (ps.processingState == ProcessingState.completed) {
@@ -329,15 +334,22 @@ class QuranAudioController extends Notifier<QuranAudioState> {
       }
       state = state.copyWith(clearError: true, buffering: true);
       // play()'s Future completes when the track pauses/ends — never
-      // await it here; states arrive through the player's streams.
-      unawaited(_player.play().catchError((Object e) {
-        debugPrint('⚠️ tilawat playback error: $e');
-        state = state.copyWith(
-          phase: QuranAudioPhase.failed,
-          buffering: false,
-          error: Tilawat.offlineFailureMessage,
-        );
-      }));
+      // await it here; states arrive through the player's streams. A
+      // real playback error lands in the try/catch below (typed: a bare
+      // void .catchError handler would itself TypeError on this
+      // Future<Duration?> the moment an error actually arrived).
+      unawaited(() async {
+        try {
+          await _player.play();
+        } catch (e) {
+          debugPrint('⚠️ tilawat playback error: $e');
+          state = state.copyWith(
+            phase: QuranAudioPhase.failed,
+            buffering: false,
+            error: Tilawat.offlineFailureMessage,
+          );
+        }
+      }());
     } catch (e) {
       debugPrint('⚠️ tilawat play failed: $e');
       state = state.copyWith(

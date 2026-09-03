@@ -47,6 +47,21 @@
 #                      Retro-proven at 9d92800: exactly one finding — the
 #                      tap-routing retry in main.dart, reported by the
 #                      owner's device compile.
+#                      GATE NOTE (honest limitation, audio stage 2026-09-03):
+#                      PLUGIN APIs cannot be gated from this repo at all —
+#                      the plugin lives in the pub cache, not the tree, so
+#                      no static scan can prove a method exists in the
+#                      version a device resolves. just_audio's
+#                      setHandleInterruptions() shipped exactly this way
+#                      (absent in 0.9.46, the resolved version; G13-class
+#                      trap, caught only by the owner's device compile).
+#                      Working rule that stands IN for a gate: plugin APIs
+#                      must be assumed oldest-supported (only members
+#                      present since the pubspec floor), and constructor
+#                      defaults beat optional setter calls whenever the
+#                      default already does the job. Reports for plugin
+#                      work must enumerate the exact API surface used so
+#                      the owner can eyeball it against their lockfile.
 #   G14 material-shape `Material(` must not take BOTH shape: and
 #                      borderRadius: as direct arguments — Flutter debug
 #                      asserts !(shape != null && borderRadius != null).
