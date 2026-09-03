@@ -95,3 +95,9 @@ coverage/
 
 # Generated duplicate-code reports (recreate with `npx jscpd --config jscpd.json`)
 reports/duplicates/generated/
+
+# Audio stage: tilawat recitation files are runtime downloads into
+# app-internal storage — never part of the repo (G15 enforces absence).
+tilawat/
+**/tilawat/
+*.mp3.part

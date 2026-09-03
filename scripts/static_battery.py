@@ -55,6 +55,13 @@
 #                      and never counts. Retro-proven at 8992f2e: exactly
 #                      two findings, the P1 card bugs from the owner's
 #                      device assertion batch.
+#   G15 no-audio-bins  The repo tree must contain no committed audio
+#                      binaries (.mp3/.m4a/.ogg/.opus/.wav/.aac). The two
+#                      pre-existing, sanctioned azan notification sounds
+#                      are the explicit allowlist; everything else fails —
+#                      recitation audio is streaming + runtime app-storage
+#                      downloads ONLY (see tilawat.dart). Also requires
+#                      .gitignore to cover tilawat/ download dirs.
 #
 # Design gates (all files): L3 dangling Amiri literal, L4
 # colors.cardElevated (not a QibraColors field), L5 const QibraStatus call
@@ -882,6 +889,39 @@ for fi in FILES.values():
             err("G14", fi.path, ln,
                 "Material takes both 'shape:' and 'borderRadius:' — debug "
                 "assert fires; keep the radius inside the ShapeBorder only")
+
+# ------------------------------------------------------------------------ G15
+# G15 no-audio-binaries (owner audio-stage rule): recitation audio is
+# STREAMING + runtime app-storage downloads ONLY — the repo must never
+# carry an audio binary. The two pre-existing, sanctioned azan
+# notification sounds are the explicit allowlist (they shipped long
+# before this stage and are referenced by the notification channels);
+# anything else with an audio extension fails, including a tilawat
+# download that landed in the tree by accident. The second half checks
+# .gitignore actually covers the tilawat download dir pattern.
+G15_AUDIO_EXT = {".mp3", ".m4a", ".ogg", ".opus", ".wav", ".aac"}
+G15_ALLOW = {
+    "android/app/src/main/res/raw/azan_makkah.mp3",
+    "assets/audio/azan_makkah.mp3",
+}
+
+for p in sorted(ROOT.rglob("*")):
+    if ".git" in p.parts:
+        continue
+    if p.is_file() and p.suffix.lower() in G15_AUDIO_EXT:
+        rel = str(p.relative_to(ROOT))
+        if rel not in G15_ALLOW:
+            err("G15", p, 1,
+                "audio binary committed in the repo tree — recitation "
+                "audio is streaming/runtime-downloads only "
+                "(sanctioned azan sounds are the sole allowlist)")
+
+_gitignore = ROOT / ".gitignore"
+_gi_text = _gitignore.read_text() if _gitignore.is_file() else ""
+if "tilawat/" not in _gi_text:
+    err("G15", _gitignore if _gitignore.is_file() else ROOT, 1,
+        ".gitignore must cover the tilawat/ download-dir pattern "
+        "(defense-in-depth against runtime audio entering the repo)")
 
 # ------------------------------------------------------------------- report
 print(f"static battery: {len(FILES)} dart files under {LIB}")
