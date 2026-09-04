@@ -8,10 +8,14 @@
 // ============================================================
 
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
@@ -26,6 +30,20 @@ part 'profile_setup_screen.form.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
+
+  /// Pure path shape (Windows separators normalized) — unit-tested.
+  static String avatarDestPath(String appSupportRoot) {
+    return '${appSupportRoot.replaceAll('\\', '/')}/profile/avatar.jpg';
+  }
+
+  /// Pure pick semantics — unit-tested: a null result (user cancelled or
+  /// the pick/copy failed) NEVER changes the stored path.
+  static String? nextAvatarPath({
+    required String? current,
+    required String? pickedAndStored,
+  }) {
+    return pickedAndStored ?? current;
+  }
 
   @override
   ConsumerState<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
@@ -53,7 +71,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   String _selectedCountry = 'Pakistan';
   String _selectedMadhab = 'Hanafi';
   String _selectedPrayerMethod = 'Karachi';
-  bool _hasAvatar = false;
+  /// Path of the REAL stored avatar file, or null when none exists.
+  /// The single source of truth: UI state mirrors the filesystem, never
+  /// the other way around.
+  String? _avatarPath;
   bool _isLoading = false;
 
   // ── ANIMATIONS ───────────────────────────────────────
@@ -138,6 +159,21 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
     _entranceController.forward();
     _avatarController.forward();
+    _loadStoredAvatar();
+  }
+
+  /// Read the avatar back from its stored file at init — what the screen
+  /// shows is what the app-internal storage actually holds.
+  Future<void> _loadStoredAvatar() async {
+    try {
+      final dir = await getApplicationSupportDirectory();
+      final path = ProfileSetupScreen.avatarDestPath(dir.path);
+      if (await File(path).exists() && mounted) {
+        setState(() => _avatarPath = path);
+      }
+    } catch (e) {
+      debugPrint('\u26a0\ufe0f profile avatar load failed: $e');
+    }
   }
 
   @override
@@ -237,7 +273,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                       label: 'Camera',
                       onTap: () {
                         Navigator.pop(context);
-                        _mockAvatarUpload('Camera');
+                        pickAvatar(ImageSource.camera);
                       },
                     ),
                   ),
@@ -248,7 +284,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                       label: 'Gallery',
                       onTap: () {
                         Navigator.pop(context);
-                        _mockAvatarUpload('Gallery');
+                        pickAvatar(ImageSource.gallery);
                       },
                     ),
                   ),
@@ -257,13 +293,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
               const SizedBox(height: AppSpacing.lg),
 
-              // Remove option (if avatar exists)
-              if (_hasAvatar) ...[
+              // Remove option — visible only when a REAL file exists, and
+              // it deletes that file before the state changes.
+              if (_avatarPath != null) ...[
                 GestureDetector(
                   onTap: () {
                     Navigator.pop(context);
                     HapticFeedback.selectionClick();
-                    setState(() => _hasAvatar = false);
+                    _removeAvatar();
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -326,33 +363,107 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     );
   }
 
-  void _mockAvatarUpload(String source) {
-    final colors = QibraColors.of(context);
-    HapticFeedback.heavyImpact();
-    setState(() => _hasAvatar = true);
-    _avatarController.reset();
-    _avatarController.forward();
+  /// Real avatar selection via image_picker (already a dependency — no
+  /// new package, no manifest edits, no cloud upload). Rules:
+  ///   • cancel (null) → NOTHING happens — cancel is not an error;
+  ///   • success → the bytes are copied into app-internal storage and the
+  ///     UI updates from that real file — a success toast is only ever
+  ///     shown after a verified stored file;
+  ///   • failure (permission denied, copy error) → the real error text is
+  ///     shown and the stored avatar state stays exactly as it was.
+  Future<void> pickAvatar(ImageSource source) async {
+    try {
+      final picked = await ImagePicker().pickImage(source: source);
+      if (picked == null) return; // user cancelled — no toast, no state change
+      final bytes = await picked.readAsBytes();
+      if (bytes.isEmpty) throw StateError('the picked file was empty');
+      final dir = await getApplicationSupportDirectory();
+      final dest = ProfileSetupScreen.avatarDestPath(dir.path);
+      await File(dest).parent.create(recursive: true);
+      final tmp = File('$dest.tmp');
+      await tmp.writeAsBytes(bytes, flush: true);
+      // staged copy verified non-empty, then atomic-ish swap
+      if (await tmp.length() > 0) {
+        if (await File(dest).exists()) await File(dest).delete();
+        await tmp.rename(dest);
+      } else {
+        await tmp.delete();
+        throw StateError('could not store the avatar file');
+      }
+      if (!mounted) return;
+      final stored =
+          ProfileSetupScreen.nextAvatarPath(current: _avatarPath, pickedAndStored: dest);
+      setState(() => _avatarPath = stored);
+      _avatarController.reset();
+      _avatarController.forward();
+      final colors = QibraColors.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: QibraNavy.textPrimary,
+                size: 20,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Photo selected from '
+                '${source == ImageSource.camera ? 'Camera' : 'Gallery'}',
+              ),
+            ],
+          ),
+          backgroundColor: colors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.cardRadius,
+          ),
+        ),
+      );
+    } catch (e) {
+      // Honest failure copy; the existing avatar state is untouched.
+      debugPrint('\u26a0\ufe0f profile avatar pick failed: $e');
+      if (!mounted) return;
+      final colors = QibraColors.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Avatar not changed — $e'),
+          backgroundColor: colors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.cardRadius,
+          ),
+        ),
+      );
+    }
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.check_circle,
-              color: QibraNavy.textPrimary,
-              size: 20,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Text('Photo selected from $source'),
-          ],
+  /// Delete the stored file first; only on a real delete does the UI
+  /// drop the avatar. A failed delete keeps the avatar (the file exists).
+  Future<void> _removeAvatar() async {
+    final path = _avatarPath;
+    if (path == null) return;
+    try {
+      final f = File(path);
+      if (await f.exists()) await f.delete();
+    } catch (e) {
+      debugPrint('\u26a0\ufe0f profile avatar delete failed: $e');
+      if (!mounted) return;
+      final colors = QibraColors.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Photo still stored — delete failed: $e'),
+          backgroundColor: colors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.cardRadius,
+          ),
         ),
-        backgroundColor: colors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.cardRadius,
-        ),
-      ),
-    );
+      );
+      return; // state unchanged — the file is genuinely still there
+    }
+    if (!mounted) return;
+    setState(() => _avatarPath = null);
   }
 
   // ── DATE PICKER ──────────────────────────────────────
@@ -710,24 +821,34 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                   ),
                 ),
                 child: Center(
-                  child: _hasAvatar
-                      ? Container(
+                  child: _avatarPath == null
+                      ? const Icon(
+                          Icons.person_add_alt_1_rounded,
+                          color: QibraNavy.textPrimary,
+                          size: 48,
+                        )
+                      // The REAL picked photo; the icon fallback only
+                      // renders if the stored file fails to decode.
+                      : Container(
                           width: 100,
                           height: 100,
+                          clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: colors.primary,
                           ),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            color: QibraNavy.textPrimary,
-                            size: 60,
+                          child: Image.file(
+                            File(_avatarPath!),
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                              Icons.person_rounded,
+                              color: QibraNavy.textPrimary,
+                              size: 60,
+                            ),
                           ),
-                        )
-                      : const Icon(
-                          Icons.person_add_alt_1_rounded,
-                          color: QibraNavy.textPrimary,
-                          size: 48,
                         ),
                 ),
               ),

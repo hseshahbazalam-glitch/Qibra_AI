@@ -77,6 +77,21 @@
 #                      recitation audio is streaming + runtime app-storage
 #                      downloads ONLY (see tilawat.dart). Also requires
 #                      .gitignore to cover tilawat/ download dirs.
+#   G16 no-mock-names  No identifier in lib/** may contain mock/fake/dummy
+#                      (case-insensitive), checked on stripped code so only
+#                      real identifiers count — comments and string
+#                      literals never trigger it. Origin: the profile-avatar
+#                      honesty violation (deep audit 2026-09-04) shipped a
+#                      selection flow that never opened a picker beside a
+#                      method literally named for fabrication. Honest code
+#                      has nothing to hide, so the naming smell is a
+#                      device-free red flag. ONE documented file-level
+#                      exception: lib/core/providers/auth_provider.dart —
+#                      _isLegacyFakeToken / _purgeLegacyFakeTokens name the
+#                      ANTI-fake purge (code that deletes fake tokens old
+#                      builds left behind); renaming would obscure that
+#                      purpose and auth/ is a do-not-touch file. If that
+#                      purge is ever removed, drop the exception too.
 #
 # Design gates (all files): L3 dangling Amiri literal, L4
 # colors.cardElevated (not a QibraColors field), L5 const QibraStatus call
@@ -937,6 +952,31 @@ if "tilawat/" not in _gi_text:
     err("G15", _gitignore if _gitignore.is_file() else ROOT, 1,
         ".gitignore must cover the tilawat/ download-dir pattern "
         "(defense-in-depth against runtime audio entering the repo)")
+
+# ------------------------------------------------------------------------ G16
+# G16 no-mock-identifiers (owner deep-audit rule 2026-09-04): fabricated
+# UI hid behind _mockAvatarUpload while the honest name was the cheapest
+# tell. Scan stripped code (comments + strings already removed by
+# strip_noise) for identifiers containing mock/fake/dummy, case-
+# insensitive. See header for the single allowlisted exception.
+G16_MOCKY = re.compile(r"\b\w*(?:mock|fake|dummy)\w*\b", re.IGNORECASE)
+G16_ALLOW_FILES = {
+    # The legacy fake-token PURGE — identifiers naming fake data that the
+    # code deletes. Anti-fake by design; renaming obscures it, and auth/
+    # is do-not-touch. Remove this entry if the purge ever goes away.
+    "lib/core/providers/auth_provider.dart",
+}
+for fi in FILES.values():
+    rel = str(fi.path.relative_to(ROOT))
+    if rel in G16_ALLOW_FILES:
+        continue
+    for m in G16_MOCKY.finditer(fi.code):
+        ln = fi.code.count("\n", 0, m.start()) + 1
+        err("G16", fi.path, ln,
+            f"identifier '{m.group(0)}' contains mock/fake/dummy — "
+            "fabricated behavior must not ship beside honest surfaces "
+            "(see gate header; only the auth legacy-token purge is "
+            "allowlisted)")
 
 # ------------------------------------------------------------------- report
 print(f"static battery: {len(FILES)} dart files under {LIB}")

@@ -252,7 +252,7 @@ class HalalService {
 
   // ─── Analyze Text (OCR / Manual) ───────────────────────────
   static HalalVerdict analyzeText(String text) {
-    final fakeProduct = ProductData(
+    final sampleProduct = ProductData(
       barcode: '',
       name: 'Manual Check',
       brand: '',
@@ -266,7 +266,7 @@ class HalalService {
       traces: '',
       hasHalalCertification: false,
     );
-    return analyzeProduct(fakeProduct);
+    return analyzeProduct(sampleProduct);
   }
 
   // ─── Alcohol Detection ─────────────────────────────────────
