@@ -46,6 +46,32 @@ class AppStrings {
       );
   String get retry => _t('Retry', 'إعادة المحاولة', 'دوبارہ کوشش');
   String get unknown => _t('Unknown', 'غير معروف', 'نامعلوم');
+  String get continueAsGuest =>
+      _t('Continue as guest', 'المتابعة كضيف', 'مہمان کے طور پر جاری رکھیں');
+  String get settings => _t('Settings', 'الإعدادات', 'ترتیبات');
+  String get language => _t('Language', 'اللغة', 'زبان');
+  String get guest => _t('Guest', 'ضيف', 'مہمان');
+  String get tafsirUnavailable => _t(
+        'Verified tafsir is not bundled in this build.',
+        'التفسير الموثّق غير مضمّن في هذا الإصدار.',
+        'مستند تفسیر اس بلڈ میں شامل نہیں ہے۔',
+      );
+  String get translationUnavailable => _t(
+        'Verified translation unavailable for this language.',
+        'لا تتوفر ترجمة موثّقة لهذه اللغة.',
+        'اس زبان کا تصدیق شدہ ترجمہ دستیاب نہیں۔',
+      );
+  String get quranTranslation => _t(
+        'Quran translation',
+        'ترجمة القرآن',
+        'قرآن کا ترجمہ',
+      );
+  String get hadithLanguage => _t(
+        'Hadith language',
+        'لغة الحديث',
+        'حدیث کی زبان',
+      );
+
   String get navHome => _t('Home', 'الرئيسية', 'ہوم');
   String get navQuran => _t('Quran', 'القرآن', 'قرآن');
   String get navPrayer => _t('Prayer', 'الصلاة', 'نماز');
