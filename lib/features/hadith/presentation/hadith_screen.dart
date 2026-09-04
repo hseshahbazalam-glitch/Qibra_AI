@@ -10,6 +10,7 @@ import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/design_system/qibra_navy.dart';
+import '../../../core/utils/search_normalizer.dart';
 import '../../../shared/widgets/media/pattern_backdrop.dart';
 import '../../../shared/widgets/media/safe_image.dart';
 import '../../../shared/widgets/qibra_status.dart';
@@ -18,6 +19,7 @@ import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
 import '../data/services/hadith_view_history.dart';
 import '../providers/hadith_provider.dart';
+import '../providers/hadith_preferences_provider.dart';
 import 'hadith_book_screen.dart';
 import 'hadith_related_section.dart';
 
@@ -352,6 +354,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
           builder: (context, ref, _) {
             final bookmarked =
                 ref.watch(isHadithBookmarkedProvider(hadith.id));
+            // World-class hadith pass (item 1): detail-sheet text
+            // follows the persisted split scales.
+            final prefs = ref.watch(hadithReadingPreferencesProvider);
             return DraggableScrollableSheet(
               expand: false,
               initialChildSize: 0.82,
@@ -430,6 +435,8 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         textAlign: TextAlign.right,
                         style: AppArabicStyles.hadithArabic.copyWith(
                           color: colors.textPrimary,
+                          fontSize: AppFontSize.arabicMedium *
+                              prefs.arabicScale,
                         ),
                       ),
                     ],
@@ -441,6 +448,8 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         textDirection: TextDirection.rtl,
                         style: AppTextStyles.bodyLarge.copyWith(
                           color: colors.textPrimary,
+                          fontSize:
+                              AppFontSize.bodyLarge * prefs.translationScale,
                         ),
                       ),
                     ],
@@ -450,6 +459,8 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         hadith.textEnglish,
                         style: AppTextStyles.bodyLarge.copyWith(
                           color: colors.textSecondary,
+                          fontSize:
+                              AppFontSize.bodyLarge * prefs.translationScale,
                         ),
                       ),
                     ],
@@ -477,6 +488,10 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
 
   void _showSearchSheet(BuildContext context) {
     final colors = QibraColors.of(context);
+    // World-class hadith pass (item 2): a sheet-local controller makes
+    // the recents chips REAL — tapping one writes the query back into
+    // the same field the user types in, then re-runs it.
+    final controller = TextEditingController();
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -496,6 +511,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: TextField(
+                    controller: controller,
                     autofocus: true,
                     decoration: const InputDecoration(
                       hintText: 'Search hadiths',
@@ -505,6 +521,13 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                       ref.read(hadithSearchQueryProvider.notifier).state =
                           value;
                     },
+                    onSubmitted: (value) {
+                      final trimmed = value.trim();
+                      if (trimmed.isEmpty) return;
+                      ref
+                          .read(hadithRecentSearchesProvider.notifier)
+                          .add(trimmed);
+                    },
                   ),
                 ),
                 Expanded(
@@ -513,10 +536,83 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                       final query = ref.watch(hadithSearchQueryProvider);
                       final results = ref.watch(hadithSearchResultsProvider);
                       if (query.trim().isEmpty) {
-                        return const QibraEmptyState(
-                          icon: Icons.search_rounded,
-                          title: 'Search the collections',
-                          message: 'Try words such as prayer, patience, or charity.',
+                        final recents =
+                            ref.watch(hadithRecentSearchesProvider);
+                        return Column(
+                          children: [
+                            if (recents.isNotEmpty) ...[
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 8, 8, 0),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.history_rounded,
+                                        size: 16,
+                                        color: colors.textSecondary),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Recent searches',
+                                      style: AppTextStyles.labelMedium
+                                          .copyWith(
+                                        color: colors.textPrimary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    TextButton(
+                                      onPressed: () => ref
+                                          .read(hadithRecentSearchesProvider
+                                              .notifier)
+                                          .clear(),
+                                      child: Text(
+                                        'Clear',
+                                        style: AppTextStyles.labelSmall
+                                            .copyWith(
+                                          color: colors.error,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    for (final entry in recents)
+                                      QibraChip(
+                                        label: entry,
+                                        selected: false,
+                                        onTap: () {
+                                          controller.text = entry;
+                                          ref
+                                              .read(hadithSearchQueryProvider
+                                                  .notifier)
+                                              .state = entry;
+                                          ref
+                                              .read(
+                                                  hadithRecentSearchesProvider
+                                                      .notifier)
+                                              .add(entry);
+                                        },
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            const Expanded(
+                              child: QibraEmptyState(
+                                icon: Icons.search_rounded,
+                                title: 'Search the collections',
+                                message:
+                                    'Try words such as prayer, patience, or charity.',
+                              ),
+                            ),
+                          ],
                         );
                       }
                       return results.when(
@@ -536,6 +632,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                               final hadith = items[index].hadith;
                               return _HadithTile(
                                 hadith: hadith,
+                                highlightQuery: query.trim(),
                                 onTap: () => _showDetail(context, hadith),
                               );
                             },
@@ -556,6 +653,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
       },
     ).whenComplete(() {
       ref.read(hadithSearchQueryProvider.notifier).state = '';
+      controller.dispose();
     });
   }
 
@@ -627,6 +725,9 @@ class _TodaysHadithCard extends ConsumerWidget {
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith!.id));
     final lang = ref.watch(hadithLanguageProvider);
     final translation = hadithTextForLanguage(hadith!, lang);
+    // World-class hadith pass (item 1): today's card text follows the
+    // persisted split scales like every other hadith body surface.
+    final prefs = ref.watch(hadithReadingPreferencesProvider);
     return QibraCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -659,6 +760,7 @@ class _TodaysHadithCard extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
               style: AppArabicStyles.hadithArabic.copyWith(
                 color: colors.textPrimary,
+                fontSize: AppFontSize.arabicMedium * prefs.arabicScale,
               ),
             ),
           ],
@@ -671,6 +773,7 @@ class _TodaysHadithCard extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: colors.textSecondary,
+                fontSize: AppFontSize.bodyMedium * prefs.translationScale,
               ),
             ),
           ],
@@ -739,17 +842,38 @@ class _TodaysHadithCard extends ConsumerWidget {
 }
 
 class _HadithTile extends ConsumerWidget {
-  const _HadithTile({required this.hadith, required this.onTap});
+  const _HadithTile({
+    required this.hadith,
+    required this.onTap,
+    this.highlightQuery = '',
+  });
 
   final HadithModel hadith;
   final VoidCallback onTap;
+
+  /// World-class hadith pass (item 2): when non-empty (search results
+  /// only), query terms are emphasised inside the previews — folded
+  /// matching on ORIGINAL coordinates, restrained primary wash. The
+  /// featured list leaves it empty and renders plain Text.
+  final String highlightQuery;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
-    final lang = ref.watch(hadithLanguageProvider);
-    final translation = hadithTextForLanguage(hadith, lang);
+    // World-class hadith pass (item 1): list-card text follows the
+    // persisted split scales. (The old unused lang/translation locals
+    // died here in the item-6 sweep — this tile always showed English.)
+    final prefs = ref.watch(hadithReadingPreferencesProvider);
+    final q = highlightQuery.trim();
+    final arabicStyle = AppArabicStyles.quranSmall.copyWith(
+      color: colors.textPrimary,
+      fontSize: AppFontSize.arabicSmall * prefs.arabicScale,
+    );
+    final translationStyle = AppTextStyles.bodySmall.copyWith(
+      color: colors.textSecondary,
+      fontSize: AppFontSize.bodySmall * prefs.translationScale,
+    );
     return QibraCard(
       padding: const EdgeInsets.all(16),
       onTap: onTap,
@@ -789,30 +913,89 @@ class _HadithTile extends ConsumerWidget {
             ],
           ),
           if (hadith.hasArabic)
-            Text(
-              hadith.textArabic,
-              textAlign: TextAlign.right,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppArabicStyles.quranSmall.copyWith(
-                color: colors.textPrimary,
-              ),
-            ),
+            q.isEmpty
+                ? Text(
+                    hadith.textArabic,
+                    textAlign: TextAlign.right,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: arabicStyle,
+                  )
+                : RichText(
+                    textAlign: TextAlign.right,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                      children: hadithHighlightSpans(
+                        hadith.textArabic,
+                        q,
+                        arabicStyle,
+                        colors.primary,
+                      ),
+                    ),
+                  ),
           if (hadith.hasEnglish) ...[
             const SizedBox(height: 6),
-            Text(
-              hadith.textEnglish,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: colors.textSecondary,
-              ),
-            ),
+            q.isEmpty
+                ? Text(
+                    hadith.textEnglish,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: translationStyle,
+                  )
+                : RichText(
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                      children: hadithHighlightSpans(
+                        hadith.textEnglish,
+                        q,
+                        translationStyle,
+                        colors.primary,
+                      ),
+                    ),
+                  ),
           ],
         ],
       ),
     );
   }
+}
+
+/// Pure span builder behind the search previews (unit-tested, item 2):
+/// [SearchNormalizer.allMatches] folds diacritics/hamza (Arabic/Urdu)
+/// and case (latin) but answers in ORIGINAL-text coordinates, so the
+/// substrings emitted here are verbatim corpus text — emphasis never
+/// rewrites or reorders the hadith. No folded match -> plain single
+/// span, never a fabricated highlight.
+List<TextSpan> hadithHighlightSpans(
+  String text,
+  String query,
+  TextStyle style,
+  Color accent,
+) {
+  final matches = SearchNormalizer.allMatches(text, query);
+  if (matches.isEmpty) return [TextSpan(text: text, style: style)];
+  final out = <TextSpan>[];
+  var last = 0;
+  for (final m in matches) {
+    if (m.start > last) {
+      out.add(TextSpan(text: text.substring(last, m.start), style: style));
+    }
+    out.add(TextSpan(
+      text: text.substring(m.start, m.end),
+      style: style.copyWith(
+        color: accent,
+        fontWeight: FontWeight.w800,
+        backgroundColor: accent.withValues(alpha: 0.14),
+      ),
+    ));
+    last = m.end;
+  }
+  if (last < text.length) {
+    out.add(TextSpan(text: text.substring(last), style: style));
+  }
+  return out;
 }
 
 // ============================================================
