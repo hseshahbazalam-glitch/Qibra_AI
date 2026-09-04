@@ -17,6 +17,8 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,7 +30,9 @@ import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../shared/widgets/qibra_status.dart';
 import '../data/models/quran_models.dart';
-import '../providers/quran_provider.dart';
+import '../data/repository/reading_progress_repository.dart';
+import '../providers/quran_provider.dart' hide readingProgressProvider;
+import '../providers/reading_progress_provider.dart';
 import '../../tafseer/presentation/tafseer_screen.dart';
 
 /// One ayah occurrence on a mushaf page, with its surah context.
@@ -86,6 +90,7 @@ class MushafReaderScreen extends ConsumerStatefulWidget {
 class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   late PageController _pageController;
   Set<int> _bookmarkedPages = {};
+  bool _userPaged = false;
 
   @override
   void initState() {
@@ -95,6 +100,48 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       ref.read(_currentPageProvider.notifier).state = widget.initialPage;
     });
     _loadBookmarks();
+    _restoreLastPage();
+  }
+
+  /// Restore the last-viewed page from the shared progress store (item 2).
+  /// An explicit route page argument always wins over the stored one.
+  Future<void> _restoreLastPage() async {
+    if (widget.initialPage != 1) return;
+    try {
+      final saved =
+          await ReadingProgressRepository.instance.getCurrentPage();
+      if (saved == null || !mounted || _userPaged) return;
+      if (saved.pageNumber < 1 || saved.pageNumber > 604) return;
+      if (saved.pageNumber == widget.initialPage) return;
+      _pageController.jumpToPage(saved.pageNumber - 1);
+      ref.read(_currentPageProvider.notifier).state = saved.pageNumber;
+    } catch (_) {
+      // Storage unreadable: staying on the requested page is the honest
+      // fallback — no guessing.
+    }
+  }
+
+  /// Persist the REAL page context on every page change (this is the
+  /// store's documented 'auto-called when page changes' contract). Until
+  /// the corpus index loads there are no real fields to store — the save
+  /// is skipped rather than fabricated.
+  void _saveProgress(int page) {
+    final list = _index(ref)?[page];
+    if (list == null || list.isEmpty) return;
+    final first = list.first;
+    unawaited(ref.read(readingProgressProvider.notifier).savePage(
+      MushafPageModel(
+        pageNumber: page,
+        surahNumber: first.surahNumber,
+        surahName: first.surahName,
+        ayahNumber: first.ayah.number,
+        juzNumber: first.ayah.juz,
+        // hizbQuarter is nullable per ayah; 1 is the model's documented
+        // unknown-default (the field is never rendered in the UI).
+        hizbNumber: first.ayah.hizbQuarter ?? 1,
+        savedAt: DateTime.now(),
+      ),
+    ));
   }
 
   @override
@@ -459,7 +506,9 @@ Juz: ${juz ?? '—'}''';
                     itemCount: 604,
                     onPageChanged: (page) {
                       HapticFeedback.selectionClick();
+                      _userPaged = true;
                       ref.read(_currentPageProvider.notifier).state = page + 1;
+                      _saveProgress(page + 1);
                     },
                     itemBuilder: (context, page) => _MushafPage(
                       pageNumber: page + 1,

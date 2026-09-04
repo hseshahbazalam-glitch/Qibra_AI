@@ -3,7 +3,7 @@
 // QIBRA AI — Reading Progress Repository
 // Auto-saves reading position — No button needed
 // Uses: SharedPreferences (already in pubspec)
-// Reuses: LastReadModel, ReadingProgressModel (existing models)
+// Reuses: LastReadModel (existing model)
 // ============================================================
 
 import 'dart:convert';
@@ -222,6 +222,15 @@ class ReadingProgressRepository {
       debugPrint('[READING_PROGRESS] LastRead saved');
     } catch (e) {
       debugPrint('[READING_PROGRESS] last-read save error: $e');
+    }
+  }
+
+  Future<void> clearLastRead() async {
+    try {
+      final prefs = await _p;
+      await prefs.remove(_keyLastRead);
+    } catch (e) {
+      debugPrint('[READING_PROGRESS] last-read clear error: $e');
     }
   }
 

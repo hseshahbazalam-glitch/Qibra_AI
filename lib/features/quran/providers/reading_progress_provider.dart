@@ -5,6 +5,7 @@
 // ============================================================
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/models/quran_models.dart';
 import '../data/repository/reading_progress_repository.dart';
 
 // ============================================================
@@ -179,4 +180,56 @@ final hasReadTodayProvider = Provider<bool>((ref) {
 
 final overallQuranProgressProvider = Provider<double>((ref) {
   return ref.watch(readingProgressProvider).overallProgress;
+});
+
+// ============================================================
+// LAST READ — surah/ayah position (world-class pass item 2)
+// ============================================================
+// The single stored position the Quran home 'Continue reading' card
+// reads and the SURAH reader writes. Definition (ONE, documented):
+// the ayah whose card was last OPENED in the reader (options sheet);
+// if no card was opened during the visit, the ayah last PLAYED by the
+// recitation player; if neither, the entry position the reader was
+// opened at. Saved on reader dispose and on app pause. Position only —
+// lastReadAt is the store's own save instant, never shown as a
+// fabricated reading time.
+
+class LastReadNotifier extends StateNotifier<LastReadModel?> {
+  LastReadNotifier() : super(null) {
+    _load();
+  }
+
+  final _repo = ReadingProgressRepository.instance;
+
+  Future<void> _load() async {
+    final model = await _repo.getLastRead();
+    if (mounted) state = model;
+  }
+
+  Future<void> record({
+    required int surahNumber,
+    required int ayahNumber,
+    required String surahName,
+    required int totalAyahsInSurah,
+  }) async {
+    final model = LastReadModel(
+      surahNumber: surahNumber,
+      ayahNumber: ayahNumber,
+      surahName: surahName,
+      lastReadAt: DateTime.now(),
+      totalAyahsInSurah: totalAyahsInSurah,
+    );
+    state = model;
+    await _repo.saveLastRead(model);
+  }
+
+  Future<void> clear() async {
+    state = null;
+    await _repo.clearLastRead();
+  }
+}
+
+final lastReadStoreProvider =
+    StateNotifierProvider<LastReadNotifier, LastReadModel?>((ref) {
+  return LastReadNotifier();
 });

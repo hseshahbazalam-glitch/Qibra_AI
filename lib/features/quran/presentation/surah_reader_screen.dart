@@ -43,6 +43,7 @@ import '../data/audio/tilawat.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_audio_provider.dart';
 import '../providers/quran_download_provider.dart';
+import '../providers/reading_progress_provider.dart';
 import '../providers/quran_provider.dart' hide readingProgressProvider;
 import '../providers/reading_preferences_provider.dart';
 import 'ayah_options_sheet.dart';
@@ -50,6 +51,17 @@ import 'ayah_options_sheet.dart';
 /// The reader's auto-advance queue, built from the REAL ayah list with
 /// the app's own global ayah numbers (numberInQuran; QuranMeta prefix
 /// sum as fallback). No invented entries.
+/// The ONE resume-position definition (see LastReadNotifier): the last
+/// opened card, else the last played ayah, else the entry position.
+/// Pure — unit-tested.
+int resumeAyahForVisit({
+  required int? tapped,
+  required int? played,
+  required int? initialAyah,
+}) {
+  return tapped ?? played ?? initialAyah ?? 1;
+}
+
 List<PlayableAyah> tilawatQueueFor(SurahModel surah) => [
       for (final a in surah.ayahs)
         PlayableAyah(
@@ -81,7 +93,8 @@ class SurahReaderScreen extends ConsumerStatefulWidget {
   ConsumerState<SurahReaderScreen> createState() => _SurahReaderScreenState();
 }
 
-class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
+class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
+    with WidgetsBindingObserver {
   static const _tabs = ['Arabic', 'Translation', 'Transliteration'];
 
   /// Arabic text-size stops offered by the pill.
@@ -90,6 +103,11 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   late final String _activeTab;
   final ScrollController _scroll = ScrollController();
   bool _didInitialScroll = false;
+
+  // Last-read tracking (item 2). Written on dispose/app-pause; NOT
+  // setState-bound — no UI depends on these mid-frame.
+  int? _tappedAyah;
+  int? _playedAyah;
 
   @override
   void initState() {
@@ -101,10 +119,37 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
       if (!mounted) return;
       ref.read(quranDownloadProvider.notifier).checkSurah(widget.surahNumber);
     });
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 'visibility pause' of the resume contract: backgrounding persists.
+    if (state == AppLifecycleState.paused) _persistLastRead();
+  }
+
+  /// Store the visit's position using the documented definition. If the
+  /// surah data never loaded there is nothing real to store — skip.
+  void _persistLastRead() {
+    final surah = ref.read(surahDetailProvider(widget.surahNumber)).value;
+    if (surah == null || surah.ayahs.isEmpty) return;
+    final ayah = resumeAyahForVisit(
+      tapped: _tappedAyah,
+      played: _playedAyah,
+      initialAyah: widget.initialAyah,
+    );
+    ref.read(lastReadStoreProvider.notifier).record(
+          surahNumber: surah.number,
+          ayahNumber: ayah,
+          surahName: surah.name,
+          totalAyahsInSurah: surah.ayahs.length,
+        );
   }
 
   @override
   void dispose() {
+    _persistLastRead();
+    WidgetsBinding.instance.removeObserver(this);
     _scroll.dispose();
     super.dispose();
   }
@@ -148,6 +193,16 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
     }));
     final dlStatus = ref.watch(quranDownloadProvider
         .select((m) => m[widget.surahNumber] ?? const SurahAudioStatus()));
+    // Resume tracking: remember the latest PLAYED ayah of this surah.
+    ref.listen(
+      quranAudioProvider.select((a) =>
+          (a.active && a.surahNumber == widget.surahNumber && a.isPlaying)
+              ? a.ayahNumber
+              : null),
+      (_, next) {
+        if (next != null) _playedAyah = next;
+      },
+    );
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -296,6 +351,8 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
                         ayah: s.ayahs[ayahIndex],
                         activeTab: _activeTab,
                         prefs: prefs,
+                        onAyahOpened: () =>
+                            _tappedAyah = s.ayahs[ayahIndex].number,
                       );
                     }
                     return Padding(
@@ -568,12 +625,17 @@ class _AyahCard extends ConsumerWidget {
     required this.ayah,
     required this.activeTab,
     required this.prefs,
+    this.onAyahOpened,
   });
 
   final SurahModel surah;
   final AyahModel ayah;
   final String activeTab;
   final ReadingPreferences prefs;
+
+  /// Fires the instant the card's options sheet is opened — the
+  /// last-read definition's primary signal (documented in item 2).
+  final VoidCallback? onAyahOpened;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -606,13 +668,16 @@ class _AyahCard extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: QibraCard(
-        onTap: () => showAyahOptions(
+        onTap: () {
+          onAyahOpened?.call();
+          showAyahOptions(
           context: context,
           surahNumber: surah.number,
           ayahNumber: ayah.number,
           surahName: surah.name,
           ayah: ayah,
-        ),
+        );
+        },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

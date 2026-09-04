@@ -66,6 +66,7 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
     final progress = ref.watch(readingProgressProvider);
     final verse = ref.watch(dailyVerseBundleProvider);
     final page = progress.currentPage;
+    final lastRead = ref.watch(lastReadStoreProvider);
 
     return QibraPage(
       title: 'Quran',
@@ -105,84 +106,90 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
             ),
             const SizedBox(height: 14),
 
-            // ── Continue reading ─────────────────────────────────
-            QibraCard(
-              onTap: () {
-                final surah = page?.surahNumber ?? 1;
-                final ayah = page?.ayahNumber;
-                context.push(
-                  '${AppRoutes.continueReading}?surah=$surah'
-                  '${ayah == null ? '' : '&ayah=$ayah'}',
-                );
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: colors.primary.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(14),
+            // ── Continue reading — ONLY when a real stored position
+            // exists (item 2). No saved position → no card, no invented
+            // "begin here" suggestion with fake progress. ──────────────
+            if (lastRead != null) ...[
+              QibraCard(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  context.push(
+                    '${AppRoutes.continueReading}?surah=${lastRead.surahNumber}'
+                    '&ayah=${lastRead.ayahNumber}',
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: colors.primary.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(Icons.menu_book_rounded,
+                              color: colors.primary),
                         ),
-                        child: Icon(Icons.menu_book_rounded,
-                            color: colors.primary),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              page == null ? 'Begin reading' : 'Continue reading',
-                              style: AppTextStyles.labelMedium.copyWith(
-                                color: colors.primary,
-                                fontWeight: FontWeight.w700,
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Continue reading',
+                                style: AppTextStyles.labelMedium.copyWith(
+                                  color: colors.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              page?.surahName ?? 'Al-Fatihah',
-                              style: AppTextStyles.titleMedium.copyWith(
-                                  color: colors.textPrimary),
-                            ),
-                            Text(
-                              page == null
-                                  ? 'Surah 1'
-                                  : 'Juz ${page.juzNumber} · Page ${page.pageNumber}',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                  color: colors.textSecondary),
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              Text(
+                                '${lastRead.surahName} · Ayah '
+                                '${lastRead.ayahNumber}',
+                                style: AppTextStyles.titleMedium.copyWith(
+                                    color: colors.textPrimary),
+                              ),
+                              Text(
+                                'Opens the reader pre-scrolled to this ayah.',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                    color: colors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_rounded,
+                            color: colors.primary),
+                      ],
+                    ),
+                    if (page != null) ...[
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: LinearProgressIndicator(
+                          value: progress.overallProgress,
+                          minHeight: 6,
+                          backgroundColor: colors.border,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(colors.primary),
                         ),
                       ),
-                      Icon(Icons.arrow_forward_rounded, color: colors.primary),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Mushaf page ${page.pageNumber}/604 · '
+                        '${(progress.overallProgress * 100).toStringAsFixed(0)}% · '
+                        '${progress.totalPagesRead} page saves total',
+                        style: AppTextStyles.labelSmall
+                            .copyWith(color: colors.textTertiary),
+                      ),
                     ],
-                  ),
-                  const SizedBox(height: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: LinearProgressIndicator(
-                      value: progress.overallProgress,
-                      minHeight: 6,
-                      backgroundColor: colors.border,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(colors.primary),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${(progress.overallProgress * 100).toStringAsFixed(0)}% read · '
-                    '${progress.totalPagesRead} pages total',
-                    style: AppTextStyles.labelSmall
-                        .copyWith(color: colors.textTertiary),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
+              const SizedBox(height: 14),
+            ],
 
             // ── Progress & streak ────────────────────────────────
             Row(

@@ -382,60 +382,6 @@ final isBookmarkedProvider =
 });
 
 // ============================================================
-// SECTION 10 — READING PROGRESS
-// ============================================================
-
-/// Reading progress state notifier
-class ReadingProgressNotifier extends StateNotifier<ReadingProgressModel> {
-  ReadingProgressNotifier() : super(ReadingProgressModel.empty());
-
-  /// Increment ayahs read
-  void incrementAyahsRead(int count) {
-    state = state.copyWith(
-      totalAyahsRead: state.totalAyahsRead + count,
-      lastReadDate: DateTime.now(),
-    );
-  }
-
-  /// Update current position
-  void updatePosition({
-    required int surahNumber,
-    required int juz,
-  }) {
-    state = state.copyWith(
-      currentSurah: surahNumber,
-      currentJuz: juz,
-      lastReadDate: DateTime.now(),
-    );
-  }
-
-  /// Increment streak
-  void incrementStreak() {
-    state = state.copyWith(
-      daysStreak: state.daysStreak + 1,
-    );
-  }
-
-  /// Add reading time
-  void addReadingTime(int minutes) {
-    state = state.copyWith(
-      totalMinutesRead: state.totalMinutesRead + minutes,
-    );
-  }
-
-  /// Reset progress
-  void reset() {
-    state = ReadingProgressModel.empty();
-  }
-}
-
-/// Reading progress provider
-final readingProgressProvider =
-    StateNotifierProvider<ReadingProgressNotifier, ReadingProgressModel>((ref) {
-  return ReadingProgressNotifier();
-});
-
-// ============================================================
 // SECTION 11 — STATISTICS PROVIDER
 // ============================================================
 
