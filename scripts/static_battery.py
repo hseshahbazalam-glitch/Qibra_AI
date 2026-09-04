@@ -92,6 +92,20 @@
 #                      builds left behind); renaming would obscure that
 #                      purpose and auth/ is a do-not-touch file. If that
 #                      purge is ever removed, drop the exception too.
+#   G17 l10n-getters   Every AppStrings getter USED in lib/** must be
+#                      DEFINED in lib/core/l10n/app_strings.dart (stripped
+#                      code both sides: comments/strings can't move the
+#                      needle). Device build failed at 3b748ed: a scripted
+#                      deletion over-matched and silently removed 8 LIVE
+#                      getters; G4 cannot resolve identifiers, so nothing
+#                      caught the dangling `strings.<id>` uses. This gate
+#                      is the sanctioned narrow patch for that class:
+#                      `AppStrings.of(...).<id>` (also `!.` variant) and
+#                      any local bound via `final <loc> =
+#                      AppStrings.of(...)`. GATE NOTE inherited from G13/
+#                      G15: deletion scripts must be diff-reviewed
+#                      line-by-line before commit — battery-green is not
+#                      enough for deletions, which is why this gate exists.
 #
 # Design gates (all files): L3 dangling Amiri literal, L4
 # colors.cardElevated (not a QibraColors field), L5 const QibraStatus call
@@ -977,6 +991,41 @@ for fi in FILES.values():
             "fabricated behavior must not ship beside honest surfaces "
             "(see gate header; only the auth legacy-token purge is "
             "allowlisted)")
+
+# ------------------------------------------------------------------------ G17
+# G17 l10n-getter existence — see the gate header for the incident.
+# Cross-check every AppStrings getter used in lib/** against the getters
+# defined in lib/core/l10n/app_strings.dart. Stripped code both sides.
+_as_path = ROOT / "lib" / "core" / "l10n" / "app_strings.dart"
+_as_code = strip_noise(_as_path.read_text()) if _as_path.is_file() else ""
+_as_defined = set(re.findall(r"\bString\s+get\s+(\w+)", _as_code))
+if not _as_defined:
+    err("G17", _as_path if _as_path.is_file() else ROOT, 1,
+        "no AppStrings getters parsed — the gate would be blind, failing "
+        "loudly instead of passing vacuously")
+G17_DIRECT = re.compile(
+    r"\bAppStrings\s*\.\s*of\s*\([^()]*\)\s*!?\s*\.\s*([A-Za-z_$]\w*)")
+G17_LOCAL = re.compile(
+    r"\b(?:final|var)\s+([A-Za-z_$]\w*)\s*=\s*AppStrings\s*\.\s*of\s*\(")
+for fi in FILES.values():
+    if fi.path == _as_path:
+        continue
+    code = fi.code
+    used = [(m.start(), m.group(1)) for m in G17_DIRECT.finditer(code)]
+    for lm in G17_LOCAL.finditer(code):
+        loc_pat = re.compile(
+            r"\b" + re.escape(lm.group(1)) + r"\s*!?\s*\.\s*([A-Za-z_$]\w*)")
+        used += [(m.start(), m.group(1)) for m in loc_pat.finditer(code)]
+    reported = set()
+    for pos, name in sorted(used):
+        if name in _as_defined or name in reported:
+            continue
+        reported.add(name)
+        ln = code.count("\n", 0, pos) + 1
+        err("G17", fi.path, ln,
+            f"'{name}' is not a getter defined in app_strings.dart — "
+            "dangling l10n use (device 'getter isn't defined' compile "
+            "error class; check deletions touched AppStrings)")
 
 # ------------------------------------------------------------------- report
 print(f"static battery: {len(FILES)} dart files under {LIB}")
