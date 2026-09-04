@@ -55,6 +55,7 @@ class QuranAudioState {
     this.error,
     this.queueIndex = 0,
     this.queueLength = 0,
+    this.session = 0,
   });
 
   final QuranAudioPhase phase;
@@ -69,6 +70,11 @@ class QuranAudioState {
   final String? error;
   final int queueIndex;
   final int queueLength;
+
+  /// Increments on every NEW startQueue call (never on auto-advance or
+  /// retry). Surfaces use it to detect "a fresh playback action happened"
+  /// — e.g. the reader re-arms follow-along only on a new session.
+  final int session;
 
   bool get active => phase != QuranAudioPhase.idle;
   bool get isPlaying => phase == QuranAudioPhase.playing;
@@ -85,6 +91,7 @@ class QuranAudioState {
 
   QuranAudioState copyWith({
     QuranAudioPhase? phase,
+    int? session,
     int? surahNumber,
     String? surahName,
     int? ayahNumber,
@@ -99,6 +106,7 @@ class QuranAudioState {
   }) {
     return QuranAudioState(
       phase: phase ?? this.phase,
+      session: session ?? this.session,
       surahNumber: surahNumber ?? this.surahNumber,
       surahName: surahName ?? this.surahName,
       ayahNumber: ayahNumber ?? this.ayahNumber,
@@ -186,6 +194,7 @@ class QuranAudioController extends Notifier<QuranAudioState> {
       buffering: true,
       queueIndex: idx,
       queueLength: _queue.length,
+      session: state.session + 1, // new playback action — surfaces re-arm
     );
     await _resolveAndPlay(idx);
   }

@@ -51,6 +51,36 @@ import 'ayah_options_sheet.dart';
 /// The reader's auto-advance queue, built from the REAL ayah list with
 /// the app's own global ayah numbers (numberInQuran; QuranMeta prefix
 /// sum as fallback). No invented entries.
+/// Follow-along state machine (world-class pass item 1 — pure, unit-
+/// tested). "Armed" = auto-scroll follows the playing ayah. A REAL user
+/// drag disarms it for the rest of the playback session; a NEW playback
+/// session (startQueue → session bump, incl. 'Play from here'/Listen or
+/// a mini-bar tap that (re)opens the reader) re-arms it. The reader
+/// wires this machine directly — the tests and the widget share one
+/// definition of the semantics.
+class AyahFollowMachine {
+  const AyahFollowMachine({this.armed = true});
+
+  final bool armed;
+
+  /// A user-initiated scroll disarms; programmatic scrolls (no drag
+  /// details) never do.
+  AyahFollowMachine userScrolled({required bool dragging}) {
+    if (!dragging || !armed) return this;
+    return const AyahFollowMachine(armed: false);
+  }
+
+  /// A new playback session re-arms follow.
+  AyahFollowMachine newSession() =>
+      armed ? this : const AyahFollowMachine(armed: true);
+
+  /// The highlight contract: gold appears ONLY while the player is
+  /// actually playing THIS ayah — pause, stop, loading and failure all
+  /// show no highlight (nothing is claimed while nothing plays).
+  static bool highlightFor({required bool isPlayingThisAyah}) =>
+      isPlayingThisAyah;
+}
+
 /// The ONE resume-position definition (see LastReadNotifier): the last
 /// opened card, else the last played ayah, else the entry position.
 /// Pure — unit-tested.
@@ -109,6 +139,9 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
   int? _tappedAyah;
   int? _playedAyah;
 
+  AyahFollowMachine _followM = const AyahFollowMachine();
+  final GlobalKey _followKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -163,6 +196,39 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
         .setArabicScale(scales[(i + 1) % scales.length]);
   }
 
+  /// Keeps the playing ayah visible while follow is armed: exact
+  /// ensure-when-built, animated estimate when the card is far off the
+  /// viewport (the same 184px per-item approximation the initial jump
+  /// already uses — and it re-centers once the real card builds).
+  void _ensureAyahVisible(int ayahNumber) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_followM.armed || !_scroll.hasClients) return;
+      final ctx = _followKey.currentContext;
+      if (ctx != null) {
+        await Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          alignment: 0.3,
+        );
+        return;
+      }
+      final s = ref.read(surahDetailProvider(widget.surahNumber)).value;
+      if (s == null) return;
+      final idx = s.ayahs.indexWhere((a) => a.number == ayahNumber);
+      if (idx < 0) return;
+      final showBismillah = widget.surahNumber != 9 && widget.surahNumber != 1;
+      final item = idx + (showBismillah ? 2 : 1);
+      final target = ((item + 1) * 184.0 - 40)
+          .clamp(0.0, _scroll.position.maxScrollExtent);
+      await _scroll.animateTo(
+        target,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
   void _jumpToInitialAyah(SurahModel surah) {
     if (_didInitialScroll || widget.initialAyah == null) return;
     _didInitialScroll = true;
@@ -193,7 +259,14 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     }));
     final dlStatus = ref.watch(quranDownloadProvider
         .select((m) => m[widget.surahNumber] ?? const SurahAudioStatus()));
-    // Resume tracking: remember the latest PLAYED ayah of this surah.
+    // Resume tracking + follow-along target: the ayah the player is
+    // REALLY playing right now for this surah (null = nothing to follow,
+    // so highlight/chip/scroll all switch off together on pause/stop/
+    // error by construction).
+    final followAyah = ref.watch(quranAudioProvider.select((a) =>
+        (a.active && a.surahNumber == widget.surahNumber && a.isPlaying)
+            ? a.ayahNumber
+            : null));
     ref.listen(
       quranAudioProvider.select((a) =>
           (a.active && a.surahNumber == widget.surahNumber && a.isPlaying)
@@ -201,8 +274,14 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
               : null),
       (_, next) {
         if (next != null) _playedAyah = next;
+        if (next == null || !_followM.armed) return;
+        _ensureAyahVisible(next);
       },
     );
+    // A NEW playback session (play-from-here / Listen / play-surah)
+    // re-arms follow even if the user had scrolled away.
+    ref.listen(quranAudioProvider.select((a) => a.session),
+        (_, __) => setState(() => _followM = _followM.newSession()));
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -327,9 +406,25 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
                 onSizeStep: _stepArabicScale,
               ),
               Expanded(
+                child: Stack(
+                  children: [
+                    NotificationListener<ScrollUpdateNotification>(
+                      // Manual (drag) scrolling PAUSES auto-follow for
+                      // this playback session — silent state change, no
+                      // snackbar. Programmatic scrolls have no
+                      // dragDetails and never disarm.
+                      onNotification: (n) {
+                        final next = _followM.userScrolled(
+                          dragging: n.dragDetails != null,
+                        );
+                        if (!identical(next, _followM)) {
+                          setState(() => _followM = next);
+                        }
+                        return false;
+                      },
+                      child: ListView.builder(
                 // ListView.builder keeps long surahs (286 ayahs) at
                 // O(1) construction per frame.
-                child: ListView.builder(
                   controller: _scroll,
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
@@ -346,13 +441,21 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
                     }
                     final ayahIndex = index - (showBismillah ? 2 : 1);
                     if (ayahIndex < s.ayahs.length) {
-                      return _AyahCard(
-                        surah: s,
-                        ayah: s.ayahs[ayahIndex],
-                        activeTab: _activeTab,
-                        prefs: prefs,
-                        onAyahOpened: () =>
-                            _tappedAyah = s.ayahs[ayahIndex].number,
+                      return KeyedSubtree(
+                        // The follow scroll lands on this key when the
+                        // playing ayah is currently built; off-screen
+                        // targets fall back to the animated estimate.
+                        key: followAyah == s.ayahs[ayahIndex].number
+                            ? _followKey
+                            : null,
+                        child: _AyahCard(
+                          surah: s,
+                          ayah: s.ayahs[ayahIndex],
+                          activeTab: _activeTab,
+                          prefs: prefs,
+                          onAyahOpened: () =>
+                              _tappedAyah = s.ayahs[ayahIndex].number,
+                        ),
                       );
                     }
                     return Padding(
@@ -360,6 +463,34 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
                       child: _TranslationCompareCard(ayah: s.ayahs.first),
                     );
                   },
+                      ),
+                    ),
+                    // Follow chip — only while something is actually
+                    // playing THIS surah. QibraChip is Material-owned ink.
+                    if (followAyah != null)
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          // clears the shell mini bar (~56 + insets)
+                          padding: const EdgeInsets.only(bottom: 76),
+                          child: QibraChip(
+                            label:
+                                _followM.armed ? 'Following •' : 'Follow',
+                            selected: _followM.armed,
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              if (!_followM.armed) {
+                                setState(
+                                    () => _followM = _followM.newSession());
+                              }
+                              if (followAyah != null) {
+                                _ensureAyahVisible(followAyah);
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
@@ -655,6 +786,10 @@ class _AyahCard extends ConsumerWidget {
 
     // Split scales (world-class pass): Arabic follows arabicScale; the
     // latin body lines follow translationScale.
+    // Gold highlight ONLY while this exact ayah is the playing track;
+    // pause/stop/loading/error render no highlight (see machine doc).
+    final playingHere = AyahFollowMachine.highlightFor(
+        isPlayingThisAyah: cur != null && cur.isPlaying);
     final arabicSize = AppFontSize.arabicMedium * prefs.arabicScale;
     final translationSize = AppFontSize.bodyMedium * prefs.translationScale;
     final translitSize = AppFontSize.bodySmall * prefs.translationScale;
@@ -667,7 +802,19 @@ class _AyahCard extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: QibraCard(
+      // Border (never a fill) so no corner-bleed over QibraCard's own
+      // rounded surface; ink stays inside QibraCard's Material.
+      child: DecoratedBox(
+        decoration: playingHere
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: QibraNavy.gold.withValues(alpha: 0.7),
+                  width: 1.5,
+                ),
+              )
+            : const BoxDecoration(),
+        child: QibraCard(
         onTap: () {
           onAyahOpened?.call();
           showAyahOptions(
@@ -687,9 +834,15 @@ class _AyahCard extends ConsumerWidget {
                   width: 28,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: colors.primarySoft,
+                    color: playingHere
+                        ? QibraNavy.gold.withValues(alpha: 0.22)
+                        : colors.primarySoft,
                     shape: BoxShape.circle,
-                    border: Border.all(color: colors.border),
+                    border: Border.all(
+                      color: playingHere
+                          ? QibraNavy.gold
+                          : colors.border,
+                    ),
                   ),
                   child: Center(
                     child: Text(
@@ -845,6 +998,7 @@ class _AyahCard extends ConsumerWidget {
             ],
           ],
         ),
+      ),
       ),
     );
   }

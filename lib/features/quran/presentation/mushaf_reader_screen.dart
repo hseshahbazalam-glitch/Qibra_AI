@@ -31,6 +31,8 @@ import '../../../core/design_system/qibra_colors.dart';
 import '../../../shared/widgets/qibra_status.dart';
 import '../data/models/quran_models.dart';
 import '../data/repository/reading_progress_repository.dart';
+import '../../../core/design_system/qibra_navy.dart';
+import '../providers/quran_audio_provider.dart';
 import '../providers/quran_provider.dart' hide readingProgressProvider;
 import '../providers/reading_progress_provider.dart';
 import '../../tafseer/presentation/tafseer_screen.dart';
@@ -492,6 +494,10 @@ Juz: ${juz ?? '—'}''';
         ),
       ),
       data: (index) {
+        final playingHere = ref.watch(quranAudioProvider.select(
+            (a) => a.active && a.isPlaying
+                ? (a.surahNumber, a.ayahNumber)
+                : null));
         return Scaffold(
           backgroundColor: colors.background,
           body: SafeArea(
@@ -513,6 +519,13 @@ Juz: ${juz ?? '—'}''';
                     itemBuilder: (context, page) => _MushafPage(
                       pageNumber: page + 1,
                       entries: _entriesFor(index, page + 1),
+                      // Real playback follow (item 1, mushaf): the
+                      // playing ayah on the open page gets its ACTUAL
+                      // TextSpan tinted — the flow layout has no per-
+                      // ayah box geometry, so nothing fancier is
+                      // claimed or faked, and non-playing renders zero.
+                      playingSurah: playingHere?.$1,
+                      playingAyah: playingHere?.$2,
                     ),
                   ),
                 ),
@@ -1048,10 +1061,20 @@ Juz: ${juz ?? '—'}''';
 // ─────────────────────────────────────────────────────────────
 
 class _MushafPage extends StatelessWidget {
-  const _MushafPage({required this.pageNumber, required this.entries});
+  const _MushafPage({
+    required this.pageNumber,
+    required this.entries,
+    this.playingSurah,
+    this.playingAyah,
+  });
 
   final int pageNumber;
   final List<MushafPageEntry> entries;
+
+  /// The globally-playing ayah (single app-wide player) when it lands
+  /// on THIS page; null otherwise.
+  final int? playingSurah;
+  final int? playingAyah;
 
   static const _arabicDigits = [
     '٠',
@@ -1116,11 +1139,20 @@ class _MushafPage extends StatelessWidget {
           ),
         );
       }
+      final isPlayingHere = playingSurah != null &&
+          playingAyah != null &&
+          e.surahNumber == playingSurah &&
+          e.ayah.number == playingAyah;
       spans.add(
         TextSpan(
           text: '${e.ayah.text} ',
-          style:
-              AppArabicStyles.quranMedium.copyWith(color: colors.textPrimary),
+          style: AppArabicStyles.quranMedium.copyWith(
+            color: colors.textPrimary,
+            // Restrained gold tint on the REAL span of the playing ayah
+            // (background wash token only — the highlight IS the text's
+            // own region; no invented geometry overlay).
+            backgroundColor: isPlayingHere ? QibraNavy.goldWash : null,
+          ),
         ),
       );
       spans.add(
