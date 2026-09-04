@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../core/utils/search_normalizer.dart';
@@ -24,26 +25,63 @@ import 'surah_reader_screen.dart';
 // ============================================================
 
 class RecentSearchesNotifier extends StateNotifier<List<String>> {
-  RecentSearchesNotifier() : super([]);
+  RecentSearchesNotifier() : super(const []) {
+    _load();
+  }
 
-  void add(String query) {
+  static const _prefsKey = 'quran_recent_searches_v1';
+
+  /// At most this many distinct recent queries persist (owner: last 10).
+  static const int cap = 10;
+
+  /// Pure update — unit-tested: trim, drop empties, dedupe (newest wins
+  /// position), newest first, capped at [cap].
+  static List<String> applyRecent(List<String> current, String query) {
     final trimmed = query.trim();
-    if (trimmed.isEmpty) return;
+    if (trimmed.isEmpty) return List.unmodifiable(current);
+    final out = [trimmed, ...current.where((q) => q != trimmed)];
+    return List.unmodifiable(out.length > cap ? out.sublist(0, cap) : out);
+  }
 
-    final newList = [trimmed, ...state.where((q) => q != trimmed)];
-    if (newList.length > 10) {
-      state = newList.sublist(0, 10);
-    } else {
-      state = newList;
+  Future<void> _load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getStringList(_prefsKey);
+      if (saved == null || saved.isEmpty) return;
+      if (mounted) state = List.unmodifiable(saved);
+    } catch (_) {
+      // Storage unreadable: an empty recent list is the honest state.
     }
   }
 
+  Future<void> _save() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_prefsKey, state);
+    } catch (_) {
+      // Persisting is best-effort; the in-session list stays truthful.
+    }
+  }
+
+  void add(String query) {
+    final next = applyRecent(state, query);
+    if (next.length == state.length &&
+        List.generate(next.length, (i) => next[i] == state[i])
+            .every((b) => b)) {
+      return; // unchanged — no pointless write
+    }
+    state = next;
+    unawaited(_save());
+  }
+
   void remove(String query) {
-    state = state.where((q) => q != query).toList();
+    state = List.unmodifiable(state.where((q) => q != query));
+    unawaited(_save());
   }
 
   void clear() {
-    state = [];
+    state = const [];
+    unawaited(_save());
   }
 }
 

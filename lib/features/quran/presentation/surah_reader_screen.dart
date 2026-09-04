@@ -263,14 +263,16 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     // REALLY playing right now for this surah (null = nothing to follow,
     // so highlight/chip/scroll all switch off together on pause/stop/
     // error by construction).
-    final followAyah = ref.watch(quranAudioProvider.select((a) =>
-        (a.active && a.surahNumber == widget.surahNumber && a.isPlaying)
-            ? a.ayahNumber
+    final followAyah = ref.watch(quranAudioProvider.select((aud) =>
+        (aud.active && aud.surahNumber == widget.surahNumber &&
+                aud.isPlaying)
+            ? aud.ayahNumber
             : null));
     ref.listen(
-      quranAudioProvider.select((a) =>
-          (a.active && a.surahNumber == widget.surahNumber && a.isPlaying)
-              ? a.ayahNumber
+      quranAudioProvider.select((aud) =>
+          (aud.active && aud.surahNumber == widget.surahNumber &&
+                  aud.isPlaying)
+              ? aud.ayahNumber
               : null),
       (_, next) {
         if (next != null) _playedAyah = next;
@@ -280,7 +282,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     );
     // A NEW playback session (play-from-here / Listen / play-surah)
     // re-arms follow even if the user had scrolled away.
-    ref.listen(quranAudioProvider.select((a) => a.session),
+    ref.listen(quranAudioProvider.select((aud) => aud.session),
         (_, __) => setState(() => _followM = _followM.newSession()));
 
     return Scaffold(
