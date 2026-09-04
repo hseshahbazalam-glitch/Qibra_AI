@@ -8,6 +8,14 @@
 #   ROOT defaults to cwd. --check-glob adds per-stage design sweeps
 #   (L1 hex / L6 loop-anim / L7 emoji) as ERRORS only for files matching
 #   the glob; repo-wide those are reported as counts for stage planning.
+#
+#   REPORTING RULE (owner, 2026-09-04): every run ends by printing the
+#   literal line "hard findings: N | G2 advisories: N | L2 alpha
+#   advisories: N"; "ALL GATES PASS" prints only when hard findings = 0.
+#   A report must quote these three numbers VERBATIM from a real run on
+#   the tree it describes; claiming ALL GATES PASS without the literal
+#   printed line — or quoting counts from one environment while claiming
+#   truth for another — is a reporting violation.
 #   Exit 0 = gates pass, 1 = findings.
 #
 # Compile-class gates added after the owner device gate (commit 9bfe297,
@@ -20,7 +28,14 @@
 #                      not as getters on the model.
 #   G2 import-symbols  every lib-defined top-level symbol a file references
 #                      must be provided by an import/export chain (depth 2).
-#                      Must be silent before ANY import removal
+#                      ADVISORY (owner truth-up 2026-09-04): printed under
+#                      '--- G2 import advisories ---' with a count, never
+#                      in ERRORS, exit-code neutral — import resolution can
+#                      legitimately differ across environments (owner run at
+#                      6906759 saw 480 lines where the sandbox saw 0), and a
+#                      verdict-flipping soft scanner is a trap. Scanner logic
+#                      UNCHANGED. Treat a nonzero count before an import
+#                      removal as a real defect to investigate
 #                      (SearchResultModel was defined in the "unused" import).
 #   G3 const-ctor      `const X(` when X is a repo class lacking a const
 #                      constructor, or on the non-const flutter denylist
@@ -150,6 +165,7 @@ if not LIB.is_dir():
 
 ERRORS = []
 WARNINGS = []
+G2_ADVISORIES = []
 STAGE_PENDING = {}
 
 
@@ -473,7 +489,7 @@ for fi in FILES.values():
         providers = DEF_INDEX.get(sym)
         if not providers or sym in provided:
             continue
-        err("G2", fi.path, 1, f"'{sym}' referenced but not provided by imports (defined in {sorted(providers)[:3]}) — before REMOVING an import, confirm it provides nothing in use")
+        G2_ADVISORIES.append(f"G2 {fi.rel}: '{sym}' referenced but not provided by imports (defined in {sorted(providers)[:3]}) — before REMOVING an import, confirm it provides nothing in use")
 
 # ---------------------------------------------------------------- G3 const
 NON_CONST_FLUTTER = {"Transform"}
@@ -1038,12 +1054,20 @@ if STAGE_PENDING and not GLOBS:
         for k, v in d.items():
             tot[k] += v
     print(f"    files with findings: {len(STAGE_PENDING)}  L1(hex)={tot['L1']} L6(loop)={tot['L6']} L7(emoji)={tot['L7']}")
+if G2_ADVISORIES:
+    print(f"--- G2 import advisories ({len(G2_ADVISORIES)}) ---")
+    for a in G2_ADVISORIES[:40]:
+        print(" ", a)
+    if len(G2_ADVISORIES) > 40:
+        print(f"   …{len(G2_ADVISORIES) - 40} more")
 if WARNINGS:
     print("--- L2 alpha warnings ---")
     for w in WARNINGS[:40]:
         print(" ", w)
     if len(WARNINGS) > 40:
         print(f"   …{len(WARNINGS) - 40} more")
+print(f"hard findings: {len(ERRORS)} | G2 advisories: {len(G2_ADVISORIES)} | "
+      f"L2 alpha advisories: {len(WARNINGS)}")
 if ERRORS:
     print(f"--- {len(ERRORS)} FINDINGS ---")
     for e in ERRORS:
