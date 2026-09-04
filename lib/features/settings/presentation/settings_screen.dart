@@ -37,9 +37,11 @@ class SettingsScreen extends ConsumerWidget {
     final hadithLang = ref.watch(hadithLanguageProvider);
     final quranEdition =
         EditionResolver.resolve(readingPrefs.translationId)?.label ?? 'English';
-    final fontLabel = readingPrefs.fontScale >= 1.25
+    // The settings knob sets BOTH split scales together; the label
+    // follows the Arabic scale (equal unless fine-tuned in the reader).
+    final fontLabel = readingPrefs.arabicScale >= 1.25
         ? 'Large'
-        : readingPrefs.fontScale <= 0.9
+        : readingPrefs.arabicScale <= 0.9
             ? 'Small'
             : 'Medium';
 
@@ -789,7 +791,7 @@ class SettingsScreen extends ConsumerWidget {
 
   void _showFontSizeSheet(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final current = ref.read(readingPreferencesProvider).fontScale;
+    final current = ref.read(readingPreferencesProvider).arabicScale;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: colors.card,
@@ -806,7 +808,7 @@ class SettingsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Font Size',
+                  'Font Size (Arabic + translation)',
                   style: AppTextStyles.titleMedium.copyWith(
                     color: sheetColors.goldText,
                     fontWeight: FontWeight.w700,
@@ -830,9 +832,11 @@ class SettingsScreen extends ConsumerWidget {
                         ? Icon(Icons.check_rounded, color: sheetColors.primary)
                         : null,
                     onTap: () {
+                      // Single knob moves BOTH scales together; the
+                      // reader's settings sheet fine-tunes them apart.
                       ref
                           .read(readingPreferencesProvider.notifier)
-                          .setFontScale(entry.$1);
+                          .setBothScales(entry.$1);
                       Navigator.pop(ctx);
                     },
                   ),

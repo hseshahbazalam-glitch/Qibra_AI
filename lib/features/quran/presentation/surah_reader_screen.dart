@@ -84,7 +84,7 @@ class SurahReaderScreen extends ConsumerStatefulWidget {
 class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
   static const _tabs = ['Arabic', 'Translation', 'Transliteration'];
 
-  /// Text-size stops offered by the pill and the settings sheet.
+  /// Arabic text-size stops offered by the pill.
   static const scales = <double>[1.0, 1.25, 1.5];
 
   late final String _activeTab;
@@ -109,13 +109,13 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
     super.dispose();
   }
 
-  void _stepFontScale() {
+  void _stepArabicScale() {
     HapticFeedback.selectionClick();
     final prefs = ref.read(readingPreferencesProvider);
-    final i = scales.indexOf(prefs.fontScale);
+    final i = scales.indexOf(prefs.arabicScale);
     ref
         .read(readingPreferencesProvider.notifier)
-        .setFontScale(scales[(i + 1) % scales.length]);
+        .setArabicScale(scales[(i + 1) % scales.length]);
   }
 
   void _jumpToInitialAyah(SurahModel surah) {
@@ -264,12 +264,12 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
               _ModeTabs(
                 tabs: _tabs,
                 active: _activeTab,
-                fontScale: prefs.fontScale,
+                arabicScale: prefs.arabicScale,
                 onSelect: (tab) {
                   HapticFeedback.selectionClick();
                   setState(() => _activeTab = tab);
                 },
-                onSizeStep: _stepFontScale,
+                onSizeStep: _stepArabicScale,
               ),
               Expanded(
                 // ListView.builder keeps long surahs (286 ayahs) at
@@ -397,14 +397,14 @@ class _ModeTabs extends StatelessWidget {
   const _ModeTabs({
     required this.tabs,
     required this.active,
-    required this.fontScale,
+    required this.arabicScale,
     required this.onSelect,
     required this.onSizeStep,
   });
 
   final List<String> tabs;
   final String active;
-  final double fontScale;
+  final double arabicScale;
   final ValueChanged<String> onSelect;
   final VoidCallback onSizeStep;
 
@@ -467,9 +467,9 @@ class _ModeTabs extends StatelessWidget {
                       size: 16, color: colors.textSecondary),
                   const SizedBox(width: 6),
                   Text(
-                    fontScale == 1.0
+                    arabicScale == 1.0
                         ? 'Aa'
-                        : 'Aa+${((fontScale - 1) * 100).round()}',
+                        : 'Aa+${((arabicScale - 1) * 100).round()}',
                     style: AppTextStyles.labelMedium.copyWith(
                       color: colors.textPrimary,
                       fontWeight: FontWeight.w700,
@@ -591,7 +591,11 @@ class _AyahCard extends ConsumerWidget {
             ? s
             : null));
 
-    final arabicSize = AppFontSize.arabicMedium * prefs.fontScale;
+    // Split scales (world-class pass): Arabic follows arabicScale; the
+    // latin body lines follow translationScale.
+    final arabicSize = AppFontSize.arabicMedium * prefs.arabicScale;
+    final translationSize = AppFontSize.bodyMedium * prefs.translationScale;
+    final translitSize = AppFontSize.bodySmall * prefs.translationScale;
     final showTranslation = activeTab == 'Translation' ||
         (activeTab != 'Arabic' && prefs.showTranslation);
     final showTranslit =
@@ -723,6 +727,7 @@ class _AyahCard extends ConsumerWidget {
                     ? roman
                     : 'Transliteration is not bundled for this ayah.',
                 style: AppTextStyles.bodySmall.copyWith(
+                  fontSize: translitSize,
                   color: colors.textSecondary,
                   fontStyle: FontStyle.italic,
                 ),
@@ -733,6 +738,7 @@ class _AyahCard extends ConsumerWidget {
               Text(
                 translation ?? strings.translationUnavailable,
                 style: AppTextStyles.bodyMedium.copyWith(
+                  fontSize: translationSize,
                   color: colors.textSecondary,
                   height: 1.5,
                 ),
@@ -953,32 +959,58 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                   .read(readingPreferencesProvider.notifier)
                   .setShowTransliteration(v),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Text size',
-              style: AppTextStyles.labelMedium.copyWith(
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                for (final scale in _SurahReaderScreenState.scales)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: QibraChip(
-                      label: scale == 1.0
-                          ? 'Default'
-                          : '+${((scale - 1) * 100).round()}%',
-                      selected: prefs.fontScale == scale,
-                      onTap: () => ref
-                          .read(readingPreferencesProvider.notifier)
-                          .setFontScale(scale),
+            // Split font controls (world-class pass): Arabic and
+            // translation scale independently over the same clamped
+            // range; the sliders reflect and persist REAL pref state.
+            for (final entry in const [
+              ('Arabic text', 'arabic'),
+              ('Translation & transliteration', 'translation'),
+            ]) ...[
+              Text(
+                entry.$1,
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Slider(
+                      value: entry.$2 == 'arabic'
+                          ? prefs.arabicScale
+                          : prefs.translationScale,
+                      min: ReadingPreferences.scaleMin,
+                      max: ReadingPreferences.scaleMax,
+                      divisions: 8,
+                      activeColor: colors.primary,
+                      label:
+                          '${(((entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale) - 1) * 100).round()}%',
+                      onChanged: (v) => entry.$2 == 'arabic'
+                          ? ref
+                              .read(readingPreferencesProvider.notifier)
+                              .setArabicScale(v)
+                          : ref
+                              .read(readingPreferencesProvider.notifier)
+                              .setTranslationScale(v),
                     ),
                   ),
-              ],
-            ),
+                  SizedBox(
+                    width: 52,
+                    child: Text(
+                      '${(entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale).toStringAsFixed(2)}\u00d7',
+                      textAlign: TextAlign.end,
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.textTertiary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+            ],
             const SizedBox(height: 14),
             Container(height: 1, color: colors.border),
             const SizedBox(height: 10),
