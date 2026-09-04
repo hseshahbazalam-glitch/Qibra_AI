@@ -113,16 +113,6 @@ final hadithBooksProvider = FutureProvider<List<HadithBook>>((ref) async {
   }).toList();
 });
 
-final hadithBookProvider =
-    FutureProvider.family<HadithBook?, String>((ref, slug) async {
-  final books = await ref.watch(hadithBooksProvider.future);
-  try {
-    return books.firstWhere((b) => b.slug == slug);
-  } catch (_) {
-    return null;
-  }
-});
-
 // ============================================================
 // SECTION 4: CONVERTERS & HELPERS
 // ============================================================
@@ -199,14 +189,6 @@ Future<void> recordHadithView(WidgetRef ref, HadithModel hadith) async {
   await HadithViewHistory.record(hadith.bookSlug, hadith.hadithNumber);
   ref.invalidate(hadithHistoryProvider);
 }
-
-final randomHadithProvider = FutureProvider<HadithModel?>((ref) async {
-  await ref.watch(hadithDatabaseInitProvider.future);
-  final db = ref.watch(hadithDatabaseProvider);
-  final local = db.getRandomHadith();
-  if (local == null) return null;
-  return localToHadithModel(local);
-});
 
 final featuredHadithsProvider =
     FutureProvider.family<List<HadithModel>, String?>((ref, bookSlug) async {
@@ -361,8 +343,18 @@ class HadithBookmarksNotifier extends StateNotifier<List<HadithBookmark>> {
     );
   }
 
+  /// Pure dedupe-on-add used by the bookmarks manager: same hadith id
+  /// already saved -> the list is returned UNCHANGED (identical object)
+  /// so the caller can skip persistence. Unit-tested (item 5).
+  static List<HadithBookmark> addIfAbsent(
+    List<HadithBookmark> current,
+    HadithBookmark bookmark,
+  ) {
+    if (current.any((b) => b.hadithId == bookmark.hadithId)) return current;
+    return [...current, bookmark];
+  }
+
   void addBookmark(HadithModel hadith, {String? note}) {
-    if (state.any((b) => b.hadithId == hadith.id)) return;
 
     final bookmark = HadithBookmark(
       id: 'bm_${DateTime.now().millisecondsSinceEpoch}',
@@ -376,7 +368,9 @@ class HadithBookmarksNotifier extends StateNotifier<List<HadithBookmark>> {
       note: note,
     );
 
-    state = [...state, bookmark];
+    final next = addIfAbsent(state, bookmark);
+    if (identical(next, state)) return;
+    state = next;
     _persist();
   }
 
@@ -418,11 +412,80 @@ final isHadithBookmarkedProvider =
   return bookmarks.any((b) => b.hadithId == hadithId);
 });
 
-final bookmarkCountProvider = Provider<int>((ref) {
-  return ref.watch(hadithBookmarksProvider).length;
-});
+// ============================================================
+// SECTION 10: SEARCH RECENTS (world-class hadith pass, item 2 —
+// mirror of the Quran pass store, separate key so the two surfaces
+// never cross-contaminate). Book RESUME (item 3) deliberately has NO
+// store here: the persisted HadithViewHistory LRU already records
+// "last opened detail" per reference and is pinned by its own test —
+// a second store would fork the truth.
+// ============================================================
 
-final hadithStatsProvider = Provider<Map<String, dynamic>>((ref) {
-  final db = ref.watch(hadithDatabaseProvider);
-  return db.statistics;
+/// Last 10 distinct hadith-search queries, persisted. Same semantics as
+/// the Quran pass: trim, drop empties, dedupe-newest-first, cap 10; the
+/// pure [applyRecent] is unit-tested; storage is best-effort both ways.
+class HadithRecentSearchesNotifier extends StateNotifier<List<String>> {
+  HadithRecentSearchesNotifier() : super(const []) {
+    _load();
+  }
+
+  static const _prefsKey = 'hadith_recent_searches_v1';
+
+  /// At most this many distinct recent queries persist (owner: last 10).
+  static const int cap = 10;
+
+  /// Pure update — unit-tested: trim, drop empties, dedupe (newest wins
+  /// position), newest first, capped at [cap].
+  static List<String> applyRecent(List<String> current, String query) {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return List.unmodifiable(current);
+    final out = [trimmed, ...current.where((q) => q != trimmed)];
+    return List.unmodifiable(out.length > cap ? out.sublist(0, cap) : out);
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getStringList(_prefsKey);
+      if (saved == null || saved.isEmpty) return;
+      if (mounted) state = List.unmodifiable(saved);
+    } catch (_) {
+      // Storage unreadable: an empty recent list is the honest state.
+    }
+  }
+
+  Future<void> _save() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_prefsKey, state);
+    } catch (_) {
+      // Persisting is best-effort; the in-session list stays truthful.
+    }
+  }
+
+  void add(String query) {
+    final next = applyRecent(state, query);
+    if (next.length == state.length &&
+        List.generate(next.length, (i) => next[i] == state[i])
+            .every((b) => b)) {
+      return; // unchanged — no pointless write
+    }
+    state = next;
+    _save();
+  }
+
+  void remove(String query) {
+    state = List.unmodifiable(state.where((q) => q != query));
+    _save();
+  }
+
+  void clear() {
+    state = const [];
+    _save();
+  }
+}
+
+final hadithRecentSearchesProvider =
+    StateNotifierProvider<HadithRecentSearchesNotifier, List<String>>((ref) {
+  return HadithRecentSearchesNotifier();
 });
