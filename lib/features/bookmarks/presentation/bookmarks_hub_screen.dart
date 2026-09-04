@@ -7,10 +7,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_typography.dart';
+import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/design_system/qibra_colors.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../../duas/presentation/dua_detail_screen.dart';
 import '../../duas/providers/dua_provider.dart';
+import '../../hadith/data/models/hadith_models.dart';
+import '../../hadith/data/services/hadith_database_service.dart';
+import '../../hadith/presentation/hadith_book_screen.dart';
 import '../../hadith/providers/hadith_provider.dart';
 import '../../quran/data/models/quran_models.dart';
 import '../../quran/presentation/surah_reader_screen.dart';
@@ -423,8 +427,8 @@ class _HadithBookmarksTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final items = ref.watch(hadithBookmarksProvider);
-    if (items.isEmpty) {
+    final saves = ref.watch(hadithBookmarksProvider);
+    if (saves.isEmpty) {
       return const QibraEmptyState(
         icon: Icons.bookmark_border_rounded,
         title: 'No Hadith bookmarks',
@@ -433,11 +437,16 @@ class _HadithBookmarksTab extends ConsumerWidget {
     }
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      itemCount: items.length,
+      itemCount: saves.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        final item = items[index];
+        final saved = saves[index];
         return QibraCard(
+          // World-class hadith pass (item 5): the card's body opens the
+          // hadith's real detail via its book screen — a genuine
+          // lookup, not a synthesized preview. The trailing button
+          // un-bookmarks (removeBookmark on the persisted store).
+          onTap: () => _openHadithBookmark(context, ref, saved),
           child: Row(
             children: [
               Expanded(
@@ -445,14 +454,14 @@ class _HadithBookmarksTab extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${item.bookName} #${item.hadithNumber}',
+                      '${saved.bookName} #${saved.hadithNumber}',
                       style: AppTextStyles.labelLarge.copyWith(
                         color: colors.primary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      item.textPreview,
+                      saved.textPreview,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bodySmall.copyWith(
@@ -463,17 +472,69 @@ class _HadithBookmarksTab extends ConsumerWidget {
                 ),
               ),
               IconButton(
+                tooltip: 'Remove bookmark',
                 icon: Icon(Icons.delete_outline, color: colors.textTertiary),
                 onPressed: () {
                   ref
                       .read(hadithBookmarksProvider.notifier)
-                      .removeBookmark(item.hadithId);
+                      .removeBookmark(saved.hadithId);
                 },
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  /// Item 5: resolve through the REAL bundled corpus. When this device's
+  /// data does not contain the bookmarked number, the honest message
+  /// fires — nothing is fabricated to fill the gap.
+  Future<void> _openHadithBookmark(
+    BuildContext context,
+    WidgetRef ref,
+    HadithBookmark saved,
+  ) async {
+    final ok =
+        await ref.read(hadithDatabaseInitProvider.future).catchError((_) {
+      return false;
+    });
+    if (!context.mounted) return;
+    final db = HadithDatabaseService();
+    if (!ok || !db.isInitialized ||
+        db.getHadith(saved.bookSlug, saved.hadithNumber) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text('That hadith is not in the bundled data on this device.')),
+      );
+      return;
+    }
+    final books =
+        ref.read(hadithBooksProvider).valueOrNull ?? const <HadithBook>[];
+    final matches =
+        books.where((bk) => bk.slug == saved.bookSlug).toList();
+    final target = matches.isNotEmpty
+        ? matches.first
+        : HadithBook(
+            id: saved.bookSlug,
+            slug: saved.bookSlug,
+            name: saved.bookName,
+            nameArabic: '',
+            author: '—',
+            authorArabic: '',
+            totalHadiths: 0,
+            totalChapters: 0,
+            description: '',
+            color: QibraNavy.emeraldDeep,
+          );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HadithBookScreen(
+          book: target,
+          focusHadithNumber: saved.hadithNumber,
+        ),
+      ),
     );
   }
 }
