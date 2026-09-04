@@ -12,14 +12,27 @@ import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/utils/search_normalizer.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
+import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/hadith_models.dart';
+import '../data/services/hadith_database_service.dart';
 import '../providers/hadith_provider.dart';
+import '../providers/hadith_preferences_provider.dart';
 import 'hadith_related_section.dart';
 
 class HadithBookScreen extends ConsumerStatefulWidget {
   final HadithBook book;
 
-  const HadithBookScreen({super.key, required this.book});
+  /// World-class hadith pass (item 5): when the bookmarks manager taps
+  /// an entry it pushes this screen with the target's number — an
+  /// EXPLICIT user action, so opening that hadith's detail on arrival
+  /// is the honest jump. 0 = nothing requested (normal book open).
+  final int focusHadithNumber;
+
+  const HadithBookScreen({
+    super.key,
+    required this.book,
+    this.focusHadithNumber = 0,
+  });
 
   @override
   ConsumerState<HadithBookScreen> createState() => _HadithBookScreenState();
@@ -32,6 +45,28 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   bool _showUrdu = true;
   bool _showEnglish = true;
 
+  // Resume/jump plumbing (world-class pass, item 3).
+  final ScrollController _scroll = ScrollController();
+  final GlobalKey _resumeKey = GlobalKey();
+  int? _resumeIndex;
+  int? _pendingResumeNumber;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.focusHadithNumber > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _openFocusHadith();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final params = HadithsParams(
@@ -40,11 +75,28 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     );
     final hadithsAsync = ref.watch(hadithsProvider(params));
     final chaptersAsync = ref.watch(hadithChaptersProvider(widget.book.slug));
+    // Resume position (item 3) is DERIVED, not duplicated: the first
+    // persisted view-history entry belonging to this book IS the last
+    // opened detail for this book. The ONE definition is last-opened
+    // DETAIL (the recordHadithView seam) — scrolling is never recorded.
+    final history = ref.watch(hadithHistoryProvider).valueOrNull ??
+        const <HadithModel>[];
+    HadithModel? resume;
+    for (final entry in history) {
+      if (entry.bookSlug == widget.book.slug) {
+        resume = entry;
+        break;
+      }
+    }
+    // Effectively-final capture so the non-null promotion holds inside
+    // the chip's onTap closure.
+    final resumeTarget = resume;
 
     return Scaffold(
       backgroundColor: QibraNavy.canvas,
       body: SafeArea(
         child: CustomScrollView(
+          controller: _scroll,
           physics: const BouncingScrollPhysics(),
           slivers: [
             // 1. APP BAR
@@ -55,6 +107,24 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
 
             // 3. CHAPTERS & DISPLAY CONTROLS BAR
             _buildControlsBar(context, chaptersAsync.value ?? []),
+
+            // 3b. RESUME (item 3): explicit chip only — opening a book
+            // never hijacks the scroll position on its own.
+            if (resumeTarget != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: QibraChip(
+                      label: 'Continue — ${resumeTarget.displayReference}',
+                      selected: false,
+                      onTap: () =>
+                          _jumpToHadithNumber(resumeTarget.hadithNumber),
+                    ),
+                  ),
+                ),
+              ),
 
             // 4. HADITH LIST
             hadithsAsync.when(
@@ -70,6 +140,22 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             SearchNormalizer.contains(h.textUrdu, _searchQuery) ||
                             SearchNormalizer.contains(h.textArabic, _searchQuery);
                       }).toList();
+
+                // A filter reset queued a resume jump — consume it now
+                // that the whole (unfiltered) list is on screen.
+                if (_pendingResumeNumber != null) {
+                  final number = _pendingResumeNumber!;
+                  _pendingResumeNumber = null;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    final idx = _indexOfHadithNumber(filtered, number);
+                    if (idx >= 0) {
+                      _startJump(idx);
+                    } else {
+                      _resumeBeyondFirstPage();
+                    }
+                  });
+                }
 
                 if (filtered.isEmpty) {
                   return const SliverToBoxAdapter(
@@ -93,15 +179,18 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final h = filtered[index];
+                        final card = _HadithCard(
+                          hadith: h,
+                          showArabic: _showArabic,
+                          showUrdu: _showUrdu,
+                          showEnglish: _showEnglish,
+                          onTap: () => _showHadithDetailSheet(context, h),
+                        );
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: _HadithCard(
-                            hadith: h,
-                            showArabic: _showArabic,
-                            showUrdu: _showUrdu,
-                            showEnglish: _showEnglish,
-                            onTap: () => _showHadithDetailSheet(context, h),
-                          ),
+                          child: _resumeIndex == index
+                              ? KeyedSubtree(key: _resumeKey, child: card)
+                              : card,
                         );
                       },
                       childCount: filtered.length,
@@ -182,10 +271,10 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       centerTitle: true,
       actions: [
         IconButton(
-          tooltip: 'Display languages',
+          tooltip: 'Reading settings',
           icon: const Icon(Icons.display_settings_rounded,
               color: QibraNavy.gold, size: 20),
-          onPressed: () => _showDisplaySettingsDialog(context),
+          onPressed: () => _showQuickSettingsSheet(context),
         ),
       ],
     );
@@ -436,67 +525,136 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     );
   }
 
-  void _showDisplaySettingsDialog(BuildContext context) {
-    showDialog(
+  /// One compact quick-settings sheet (world-class pass, item 1): the
+  /// three display toggles moved here from the old dialog UNCHANGED in
+  /// behavior (session state, exactly as before) plus the two persisted
+  /// split scales. Sliders reflect and write REAL SharedPreferences state
+  /// — no decorative handles.
+  void _showQuickSettingsSheet(BuildContext context) {
+    showModalBottomSheet<void>(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: QibraNavy.card,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: QibraNavy.hairline),
-              ),
-              title: const Text('Display Languages',
-                  style: TextStyle(
-                      color: QibraNavy.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppSwitchListTile(
-                    activeColor: QibraNavy.emerald,
-                    title: const Text('Arabic Text (عربي)',
-                        style: TextStyle(color: QibraNavy.textPrimary, fontSize: 14)),
-                    value: _showArabic,
-                    onChanged: (v) {
-                      setDialogState(() => _showArabic = v);
-                      setState(() => _showArabic = v);
-                    },
+      backgroundColor: QibraNavy.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final prefs = ref.watch(hadithReadingPreferencesProvider);
+            return StatefulBuilder(
+              builder: (context, setSheetState) {
+                return SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Reading settings',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.titleMedium.copyWith(
+                            color: QibraNavy.textPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        AppSwitchListTile(
+                          activeColor: QibraNavy.emerald,
+                          title: const Text('Arabic Text (عربي)',
+                              style: TextStyle(
+                                  color: QibraNavy.textPrimary,
+                                  fontSize: 14)),
+                          value: _showArabic,
+                          onChanged: (v) {
+                            setSheetState(() => _showArabic = v);
+                            setState(() => _showArabic = v);
+                          },
+                        ),
+                        AppSwitchListTile(
+                          activeColor: QibraNavy.emerald,
+                          title: const Text('Urdu Translation (اردو)',
+                              style: TextStyle(
+                                  color: QibraNavy.textPrimary,
+                                  fontSize: 14)),
+                          value: _showUrdu,
+                          onChanged: (v) {
+                            setSheetState(() => _showUrdu = v);
+                            setState(() => _showUrdu = v);
+                          },
+                        ),
+                        AppSwitchListTile(
+                          activeColor: QibraNavy.emerald,
+                          title: const Text('English Translation',
+                              style: TextStyle(
+                                  color: QibraNavy.textPrimary,
+                                  fontSize: 14)),
+                          value: _showEnglish,
+                          onChanged: (v) {
+                            setSheetState(() => _showEnglish = v);
+                            setState(() => _showEnglish = v);
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        // Split font controls — same clamped range and
+                        // label discipline as the Quran reader sheet.
+                        for (final entry in const [
+                          ('Arabic text', 'arabic'),
+                          ('Translation text', 'translation'),
+                        ]) ...[
+                          Text(
+                            entry.$1,
+                            style: AppTextStyles.labelMedium.copyWith(
+                              color: QibraNavy.textSecondary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Slider(
+                                  value: entry.$2 == 'arabic'
+                                      ? prefs.arabicScale
+                                      : prefs.translationScale,
+                                  min: HadithReadingPreferences.scaleMin,
+                                  max: HadithReadingPreferences.scaleMax,
+                                  divisions: 8,
+                                  activeColor: QibraNavy.emerald,
+                                  label:
+                                      '${(((entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale) - 1) * 100).round()}%',
+                                  onChanged: (v) => entry.$2 == 'arabic'
+                                      ? ref
+                                          .read(
+                                              hadithReadingPreferencesProvider
+                                                  .notifier)
+                                          .setArabicScale(v)
+                                      : ref
+                                          .read(
+                                              hadithReadingPreferencesProvider
+                                                  .notifier)
+                                          .setTranslationScale(v),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 52,
+                                child: Text(
+                                  '${(entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale).toStringAsFixed(2)}\u00d7',
+                                  textAlign: TextAlign.end,
+                                  style: AppTextStyles.labelSmall.copyWith(
+                                    color: QibraNavy.textSecondary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                        ],
+                      ],
+                    ),
                   ),
-                  AppSwitchListTile(
-                    activeColor: QibraNavy.emerald,
-                    title: const Text('Urdu Translation (اردو)',
-                        style: TextStyle(color: QibraNavy.textPrimary, fontSize: 14)),
-                    value: _showUrdu,
-                    onChanged: (v) {
-                      setDialogState(() => _showUrdu = v);
-                      setState(() => _showUrdu = v);
-                    },
-                  ),
-                  AppSwitchListTile(
-                    activeColor: QibraNavy.emerald,
-                    title: const Text('English Translation',
-                        style: TextStyle(color: QibraNavy.textPrimary, fontSize: 14)),
-                    value: _showEnglish,
-                    onChanged: (v) {
-                      setDialogState(() => _showEnglish = v);
-                      setState(() => _showEnglish = v);
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Done',
-                      style: TextStyle(
-                          color: QibraNavy.emerald,
-                          fontWeight: FontWeight.bold)),
-                ),
-              ],
+                );
+              },
             );
           },
         );
@@ -504,10 +662,117 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     );
   }
 
+  // ────────────────────────────────────────────────────────
+  // RESUME JUMP + BOOKMARK FOCUS (world-class pass, items 3 & 5)
+  // ────────────────────────────────────────────────────────
+
+  static int _indexOfHadithNumber(List<HadithModel> list, int number) {
+    for (var k = 0; k < list.length; k++) {
+      if (list[k].hadithNumber == number) return k;
+    }
+    return -1;
+  }
+
+  void _resumeBeyondFirstPage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+            'Saved hadith is beyond this book\'s first page — search its '
+            'number above to find it.'),
+      ),
+    );
+  }
+
+  void _jumpToHadithNumber(int number) {
+    if (_selectedChapterNumber != null || _searchQuery.isNotEmpty) {
+      // The resume position refers to the whole book — clear the
+      // filters first, then the pending jump lands on the next build.
+      _pendingResumeNumber = number;
+      setState(() {
+        _selectedChapterNumber = null;
+        _searchQuery = '';
+      });
+      return;
+    }
+    final hadiths = ref
+        .read(hadithsProvider(
+            HadithsParams(bookSlug: widget.book.slug)))
+        .valueOrNull;
+    if (hadiths == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('This collection is still loading — try again in a moment.')),
+      );
+      return;
+    }
+    final idx = _indexOfHadithNumber(hadiths, number);
+    if (idx < 0) {
+      _resumeBeyondFirstPage();
+      return;
+    }
+    _startJump(idx);
+  }
+
+  void _startJump(int index) {
+    setState(() => _resumeIndex = index);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = _resumeKey.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          alignment: 0.08,
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+        );
+      } else {
+        // Estimate fallback (same discipline as the Quran pass): the
+        // target is not built yet, so drive the viewport with a
+        // documented per-card estimate, then re-key for precision.
+        const estimatedCardExtent = 240.0;
+        final target = (index * estimatedCardExtent)
+            .clamp(0.0, _scroll.position.maxScrollExtent);
+        _scroll.animateTo(
+          target,
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+        );
+      }
+      Future.delayed(const Duration(milliseconds: 420), () {
+        if (mounted) setState(() => _resumeIndex = null);
+      });
+    });
+  }
+
+  /// Item 5: a bookmark-tap opened this screen with a target — resolve
+  /// it through the REAL service lookup and open its detail sheet.
+  Future<void> _openFocusHadith() async {
+    try {
+      await ref.read(hadithDatabaseInitProvider.future);
+    } catch (_) {
+      // fall through to the honest not-found path below
+    }
+    if (!mounted) return;
+    final local =
+        HadithDatabaseService().getHadith(widget.book.slug, widget.focusHadithNumber);
+    if (local == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text('That bookmark is not in the bundled data on this device.')),
+      );
+      return;
+    }
+    _showHadithDetailSheet(context, localToHadithModel(local));
+  }
+
   void _showHadithDetailSheet(BuildContext context, HadithModel hadith) {
     // P1 · Item 4 — opening a hadith detail (here or on the hadith
     // home sheet) is the one true view event; record it in the LRU.
     recordHadithView(ref, hadith);
+    // Text scales (item 1): snapshot at open — sliders live in the
+    // quick-settings sheet, not inside an open detail sheet.
+    final prefs = ref.read(hadithReadingPreferencesProvider);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -612,7 +877,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             style: AppArabicStyles.quranBold
                                 .copyWith(
                                     color: QibraNavy.textPrimary,
-                                    height: 1.8),
+                                    height: 1.8,
+                                    fontSize: AppFontSize.arabicMedium *
+                                        prefs.arabicScale),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -629,9 +896,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             hadith.textUrdu,
                             textAlign: TextAlign.right,
                             textDirection: TextDirection.rtl,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: QibraNavy.textPrimary,
-                                fontSize: 15,
+                                fontSize: 15 * prefs.translationScale,
                                 height: 1.8),
                           ),
                         ),
@@ -647,9 +914,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           ),
                           child: SelectableText(
                             hadith.textEnglish,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: QibraNavy.textPrimary,
-                                fontSize: 13.5,
+                                fontSize: 13.5 * prefs.translationScale,
                                 height: 1.6),
                           ),
                         ),
@@ -693,6 +960,9 @@ class _HadithCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isBookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
+    // World-class hadith pass (item 1): book-list cards follow the
+    // persisted split scales.
+    final prefs = ref.watch(hadithReadingPreferencesProvider);
 
     return GestureDetector(
       onTap: () {
@@ -792,7 +1062,8 @@ class _HadithCard extends ConsumerWidget {
                   hadith.textArabic,
                   style: AppArabicStyles.quranBold.copyWith(
                       color: QibraNavy.textPrimary,
-                      height: 1.7),
+                      height: 1.7,
+                      fontSize: AppFontSize.arabicMedium * prefs.arabicScale),
                   textAlign: TextAlign.right,
                 ),
               ),
@@ -821,8 +1092,10 @@ class _HadithCard extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       hadith.textUrdu,
-                      style: const TextStyle(
-                          color: QibraNavy.textPrimary, fontSize: 14, height: 1.7),
+                      style: TextStyle(
+                          color: QibraNavy.textPrimary,
+                          fontSize: 14 * prefs.translationScale,
+                          height: 1.7),
                       textDirection: TextDirection.rtl,
                       textAlign: TextAlign.right,
                     ),
@@ -852,9 +1125,9 @@ class _HadithCard extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       hadith.textEnglish,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: QibraNavy.textPrimary,
-                          fontSize: 12.5,
+                          fontSize: 12.5 * prefs.translationScale,
                           height: 1.5),
                     ),
                   ],
