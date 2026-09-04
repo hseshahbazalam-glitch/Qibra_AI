@@ -345,29 +345,27 @@ class HadithDatabaseService {
 
   // ─── DAILY / RANDOM / FEATURED HADITHS ──────────────────
 
+  /// Deterministic "today's hadith" selection (world-class hadith pass,
+  /// item 4): the pool is date-seeded, NOT random — the same calendar day
+  /// always yields the same index, across rebuilds, app opens and
+  /// restarts. Pool documented in [getDailyHadith]: Sahih al-Bukhari when
+  /// present (the collection whose authenticity is agreed on), the full
+  /// bundled corpus otherwise. Pure + static so the unit test can pin
+  /// determinism without loading a corpus.
+  static int todayIndexFor(DateTime now, int poolLength) {
+    final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
+    return dayOfYear % poolLength;
+  }
+
   LocalHadith? getDailyHadith() {
     final bukhariHadiths = _bookData['bukhari'];
     if (bukhariHadiths != null && bukhariHadiths.isNotEmpty) {
-      final now = DateTime.now();
-      final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
-      final index = dayOfYear % bukhariHadiths.length;
-      return bukhariHadiths[index];
+      return bukhariHadiths[
+          todayIndexFor(DateTime.now(), bukhariHadiths.length)];
     }
     final allHadiths = _getAllHadiths();
     if (allHadiths.isEmpty) return null;
-
-    final now = DateTime.now();
-    final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
-    final index = dayOfYear % allHadiths.length;
-    return allHadiths[index];
-  }
-
-  LocalHadith? getRandomHadith() {
-    final allHadiths = _getAllHadiths();
-    if (allHadiths.isEmpty) return null;
-
-    final index = DateTime.now().millisecondsSinceEpoch % allHadiths.length;
-    return allHadiths[index];
+    return allHadiths[todayIndexFor(DateTime.now(), allHadiths.length)];
   }
 
   List<LocalHadith> getFeaturedHadiths({int limit = 10, String? bookSlug}) {
@@ -538,21 +536,6 @@ class HadithDatabaseService {
       return int.tryParse(value) ?? 0;
     }
     return 0;
-  }
-
-  // ─── STATISTICS ──────────────────────────────────────────
-
-  Map<String, dynamic> get statistics {
-    return {
-      'isInitialized': _isInitialized,
-      'totalBooks': _bookData.length,
-      'totalHadiths': totalHadiths,
-      'books': _bookInfo.map((key, value) => MapEntry(key, {
-            'name': value.name,
-            'hadiths': value.totalHadiths,
-            'chapters': value.sections.length,
-          })),
-    };
   }
 
   void dispose() {
