@@ -1008,12 +1008,10 @@ abstract final class AppFeatureFlags {
   static const bool islamicCalendarEnabled = true;
 
   // --- Premium Features ---
-
-  /// Is offline Quran download enabled?
-  static const bool quranOfflineEnabled = true;
-
-  /// Recitation audio is not bundled in this checkout.
-  static const bool quranAudioEnabled = false;
+  // (dead flags removed: quranOfflineEnabled and quranAudioEnabled had
+  // zero references anywhere in lib/ or test/; offline downloads and
+  // streaming recitation shipped for real in the audio stage and are
+  // not gated by booleans.)
 
   /// Is AI Fatwa feature enabled?
   static const bool aiFatwaEnabled = false; // Coming soon

@@ -17,8 +17,6 @@
 //   8. medinanSurahsProvider - Medinan only
 //   9. searchQuranProvider - Search Quran
 //   10. searchSurahProvider - Search surahs by name
-//   11. currentSurahIndexProvider - Selected surah state
-//   12. lastReadProvider - Last read position
 //   13. bookmarksProvider - User bookmarks
 // ============================================================
 
@@ -266,54 +264,13 @@ final searchSurahProvider =
 // SECTION 7 — CURRENT SURAH STATE
 // ============================================================
 
-/// Currently selected surah number (default: 1 = Al-Fatihah)
-final currentSurahIndexProvider = StateProvider<int>((ref) => 1);
-
-/// Currently selected ayah number
-final currentAyahIndexProvider = StateProvider<int>((ref) => 1);
-
 // ============================================================
-// SECTION 8 — LAST READ POSITION (DEPRECATED — P1 merge)
+// SECTION 8 — REMOVED (dead sweep 2026-09-04)
 // ============================================================
-// Phase 4: lastReadProvider is now a legacy alias for backward compat.
-// New code should use reading_progress_provider.dart's MushafPageModel.
-// This notifier now syncs to ReadingProgressRepository when updated, so both
-// sources stay consistent. Will be removed after migration.
-
-/// Last read state notifier — legacy, delegates to readingProgressProvider
-class LastReadNotifier extends StateNotifier<LastReadModel?> {
-  LastReadNotifier() : super(null);
-
-  /// Update last read position — also syncs to Mushaf progress for统一 source of truth
-  void updateLastRead({
-    required int surahNumber,
-    required int ayahNumber,
-    required String surahName,
-    required int totalAyahsInSurah,
-  }) {
-    state = LastReadModel(
-      surahNumber: surahNumber,
-      ayahNumber: ayahNumber,
-      surahName: surahName,
-      lastReadAt: DateTime.now(),
-      totalAyahsInSurah: totalAyahsInSurah,
-    );
-    // Also sync to new readingProgressProvider is done via UI layer (SurahReader calls both for now)
-  }
-
-  /// Clear last read
-  void clear() {
-    state = null;
-  }
-}
-
-/// Last read provider — DEPRECATED, use readingProgressProvider from reading_progress_provider.dart
-@Deprecated(
-    'Use readingProgressProvider (MushafPageModel) as single source of truth')
-final lastReadProvider =
-    StateNotifierProvider<LastReadNotifier, LastReadModel?>((ref) {
-  return LastReadNotifier();
-});
+// The legacy in-memory LastReadNotifier/lastReadProvider pair had ZERO
+// callers and no persistence; the real last-read store now lives in
+// reading_progress_provider.dart (lastReadStoreProvider), backed by
+// ReadingProgressRepository.saveLastRead/getLastRead.
 
 // ============================================================
 // SECTION 9 — BOOKMARKS
@@ -482,34 +439,9 @@ final readingProgressProvider =
 // SECTION 11 — STATISTICS PROVIDER
 // ============================================================
 
-/// Quran statistics (surahs count, ayahs count, etc.)
-final quranStatisticsProvider = Provider<Map<String, dynamic>>((ref) {
-  final repository = ref.read(quranRepositoryProvider);
-  return repository.statistics;
-});
-
 // ============================================================
 // SECTION 12 — HELPER PROVIDERS
 // ============================================================
-
-/// Check if Quran data is loaded
-final isQuranLoadedProvider = Provider<bool>((ref) {
-  final initState = ref.watch(quranInitProvider);
-  return initState.value ?? false;
-});
-
-/// Get current surah based on lastReadProvider
-final currentReadingSurahProvider = FutureProvider<SurahModel?>((ref) async {
-  final lastRead = ref.watch(lastReadProvider);
-  if (lastRead == null) {
-    // Default to Al-Fatihah
-    final repository = ref.read(quranRepositoryProvider);
-    return await repository.getSurah(1);
-  }
-
-  final repository = ref.read(quranRepositoryProvider);
-  return await repository.getSurah(lastRead.surahNumber);
-});
 
 // ============================================================
 // END OF FILE — quran_provider.dart

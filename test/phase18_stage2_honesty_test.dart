@@ -28,9 +28,9 @@ void main() {
     }
   });
 
-  test('no fake audio-player chrome (recitation is not bundled)', () {
-    // The only allowed audio patterns: the honest "not bundled" notice
-    // (Quran/Hadith screens) and real on-device TTS in the AI screen.
+  test('no fake audio-player chrome (audio stage reality)', () {
+    // Screens must not hand-roll players or invented timestamps; real
+    // recitation lives in the app-wide provider (stream + offline).
     for (final p in _stage2Screens) {
       final src = File(p).readAsStringSync();
       if (p.contains('/ai/')) continue; // AI screen uses real flutter_tts
@@ -39,10 +39,22 @@ void main() {
       expect(src.contains('AudioPlayer('), isFalse,
           reason: '$p must not fake a player');
     }
-    // Quran screen must carry the honest notice instead.
+    // The stale "recitation is not bundled" badge was retired with the
+    // audio stage (2026-09) — keeping it would claim something false now.
+    // It must not come back; the reader must not revive invented times.
     final quran = File(_stage2Screens[1]).readAsStringSync();
-    expect(quran.contains('recitationNotBundled'), isTrue,
-        reason: 'Quran screen must show the honest recitation notice');
+    expect(quran.contains('recitationNotBundled'), isFalse,
+        reason: 'stale "not bundled" notice must stay retired');
+    final reader =
+        File('lib/features/quran/presentation/surah_reader_screen.dart')
+            .readAsStringSync();
+    expect(reader.contains('00:09'), isFalse,
+        reason: 'no invented playback timestamps in the reader');
+    final audioProvider = File(
+            'lib/features/quran/providers/quran_audio_provider.dart')
+        .readAsStringSync();
+    expect(audioProvider.contains('class QuranAudioController'), isTrue,
+        reason: 'the real player state must stay provider-backed');
   });
 
   test('no emoji icons in user-facing UI (single icon language)', () {

@@ -40,26 +40,8 @@ class MushafPageModel {
   // Progress percentage (0.0 to 1.0)
   double get overallProgress => pageNumber / 604;
 
-  // Human readable progress
-  String get progressText => '${(overallProgress * 100).toStringAsFixed(1)}%';
-
-  // Time ago string
-  String get timeAgo {
-    final diff = DateTime.now().difference(savedAt);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return '${savedAt.day}/${savedAt.month}/${savedAt.year}';
-  }
-
-  // Reading time formatted
-  String get readingTimeText {
-    if (totalReadingSeconds < 60) return '${totalReadingSeconds}s';
-    final mins = totalReadingSeconds ~/ 60;
-    if (mins < 60) return '$mins min';
-    return '${mins ~/ 60}h ${mins % 60}m';
-  }
+  // (Removed dead getters timeAgo / readingTimeText — zero references
+  // in lib/ or test/; savedAt remains stored for the model contract.)
 
   Map<String, dynamic> toJson() => {
         'pageNumber': pageNumber,

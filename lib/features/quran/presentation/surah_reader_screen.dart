@@ -5,7 +5,7 @@
 // What changed vs the legacy screen (audit findings):
 //  • 76 hardcoded hexes -> QibraColors tokens (theme-driven:
 //    navy by default, sanctioned ivory when the app theme is light).
-//  • The deleted floating audio-player bar (fabricated 00:09/01:01
+//  • The deleted floating audio-player bar (fabricated play/duration
 //    timestamps for unbundled audio) is GONE for good; the audio stage
 //    restored recitation as REAL: a single app-wide just_audio player
 //    (stream + offline), per-ayah play with live position from the
