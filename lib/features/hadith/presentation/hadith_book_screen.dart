@@ -35,6 +35,20 @@ class HadithBookScreen extends ConsumerStatefulWidget {
     this.focusHadithNumber = 0,
   });
 
+  /// Reference prev/next: pure walk over the book's published, ascending
+  /// hadith numbers. Returns null when [from] is the last/first entry or
+  /// not in the corpus at all — the sheet DISABLES the button there
+  /// (no wrap, no invented records). Pinned in
+  /// test/hadith_redesign_test.dart.
+  @visibleForTesting
+  static int? neighbourNumber(List<int> numbers, int from, int step) {
+    final i = numbers.indexOf(from);
+    if (i < 0) return null;
+    final j = i + step;
+    if (j < 0 || j >= numbers.length) return null;
+    return numbers[j];
+  }
+
   @override
   ConsumerState<HadithBookScreen> createState() => _HadithBookScreenState();
 }
@@ -867,11 +881,33 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     final sheetTranslation = sheetLang == 'ar'
         ? null
         : hadithTextForLanguage(hadith, sheetLang);
+    // Reference prev/next: walk the REAL neighbours in this book's
+    // published sequence (corpus order, ascending). The pure helper
+    // returns null at the ends — the buttons disable there.
+    final neighbourNumbers = HadithDatabaseService()
+        .getHadiths(widget.book.slug)
+        .map((h) => h.hadithNumber)
+        .toList(growable: false);
+    final prevNumber = HadithBookScreen.neighbourNumber(
+        neighbourNumbers, hadith.hadithNumber, -1);
+    final nextNumber = HadithBookScreen.neighbourNumber(
+        neighbourNumbers, hadith.hadithNumber, 1);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
+        void openNeighbour(int number) {
+          // Pop, then open the neighbour's sheet on the SCREEN context:
+          // the same entry point the list rows use, so history/record
+          // semantics stay identical (no second code path to drift).
+          Navigator.of(sheetContext).pop();
+          final local =
+              HadithDatabaseService().getHadith(widget.book.slug, number);
+          if (local != null) {
+            _showHadithDetailSheet(context, localToHadithModel(local));
+          }
+        }
         return Container(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.85,
@@ -902,32 +938,87 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
+                    // Reference reader header: accent book chip + the REAL
+                    // location line; every action beside it is wired
+                    // (bookmark toggle, prev/next in-corpus, copy-share,
+                    // close). No narrator-chain or 'View details' — the
+                    // corpus has no such data.
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                      width: 34,
+                      height: 34,
                       decoration: BoxDecoration(
-                        color: QibraNavy.surface,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
+                        color: QibraNavy.emerald.withValues(alpha: 0.14),
                         border: Border.all(color: QibraNavy.emeraldDeep),
                       ),
-                      child: Text(
-                        '#${hadith.hadithNumber}',
-                        style: const TextStyle(
-                            color: QibraNavy.emerald,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12),
+                      child: const Icon(Icons.auto_stories_rounded,
+                          size: 18, color: QibraNavy.emerald),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            hadith.bookName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: QibraNavy.emerald,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13),
+                          ),
+                          Text(
+                            'Hadith ${hadith.hadithNumber}',
+                            style: const TextStyle(
+                                color: QibraNavy.textSecondary,
+                                fontSize: 11),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      hadith.displayReference,
-                      style: const TextStyle(
-                          color: QibraNavy.textPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final isSaved =
+                            ref.watch(isHadithBookmarkedProvider(hadith.id));
+                        return IconButton(
+                          tooltip: isSaved ? 'Remove bookmark' : 'Bookmark',
+                          icon: Icon(
+                            isSaved
+                                ? Icons.bookmark_rounded
+                                : Icons.bookmark_border_rounded,
+                            color: isSaved
+                                ? QibraNavy.gold
+                                : QibraNavy.textSecondary,
+                          ),
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            ref
+                                .read(hadithBookmarksProvider.notifier)
+                                .toggleBookmark(hadith);
+                          },
+                        );
+                      },
                     ),
-                    const Spacer(),
                     IconButton(
+                      tooltip: 'Previous hadith',
+                      icon: const Icon(Icons.chevron_left_rounded,
+                          color: QibraNavy.textSecondary),
+                      onPressed: prevNumber == null
+                          ? null
+                          : () => openNeighbour(prevNumber!),
+                    ),
+                    IconButton(
+                      tooltip: 'Next hadith',
+                      icon: const Icon(Icons.chevron_right_rounded,
+                          color: QibraNavy.textSecondary),
+                      onPressed: nextNumber == null
+                          ? null
+                          : () => openNeighbour(nextNumber!),
+                    ),
+                    IconButton(
+                      tooltip: 'Copy to share',
                       icon: const Icon(Icons.share_rounded,
                           color: QibraNavy.textSecondary),
                       onPressed: () {
@@ -1018,6 +1109,53 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           ),
                         ),
                       ],
+                      // Reference authenticity banner — rendered ONLY when
+                      // the corpus actually carries a grade for THIS row.
+                      // UNKNOWN hadiths show no badge (data truth).
+                      if (hadith.grade != HadithGrade.unknown) ...[
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color:
+                                hadith.grade.color.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: hadith.grade.color
+                                  .withValues(alpha: 0.35),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.verified_rounded,
+                                  size: 18, color: hadith.grade.color),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Grade: ${hadith.grade.label}',
+                                      style: const TextStyle(
+                                          color: QibraNavy.textPrimary,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Source: ${hadith.bookName} (${hadith.hadithNumber})',
+                                      style: const TextStyle(
+                                          color: QibraNavy.textSecondary,
+                                          fontSize: 11),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       HadithMoreFromChapter(
                         hadith: hadith,
                         onOpen: (ctx, target) =>
@@ -1025,6 +1163,55 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       ),
                     ],
                   ),
+                ),
+              ),
+              // Reference bottom rail: real prev/next through the corpus
+              // + the EXISTING quick-settings sheet (split text scales AND
+              // the Language row live there — same single source the list
+              // bar opens; the detail sheet must not fork that sheet).
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: prevNumber == null
+                            ? null
+                            : () => openNeighbour(prevNumber!),
+                        icon:
+                            const Icon(Icons.chevron_left_rounded, size: 18),
+                        label: const Text('Previous',
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: QibraNavy.textPrimary,
+                          side:
+                              const BorderSide(color: QibraNavy.emeraldDeep),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      tooltip: 'Text size & language',
+                      icon: const Icon(Icons.text_format_rounded,
+                          color: QibraNavy.emerald),
+                      onPressed: () {
+                        Navigator.of(sheetContext).pop();
+                        _showQuickSettingsSheet(context);
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: nextNumber == null
+                            ? null
+                            : () => openNeighbour(nextNumber!),
+                        icon: const Icon(Icons.chevron_right_rounded,
+                            size: 18),
+                        label: const Text('Next',
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1080,20 +1267,21 @@ class _HadithCard extends ConsumerWidget {
           children: [
             Row(
               children: [
+                // Reference feed badge: solid emerald disc + number.
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: QibraNavy.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: QibraNavy.emeraldDeep),
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: QibraNavy.emeraldDeep,
                   ),
                   child: Text(
-                    '#${hadith.hadithNumber}',
+                    '${hadith.hadithNumber}',
                     style: const TextStyle(
-                        color: QibraNavy.emerald,
+                        color: QibraNavy.textPrimary,
                         fontWeight: FontWeight.w800,
-                        fontSize: 11),
+                        fontSize: 10),
                   ),
                 ),
                 const SizedBox(width: 8),
