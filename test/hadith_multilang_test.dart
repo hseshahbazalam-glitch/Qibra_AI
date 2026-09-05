@@ -240,14 +240,16 @@ void main() {
           reason: 'the Rev. 1 collapse: 402 and 402.2 are different hadiths');
     });
 
-    test('pairTextIndex: blanks skipped, unjoinable skipped, first wins', () {
+    test('pairTextIndex: blanks skipped, arabicnumber-0 fallback, first wins',
+        () {
       final index = HadithDatabaseService.pairTextIndex([
         {'hadithnumber': 1, 'arabicnumber': 0, 'text': 'one'},
         {'hadithnumber': '1001', 'arabicnumber': '446', 'text': 'thousand-one'},
         {'hadithnumber': 2, 'arabicnumber': '3033.02', 'text': 'fractional'},
         {'hadithnumber': 3, 'arabicnumber': 3, 'text': '   '}, // blank -> skip
         {'hadithnumber': 1, 'arabicnumber': 0, 'text': 'IGNORED'}, // dup
-        {'hadithnumber': 0, 'arabicnumber': 0, 'text': 'unjoinable'},
+        {'hadithnumber': 0, 'arabicnumber': 0, 'text': 'zero-pair'},
+        {'hadithnumber': 'abc', 'arabicnumber': 1, 'text': 'non-numeric'},
       ]);
       expect(index['1|1'], 'one');
       expect(index['1001|446'], 'thousand-one');
@@ -256,7 +258,17 @@ void main() {
           reason: 'whitespace-only text must NOT win the join — hasX would '
               'turn true with nothing to show, breaking the fallback');
       expect(index['1|1'], isNot('IGNORED'));
-      expect(index.containsKey('0|0'), isFalse);
+      // (Rev. 4) arabicnumber 0 is the fawazahmed0 marker for ABSENT —
+      // pairKey (hadith_database_service.dart:629) intentionally falls back
+      // to the hadithnumber-only key ('$h|$h'), mirroring the extractor.
+      // So (0,0) is NOT "unjoinable": it indexes under '0|0'. It stays
+      // inert because no base record carries hadithnumber 0 to query it.
+      expect(index['0|0'], 'zero-pair',
+          reason: 'arabic-number fallback rule, not a validity filter');
+      // numberKey validates nothing — a malformed label survives as its
+      // trimmed string (also true in the extractor); it can only ever fail
+      // to JOIN, never corrupt a real pair.
+      expect(index['abc|1'], 'non-numeric');
     });
 
     test('a blank that comes FIRST must not shadow the later real text', () {
@@ -392,7 +404,11 @@ void main() {
       final src =
           File('lib/features/settings/presentation/settings_screen.dart').readAsStringSync();
       expect(src.contains("HadithAvailability.selectorOptions()"), isTrue);
-      final start = src.indexOf('_showHadithLanguageSheet');
+      // (Rev. 4) anchor on the DEFINITION — the bare name first occurs at
+      // the call site (~:140), which gave the wrong window; the definition
+      // (~:907) is what the region pin is about. The 'void ' prefix occurs
+      // exactly once (call site has no modifier).
+      final start = src.indexOf('void _showHadithLanguageSheet');
       expect(start, greaterThan(0));
       var end = src.indexOf('\n  void ', start + 1);
       if (end < 0) end = src.length;
@@ -401,7 +417,8 @@ void main() {
           reason: 'the old hardcoded hadith language list must stay gone');
       // and the locale sheet's literal remains legitimately untouched:
       expect(src.substring(0, start).contains("('en', 'English')"), isTrue,
-          reason: 'the app-locale selector is a different surface');
+          reason: 'the app-locale selector (:764) is a different surface — '
+              'it sits BEFORE the hadith sheet definition and must survive');
     });
 
     test('book screen shows ONE translation block (no fixed Urdu/English pair)', () {
