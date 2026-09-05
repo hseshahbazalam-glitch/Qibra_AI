@@ -531,6 +531,65 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     );
   }
 
+  /// Reading-language picker for the quick-settings sheet. Deliberately
+  /// a MIRROR of settings_screen's _showHadithLanguageSheet: identical
+  /// derived option list (HadithAvailability.selectorOptions()), identical
+  /// setLanguage call — the test pins both surfaces to the matrix so
+  /// neither can drift back to a hardcoded list.
+  void _showReadingLanguageSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: QibraNavy.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final current = ref.read(hadithLanguageProvider);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Reading language',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: QibraNavy.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final option in HadithAvailability.selectorOptions())
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      option.note == null
+                          ? option.label
+                          : '${option.label}  ·  ${option.note}',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: QibraNavy.textPrimary,
+                      ),
+                    ),
+                    trailing: current == option.code
+                        ? const Icon(Icons.check_rounded,
+                            color: QibraNavy.emerald)
+                        : null,
+                    onTap: () {
+                      ref
+                          .read(hadithLanguageProvider.notifier)
+                          .setLanguage(option.code);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   /// One compact quick-settings sheet (world-class pass, item 1): the
   /// three display toggles moved here from the old dialog UNCHANGED in
   /// behavior (session state, exactly as before) plus the two persisted
@@ -565,6 +624,37 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
+                        // Reading language (owner 2026-09-05 UX finding):
+                        // a reader inside a book expects to switch language
+                        // HERE, not only in Settings. Same derived options
+                        // as the Settings sheet — one matrix, two entries.
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.translate_rounded,
+                              color: QibraNavy.textSecondary),
+                          title: Text(
+                            'Language',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: QibraNavy.textPrimary,
+                            ),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                HadithAvailability.label(
+                                    ref.watch(hadithLanguageProvider)),
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: QibraNavy.textSecondary,
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right_rounded,
+                                  color: QibraNavy.textSecondary),
+                            ],
+                          ),
+                          onTap: () => _showReadingLanguageSheet(sheetContext),
+                        ),
+                        const Divider(height: 20),
                         AppSwitchListTile(
                           activeColor: QibraNavy.emerald,
                           title: const Text('Arabic Text (عربي)',

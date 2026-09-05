@@ -421,6 +421,44 @@ void main() {
               'it sits BEFORE the hadith sheet definition and must survive');
     });
 
+    test('the book quick-settings sheet is a SECOND derived entry, not a copy',
+        () {
+      // Owner 2026-09-05 UX finding: readers inside a book looked for the
+      // 7-language switch in the quick-settings sheet and found only
+      // toggles. The fix must not fork the matrix — BOTH surfaces must
+      // derive from HadithAvailability.selectorOptions() and write the
+      // SAME provider, or they can drift exactly like the old hardcoded
+      // list did. This pin is what keeps them welded together.
+      final book = File('lib/features/hadith/presentation/hadith_book_screen.dart')
+          .readAsStringSync();
+      final settings = File('lib/features/settings/presentation/settings_screen.dart')
+          .readAsStringSync();
+      for (final src in [book, settings]) {
+        expect(src.contains('HadithAvailability.selectorOptions()'), isTrue,
+            reason: 'every hadith-language entry derives from the matrix');
+        expect(
+            src.contains('hadithLanguageProvider.notifier') &&
+                src.contains('.setLanguage(option.code)'),
+            isTrue,
+            reason: 'every entry writes the same single provider');
+      }
+      // Placement (owner ask): the Language row sits at the TOP of the
+      // quick-settings sheet, above the display toggles — pinned as a real
+      // source order, not a vibe.
+      final sheet = book.indexOf('void _showQuickSettingsSheet');
+      expect(sheet, greaterThan(0));
+      expect(book.indexOf('Icons.translate_rounded', sheet),
+          lessThan(book.indexOf("'Arabic Text", sheet)),
+          reason: 'Language row must sit above the toggles in the sheet');
+      expect(book.contains('void _showReadingLanguageSheet'), isTrue,
+          reason: 'the row opens a real picker, not a dead button');
+      expect(book.contains('_showReadingLanguageSheet(sheetContext)'), isTrue,
+          reason: 'and the picker is opened FROM the quick-settings sheet');
+      // No new hardcoded language list may exist in the book screen:
+      expect(RegExp(r"'en',\s*'ar'|'ar',\s*'ur'").hasMatch(book), isFalse,
+          reason: 'lists of codes inline = the drift this pin exists to stop');
+    });
+
     test('book screen shows ONE translation block (no fixed Urdu/English pair)', () {
       final src = File('lib/features/hadith/presentation/hadith_book_screen.dart')
           .readAsStringSync();
