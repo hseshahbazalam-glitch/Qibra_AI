@@ -26,7 +26,8 @@ jobs:
       - name: Dependencies
         run: flutter pub get
 
-            - name: 'Analyze (gate: 0 errors, 0 warnings - infos are sanctioned)'            run: flutter analyze
+      - name: 'Analyze (gate: 0 errors, 0 warnings - infos are sanctioned)'
+        run: flutter analyze
 
       - name: Full test suite (the ~318-test gate)
         run: flutter test
