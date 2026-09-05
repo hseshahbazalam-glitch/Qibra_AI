@@ -21,7 +21,6 @@ import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/core/router/app_router.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
-import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
 import 'package:qibra_ai/features/ai/services/rag_service.dart';
 
 // ============================================================
@@ -68,24 +67,15 @@ void main() async {
     return true;
   }());
 
-  // ─── Notification Service ─────────────────────────
-  try {
-    debugPrint('🔔 Initializing Notification Service...');
-    await NotificationService().initialize();
-    debugPrint('✅ Notification Service ready');
-  } catch (e) {
-    debugPrint('⚠️ Notification Service failed: $e');
-  }
-
-  // ─── Quran Data ─────────────────────────
-  try {
-    debugPrint('📖 Loading Quran data...');
-    final quranRepo = QuranRepository();
-    await quranRepo.initialize();
-    debugPrint('✅ Quran data loaded successfully!');
-  } catch (e) {
-    debugPrint('⚠️ Quran data loading failed: $e');
-  }
+  // ─── Notification Service + Quran Data ─────────────────
+  // (Perf pass item 2) Both heavy awaits moved OUT of the pre-runApp
+  // path: they now run in dataBootstrapProvider
+  // (lib/core/providers/app_providers.dart), started by the splash's
+  // first frame — runApp is no longer gated on corpus decode. The
+  // timezone DB above STAYS pre-runApp on purpose: it is a synchronous,
+  // in-memory IANA table registration, and prayer math reads it from
+  // its own first frame (documented per owner instruction; no screen
+  // blocks on it).
 
   // ─── Notification tap routing (P1 · Item 1) ─────────────────
   // 'dua:<id>' payloads open that dua's detail through the router.

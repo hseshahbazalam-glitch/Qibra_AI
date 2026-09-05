@@ -10,14 +10,17 @@
 // ============================================================
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../features/quran/data/repository/quran_repository.dart';
 import '../constants/app_constants.dart';
 import '../offline/data_status.dart';
 import '../offline/reachability.dart';
+import '../services/notification_service.dart';
 
 // ============================================================
 // SECTION 1: SHARED PREFERENCES PROVIDER
@@ -118,6 +121,40 @@ final appInitializationProvider = FutureProvider<AppInitState>((ref) async {
     prefs: prefs,
     packageInfo: packageInfo,
   );
+});
+
+// ============================================================
+// SECTION 5.5: DATA BOOTSTRAP (perf pass item 2, owner 2026-09-05)
+// ============================================================
+
+/// Boot work that used to be `await`ed in main() BEFORE runApp — Quran
+/// corpus decode and notification-service init — runs HERE, started by
+/// the splash's first frame, so the first frame never waits on data.
+/// Every screen stays independently safe through its own initialization
+/// (quranInitProvider / lazy repository init; hadith keeps loading
+/// unawaited in main as before). Errors are logged, never rethrown —
+/// the splash watches this provider for its REAL loading→ready state,
+/// which is exactly what replaces the old decorative spinner (no fake
+/// progress, owner rule).
+final dataBootstrapProvider = FutureProvider<void>((ref) async {
+  await Future.wait([
+    () async {
+      try {
+        await NotificationService().initialize();
+        debugPrint('✅ Notification Service ready');
+      } catch (e) {
+        debugPrint('⚠️ Notification Service failed: $e');
+      }
+    }(),
+    () async {
+      try {
+        await QuranRepository().initialize();
+        debugPrint('✅ Quran data loaded successfully!');
+      } catch (e) {
+        debugPrint('⚠️ Quran data loading failed: $e');
+      }
+    }(),
+  ]);
 });
 
 // ============================================================

@@ -14,6 +14,7 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/providers/app_providers.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/shared/widgets/media/pattern_backdrop.dart';
@@ -136,17 +137,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   void _scheduleNavigation() {
     _scheduleTimer(const Duration(milliseconds: 3500), () {
-      final authState = ref.read(authProvider);
-      final hasSeenOnboarding = ref.read(onboardingProvider);
-
-      if (!hasSeenOnboarding) {
-        context.go(AppRoutes.onboarding);
-      } else if (!authState.isAuthenticated) {
-        context.go(AppRoutes.login);
-      } else {
-        context.go(AppRoutes.home);
+      // (Perf pass item 2) Timeline finished — but if the data
+      // bootstrap is genuinely still running, proceed when it settles
+      // (real readiness, never a fixed-length lie; the provider swallows
+      // its own errors, so this always settles quickly either way).
+      final boot = ref.read(dataBootstrapProvider);
+      if (boot.isLoading) {
+        unawaited(boot.future
+            .then<void>((_) => _proceed())
+            .catchError((Object _) => _proceed()));
+        return;
       }
+      _proceed();
     });
+  }
+
+  void _proceed() {
+    if (!mounted) return;
+    final authState = ref.read(authProvider);
+    final hasSeenOnboarding = ref.read(onboardingProvider);
+
+    if (!hasSeenOnboarding) {
+      context.go(AppRoutes.onboarding);
+    } else if (!authState.isAuthenticated) {
+      context.go(AppRoutes.login);
+    } else {
+      context.go(AppRoutes.home);
+    }
   }
 
   @override
@@ -187,7 +204,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 const SizedBox(height: AppSpacing.md),
                 _buildTagline(),
                 const Spacer(flex: 3),
-                _buildLoadingIndicator(),
+                // (Perf pass item 2) The spinner used to spin regardless
+                // of reality — fake progress. It now mirrors the data
+                // bootstrap EXACTLY: spinner only while genuinely
+                // loading, a quiet 'Data ready' row once complete.
+                _buildBootStatus(
+                    ref.watch(dataBootstrapProvider).isLoading),
                 const SizedBox(height: AppSpacing.xl2),
                 _buildPremiumFooter(),
                 const SizedBox(height: AppSpacing.lg),
@@ -405,6 +427,25 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           fontWeight: FontWeight.w300,
         ),
       ),
+    );
+  }
+
+  Widget _buildBootStatus(bool loading) {
+    if (loading) return _buildLoadingIndicator();
+    final colors = QibraColors.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.check_rounded, size: 14, color: colors.accent),
+        const SizedBox(width: 6),
+        Text(
+          'Data ready',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: colors.textSecondary,
+            letterSpacing: 1,
+          ),
+        ),
+      ],
     );
   }
 
