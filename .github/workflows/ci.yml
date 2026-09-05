@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: analyze + test + battery
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # channel: stable for now - matches the owner's local SDK class.
+      # On merge day, pin the exact flutter-version for reproducibility.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Analyze (gate: 0 errors, 0 warnings - infos are sanctioned)
+        run: flutter analyze
+
+      - name: Full test suite (the ~318-test gate)
+        run: flutter test
+
+      - name: Static battery (hard findings must be 0)
+        run: python3 scripts/static_battery.py
