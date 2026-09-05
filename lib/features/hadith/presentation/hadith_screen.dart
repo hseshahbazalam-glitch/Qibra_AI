@@ -1032,6 +1032,12 @@ class _TodaysHadithCard extends ConsumerWidget {
           // (share = the clipboard flow, unchanged). The reference's
           // audio-playback control has no TTS feature behind it —
           // deliberately omitted.
+          // Overflow hotfix (device, 2026-09-06): the secondaries are
+          // icon-only ghosts — labeled QibraSoftButtons (each also an
+          // Expanded) squeezed the gold label to ~135dp on ~392dp
+          // screens and the inner Row overflowed by 34px. Handlers and
+          // semantics are identical; the bookmark state stays visible
+          // through the icon fill itself.
           Row(
             children: [
               Expanded(
@@ -1044,21 +1050,63 @@ class _TodaysHadithCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              QibraSoftButton(
+              HadithGhostIconButton(
                 icon: bookmarked
                     ? Icons.bookmark_rounded
                     : Icons.bookmark_border_rounded,
-                label: bookmarked ? 'Saved' : 'Bookmark',
-                onTap: onBookmark,
+                tooltip: 'Bookmark',
+                onPressed: onBookmark,
               ),
-              QibraSoftButton(
+              HadithGhostIconButton(
                 icon: Icons.ios_share_rounded,
-                label: 'Share',
-                onTap: onShare,
+                tooltip: 'Share',
+                onPressed: onShare,
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Icon-only ghost action beside the gold CTA — QibraSoftButton's visual
+/// language (icon 18, primary, InkWell r12, selection haptic) WITHOUT the
+/// label column: labeled siblings in the same Row are what overflowed the
+/// CTA at narrow widths (public so test/hadith_redesign_test.dart pumps
+/// the exact real composition in its 320/360dp guards).
+class HadithGhostIconButton extends StatelessWidget {
+  const HadithGhostIconButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onPressed();
+          },
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Icon(icon, size: 18, color: colors.primary),
+          ),
+        ),
       ),
     );
   }

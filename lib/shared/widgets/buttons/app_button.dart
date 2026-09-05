@@ -547,13 +547,21 @@ class _AppGoldButtonState extends State<AppGoldButton>
           ),
           const SizedBox(width: AppSpacing.sm),
         ],
-        Text(
-          widget.label,
-          style: AppTextStyles.buttonLarge.copyWith(
-            fontSize: config.fontSize,
-            color: isDisabled
-                ? colors.textPrimary.withValues(alpha: 0.50)
-                : colors.textPrimary,
+        // Overflow hotfix (2026-09-06): the label degrades to an
+        // ellipsis inside a tight parent instead of pushing the Row
+        // past its constraint. mainAxisSize logic above is untouched —
+        // unconstrained widths behave exactly as before.
+        Flexible(
+          child: Text(
+            widget.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.buttonLarge.copyWith(
+              fontSize: config.fontSize,
+              color: isDisabled
+                  ? colors.textPrimary.withValues(alpha: 0.50)
+                  : colors.textPrimary,
+            ),
           ),
         ),
         if (widget.suffixIcon != null) ...[

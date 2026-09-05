@@ -13,10 +13,12 @@
 
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
 import 'package:qibra_ai/features/hadith/presentation/hadith_book_screen.dart';
 import 'package:qibra_ai/features/hadith/presentation/hadith_screen.dart';
+import 'package:qibra_ai/shared/widgets/buttons/app_button.dart';
 
 HadithModel _model({String en = '', String ar = ''}) => HadithModel(
       id: 'bukhari-1',
@@ -182,6 +184,92 @@ void main() {
       expect(book.contains('KeyedSubtree(key: _resumeKey, child: card)'),
           isTrue);
       expect(book.contains('HadithAvailability.selectorOptions()'), isTrue);
+    });
+  });
+
+  group('today-card CTA row — narrow-viewport overflow guard', () {
+    // Device regression (2026-09-06): 'Read Full Hadith' + two LABELED
+    // QibraSoftButtons (each also Expanded) squeezed the gold label to
+    // ~135dp on ~392dp screens — a 34px RenderFlex overflow. The fix:
+    // icon-only ghost secondaries. This pumps the EXACT real
+    // composition (public HadithGhostIconButton + AppGoldButton) in a
+    // hard width box; 320 is the app's narrowest supported width.
+    Future<void> pumpRow(WidgetTester tester, double width) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: width,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppGoldButton(
+                        label: 'Read Full Hadith',
+                        size: AppButtonSize.small,
+                        fullWidth: true,
+                        suffixIcon: Icons.arrow_forward_rounded,
+                        onPressed: () {},
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    HadithGhostIconButton(
+                      icon: Icons.bookmark_border_rounded,
+                      tooltip: 'Bookmark',
+                      onPressed: () {},
+                    ),
+                    HadithGhostIconButton(
+                      icon: Icons.ios_share_rounded,
+                      tooltip: 'Share',
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('320dp renders the CTA row without RenderFlex overflow',
+        (tester) async {
+      await pumpRow(tester, 320);
+      expect(tester.takeException(), isNull);
+      // The CTA still renders (ellipsis-degrade is allowed, absence is
+      // not) and the ghost actions are present.
+      expect(find.text('Read Full Hadith'), findsOneWidget);
+      expect(find.byType(HadithGhostIconButton), findsNWidgets(2));
+    });
+
+    testWidgets('360dp renders the CTA row without RenderFlex overflow',
+        (tester) async {
+      await pumpRow(tester, 360);
+      expect(tester.takeException(), isNull);
+      expect(find.text('Read Full Hadith'), findsOneWidget);
+    });
+
+    test('CTA row sources carry the fixed composition + ellipsis path', () {
+      final home =
+          File('lib/features/hadith/presentation/hadith_screen.dart')
+              .readAsStringSync();
+      expect(home.contains('HadithGhostIconButton('), isTrue);
+      expect(home.contains("tooltip: 'Bookmark'"), isTrue);
+      expect(home.contains("tooltip: 'Share'"), isTrue);
+      // The labeled soft-button pair must NOT come back into this row.
+      expect(
+          home.contains("label: bookmarked ? 'Saved' : 'Bookmark'"), isFalse,
+          reason: 'labeled siblings in the gold-CTA row overflow at '
+              'narrow widths — keep the ghosts icon-only');
+      final btn = File(
+              'lib/shared/widgets/buttons/app_button.dart')
+          .readAsStringSync();
+      final content = btn.substring(btn.indexOf('_buildContent'));
+      expect(content.contains('Flexible('), isTrue,
+          reason: 'the gold label must degrade, never strip');
+      expect(content.contains('overflow: TextOverflow.ellipsis'), isTrue);
     });
   });
 }
