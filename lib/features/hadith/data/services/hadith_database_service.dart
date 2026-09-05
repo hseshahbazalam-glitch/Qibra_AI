@@ -221,21 +221,25 @@ class HadithDatabaseService {
   Future<void> _loadBook(String slug, String name) async {
     try {
       // Phase B: the four new language editions load in the SAME
-      // per-book Future.wait batch as the originals (existing pattern
-      // deliberately kept — see Phase B report; no new isolate exists
-      // for loading in this service today).
+      // per-book Future.wait batch as the originals. (Perf pass item 1
+      // update: the Phase B note said no isolate existed for loading —
+      // that was true and is now fixed. The asset TEXT still reads on
+      // main (rootBundle semantics unchanged); every JSON parse of these
+      // ~234 MB runs in Isolate.run. Language files additionally get
+      // their pairTextIndex built off-main: the isolate returns the
+      // ready key→text map. Join rules themselves are untouched.)
       final newLangs = HadithAvailability.newLanguageFiles.entries.toList();
-      final results = await Future.wait([
+      final results = await Future.wait<Object?>([
         _loadJsonAsset('assets/data/hadith/$slug/english.json'),
         _loadJsonAsset('assets/data/hadith/$slug/arabic.json'),
         _loadJsonAsset('assets/data/hadith/$slug/urdu.json'),
         for (final lang in newLangs)
-          _loadJsonAsset('assets/data/hadith/$slug/${lang.value}.json'),
+          _loadLanguageIndex('assets/data/hadith/$slug/${lang.value}.json'),
       ]);
 
-      final englishData = results[0];
-      final arabicData = results[1];
-      final urduData = results[2];
+      final englishData = results[0] as Map<String, dynamic>?;
+      final arabicData = results[1] as Map<String, dynamic>?;
+      final urduData = results[2] as Map<String, dynamic>?;
 
       if (englishData == null && arabicData == null && urduData == null) {
         return;
@@ -288,9 +292,8 @@ class HadithDatabaseService {
       // for that hadith -> '' -> hasX false.
       final langIndices = <String, Map<String, String>>{
         for (var i = 0; i < newLangs.length; i++)
-          newLangs[i].key: pairTextIndex(
-            results[3 + i]?['hadiths'] as List<dynamic>? ?? const [],
-          ),
+          newLangs[i].key:
+              (results[3 + i] as Map<String, String>?) ?? const {},
       };
 
       final primaryHadiths = englishHadiths.isNotEmpty
@@ -359,8 +362,63 @@ class HadithDatabaseService {
 
   Future<Map<String, dynamic>?> _loadJsonAsset(String path) async {
     try {
-      final jsonString = await rootBundle.loadString(path);
-      return jsonDecode(jsonString) as Map<String, dynamic>;
+      final raw = await rootBundle.loadString(path);
+      final sw = debugLogLoadTiming ? (Stopwatch()..start()) : null;
+      final decoded = await Isolate.run(() => decodeHadithAsset(raw));
+      _logDecodeTiming(path, sw);
+      return decoded;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Language file → ready (pairKey → text) index, built ENTIRELY inside
+  /// one background isolate (perf pass item 1): decode AND the
+  /// pairTextIndex fold happen off-main; main only receives the flat
+  /// String→String map. Semantics live in the tested [pairTextIndex].
+  Future<Map<String, String>?> _loadLanguageIndex(String path) async {
+    try {
+      final raw = await rootBundle.loadString(path);
+      final sw = debugLogLoadTiming ? (Stopwatch()..start()) : null;
+      final index = await Isolate.run(() {
+        final data = decodeHadithAsset(raw);
+        if (data == null) return null;
+        return pairTextIndex(data['hadiths'] as List<dynamic>? ?? const []);
+      });
+      _logDecodeTiming(path, sw);
+      return index;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static void _logDecodeTiming(String path, Stopwatch? sw) {
+    if (sw == null) return;
+    sw.stop();
+    debugPrint('[HADITH_DB] decoded '
+        '${path.substring(path.lastIndexOf('/') + 1)} in '
+        '${sw.elapsedMilliseconds}ms (off-main)');
+  }
+
+  /// Per-file decode stopwatches for the owner's boot profiling (perf
+  /// pass item 1): on in debug + profile, silent in release. Flip to
+  /// force either state. The aggregate '[HADITH_DB] Initialized' line is
+  /// unchanged and always logs via debugPrint.
+  static bool debugLogLoadTiming = !kReleaseMode;
+
+  /// Pure, isolate-safe decode entry (perf pass item 1). jsonDecode plus
+  /// the exact shape check the loader expects — no Flutter APIs, so
+  /// test/perf_pass_test.dart can pin decode+join semantics on a
+  /// fixture WITHOUT spawning isolates in the test.
+  @visibleForTesting
+  static Map<String, dynamic>? decodeHadithAsset(String raw) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) {
+        return Map<String, dynamic>.from(decoded);
+      }
+      return null;
     } catch (_) {
       return null;
     }
