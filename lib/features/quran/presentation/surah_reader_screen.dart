@@ -44,7 +44,7 @@ import '../data/models/quran_models.dart';
 import '../providers/quran_audio_provider.dart';
 import '../providers/quran_download_provider.dart';
 import '../providers/reading_progress_provider.dart';
-import '../providers/quran_provider.dart' hide readingProgressProvider;
+import '../providers/quran_provider.dart';
 import '../providers/reading_preferences_provider.dart';
 import 'ayah_options_sheet.dart';
 
@@ -485,9 +485,9 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
                                 setState(
                                     () => _followM = _followM.newSession());
                               }
-                              if (followAyah != null) {
-                                _ensureAyahVisible(followAyah);
-                              }
+                              // (Rev: no redundant != null — the enclosing
+                              // block already guarantees a non-null ayah.)
+                              _ensureAyahVisible(followAyah);
                             },
                           ),
                         ),

@@ -22,11 +22,8 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
-  static bool _timeZonesReady = false;
-
-  static void markTimeZonesInitialized() {
-    _timeZonesReady = true;
-  }
+  // (Rev: the old _timeZonesReady flag was write-only — set at startup,
+  // never read; the real tz.initializeTimeZones() call lives in main.)
 
   // ────────────────────────────────────────────────────────────
   // NOTIFICATION TAP ROUTING (P1)

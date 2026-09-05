@@ -33,7 +33,7 @@ import '../data/models/quran_models.dart';
 import '../data/repository/reading_progress_repository.dart';
 import '../../../core/design_system/qibra_navy.dart';
 import '../providers/quran_audio_provider.dart';
-import '../providers/quran_provider.dart' hide readingProgressProvider;
+import '../providers/quran_provider.dart';
 import '../providers/reading_progress_provider.dart';
 import '../../tafseer/presentation/tafseer_screen.dart';
 
@@ -297,61 +297,6 @@ Juz: ${juz ?? '—'}''';
     _showToast('Page info copied — paste it anywhere to share');
   }
 
-  void _showPageInfo(int page) {
-    final colors = QibraColors.of(context);
-    final juz = _juzOnPage(page);
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: colors.card,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-        ),
-        title: Row(
-          children: [
-            Icon(Icons.info_outline_rounded,
-                color: colors.textSecondary, size: 22),
-            const SizedBox(width: 8),
-            Text(
-              'Page $page',
-              style: AppTextStyles.titleMedium.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _infoRow(colors, 'Surah', _pageSurahLabel(page)),
-            _infoRow(colors, 'Juz', juz == null ? '—' : 'Juz $juz'),
-            _infoRow(colors, 'Position', '$page of 604'),
-            _infoRow(
-              colors,
-              'Progress',
-              '${(page / 604 * 100).toStringAsFixed(1)}%',
-            ),
-            _infoRow(
-              colors,
-              'Bookmarked',
-              _bookmarkedPages.contains(page) ? 'Yes' : 'No',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Close',
-              style: AppTextStyles.labelLarge.copyWith(color: colors.primary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _infoRow(QibraColors colors, String label, String value) {
     return Padding(

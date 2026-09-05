@@ -627,7 +627,6 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   // ─── MESSAGES LIST ─────────────────────────
 
   Widget _buildMessagesList(List<ChatMessage> messages) {
-    final colors = QibraColors.of(context);
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),

@@ -194,7 +194,6 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
   }
 
   Widget _buildContent(List<SurahInfoModel> surahs) {
-    final colors = QibraColors.of(context);
     final filtered = _applyFilters(surahs);
 
     return CustomScrollView(
@@ -853,7 +852,6 @@ class _RevelationBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,

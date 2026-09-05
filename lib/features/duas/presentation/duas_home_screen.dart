@@ -505,7 +505,6 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildCategoriesGrid() {
-    final colors = QibraColors.of(context);
     final categories = ref.watch(duaCategoriesProvider);
 
     return Padding(
@@ -619,7 +618,6 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildFavoritesSection() {
-    final colors = QibraColors.of(context);
     final favorites = ref.watch(favoriteDuasProvider);
     if (favorites.isEmpty) return const SizedBox.shrink();
 

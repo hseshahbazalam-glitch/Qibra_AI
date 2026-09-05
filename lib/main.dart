@@ -45,7 +45,6 @@ void main() async {
   // ─── Timezone DB (Phase 2: IANA for exact prayer timezone) ─────
   try {
     tz_data.initializeTimeZones();
-    NotificationService.markTimeZonesInitialized();
     debugPrint('✅ Timezone DB initialized');
   } catch (e) {
     debugPrint('⚠️ Timezone DB failed: $e');

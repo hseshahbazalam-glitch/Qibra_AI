@@ -242,7 +242,7 @@ abstract final class QuranMeta {
   static int computeTotalAyahs() {
     var total = 0;
     for (final row in _surahTable) {
-      total += row[1] as int;
+      total += row[1];
     }
     return total;
   }

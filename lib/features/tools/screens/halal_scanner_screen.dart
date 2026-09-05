@@ -361,7 +361,6 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
 
   // ─── Tab Content ────────────────────────────────────────────
   Widget _buildTabContent() {
-    final colors = QibraColors.of(context);
     return TabBarView(
       controller: _tabController,
       children: [
@@ -377,7 +376,6 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   // TAB 1: BARCODE SCANNER
   // ═══════════════════════════════════════════════════════════
   Widget _buildBarcodeTab() {
-    final colors = QibraColors.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       physics: const BouncingScrollPhysics(),

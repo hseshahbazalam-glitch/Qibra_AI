@@ -145,7 +145,6 @@ extension _AsmaLearnWidgets on _AsmaUlHusnaScreenState {
 
   Widget _buildGroupCard(
       String title, IconData icon, Color color, List<_AsmaName> names) {
-    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

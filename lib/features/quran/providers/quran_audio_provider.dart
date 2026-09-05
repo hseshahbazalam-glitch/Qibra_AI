@@ -317,7 +317,7 @@ class QuranAudioController extends Notifier<QuranAudioState> {
       var loaded = false;
       try {
         final root = await const TilawatDownloader().rootDir();
-        final size = await TilawatDownloader.usableSize(
+        final size = TilawatDownloader.usableSize(
             Tilawat.filePath(root, a.surah, a.ayah));
         if (size != null) {
           await _player

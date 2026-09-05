@@ -926,7 +926,6 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
     DailyPrayerTimes? dailyTimes,
     NextPrayerInfo? nextInfo,
   ) {
-    final colors = QibraColors.of(context);
     final nextType = nextInfo?.prayer.type;
 
     final prayers = [

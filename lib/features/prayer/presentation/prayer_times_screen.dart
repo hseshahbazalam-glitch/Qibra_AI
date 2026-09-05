@@ -292,6 +292,12 @@ class PrayerTimesScreen extends ConsumerWidget {
                       .copyWith(color: colors.textPrimary),
                 ),
               ),
+              // NOTE(Rev, analyzer): RadioListTile.groupValue is deprecated
+              // on newer SDKs in favor of the RadioGroup ancestor widget.
+              // This repo's floor is Dart 3.4 / Flutter ~3.22 (pubspec
+              // comment), which PREDATES RadioGroup entirely — migrating
+              // would break the oldest supported toolchain. Kept; revisit
+              // when the floor rises.
               for (final method in CalculationMethod.values)
                 RadioListTile<CalculationMethod>(
                   value: method,

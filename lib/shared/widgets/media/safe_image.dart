@@ -75,7 +75,6 @@ class SafeImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
     final variant = fallback ?? _inferFallback();
     final placeholder = _VectorFallback(
       variant: variant,

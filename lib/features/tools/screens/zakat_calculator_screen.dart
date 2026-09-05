@@ -35,9 +35,6 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
   bool _zakatDue = false;
   String _nisabMessage = '';
 
-  // FIX: _nisabThreshold properly used in calculate + reset
-  double _nisabThreshold = 0;
-
   // Delegates to ZakatCalculator (pure, unit-tested) — aliases kept for
   // the nisab info rows' display strings.
   static const double _goldNisabGrams = ZakatCalculator.goldNisabGrams;
@@ -134,7 +131,6 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
 
     setState(() {
       _totalWealth = outcome.totalWealth;
-      _nisabThreshold = outcome.nisabThreshold;
       _zakatAmount = outcome.zakatAmount;
       _zakatDue = outcome.isDue;
       _nisabMessage = switch (outcome.kind) {
@@ -163,8 +159,6 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
       _zakatAmount = 0;
       _zakatDue = false;
       _nisabMessage = '';
-      // FIX: Reset _nisabThreshold properly
-      _nisabThreshold = 0;
       _showResult = false;
     });
   }

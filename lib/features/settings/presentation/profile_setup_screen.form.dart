@@ -194,7 +194,7 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
       child: GestureDetector(
         onTap: () {
           HapticFeedback.selectionClick();
-          setState(() => _selectedGender = value);
+          _patchUi(() => _selectedGender = value);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -287,7 +287,7 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
                 ],
                 onChanged: (val) {
                   HapticFeedback.selectionClick();
-                  setState(() => _selectedMadhab = val!);
+                  _patchUi(() => _selectedMadhab = val!);
                 },
               ),
 
@@ -307,7 +307,7 @@ extension _ProfileSetupFormWidgets on _ProfileSetupScreenState {
                 ],
                 onChanged: (val) {
                   HapticFeedback.selectionClick();
-                  setState(() => _selectedPrayerMethod = val!);
+                  _patchUi(() => _selectedPrayerMethod = val!);
                 },
               ),
             ],

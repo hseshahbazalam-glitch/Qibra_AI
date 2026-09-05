@@ -22,8 +22,7 @@ import '../../../shared/widgets/qibra_ui.dart';
 import '../../duas/providers/dua_provider.dart';
 import '../../hadith/providers/hadith_provider.dart';
 import '../../prayer/providers/prayer_provider.dart';
-import '../../quran/providers/quran_provider.dart'
-    hide readingProgressProvider;
+import '../../quran/providers/quran_provider.dart';
 import '../../quran/providers/reading_progress_provider.dart';
 import 'widgets/home_hero.dart';
 import 'widgets/home_sections.dart';

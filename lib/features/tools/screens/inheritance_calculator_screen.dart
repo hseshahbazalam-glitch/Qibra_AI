@@ -18,6 +18,11 @@ class InheritanceCalculatorScreen extends StatefulWidget {
 
 class _InheritanceCalculatorScreenState
     extends State<InheritanceCalculatorScreen> {
+  // (Rev) Part-file widget builders live in extensions, and the
+  // analyzer treats setState as protected — this thin in-class wrapper
+  // keeps their updates legal with zero runtime difference.
+  void _patchUi(VoidCallback fn) => setState(fn);
+
   final _estateController = TextEditingController();
   final _debtController = TextEditingController();
   final _wasiyyahController = TextEditingController();

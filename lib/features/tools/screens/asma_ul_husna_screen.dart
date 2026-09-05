@@ -277,7 +277,6 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
 
   // ─── Tab Content ────────────────────────────────────────────
   Widget _buildTabContent() {
-    final colors = QibraColors.of(context);
     return TabBarView(
       controller: _tabController,
       children: [

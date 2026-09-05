@@ -999,7 +999,6 @@ class _AppLoadingButtonState extends State<AppLoadingButton> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
     if (widget.isGold) {
       return AppGoldButton(
         label:

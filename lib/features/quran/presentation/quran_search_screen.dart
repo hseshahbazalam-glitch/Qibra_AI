@@ -428,7 +428,6 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   // ── Body ──────────────────────────────────────────────────
 
   Widget _buildBody(SearchState searchState, List<String> recentSearches) {
-    final colors = QibraColors.of(context);
     // No search query - show suggestions
     if (_currentQuery.isEmpty) {
       return _buildSuggestionsView(recentSearches);
@@ -763,7 +762,6 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildResultsList(List<SearchResultModel> results) {
-    final colors = QibraColors.of(context);
     return Column(
       children: [
         Padding(

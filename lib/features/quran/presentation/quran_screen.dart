@@ -20,7 +20,7 @@ import '../../../shared/widgets/qibra_stat_card.dart';
 import '../../../shared/widgets/qibra_status.dart';
 import '../../../shared/widgets/qibra_ui.dart';
 import '../data/models/quran_models.dart';
-import '../providers/quran_provider.dart' hide readingProgressProvider;
+import '../providers/quran_provider.dart';
 import '../providers/reading_progress_provider.dart';
 
 class QuranScreen extends ConsumerStatefulWidget {

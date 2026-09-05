@@ -51,6 +51,11 @@ class ProfileSetupScreen extends ConsumerStatefulWidget {
 
 class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     with TickerProviderStateMixin {
+  // (Rev) Part-file widget builders live in extensions, and the
+  // analyzer treats setState as protected — this thin in-class wrapper
+  // keeps their updates legal with zero runtime difference.
+  void _patchUi(VoidCallback fn) => setState(fn);
+
   // ── FORM ─────────────────────────────────────────────
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -669,7 +674,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
 
     return Scaffold(
       body: Stack(

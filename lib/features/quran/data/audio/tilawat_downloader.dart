@@ -63,20 +63,26 @@ class TilawatDownloader {
   Future<List<int?>> _sizesFrom(Directory dir, List<String> names) async {
     final out = <int?>[];
     for (final n in names) {
-      out.add(await _usableSize('${dir.path}/$n'));
+      out.add(_usableSize('${dir.path}/$n'));
     }
     return out;
   }
 
   /// Size of a file if it exists AND has bytes; null otherwise.
   /// 0-byte files are treated as missing AND deleted (failure cleanup).
-  static Future<int?> usableSize(String path) async {
+  ///
+  /// (Rev, analyzer) Deliberately SYNC: this is a hot metadata probe (every
+  /// playback resolution + every whole-surah coverage scan). The
+  /// avoid_slow_async_io lint fires exactly here — async exists()/length()
+  /// bounce through dart:io's background isolates and are SLOWER than a
+  /// direct stat for calls this cheap; cold callers above/below stay async.
+  static int? usableSize(String path) {
     try {
       final f = File(path);
-      if (!await f.exists()) return null;
-      final len = await f.length();
+      if (!f.existsSync()) return null;
+      final len = f.lengthSync();
       if (len > 0) return len;
-      await f.delete(); // 0-byte = failure; clean it up
+      f.deleteSync(); // 0-byte = failure; clean it up
       return null;
     } catch (e) {
       debugPrint('⚠️ tilawat size check failed for $path: $e');
@@ -84,7 +90,7 @@ class TilawatDownloader {
     }
   }
 
-  Future<int?> _usableSize(String path) => usableSize(path);
+  int? _usableSize(String path) => usableSize(path);
 
   /// Downloads the surah's missing files sequentially. [onProgress]
   /// receives (completedFiles, totalFiles, currentAyah, fractionOfCurrentFile)
@@ -107,7 +113,7 @@ class TilawatDownloader {
     for (int i = 0; i < names.length; i++) {
       final ayah = i + 1;
       final finalPath = '$dirPath/${names[i]}';
-      if (await usableSize(finalPath) != null) {
+      if (usableSize(finalPath) != null) {
         done++;
         onProgress?.call(done, names.length, ayah, 1);
         continue;
