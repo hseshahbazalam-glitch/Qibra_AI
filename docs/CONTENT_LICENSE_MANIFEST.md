@@ -121,33 +121,48 @@ above. Record of what shipped:
 
 - **Transport:** `fawazahmed0/hadith-api` @ branch `1`, `editions/{ben,tur,ind,fra}-{book}.json`
   fetched via the GitHub blobs API (27 files, 153.4 MB; `fra-tirmidhi` does not exist).
-- **Extraction:** `scripts/extract_hadith_languages.py` (kept in-repo as provenance).
-  Records are joined to OUR shipped records ONLY by the `(hadithnumber, arabicnumber)`
-  pair — never by array index — mirroring the loader's own leading-digit number parse,
-  so the Python join and the runtime Dart join agree by construction. Unmatched or
-  empty dataset records are DROPPED (they become `hasX == false` → the "unavailable"
-  fallback), never guessed. Output is compact JSON (no pretty indentation, no
-  per-language `grades` — the dataset's grades live only in `ara-*` editions, so
-  nothing is invented; the grade chip keeps reflecting the base record).
-- **Mismatch report (measured; full table printed by the script):** every joinable,
-  non-empty dataset record mapped onto a shipped hadith — **dataset-unmatched = 0
-  for every book × language**. The only absences are dataset-side empty texts
-  (e.g. turkish-Nasai: 5,136 of 5,765 records are empty in the dataset — only the
-  629 real translations ship, no padding) and our duplicate pairs (26 in bukhari,
-  42 in tirmidhi, 7 in nasai, 2 in ibnmajah share one language record by first-wins,
-  which the runtime pair-map reproduces exactly).
+- **Extraction (Rev. 2):** `scripts/extract_hadith_languages.py` (kept in-repo as
+  provenance). Records are joined to OUR shipped records ONLY by the exact canonical
+  `(hadithnumber, arabicnumber)` pair — never by array index, never by flooring.
+  Both sides key numbers through identical logic (Python `canon_num` ≡ Dart
+  `HadithDatabaseService.numberKey`: integral values stringify without a decimal
+  point, fractional labels like `402.2` stay strings), so the Python join and the
+  runtime Dart join agree by construction — verified over all 476,040 base-record
+  numbers (0 key mismatches). Empty language texts are skipped (they must not
+  shadow a real record). Unmatched or empty dataset records are DROPPED (they
+  become `hasX == false` → the "unavailable" fallback), never guessed. Output is
+  compact JSON (no pretty indentation, no per-language `grades` — the dataset's
+  grades live only in `ara-*` editions, so nothing is invented; the grade chip
+  keeps reflecting the base record).
+- **Mismatch report (measured; full table printed by the script):** dataset-unmatched
+  is 0 for every book × language except Malik, where the French edition carries 41
+  (and Indonesian 1) records whose numbers our 1,858-record base does not contain —
+  reported, not force-joined, not dropped silently. Dataset-side empty texts are
+  skipped, never padded (e.g. turkish-Nasai: 5,136 of 5,765 records are empty — only
+  the 629 real translations ship; bengali-bukhari: 60 numbered empties including
+  402.2, which is therefore HONESTLY absent in Bengali). Our base contains 60
+  duplicate `(hadithnumber, arabicnumber)` pairs (54 of them point at DIFFERENT
+  records — Rev. 1's last-wins base parse had misattributed them); the extractor
+  takes base-first and the runtime mirror reproduces the identical choice.
 - **Coverage per book (keyed records → texts shipped):**
 
   | book (our keyed) | bn | tr | id | fr |
   | --- | --- | --- | --- | --- |
-  | bukhari (7,563) | 7,529 | 7,512 | 6,856 | 7,563 |
+  | bukhari (7,563) | 7,529 | 7,521 | 6,858 | 7,589 |
   | muslim (7,563) | 7,360 | 7,380 | 4,927 | 7,307 |
   | abudawud (5,274) | 5,270 | 5,266 | 4,406 | 5,274 |
-  | nasai (5,758) | 5,656 | 629 | 5,331 | 5,672 |
-  | tirmidhi (3,956) | 3,891 | 3,755 | 3,523 | — (no fra-tirmidhi edition) |
-  | ibnmajah (4,341) | 4,336 | 4,318 | 4,269 | 4,338 |
-  | malik (1,858) | 1,749 | 1,558 | 1,553 | 1,531 |
-  | **total** | **35,791** | **30,418** | **30,865** | **31,685** / 32,357 covered |
+  | nasai (5,758) | 5,656 | 629 | 5,335 | 5,679 |
+  | tirmidhi (3,956) | 3,895 | 3,769 | 3,540 | — (no fra-tirmidhi edition) |
+  | ibnmajah (4,341) | 4,336 | 4,319 | 4,269 | 4,340 |
+  | malik (1,858) | 1,749 | 1,558 | 1,552 | 1,505 |
+  | **total** | **35,795** | **30,442** | **30,887** | **31,694** |
+
+- **Fractional records:** where the datasets themselves number a hadith `N.2`, the
+  key is shipped as the string `"N.2"` and joins 1:1 to the base's fractional entry.
+  90 such records ship (e.g. fr-bukhari 26 — including 402.2 "Rapporté par Anas…",
+  whose 844-character text Rev. 1 had mislabeled as 402 — tr-bukhari 11, id-tirmidhi 19,
+  fr-nasai 7, bn-tirmidhi 4, tr-tirmidhi 14, id-bukhari 2, id-nasai 4, fr-ibnmajah 2,
+  tr-ibnmajah 1). The multilang test pins 402.2 present (fr) / absent (bn) verbatim.
 
 - **License status unchanged:** the dataset's repo-level The Unlicense dedication
   covers the repo owner's rights only. Translator-level licensing for bn/tr/id/fr
@@ -156,7 +171,7 @@ above. Record of what shipped:
   human works credited to their published editions (sunnah.com / urdupoint /
   al-maktaba / IIUM / isnad.link per the dataset's References); no AI-generated
   translation text is or will be bundled under any name.
-- **Size as shipped:** new files total **125.4 MB raw → ≈24.9 MB deflated**
+- **Size as shipped (Rev. 2):** 27 files, **125,468,580 B raw → ≈24.9 MB deflated**
   (measured in-repo, zlib-9 per language: bn 53.3→7.4, tr 27.7→7.6, id 26.8→5.6,
   fr 17.7→4.3 MB). The extraction's stripping (compact JSON, no duplicate
   metadata, empties dropped, no per-language grades) is what brought Phase A's

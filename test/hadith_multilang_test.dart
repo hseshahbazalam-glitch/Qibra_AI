@@ -27,16 +27,16 @@ List<Map<String, dynamic>> _hadithsOf(String path) =>
     (_readAsset(path)['hadiths'] as List<dynamic>)
         .cast<Map<String, dynamic>>();
 
-(int, int) _pairOf(Map<String, dynamic> rec) {
-  int lead(Object? v) {
-    if (v == null) return 0;
-    if (v is num) return v.toInt();
-    final m = RegExp(r'^(\d+)').firstMatch(v.toString());
-    return m != null ? int.parse(m.group(1)!) : 0;
-  }
-  final h = lead(rec['hadithnumber']);
-  final a = lead(rec['arabicnumber']);
-  return (h, a == 0 ? h : a);
+// Join keys in these tests call the RUNTIME function itself
+// (HadithDatabaseService.pairKey) — re-implementing the normalization in
+// the test is exactly how Rev. 1's floor-collapse escaped review. Rev. 2
+// keys are exact and fractional-aware: 402 and 402.2 are different hadiths.
+String _pairOf(Map<String, dynamic> rec) =>
+    HadithDatabaseService.pairKey(rec['hadithnumber'], rec['arabicnumber']);
+
+bool _unjoinable(Map<String, dynamic> rec) {
+  final h = HadithDatabaseService.numberKey(rec['hadithnumber']);
+  return h.isEmpty || h == '0';
 }
 
 void main() {
@@ -91,6 +91,7 @@ void main() {
       // hadith must be ABSENT from the language file, never carried as ''.
       for (final slug in books) {
         final basePairs = _hadithsOf('assets/data/hadith/$slug/english.json')
+            .where((r) => !_unjoinable(r))
             .map(_pairOf)
             .toSet();
         for (final lang in newLangs.entries) {
@@ -107,23 +108,79 @@ void main() {
       }
     });
 
-    test('language files mirror the base record numbers exactly', () {
-      // (same pair) — so the runtime Dart join hits by construction.
+    test('language files mirror base records 1:1 and in base order', () {
+      // Rev. 2 contract: one language record per MATCHED base record,
+      // numbers/reference copied from the BASE record itself (never from
+      // the dataset). Two-pointer subsequence check — the strictest form
+      // that survives intentional drops (unmatched/empty dataset texts).
       for (final slug in books) {
-        final base = {
-          for (final r in _hadithsOf('assets/data/hadith/$slug/english.json'))
-            _pairOf(r): r,
-        };
+        final base = _hadithsOf('assets/data/hadith/$slug/english.json');
         for (final lang in newLangs.entries) {
           final file = 'assets/data/hadith/$slug/${lang.value}.json';
           if (!File(file).existsSync()) continue;
-          for (final rec in _hadithsOf(file)) {
-            final b = base[_pairOf(rec)]!;
-            expect(_pairOf(rec), _pairOf(b));
-            expect(rec['reference'], b['reference'],
-                reason: 'reference must ride the base record verbatim');
+          final langRecs = _hadithsOf(file);
+          var i = 0;
+          for (final rec in langRecs) {
+            var found = false;
+            while (i < base.length) {
+              final b = base[i++];
+              if (_unjoinable(b)) continue;
+              if (_pairOf(b) == _pairOf(rec)) {
+                expect(rec['hadithnumber'], b['hadithnumber'],
+                    reason: '$file: hadithnumber must ride base verbatim');
+                expect(rec['arabicnumber'], b['arabicnumber'],
+                    reason: '$file: arabicnumber must ride base verbatim');
+                expect(rec['reference'], b['reference'],
+                    reason: '$file: reference must ride base verbatim');
+                found = true;
+                break;
+              }
+            }
+            expect(found, isTrue,
+                reason: '$file: record ${rec['hadithnumber']} does not '
+                    'mirror a base record in order');
           }
         }
+      }
+    });
+
+    test('REV. 2 — fractional records are SEPARATE hadiths (the 402 case)', () {
+      // bengali bukhari 402.2 is a chapter citation whose dataset text
+      // is EMPTY -> it must be absent (fallback), and the parent 402 must
+      // carry ONLY its own text. The Rev. 1 floor-join shipped the parent
+      // text to BOTH; this pin makes that regression impossible.
+      final bn = _hadithsOf('assets/data/hadith/bukhari/bengali.json');
+      expect(
+          bn.where((r) =>
+              HadithDatabaseService.numberKey(r['hadithnumber']) == '402.2'),
+          isEmpty,
+          reason: 'ben has no text for 402.2 — shipping one would fabricate');
+      final bnParent = bn.where((r) => _pairOf(r) == '402|402').toList();
+      expect(bnParent.length, 1);
+      expect(bnParent.single['reference'], {'book': 8, 'hadith': 53});
+
+      // french 402.2 DOES have its own text in the dataset (the citation
+      // sentence) — Rev. 1 dropped it as a 'duplicate'; Rev. 2 ships it.
+      final fr = _hadithsOf('assets/data/hadith/bukhari/french.json');
+      final frFrac = fr.where((r) =>
+          HadithDatabaseService.numberKey(r['hadithnumber']) == '402.2').toList();
+      expect(frFrac.length, 1);
+      expect((frFrac.single['text'] as String).startsWith('Rapporté par Anas'),
+          isTrue);
+      expect(frFrac.single['text'] != bnParent.single['text'], isTrue,
+          reason: 'the citation text must not be the parent hadith text');
+
+      // tirmidhi's ten-record 3604.x bundle: dataset texts are ALL empty
+      // in bengali -> no 3604-series record may ship for that language.
+      final tirmBn = _hadithsOf('assets/data/hadith/tirmidhi/bengali.json');
+      for (var n = 0; n <= 9; n++) {
+        final key =
+            n == 0 ? '3604' : '3604.${n.toString().padLeft(2, '0')}';
+        expect(
+            tirmBn.where((r) =>
+                HadithDatabaseService.numberKey(r['hadithnumber']) == key),
+            isEmpty,
+            reason: 'empty dataset text must not be padded into a match');
       }
     });
 
@@ -160,27 +217,54 @@ void main() {
     });
   });
 
-  group('service join semantics (mirrors the shipped parser)', () {
-    test('pairKey matches the loader normalization (arabic 0 -> hadith num)', () {
-      expect(HadithDatabaseService.pairKey(10, 0), (10, 10));
-      expect(HadithDatabaseService.pairKey(10, 3), (10, 3));
+  group('service join semantics (exact, fractional-aware)', () {
+    test('numberKey canonicalizes int/double/string alike — never floors', () {
+      expect(HadithDatabaseService.numberKey(402), '402');
+      expect(HadithDatabaseService.numberKey('402'), '402');
+      expect(HadithDatabaseService.numberKey(402.0), '402');
+      expect(HadithDatabaseService.numberKey('446.00'), '446');
+      expect(HadithDatabaseService.numberKey(402.2), '402.2');
+      expect(HadithDatabaseService.numberKey('402.20'), '402.2');
+      expect(HadithDatabaseService.numberKey(null), '');
     });
 
-    test('pairTextIndex: string/floor semantics, empties skipped, first wins', () {
+    test('pairKey: arabic 0 -> hadith num; fractions NEVER collapse onto the parent', () {
+      expect(HadithDatabaseService.pairKey(10, 0), '10|10');
+      expect(HadithDatabaseService.pairKey(10, 3), '10|3');
+      expect(HadithDatabaseService.pairKey('1001', '446'), '1001|446');
+      expect(HadithDatabaseService.pairKey(402.2, 402.2), '402.2|402.2');
+      expect(
+          HadithDatabaseService.pairKey(402, 402) ==
+              HadithDatabaseService.pairKey(402.2, 402.2),
+          isFalse,
+          reason: 'the Rev. 1 collapse: 402 and 402.2 are different hadiths');
+    });
+
+    test('pairTextIndex: blanks skipped, unjoinable skipped, first wins', () {
       final index = HadithDatabaseService.pairTextIndex([
         {'hadithnumber': 1, 'arabicnumber': 0, 'text': 'one'},
         {'hadithnumber': '1001', 'arabicnumber': '446', 'text': 'thousand-one'},
-        {'hadithnumber': 2, 'arabicnumber': '3033.02', 'text': 'floored'},
-        {'hadithnumber': 3, 'arabicnumber': 3, 'text': '   '}, // empty -> skip
+        {'hadithnumber': 2, 'arabicnumber': '3033.02', 'text': 'fractional'},
+        {'hadithnumber': 3, 'arabicnumber': 3, 'text': '   '}, // blank -> skip
         {'hadithnumber': 1, 'arabicnumber': 0, 'text': 'IGNORED'}, // dup
         {'hadithnumber': 0, 'arabicnumber': 0, 'text': 'unjoinable'},
       ]);
-      expect(index[(1, 1)], 'one');
-      expect(index[(1001, 446)], 'thousand-one');
-      expect(index[(2, 3033)], 'floored');
-      expect(index.containsKey((3, 3)), isFalse);
-      expect(index[(1, 1)], isNot('IGNORED'));
-      expect(index.containsKey((0, 0)), isFalse);
+      expect(index['1|1'], 'one');
+      expect(index['1001|446'], 'thousand-one');
+      expect(index['2|3033.02'], 'fractional');
+      expect(index.containsKey('3|3'), isFalse,
+          reason: 'whitespace-only text must NOT win the join — hasX would '
+              'turn true with nothing to show, breaking the fallback');
+      expect(index['1|1'], isNot('IGNORED'));
+      expect(index.containsKey('0|0'), isFalse);
+    });
+
+    test('a blank that comes FIRST must not shadow the later real text', () {
+      final index = HadithDatabaseService.pairTextIndex([
+        {'hadithnumber': 7, 'arabicnumber': 7, 'text': ' '},
+        {'hadithnumber': 7, 'arabicnumber': 7, 'text': 'real'},
+      ]);
+      expect(index['7|7'], 'real');
     });
 
     test('a hadith without a key-match has hasX == false (fallback input)', () {
@@ -300,12 +384,25 @@ void main() {
   });
 
   group('surfaces route through the selection (source pins)', () {
-    test('settings selector is derived, not a hardcoded const list', () {
+    test('settings hadith selector is derived; the app-locale selector is', () {
+      // SCOPED pin: settings_screen ALSO has an app-language (locale)
+      // sheet that legitimately uses ('en', 'English') tuples with
+      // localeProvider — unrelated to hadith. The pin therefore inspects
+      // ONLY the hadith language sheet region for the old hardcoded list.
       final src =
           File('lib/features/settings/presentation/settings_screen.dart').readAsStringSync();
       expect(src.contains("HadithAvailability.selectorOptions()"), isTrue);
-      expect(src.contains("('en', 'English')"), isFalse,
-          reason: 'the old hardcoded language list must stay gone');
+      final start = src.indexOf('_showHadithLanguageSheet');
+      expect(start, greaterThan(0));
+      var end = src.indexOf('\n  void ', start + 1);
+      if (end < 0) end = src.length;
+      final region = src.substring(start, end);
+      expect(region.contains("('en', 'English')"), isFalse,
+          reason: 'the old hardcoded hadith language list must stay gone');
+      expect(region.contains('entry.$2'), isFalse);
+      // and the locale sheet's literal remains legitimately untouched:
+      expect(src.substring(0, start).contains("('en', 'English')"), isTrue,
+          reason: 'the app-locale selector is a different surface');
     });
 
     test('book screen shows ONE translation block (no fixed Urdu/English pair)', () {
@@ -329,7 +426,9 @@ void main() {
     test('the service joins new languages by pair key and searches them', () {
       final src = File('lib/features/hadith/data/services/hadith_database_service.dart')
           .readAsStringSync();
-      expect(src.contains('textBengali: langIndices[\'bn\']?[pair] ?? \'\''), isTrue);
+      expect(src.contains("textBengali: langIndices['bn']?[pair] ?? ''"), isTrue);
+      expect(src.contains('pairKey(map[\'hadithnumber\'], map[\'arabicnumber\'])'), isTrue,
+          reason: 'the runtime join must key off the RAW record numbers');
       expect(src.contains("'bengali'"), isTrue);
       expect(src.contains('pairTextIndex'), isTrue);
     });
@@ -342,17 +441,26 @@ void main() {
     });
   });
 
-  group('honest coverage floors (real bundled data)', () {
-    test('per-language text counts match the extraction report', () {
+  group('honest coverage floors (real bundled data, Rev. 2)', () {
+    test('per-language text counts match the Rev. 2 extraction report', () {
       // Numbers produced by scripts/extract_hadith_languages.py on
-      // 2026-09-05; a future data pass must consciously re-pin them.
+      // 2026-09-05 after the fractional-key fix; a future data pass must
+      // consciously re-pin them.
       expect(_hadithsOf('assets/data/hadith/bukhari/bengali.json').length, 7529);
-      expect(_hadithsOf('assets/data/hadith/bukhari/turkish.json').length, 7512);
-      expect(_hadithsOf('assets/data/hadith/bukhari/indonesian.json').length, 6856);
-      expect(_hadithsOf('assets/data/hadith/bukhari/french.json').length, 7563);
+      expect(_hadithsOf('assets/data/hadith/bukhari/turkish.json').length, 7521);
+      expect(_hadithsOf('assets/data/hadith/bukhari/indonesian.json').length, 6858);
+      expect(_hadithsOf('assets/data/hadith/bukhari/french.json').length, 7589);
+      // French Bukhari is COMPLETE (every base record, citations included
+      // — the dataset carries text for all of them).
+      expect(_hadithsOf('assets/data/hadith/bukhari/french.json').length,
+          _hadithsOf('assets/data/hadith/bukhari/english.json').length);
       // Turkish Nasai is the dataset's big gap (5,136 of 5,765 texts empty)
       // — shipped as the 629 real translations it has, no padding.
       expect(_hadithsOf('assets/data/hadith/nasai/turkish.json').length, 629);
+      // Malik's French file matched 1,505 of 1,858 — and 41 dataset
+      // records exist that our base does not have at all (reported, not
+      // silently dropped, by the extractor's mismatch table).
+      expect(_hadithsOf('assets/data/hadith/malik/french.json').length, 1505);
     });
   });
 }

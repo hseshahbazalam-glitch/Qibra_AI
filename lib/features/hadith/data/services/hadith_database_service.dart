@@ -286,7 +286,7 @@ class HadithDatabaseService {
       // 7,563 keyed; tirmidhi 3,998 vs 3,956; muslim's fractional
       // arabicnumbers). A missing pair means the language has nothing
       // for that hadith -> '' -> hasX false.
-      final langIndices = <String, Map<(int, int), String>>{
+      final langIndices = <String, Map<String, String>>{
         for (var i = 0; i < newLangs.length; i++)
           newLangs[i].key: pairTextIndex(
             results[3 + i]?['hadiths'] as List<dynamic>? ?? const [],
@@ -317,7 +317,9 @@ class HadithDatabaseService {
 
           final chapterName = sections[bookNum.toString()] ?? '';
           final arabicNum = _parseHadithNumber(map['arabicnumber']);
-          final pair = pairKey(hadithNum, arabicNum);
+          // Exact, fractional-aware join key from the RAW record values
+          // (Rev. 2: 402.2 must never merge onto 402).
+          final pair = pairKey(map['hadithnumber'], map['arabicnumber']);
 
           hadiths.add(LocalHadith(
             hadithNumber: hadithNum,
@@ -593,31 +595,55 @@ class HadithDatabaseService {
     });
   }
 
-  /// Pair key used by the Phase B language join — the exact same
-  /// normalization the primary loop applies to a base record's
-  /// (hadithNumber, arabicNumber) (arabic 0 falls back to hadith num,
-  /// mirroring LocalHadith.arabicNumber). @visibleForTesting so the
-  /// multilang test pins join semantics without booting Flutter.
+  /// Canonical string key for a JSON number that may be an int, a double,
+  /// or a string — EXACT, fractional-aware, never floored. Mirrors
+  /// scripts/extract_hadith_languages.py::canon_num bit-for-bit so the
+  /// extraction join and this runtime join agree by construction.
+  /// 402 and 402.2 are DIFFERENT hadith records (sunnah.com uses
+  /// fractional numbers for cross-chapter citations and bundles) — a floor
+  /// would misattribute text (Phase B Rev. 2, found by the owner's device
+  /// test run: 54 of 60 collapsed groups had genuinely different base
+  /// texts). Deliberately NOT [_parseHadithNumber], which remains the
+  /// DISPLAY normalization for LocalHadith.hadithNumber.
   @visibleForTesting
-  static (int, int) pairKey(int hadithNumber, int arabicNumber) =>
-      (hadithNumber, arabicNumber == 0 ? hadithNumber : arabicNumber);
+  static String numberKey(dynamic value) {
+    if (value == null || value is bool) return '';
+    var s = value is int
+        ? value.toString()
+        : value is num
+            ? (value == value.roundToDouble()
+                ? value.toInt().toString()
+                : value.toString())
+            : value.toString().trim();
+    if (s.contains('.')) {
+      s = s.replaceAll(RegExp(r'0+$'), '');
+      if (s.endsWith('.')) s = s.substring(0, s.length - 1);
+    }
+    return s;
+  }
 
-  /// Index a raw `hadiths` list by [pairKey]. Empty/whitespace texts are
-  /// skipped (they must NOT shadow nothing with garbage); duplicate keys
-  /// keep the FIRST record, matching scripts/extract_hadith_languages.py.
   @visibleForTesting
-  static Map<(int, int), String> pairTextIndex(List<dynamic> raws) {
-    final out = <(int, int), String>{};
+  static String pairKey(dynamic hadithNumber, dynamic arabicNumber) {
+    final h = numberKey(hadithNumber);
+    final a = numberKey(arabicNumber);
+    return (a.isEmpty || a == '0') ? '$h|$h' : '$h|$a';
+  }
+
+  /// Index a raw `hadiths` list by [pairKey]. Blank/whitespace-only texts
+  /// are SKIPPED — an empty dataset text must never win the join and set
+  /// hasX=true with empty content (that would break the "unavailable in
+  /// this language" fallback). Duplicate keys keep the FIRST record,
+  /// matching the extractor.
+  @visibleForTesting
+  static Map<String, String> pairTextIndex(List<dynamic> raws) {
+    final out = <String, String>{};
     for (final h in raws) {
       try {
         final map = h as Map<String, dynamic>;
         final text = map['text']?.toString() ?? '';
         if (text.trim().isEmpty) continue;
         out.putIfAbsent(
-          pairKey(
-            _parseHadithNumber(map['hadithnumber']),
-            _parseHadithNumber(map['arabicnumber']),
-          ),
+          pairKey(map['hadithnumber'], map['arabicnumber']),
           () => text,
         );
       } catch (_) {
