@@ -113,6 +113,76 @@ covered books (counts match canonical); empty-text records DO exist inside
 our current tirmidhi Urdu extraction (67) — the fallback UI is therefore
 already load-bearing for shipped data, not hypothetical.
 
+### Phase B — executed (owner elected BUNDLE, 2026-09-05)
+
+The owner elected Option A (bundle all four languages) over download-pack,
+explicitly overriding the >20 MB size rule with knowledge of the numbers
+above. Record of what shipped:
+
+- **Transport:** `fawazahmed0/hadith-api` @ branch `1`, `editions/{ben,tur,ind,fra}-{book}.json`
+  fetched via the GitHub blobs API (27 files, 153.4 MB; `fra-tirmidhi` does not exist).
+- **Extraction:** `scripts/extract_hadith_languages.py` (kept in-repo as provenance).
+  Records are joined to OUR shipped records ONLY by the `(hadithnumber, arabicnumber)`
+  pair — never by array index — mirroring the loader's own leading-digit number parse,
+  so the Python join and the runtime Dart join agree by construction. Unmatched or
+  empty dataset records are DROPPED (they become `hasX == false` → the "unavailable"
+  fallback), never guessed. Output is compact JSON (no pretty indentation, no
+  per-language `grades` — the dataset's grades live only in `ara-*` editions, so
+  nothing is invented; the grade chip keeps reflecting the base record).
+- **Mismatch report (measured; full table printed by the script):** every joinable,
+  non-empty dataset record mapped onto a shipped hadith — **dataset-unmatched = 0
+  for every book × language**. The only absences are dataset-side empty texts
+  (e.g. turkish-Nasai: 5,136 of 5,765 records are empty in the dataset — only the
+  629 real translations ship, no padding) and our duplicate pairs (26 in bukhari,
+  42 in tirmidhi, 7 in nasai, 2 in ibnmajah share one language record by first-wins,
+  which the runtime pair-map reproduces exactly).
+- **Coverage per book (keyed records → texts shipped):**
+
+  | book (our keyed) | bn | tr | id | fr |
+  | --- | --- | --- | --- | --- |
+  | bukhari (7,563) | 7,529 | 7,512 | 6,856 | 7,563 |
+  | muslim (7,563) | 7,360 | 7,380 | 4,927 | 7,307 |
+  | abudawud (5,274) | 5,270 | 5,266 | 4,406 | 5,274 |
+  | nasai (5,758) | 5,656 | 629 | 5,331 | 5,672 |
+  | tirmidhi (3,956) | 3,891 | 3,755 | 3,523 | — (no fra-tirmidhi edition) |
+  | ibnmajah (4,341) | 4,336 | 4,318 | 4,269 | 4,338 |
+  | malik (1,858) | 1,749 | 1,558 | 1,553 | 1,531 |
+  | **total** | **35,791** | **30,418** | **30,865** | **31,685** / 32,357 covered |
+
+- **License status unchanged:** the dataset's repo-level The Unlicense dedication
+  covers the repo owner's rights only. Translator-level licensing for bn/tr/id/fr
+  remains **UNKNOWN — no row was upgraded**; `assets/data/content_manifest.json`
+  records the seven-language layout and the UNKNOWN stance. These translations are
+  human works credited to their published editions (sunnah.com / urdupoint /
+  al-maktaba / IIUM / isnad.link per the dataset's References); no AI-generated
+  translation text is or will be bundled under any name.
+- **Size as shipped:** new files total **125.4 MB raw → ≈24.9 MB deflated**
+  (measured in-repo, zlib-9 per language: bn 53.3→7.4, tr 27.7→7.6, id 26.8→5.6,
+  fr 17.7→4.3 MB). The extraction's stripping (compact JSON, no duplicate
+  metadata, empties dropped, no per-language grades) is what brought Phase A's
+  ~27.4 MB combined estimate down. Expected APK asset delta ≈ 25 MB (device build
+  is the authority). Bundle raw total 109 → 234 MB.
+- **Loader honesty:** the per-book loader keeps the existing pattern — sequential
+  per-book loads with one `Future.wait` batch of rootBundle reads on the UI isolate
+  (no isolates exist in `_loadBook` today; `searchBatchOffMain` already off-isolates
+  query scans). Boot now decodes ≈4× more JSON than before; device measurement is
+  the authority for any ANR/memory follow-up (flagged, not hidden).
+- **UI contract:** the reading-language set and the Settings selector are DERIVED
+  from `HadithAvailability` (lib/features/hadith/data/hadith_availability.dart),
+  pinned to disk by `test/hadith_multilang_test.dart`. French shows its honest
+  "6 of 7 collections" note; inside Tirmidhi every French hadith renders the
+  existing "Verified translation unavailable for this language." fallback line
+  (per-hadith mechanism chosen over a selector lock — documented decision).
+  Book screen, home tab (today card, tiles, detail sheet, recently-read),
+  home feed card and the related-hadith strip all consume
+  `hadithTextForLanguage`/`localHadithTextForLanguage` — no surface shows a
+  fixed-English body anymore. RTL: Urdu renders rtl, Arabic remains the source
+  block (translation block hidden when the reading language is Arabic).
+  Search: db + in-book filters match all seven language fields; the fold passes
+  Bengali codepoints through unchanged (verified pinned). **Known limitation:**
+  no accent/turkish-specific case folding — queries must match diacritics
+  verbatim (pinned as a limitation, not fixed silently).
+
 ## Visual identity assets (2026-08-31)
 
 Original raster art generated for Qibra (no third-party stock download). **No letters/Arabic in image files.** Arabic in the app is Amiri text, not baked into PNGs.
