@@ -76,13 +76,11 @@ class _NavItem extends StatelessWidget {
     required this.item,
     required this.isActive,
     required this.onTap,
-    this.compact = false,
   });
 
   final NavBarItem item;
   final bool isActive;
   final VoidCallback onTap;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +113,7 @@ class _NavItem extends StatelessWidget {
               Icon(
                 isActive ? item.activeIcon : item.icon,
                 color: color,
-                size: compact ? 18 : 22,
+                size: 22,
                 shadows: isActive
                     ? [
                         Shadow(
@@ -125,7 +123,7 @@ class _NavItem extends StatelessWidget {
                       ]
                     : null,
               ),
-              SizedBox(height: compact ? 2 : 4),
+              SizedBox(height: 4),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
@@ -134,7 +132,7 @@ class _NavItem extends StatelessWidget {
                   softWrap: false,
                   style: AppTextStyles.labelSmall.copyWith(
                     color: color,
-                    fontSize: compact ? 9 : 11,
+                    fontSize: 11,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),

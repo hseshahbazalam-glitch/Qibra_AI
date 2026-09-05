@@ -13,7 +13,6 @@ import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/content/edition_resolver.dart';
-import 'package:qibra_ai/core/l10n/app_locales.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';

@@ -10,7 +10,6 @@ import '../../core/design_system/app_typography.dart';
 import '../../core/design_system/qibra_colors.dart';
 import 'media/pattern_backdrop.dart';
 import 'media/safe_image.dart';
-import 'qibra_status.dart';
 
 class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
   const QibraAppBar({

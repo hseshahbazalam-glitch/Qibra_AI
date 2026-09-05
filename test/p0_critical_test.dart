@@ -112,7 +112,7 @@ class _NeverCallAuthRepository implements AuthRepository {
   @override
   Future<void> logout({String? refreshToken}) async => _touched('logout');
   @override
-  Future<AppUser?> getCurrentUser() async => _touched('getCurrentUser');
+  Future<AppUser?> getCurrentUser() async { _touched('getCurrentUser'); return null; }
   @override
   Future<bool> deleteAccount() async => _touched('deleteAccount') as bool;
 }

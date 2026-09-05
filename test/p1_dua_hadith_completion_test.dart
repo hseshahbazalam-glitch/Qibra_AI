@@ -234,8 +234,10 @@ void main() {
           .readAsStringSync();
       expect(detail.contains('AIExplainScreen('), isTrue);
       expect(detail.contains('duaTitle: dua.titleEnglish'), isTrue);
-      expect(detail.contains('QibraNavy.violet'), isTrue,
-          reason: 'violet marks the AI surface only');
+      expect(detail.contains('violetAi'), isTrue,
+          reason: "violet marks the AI surface only — through the "
+              "sanctioned theme token (Rev. 3: the same token phase17's "
+              "sweep enforces)");
     });
 
     test('hadith detail opens record history; both sheets show the section',

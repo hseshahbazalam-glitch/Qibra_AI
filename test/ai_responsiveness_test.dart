@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/source_guards.dart';
+
 /// Device ANR + debug-flood guards (owner 2026-09-02). Source-level pins —
 /// the ANR class and the ListTile/Chip assertion spam must not come back
 /// through refactors, and they can only be judged by the runtime battery on
@@ -12,7 +14,12 @@ void main() {
       final provider =
           File('lib/features/ai/providers/ai_provider.dart').readAsStringSync();
       expect(provider.contains('RagService.instance.retrieve('), isTrue);
-      expect(provider.contains('buildContextForQuery'), isFalse,
+      // Code-only scan: ai_provider legitimately MENTIONS the old
+      // buildContextForQuery in the ANR post-mortem comment (:131-132);
+      // the pin must judge CODE, not prose (Rev. 3 — shared stripper from
+      // backend_ai_wiring's class D fix).
+      expect(stripCommentsForGuard(provider).contains('buildContextForQuery'),
+          isFalse,
           reason: 'context must be formatted from the same passages, not '
               'retrieved a second time');
       expect(provider.contains('RagService.contextFrom(_lastRetrieved)'), isTrue);
@@ -101,10 +108,13 @@ void main() {
       final row =
           File('lib/features/prayer/presentation/prayer_times_screen.dart')
               .readAsStringSync();
+      // Whitespace-tolerant (Rev. 3): the exact multiline string was brittle
+      // to re-indentation; the pattern itself lives at
+      // prayer_times_screen:809-811.
       expect(
-        row.contains('''      child: Material(
-        type: MaterialType.transparency,
-        child: ListTile('''),
+        RegExp(
+                r'Material\(\s*type:\s*MaterialType\.transparency,\s*child:\s*ListTile\(')
+            .hasMatch(row),
         isTrue,
       );
     });

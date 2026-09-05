@@ -2,14 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Strips comments for secret-scanning guards WITHOUT damaging string
-/// literals: `//` only starts a comment when preceded by line start or
-/// whitespace, so 'https://api.groq.com' inside a literal survives (a
-/// naive strip would delete it — exactly where a real leak would hide).
-String _stripCommentsForGuard(String src) => src
-    .replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '')
-    .replaceAll(RegExp(r'(?<=[\s\n])//[^\n]*'), '')
-    .replaceAll(RegExp(r'^\s*//[^\n]*', multiLine: true), '');
+import 'support/source_guards.dart';
+
+// (Rev. 3) The comment-stripper lives in test/support/source_guards.dart —
+// shared with ai_responsiveness, whose negated pins need the same honesty.
 
 /// AI level 0-1 wiring guards (source-level; the runtime battery is
 /// scripts/static_battery.py). These pin the exact strings the shipped
@@ -92,7 +88,7 @@ void main() {
       // (that is documentation, not a leak) — scanning for it produced a
       // false positive. What must never appear in client CODE are the
       // real secrets, checked on comment-stripped source.
-      final code = _stripCommentsForGuard(provider);
+      final code = stripCommentsForGuard(provider);
       for (final secret in ['gsk_', 'api.groq.com', 'GROQ_API_KEY', 'Bearer ']) {
         expect(code.contains(secret), isFalse,
             reason: 'no Groq material on the client — "$secret" in CODE '

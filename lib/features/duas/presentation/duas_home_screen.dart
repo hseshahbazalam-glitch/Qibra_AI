@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
-import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/features/duas/data/models/dua_model.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';

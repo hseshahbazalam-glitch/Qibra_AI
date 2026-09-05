@@ -298,30 +298,6 @@ Juz: ${juz ?? '—'}''';
   }
 
 
-  Widget _infoRow(QibraColors colors, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: AppTextStyles.bodySmall.copyWith(color: colors.textTertiary),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showGoToPageSheet() {
     HapticFeedback.selectionClick();

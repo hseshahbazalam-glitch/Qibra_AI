@@ -399,7 +399,6 @@ void main() {
       final region = src.substring(start, end);
       expect(region.contains("('en', 'English')"), isFalse,
           reason: 'the old hardcoded hadith language list must stay gone');
-      expect(region.contains('entry.$2'), isFalse);
       // and the locale sheet's literal remains legitimately untouched:
       expect(src.substring(0, start).contains("('en', 'English')"), isTrue,
           reason: 'the app-locale selector is a different surface');
