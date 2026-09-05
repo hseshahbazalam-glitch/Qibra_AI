@@ -168,8 +168,10 @@ void main() {
       const sites = {
         'lib/features/ai/presentation/ai_explain_screen.dart':
             'cacheWidth: 300',
-        'lib/features/hadith/presentation/hadith_screen.dart':
-            'cacheWidth: 512',
+        // Hadith redesign (reference pass): the tab's art band moved onto
+        // QibraHeroCard — the dpr-aware hero entry at the bottom of this
+        // map — so the screen owns no raw SafeImage and no fixed hint.
+        // Its former 'cacheWidth: 512' tile strip is gone BY DESIGN.
         'lib/features/onboarding/presentation/onboarding_screen.dart':
             'cacheWidth: 450',
         'lib/features/settings/presentation/user_profile_screen.dart':
