@@ -329,8 +329,10 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   }
 
   void _copyHadith(BuildContext context, HadithModel hadith) {
+    final copyTranslation = hadithTextForLanguage(
+        hadith, ref.read(hadithLanguageProvider));
     final text =
-        '${hadith.textArabic}\n\n${hadith.textEnglish}\n\n— ${hadith.displayReference}';
+        '${hadith.textArabic}\n\n${copyTranslation ?? hadith.textEnglish}\n\n— ${hadith.displayReference}';
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Hadith copied')),
@@ -342,6 +344,13 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     // P1 · Item 4 — opening a hadith detail (here or in the book
     // reader) is the one true view event; record it in the LRU.
     recordHadithView(ref, hadith);
+    // Phase B: one language-driven translation block replaces the old
+    // fixed Urdu+English stack (snapshot at open, like the scales).
+    final sheetLang = ref.read(hadithLanguageProvider);
+    final sheetRtl = sheetLang == 'ur';
+    final sheetTranslation = sheetLang == 'ar'
+        ? null
+        : hadithTextForLanguage(hadith, sheetLang);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -440,27 +449,28 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         ),
                       ),
                     ],
-                    if (hadith.hasUrdu) ...[
+                    if (sheetLang != 'ar' && sheetTranslation != null) ...[
                       const SizedBox(height: 16),
                       Text(
-                        hadith.textUrdu,
-                        textAlign: TextAlign.right,
-                        textDirection: TextDirection.rtl,
+                        sheetTranslation,
+                        textAlign:
+                            sheetRtl ? TextAlign.right : TextAlign.start,
+                        textDirection: sheetRtl
+                            ? TextDirection.rtl
+                            : TextDirection.ltr,
                         style: AppTextStyles.bodyLarge.copyWith(
                           color: colors.textPrimary,
                           fontSize:
                               AppFontSize.bodyLarge * prefs.translationScale,
                         ),
                       ),
-                    ],
-                    if (hadith.hasEnglish) ...[
+                    ] else if (sheetLang != 'ar') ...[
                       const SizedBox(height: 16),
                       Text(
-                        hadith.textEnglish,
-                        style: AppTextStyles.bodyLarge.copyWith(
+                        'Verified translation unavailable for this language.',
+                        style: AppTextStyles.bodySmall.copyWith(
                           color: colors.textSecondary,
-                          fontSize:
-                              AppFontSize.bodyLarge * prefs.translationScale,
+                          fontStyle: FontStyle.italic,
                         ),
                       ),
                     ],
@@ -771,6 +781,9 @@ class _TodaysHadithCard extends ConsumerWidget {
                   'Verified translation unavailable for this language.',
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
+              textAlign: lang == 'ur' ? TextAlign.right : TextAlign.start,
+              textDirection:
+                  lang == 'ur' ? TextDirection.rtl : TextDirection.ltr,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: colors.textSecondary,
                 fontSize: AppFontSize.bodyMedium * prefs.translationScale,
@@ -862,9 +875,16 @@ class _HadithTile extends ConsumerWidget {
     final colors = QibraColors.of(context);
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
     // World-class hadith pass (item 1): list-card text follows the
-    // persisted split scales. (The old unused lang/translation locals
-    // died here in the item-6 sweep — this tile always showed English.)
+    // persisted split scales. Phase B: the preview follows the READING
+    // LANGUAGE (was always English); the Arabic viewing keeps the
+    // English preview because the Arabic block above already shows the
+    // selected text itself.
     final prefs = ref.watch(hadithReadingPreferencesProvider);
+    final lang = ref.watch(hadithLanguageProvider);
+    final translation =
+        lang == 'ar' ? null : hadithTextForLanguage(hadith, lang);
+    final previewText = translation ?? hadith.textEnglish;
+    final previewRtl = lang == 'ur' && translation != null;
     final q = highlightQuery.trim();
     final arabicStyle = AppArabicStyles.quranSmall.copyWith(
       color: colors.textPrimary,
@@ -934,21 +954,28 @@ class _HadithTile extends ConsumerWidget {
                       ),
                     ),
                   ),
-          if (hadith.hasEnglish) ...[
+          if (previewText.trim().isNotEmpty) ...[
             const SizedBox(height: 6),
             q.isEmpty
                 ? Text(
-                    hadith.textEnglish,
+                    previewText,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                    textAlign:
+                        previewRtl ? TextAlign.right : TextAlign.start,
+                    textDirection: previewRtl
+                        ? TextDirection.rtl
+                        : TextDirection.ltr,
                     style: translationStyle,
                   )
                 : RichText(
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                    textAlign:
+                        previewRtl ? TextAlign.right : TextAlign.start,
                     text: TextSpan(
                       children: hadithHighlightSpans(
-                        hadith.textEnglish,
+                        previewText,
                         q,
                         translationStyle,
                         colors.primary,
@@ -1002,16 +1029,21 @@ List<TextSpan> hadithHighlightSpans(
 // RECENTLY READ CARD (P1 · Item 4)
 // ============================================================
 
-class _RecentlyReadCard extends StatelessWidget {
+class _RecentlyReadCard extends ConsumerWidget {
   const _RecentlyReadCard({required this.hadith, required this.onTap});
 
   final HadithModel hadith;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final preview = hadith.textEnglish.trim().replaceAll(RegExp(r'\s+'), ' ');
+    // Phase B: previews everywhere follow the reading language.
+    final preview = (hadithTextForLanguage(
+                hadith, ref.watch(hadithLanguageProvider)) ??
+            hadith.textEnglish)
+        .trim()
+        .replaceAll(RegExp(r'\s+'), ' ');
     return SizedBox(
       width: 190,
       child: Material(

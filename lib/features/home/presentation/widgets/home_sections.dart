@@ -8,6 +8,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/app_typography.dart';
 import '../../../../core/design_system/qibra_colors.dart';
@@ -16,6 +17,7 @@ import '../../../../shared/widgets/qibra_status.dart';
 import '../../../../shared/widgets/qibra_stat_card.dart';
 import '../../../../shared/widgets/qibra_ui.dart';
 import '../../../hadith/data/models/hadith_models.dart';
+import '../../../hadith/providers/hadith_provider.dart';
 import '../../../prayer/data/models/prayer_models.dart';
 import '../../../quran/data/repository/reading_progress_repository.dart';
 import '../../../quran/providers/quran_provider.dart' show DailyVerseBundle;
@@ -473,7 +475,7 @@ class HomeAyahCard extends StatelessWidget {
   }
 }
 
-class HomeHadithCard extends StatelessWidget {
+class HomeHadithCard extends ConsumerWidget {
   const HomeHadithCard({
     super.key,
     required this.hadith,
@@ -484,7 +486,7 @@ class HomeHadithCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final h = hadith;
     if (h == null) {
@@ -525,7 +527,9 @@ class HomeHadithCard extends StatelessWidget {
             const SizedBox(height: 10),
           ],
           Text(
-            h.textEnglish,
+            // Phase B: the home preview honours the reading language.
+            hadithTextForLanguage(h, ref.watch(hadithLanguageProvider)) ??
+                h.textEnglish,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodyMedium

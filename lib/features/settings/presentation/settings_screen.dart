@@ -17,6 +17,7 @@ import 'package:qibra_ai/core/l10n/app_locales.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
+import 'package:qibra_ai/features/hadith/data/hadith_availability.dart';
 import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
 import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
@@ -930,26 +931,29 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                for (final entry in const [
-                  ('en', 'English'),
-                  ('ar', 'العربية'),
-                  ('ur', 'اردو'),
-                ])
+                // Phase B: the option list is DERIVED from the
+                // availability matrix (native labels; languages below
+                // full book coverage carry an honest count note — e.g.
+                // Français is 6-of-7 because the dataset has no
+                // fra-tirmidhi edition at all).
+                for (final option in HadithAvailability.selectorOptions())
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(
-                      entry.$2,
+                      option.note == null
+                          ? option.label
+                          : '${option.label}  ·  ${option.note}',
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: sheetColors.textPrimary,
                       ),
                     ),
-                    trailing: current == entry.$1
+                    trailing: current == option.code
                         ? Icon(Icons.check_rounded, color: sheetColors.primary)
                         : null,
                     onTap: () {
                       ref
                           .read(hadithLanguageProvider.notifier)
-                          .setLanguage(entry.$1);
+                          .setLanguage(option.code);
                       Navigator.pop(ctx);
                     },
                   ),

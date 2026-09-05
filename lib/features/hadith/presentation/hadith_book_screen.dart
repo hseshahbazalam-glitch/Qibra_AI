@@ -13,6 +13,7 @@ import '../../../core/design_system/qibra_navy.dart';
 import '../../../core/utils/search_normalizer.dart';
 import '../../../shared/widgets/controls/app_switch_tile.dart';
 import '../../../shared/widgets/qibra_ui.dart';
+import '../data/hadith_availability.dart';
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
 import '../providers/hadith_provider.dart';
@@ -42,8 +43,10 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   int? _selectedChapterNumber;
   String _searchQuery = '';
   bool _showArabic = true;
-  bool _showUrdu = true;
-  bool _showEnglish = true;
+  // Phase B: the old separate Urdu/English switches became ONE
+  // translation switch — the reader's selected language drives which
+  // translation is shown (hadithTextForLanguage), everywhere.
+  bool _showTranslation = true;
 
   // Resume/jump plumbing (world-class pass, item 3).
   final ScrollController _scroll = ScrollController();
@@ -138,7 +141,11 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         return h.hadithNumber.toString().contains(q) ||
                             SearchNormalizer.contains(h.textEnglish, _searchQuery) ||
                             SearchNormalizer.contains(h.textUrdu, _searchQuery) ||
-                            SearchNormalizer.contains(h.textArabic, _searchQuery);
+                            SearchNormalizer.contains(h.textArabic, _searchQuery) ||
+                            SearchNormalizer.contains(h.textBengali, _searchQuery) ||
+                            SearchNormalizer.contains(h.textTurkish, _searchQuery) ||
+                            SearchNormalizer.contains(h.textIndonesian, _searchQuery) ||
+                            SearchNormalizer.contains(h.textFrench, _searchQuery);
                       }).toList();
 
                 // A filter reset queued a resume jump — consume it now
@@ -182,8 +189,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         final card = _HadithCard(
                           hadith: h,
                           showArabic: _showArabic,
-                          showUrdu: _showUrdu,
-                          showEnglish: _showEnglish,
+                          showTranslation: _showTranslation,
                           onTap: () => _showHadithDetailSheet(context, h),
                         );
                         return Padding(
@@ -571,30 +577,21 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             setState(() => _showArabic = v);
                           },
                         ),
-                        AppSwitchListTile(
-                          activeColor: QibraNavy.emerald,
-                          title: const Text('Urdu Translation (اردو)',
-                              style: TextStyle(
+                        if (ref.watch(hadithLanguageProvider) != 'ar')
+                          AppSwitchListTile(
+                            activeColor: QibraNavy.emerald,
+                            title: Text(
+                              'Translation (${HadithAvailability.label(ref.watch(hadithLanguageProvider))})',
+                              style: const TextStyle(
                                   color: QibraNavy.textPrimary,
-                                  fontSize: 14)),
-                          value: _showUrdu,
-                          onChanged: (v) {
-                            setSheetState(() => _showUrdu = v);
-                            setState(() => _showUrdu = v);
-                          },
-                        ),
-                        AppSwitchListTile(
-                          activeColor: QibraNavy.emerald,
-                          title: const Text('English Translation',
-                              style: TextStyle(
-                                  color: QibraNavy.textPrimary,
-                                  fontSize: 14)),
-                          value: _showEnglish,
-                          onChanged: (v) {
-                            setSheetState(() => _showEnglish = v);
-                            setState(() => _showEnglish = v);
-                          },
-                        ),
+                                  fontSize: 14),
+                            ),
+                            value: _showTranslation,
+                            onChanged: (v) {
+                              setSheetState(() => _showTranslation = v);
+                              setState(() => _showTranslation = v);
+                            },
+                          ),
                         const SizedBox(height: 8),
                         // Split font controls — same clamped range and
                         // label discipline as the Quran reader sheet.
@@ -773,6 +770,13 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     // Text scales (item 1): snapshot at open — sliders live in the
     // quick-settings sheet, not inside an open detail sheet.
     final prefs = ref.read(hadithReadingPreferencesProvider);
+    // Phase B: snapshot the reading language at open (same discipline
+    // as the scales — language can change later only from Settings).
+    final sheetLang = ref.read(hadithLanguageProvider);
+    final sheetRtl = sheetLang == 'ar' || sheetLang == 'ur';
+    final sheetTranslation = sheetLang == 'ar'
+        ? null
+        : hadithTextForLanguage(hadith, sheetLang);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -837,8 +841,12 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       icon: const Icon(Icons.share_rounded,
                           color: QibraNavy.textSecondary),
                       onPressed: () {
+                        final shareTranslation = hadithTextForLanguage(
+                                hadith,
+                                ref.read(hadithLanguageProvider)) ??
+                            hadith.textEnglish;
                         final text =
-                            '${hadith.textArabic}\n\n${hadith.textUrdu}\n\n"${hadith.textEnglish}"\n\n— ${hadith.displayReference}';
+                            '${hadith.textArabic}\n\n$shareTranslation\n\n— ${hadith.displayReference}';
                         Clipboard.setData(ClipboardData(text: text));
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -884,7 +892,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         ),
                         const SizedBox(height: 14),
                       ],
-                      if (hadith.hasUrdu) ...[
+                      if (sheetLang == 'ar')
+                        const SizedBox.shrink()
+                      else if (sheetTranslation != null) ...[
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
@@ -893,31 +903,28 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             border: Border.all(color: QibraNavy.hairline),
                           ),
                           child: SelectableText(
-                            hadith.textUrdu,
-                            textAlign: TextAlign.right,
-                            textDirection: TextDirection.rtl,
+                            sheetTranslation,
+                            textAlign:
+                                sheetRtl ? TextAlign.right : TextAlign.start,
+                            textDirection: sheetRtl
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
                             style: TextStyle(
                                 color: QibraNavy.textPrimary,
-                                fontSize: 15 * prefs.translationScale,
-                                height: 1.8),
+                                fontSize: (sheetRtl ? 15 : 13.5) *
+                                    prefs.translationScale,
+                                height: sheetRtl ? 1.8 : 1.6),
                           ),
                         ),
-                        const SizedBox(height: 14),
-                      ],
-                      if (hadith.hasEnglish) ...[
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: QibraNavy.card,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: QibraNavy.hairline),
-                          ),
-                          child: SelectableText(
-                            hadith.textEnglish,
-                            style: TextStyle(
-                                color: QibraNavy.textPrimary,
-                                fontSize: 13.5 * prefs.translationScale,
-                                height: 1.6),
+                      ] else ...[
+                        // Key-join found no text in this language for
+                        // THIS hadith (e.g. French x Tirmidhi): say so,
+                        // never substitute another translation silently.
+                        Text(
+                          'Verified translation unavailable for this language.',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: QibraNavy.textSecondary,
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
                       ],
@@ -945,21 +952,23 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
 class _HadithCard extends ConsumerWidget {
   final HadithModel hadith;
   final bool showArabic;
-  final bool showUrdu;
-  final bool showEnglish;
+  final bool showTranslation;
   final VoidCallback onTap;
 
   const _HadithCard({
     required this.hadith,
     required this.showArabic,
-    required this.showUrdu,
-    required this.showEnglish,
+    required this.showTranslation,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isBookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
+    final language = ref.watch(hadithLanguageProvider);
+    final rtl = language == 'ar' || language == 'ur';
+    final translation =
+        language == 'ar' ? null : hadithTextForLanguage(hadith, language);
     // World-class hadith pass (item 1): book-list cards follow the
     // persisted split scales.
     final prefs = ref.watch(hadithReadingPreferencesProvider);
@@ -1036,7 +1045,7 @@ class _HadithCard extends ConsumerWidget {
                       color: QibraNavy.textSecondary, size: 18),
                   onPressed: () {
                     final shareText =
-                        '${hadith.textArabic}\n\n${hadith.textUrdu}\n\n"${hadith.textEnglish}"\n\n— ${hadith.displayReference}';
+                        '${hadith.textArabic}\n\n${translation ?? hadith.textEnglish}\n\n— ${hadith.displayReference}';
                     Clipboard.setData(ClipboardData(text: shareText));
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -1068,42 +1077,7 @@ class _HadithCard extends ConsumerWidget {
                 ),
               ),
             ],
-            if (showUrdu && hadith.hasUrdu) ...[
-              const SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: QibraNavy.card,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: QibraNavy.hairline),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Align(
-                      alignment: Alignment.centerRight,
-                      child: Text('اردو ترجمہ',
-                          style: TextStyle(
-                              color: QibraNavy.emerald,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      hadith.textUrdu,
-                      style: TextStyle(
-                          color: QibraNavy.textPrimary,
-                          fontSize: 14 * prefs.translationScale,
-                          height: 1.7),
-                      textDirection: TextDirection.rtl,
-                      textAlign: TextAlign.right,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            if (showEnglish && hadith.hasEnglish) ...[
+            if (language != 'ar' && showTranslation) ...[
               const SizedBox(height: 10),
               Container(
                 width: double.infinity,
@@ -1116,20 +1090,39 @@ class _HadithCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('ENGLISH',
-                        style: TextStyle(
-                            color: QibraNavy.emerald,
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5)),
-                    const SizedBox(height: 4),
                     Text(
-                      hadith.textEnglish,
-                      style: TextStyle(
-                          color: QibraNavy.textPrimary,
-                          fontSize: 12.5 * prefs.translationScale,
-                          height: 1.5),
+                      language == 'ur' ? 'اردو ترجمہ' : HadithAvailability.label(language),
+                      style: const TextStyle(
+                          color: QibraNavy.emerald,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5),
+                      textDirection: language == 'ur'
+                          ? TextDirection.rtl
+                          : TextDirection.ltr,
+                      textAlign: language == 'ur' ? TextAlign.right : TextAlign.start,
                     ),
+                    const SizedBox(height: 4),
+                    if (translation != null)
+                      Text(
+                        translation,
+                        style: TextStyle(
+                            color: QibraNavy.textPrimary,
+                            fontSize: (rtl ? 14 : 12.5) *
+                                prefs.translationScale,
+                            height: rtl ? 1.7 : 1.5),
+                        textDirection:
+                            rtl ? TextDirection.rtl : TextDirection.ltr,
+                        textAlign: rtl ? TextAlign.right : TextAlign.start,
+                      )
+                    else
+                      Text(
+                        'Verified translation unavailable for this language.',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: QibraNavy.textSecondary,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                   ],
                 ),
               ),

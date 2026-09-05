@@ -10,6 +10,7 @@
 // UNKNOWN stays unknown, no invented grouping.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design_system/app_typography.dart';
 import '../../../core/design_system/qibra_colors.dart';
@@ -34,7 +35,7 @@ List<LocalHadith> selectMoreFromChapter({
   return out;
 }
 
-class HadithMoreFromChapter extends StatelessWidget {
+class HadithMoreFromChapter extends ConsumerWidget {
   const HadithMoreFromChapter({
     super.key,
     required this.hadith,
@@ -48,8 +49,11 @@ class HadithMoreFromChapter extends StatelessWidget {
   final void Function(BuildContext context, HadithModel target) onOpen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
+    // Phase B: sibling previews follow the reading language (falls back
+    // to English only when this hadith has no key-matched text there).
+    final language = ref.watch(hadithLanguageProvider);
     if (hadith.chapterNumber <= 0 || hadith.bookSlug.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -105,8 +109,10 @@ class HadithMoreFromChapter extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        local.textEnglish.replaceAll(
-                            RegExp(r'\s+'), ' '),
+                        (localHadithTextForLanguage(local, language) ??
+                                local.textEnglish)
+                            .trim()
+                            .replaceAll(RegExp(r'\s+'), ' '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.bodySmall.copyWith(
