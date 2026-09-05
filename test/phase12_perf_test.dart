@@ -9,7 +9,8 @@ void main() {
     expect(identical(q, QuranRepository()), isTrue);
     final h = HadithDatabaseService();
     expect(identical(h, HadithDatabaseService()), isTrue);
-    NotificationService.markTimeZonesInitialized();
+    // (Rev) The former markTimeZonesInitialized() call verified a write-only
+    // flag that no longer exists; singleton identity is the real assertion.
     expect(NotificationService.instance, isNotNull);
   });
 }

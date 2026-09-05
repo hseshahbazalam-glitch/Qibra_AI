@@ -88,13 +88,71 @@ class MockSecureStorage extends FlutterSecureStorage {
       _store.clear();
 }
 
+/// ZERO-EGRESS proof for auth tests (owner 2026-09-05: a pre-fix p0 run
+/// POSTed to the live qibra-ai.onrender.com/auth/login). Every AuthRepository
+/// method throws — if any code path reaches for the network in a test, the
+/// test fails on THIS class, loudly, before a byte leaves the process.
+class _NeverCallAuthRepository implements AuthRepository {
+  int calls = 0;
+  Object? _touched(String what) {
+    calls += 1;
+    throw StateError('test reached the network through $what — forbidden');
+  }
+
+  @override
+  Future<AuthResult> login(
+          {required String email, required String password}) async =>
+      _touched('login') as AuthResult;
+  @override
+  Future<AuthResult> register(
+          {required String email,
+          required String password,
+          required String name}) async =>
+      _touched('register') as AuthResult;
+  @override
+  Future<void> logout({String? refreshToken}) async => _touched('logout');
+  @override
+  Future<AppUser?> getCurrentUser() async => _touched('getCurrentUser');
+  @override
+  Future<bool> deleteAccount() async => _touched('deleteAccount') as bool;
+}
+
+/// In-process repository for the ENABLED branch: deterministic result,
+/// zero network, and it counts so the wiring itself stays assertable.
+class _FakeAuthRepository implements AuthRepository {
+  _FakeAuthRepository(this.result);
+  final AuthResult result;
+  int loginCalls = 0;
+
+  @override
+  Future<AuthResult> login(
+      {required String email, required String password}) async {
+    loginCalls += 1;
+    return result;
+  }
+
+  @override
+  Future<AuthResult> register(
+          {required String email,
+          required String password,
+          required String name}) async =>
+      result;
+  @override
+  Future<void> logout({String? refreshToken}) async {}
+  @override
+  Future<AppUser?> getCurrentUser() async => null;
+  @override
+  Future<bool> deleteAccount() async => false;
+}
+
 void main() {
   group('P0.1 Auth Anonymous-First', () {
-    test('backend disabled -> login fails with guest error, no fake token',
+    test('backend disabled (seam) -> guest error, no fake token, ZERO egress',
         () async {
-      expect(AppApi.isBackendEnabled, isFalse);
       final storage = MockSecureStorage();
-      final notifier = AuthNotifier(storage);
+      final repo = _NeverCallAuthRepository();
+      final notifier =
+          AuthNotifier(storage, backendEnabled: false, repository: repo);
       await Future.delayed(const Duration(milliseconds: 150));
       expect(notifier.state.isUnauthenticated, isTrue);
       final success = await notifier.login(
@@ -103,11 +161,29 @@ void main() {
       expect(notifier.state.errorMessage, contains('not available'));
       final token = await storage.read(key: AppStorageKeys.accessToken);
       expect(token == null || !token.startsWith('fake_'), isTrue);
+      expect(repo.calls, 0,
+          reason: 'disabled branch must not touch the repository at all');
+    });
+
+    test('backend enabled (seam) + failing repository -> honest error',
+        () async {
+      final storage = MockSecureStorage();
+      final repo = _FakeAuthRepository(const AuthResult.failure('offline'));
+      final notifier =
+          AuthNotifier(storage, backendEnabled: true, repository: repo);
+      await Future.delayed(const Duration(milliseconds: 150));
+      final success = await notifier.login(
+          email: 'test@example.com', password: 'password123');
+      expect(success, isFalse);
+      expect(notifier.state.errorMessage, contains('offline'),
+          reason: 'the repository error surfaces verbatim — no invented success');
+      expect(repo.loginCalls, 1);
     });
 
     test('continueAsGuest clears error', () async {
       final storage = MockSecureStorage();
-      final notifier = AuthNotifier(storage);
+      final notifier =
+          AuthNotifier(storage, backendEnabled: false);
       await Future.delayed(const Duration(milliseconds: 100));
       await notifier.login(email: 'a@b.co', password: '12345678');
       expect(notifier.state.hasError, isTrue);

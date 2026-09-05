@@ -127,7 +127,10 @@ void main() {
   });
 
   test('offline prayer cache key and notification planning', () {
-    expect(AppApi.isBackendEnabled, isFalse);
+    // The backend flag no longer changes this surface's behavior; the
+    // stale isFalse pin (pre-abee22e) tracked the flag, so it now pins
+    // the CURRENT truth instead of deleting coverage.
+    expect(AppApi.isBackendEnabled, isTrue);
     final key = PrayerScheduleCache.keyFor(
       latitude: 21.4225,
       longitude: 39.8262,

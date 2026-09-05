@@ -275,12 +275,22 @@ class StubAuthRepository implements AuthRepository {
 class AuthNotifier extends StateNotifier<AuthState> {
   final FlutterSecureStorage _secureStorage;
   final AuthRepository _repository;
+  final bool _backendEnabled;
 
-  AuthNotifier(this._secureStorage, {AuthRepository? repository})
-      : _repository = repository ??
-            (AppApi.isBackendEnabled ? HttpAuthRepository() : StubAuthRepository()),
+  /// [backendEnabled] is a test seam (owner 2026-09-05): null keeps the
+  /// production behavior byte-identical (the AppApi constant decides);
+  /// a value pins this instance only — so the disabled-branch honesty and
+  /// the live-branch wiring can BOTH stay tested without touching the
+  /// global constant, and without ever letting a test reach the network.
+  AuthNotifier(this._secureStorage,
+      {AuthRepository? repository, bool? backendEnabled})
+      : _backendEnabled = backendEnabled ?? AppApi.isBackendEnabled,
+        _repository = repository ??
+            ((backendEnabled ?? AppApi.isBackendEnabled)
+                ? HttpAuthRepository()
+                : StubAuthRepository()),
         super(AuthState.initial()) {
-    if (AppApi.isBackendEnabled) {
+    if (_backendEnabled) {
       ApiClient.instance.refreshAccess = _rotateAccess;
       ApiClient.instance.onAuthExpired = _onSessionExpired;
     }
@@ -295,7 +305,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = AuthState.loading();
     try {
       // If backend disabled, immediately go to guest — no token check needed
-      if (!AppApi.isBackendEnabled) {
+      if (!_backendEnabled) {
         // Clean up any legacy fake tokens if present
         await _purgeLegacyFakeTokens();
         state = AuthState.unauthenticated();
@@ -382,7 +392,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
 
       // Backend gate
-      if (!AppApi.isBackendEnabled) {
+      if (!_backendEnabled) {
         state = state.copyWith(
           isLoading: false,
           errorMessage:
@@ -434,7 +444,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
             'Password must be at least ${AppValidation.passwordMinLength} characters');
       }
 
-      if (!AppApi.isBackendEnabled) {
+      if (!_backendEnabled) {
         state = state.copyWith(
           isLoading: false,
           errorMessage:
@@ -476,7 +486,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
     try {
-      if (AppApi.isBackendEnabled) {
+      if (_backendEnabled) {
         try {
           final refresh =
               await _secureStorage.read(key: AppStorageKeys.refreshToken);
@@ -515,7 +525,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<RefreshOutcome> _rotateAccess() async {
-    if (!AppApi.isBackendEnabled) return RefreshOutcome.skipped;
+    if (!_backendEnabled) return RefreshOutcome.skipped;
     try {
       final refreshToken = await _secureStorage.read(
         key: AppStorageKeys.refreshToken,
@@ -565,7 +575,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Delete account remotely when backend is on. Network failure does not invent success.
   Future<bool> deleteAccount() async {
     try {
-      if (AppApi.isBackendEnabled) {
+      if (_backendEnabled) {
         final ok = await _repository.deleteAccount();
         if (!ok) return false;
       }

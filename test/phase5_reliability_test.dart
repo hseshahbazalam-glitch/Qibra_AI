@@ -5,8 +5,11 @@ import 'package:qibra_ai/core/sync/sync_engine.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('backend remains disabled in this build', () {
-    expect(AppApi.isBackendEnabled, isFalse);
+  // Truth-up (owner flip abee22e, 2026-09-02; this pin missed in 1fd6ee9):
+  // the build enables the backend. What the OLD test actually guarded —
+  // that the flag state is conscious, not drift — is what this pins now.
+  test('backend is enabled in this build (owner flip, pinned)', () {
+    expect(AppApi.isBackendEnabled, isTrue);
   });
 
   test('account migration enqueues without wiping existing ops', () {
@@ -53,14 +56,47 @@ void main() {
     expect(engine.queue.pending.first.id, '2:255');
   });
 
-  test('flushWhenOnline is a no-op while backend is disabled', () async {
-    var sent = false;
-    await SyncEngine.instance.flushWhenOnline(
+  test('flushWhenOnline gate: BOTH branches pinned through the seam', () async {
+    // The disabled-branch behavior must stay tested after abee22e — but
+    // via the injectable flag, never by mutating (or praying over) the
+    // global constant. Fresh standalone engines keep the queue isolated.
+    SyncOp op(String id) => SyncOp(
+          id: id,
+          collection: 'quran',
+          type: SyncOpType.upsert,
+          payload: const {'surah': 1},
+          updatedAt: DateTime.utc(2026, 1, 1),
+        );
+
+    final disabledEngine = SyncEngine.standalone();
+    disabledEngine.queue.enqueue(op('a1'));
+    var sentWhileDisabled = false;
+    await disabledEngine.flushWhenOnline(
       online: true,
-      sender: (_) async {
-        sent = true;
-      },
+      backendEnabled: false,
+      sender: (_) async => sentWhileDisabled = true,
     );
-    expect(sent, isFalse);
+    expect(sentWhileDisabled, isFalse,
+        reason: 'disabled branch stays a no-op even while the app ships enabled');
+
+    final offlineEngine = SyncEngine.standalone();
+    offlineEngine.queue.enqueue(op('b1'));
+    var sentWhileOffline = false;
+    await offlineEngine.flushWhenOnline(
+      online: false,
+      backendEnabled: true,
+      sender: (_) async => sentWhileOffline = true,
+    );
+    expect(sentWhileOffline, isFalse);
+
+    final liveEngine = SyncEngine.standalone();
+    liveEngine.queue.enqueue(op('c1'));
+    var sent = false;
+    await liveEngine.flushWhenOnline(
+      online: true,
+      backendEnabled: true,
+      sender: (_) async => sent = true,
+    );
+    expect(sent, isTrue, reason: 'enabled+online must hand the batch to the sender');
   });
 }
