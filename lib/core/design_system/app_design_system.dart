@@ -478,6 +478,11 @@ abstract final class AppAssets {
   static const String splashLogo = logo;
   static const String homeHeroBg = '$_images/hero/home_hero_bg.png';
   static const String patternTile = '$_images/hero/pattern_tile.png';
+  /// Perf pass item 3: pre-faded (5% alpha baked) + 256px tile that
+  /// PatternBackdrop paints WITHOUT a per-frame Opacity/saveLayer.
+  /// Regenerate via scripts/make_faded_tile.py.
+  static const String patternTileFaded =
+      '$_images/hero/pattern_tile_faded.png';
 
   static const String hadithArt = '$_images/features/hadith_art.png';
   static const String aiArt = '$_images/features/ai_art.png';
