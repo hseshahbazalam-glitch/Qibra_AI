@@ -185,7 +185,9 @@ void main() {
       const done = SurahAudioStatus(
           checking: false, done: 7, total: 7, bytes: 7 * 131072);
       expect(done.downloaded, isTrue);
-      expect(done.label, 'Downloaded · 0.9 MB');
+      // 7 x 131072 = 896 KiB = 917,504 B — under 1 MiB, so the honest
+      // label is in KB (formatter rule: MB only from 1,048,576 B up).
+      expect(done.label, 'Downloaded · 896.0 KB');
 
       expect(SurahAudioStatus.bytesLabel(0), '0 B');
       expect(SurahAudioStatus.bytesLabel(1023), '1023 B');

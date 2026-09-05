@@ -2,6 +2,15 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+/// Strips comments for secret-scanning guards WITHOUT damaging string
+/// literals: `//` only starts a comment when preceded by line start or
+/// whitespace, so 'https://api.groq.com' inside a literal survives (a
+/// naive strip would delete it — exactly where a real leak would hide).
+String _stripCommentsForGuard(String src) => src
+    .replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '')
+    .replaceAll(RegExp(r'(?<=[\s\n])//[^\n]*'), '')
+    .replaceAll(RegExp(r'^\s*//[^\n]*', multiLine: true), '');
+
 /// AI level 0-1 wiring guards (source-level; the runtime battery is
 /// scripts/static_battery.py). These pin the exact strings the shipped
 /// backend contract (docs/DEPLOY.md) depends on — if a refactor drifts
@@ -79,8 +88,19 @@ void main() {
       ]) {
         expect(provider.contains(needle), isTrue, reason: needle);
       }
-      expect(provider.toLowerCase().contains('groq'), isFalse,
-          reason: 'no Groq material on the client — key + prompt are backend-side');
+      // 'groq' as a bare word appears in SECURITY COMMENTS in this file
+      // (that is documentation, not a leak) — scanning for it produced a
+      // false positive. What must never appear in client CODE are the
+      // real secrets, checked on comment-stripped source.
+      final code = _stripCommentsForGuard(provider);
+      for (final secret in ['gsk_', 'api.groq.com', 'GROQ_API_KEY', 'Bearer ']) {
+        expect(code.contains(secret), isFalse,
+            reason: 'no Groq material on the client — "$secret" in CODE '
+                'means the key/prompt layer leaked client-side');
+      }
+      // And the security comments themselves must stay in place:
+      expect(provider.contains('GROQ SECURITY'), isTrue,
+          reason: 'the guard is only honest while the comment explains it');
     });
 
     test('conversation memory is capped and sent with each ask', () {
@@ -89,8 +109,16 @@ void main() {
     });
 
     test('non-stream fallback posts stream:false to the same endpoint', () {
-      final fallback = provider.substring(provider.indexOf(
-          "final resp = await ApiClient.instance\n            .post(AppApi.endpointAiAsk"));
+      // Whitespace-tolerant anchor. The old exact-string indexOf went to
+      // -1 (RangeError) the moment dart format reflowed the call — a
+      // formatting change must fail with a CLEAR message, not a crash.
+      final anchor = RegExp(
+          r'final resp = await ApiClient\.instance\s*\.post\(AppApi\.endpointAiAsk');
+      final m = anchor.firstMatch(provider);
+      expect(m, isNotNull,
+          reason: 'the non-stream fallback must call ApiClient.instance'
+              '.post(AppApi.endpointAiAsk — did the call change shape?');
+      final fallback = provider.substring(m!.start);
       expect(fallback.contains("'stream': false"), isTrue);
     });
   });

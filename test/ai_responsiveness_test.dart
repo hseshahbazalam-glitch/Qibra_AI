@@ -117,9 +117,9 @@ void main() {
         final src = f.readAsStringSync();
         for (final m in RegExp(r'Container\(\s*\n\s*decoration: BoxDecoration')
             .allMatches(src)) {
-          final tail = src.substring(m.end(), m.end() + 400);
+          final tail = src.substring(m.end, m.end + 400);
           if (tail.contains('ListTile(') && !tail.contains('Material')) {
-            fail('${f.path}@${src.substring(0, m.start()).split('\n').length}: '
+            fail('${f.path}@${src.substring(0, m.start).split('\n').length}: '
                 'decorated Container wrapping a bare ListTile');
           }
         }

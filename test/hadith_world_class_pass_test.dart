@@ -220,8 +220,9 @@ void main() {
       // The original slice at those coordinates keeps its diacritics —
       // the fold is for matching only, never for display.
       const fathah = '\u064E'; // َ
-      expect(hit.text.contains(fathah), isTrue);
-      expect(text.contains(hit.text), isTrue);
+      expect(hit.text, isNotNull);
+      expect(hit.text!.contains(fathah), isTrue);
+      expect(text.contains(hit.text!), isTrue);
     });
   });
 }

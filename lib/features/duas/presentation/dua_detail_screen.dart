@@ -216,9 +216,12 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 // with this dua's real bundled text as the context.
                 IconButton(
                   tooltip: 'Explain with AI',
-                  icon: const Icon(
+                  icon: Icon(
+                    // Violet marks the AI surface (G14/design rule): ride
+                    // the sanctioned theme token, never the raw palette
+                    // constant outside the AI feature.
                     Icons.auto_awesome_rounded,
-                    color: QibraNavy.violet,
+                    color: colors.violetAi,
                   ),
                   onPressed: () => Navigator.push(
                     context,
