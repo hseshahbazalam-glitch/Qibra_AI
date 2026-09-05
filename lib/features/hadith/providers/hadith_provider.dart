@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/hadith_availability.dart';
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
 import '../data/services/hadith_view_history.dart';
@@ -23,7 +24,10 @@ class HadithLanguageNotifier extends StateNotifier<String> {
   }
 
   static const _key = 'hadith_display_language_v1';
-  static const supported = {'en', 'ar', 'ur'};
+  // Phase B: DERIVED from the availability matrix (single source of
+  // truth, pinned to disk data by test/hadith_multilang_test.dart) —
+  // this list may not be hardcoded here again.
+  static const supported = {...HadithAvailability.languageCodes};
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -52,6 +56,38 @@ String? hadithTextForLanguage(HadithModel hadith, String language) {
       return hadith.hasUrdu ? hadith.textUrdu : null;
     case 'en':
       return hadith.hasEnglish ? hadith.textEnglish : null;
+    case 'bn':
+      return hadith.hasBengali ? hadith.textBengali : null;
+    case 'tr':
+      return hadith.hasTurkish ? hadith.textTurkish : null;
+    case 'id':
+      return hadith.hasIndonesian ? hadith.textIndonesian : null;
+    case 'fr':
+      return hadith.hasFrench ? hadith.textFrench : null;
+    default:
+      return null;
+  }
+}
+
+/// Same selection over the raw local rows (the related-hadith strip
+/// renders LocalHadith, not HadithModel — one rule for every surface:
+/// a translation is only ever shown when its key-matched text exists).
+String? localHadithTextForLanguage(LocalHadith local, String language) {
+  switch (language) {
+    case 'ar':
+      return local.hasArabic ? local.textArabic : null;
+    case 'ur':
+      return local.hasUrdu ? local.textUrdu : null;
+    case 'en':
+      return local.hasEnglish ? local.textEnglish : null;
+    case 'bn':
+      return local.hasBengali ? local.textBengali : null;
+    case 'tr':
+      return local.hasTurkish ? local.textTurkish : null;
+    case 'id':
+      return local.hasIndonesian ? local.textIndonesian : null;
+    case 'fr':
+      return local.hasFrench ? local.textFrench : null;
     default:
       return null;
   }
@@ -150,6 +186,10 @@ HadithModel localToHadithModel(LocalHadith local) {
     textArabic: local.textArabic,
     textEnglish: local.textEnglish,
     textUrdu: local.textUrdu,
+    textBengali: local.textBengali,
+    textTurkish: local.textTurkish,
+    textIndonesian: local.textIndonesian,
+    textFrench: local.textFrench,
     grade: gradeForLocalHadith(local),
     narrator: const HadithNarrator(name: ''),
     reference: local.displayReference,
@@ -307,6 +347,14 @@ HadithMatchType _matchTypeFromString(String s) {
       return HadithMatchType.arabic;
     case 'urdu':
       return HadithMatchType.urdu;
+    case 'bengali':
+      return HadithMatchType.bengali;
+    case 'turkish':
+      return HadithMatchType.turkish;
+    case 'indonesian':
+      return HadithMatchType.indonesian;
+    case 'french':
+      return HadithMatchType.french;
     default:
       return HadithMatchType.english;
   }

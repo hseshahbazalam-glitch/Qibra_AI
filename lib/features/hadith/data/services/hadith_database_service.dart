@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/utils/search_normalizer.dart';
+import '../hadith_availability.dart';
 
 
 // Top-level so Isolate.run closures can capture it (owner ANR fix 2026-09-02).
@@ -35,6 +36,14 @@ class LocalHadith {
   final String textArabic;
   final String textEnglish;
   final String textUrdu;
+  // Phase B (2026-09-05): texts joined by the (hadithnumber,
+  // arabicnumber) pair against the extracted language files; a hadith
+  // with no key-match simply carries '' -> hasX false -> the UI shows
+  // the honest "unavailable" fallback. Never positionally joined.
+  final String textBengali;
+  final String textTurkish;
+  final String textIndonesian;
+  final String textFrench;
   final String bookSlug;
   final String bookName;
   final int bookNumber;
@@ -48,6 +57,10 @@ class LocalHadith {
     required this.textArabic,
     required this.textEnglish,
     required this.textUrdu,
+    this.textBengali = '',
+    this.textTurkish = '',
+    this.textIndonesian = '',
+    this.textFrench = '',
     required this.bookSlug,
     required this.bookName,
     required this.bookNumber,
@@ -68,6 +81,12 @@ class LocalHadith {
       if (textUrdu.length <= 120) return textUrdu;
       return '${textUrdu.substring(0, 120)}...';
     }
+    for (final extra in [textBengali, textTurkish, textIndonesian, textFrench]) {
+      if (extra.isNotEmpty) {
+        if (extra.length <= 120) return extra;
+        return '${extra.substring(0, 120)}...';
+      }
+    }
     if (textArabic.length <= 120) return textArabic;
     return '${textArabic.substring(0, 120)}...';
   }
@@ -75,6 +94,10 @@ class LocalHadith {
   bool get hasArabic => textArabic.trim().isNotEmpty;
   bool get hasEnglish => textEnglish.trim().isNotEmpty;
   bool get hasUrdu => textUrdu.trim().isNotEmpty;
+  bool get hasBengali => textBengali.trim().isNotEmpty;
+  bool get hasTurkish => textTurkish.trim().isNotEmpty;
+  bool get hasIndonesian => textIndonesian.trim().isNotEmpty;
+  bool get hasFrench => textFrench.trim().isNotEmpty;
 }
 
 // ============================================================
@@ -197,10 +220,17 @@ class HadithDatabaseService {
 
   Future<void> _loadBook(String slug, String name) async {
     try {
+      // Phase B: the four new language editions load in the SAME
+      // per-book Future.wait batch as the originals (existing pattern
+      // deliberately kept — see Phase B report; no new isolate exists
+      // for loading in this service today).
+      final newLangs = HadithAvailability.newLanguageFiles.entries.toList();
       final results = await Future.wait([
         _loadJsonAsset('assets/data/hadith/$slug/english.json'),
         _loadJsonAsset('assets/data/hadith/$slug/arabic.json'),
         _loadJsonAsset('assets/data/hadith/$slug/urdu.json'),
+        for (final lang in newLangs)
+          _loadJsonAsset('assets/data/hadith/$slug/${lang.value}.json'),
       ]);
 
       final englishData = results[0];
@@ -250,6 +280,19 @@ class HadithDatabaseService {
         }
       }
 
+      // Phase B language joins: keyed by the (hadithnumber,
+      // arabicnumber) PAIR — never by array index — because our shipped
+      // record sets differ from the dataset's (bukhari 7,589 raw vs
+      // 7,563 keyed; tirmidhi 3,998 vs 3,956; muslim's fractional
+      // arabicnumbers). A missing pair means the language has nothing
+      // for that hadith -> '' -> hasX false.
+      final langIndices = <String, Map<(int, int), String>>{
+        for (var i = 0; i < newLangs.length; i++)
+          newLangs[i].key: pairTextIndex(
+            results[3 + i]?['hadiths'] as List<dynamic>? ?? const [],
+          ),
+      };
+
       final primaryHadiths = englishHadiths.isNotEmpty
           ? englishHadiths
           : (arabicHadiths.isNotEmpty ? arabicHadiths : urduHadiths);
@@ -274,6 +317,7 @@ class HadithDatabaseService {
 
           final chapterName = sections[bookNum.toString()] ?? '';
           final arabicNum = _parseHadithNumber(map['arabicnumber']);
+          final pair = pairKey(hadithNum, arabicNum);
 
           hadiths.add(LocalHadith(
             hadithNumber: hadithNum,
@@ -281,6 +325,10 @@ class HadithDatabaseService {
             textEnglish: map['text']?.toString() ?? '',
             textArabic: arabicMap[hadithNum] ?? '',
             textUrdu: urduMap[hadithNum] ?? '',
+            textBengali: langIndices['bn']?[pair] ?? '',
+            textTurkish: langIndices['tr']?[pair] ?? '',
+            textIndonesian: langIndices['id']?[pair] ?? '',
+            textFrench: langIndices['fr']?[pair] ?? '',
             bookSlug: slug,
             bookName: name,
             bookNumber: bookNum,
@@ -428,6 +476,26 @@ class HadithDatabaseService {
           }
         }
 
+        // Phase B languages: scored like english (position-aware
+        // _calculateRelevance) but only ever UPGRADE an existing hit —
+        // Arabic/Urdu fixed-relevance precedence is untouched.
+        for (final candidate in [
+          (hadith.textBengali, 'bengali'),
+          (hadith.textTurkish, 'turkish'),
+          (hadith.textIndonesian, 'indonesian'),
+          (hadith.textFrench, 'french'),
+        ]) {
+          if (candidate.$1.trim().isEmpty) continue;
+          if (SearchNormalizer.contains(candidate.$1, query)) {
+            final candidateRelevance =
+                _calculateRelevance(candidate.$1, lowerQuery);
+            if (candidateRelevance > relevance) {
+              relevance = candidateRelevance;
+              matchedIn = candidate.$2;
+            }
+          }
+        }
+
         if (SearchNormalizer.contains(hadith.chapterName, query)) {
           if (relevance == 0) {
             relevance = 0.5;
@@ -525,7 +593,41 @@ class HadithDatabaseService {
     });
   }
 
-  int _parseHadithNumber(dynamic value) {
+  /// Pair key used by the Phase B language join — the exact same
+  /// normalization the primary loop applies to a base record's
+  /// (hadithNumber, arabicNumber) (arabic 0 falls back to hadith num,
+  /// mirroring LocalHadith.arabicNumber). @visibleForTesting so the
+  /// multilang test pins join semantics without booting Flutter.
+  @visibleForTesting
+  static (int, int) pairKey(int hadithNumber, int arabicNumber) =>
+      (hadithNumber, arabicNumber == 0 ? hadithNumber : arabicNumber);
+
+  /// Index a raw `hadiths` list by [pairKey]. Empty/whitespace texts are
+  /// skipped (they must NOT shadow nothing with garbage); duplicate keys
+  /// keep the FIRST record, matching scripts/extract_hadith_languages.py.
+  @visibleForTesting
+  static Map<(int, int), String> pairTextIndex(List<dynamic> raws) {
+    final out = <(int, int), String>{};
+    for (final h in raws) {
+      try {
+        final map = h as Map<String, dynamic>;
+        final text = map['text']?.toString() ?? '';
+        if (text.trim().isEmpty) continue;
+        out.putIfAbsent(
+          pairKey(
+            _parseHadithNumber(map['hadithnumber']),
+            _parseHadithNumber(map['arabicnumber']),
+          ),
+          () => text,
+        );
+      } catch (_) {
+        continue;
+      }
+    }
+    return out;
+  }
+
+  static int _parseHadithNumber(dynamic value) {
     if (value == null) return 0;
     if (value is num) return value.toInt();
     if (value is String) {

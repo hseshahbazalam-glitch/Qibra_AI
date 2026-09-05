@@ -331,6 +331,10 @@ class HadithModel extends Equatable {
     required this.textArabic,
     required this.textEnglish,
     required this.textUrdu,
+    this.textBengali = '',
+    this.textTurkish = '',
+    this.textIndonesian = '',
+    this.textFrench = '',
     required this.grade,
     required this.narrator,
     this.reference,
@@ -350,6 +354,12 @@ class HadithModel extends Equatable {
   final String textArabic;
   final String textEnglish;
   final String textUrdu;
+  // Phase B languages (hadith-api editions, key-joined per book; empty
+  // string == honestly unavailable for this hadith, see the loader).
+  final String textBengali;
+  final String textTurkish;
+  final String textIndonesian;
+  final String textFrench;
   final HadithGrade grade;
   final HadithNarrator narrator;
   final String? reference; // e.g., "Sahih al-Bukhari 1"
@@ -391,6 +401,22 @@ class HadithModel extends Equatable {
           json['urdu'] as String? ??
           json['textUrdu'] as String? ??
           '',
+      textBengali: json['hadithBengali'] as String? ??
+          json['bengali'] as String? ??
+          json['textBengali'] as String? ??
+          '',
+      textTurkish: json['hadithTurkish'] as String? ??
+          json['turkish'] as String? ??
+          json['textTurkish'] as String? ??
+          '',
+      textIndonesian: json['hadithIndonesian'] as String? ??
+          json['indonesian'] as String? ??
+          json['textIndonesian'] as String? ??
+          '',
+      textFrench: json['hadithFrench'] as String? ??
+          json['french'] as String? ??
+          json['textFrench'] as String? ??
+          '',
       grade: HadithGrade.fromString(
         json['status'] as String? ?? json['grade'] as String?,
       ),
@@ -421,6 +447,10 @@ class HadithModel extends Equatable {
       'textArabic': textArabic,
       'textEnglish': textEnglish,
       'textUrdu': textUrdu,
+      'textBengali': textBengali,
+      'textTurkish': textTurkish,
+      'textIndonesian': textIndonesian,
+      'textFrench': textFrench,
       'grade': grade.name,
       'narrator': narrator.toJson(),
       'reference': reference,
@@ -442,6 +472,10 @@ class HadithModel extends Equatable {
     String? textArabic,
     String? textEnglish,
     String? textUrdu,
+    String? textBengali,
+    String? textTurkish,
+    String? textIndonesian,
+    String? textFrench,
     HadithGrade? grade,
     HadithNarrator? narrator,
     String? reference,
@@ -461,6 +495,10 @@ class HadithModel extends Equatable {
       textArabic: textArabic ?? this.textArabic,
       textEnglish: textEnglish ?? this.textEnglish,
       textUrdu: textUrdu ?? this.textUrdu,
+      textBengali: textBengali ?? this.textBengali,
+      textTurkish: textTurkish ?? this.textTurkish,
+      textIndonesian: textIndonesian ?? this.textIndonesian,
+      textFrench: textFrench ?? this.textFrench,
       grade: grade ?? this.grade,
       narrator: narrator ?? this.narrator,
       reference: reference ?? this.reference,
@@ -485,6 +523,10 @@ class HadithModel extends Equatable {
   bool get hasArabic => textArabic.isNotEmpty;
   bool get hasEnglish => textEnglish.isNotEmpty;
   bool get hasUrdu => textUrdu.isNotEmpty;
+  bool get hasBengali => textBengali.trim().isNotEmpty;
+  bool get hasTurkish => textTurkish.trim().isNotEmpty;
+  bool get hasIndonesian => textIndonesian.trim().isNotEmpty;
+  bool get hasFrench => textFrench.trim().isNotEmpty;
   bool get hasExplanation => explanation != null && explanation!.isNotEmpty;
   bool get hasChain => chainOfNarration != null && chainOfNarration!.isNotEmpty;
 
@@ -634,6 +676,10 @@ enum HadithMatchType {
   arabic('Arabic'),
   english('English'),
   urdu('Urdu'),
+  bengali('Bengali'),
+  turkish('Turkish'),
+  indonesian('Indonesian'),
+  french('French'),
   narrator('Narrator'),
   reference('Reference');
 
