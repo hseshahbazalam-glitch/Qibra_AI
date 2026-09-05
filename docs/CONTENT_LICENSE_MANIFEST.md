@@ -21,7 +21,7 @@ Sidecar: `assets/data/content_manifest.json`. Quran/Hadith JSON was **not** rewr
 | Sunan an-Nasa'i JSON | `assets/data/hadith/nasai/` | Imam an-Nasa'i (compiler); translators UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN |
 | Sunan Ibn Majah JSON | `assets/data/hadith/ibnmajah/` | Imam Ibn Majah (compiler); translators UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN |
 | Muwatta Malik JSON | `assets/data/hadith/malik/` | Imam Malik (compiler); translators UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN |
-| Jami at-Tirmidhi JSON | `assets/data/hadith/tirmidhi/` (no urdu.json) | Imam al-Tirmidhi (compiler); translators UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN |
+| Jami at-Tirmidhi JSON | `assets/data/hadith/tirmidhi/` (urdu.json exists: 3,998 records, 67 with empty text — per-hadith fallback territory, found 2026-09-05; the old “no urdu.json” note was stale) | Imam al-Tirmidhi (compiler); translators UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN |
 | Tafsir Ibn Kathir | not bundled | Ibn Kathir (work); edition absent | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | DO_NOT_DISTRIBUTE |
 | Word-by-word meanings | not bundled | — | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN |
 | Hindi translation | not bundled | — | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN |
@@ -54,6 +54,64 @@ this row to VERIFIED would require an actual license file in git. The
 audio is Quran recitation — the content itself is the verbatim Arabic
 text already in the app; only the audio editions' terms are the open
 question.
+
+## Hadith language expansion — dataset investigation (2026-09-05, Phase A, no feature code)
+
+Source investigated: **fawazahmed0/hadith-api**, branch `1` (repo last pushed
+2026-06-03), read through the dataset's OWN metadata (`editions.json`, per-edition
+`author`/`language`/`source` fields, per-hadith file trees) — not third-party
+keyword tags. GitHub tree API + per-directory counts; no full clone.
+
+**License truth (answers the “CC0 vs CC BY-NC” question: neither).** The repo's
+`LICENSE` file is **The Unlicense** — a public-domain dedication by the repo
+author for *their* work (the compilation/scripts). It is not CC0 and not
+CC BY-NC, and it cannot dedicate translators' copyrights it doesn't hold:
+edition metadata lists `author: "Unknown"` for almost everything, `source` is
+empty for most languages (rus → isnad.link; malik-urdu → an archive.org copy of
+Rahmat Publications' Salim Al-Hilali), and References.md credits third-party
+sites (sunnah.com, urdupoint, al-maktaba, IIUM, hamariweb, …) without
+per-translation license files. **Consequence under this manifest's rule
+(UNKNOWN stays UNKNOWN, VERIFIED requires an in-repo license file): hadith
+content rows above are NOT upgraded by the Unlicense statement.** Bundling
+any new language is a distribution decision the owner must make with that
+gap visible — same footing as the existing ar/en/ur rows.
+
+**Availability matrix (language × our 7 collections).** All covered
+languages carry the canonical hadith counts per book (bukhari 7,563 · muslim
+7,563 · abudawud 5,274 · nasai 5,758 · tirmidhi 3,956 · ibnmajah 4,341 ·
+malik 1,858 — file-count verified against per-hadith directory trees; text
+presence spot-checked at first/middle/last files in each language, all
+non-empty). “Raw MB” = sum of the seven pretty JSON files; “min MB” = sum of
+`.min.json`:
+
+| Lang | Books | Raw MB | min MB | Notes |
+| --- | --- | --- | --- | --- |
+| ara (Arabic) | 7/7 | 47.8 | 44.4 | already bundled; only editions with `grades` data; also diacritics-removed `-1` variants |
+| eng (English) | 7/7 | 25.8 | 22.4 | already bundled; authors vary per book (Muhsin Khan bukhari, Abdul Hamid Siddiqui abudawud, rest Unknown) |
+| urd (Urdu, Nastaliq) | 7/7 | 39.9 | 36.5 | already bundled; `rtl` |
+| ben (Bengali) | 7/7 | 60.3 | 56.9 | PASS coverage gate |
+| tur (Turkish) | 7/7 | 35.2 | 31.8 | PASS coverage gate |
+| ind (Indonesian) | 7/7 | 34.3 | 30.9 | PASS coverage gate |
+| fra (French) | 6/7 | 23.6 | 20.7 | no `fra-tirmidhi` in dataset → tirmidhi = “unavailable in this language” per book; PASSES the ≥5/7 gate |
+| rus (Russian) | 3/7 | 17.1 | 15.7 | BELOW GATE — skipped (hadith-api covers bukhari/muslim/abudawud only) |
+| tam (Tamil) | 2/7 | 23.8 | 23.0 | BELOW GATE — skipped |
+| Roman Urdu | 0/7 | — | — | **does not exist in the dataset** (only script-Urdu `urd-*`). Per the fabricated-text rule this is reported unavailable-by-data; no model-generated translations were or will be used. |
+
+**Size rule status (owner decides before any Phase B).** Every gate-passing
+NEW language adds **>20 MB of bundle assets raw** (ben 60.3 / tur 35.2 / ind
+34.3 / fra 23.6 MB), so the standing SIZE RULE says: **STOP — do not bundle;
+download-pack (tilawat pattern: on-demand fetch, app-internal cache, deletable
+from UI, nothing committed) is the compliant route.** Measured on the existing
+bundle, Flutter's asset deflate compresses these JSON at ~5.7× (3.12 MB →
+0.55 MB sample), so *if* the owner elects bundling anyway, expected APK deltas
+are roughly ben ≈10.6 / tur ≈6.2 / ind ≈6.0 / fra ≈4.2 MB (device APK build is
+the authority, not this estimate). New languages carry `grades: []` — the
+grade chip already hides unknown grades, so nothing is invented there.
+
+**Per-hadith gaps for the fallback to cover:** at file level none found for
+covered books (counts match canonical); empty-text records DO exist inside
+our current tirmidhi Urdu extraction (67) — the fallback UI is therefore
+already load-bearing for shipped data, not hypothetical.
 
 ## Visual identity assets (2026-08-31)
 
