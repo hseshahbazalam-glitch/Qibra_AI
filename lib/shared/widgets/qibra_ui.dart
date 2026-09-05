@@ -164,6 +164,14 @@ class QibraHeroCard extends StatelessWidget {
             child: SafeImage(
               assetPath: backgroundAsset,
               fit: BoxFit.cover,
+              // (Perf pass item 5) dpr-aware decode budget for hero art:
+              // this card spans the screen width, so cap the decode at the
+              // physical card width (clamped 320..1536). A hint ABOVE the
+              // native asset size is a codec no-op — it can never upscale.
+              cacheWidth: (MediaQuery.sizeOf(context).width *
+                      MediaQuery.devicePixelRatioOf(context))
+                  .clamp(320, 1536)
+                  .toInt(),
               fallback: SafeImageFallback.mosque,
             ),
           ),
