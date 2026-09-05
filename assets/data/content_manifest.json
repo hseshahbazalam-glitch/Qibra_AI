@@ -1,6 +1,6 @@
 {
   "schema": "qibra.content_manifest.v1",
-  "notes": "UNKNOWN stays UNKNOWN. VERIFIED requires an in-repo license file. This sidecar does not rewrite Quran/Hadith JSON.",
+  "notes": "UNKNOWN stays UNKNOWN. VERIFIED requires an in-repo license file. This sidecar does not rewrite Quran/Hadith JSON. Hadith Phase B (2026-09-05): bengali/turkish/indonesian/french files were extracted from fawazahmed0/hadith-api@1 (repo-level The Unlicense; translator licensing UNKNOWN, so rows stay UNKNOWN) by scripts/extract_hadith_languages.py, joined to our records ONLY by (hadithnumber, arabicnumber) — never positionally.",
   "verified_at": null,
   "sources": [
     {
@@ -174,7 +174,7 @@
     },
     {
       "id": "hadith_bukhari",
-      "content": "Sahih al-Bukhari (ar/en/ur JSON)",
+      "content": "Sahih al-Bukhari (ar/en/ur/bn/tr/id/fr JSON)",
       "source": "assets/data/hadith/bukhari/",
       "source_name": "metadata.name Sahih al Bukhari",
       "collection": "hadith",
@@ -191,11 +191,11 @@
       "attribution": "UNKNOWN",
       "verification_status": "UNKNOWN",
       "status": "UNKNOWN",
-      "language": "ar/en/ur"
+      "language": "ar/en/ur/bn/tr/id/fr"
     },
     {
       "id": "hadith_muslim",
-      "content": "Sahih Muslim (ar/en/ur JSON)",
+      "content": "Sahih Muslim (ar/en/ur/bn/tr/id/fr JSON)",
       "source": "assets/data/hadith/muslim/",
       "source_name": "metadata.name Sahih Muslim",
       "collection": "hadith",
@@ -212,11 +212,11 @@
       "attribution": "UNKNOWN",
       "verification_status": "UNKNOWN",
       "status": "UNKNOWN",
-      "language": "ar/en/ur"
+      "language": "ar/en/ur/bn/tr/id/fr"
     },
     {
       "id": "hadith_abudawud",
-      "content": "Sunan Abu Dawud (ar/en/ur JSON)",
+      "content": "Sunan Abu Dawud (ar/en/ur/bn/tr/id/fr JSON)",
       "source": "assets/data/hadith/abudawud/",
       "source_name": "metadata.name Sunan Abu Dawud",
       "collection": "hadith",
@@ -233,11 +233,11 @@
       "attribution": "UNKNOWN",
       "verification_status": "UNKNOWN",
       "status": "UNKNOWN",
-      "language": "ar/en/ur"
+      "language": "ar/en/ur/bn/tr/id/fr"
     },
     {
       "id": "hadith_nasai",
-      "content": "Sunan an-Nasa'i (ar/en/ur JSON)",
+      "content": "Sunan an-Nasa'i (ar/en/ur/bn/tr/id/fr JSON)",
       "source": "assets/data/hadith/nasai/",
       "source_name": "metadata.name Sunan an Nasai",
       "collection": "hadith",
@@ -254,11 +254,11 @@
       "attribution": "UNKNOWN",
       "verification_status": "UNKNOWN",
       "status": "UNKNOWN",
-      "language": "ar/en/ur"
+      "language": "ar/en/ur/bn/tr/id/fr"
     },
     {
       "id": "hadith_ibnmajah",
-      "content": "Sunan Ibn Majah (ar/en/ur JSON)",
+      "content": "Sunan Ibn Majah (ar/en/ur/bn/tr/id/fr JSON)",
       "source": "assets/data/hadith/ibnmajah/",
       "source_name": "metadata.name Sunan Ibn Majah",
       "collection": "hadith",
@@ -275,11 +275,11 @@
       "attribution": "UNKNOWN",
       "verification_status": "UNKNOWN",
       "status": "UNKNOWN",
-      "language": "ar/en/ur"
+      "language": "ar/en/ur/bn/tr/id/fr"
     },
     {
       "id": "hadith_malik",
-      "content": "Muwatta Malik (ar/en/ur JSON)",
+      "content": "Muwatta Malik (ar/en/ur/bn/tr/id/fr JSON)",
       "source": "assets/data/hadith/malik/",
       "source_name": "metadata.name Muwatta Malik",
       "collection": "hadith",
@@ -296,11 +296,11 @@
       "attribution": "UNKNOWN",
       "verification_status": "UNKNOWN",
       "status": "UNKNOWN",
-      "language": "ar/en/ur"
+      "language": "ar/en/ur/bn/tr/id/fr"
     },
     {
       "id": "hadith_tirmidhi",
-      "content": "Jami at-Tirmidhi (ar/en/ur JSON; urdu backfilled 2026-09-02 from fawazahmed0/hadith-api@df57907 editions/urd-tirmidhi.json)",
+      "content": "Jami at-Tirmidhi (ar/en/ur/bn/tr/id/fr JSON; urdu backfilled 2026-09-02 from fawazahmed0/hadith-api@df57907 editions/urd-tirmidhi.json)",
       "source": "assets/data/hadith/tirmidhi/",
       "source_name": "metadata.name Jami At Tirmidhi",
       "collection": "hadith",
@@ -317,7 +317,7 @@
       "attribution": "UNKNOWN",
       "verification_status": "UNKNOWN",
       "status": "UNKNOWN",
-      "language": "ar/en/ur"
+      "language": "ar/en/ur/bn/tr/id/fr"
     },
     {
       "id": "tafsir_ibn_kathir",
