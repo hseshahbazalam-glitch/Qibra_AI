@@ -143,7 +143,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       // its own errors, so this always settles quickly either way).
       final boot = ref.read(dataBootstrapProvider);
       if (boot.isLoading) {
-        unawaited(boot.future
+        // The Future lives on the PROVIDER, not on AsyncValue (Riverpod
+        // 2.6.1): boot.future never compiled. Identical semantics —
+        // wait for genuine readiness only while it is still loading.
+        unawaited(ref
+            .read(dataBootstrapProvider.future)
             .then<void>((_) => _proceed())
             .catchError((Object _) => _proceed()));
         return;

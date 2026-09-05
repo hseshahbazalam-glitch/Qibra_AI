@@ -232,7 +232,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       children: [
-                        Icon(Icons.error_outline_rounded,
+                        const Icon(Icons.error_outline_rounded,
                             color: QibraNavy.red, size: 48),
                         const SizedBox(height: 12),
                         const Text(
@@ -1007,7 +1007,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           color: QibraNavy.textSecondary),
                       onPressed: prevNumber == null
                           ? null
-                          : () => openNeighbour(prevNumber!),
+                          : () => openNeighbour(prevNumber),
                     ),
                     IconButton(
                       tooltip: 'Next hadith',
@@ -1015,7 +1015,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           color: QibraNavy.textSecondary),
                       onPressed: nextNumber == null
                           ? null
-                          : () => openNeighbour(nextNumber!),
+                          : () => openNeighbour(nextNumber),
                     ),
                     IconButton(
                       tooltip: 'Copy to share',
@@ -1177,7 +1177,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       child: OutlinedButton.icon(
                         onPressed: prevNumber == null
                             ? null
-                            : () => openNeighbour(prevNumber!),
+                            : () => openNeighbour(prevNumber),
                         icon:
                             const Icon(Icons.chevron_left_rounded, size: 18),
                         label: const Text('Previous',
@@ -1204,7 +1204,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       child: FilledButton.icon(
                         onPressed: nextNumber == null
                             ? null
-                            : () => openNeighbour(nextNumber!),
+                            : () => openNeighbour(nextNumber),
                         icon: const Icon(Icons.chevron_right_rounded,
                             size: 18),
                         label: const Text('Next',

@@ -114,16 +114,19 @@ void main() {
   group('item 3 — PatternBackdrop: saveLayer gone, wash baked in', () {
     test('no fade wrapper, no ColorFiltered; baked asset + cacheWidth', () {
       // CODE-ONLY: the header comment legitimately NAMES the removed APIs.
-      final src = stripCommentsForGuard(File(
-              'lib/shared/widgets/media/pattern_backdrop.dart')
-          .readAsStringSync());
+      final raw = File('lib/shared/widgets/media/pattern_backdrop.dart')
+          .readAsStringSync();
+      final src = stripCommentsForGuard(raw);
       expect(src.contains('Opacity('), isFalse,
           reason: 'the full-screen widget-level fade was the per-frame '
               'saveLayer (artifact + jank source on Impeller/Vulkan)');
       expect(src.contains('ColorFiltered'), isFalse);
       expect(src.contains('AppAssets.patternTileFaded'), isTrue);
       expect(src.contains('cacheWidth: 256'), isTrue);
-      expect(src.contains('ARTIFACT NOTE'), isTrue,
+      // The note lives in the header comment BY DESIGN — it is pinned
+      // against the RAW source (the stripped src above stays the
+      // authority for the API-absence checks; nothing weakened).
+      expect(raw.contains('ARTIFACT NOTE'), isTrue,
           reason: 'the why travels with the file');
     });
 

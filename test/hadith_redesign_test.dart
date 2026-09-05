@@ -29,7 +29,7 @@ HadithModel _model({String en = '', String ar = ''}) => HadithModel(
       textEnglish: en,
       textUrdu: '',
       grade: HadithGrade.sahih,
-      narrator: '—',
+      narrator: const HadithNarrator(name: '—'),
     );
 
 void main() {
