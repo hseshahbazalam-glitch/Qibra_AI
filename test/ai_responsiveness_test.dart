@@ -137,23 +137,29 @@ void main() {
     });
   });
 
-  group('voice input hidden until Level 3', () {
-    test('the mic gate switch is false and every affordance is behind it', () {
+  group('voice input SHIPPED at Level 3 (AI Revival Stage 1)', () {
+    // The original 2026-09-02 intent — 'permission only WITH working
+    // wiring, never before' — is exactly what Stage 1 honored: the flag
+    // and the manifest line landed in the SAME commit. These pins now
+    // guard that pairing (drift in EITHER half fails here).
+    test('the mic gate switch is true and no copy drifts', () {
       final screen = File('lib/features/ai/presentation/ai_explain_screen.dart')
           .readAsStringSync();
       expect(
-        screen.contains('static final bool _voiceInputEnabled = false;'),
+        screen.contains('static final bool _voiceInputEnabled = true;'),
         isTrue,
       );
       expect(screen.contains("'Tap mic to speak'"), isFalse);
       expect(screen.contains('Type or tap mic to speak'), isFalse);
     });
 
-    test('RECORD_AUDIO is deliberately NOT in the manifest yet', () {
+    test('RECORD_AUDIO ships exactly once, paired with the enable', () {
       final manifest =
           File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
-      expect(manifest.contains('RECORD_AUDIO'), isFalse,
-          reason: 'owner 2026-09-02: add it WITH voice wiring, not before');
+      expect(manifest.contains('RECORD_AUDIO'), isTrue,
+          reason: 'owner 2026-09-07: added WITH the voice wiring — the '
+              'surgical one line promised by the original pin');
+      expect(RegExp('RECORD_AUDIO').allMatches(manifest).length, 1);
     });
   });
 }

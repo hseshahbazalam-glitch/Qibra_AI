@@ -278,7 +278,10 @@ void main() {
           File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
       expect(manifest.contains('POST_NOTIFICATIONS'), isTrue,
           reason: 'already declared by the app; this pass must not touch it');
-      expect(manifest.contains('RECORD_AUDIO'), isFalse);
+      // 2026-09-07 (AI Revival Stage 1): RECORD_AUDIO now legitimately
+      // ships — exactly one line, paired with the voice-input enable.
+      // What this pass still forbids is the share_* packages above.
+      expect(RegExp('RECORD_AUDIO').allMatches(manifest).length, 1);
     });
   });
 }
