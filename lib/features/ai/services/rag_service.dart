@@ -211,6 +211,18 @@ class RagService {
   }) async {
     if (query.trim().isEmpty) return [];
 
+    // AI Revival Stage 1 (owner 2026-09-07): cold-start symmetry with the
+    // self-healing Quran side. The hadith search answered 'empty' instantly
+    // while the boot load ran — the intermittent bogus refusal. ONE bounded
+    // wait per retrieve (the service caps it at 2500ms and it costs ~0
+    // once warm); after it, _collect searches whatever IS initialized.
+    // No ANR regression: this awaits the existing single-flight load, it
+    // never scans on the main isolate and spawns nothing itself.
+    final bootDb = _hadithDb;
+    if (bootDb != null && !bootDb.isInitialized) {
+      await bootDb.waitForReady();
+    }
+
     final merged = <String, RetrievedPassage>{};
     void absorb(Iterable<RetrievedPassage> list) {
       for (final passage in list) {

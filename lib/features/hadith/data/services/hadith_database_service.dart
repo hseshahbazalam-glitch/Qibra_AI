@@ -216,6 +216,25 @@ class HadithDatabaseService {
     await _loadBook(slug, name);
   }
 
+  /// Bounded wait for initialization (AI Revival Stage 1, owner 2026-09-07).
+  /// The hadith search path used to answer COLD instantly — silently empty —
+  /// while the Quran side self-heals, so any AI query fired inside the boot
+  /// window (post runApp-first perf pass) got a bogus no-results refusal:
+  /// the intermittent 'namz kiya hai' bug. This waits for the single-flight
+  /// load to settle at the SAME cadence [initialize] already polls, capped
+  /// hard at [maxWait]; callers then search whatever IS loaded (or honestly
+  /// find nothing). Never throws, never blocks longer than the cap, touches
+  /// no [HADITH_DB] timing log and spawns no new work.
+  Future<void> waitForReady({
+    Duration maxWait = const Duration(milliseconds: 2500),
+  }) async {
+    if (_isInitialized) return;
+    final sw = Stopwatch()..start();
+    while (!_isInitialized && sw.elapsedMilliseconds < maxWait.inMilliseconds) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
+
   // ─── LOAD SINGLE BOOK ────────────────────────────────────
 
   Future<void> _loadBook(String slug, String name) async {
