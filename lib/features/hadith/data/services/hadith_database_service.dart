@@ -148,6 +148,13 @@ class HadithDatabaseService {
   factory HadithDatabaseService() => _instance;
   HadithDatabaseService._internal();
 
+  /// Test-only: the singleton factory cannot be implicitly subclassed
+  /// (CI 34257996787: non_generative_implicit_constructor); fixture
+  /// stubs in test/ai_revival_test.dart chain this. App code keeps
+  /// hitting the factory singleton — zero behavior change.
+  @visibleForTesting
+  HadithDatabaseService.testFixture();
+
   static const Map<String, String> _bookNames = {
     'bukhari': 'Sahih al-Bukhari',
     'muslim': 'Sahih Muslim',

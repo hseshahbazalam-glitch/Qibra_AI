@@ -37,6 +37,8 @@ const _fixtureHadith = LocalHadith(
 class _WarmBridgeDb extends HadithDatabaseService {
   final List<List<String>> passes = [];
 
+  _WarmBridgeDb() : super.testFixture();
+
   @override
   bool get isInitialized => true;
 
@@ -69,6 +71,8 @@ class _WarmBridgeDb extends HadithDatabaseService {
 /// hang, never throw.
 class _CountingColdDb extends HadithDatabaseService {
   int readyWaits = 0;
+
+  _CountingColdDb() : super.testFixture();
 
   @override
   bool get isInitialized => false;
