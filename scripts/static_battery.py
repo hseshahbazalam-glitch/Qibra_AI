@@ -971,7 +971,12 @@ G15_ALLOW = {
 }
 
 for p in sorted(ROOT.rglob("*")):
-    if ".git" in p.parts:
+    # Derived trees are NOT committed content: CI's `flutter test`
+    # populates build/unit_test_assets/ with copies of the sanctioned
+    # assets (run 34264308111 tripped G15 on exactly such a derived azan
+    # copy), gradle emits android build dirs, pub get emits .dart_tool/.
+    # This gate measures the COMMITTED repo tree, per its header.
+    if any(seg in p.parts for seg in (".git", "build", ".dart_tool")):
         continue
     if p.is_file() and p.suffix.lower() in G15_AUDIO_EXT:
         rel = str(p.relative_to(ROOT))
