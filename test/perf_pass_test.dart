@@ -106,8 +106,30 @@ void main() {
               'loading→ready state — never a decorative spinner');
       expect(splash.contains('_buildBootStatus('), isTrue);
       expect(splash.contains('boot.isLoading'), isTrue,
-          reason: 'navigation waits on genuine readiness when the timeline '
-              'finishes first (no fixed-length lie)');
+          reason: 'the splash still BRANCHES on genuine readiness — it no '
+              'longer BLOCKS on it (see the capped-race pin below)');
+    });
+
+    test('navigation never blocks on bootstrap — capped race', () {
+      // Fresh-install first-open hang (owner device report 2026-09-08):
+      // an unbounded await on the bootstrap future spun the splash
+      // forever when an inner init HUNG (no error, no settle). The gate
+      // is now a race against a hard cap; the provider stays untouched
+      // (its isLoading is the TRUTH the status row mirrors).
+      final src = File('lib/features/splash/presentation/splash_screen.dart')
+          .readAsStringSync();
+      expect(src.contains('Future.any'), isTrue,
+          reason: 'bootstrap may only DELAY entry inside a race');
+      expect(src.contains('Duration(seconds: 6)'), isTrue,
+          reason: 'the cap is explicit: worst case ~9.5s to entry');
+      expect(src.contains('boot.isLoading'), isTrue,
+          reason: 'the race only exists on the genuinely-loading path — '
+              'settled boot still proceeds with zero added delay');
+      expect(
+        src.contains(
+            'unawaited(ref\n            .read(dataBootstrapProvider.future)'),
+        isFalse,
+        reason: 'the old bare, uncapped await must NOT come back');
     });
   });
 

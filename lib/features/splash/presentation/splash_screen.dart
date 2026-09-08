@@ -137,19 +137,25 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   void _scheduleNavigation() {
     _scheduleTimer(const Duration(milliseconds: 3500), () {
-      // (Perf pass item 2) Timeline finished — but if the data
-      // bootstrap is genuinely still running, proceed when it settles
-      // (real readiness, never a fixed-length lie; the provider swallows
-      // its own errors, so this always settles quickly either way).
+      // (Perf pass item 2) Timeline finished — proceed on genuine
+      // bootstrap state. (Fresh-install hang fix, 2026-09-08: the
+      // unbounded await assumed "errors settle it, so it always settles
+      // fast" — TRUE for errors, but a HANGING inner await (first-run
+      // notification init / cold quran init on a fresh install) never
+      // settles, and the splash spun forever; the cached process
+      // finishes the work in the background, which is why open #2
+      // worked.) Now: race the provider future against a hard 6s cap —
+      // worst case ~9.5s to entry, then _proceed with NO data
+      // (perf-pass architecture: every consumer self-initializes).
+      // The boot-status row KEEPS mirroring the real provider state —
+      // honesty is the STATUS, not the gate; provider.isLoading is the
+      // truth and nothing here forces it false.
       final boot = ref.read(dataBootstrapProvider);
       if (boot.isLoading) {
-        // The Future lives on the PROVIDER, not on AsyncValue (Riverpod
-        // 2.6.1): boot.future never compiled. Identical semantics —
-        // wait for genuine readiness only while it is still loading.
-        unawaited(ref
-            .read(dataBootstrapProvider.future)
-            .then<void>((_) => _proceed())
-            .catchError((Object _) => _proceed()));
+        unawaited(Future.any<void>([
+          ref.read(dataBootstrapProvider.future),
+          Future<void>.delayed(const Duration(seconds: 6)),
+        ]).then<void>((_) => _proceed()).catchError((Object _) => _proceed()));
         return;
       }
       _proceed();
