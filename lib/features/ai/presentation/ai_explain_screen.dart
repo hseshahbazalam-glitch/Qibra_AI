@@ -57,11 +57,12 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
   final VoiceService _voice = VoiceService();
 
-  // Level 3 — voice INPUT ships with RECORD_AUDIO + manifest wiring. The
-  // mic entry points are hidden until then (owner 2026-09-02: no dead
-  // buttons; permission intentionally NOT added yet). final (not const) so
-  // the gated subtree stays lint-clean for when the flag flips.
-  static final bool _voiceInputEnabled = false;
+  // Level 3 — voice INPUT SHIPPED (AI Revival Stage 1, 2026-09-07):
+  // RECORD_AUDIO is now in the manifest (the surgical one-line addition
+  // the feature gate required) and the mic entry points are live.
+  // Kept final (not const) so the subtree stays lint-clean per the
+  // original owner note.
+  static final bool _voiceInputEnabled = true;
 
   bool _isListening = false;
   bool _isSpeaking = false;
