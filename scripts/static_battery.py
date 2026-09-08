@@ -143,6 +143,7 @@
 # not sufficient — `flutter analyze` on device remains the authority.
 # ============================================================================
 import fnmatch
+import os
 import pathlib
 import re
 import sys
@@ -162,6 +163,10 @@ while i < len(args):
 LIB = ROOT / "lib"
 if not LIB.is_dir():
     sys.exit(f"no lib/ under {ROOT}")
+
+ON_CI = bool(os.environ.get('GITHUB_ACTIONS'))  # Actions annotations below;
+# every gate's LOGIC, thresholds and exit codes are identical on CI and
+# locally — only extra, machine-readable stdout lines appear there.
 
 ERRORS = []
 WARNINGS = []
@@ -1068,9 +1073,23 @@ if WARNINGS:
         print(f"   …{len(WARNINGS) - 40} more")
 print(f"hard findings: {len(ERRORS)} | G2 advisories: {len(G2_ADVISORIES)} | "
       f"L2 alpha advisories: {len(WARNINGS)}")
+if ON_CI:
+    print(f"::notice ::hard findings: {len(ERRORS)} | "
+          f"G2 advisories: {len(G2_ADVISORIES)} | L2 alpha advisories: {len(WARNINGS)}")
 if ERRORS:
     print(f"--- {len(ERRORS)} FINDINGS ---")
     for e in ERRORS:
         print(" ", e)
+        if ON_CI:
+            # GitHub converts ::error lines into annotations — readable via
+            # the API even when the raw log endpoint is unreachable
+            # (runs 34261590356/34262600283: exit 1, findings invisible).
+            m = re.match(r"^(\S+) (\S+):(\d+): ([\s\S]*)$", e)
+            if m:
+                gate, loc, ln, msg = m.group(1), m.group(2), m.group(3), m.group(4)
+                msg = ' '.join(msg.split())  # single-line, defensive
+                print(f"::error title={gate} {loc}:{ln}::{msg}")
+            else:
+                print(f"::error title=battery::{' '.join(e.split())}")
     sys.exit(1)
 print("ALL GATES PASS (static; device compile remains the authority)")
