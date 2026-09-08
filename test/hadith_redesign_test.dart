@@ -14,6 +14,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'support/source_guards.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
 import 'package:qibra_ai/features/hadith/presentation/hadith_book_screen.dart';
@@ -168,9 +169,15 @@ void main() {
               "'Source: \${hadith.bookName} (\${hadith.hadithNumber})'"),
           isTrue);
       // No fake affordances copied from the reference right screen.
-      expect(book.contains('Listen'), isFalse);
-      expect(book.contains('View details'), isFalse);
-      expect(book.contains('Narrator Chain'), isFalse);
+      // Comment-blindness fix (CI 34260248625): the raw scan tripped on
+      // the honest omission NOTE in hadith_book_screen.dart that names
+      // 'View details' inside a comment; banned-affordance checks must
+      // scan CODE only — same discipline as static_battery/
+      // source_guards. Positive expects above stay raw (they are code).
+      final code = stripCommentsForGuard(book);
+      expect(code.contains('Listen'), isFalse);
+      expect(code.contains('View details'), isFalse);
+      expect(code.contains('Narrator Chain'), isFalse);
     });
 
     test('one-block language semantics + Continue anchor survive', () {
