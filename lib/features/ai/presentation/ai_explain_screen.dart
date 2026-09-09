@@ -18,9 +18,9 @@ import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/shared/widgets/media/safe_image.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
-import '../providers/ai_provider.dart';
-import '../services/ai_action_service.dart';
-import '../services/voice_service.dart';
+import '../data/ai_provider.dart';
+import '../domain/ai_action_service.dart';
+import '../domain/voice_service.dart';
 
 class AIExplainScreen extends ConsumerStatefulWidget {
   const AIExplainScreen({

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qibra_ai/features/ai/services/rag_service.dart';
+import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 
 /// Roman Urdu bridge (owner 2026-09-02): Roman-script queries must reach the
 /// Arabic/English corpus through query expansion, with Levenshtein-1 typo

@@ -15,7 +15,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qibra_ai/features/ai/services/rag_service.dart';
+import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 
 const _fixtureHadith = LocalHadith(
@@ -182,7 +182,7 @@ void main() {
           isTrue);
       // still exactly one RECORD_AUDIO line (the surgical touch)
       expect('RECORD_AUDIO'.allMatches(manifest).length, 1);
-      final voice = File('lib/features/ai/services/voice_service.dart')
+      final voice = File('lib/features/ai/domain/voice_service.dart')
           .readAsStringSync();
       expect(voice.contains("import 'package:speech_to_text/speech_to_text.dart'"),
           isTrue);

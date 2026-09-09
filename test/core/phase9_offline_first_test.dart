@@ -8,7 +8,7 @@ import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/core/sync/conflict.dart';
 import 'package:qibra_ai/core/sync/retry_policy.dart';
 import 'package:qibra_ai/core/sync/sync_engine.dart';
-import 'package:qibra_ai/features/ai/services/rag_service.dart';
+import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 import 'package:qibra_ai/features/prayer/data/services/prayer_schedule_cache.dart';
 
 void main() {

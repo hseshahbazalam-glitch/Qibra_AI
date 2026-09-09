@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qibra_ai/core/hijri/hijri_civil.dart';
+import 'package:qibra_ai/core/hijri/hijri.dart';
 import 'package:qibra_ai/core/location/location_engine.dart';
 import 'package:qibra_ai/core/location/location_resolver.dart';
 import 'package:qibra_ai/features/prayer/data/services/next_prayer_engine.dart';

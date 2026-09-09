@@ -4,7 +4,7 @@ import 'package:qibra_ai/core/content/word_by_word.dart';
 import 'package:qibra_ai/core/location/location_resolver.dart';
 import 'package:qibra_ai/core/offline/reachability.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
-import 'package:qibra_ai/features/ai/services/rag_service.dart';
+import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
 
 void main() {

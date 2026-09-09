@@ -1,4 +1,4 @@
-// lib/features/ai/services/voice_service.dart
+// lib/features/ai/domain/voice_service.dart
 
 // ============================================================
 // QIBRA AI — VOICE SERVICE

@@ -12,7 +12,7 @@ void main() {
   group('no main-thread retrieval storm on chat send', () {
     test('retrieval runs ONCE per message', () {
       final provider =
-          File('lib/features/ai/providers/ai_provider.dart').readAsStringSync();
+          File('lib/features/ai/data/ai_provider.dart').readAsStringSync();
       expect(provider.contains('RagService.instance.retrieve('), isTrue);
       // Code-only scan: ai_provider legitimately MENTIONS the old
       // buildContextForQuery in the ANR post-mortem comment (:131-132);
@@ -27,7 +27,7 @@ void main() {
 
     test('bridge batches into ONE off-main scan per data source', () {
       final rag =
-          File('lib/features/ai/services/rag_service.dart').readAsStringSync();
+          File('lib/features/ai/domain/rag_service.dart').readAsStringSync();
       expect(rag.contains('searchBatchOffMain(terms, perQuery: topK)'), isTrue);
       expect(rag.contains('searchBatchOffMain(terms, maxPerQuery: topK)'), isTrue);
       expect(rag.contains('_retrieveOnce'), isFalse,
@@ -60,7 +60,7 @@ void main() {
         isTrue,
       );
       final provider =
-          File('lib/features/ai/providers/ai_provider.dart').readAsStringSync();
+          File('lib/features/ai/data/ai_provider.dart').readAsStringSync();
       expect(provider.contains('receiveTimeout: AppApi.aiAskTimeout'), isTrue);
       expect(provider.contains("extra: const {'noRetry': true},"), isTrue);
       expect(provider.contains("options: Options(extra: const {'noRetry': true}),"), isTrue);
@@ -77,7 +77,7 @@ void main() {
             'hard 90s (retry stack would reach ~370s on a cold tier)',
       );
       final provider =
-          File('lib/features/ai/providers/ai_provider.dart').readAsStringSync();
+          File('lib/features/ai/data/ai_provider.dart').readAsStringSync();
       expect(provider.contains('final isTimeout = e is TimeoutException ||'), isTrue);
       expect(provider.contains('DioExceptionType.receiveTimeout'), isTrue);
       expect(provider.contains('slow to respond (it may be starting up'), isTrue,
@@ -86,7 +86,7 @@ void main() {
 
     test('typewriter repaints are throttled, parser yields per chunk', () {
       final provider =
-          File('lib/features/ai/providers/ai_provider.dart').readAsStringSync();
+          File('lib/features/ai/data/ai_provider.dart').readAsStringSync();
       expect(provider.contains('paintClock.elapsedMilliseconds >= 60'), isTrue);
       expect(provider.contains('await Future<void>.value();'), isTrue);
     });

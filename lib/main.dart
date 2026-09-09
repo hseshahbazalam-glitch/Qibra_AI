@@ -21,7 +21,7 @@ import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/core/router/app_router.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
-import 'package:qibra_ai/features/ai/services/rag_service.dart';
+import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 
 // ============================================================
 // GLOBAL HADITH DATABASE INSTANCE

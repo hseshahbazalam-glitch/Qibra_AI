@@ -31,7 +31,7 @@ void main() {
       for (final path in [
         'lib/core/constants/parts/app_api.dart',
         'lib/core/network/api_client.dart',
-        'lib/features/ai/providers/ai_provider.dart',
+        'lib/features/ai/data/ai_provider.dart',
       ]) {
         expect(File(path).readAsStringSync().contains('api.qibra.ai'), isFalse,
             reason: path);
@@ -48,7 +48,7 @@ void main() {
       expect(constants.contains("static const String endpointAiAsk = '/ai/ask';"),
           isTrue);
       final provider =
-          File('lib/features/ai/providers/ai_provider.dart').readAsStringSync();
+          File('lib/features/ai/data/ai_provider.dart').readAsStringSync();
       expect(provider.contains('AppApi.endpointAiAsk'), isTrue);
       expect(provider.contains('endpointAiChat'), isFalse,
           reason: 'the backend has no /ai/chat — it must not be referenced');
@@ -66,7 +66,7 @@ void main() {
 
   group('streaming + conversation memory', () {
     final provider =
-        File('lib/features/ai/providers/ai_provider.dart').readAsStringSync();
+        File('lib/features/ai/data/ai_provider.dart').readAsStringSync();
 
     test('SSE typewriter surface exists and is fed from deltas', () {
       expect(provider.contains("ValueNotifier<String> liveAnswer"), isTrue);
@@ -145,7 +145,7 @@ void main() {
   group('no-hits may still ask the backend (owner 2026-09-02)', () {
     test('empty retrieval falls through to the labelled backend answer', () {
       final provider =
-          File('lib/features/ai/providers/ai_provider.dart').readAsStringSync();
+          File('lib/features/ai/data/ai_provider.dart').readAsStringSync();
       expect(provider.contains('final canAskBackend = AppApi.isBackendEnabled && !offline;'),
           isTrue);
       expect(provider.contains('if (!actionish && noLocalHits && !canAskBackend)'),
@@ -165,7 +165,7 @@ void main() {
 
     test('the app bridge is the retrieval front door', () {
       final rag =
-          File('lib/features/ai/services/rag_service.dart').readAsStringSync();
+          File('lib/features/ai/domain/rag_service.dart').readAsStringSync();
       expect(rag.contains('static const Map<String, List<String>> romanUrduBridge'),
           isTrue);
       expect(rag.contains('static List<String> expandQuery(String query)'), isTrue);

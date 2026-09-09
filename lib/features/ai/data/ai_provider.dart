@@ -1,4 +1,4 @@
-// lib/features/ai/providers/ai_provider.dart
+// lib/features/ai/data/ai_provider.dart
 
 import 'dart:async';
 import 'dart:convert';
@@ -8,8 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/network/api_client.dart';
-import '../services/ai_action_service.dart';
-import '../services/rag_service.dart';
+import '../domain/ai_action_service.dart';
+import '../domain/rag_service.dart';
 // ============================================================
 // MESSAGE MODEL
 // ============================================================

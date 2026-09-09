@@ -1,4 +1,4 @@
-// lib/features/ai/services/ai_action_service.dart
+// lib/features/ai/domain/ai_action_service.dart
 
 // ============================================================
 // QIBRA AI — AI ACTION SERVICE
