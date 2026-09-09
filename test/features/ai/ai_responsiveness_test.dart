@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'support/source_guards.dart';
+import '../../support/source_guards.dart';
 
 /// Device ANR + debug-flood guards (owner 2026-09-02). Source-level pins —
 /// the ANR class and the ListTile/Chip assertion spam must not come back

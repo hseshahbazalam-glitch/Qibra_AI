@@ -30,7 +30,7 @@ import 'package:qibra_ai/features/hadith/presentation/hadith_book_screen.dart'
 import 'package:qibra_ai/features/hadith/presentation/hadith_screen.dart'
     show hijriTodayLabel, lastReadForBook;
 
-import 'support/source_guards.dart';
+import '../../support/source_guards.dart';
 
 const _screen = 'lib/features/hadith/presentation/hadith_screen.dart';
 const _book = 'lib/features/hadith/presentation/hadith_book_screen.dart';

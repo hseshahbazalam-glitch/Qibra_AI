@@ -20,7 +20,7 @@ import 'package:qibra_ai/features/hadith/presentation/hadith_book_screen.dart';
 import 'package:qibra_ai/features/hadith/presentation/hadith_screen.dart';
 import 'package:qibra_ai/shared/widgets/buttons/app_button.dart';
 
-import 'support/source_guards.dart';
+import '../../support/source_guards.dart';
 
 HadithModel _model({String en = '', String ar = ''}) => HadithModel(
       id: 'bukhari-1',

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'support/source_guards.dart';
+import '../../support/source_guards.dart';
 
 // (Rev. 3) The comment-stripper lives in test/support/source_guards.dart —
 // shared with ai_responsiveness, whose negated pins need the same honesty.

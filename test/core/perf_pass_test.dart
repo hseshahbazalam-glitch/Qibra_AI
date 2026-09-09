@@ -13,7 +13,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 
-import 'support/source_guards.dart';
+import '../support/source_guards.dart';
 
 void main() {
   group('item 1 — hadith boot decodes OFF the UI isolate', () {
