@@ -150,7 +150,7 @@ class HadithDatabaseService {
 
   /// Test-only: the singleton factory cannot be implicitly subclassed
   /// (CI 34257996787: non_generative_implicit_constructor); fixture
-  /// stubs in test/ai_revival_test.dart chain this. App code keeps
+  /// stubs in test/features/ai/ai_revival_test.dart chain this. App code keeps
   /// hitting the factory singleton — zero behavior change.
   @visibleForTesting
   HadithDatabaseService.testFixture();
@@ -434,7 +434,7 @@ class HadithDatabaseService {
 
   /// Pure, isolate-safe decode entry (perf pass item 1). jsonDecode plus
   /// the exact shape check the loader expects — no Flutter APIs, so
-  /// test/perf_pass_test.dart can pin decode+join semantics on a
+  /// test/core/perf_pass_test.dart can pin decode+join semantics on a
   /// fixture WITHOUT spawning isolates in the test.
   @visibleForTesting
   static Map<String, dynamic>? decodeHadithAsset(String raw) {

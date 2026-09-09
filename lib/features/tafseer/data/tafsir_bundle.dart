@@ -5,7 +5,7 @@
 // metadata itself). It is never generated at build time and never
 // AI-composed under a scholar's name. Ayah -> passage ranges are
 // precomputed in the asset and are contiguous, non-overlapping and
-// total-cover per surah (guarded by test/content_pass_test.dart).
+// total-cover per surah (guarded by test/features/hadith/content_pass_test.dart).
 
 import 'dart:convert';
 

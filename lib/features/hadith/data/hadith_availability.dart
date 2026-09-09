@@ -9,7 +9,7 @@
 // nothing downstream may hardcode a language list.
 //
 // Pinned against the real bundled JSON files by
-// test/hadith_multilang_test.dart (matrix ⇔ data on disk). If a file is
+// test/features/hadith/hadith_multilang_test.dart (matrix ⇔ data on disk). If a file is
 // added/removed here and on disk, that test fails by construction.
 //
 // French honesty note: the dataset (fawazahmed0/hadith-api) ships no

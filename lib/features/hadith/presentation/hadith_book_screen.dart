@@ -39,7 +39,7 @@ class HadithBookScreen extends ConsumerStatefulWidget {
   /// hadith numbers. Returns null when [from] is the last/first entry or
   /// not in the corpus at all — the sheet DISABLES the button there
   /// (no wrap, no invented records). Pinned in
-  /// test/hadith_redesign_test.dart.
+  /// test/features/hadith/hadith_redesign_test.dart.
   @visibleForTesting
   static int? neighbourNumber(List<int> numbers, int from, int step) {
     final i = numbers.indexOf(from);

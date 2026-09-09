@@ -1138,7 +1138,7 @@ class _TodaysHadithCard extends ConsumerWidget {
 /// Icon-only ghost action beside the gold CTA — QibraSoftButton's visual
 /// language (icon 18, primary, InkWell r12, selection haptic) WITHOUT the
 /// label column: labeled siblings in the same Row are what overflowed the
-/// CTA at narrow widths (public so test/hadith_redesign_test.dart pumps
+/// CTA at narrow widths (public so test/features/hadith/hadith_redesign_test.dart pumps
 /// the exact real composition in its 320/360dp guards).
 class HadithGhostIconButton extends StatelessWidget {
   const HadithGhostIconButton({
@@ -1482,7 +1482,7 @@ class _RecentlyReadCard extends ConsumerWidget {
 /// trimmed word-safely to one glanceable block (cap 220 chars; the
 /// ellipsis appears only on genuine truncation, and a row without any
 /// preview text falls back to its reference). Pure — pinned in
-/// test/hadith_redesign_test.dart; never invents or rewrites wording.
+/// test/features/hadith/hadith_redesign_test.dart; never invents or rewrites wording.
 @visibleForTesting
 String hadithQuotePreview(HadithModel hadith, {String? translation}) {
   final raw = (translation ?? hadith.textEnglish)

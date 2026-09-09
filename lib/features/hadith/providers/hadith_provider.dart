@@ -24,7 +24,7 @@ class HadithLanguageNotifier extends StateNotifier<String> {
 
   static const _key = 'hadith_display_language_v1';
   // Phase B: DERIVED from the availability matrix (single source of
-  // truth, pinned to disk data by test/hadith_multilang_test.dart) —
+  // truth, pinned to disk data by test/features/hadith/hadith_multilang_test.dart) —
   // this list may not be hardcoded here again.
   static const supported = {...HadithAvailability.languageCodes};
 
