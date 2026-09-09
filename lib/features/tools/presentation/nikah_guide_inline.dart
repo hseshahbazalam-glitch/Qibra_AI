@@ -1,4 +1,4 @@
-// lib/features/tools/screens/nikah_guide_inline.dart
+// lib/features/tools/presentation/nikah_guide_inline.dart
 // Renders the Nikah guide inside ToolsHubScreen — the LEAN PASS retired
 // the standalone NikahGuideScreen and its route; the data lives in
 // logic/nikah_guide_data.dart.

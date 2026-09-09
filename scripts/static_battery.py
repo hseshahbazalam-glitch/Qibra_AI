@@ -684,7 +684,7 @@ def in_stage(rel):
 for fi in FILES.values():
     rel = fi.rel
     design_allow = rel.startswith(("core/design_system/", "core/theme/"))
-    presentation = (("/presentation/" in rel or rel.startswith("features/tools/screens/"))
+    presentation = (("/presentation/" in rel or rel.startswith("features/tools/presentation/"))
                     and not design_allow)
     counts = {"L1": 0, "L6": 0, "L7": 0}
     for i, ln in enumerate(fi.raw.splitlines()):

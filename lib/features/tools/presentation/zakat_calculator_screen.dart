@@ -1,4 +1,4 @@
-// lib/features/tools/screens/zakat_calculator_screen.dart
+// lib/features/tools/presentation/zakat_calculator_screen.dart
 
 // ============================================================
 // QIBRA AI — ZAKAT CALCULATOR SCREEN

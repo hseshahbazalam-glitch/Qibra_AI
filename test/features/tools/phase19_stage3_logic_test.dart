@@ -419,9 +419,9 @@ void main() {
           'tasbih_detail.dart',
       'lib/features/settings/presentation/profile_setup_screen.dart':
           'profile_setup_form.dart',
-      'lib/features/tools/screens/inheritance_calculator_screen.dart':
+      'lib/features/tools/presentation/inheritance_calculator_screen.dart':
           'inheritance_results.dart',
-      'lib/features/tools/screens/asma_ul_husna_screen.dart':
+      'lib/features/tools/presentation/asma_ul_husna_screen.dart':
           'asma_ul_husna_learn.dart',
     };
 
@@ -479,12 +479,12 @@ void main() {
 
     test('screens delegate to the pure logic files', () {
       expect(
-          File('lib/features/tools/screens/zakat_calculator_screen.dart')
+          File('lib/features/tools/presentation/zakat_calculator_screen.dart')
               .readAsStringSync()
               .contains('ZakatCalculator.evaluate'),
           isTrue);
       expect(
-          File('lib/features/tools/screens/inheritance_calculator_screen.dart')
+          File('lib/features/tools/presentation/inheritance_calculator_screen.dart')
               .readAsStringSync()
               .contains('InheritanceEstimator.evaluate'),
           isTrue);

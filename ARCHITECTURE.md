@@ -82,8 +82,9 @@ lib/features/hadith/
                                       _section.dart
 ```
 
-Canonical shape for every feature (`quran/` mirrors it, `tools/` predates
-it — `tools/screens/` is legacy, see conventions). Rules the hadith
+Canonical shape for every feature (`quran/` mirrors it; `tools/` keeps its own
+accepted variance (`logic/` + `services/` instead of data/providers, screens
+under presentation/ since Phase C)). Rules the hadith
 feature demonstrates globally:
 
 - **Data flows one way:** assets → service → provider → widget. Screens
