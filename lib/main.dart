@@ -11,6 +11,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:qibra_ai/core/observability/error_shield.dart';
 import 'package:qibra_ai/core/services/notification_service.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/constants/app_assets_check.dart';
@@ -34,7 +35,12 @@ HadithDatabaseService? get globalHadithDb => _globalHadithDb;
 // MAIN ENTRY POINT
 // ============================================================
 
-void main() async {
+void main() {
+  // Error Shield (install FIRST — synchronous, zero IO — then the whole
+  // boot runs inside the guarded zone; semantics inside are preserved
+  // byte-for-byte, this commit adds no awaited work before runApp).
+  ErrorShield.install();
+  runZonedGuarded(() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inter (Latin) and Amiri (Arabic) are bundled in assets/fonts and
@@ -114,6 +120,7 @@ void main() async {
 
   // Hadith corpus is large; screens call initialize() if still loading.
   unawaited(_loadHadithInBackground());
+  }, ErrorShield.zoneHandler);
 }
 
 Future<void> _loadHadithInBackground() async {
