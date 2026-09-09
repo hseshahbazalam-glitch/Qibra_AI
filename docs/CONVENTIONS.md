@@ -32,6 +32,16 @@ CI file itself.
 - Never import `features/*` from `core/*` or `shared/*` (layering;
   battery flags reverse edges).
 
+## Constants — the parts pattern
+
+`lib/core/constants/app_constants.dart` is a library root; each
+`abstract final class` group lives in `parts/app_<class>.dart`. **New
+constants join the owning class's part file — no new top-level constants
+files, no new classes in the root.** Call sites keep the single public
+import (`package:qibra_ai/core/constants/app_constants.dart`). Source-pin
+caveat: a pin asserting a constant's TEXT must point at the PART file
+holding it (the root no longer contains class bodies).
+
 ## Design tokens
 
 - **Navy single-source:** `lib/core/design_system/qibra_navy.dart`

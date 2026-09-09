@@ -54,8 +54,8 @@ policy, [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md)), not by tooling.
 | `content` | `content_provenance.dart`, `content_validator.dart`, `edition_resolver.dart`, `word_by_word.dart` | anything about corpus provenance/validation joins here + `assets/data/content_manifest.json` |
 | `location` | `location_engine.dart`, `location_resolver.dart`, `privacy` doc `LOCATION_PRIVACY.md` at root | city/coordinate resolution; the honest-UNKNOWN contract lives here |
 | `timezone` | `timezone_engine.dart` | prayer-time timezone math |
-| `constants` | `app_constants.dart` (storage keys, assets), `app_assets_check.dart` (debug asset guard) | new SharedPreferences keys and asset paths — single source |
-| `design_system` | `qibra_navy.dart` (token single-source), `qibra_colors.dart`, `app_theme.dart`, `app_typography.dart`, `contrast.dart`, `DESIGN_SYSTEM.md` | any color/typography token; screens never mint `Color(0x…)` outside token files (battery-enforced) |
+| `constants` | `app_constants.dart` — a LIBRARY ROOT whose eleven `abstract final class` groups (AppInfo, AppApi, AppStorageKeys, AppPagination, AppIslamicConstants, AppValidation, AppCacheDuration, AppFeatureFlags, AppUIConstants, AppLanguages, AppRoutes) live one-per-file under `constants/parts/` (Phase B split; the public import path is unchanged) — plus `app_assets_check.dart` (debug asset guard) | new constants join the OWNING class's part file; storage keys and asset paths stay single-source |
+| `design_system` | **canonical pair:** `qibra_navy.dart` (single-source tokens) + `qibra_colors.dart` (ThemeExtension whose dark side derives from QibraNavy) — plus `app_theme.dart` (registers exactly `[palette]`), `app_typography.dart`, `app_colors.dart` (legacy light/Family-A palette + QibraTokens const aliases), `contrast.dart`, `DESIGN_SYSTEM.md`. Phase B deleted the registered-but-unread `qibra_colors_next.dart` mirror and the `AppColorsDark` duplicate inside app_colors (drift contract re-anchored on QibraColors.dark) | any color/typography token; screens never mint `Color(0x…)` outside token files (battery-enforced) |
 
 ## Feature anatomy — hadith as the worked example
 

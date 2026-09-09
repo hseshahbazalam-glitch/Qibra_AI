@@ -4,8 +4,11 @@
 > etc.) is **stale**. The product owner approved a **midnight NAVY** global brand:
 > deep navy surfaces + emerald (action/prayer) + purple (AI) + gold (sacred accent).
 > Source of truth: `lib/core/design_system/qibra_navy.dart` (`QibraNavy`).
-> `QibraColors.dark`, `QibraColorsNext.dark`, `AppColorsDark` and `AppTheme.dark`
-> all derive from it, so hex values cannot drift apart.
+> `QibraColors.dark` and `AppTheme.dark` derive from it, so hex values
+cannot drift apart. (2026-09-08 Professionalization Phase B: the
+duplicate mirrors `QibraColorsNext` and `AppColorsDark` were deleted —
+both were registered-but-unread, and their drift contract now lives as
+direct pins on QibraColors.dark in test/core/phase17_navy_tokens_test.dart.)
 
 ## Color
 
