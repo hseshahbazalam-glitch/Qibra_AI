@@ -1,7 +1,7 @@
 // Store billing is unconfigured. Client must not trust JSON isPremium.
 // Quran, Hadith, and Prayer stay free. Receipts are never logged.
 
-import '../cache/cache_store.dart';
+import 'package:qibra_ai/core/cache/cache_store.dart';
 
 enum StoreStatus { unconfigured, available, unavailable }
 

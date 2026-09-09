@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import '../logic/habit_defaults.dart';
-import '../../../shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';

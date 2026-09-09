@@ -4,10 +4,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../core/a11y/app_a11y.dart';
-import '../../core/design_system/app_design_system.dart';
-import '../../core/design_system/app_typography.dart';
-import '../../core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/a11y/app_a11y.dart';
+import 'package:qibra_ai/core/design_system/app_design_system.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'media/pattern_backdrop.dart';
 import 'media/safe_image.dart';
 

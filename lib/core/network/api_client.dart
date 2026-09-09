@@ -8,7 +8,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import '../constants/app_constants.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
 
 enum ApiErrorType {
   offline,

@@ -13,13 +13,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hijri/hijri_calendar.dart';
 
-import '../../../../core/design_system/app_typography.dart';
-import '../../../../core/utils/countdown_format.dart';
-import '../../../../core/design_system/qibra_colors.dart';
-import '../../../../core/design_system/qibra_navy.dart';
-import '../../../../shared/widgets/qibra_countdown_ring.dart';
-import '../../../../shared/widgets/qibra_night_sky.dart';
-import '../../../prayer/data/models/prayer_models.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/utils/countdown_format.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/shared/widgets/qibra_countdown_ring.dart';
+import 'package:qibra_ai/shared/widgets/qibra_night_sky.dart';
+import 'package:qibra_ai/features/prayer/data/models/prayer_models.dart';
 import '../../../prayer/providers/prayer_provider.dart'
     show
         currentPrayerProvider,

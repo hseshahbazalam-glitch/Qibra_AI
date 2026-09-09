@@ -4,9 +4,9 @@
 // logic/nikah_guide_data.dart.
 import 'package:flutter/material.dart';
 
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../logic/nikah_guide_data.dart';
 
 class NikahGuideInlineCard extends StatelessWidget {

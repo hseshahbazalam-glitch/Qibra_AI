@@ -11,8 +11,8 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
-import '../../../shared/widgets/controls/app_switch_tile.dart';
-import '../../../shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 
 import '../providers/prayer_provider.dart';
 import '../data/models/prayer_models.dart';

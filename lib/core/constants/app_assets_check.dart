@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../design_system/app_design_system.dart';
+import 'package:qibra_ai/core/design_system/app_design_system.dart';
 
 abstract final class AppAssetsCheck {
   static const List<String> registeredAssets = [

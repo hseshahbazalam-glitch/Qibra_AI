@@ -11,8 +11,8 @@
 
 import 'package:flutter/material.dart';
 
-import '../../core/design_system/app_typography.dart';
-import '../../core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'qibra_ui.dart';
 
 class QibraStatCard extends StatelessWidget {

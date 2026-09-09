@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../ai/presentation/ai_explain_screen.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/qibra_ui.dart';
-import '../../tafseer/presentation/tafseer_screen.dart';
+import 'package:qibra_ai/features/ai/presentation/ai_explain_screen.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
 import '../data/audio/tilawat.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_audio_provider.dart';

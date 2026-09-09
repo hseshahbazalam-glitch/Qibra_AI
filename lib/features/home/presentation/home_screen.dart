@@ -13,17 +13,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_constants.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/providers/auth_provider.dart';
-import '../../../shared/widgets/qibra_status.dart';
-import '../../../shared/widgets/qibra_ui.dart';
-import '../../duas/providers/dua_provider.dart';
-import '../../hadith/providers/hadith_provider.dart';
-import '../../prayer/providers/prayer_provider.dart';
-import '../../quran/providers/quran_provider.dart';
-import '../../quran/providers/reading_progress_provider.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/providers/auth_provider.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
+import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
+import 'package:qibra_ai/features/prayer/providers/prayer_provider.dart';
+import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
+import 'package:qibra_ai/features/quran/providers/reading_progress_provider.dart';
 import 'widgets/home_hero.dart';
 import 'widgets/home_sections.dart';
 

@@ -21,7 +21,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../core/design_system/app_design_system.dart';
+import 'package:qibra_ai/core/design_system/app_design_system.dart';
 
 /// Repeating geometric tile at a baked 5% wash. Hero/sheet backgrounds
 /// only. Composites flat: no saveLayer, per frame or ever.

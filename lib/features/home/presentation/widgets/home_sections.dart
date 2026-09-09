@@ -10,18 +10,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/design_system/app_typography.dart';
-import '../../../../core/design_system/qibra_colors.dart';
-import '../../../../core/design_system/qibra_navy.dart';
-import '../../../../shared/widgets/qibra_status.dart';
-import '../../../../shared/widgets/qibra_stat_card.dart';
-import '../../../../shared/widgets/qibra_ui.dart';
-import '../../../hadith/data/models/hadith_models.dart';
-import '../../../hadith/providers/hadith_provider.dart';
-import '../../../prayer/data/models/prayer_models.dart';
-import '../../../quran/data/repository/reading_progress_repository.dart';
-import '../../../quran/providers/quran_provider.dart' show DailyVerseBundle;
-import '../../../duas/data/models/dua_model.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/shared/widgets/qibra_stat_card.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
+import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
+import 'package:qibra_ai/features/prayer/data/models/prayer_models.dart';
+import 'package:qibra_ai/features/quran/data/repository/reading_progress_repository.dart';
+import 'package:qibra_ai/features/quran/providers/quran_provider.dart' show DailyVerseBundle;
+import 'package:qibra_ai/features/duas/data/models/dua_model.dart';
 
 // ─────────────────────────────────────────────────────────────
 // PRAYER TIMES STRIP

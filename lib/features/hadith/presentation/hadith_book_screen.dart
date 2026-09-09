@@ -8,11 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_navy.dart';
-import '../../../core/utils/search_normalizer.dart';
-import '../../../shared/widgets/controls/app_switch_tile.dart';
-import '../../../shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/utils/search_normalizer.dart';
+import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../data/hadith_availability.dart';
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';

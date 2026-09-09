@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import '../notifications/dua_reminder_policy.dart';
-import '../notifications/notification_reconcile.dart';
+import 'package:qibra_ai/core/notifications/dua_reminder_policy.dart';
+import 'package:qibra_ai/core/notifications/notification_reconcile.dart';
 
 /// Local notifications only. Scheduling uses inexact alarms.
 /// Do not claim reboot-proof or exact-alarm delivery; those are not device-tested.

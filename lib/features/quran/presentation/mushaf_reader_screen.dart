@@ -24,18 +24,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/a11y/app_a11y.dart';
-import '../../../core/constants/app_constants.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/core/a11y/app_a11y.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import '../data/models/quran_models.dart';
 import '../data/repository/reading_progress_repository.dart';
-import '../../../core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import '../providers/quran_audio_provider.dart';
 import '../providers/quran_provider.dart';
 import '../providers/reading_progress_provider.dart';
-import '../../tafseer/presentation/tafseer_screen.dart';
+import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
 
 /// One ayah occurrence on a mushaf page, with its surah context.
 class MushafPageEntry {

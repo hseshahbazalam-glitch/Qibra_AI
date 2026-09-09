@@ -16,13 +16,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/content/word_by_word.dart';
+import 'package:qibra_ai/core/content/word_by_word.dart';
 import '../data/tafsir_bundle.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/qibra_status.dart';
-import '../../quran/data/models/quran_models.dart';
-import '../../quran/providers/quran_provider.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
+import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
 
 // ============================================================
 // PROVIDERS

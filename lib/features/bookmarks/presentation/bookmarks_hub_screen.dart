@@ -5,20 +5,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_constants.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_navy.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/qibra_ui.dart';
-import '../../duas/presentation/dua_detail_screen.dart';
-import '../../duas/providers/dua_provider.dart';
-import '../../hadith/data/models/hadith_models.dart';
-import '../../hadith/data/services/hadith_database_service.dart';
-import '../../hadith/presentation/hadith_book_screen.dart';
-import '../../hadith/providers/hadith_provider.dart';
-import '../../quran/data/models/quran_models.dart';
-import '../../quran/presentation/surah_reader_screen.dart';
-import '../../quran/providers/quran_provider.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/features/duas/presentation/dua_detail_screen.dart';
+import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
+import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
+import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
+import 'package:qibra_ai/features/hadith/presentation/hadith_book_screen.dart';
+import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
+import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
+import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
+import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
 
 enum BookmarkSortOption {
   newestFirst('Newest'),

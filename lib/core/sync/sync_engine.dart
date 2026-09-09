@@ -5,7 +5,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../constants/app_constants.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'retry_policy.dart';
 
 enum SyncOpType { upsert, delete }

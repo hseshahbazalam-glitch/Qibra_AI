@@ -9,13 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
-import '../../../core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
-import '../../../core/notifications/dua_reminder_policy.dart';
-import '../../../core/services/notification_service.dart';
-import '../../../shared/widgets/controls/app_switch_tile.dart';
-import '../../../shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/core/notifications/dua_reminder_policy.dart';
+import 'package:qibra_ai/core/services/notification_service.dart';
+import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/features/ai/presentation/ai_explain_screen.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
 

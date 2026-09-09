@@ -25,11 +25,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/qibra_stat_card.dart';
-import '../../../shared/widgets/qibra_status.dart';
-import '../../../shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/shared/widgets/qibra_stat_card.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../data/services/qibla_service.dart';
 import '../providers/qibla_provider.dart';
 

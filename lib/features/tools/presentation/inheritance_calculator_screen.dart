@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/a11y/app_a11y.dart';
-import '../../../core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/a11y/app_a11y.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import '../logic/inheritance_estimator.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';

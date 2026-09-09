@@ -16,11 +16,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../features/quran/data/repository/quran_repository.dart';
-import '../constants/app_constants.dart';
-import '../offline/data_status.dart';
-import '../offline/reachability.dart';
-import '../services/notification_service.dart';
+import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/offline/data_status.dart';
+import 'package:qibra_ai/core/offline/reachability.dart';
+import 'package:qibra_ai/core/services/notification_service.dart';
 
 // ============================================================
 // SECTION 1: SHARED PREFERENCES PROVIDER

@@ -7,8 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/services/notification_service.dart';
-import '../../../core/constants/app_constants.dart';
+import 'package:qibra_ai/core/services/notification_service.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
 
 // ============================================================
 // ACTION RESULT MODEL

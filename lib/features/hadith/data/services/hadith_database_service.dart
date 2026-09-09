@@ -9,7 +9,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/utils/search_normalizer.dart';
+import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import '../hadith_availability.dart';
 
 

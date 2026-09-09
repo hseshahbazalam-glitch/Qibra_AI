@@ -1,4 +1,4 @@
-import '../cache/cache_store.dart';
+import 'package:qibra_ai/core/cache/cache_store.dart';
 
 class OfflineStore {
   OfflineStore._();

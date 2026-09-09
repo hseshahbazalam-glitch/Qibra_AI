@@ -5,7 +5,7 @@
 // tokens (see habit_tracker_screen.dart).
 import 'package:flutter/material.dart';
 
-import '../../../core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 
 class HabitTemplate {
   final String name;

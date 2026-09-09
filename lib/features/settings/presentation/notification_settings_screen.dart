@@ -1,10 +1,10 @@
 // lib/features/settings/presentation/notification_settings_screen.dart
 import 'package:audioplayers/audioplayers.dart';
-import '../../../core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../core/services/notification_service.dart';
+import 'package:qibra_ai/core/services/notification_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
