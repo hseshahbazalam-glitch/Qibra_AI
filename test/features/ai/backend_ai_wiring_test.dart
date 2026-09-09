@@ -14,8 +14,10 @@ import '../../support/source_guards.dart';
 /// fail loudly here instead.
 void main() {
   group('backend base URL — single source', () {
+    // Phase B (2026-09-08): constants decomposed into parts/ — the
+    // pinned literals live in the AppApi part; assertions unchanged.
     final constants =
-        File('lib/core/constants/app_constants.dart').readAsStringSync();
+        File('lib/core/constants/parts/app_api.dart').readAsStringSync();
 
     test('production base is the live Render origin', () {
       expect(
@@ -27,7 +29,7 @@ void main() {
 
     test('the old api.qibra.ai name is gone from network files', () {
       for (final path in [
-        'lib/core/constants/app_constants.dart',
+        'lib/core/constants/parts/app_api.dart',
         'lib/core/network/api_client.dart',
         'lib/features/ai/providers/ai_provider.dart',
       ]) {

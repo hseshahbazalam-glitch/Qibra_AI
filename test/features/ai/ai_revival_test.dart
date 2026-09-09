@@ -189,7 +189,8 @@ void main() {
     });
 
     test('feature flags stay closed where this pass said so', () {
-      final consts = File('lib/core/constants/app_constants.dart')
+      // Phase B: feature flags now live in their own part file.
+      final consts = File('lib/core/constants/parts/app_feature_flags.dart')
           .readAsStringSync();
       expect(consts.contains('aiFatwaEnabled'), isTrue,
           reason: 'the gates must still EXIST');

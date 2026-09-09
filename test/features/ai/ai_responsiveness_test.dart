@@ -52,8 +52,9 @@ void main() {
 
   group('hard 90s ask ceiling (Render cold start)', () {
     test('single timeout constant, applied to both stream and non-stream', () {
+      // Phase B: aiAskTimeout now lives in the AppApi part file.
       final constants =
-          File('lib/core/constants/app_constants.dart').readAsStringSync();
+          File('lib/core/constants/parts/app_api.dart').readAsStringSync();
       expect(
         constants.contains('static const Duration aiAskTimeout = Duration(seconds: 90);'),
         isTrue,
