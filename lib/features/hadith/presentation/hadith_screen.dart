@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hijri/hijri_calendar.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/design_system/app_design_system.dart';
@@ -112,7 +113,12 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                   QibraChip(
                     label: label,
                     selected: _pane == index,
-                    onTap: () => setState(() => _pane = index),
+                    onTap: () {
+                      // Elevation item 5: same light impact the bookmark
+                      // ghosts already fire — interaction consistency.
+                      HapticFeedback.lightImpact();
+                      setState(() => _pane = index);
+                    },
                   ),
                   if (index != 2) const SizedBox(width: 8),
                 ],
@@ -293,6 +299,12 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     QibraColors colors,
     AsyncValue<List<HadithBook>> books,
   ) {
+    // Elevation item 3: per-book continue rides the REAL view-history
+    // LRU (hadithHistoryProvider = newest-first persisted refs). No
+    // history -> empty list -> no chip anywhere; never derived, never
+    // guessed.
+    final history = ref.watch(hadithHistoryProvider).valueOrNull ??
+        const <HadithModel>[];
     return [
       QibraSectionHeader(
         title: 'Collections',
@@ -328,6 +340,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
               itemBuilder: (context, index) {
                 final book = source[index];
                 final accent = collectionAccent(book.slug, colors.primary);
+                final cont = lastReadForBook(history, book.slug);
                 return SizedBox(
                   width: 140,
                   child: QibraCard(
@@ -381,6 +394,18 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                             color: colors.textTertiary,
                           ),
                         ),
+                        if (cont != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Continue · Hadith ${cont.hadithNumber}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: colors.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -524,6 +549,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     final text =
         '${hadith.textArabic}\n\n${copyTranslation ?? hadith.textEnglish}\n\n— ${hadith.displayReference}';
     Clipboard.setData(ClipboardData(text: text));
+    HapticFeedback.lightImpact(); // elevation item 5: success feedback
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Hadith copied')),
     );
@@ -616,6 +642,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                             color: colors.primary,
                           ),
                           onPressed: () {
+                            HapticFeedback.lightImpact();
                             ref
                                 .read(hadithBookmarksProvider.notifier)
                                 .toggleBookmark(hadith);
@@ -920,6 +947,27 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   }
 }
 
+/// Top-class elevation (item 1): formats the REAL Hijri today label from
+/// the bundled `hijri` package's value object — the exact pattern of
+/// home_hero.dart / prayer_times_screen.dart (offline, deterministic,
+/// never an invented date). Extracted pure so the FORMAT is unit-testable
+/// against a fixed date via HijriCalendar.fromDate (no DateTime.now in
+/// tests); the widget supplies HijriCalendar.now().
+String hijriTodayLabel(HijriCalendar hijri) =>
+    '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH';
+
+/// Top-class elevation (item 3): newest recorded position for [slug] in
+/// the real view-history LRU. Entries are newest-first BY CONTRACT, so
+/// the first match IS the continue position (same selection rule
+/// hadith_world_class_pass_test pins for the book-screen resume). No
+/// entry -> null -> no chip, ever.
+HadithModel? lastReadForBook(List<HadithModel> history, String slug) {
+  for (final h in history) {
+    if (h.bookSlug == slug) return h;
+  }
+  return null;
+}
+
 class _TodaysHadithCard extends ConsumerWidget {
   const _TodaysHadithCard({
     required this.hadith,
@@ -968,6 +1016,23 @@ class _TodaysHadithCard extends ConsumerWidget {
                 style: AppTextStyles.labelMedium.copyWith(
                   color: colors.primary,
                   fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Elevation item 1: the REAL Hijri today — same offline,
+              // package-computed label the home hero and prayer header
+              // show (no invented date, no new package; hijri ^3.0.1 is
+              // already a dependency). Expanded+ellipsis keeps the
+              // 320dp overflow guard honest.
+              Expanded(
+                child: Text(
+                  hijriTodayLabel(HijriCalendar.now()),
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.textTertiary,
+                  ),
                 ),
               ),
             ],
@@ -1229,6 +1294,7 @@ class _HadithTile extends ConsumerWidget {
                   ),
                 ),
               IconButton(
+                tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark',
                 icon: Icon(
                   bookmarked
                       ? Icons.bookmark_rounded
@@ -1236,6 +1302,7 @@ class _HadithTile extends ConsumerWidget {
                   color: bookmarked ? colors.primary : colors.textTertiary,
                 ),
                 onPressed: () {
+                  HapticFeedback.lightImpact();
                   ref
                       .read(hadithBookmarksProvider.notifier)
                       .toggleBookmark(hadith);
