@@ -209,25 +209,6 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          // More
-          GestureDetector(
-            onTap: () => _showMoreOptions(),
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: colors.surfaceElevated,
-                shape: BoxShape.circle,
-                border: Border.all(color: colors.border),
-              ),
-              child: Icon(
-                Icons.more_vert_rounded,
-                color: colors.textPrimary,
-                size: 18,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -468,23 +449,6 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
             ),
           );
         },
-      ),
-    );
-  }
-
-  void _showMoreOptions() {
-    HapticFeedback.selectionClick();
-    _showToast('More options coming soon');
-  }
-
-  void _showToast(String message) {
-    final colors = QibraColors.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-        backgroundColor: colors.primary,
-        behavior: SnackBarBehavior.floating,
       ),
     );
   }

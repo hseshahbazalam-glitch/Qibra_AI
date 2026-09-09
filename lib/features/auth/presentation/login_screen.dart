@@ -3,8 +3,8 @@
 // ============================================================
 // QIBRA AI — PREMIUM LOGIN SCREEN (Phase 2)
 // Version: 2.0.0
-// Description: Apple-quality login with glassmorphism,
-//              biometric option, and premium animations.
+// Description: Apple-quality login with glassmorphism and premium
+//              animations.
 // ============================================================
 
 
@@ -177,9 +177,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
-  // Biometric, Google, and Apple authentication are not implemented in this
-  // build. Their controls remain visible but explicitly disabled so no button
-  // appears to sign a user in when it cannot do so.
+  // Google and Apple authentication are not implemented in this build. Their
+  // controls remain visible but explicitly disabled (labeled '(soon)') so no
+  // button appears to sign a user in when it cannot do so. The biometric tile
+  // was a permanently dead affordance and has been deleted (Error Shield
+  // pass, build-or-delete ruling).
 
   @override
   Widget build(BuildContext context) {
@@ -423,10 +425,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 height: 48,
               ),
 
-              const SizedBox(height: AppSpacing.md),
-
-              // Biometric button
-              _buildBiometricButton(isLoading),
             ],
           ),
     );
@@ -625,25 +623,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       onTap: _handleLogin,
       isLoading: isLoading,
       trailingIcon: Icons.arrow_forward_rounded,
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // BIOMETRIC BUTTON
-  // ══════════════════════════════════════════
-
-  Widget _buildBiometricButton(bool isLoading) {
-    final colors = QibraColors.of(context);
-    return AuthButton(
-      label: 'Biometric (coming soon)',
-      onTap: null,
-      isLoading: isLoading,
-      height: 48,
-      backgroundColor: colors.cardMuted,
-      borderColor: colors.border,
-      leadingIcon: Icons.fingerprint_rounded,
-      textColor: colors.textTertiary,
-      enabled: false,
     );
   }
 
