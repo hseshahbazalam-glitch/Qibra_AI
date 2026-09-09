@@ -1,3 +1,5 @@
+part of 'hijri.dart';
+
 // Civil/tabular Hijri helper. Not moon-sighting. Not authoritative for
 // Ramadan or Eid. The `hijri` package (UI) is the same class of conversion.
 

@@ -42,7 +42,7 @@ policy, [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md)), not by tooling.
 | `offline` | `data_status.dart`, `offline_store.dart`, `reachability.dart` | a feature needs "is it downloaded / are we online" state |
 | `cache` | `cache_store.dart` | anything download-once-read-often (audio, remote content) |
 | `sync` | `sync_engine.dart`, `conflict.dart`, `retry_policy.dart`, `account_migration.dart` | account-scoped local→remote mirroring rules change |
-| `hijri` | `hijri_civil.dart` — civil-day helpers over the bundled `hijri` package | Hijri math used by 2+ features (per-screen formatting is call-site: e.g. `hijriTodayLabel` in `hadith_screen.dart`) |
+| `hijri` | `hijri.dart` (library; part `hijri_civil.dart`) — civil-day helpers over the bundled `hijri` package | Hijri math used by 2+ features (per-screen formatting is call-site: e.g. `hijriTodayLabel` in `hadith_screen.dart`) |
 | `l10n` | `app_locales.dart`, `app_strings.dart` — code-getter strings, **no .arb** (UI copy is English-only; *content* is multilingual by design) | new UI strings; never hardcode copy inside a screen if AppStrings has a getter |
 | `network` | `api_client.dart`, `http_auth_repository.dart` | any HTTP leaves the app only through here |
 | `notifications` | `notification_reconcile.dart`, `dua_reminder_policy.dart` (channel plumbing: `core/services/notification_service.dart`) | scheduled-notification policy |
