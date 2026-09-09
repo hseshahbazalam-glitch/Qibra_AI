@@ -233,31 +233,39 @@ class QibraCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final card = Container(
-      width: double.infinity,
+    // Device-log pass 2 (owner session: the REAL remaining assertion
+    // source — #071B28 + #143045 + radius 20 fingerprint). The old shape
+    // painted the card color on a Container ABOVE a transparent Material:
+    // a ListTile inside hid its ink behind that color (assertion), and
+    // the tappable path hid the InkWell splash entirely (no ripple).
+    // Now the color rides ON the Material — both paths, one widget — so
+    // ink paints on the visible surface and Clip.antiAlias keeps splashes
+    // inside radius 20. Paint parity: same card color, same 20 radius,
+    // same 1px colors.border hairline (ShapeDecoration side == old
+    // Border.all), same padding, and the old width: double.infinity is
+    // preserved by the outer SizedBox.
+    final padded = Padding(
       padding: padding ?? const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: filled ? colors.primarySoft : colors.card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.border),
-      ),
       child: child,
     );
-
-    if (onTap == null) {
-      // Ink needs a Material ancestor: a ListTile inside a non-tappable
-      // decorated card spammed debug assertions (owner 2026-09-02).
-      return Material(type: MaterialType.transparency, child: card);
-    }
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap!();
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: card,
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        color: filled ? colors.primarySoft : colors.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: colors.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: onTap == null
+            ? padded
+            : InkWell(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onTap!();
+                },
+                child: padded,
+              ),
       ),
     );
   }
