@@ -316,14 +316,18 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: QibraNavy.card,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: QibraNavy.hairline),
-          ),
-          child: Column(
+        // Material (not Container) so the IconButton's ink below paints
+        // ON this surface — colored-Container ink blocker, device-log fix.
+        child: Material(
+          color: QibraNavy.card,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: QibraNavy.hairline),
+            ),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -380,6 +384,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                 ],
               ),
             ],
+            ),
           ),
         ),
       ),
@@ -918,18 +923,24 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
             _showHadithDetailSheet(context, localToHadithModel(local));
           }
         }
-        return Container(
+        // Material body on the transparent modal: header IconButtons and
+        // the FilledButton paint ink HERE, not behind a colored box
+        // (device-log fix 1; same 2026-09-02 QibraCard precedent).
+        return ConstrainedBox(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.85,
           ),
-          decoration: const BoxDecoration(
+          child: Material(
             color: QibraNavy.card,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border(
-              top: BorderSide(color: QibraNavy.hairline, width: 1.5),
-            ),
-          ),
-          child: Column(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border(
+                  top: BorderSide(color: QibraNavy.hairline, width: 1.5),
+                ),
+              ),
+              child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Center(
@@ -1237,6 +1248,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                 ),
               ),
             ],
+            ),
+            ),
           ),
         );
       },
