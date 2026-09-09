@@ -8,7 +8,7 @@ import 'app_colors.dart';
 import 'app_design_system.dart';
 import 'app_typography.dart';
 import 'qibra_colors.dart';
-import 'qibra_colors_next.dart';
+import 'qibra_navy.dart';
 
 abstract final class AppTheme {
   static ThemeData get light => _build(
@@ -80,24 +80,10 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      extensions: [
-        palette,
-        isDark ? QibraColorsNext.dark : QibraColorsNext.dark.copyWith(
-          bgCanvas: palette.background,
-          bgSurface: palette.backgroundSecondary,
-          bgCard: palette.card,
-          bgCardElevated: palette.cardMuted,
-          borderSubtle: palette.border,
-          emeraldPrimary: palette.primary,
-          emeraldDeep: palette.primarySoft,
-          goldIslamic: palette.accent,
-          goldSoft: palette.goldText,
-          textPrimary: palette.textPrimary,
-          textSecondary: palette.textSecondary,
-          textMuted: palette.textTertiary,
-          error: palette.error,
-        ),
-      ],
+      // Phase B dead-weight removal: QibraColorsNext was a mirror
+      // extension with ZERO readers (only this registration existed);
+      // QibraColors (palette above) is the single semantic source.
+      extensions: [palette],
       scaffoldBackgroundColor: background,
       textTheme: AppTextTheme.textTheme.apply(
         bodyColor: textPrimary,
@@ -107,8 +93,11 @@ abstract final class AppTheme {
         brightness: brightness,
         primary: primary,
         onPrimary: onPrimary,
-        primaryContainer: isDark ? AppColorsDark.surfaceElevated : AppEmerald.s100,
-        onPrimaryContainer: isDark ? AppColorsDark.textPrimary : AppEmerald.s800,
+        // AppColorsDark's values MIRRORED QibraNavy verbatim (its own
+        // header said so; phase17 pinned the mirror) — the theme now
+        // reads the canonical tokens directly, same Color(0xFF...) values.
+        primaryContainer: isDark ? QibraNavy.cardElevated : AppEmerald.s100,
+        onPrimaryContainer: isDark ? QibraNavy.textPrimary : AppEmerald.s800,
         secondary: accent,
         onSecondary: onAccent,
         secondaryContainer: isDark ? AppGold.s800 : AppGold.s100,

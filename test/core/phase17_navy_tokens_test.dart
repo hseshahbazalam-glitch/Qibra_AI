@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/design_system/contrast.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
-import 'package:qibra_ai/core/design_system/qibra_colors_next.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 
 void main() {
@@ -33,7 +32,15 @@ void main() {
     }
   });
 
-  test('QibraColors.dark and QibraColorsNext.dark derive from QibraNavy', () {
+  // Phase B (2026-09-08): QibraColorsNext was DEAD WEIGHT (registered,
+  // never read) and is deleted. Its drift semantics — the dark set must
+  // equal the QibraNavy tokens — relocates HERE, pointed at the single
+  // live extension. Six mirror-expects mapped 1:1 onto canonical fields
+  // (bgCanvas->background, bgSurface->navBackground, bgCard->card,
+  // emeraldPrimary->primary, goldIslamic->accent — all already present);
+  // violetAi gains the explicit line that keeps the count AND the
+  // meaning (QCN.dark.violetAi == QibraNavy.violet was the pin).
+  test('QibraColors.dark derives from QibraNavy', () {
     expect(QibraColors.dark.background, QibraNavy.canvas);
     expect(QibraColors.dark.navBackground, QibraNavy.surface);
     expect(QibraColors.dark.card, QibraNavy.card);
@@ -41,18 +48,17 @@ void main() {
     expect(QibraColors.dark.primary, QibraNavy.emerald);
     expect(QibraColors.dark.accent, QibraNavy.gold);
 
-    expect(QibraColorsNext.dark.bgCanvas, QibraNavy.canvas);
-    expect(QibraColorsNext.dark.bgSurface, QibraNavy.surface);
-    expect(QibraColorsNext.dark.bgCard, QibraNavy.card);
-    expect(QibraColorsNext.dark.emeraldPrimary, QibraNavy.emerald);
-    expect(QibraColorsNext.dark.violetAi, QibraNavy.violet);
-    expect(QibraColorsNext.dark.goldIslamic, QibraNavy.gold);
+    expect(QibraColors.dark.cardMuted, QibraNavy.cardElevated);
+    expect(QibraColors.dark.primarySoft, QibraNavy.emeraldDeep);
+    expect(QibraColors.dark.violetAi, QibraNavy.violet);
+    expect(QibraColors.dark.goldText, QibraNavy.goldBright);
+    expect(QibraColors.dark.textTertiary, QibraNavy.textMuted);
   });
 
   test('no stale emerald-canvas hexes remain in the approved dark set', () {
     const staleEmeraldCanvas = Color(0xFF071512);
     expect(QibraColors.dark.background, isNot(staleEmeraldCanvas));
-    expect(QibraColorsNext.dark.bgCanvas, isNot(staleEmeraldCanvas));
+    expect(QibraNavy.canvas, isNot(staleEmeraldCanvas));
   });
 
   test('contrast floor — text + accents remain accessible on navy', () {
@@ -94,14 +100,15 @@ void main() {
     expect(QibraColors.dark.error, QibraNavy.red);
   });
 
-  test('violet remains AI-only in the next-tokens set', () {
-    // The violet used by QibraColors (AI getter) and QibraColorsNext must match.
-    expect(QibraColors.dark.violetAi, QibraColorsNext.dark.violetAi);
-    expect(QibraColors.light.violetAi, QibraColorsNext.dark.violetAi);
+  test('violet remains AI-only in the theme token set', () {
+    // Was: QCN mirror equality. After Phase B the canonical constant is
+    // pinned directly — dark and light both carry the approved violet.
+    expect(QibraColors.dark.violetAi, const Color(0xFF9B6CFF));
+    expect(QibraColors.light.violetAi, const Color(0xFF9B6CFF));
   });
 
   test('theme extension light mapping keeps AI violet constant', () {
-    const mapped = QibraColorsNext.dark;
+    const mapped = QibraColors.light;
     expect(mapped.violetAi, const Color(0xFF9B6CFF));
   });
 

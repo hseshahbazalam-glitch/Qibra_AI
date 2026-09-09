@@ -4,8 +4,8 @@
 // ============================================================
 // Product-owner override (approved): midnight navy identity is the
 // global brand language. These tokens are the SINGLE SOURCE OF TRUTH
-// for the dark theme. QibraColors.dark, QibraColorsNext.dark,
-// AppColorsDark and AppTheme.dark all derive from this file so the
+// for the dark theme. QibraColors.dark
+// and AppTheme.dark all derive from this file so the
 // hex values can never drift apart.
 //
 // Ratio target: 60–70% navy surfaces, 15–20% emerald, 8–12% violet,
