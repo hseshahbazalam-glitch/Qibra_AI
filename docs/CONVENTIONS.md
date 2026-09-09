@@ -12,14 +12,15 @@ CI file itself.
   `test/features/<feature>/<name>_test.dart`, `test/core/<name>_test.dart`
   (organized 2026-09-08 — files were *moved*, never renamed; pin names
   are quoted by CI history, keep them stable).
-- **Legacy — do not add new ones:** dot-part screen files
-  (`<screen>.<part>.dart`). Exactly 4 exist (verified 2026-09-08):
-  `lib/features/settings/presentation/profile_setup_screen.form.dart`,
-  `lib/features/tasbih/presentation/tasbih_screen.detail.dart`,
-  `lib/features/tools/screens/asma_ul_husna_screen.learn.dart`,
-  `lib/features/tools/screens/inheritance_calculator_screen.results.dart`.
-  Consolidating them (and `tools/screens/` → `presentation/`) is Phase-C
-  work *with* pin updates — not drive-by.
+- **Part files are SANCTIONED for genuinely large screens** — a
+  `part`/`part of` split keeps private state shared without creating a
+  public API. Rule (Phase C, 2026-09-08): **dot-free names**, one
+  concern per part file, named `<screen>_<concern>.dart`. The four
+  sanctioned parts (renamed from the legacy dot-form this pass):
+  `profile_setup_form.dart`, `tasbih_detail.dart`,
+  `asma_ul_husna_learn.dart`, `inheritance_results.dart` — parents hold
+  the matching `part '...'` directive. New dot-part files
+  (`<screen>.<part>.dart`) remain forbidden.
 
 ## Import policy (going forward)
 

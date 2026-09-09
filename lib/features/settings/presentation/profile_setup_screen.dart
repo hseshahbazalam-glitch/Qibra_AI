@@ -22,7 +22,7 @@ import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 
-part 'profile_setup_screen.form.dart';
+part 'profile_setup_form.dart';
 
 // ============================================================
 // PROFILE SETUP SCREEN

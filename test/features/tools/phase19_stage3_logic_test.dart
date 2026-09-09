@@ -416,13 +416,13 @@ void main() {
   group('Stage-3 structural guards (part-file splits)', () {
     const pairs = {
       'lib/features/tasbih/presentation/tasbih_screen.dart':
-          'tasbih_screen.detail.dart',
+          'tasbih_detail.dart',
       'lib/features/settings/presentation/profile_setup_screen.dart':
-          'profile_setup_screen.form.dart',
+          'profile_setup_form.dart',
       'lib/features/tools/screens/inheritance_calculator_screen.dart':
-          'inheritance_calculator_screen.results.dart',
+          'inheritance_results.dart',
       'lib/features/tools/screens/asma_ul_husna_screen.dart':
-          'asma_ul_husna_screen.learn.dart',
+          'asma_ul_husna_learn.dart',
     };
 
     test('every parent declares exactly one part; every part joins back', () {

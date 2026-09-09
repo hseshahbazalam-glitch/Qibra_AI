@@ -17,7 +17,7 @@ import '../../../core/design_system/app_design_system.dart';
 import '../../../core/design_system/app_typography.dart';
 import '../providers/tasbih_provider.dart';
 
-part 'tasbih_screen.detail.dart';
+part 'tasbih_detail.dart';
 
 // ============================================================
 // TASBIH SCREEN

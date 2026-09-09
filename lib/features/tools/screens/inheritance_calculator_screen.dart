@@ -6,7 +6,7 @@ import '../logic/inheritance_estimator.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
 
-part 'inheritance_calculator_screen.results.dart';
+part 'inheritance_results.dart';
 
 class InheritanceCalculatorScreen extends StatefulWidget {
   const InheritanceCalculatorScreen({super.key});

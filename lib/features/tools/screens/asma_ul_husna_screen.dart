@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-part 'asma_ul_husna_screen.learn.dart';
+part 'asma_ul_husna_learn.dart';
 
 class AsmaUlHusnaScreen extends StatefulWidget {
   const AsmaUlHusnaScreen({super.key});
