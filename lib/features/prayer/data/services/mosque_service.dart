@@ -10,13 +10,26 @@ class MosqueService {
   MosqueService._();
   static final MosqueService instance = MosqueService._();
 
-  Future<List<Mosque>> getNearbyMosques({
+  /// Current Overpass API endpoint (form-encoded POST target).
+  static const String overpassEndpoint =
+      'https://overpass-api.de/api/interpreter';
+
+  /// Identifiable UA is REQUIRED: overpass-api.de answers HTTP 406
+  /// Not Acceptable to dart:io's default 'Dart/x' User-Agent
+  /// (device-log fix 3 root cause). No fake contact strings: the app
+  /// publishes no support address, so the UA names the client honestly.
+  static const Map<String, String> requestHeaders = {
+    'User-Agent': 'QibraAI/6.0.0 (Flutter; mosque finder over OpenStreetMap)',
+    'Accept': 'application/json',
+  };
+
+  /// Pure, unit-testable Overpass query builder (offline pin target).
+  static String buildQuery({
     required double latitude,
     required double longitude,
     double radiusMeters = 5000,
-  }) async {
-    try {
-      final overpassQuery = '''
+  }) =>
+      '''
 [out:json][timeout:10];
 (
   node["amenity"="place_of_worship"]["religion"="muslim"](around:$radiusMeters,$latitude,$longitude);
@@ -25,10 +38,32 @@ class MosqueService {
 out center;
 ''';
 
-      final url = Uri.parse(
-        'https://overpass-api.de/api/interpreter?data=${Uri.encodeComponent(overpassQuery)}',
+  Future<List<Mosque>> getNearbyMosques({
+    required double latitude,
+    required double longitude,
+    double radiusMeters = 5000,
+  }) async {
+    try {
+      final overpassQuery = buildQuery(
+        latitude: latitude,
+        longitude: longitude,
+        radiusMeters: radiusMeters,
       );
-      final response = await http.get(url).timeout(const Duration(seconds: 8));
+
+
+      // device-log fix 3: 406 root cause. overpass-api.de rejects
+      // requests whose User-Agent is dart:io's default ('Dart/x
+      // dart:io') with HTTP 406 Not Acceptable, and the current API
+      // contract prefers a POST form body over a giant encoded GET
+      // query. Both fixed; headers/query built by the pure functions
+      // below (unit-tested offline).
+      final response = await http
+          .post(
+            Uri.parse(overpassEndpoint),
+            headers: requestHeaders,
+            body: {'data': overpassQuery},
+          )
+          .timeout(const Duration(seconds: 8));
 
       if (response.statusCode != 200) {
         debugPrint('[MOSQUE_SERVICE] Overpass HTTP ${response.statusCode}');
