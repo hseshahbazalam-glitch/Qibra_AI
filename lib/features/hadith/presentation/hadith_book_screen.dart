@@ -49,6 +49,15 @@ class HadithBookScreen extends ConsumerStatefulWidget {
     return numbers[j];
   }
 
+  /// Top-class elevation (item 4b): the reader header's real position.
+  /// 'of M' renders ONLY when M > 0 — totalHadiths is real book data
+  /// (LocalBookInfo via getBookInfo); an unknown total honestly degrades
+  /// to 'Hadith $number', never to a guessed total. Pure + static so the
+  /// conditional is unit-pinned (neighbourNumber precedent).
+  @visibleForTesting
+  static String hadithPositionLabel(int number, int total) =>
+      total > 0 ? 'Hadith $number of $total' : 'Hadith $number';
+
   @override
   ConsumerState<HadithBookScreen> createState() => _HadithBookScreenState();
 }
@@ -428,6 +437,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     color: QibraNavy.gold, size: 18),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
+                        tooltip: 'Clear search',
                         icon: const Icon(Icons.clear_rounded,
                             color: QibraNavy.textSecondary, size: 16),
                         onPressed: () => setState(() => _searchQuery = ''),
@@ -970,7 +980,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                                 fontSize: 13),
                           ),
                           Text(
-                            'Hadith ${hadith.hadithNumber}',
+                            HadithBookScreen.hadithPositionLabel(
+                                hadith.hadithNumber,
+                                widget.book.totalHadiths),
                             style: const TextStyle(
                                 color: QibraNavy.textSecondary,
                                 fontSize: 11),
@@ -1007,7 +1019,12 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           color: QibraNavy.textSecondary),
                       onPressed: prevNumber == null
                           ? null
-                          : () => openNeighbour(prevNumber),
+                          : () {
+                              // Elevation item 5: light impact on the
+                              // tap itself (disabled state stays silent).
+                              HapticFeedback.lightImpact();
+                              openNeighbour(prevNumber);
+                            },
                     ),
                     IconButton(
                       tooltip: 'Next hadith',
@@ -1015,7 +1032,10 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           color: QibraNavy.textSecondary),
                       onPressed: nextNumber == null
                           ? null
-                          : () => openNeighbour(nextNumber),
+                          : () {
+                              HapticFeedback.lightImpact();
+                              openNeighbour(nextNumber);
+                            },
                     ),
                     IconButton(
                       tooltip: 'Copy to share',
@@ -1029,6 +1049,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         final text =
                             '${hadith.textArabic}\n\n$shareTranslation\n\n— ${hadith.displayReference}';
                         Clipboard.setData(ClipboardData(text: text));
+                        HapticFeedback.lightImpact();
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                               content: Text('Hadith copied to clipboard'),
@@ -1037,6 +1058,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       },
                     ),
                     IconButton(
+                      tooltip: 'Close',
                       icon: const Icon(Icons.close_rounded,
                           color: QibraNavy.textSecondary),
                       onPressed: () => Navigator.of(sheetContext).pop(),
@@ -1302,6 +1324,7 @@ class _HadithCard extends ConsumerWidget {
                 ),
                 const Spacer(),
                 IconButton(
+                  tooltip: isBookmarked ? 'Remove bookmark' : 'Bookmark',
                   icon: Icon(
                     isBookmarked
                         ? Icons.bookmark_rounded
@@ -1319,12 +1342,14 @@ class _HadithCard extends ConsumerWidget {
                   },
                 ),
                 IconButton(
+                  tooltip: 'Copy to share',
                   icon: const Icon(Icons.share_rounded,
                       color: QibraNavy.textSecondary, size: 18),
                   onPressed: () {
                     final shareText =
                         '${hadith.textArabic}\n\n${translation ?? hadith.textEnglish}\n\n— ${hadith.displayReference}';
                     Clipboard.setData(ClipboardData(text: shareText));
+                    HapticFeedback.lightImpact();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                           content: Text('Hadith copied to clipboard'),
