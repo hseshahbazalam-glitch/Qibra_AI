@@ -56,8 +56,10 @@ void main() {
   }
 
   // ─── Load .env (debug only, not bundled in release) ────────────
+  var envLoaded = false; // device-log fix 2: the banner prints the TRUTH
   try {
     await dotenv.load(fileName: '.env');
+    envLoaded = true;
     debugPrint('✅ .env loaded successfully');
   } catch (e) {
     debugPrint('⚠️ .env not loaded: $e');
@@ -109,7 +111,7 @@ void main() {
   };
 
   // ─── Boot Info ─────────────────────────
-  _printBootInfo();
+  _printBootInfo(envLoaded);
 
   // ─── Run App ─────────────────────────
   runApp(
@@ -180,17 +182,26 @@ class QibraApp extends ConsumerWidget {
 // BOOT INFO LOGGER
 // ============================================================
 
-void _printBootInfo() {
+void _printBootInfo(bool envLoaded) {
   debugPrint('╔═══════════════════════════════════════╗');
   debugPrint('║       QIBRA AI — System Boot          ║');
   debugPrint('╠═══════════════════════════════════════╣');
   debugPrint('║  Name    : ${AppInfo.appName}');
   debugPrint('║  Version : ${AppInfo.version}');
-  debugPrint('║  ✅ .env loaded');
+  // device-log fix 2 (honesty audit of every static ✅ line):
+  //  .env — real outcome captured from the try/catch above.
+  //  Riverpod / Router — true BY CONSTRUCTION at print time: the very
+  //  next statements build ProviderScope(routerProvider) synchronously.
+  //  Quran data — NOT 'ready' here: it decodes in dataBootstrapProvider
+  //  after the splash's first frame (see the perf-pass comment above),
+  //  so the line states that. Hadith line already told the truth.
+  //  AI Engine — local RAG only until the background hadith attach
+  //  completes and every AI flag stays backend-off (AppFeatureFlags).
+  debugPrint('║  ${envLoaded ? '✅ .env loaded' : '⚠️ .env not present'}');
   debugPrint('║  ✅ Riverpod initialized');
   debugPrint('║  ✅ Router ready');
-  debugPrint('║  📖 Quran data ready');
+  debugPrint('║  📖 Quran data queued (loads after first frame)');
   debugPrint('║  📚 Hadith DB loading after first frame');
-  debugPrint('║  🤖 AI Engine ready');
+  debugPrint('║  🤖 AI Engine: local RAG (backend off)');
   debugPrint('╚═══════════════════════════════════════╝');
 }
