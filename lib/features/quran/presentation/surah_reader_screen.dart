@@ -139,6 +139,13 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
   int? _tappedAyah;
   int? _playedAyah;
 
+  // Bug A (device session 3: 'Bad state: Cannot use ref after the widget
+  // was disposed'): dispose() ran _persistLastRead() which touched ref.
+  // Canonical field capture — the store and the latest loaded surah are
+  // captured WHILE MOUNTED, so the dispose path never uses ref at all.
+  late final LastReadNotifier _lastReadStore;
+  SurahModel? _latestSurah;
+
   AyahFollowMachine _followM = const AyahFollowMachine();
   final GlobalKey _followKey = GlobalKey();
 
@@ -147,6 +154,8 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     super.initState();
     _activeTab =
         _tabs.contains(widget.initialTab) ? widget.initialTab! : 'Arabic';
+    // ref.read IS legal in initState — capture once for the dispose path.
+    _lastReadStore = ref.read(lastReadStoreProvider.notifier);
     // Download status is read back from disk — check the real files.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -164,19 +173,22 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
   /// Store the visit's position using the documented definition. If the
   /// surah data never loaded there is nothing real to store — skip.
   void _persistLastRead() {
-    final surah = ref.read(surahDetailProvider(widget.surahNumber)).value;
+    // Zero ref calls — safe to run from dispose(): reads ONLY fields.
+    // 'If the surah data never loaded there is nothing real to store'
+    // is preserved exactly via the null/empty guard on the cache.
+    final surah = _latestSurah;
     if (surah == null || surah.ayahs.isEmpty) return;
     final ayah = resumeAyahForVisit(
       tapped: _tappedAyah,
       played: _playedAyah,
       initialAyah: widget.initialAyah,
     );
-    ref.read(lastReadStoreProvider.notifier).record(
-          surahNumber: surah.number,
-          ayahNumber: ayah,
-          surahName: surah.name,
-          totalAyahsInSurah: surah.ayahs.length,
-        );
+    _lastReadStore.record(
+      surahNumber: surah.number,
+      ayahNumber: ayah,
+      surahName: surah.name,
+      totalAyahsInSurah: surah.ayahs.length,
+    );
   }
 
   @override
@@ -395,9 +407,10 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
             );
           }
           _jumpToInitialAyah(s);
+          _latestSurah = s; // dispose-path cache (bug A field capture)
           return Column(
             children: [
-              _ModeTabs(
+              ModeTabs(
                 tabs: _tabs,
                 active: _activeTab,
                 arabicScale: prefs.arabicScale,
@@ -583,8 +596,10 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
 // Mode tabs + text-size control
 // ─────────────────────────────────────────────────────────────
 
-class _ModeTabs extends StatelessWidget {
-  const _ModeTabs({
+/// Reader mode strip. Public as a widget-test seam (bug B); nothing
+/// outside this screen should depend on it.
+class ModeTabs extends StatelessWidget {
+  const ModeTabs({
     required this.tabs,
     required this.active,
     required this.arabicScale,
@@ -609,6 +624,21 @@ class _ModeTabs extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(
         children: [
+          // Bug B (device session 3): three fixed tab chips + the Aa pill
+          // measured ~378dp on a 360dp screen -> 'RenderFlex overflowed
+          // by 21 pixels' on EVERY surah. Tabs now scroll horizontally
+          // when needed (Expanded strip); the pill keeps its full,
+          // tappable place at the right. Spacer is illegal inside an
+          // unbounded scroll child -> fixed 12 gap at the strip's end.
+          // >=390dp the extent fits the viewport: pixel-identical.
+          // Typography, colors, active underline, onSizeStep, paddings:
+          // untouched.
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
           for (final tab in tabs)
             GestureDetector(
               onTap: () => onSelect(tab),
@@ -638,7 +668,11 @@ class _ModeTabs extends StatelessWidget {
                 ),
               ),
             ),
-          const Spacer(),
+                  const SizedBox(width: 12),
+                ],
+              ),
+            ),
+          ),
           InkWell(
             onTap: onSizeStep,
             borderRadius: BorderRadius.circular(999),
