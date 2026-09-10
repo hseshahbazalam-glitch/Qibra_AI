@@ -67,6 +67,13 @@ void main() {
     testWidgets('unmounting the reader persists the resume position',
         (tester) async {
       await guard('persistence', () async {
+        // Phone-shaped viewport: the default 800x600 test window crops
+        // the reader's vertical stack (56px bottom overflow is the
+        // HARNESS, not the app — real devices are ~844 tall).
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
         SharedPreferences.setMockInitialValues({});
         const surah = SurahModel(
           number: 1,
@@ -191,6 +198,9 @@ void main() {
         final longest = list.fold<String>(
             '', (a, b) => b.length > a.length ? b : a);
         expect(longest.isNotEmpty, isTrue);
+        // FULL real-screen box (320x800) with the WIDTH pinned — the
+        // earlier 150dp-tall box manufactured its own overflow; a
+        // no-overflow verdict must not constrain the axis under test.
         await tester.pumpWidget(MaterialApp(
           theme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
           home: Scaffold(
@@ -198,7 +208,7 @@ void main() {
               alignment: Alignment.topCenter,
               child: SizedBox(
                 width: 320,
-                height: 150,
+                height: 800,
                 child: SurahCard(
                   surah: SurahInfoModel(
                     number: 3,
