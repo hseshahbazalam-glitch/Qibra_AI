@@ -256,7 +256,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                   const SizedBox(height: AppSpacing.md),
               itemBuilder: (context, index) {
                 final surah = filtered[index];
-                return _SurahCard(
+                return SurahCard(
                   surah: surah,
                   revelationColor: _revelationColor(surah),
                   revelationLabel: _revelationLabel(surah),
@@ -659,8 +659,10 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
 // SECTION 3 — SURAH CARD WIDGET
 // ============================================================
 
-class _SurahCard extends StatelessWidget {
-  const _SurahCard({
+/// Reader list card. Public as a widget-test seam (device-log hardening
+/// probe); layout untouched — do not depend on it outside this screen.
+class SurahCard extends StatelessWidget {
+  const SurahCard({
     required this.surah,
     required this.revelationColor,
     required this.revelationLabel,
