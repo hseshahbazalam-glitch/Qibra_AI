@@ -62,31 +62,19 @@ void main() {
         overrides: [
           surahDetailProvider(1).overrideWith((ref) async => surah),
         ],
-        child: MaterialApp(
-          home: Builder(
-            builder: (ctx) => Scaffold(
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).push(MaterialPageRoute(
-                    builder: (_) =>
-                        const SurahReaderScreen(surahNumber: 1, initialAyah: 2),
-                  )),
-                  child: const Text('open-reader'),
-                ),
-              ),
-            ),
-          ),
+        child: const MaterialApp(
+          home: SurahReaderScreen(surahNumber: 1, initialAyah: 2),
         ),
       ));
-      await tester.tap(find.text('open-reader'));
-      await tester.pump(); // route in; data resolves synchronously-ish
-      await tester.pump(const Duration(milliseconds: 400)); // transition done
-      await tester.pump(); // frames past the post-frame checkSurah chain
+      await tester.pump(); // first frame: data branch runs, _latestSurah caches
+      await tester.pump(const Duration(milliseconds: 100));
 
-      await tester.pageBack();
-      await tester.pump(); // pop transition begins
-      await tester.pump(const Duration(milliseconds: 400)); // completes
-      await tester.pump(); // dispose ran mid-transition-end (used to throw)
+      // Unmount = dispose() — exactly the back-navigation moment the
+      // device threw on. No Navigator involved: the widget's own
+      // lifecycle IS the test surface (and no raw-generic route types in
+      // a strict-raw-types repo).
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(milliseconds: 100));
       expect(tester.takeException(), isNull,
           reason: 'no ref-after-dispose on the exit path');
 
