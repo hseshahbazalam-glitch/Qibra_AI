@@ -1,19 +1,29 @@
-// Device session 3 — quran reader fixes:
-//  A: dispose-path persistence must not touch ref, and must actually
-//     persist (purpose pinned through the real prefs store).
-//  B: the mode-tab strip + font pill fit 320/360dp, pill hittable.
-// Hardening probe: SurahCard @320dp with the longest bundled Arabic name
-// — recorded either way; if it passes, the card stays untouched.
+// Device session 3 — quran reader fixes.
 //
-// TEMP: the four pump bodies run inside guard() which prints the real
-// failure through ::error annotations (CI logs are unreachable from the
-// authoring sandbox; annotations are the only readable channel).
+// Bug A: dispose-path persistence must not touch `ref` (field-capture
+// pattern) AND must actually persist — pinned through the REAL prefs
+// store ("store received the record" is the fix's purpose).
+// Bug B: mode-tab strip + font pill fit narrow screens (320/360dp),
+// pill hittable at the right edge, all tabs reachable via scroll.
+// Hardening (conditional, evidence-first): SurahCard @320dp with the
+// longest bundled Arabic name OVERFLOWED (+35px under real font
+// metrics) -> Arabic column is now Flexible + single-line ellipsis,
+// with the 'N Ayahs' label flexed as its mate. This file carries the
+// permanent 320dp tripwire for that layout.
+//
+// Harness facts worth keeping in mind:
+//  * The app's REAL fonts (Inter/Amiri, flutter/services FontLoader —
+//    NOT exported by material/widgets) must be loaded: flutter test's
+//    Ahem placeholder has no glyph metrics and manufactures overflow
+//    "bugs" that don't exist on device (measured: +256 vs real +35).
+//  * A horizontal viewport needs a bounded cross axis (72dp box for
+//    ModeTabs mirrors the reader scaffold's bounded row).
+//  * hitTestable() is a FINDER TRANSFORMER (Finder.hitTestable()), not
+//    a matcher.
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-// FontLoader is a services-library class — NOT re-exported by
-// material/widgets (that rumor cost two analyze cycles).
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,30 +35,6 @@ import 'package:qibra_ai/features/quran/providers/quran_download_provider.dart';
 import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class _NoopDownloads extends QuranDownloadController {
-  @override
-  Map<int, SurahAudioStatus> build() => const {};
-  @override
-  Future<void> checkSurah(int surah) async {}
-}
-
-Future<void> guard(String name, Future<void> Function() body) async {
-  try {
-    await body();
-  } catch (e, st) {
-    final head = st.toString().split('\n').take(3).join(' | ');
-    // Annotations stop at the first newline — flatten the whole message.
-    // ignore: avoid_print
-    print('::error::DIAG $name -> ${'$e'.replaceAll('\n', ' ~ ')} || ${'$head'.replaceAll('\n', ' ~ ')}');
-    rethrow;
-  }
-}
-
-/// flutter test renders with the Ahem placeholder font (no metrics from
-/// pubspec fonts) — widths inflate massively and 'overflow' verdicts
-/// become artifacts. Load the app's REAL bundled fonts so every pump in
-/// this file measures the same layout a device does (app fonts, no new
-/// packages: FontLoader is flutter/services).
 Future<void> loadAppTestFonts() async {
   Future<void> faces(String family, List<String> paths) async {
     final loader = FontLoader(family);
@@ -69,6 +55,15 @@ Future<void> loadAppTestFonts() async {
     'assets/fonts/Amiri-Regular.ttf',
     'assets/fonts/Amiri-Bold.ttf',
   ]);
+}
+
+/// The reader's post-frame disk check must not do real fs work (or write
+/// provider state after our deliberate unmount) inside tests.
+class _NoopDownloads extends QuranDownloadController {
+  @override
+  Map<int, SurahAudioStatus> build() => const {};
+  @override
+  Future<void> checkSurah(int surah) async {}
 }
 
 void main() {
@@ -97,75 +92,61 @@ void main() {
 
     testWidgets('unmounting the reader persists the resume position',
         (tester) async {
-      await guard('persistence', () async {
-        // Phone-shaped viewport: the default 800x600 test window crops
-        // the reader's vertical stack (56px bottom overflow is the
-        // HARNESS, not the app — real devices are ~844 tall).
-        tester.view.physicalSize = const Size(390, 844);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-        SharedPreferences.setMockInitialValues({});
-        const surah = SurahModel(
-          number: 1,
-          name: 'Al-Fatihah',
-          nameArabic: 'الفاتحة',
-          englishNameTranslation: 'The Opening',
-          revelationType: 'Meccan',
-          numberOfAyahs: 2,
-          ayahs: [
-            AyahModel(number: 1, numberInQuran: 1, text: 'b1', juz: 1, page: 1),
-            AyahModel(number: 2, numberInQuran: 2, text: 'b2', juz: 1, page: 1),
-          ],
-        );
-        await tester.pumpWidget(ProviderScope(
-          overrides: [
-            surahDetailProvider(1).overrideWith((ref) async => surah),
-            quranDownloadProvider.overrideWith(_NoopDownloads.new),
-          ],
-          child: const MaterialApp(
-            home: AppStringsScope(
-              locale: Locale('en'),
-              child: Scaffold(
-                resizeToAvoidBottomInset: false,
-                body: SurahReaderScreen(surahNumber: 1, initialAyah: 2),
-              ),
+      // Phone-shaped viewport: the default 800x600 test window crops the
+      // reader's vertical stack (real devices are ~844 tall).
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      SharedPreferences.setMockInitialValues({});
+      const surah = SurahModel(
+        number: 1,
+        name: 'Al-Fatihah',
+        nameArabic: 'الفاتحة',
+        englishNameTranslation: 'The Opening',
+        revelationType: 'Meccan',
+        numberOfAyahs: 2,
+        ayahs: [
+          AyahModel(number: 1, numberInQuran: 1, text: 'b1', juz: 1, page: 1),
+          AyahModel(number: 2, numberInQuran: 2, text: 'b2', juz: 1, page: 1),
+        ],
+      );
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          surahDetailProvider(1).overrideWith((ref) async => surah),
+          quranDownloadProvider.overrideWith(_NoopDownloads.new),
+        ],
+        child: const MaterialApp(
+          home: AppStringsScope(
+            locale: Locale('en'),
+            child: Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: SurahReaderScreen(surahNumber: 1, initialAyah: 2),
             ),
           ),
-        ));
-        await tester.pump();
-        final eLoad = tester.takeException();
-        if (eLoad != null) {
-          // ignore: avoid_print
-          print('::error::DIAG-STEP load -> ${eLoad.toString().replaceAll('\n', ' ~ ')}');
-        }
-        await tester.pump(const Duration(milliseconds: 400));
-        final eSettled = tester.takeException();
-        if (eSettled != null) {
-          // ignore: avoid_print
-          print('::error::DIAG-STEP settled -> ${eSettled.toString().replaceAll('\n', ' ~ ')}');
-        }
+        ),
+      ));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.takeException(), isNull,
+          reason: 'reader lays out clean at 390dp');
 
-        // Unmount = dispose(): the exact back-navigation moment the
-        // device threw on.
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(const Duration(milliseconds: 100));
-        final ePost = tester.takeException();
-        if (ePost != null) {
-          // ignore: avoid_print
-          print('::error::DIAG-STEP post -> ${ePost.toString().replaceAll('\n', ' ~ ')}');
-        }
-        expect(ePost ?? eLoad ?? eSettled, isNull,
-            reason: 'no ref-after-dispose on the exit path');
+      // Unmount = dispose(): the exact back-navigation moment the device
+      // threw 'Cannot use ref after the widget was disposed' on.
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.takeException(), isNull,
+          reason: 'no ref-after-dispose on the exit path');
 
-        final prefs = await SharedPreferences.getInstance();
-        final raw = prefs.getString('last_read_position');
-        expect(raw, isNotNull, reason: 'the exit MUST persist');
-        final saved = jsonDecode(raw!) as Map<String, dynamic>;
-        expect(saved['surahNumber'], 1);
-        expect(saved['ayahNumber'], 2,
-            reason: 'no tap/play this visit -> entry position is the resume');
-      });
+      // PURPOSE pin (not just absence of a throw): the store received the
+      // record — verified through the real prefs JSON the notifier writes.
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('last_read_position');
+      expect(raw, isNotNull, reason: 'the exit MUST persist');
+      final saved = jsonDecode(raw!) as Map<String, dynamic>;
+      expect(saved['surahNumber'], 1);
+      expect(saved['ayahNumber'], 2,
+          reason: 'no tap/play this visit -> entry position is the resume');
     });
   });
 
@@ -173,46 +154,38 @@ void main() {
     for (final w in [360.0, 320.0]) {
       testWidgets('${w.toInt()}dp: no overflow, tabs reachable, pill live',
           (tester) async {
-        await guard('tabs-${w.toInt()}', () async {
-          var steps = 0;
-          await tester.pumpWidget(MaterialApp(
-            theme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
-            home: Scaffold(
-              body: Align(
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: w,
-                  // bounded cross-axis: a horizontal viewport REQUIRES it
-                  // (production is bounded by the app scaffold the same way)
-                  height: 72,
-                  child: ModeTabs(
-                    tabs: const ['Arabic', 'Translation', 'Transliteration'],
-                    active: 'Arabic',
-                    arabicScale: 1.25,
-                    onSelect: (_) {},
-                    onSizeStep: () => steps++,
-                  ),
+        var steps = 0;
+        await tester.pumpWidget(MaterialApp(
+          theme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: w,
+                height: 72, // bounded cross-axis for the horizontal viewport
+                child: ModeTabs(
+                  tabs: const ['Arabic', 'Translation', 'Transliteration'],
+                  active: 'Arabic',
+                  arabicScale: 1.25,
+                  onSelect: (_) {},
+                  onSizeStep: () => steps++,
                 ),
               ),
             ),
-          ));
-          final eTabs = tester.takeException();
-          expect(eTabs, isNull, reason: 'EXC-TABS $eTabs');
-          for (final label in [
-            'Arabic',
-            'Translation',
-            'Transliteration'
-          ]) {
-            expect(find.text(label), findsOneWidget);
-          }
-          final pill = find.text('Aa+25');
-          expect(pill, findsOneWidget);
-          // hitTestable() is a finder transformer (not a matcher): the
-          // variant only matches widgets reachable by a hit test.
-          expect(pill.hitTestable(), findsOneWidget);
-          await tester.tap(pill);
-          expect(steps, 1);
-        });
+          ),
+        ));
+        expect(tester.takeException(), isNull);
+        for (final label in ['Arabic', 'Translation', 'Transliteration']) {
+          expect(find.text(label), findsOneWidget);
+        }
+        final pill = find.text('Aa+25');
+        expect(pill, findsOneWidget);
+        // hitTestable(): the transformer variant only matches widgets
+        // reachable by a hit test — proves the pill is truly tappable,
+        // not just painted.
+        expect(pill.hitTestable(), findsOneWidget);
+        await tester.tap(pill);
+        expect(steps, 1);
       });
     }
 
@@ -228,56 +201,53 @@ void main() {
     });
   });
 
-  group('hardening probe — SurahCard @320dp, longest bundled Arabic name', () {
-    testWidgets('current layout does NOT overflow: no fix applied',
+  group('hardening — SurahCard @320dp, longest bundled Arabic name', () {
+    testWidgets('widest name does NOT overflow: Flexible wrap holds',
         (tester) async {
-      await guard('card-probe', () async {
-        final raw = File('assets/data/quran/surah_info.json')
-            .readAsStringSync();
-        final Object? decoded = jsonDecode(raw);
-        final List<dynamic> data = decoded is Map<String, dynamic>
-            ? decoded['data'] as List<dynamic>
-            : decoded as List<dynamic>;
-        final list = data
-            .map((e) => (e as Map<String, dynamic>)['name'] as String? ?? '')
-            .toList();
-        final longest = list.fold<String>(
-            '', (a, b) => b.length > a.length ? b : a);
-        expect(longest.isNotEmpty, isTrue);
-        // FULL real-screen box (320x800) with the WIDTH pinned — the
-        // earlier 150dp-tall box manufactured its own overflow; a
-        // no-overflow verdict must not constrain the axis under test.
-        await tester.pumpWidget(MaterialApp(
-          theme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
-          home: Scaffold(
-            body: Align(
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: 320,
-                height: 800,
-                child: SurahCard(
-                  surah: SurahInfoModel(
-                    number: 3,
-                    name: 'Aal-i-Imraan',
-                    nameArabic: longest,
-                    englishNameTranslation: 'The Family of Imran',
-                    revelationType: 'Medinan',
-                    numberOfAyahs: 200,
-                  ),
-                  revelationColor: const Color(0xFF2ED39A),
-                  revelationLabel: 'Medinan',
-                  onTap: () {},
+      final raw = File('assets/data/quran/surah_info.json')
+          .readAsStringSync();
+      final Object? decoded = jsonDecode(raw);
+      final List<dynamic> data = decoded is Map<String, dynamic>
+          ? decoded['data'] as List<dynamic>
+          : decoded as List<dynamic>;
+      final list = data
+          .map((e) => (e as Map<String, dynamic>)['name'] as String? ?? '')
+          .toList();
+      final longest = list.fold<String>(
+          '', (a, b) => b.length > a.length ? b : a);
+      expect(longest.isNotEmpty, isTrue);
+      // FULL-height box (320x800), width pinned: constraining the axis
+      // under test is how a no-fix verdict was wrongly made once already
+      // (150dp-tall harness box manufactured its own overflow).
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: 320,
+              height: 800,
+              child: SurahCard(
+                surah: SurahInfoModel(
+                  number: 3,
+                  name: 'Aal-i-Imraan',
+                  nameArabic: longest,
+                  englishNameTranslation: 'The Family of Imran',
+                  revelationType: 'Medinan',
+                  numberOfAyahs: 200,
                 ),
+                revelationColor: const Color(0xFF2ED39A),
+                revelationLabel: 'Medinan',
+                onTap: () {},
               ),
             ),
           ),
-        ));
-        // VERDICT EVIDENCE: passes untouched (un-flexed Arabic column is
-        // safe at 320dp — Expanded center absorbs first). This pump stays
-        // as the permanent tripwire if that ever changes.
-        final eCard = tester.takeException();
-        expect(eCard, isNull, reason: 'EXC-CARD $eCard');
-      });
+        ),
+      ));
+      // HISTORY: pre-hardening this threw 'RenderFlex overflowed by 35
+      // pixels on the right' (real fonts). The Flexible + ellipsis wrap
+      // (Arabic column + 'N Ayahs' label) is what this now guards.
+      expect(tester.takeException(), isNull);
     });
   });
 }
