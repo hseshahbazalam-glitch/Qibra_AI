@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_list_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
@@ -76,7 +77,13 @@ void main() {
           quranDownloadProvider.overrideWith(_NoopDownloads.new),
         ],
         child: const MaterialApp(
-          home: SurahReaderScreen(surahNumber: 1, initialAyah: 2),
+          home: AppStringsScope(
+            locale: Locale('en'),
+            child: Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: SurahReaderScreen(surahNumber: 1, initialAyah: 2),
+            ),
+          ),
         ),
       ));
       await tester.pump(); // first frame: data branch runs, _latestSurah caches
@@ -107,10 +114,13 @@ void main() {
           (tester) async {
         var steps = 0;
         await tester.pumpWidget(MaterialApp(
+          theme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
           home: Scaffold(
-            body: Center(
+            body: Align(
+              alignment: Alignment.topCenter,
               child: SizedBox(
                 width: w,
+                height: 72, // bounded cross-axis for the horizontal viewport
                 child: ModeTabs(
                   tabs: const ['Arabic', 'Translation', 'Transliteration'],
                   active: 'Arabic',
@@ -163,9 +173,13 @@ void main() {
           '', (a, b) => b.length > a.length ? b : a); // 22 chars incl. harakat
       expect(longest.isNotEmpty, isTrue);
       await tester.pumpWidget(MaterialApp(
+        theme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
         home: Scaffold(
-          body: SizedBox(
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
             width: 320,
+            height: 150, // bounded height so any RenderFlex overflow trips honestly
             child: SurahCard(
               surah: SurahInfoModel(
                 number: 3,
@@ -179,6 +193,7 @@ void main() {
               revelationLabel: 'Medinan',
               onTap: () {},
             ),
+          ),
           ),
         ),
       ));
