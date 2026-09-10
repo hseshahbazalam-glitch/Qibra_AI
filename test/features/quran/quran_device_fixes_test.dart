@@ -101,8 +101,12 @@ void main() {
         // device threw on.
         await tester.pumpWidget(const SizedBox());
         await tester.pump(const Duration(milliseconds: 100));
-        expect(tester.takeException(), isNull,
-            reason: 'no ref-after-dispose on the exit path');
+        final ePost = tester.takeException();
+        if (ePost != null) {
+          // ignore: avoid_print
+          print('::error::DIAG-EXC post-unmount -> $ePost');
+        }
+        expect(ePost, isNull, reason: 'no ref-after-dispose on the exit path');
 
         final prefs = await SharedPreferences.getInstance();
         final raw = prefs.getString('last_read_position');
@@ -142,7 +146,12 @@ void main() {
               ),
             ),
           ));
-          expect(tester.takeException(), isNull);
+          final eTabs = tester.takeException();
+          if (eTabs != null) {
+            // ignore: avoid_print
+            print('::error::DIAG-EXC tabs-${w.toInt()} -> $eTabs');
+          }
+          expect(eTabs, isNull);
           for (final label in [
             'Arabic',
             'Translation',
@@ -179,9 +188,9 @@ void main() {
       await guard('card-probe', () async {
         final raw = File('assets/data/quran/surah_info.json')
             .readAsStringSync();
-        final list = (jsonDecode(raw) as List)
-            .cast<Map<String, dynamic>>()
-            .map((e) => e['name'] as String? ?? '')
+        final dynamic d = jsonDecode(raw);
+        final list = ((d is List ? d : (d['data'] as List)) as List)
+            .map((e) => (e as Map)['name'] as String? ?? '')
             .toList();
         final longest = list.fold<String>(
             '', (a, b) => b.length > a.length ? b : a);
@@ -211,10 +220,15 @@ void main() {
             ),
           ),
         ));
+        final eCard = tester.takeException();
+        if (eCard != null) {
+          // ignore: avoid_print
+          print('::error::DIAG-EXC card -> $eCard');
+        }
         // VERDICT EVIDENCE: passes untouched (un-flexed Arabic column is
         // safe at 320dp — Expanded center absorbs first). This pump stays
         // as the permanent tripwire if that ever changes.
-        expect(tester.takeException(), isNull);
+        expect(eCard, isNull);
       });
     });
   });
