@@ -779,27 +779,35 @@ class SurahCard extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
 
-                // Right side: Arabic name + arrow
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      surah.nameArabic,
-                      textAlign: TextAlign.right,
-                      textDirection: TextDirection.rtl,
-                      style: AppArabicStyles.surahName.copyWith(
-                        color: colors.textPrimary,
-                        height: 1.4,
+                // Right side: Arabic name + arrow. Flexible + single-line
+                // ellipsis (hardening, 320dp probe evidence): on >=390dp the
+                // name fits so rendering is pixel-identical; narrow screens
+                // now degrade to ellipsis instead of a RenderFlex overflow
+                // (the probe measured +256px in test metrics).
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        surah.nameArabic,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        textDirection: TextDirection.rtl,
+                        style: AppArabicStyles.surahName.copyWith(
+                          color: colors.textPrimary,
+                          height: 1.4,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 15,
-                      color: colors.textTertiary,
-                    ),
-                  ],
+                      const SizedBox(height: AppSpacing.sm),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 15,
+                        color: colors.textTertiary,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

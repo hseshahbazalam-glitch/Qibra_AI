@@ -103,14 +103,29 @@ void main() {
           ),
         ));
         await tester.pump();
+        final eLoad = tester.takeException();
+        if (eLoad != null) {
+          // ignore: avoid_print
+          print('::error::DIAG-STEP load -> ${eLoad.toString().replaceAll('\n', ' ~ ')}');
+        }
         await tester.pump(const Duration(milliseconds: 400));
+        final eSettled = tester.takeException();
+        if (eSettled != null) {
+          // ignore: avoid_print
+          print('::error::DIAG-STEP settled -> ${eSettled.toString().replaceAll('\n', ' ~ ')}');
+        }
 
         // Unmount = dispose(): the exact back-navigation moment the
         // device threw on.
         await tester.pumpWidget(const SizedBox());
         await tester.pump(const Duration(milliseconds: 100));
         final ePost = tester.takeException();
-        expect(ePost, isNull, reason: 'EXC-POST $ePost');
+        if (ePost != null) {
+          // ignore: avoid_print
+          print('::error::DIAG-STEP post -> ${ePost.toString().replaceAll('\n', ' ~ ')}');
+        }
+        expect(ePost ?? eLoad ?? eSettled, isNull,
+            reason: 'no ref-after-dispose on the exit path');
 
         final prefs = await SharedPreferences.getInstance();
         final raw = prefs.getString('last_read_position');
