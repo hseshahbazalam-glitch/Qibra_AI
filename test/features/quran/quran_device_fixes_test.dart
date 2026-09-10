@@ -34,8 +34,9 @@ Future<void> guard(String name, Future<void> Function() body) async {
     await body();
   } catch (e, st) {
     final head = st.toString().split('\n').take(3).join(' | ');
+    // Annotations stop at the first newline — flatten the whole message.
     // ignore: avoid_print
-    print('::error::DIAG $name -> $e || $head');
+    print('::error::DIAG $name -> ${'$e'.replaceAll('\n', ' ~ ')} || ${'$head'.replaceAll('\n', ' ~ ')}');
     rethrow;
   }
 }
