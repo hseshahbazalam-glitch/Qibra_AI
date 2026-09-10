@@ -10,7 +10,6 @@
 // authoring sandbox; annotations are the only readable channel).
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,7 +48,7 @@ Future<void> guard(String name, Future<void> Function() body) async {
 /// packages: FontLoader is dart:ui).
 Future<void> loadAppTestFonts() async {
   Future<void> faces(String family, List<String> paths) async {
-    final loader = ui.FontLoader(family);
+    final loader = FontLoader(family);
     for (final path in paths) {
       final bytes = File(path).readAsBytesSync();
       loader.addFont(Future.value(ByteData.view(bytes.buffer)));
@@ -232,12 +231,12 @@ void main() {
       await guard('card-probe', () async {
         final raw = File('assets/data/quran/surah_info.json')
             .readAsStringSync();
-        final decoded = jsonDecode(raw);
-        final data = decoded is Map
-            ? decoded['data'] as List
-            : decoded as List;
+        final Object? decoded = jsonDecode(raw);
+        final List<dynamic> data = decoded is Map<String, dynamic>
+            ? decoded['data'] as List<dynamic>
+            : decoded as List<dynamic>;
         final list = data
-            .map((e) => (e as Map)['name'] as String? ?? '')
+            .map((e) => (e as Map<String, dynamic>)['name'] as String? ?? '')
             .toList();
         final longest = list.fold<String>(
             '', (a, b) => b.length > a.length ? b : a);
