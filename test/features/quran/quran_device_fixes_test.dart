@@ -10,6 +10,7 @@
 // authoring sandbox; annotations are the only readable channel).
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,8 +42,36 @@ Future<void> guard(String name, Future<void> Function() body) async {
   }
 }
 
+/// flutter test renders with the Ahem placeholder font (no metrics from
+/// pubspec fonts) — widths inflate massively and 'overflow' verdicts
+/// become artifacts. Load the app's REAL bundled fonts so every pump in
+/// this file measures the same layout a device does (app fonts, no new
+/// packages: FontLoader is dart:ui).
+Future<void> loadAppTestFonts() async {
+  Future<void> faces(String family, List<String> paths) async {
+    final loader = ui.FontLoader(family);
+    for (final path in paths) {
+      final bytes = File(path).readAsBytesSync();
+      loader.addFont(Future.value(ByteData.view(bytes.buffer)));
+    }
+    await loader.load();
+  }
+
+  await faces('Inter', [
+    for (final w in [
+      'Light', 'Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold', 'Black',
+    ])
+      'assets/fonts/Inter-$w.ttf',
+  ]);
+  await faces('Amiri', [
+    'assets/fonts/Amiri-Regular.ttf',
+    'assets/fonts/Amiri-Bold.ttf',
+  ]);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadAppTestFonts);
 
   group('bug A — ref-free dispose persistence', () {
     test('source guard: _persistLastRead uses zero ref; dispose keeps it', () {
