@@ -1,12 +1,9 @@
 // Device session 3 — quran reader fixes (BISECT PROBE 2: source guards
 // only; widget groups removed temporarily to isolate the analyze error).
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
-import 'package:qibra_ai/features/quran/presentation/surah_list_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
 
 void main() {
@@ -77,38 +74,4 @@ void main() {
     });
   });
 
-  group('hardening probe — SurahCard @320dp, longest bundled Arabic name', () {
-    testWidgets('current layout does NOT overflow: no fix applied',
-        (tester) async {
-      final raw = File('assets/data/quran/surah_info.json').readAsStringSync();
-      final list = (jsonDecode(raw) as List)
-          .cast<Map<String, dynamic>>()
-          .map((e) => e['name'] as String? ?? '')
-          .toList();
-      final longest =
-          list.fold<String>('', (a, b) => b.length > a.length ? b : a);
-      expect(longest.isNotEmpty, isTrue);
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: SizedBox(
-            width: 320,
-            child: SurahCard(
-              surah: const SurahInfoModel(
-                number: 3,
-                name: 'Aal-i-Imraan',
-                nameArabic: '',
-                englishNameTranslation: 'The Family of Imran',
-                revelationType: 'Medinan',
-                numberOfAyahs: 200,
-              ),
-              revelationColor: const Color(0xFF2ED39A),
-              revelationLabel: 'Medinan',
-              onTap: () {},
-            ),
-          ),
-        ),
-      ));
-      expect(tester.takeException(), isNull);
-    });
-  });
 }
