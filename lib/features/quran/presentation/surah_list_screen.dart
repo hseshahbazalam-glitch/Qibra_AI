@@ -751,11 +751,19 @@ class SurahCard extends StatelessWidget {
                             color: colors.textTertiary,
                           ),
                           const SizedBox(width: 5),
-                          Text(
-                            '${surah.numberOfAyahs} Ayahs',
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: colors.textSecondary,
-                              fontWeight: FontWeight.w700,
+                          // Flexible + ellipsis (hardening mate of the
+                          // Arabic-column wrap): keeps the row coherent at
+                          // 320dp where the widest names squeeze the center
+                          // column; a no-op at >=390dp (intrinsic fits).
+                          Flexible(
+                            child: Text(
+                              '${surah.numberOfAyahs} Ayahs',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: colors.textSecondary,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                           const SizedBox(width: AppSpacing.md),
