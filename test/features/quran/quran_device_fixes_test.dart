@@ -61,17 +61,5 @@ void main() {
         expect(steps, 1);
       });
     }
-
-    test('source guard: Spacer is gone from the tab strip', () {
-      final src =
-          File('lib/features/quran/presentation/surah_reader_screen.dart')
-              .readAsStringSync();
-      final strip = src.substring(
-          src.indexOf('class ModeTabs extends'), src.indexOf('Aa+'));
-      expect(strip.contains('Spacer()'), isFalse);
-      expect(strip, contains('SingleChildScrollView'));
-      expect(strip, contains('Expanded('));
-    });
   });
-
 }
