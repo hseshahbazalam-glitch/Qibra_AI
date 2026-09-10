@@ -12,6 +12,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+// FontLoader is a services-library class — NOT re-exported by
+// material/widgets (that rumor cost two analyze cycles).
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
@@ -45,7 +48,7 @@ Future<void> guard(String name, Future<void> Function() body) async {
 /// pubspec fonts) — widths inflate massively and 'overflow' verdicts
 /// become artifacts. Load the app's REAL bundled fonts so every pump in
 /// this file measures the same layout a device does (app fonts, no new
-/// packages: FontLoader is dart:ui).
+/// packages: FontLoader is flutter/services).
 Future<void> loadAppTestFonts() async {
   Future<void> faces(String family, List<String> paths) async {
     final loader = FontLoader(family);
