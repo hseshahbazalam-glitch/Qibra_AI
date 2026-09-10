@@ -102,11 +102,7 @@ void main() {
         await tester.pumpWidget(const SizedBox());
         await tester.pump(const Duration(milliseconds: 100));
         final ePost = tester.takeException();
-        if (ePost != null) {
-          // ignore: avoid_print
-          print('::error::DIAG-EXC post-unmount -> $ePost');
-        }
-        expect(ePost, isNull, reason: 'no ref-after-dispose on the exit path');
+        expect(ePost, isNull, reason: 'EXC-POST $ePost');
 
         final prefs = await SharedPreferences.getInstance();
         final raw = prefs.getString('last_read_position');
@@ -147,11 +143,7 @@ void main() {
             ),
           ));
           final eTabs = tester.takeException();
-          if (eTabs != null) {
-            // ignore: avoid_print
-            print('::error::DIAG-EXC tabs-${w.toInt()} -> $eTabs');
-          }
-          expect(eTabs, isNull);
+          expect(eTabs, isNull, reason: 'EXC-TABS $eTabs');
           for (final label in [
             'Arabic',
             'Translation',
@@ -188,8 +180,11 @@ void main() {
       await guard('card-probe', () async {
         final raw = File('assets/data/quran/surah_info.json')
             .readAsStringSync();
-        final dynamic d = jsonDecode(raw);
-        final list = ((d is List ? d : (d['data'] as List)) as List)
+        final decoded = jsonDecode(raw);
+        final data = decoded is Map
+            ? decoded['data'] as List
+            : decoded as List;
+        final list = data
             .map((e) => (e as Map)['name'] as String? ?? '')
             .toList();
         final longest = list.fold<String>(
@@ -220,15 +215,11 @@ void main() {
             ),
           ),
         ));
-        final eCard = tester.takeException();
-        if (eCard != null) {
-          // ignore: avoid_print
-          print('::error::DIAG-EXC card -> $eCard');
-        }
         // VERDICT EVIDENCE: passes untouched (un-flexed Arabic column is
         // safe at 320dp — Expanded center absorbs first). This pump stays
         // as the permanent tripwire if that ever changes.
-        expect(eCard, isNull);
+        final eCard = tester.takeException();
+        expect(eCard, isNull, reason: 'EXC-CARD $eCard');
       });
     });
   });
