@@ -20,7 +20,6 @@ import 'package:qibra_ai/core/content/word_by_word.dart';
 import '../data/tafsir_bundle.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
@@ -469,7 +468,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppStrings.of(context).goBack),
+            child: const Text('Go Back'),
           ),
         ],
       ),
@@ -497,7 +496,7 @@ class _TranslationTab extends ConsumerWidget {
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
-      return Center(child: Text(AppStrings.of(context).ayahNotFound));
+      return const Center(child: Text('Ayah not found'));
     }
 
     return SingleChildScrollView(
@@ -597,8 +596,8 @@ class _TranslationTab extends ConsumerWidget {
               ));
               HapticFeedback.mediumImpact();
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(AppStrings.of(context).copiedToClipboard),
+                const SnackBar(
+                  content: Text('Copied to clipboard'),
                   duration: Duration(seconds: 1),
                 ),
               );
@@ -701,7 +700,7 @@ class _TafsirTab extends ConsumerWidget {
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
-      return Center(child: Text(AppStrings.of(context).ayahNotFound));
+      return const Center(child: Text('Ayah not found'));
     }
 
     final tafsirAsync = ref.watch(tafsirBundleProvider);
@@ -890,7 +889,7 @@ class _WordByWordTab extends StatelessWidget {
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
-      return Center(child: Text(AppStrings.of(context).ayahNotFound));
+      return const Center(child: Text('Ayah not found'));
     }
 
     final words = WordByWordResolver.tokenize(ayah.text);

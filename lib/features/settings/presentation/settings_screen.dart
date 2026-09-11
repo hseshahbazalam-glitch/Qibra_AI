@@ -994,7 +994,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(AppStrings.of(context).close, style: TextStyle(color: colors.textSecondary)),
+            child: Text('Close', style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1016,7 +1016,7 @@ class SettingsScreen extends ConsumerWidget {
                 );
               }
             },
-            child: Text(AppStrings.of(context).copyUrl),
+            child: const Text('Copy URL'),
           ),
         ],
       ),
@@ -1050,7 +1050,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(AppStrings.of(context).cancel, style: TextStyle(color: colors.textSecondary)),
+            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1073,7 +1073,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               );
             },
-            child: Text(AppStrings.of(context).deleteLocalData),
+            child: const Text('Delete local data'),
           ),
         ],
       ),
@@ -1159,7 +1159,7 @@ class SettingsScreen extends ConsumerWidget {
               Navigator.pop(ctx);
               await ref.read(authProvider.notifier).logout();
             },
-            child: Text(AppStrings.of(context).logout),
+            child: const Text('Logout'),
           ),
         ],
       ),
