@@ -32,8 +32,6 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    # TEMP(i18n-diag): route analyzer errors through the test step's compiler
-    - 'lib/features/**'
   language:
     strict-casts: true
     strict-inference: false
