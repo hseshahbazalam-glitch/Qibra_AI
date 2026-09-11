@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class UmrahGuideScreen extends StatefulWidget {
   const UmrahGuideScreen({super.key});
@@ -176,6 +177,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   SliverAppBar _buildAppBar() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 130,
@@ -211,12 +213,12 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                     ),
                     textDirection: TextDirection.rtl,
                   ),
-                  Text('Umrah Guide',
+                  Text(strings.umrahGuide,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.bold)),
-                  Text('Step-by-Step',
+                  Text(strings.stepByStep,
                       style: TextStyle(
                           color: colors.textSecondary,
                           fontSize: 12)),
@@ -230,6 +232,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   Widget _buildOverviewCard() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
@@ -249,12 +252,12 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('The Minor Pilgrimage',
+                  Text(strings.theMinorPilgrimage,
                       style: TextStyle(
                           color: colors.primary,
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
-                  Text('Sunnah Mu\'akkadah',
+                  Text(strings.sunnahMuakkadah,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 18,
@@ -337,6 +340,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   Widget _buildStepCard(_UmrahStep step, int index) {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final isExpanded = _expandedIndex == index;
 
@@ -377,7 +381,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Step ${step.number}',
+                      Text(strings.stepNumber(step.number),
                           style: TextStyle(
                               color: step.color,
                               fontSize: 11,
@@ -517,6 +521,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
   }
 
   Widget _buildIslamicNote() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -533,7 +538,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
             children: [
               Icon(Icons.menu_book_rounded, size: 14, color: colors.primary),
               SizedBox(width: 8),
-              Text('Hadith',
+              Text(strings.hadithLabel,
                   style: TextStyle(
                       color: colors.primary,
                       fontSize: 12,

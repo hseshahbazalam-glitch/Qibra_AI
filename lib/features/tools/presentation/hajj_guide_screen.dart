@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class HajjGuideScreen extends StatefulWidget {
   const HajjGuideScreen({super.key});
@@ -204,6 +205,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   SliverAppBar _buildAppBar() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 130,
@@ -241,12 +243,12 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                     ),
                     textDirection: TextDirection.rtl,
                   ),
-                  Text('Hajj Guide',
+                  Text(strings.hajjGuide,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.bold)),
-                  Text('Complete Step-by-Step',
+                  Text(strings.completeStepByStep,
                       style:
                           TextStyle(color: colors.textSecondary, fontSize: 12)),
                 ],
@@ -259,6 +261,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
   }
 
   Widget _buildOverviewCard() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
@@ -277,12 +280,12 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('The Fifth Pillar',
+                  Text(strings.theFifthPillar,
                       style: TextStyle(
                           color: colors.accent,
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
-                  Text('of Islam',
+                  Text(strings.ofIslam,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 18,

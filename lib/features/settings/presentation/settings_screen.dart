@@ -970,6 +970,7 @@ class SettingsScreen extends ConsumerWidget {
     required String url,
   }) {
     final colors = QibraColors.of(context);
+    final strings = AppStrings.of(context);
     HapticFeedback.lightImpact();
     showDialog<void>(
       context: context,
@@ -994,7 +995,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Close', style: TextStyle(color: colors.textSecondary)),
+            child: Text(strings.close, style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1016,7 +1017,7 @@ class SettingsScreen extends ConsumerWidget {
                 );
               }
             },
-            child: const Text('Copy URL'),
+            child: Text(strings.copyUrl),
           ),
         ],
       ),
@@ -1024,6 +1025,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showDeleteLocalDataDialog(BuildContext context, WidgetRef ref) {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     showDialog<void>(
       context: context,
@@ -1050,7 +1052,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+            child: Text(strings.cancel, style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1073,7 +1075,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               );
             },
-            child: const Text('Delete local data'),
+            child: Text(strings.deleteLocalData),
           ),
         ],
       ),
@@ -1110,6 +1112,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     showDialog(
       context: context,
@@ -1159,7 +1162,7 @@ class SettingsScreen extends ConsumerWidget {
               Navigator.pop(ctx);
               await ref.read(authProvider.notifier).logout();
             },
-            child: const Text('Logout'),
+            child: Text(strings.logout),
           ),
         ],
       ),

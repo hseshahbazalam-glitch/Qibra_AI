@@ -20,6 +20,7 @@ import 'package:qibra_ai/core/content/word_by_word.dart';
 import '../data/tafsir_bundle.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
@@ -454,6 +455,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
   }
 
   Widget _buildError(String message) {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Center(
       child: Column(
@@ -468,7 +470,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(strings.goBack),
           ),
         ],
       ),
@@ -491,12 +493,13 @@ class _TranslationTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final fontSize = ref.watch(_tafsirFontSizeProvider);
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
-      return const Center(child: Text('Ayah not found'));
+      return Center(child: Text(strings.ayahNotFound));
     }
 
     return SingleChildScrollView(
@@ -596,8 +599,8 @@ class _TranslationTab extends ConsumerWidget {
               ));
               HapticFeedback.mediumImpact();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Copied to clipboard'),
+                SnackBar(
+                  content: Text(strings.copiedToClipboard),
                   duration: Duration(seconds: 1),
                 ),
               );
@@ -695,12 +698,13 @@ class _TafsirTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final fontSize = ref.watch(_tafsirFontSizeProvider);
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
-      return const Center(child: Text('Ayah not found'));
+      return Center(child: Text(strings.ayahNotFound));
     }
 
     final tafsirAsync = ref.watch(tafsirBundleProvider);
@@ -885,11 +889,12 @@ class _WordByWordTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
-      return const Center(child: Text('Ayah not found'));
+      return Center(child: Text(strings.ayahNotFound));
     }
 
     final words = WordByWordResolver.tokenize(ayah.text);

@@ -30,6 +30,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Spouse Section ─────────────────────────────────────────
   Widget _buildSpouseSection() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -41,7 +42,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Spouse',
+          Text(strings.spouse,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -64,6 +65,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Parents Section ────────────────────────────────────────
   Widget _buildParentsSection() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -75,7 +77,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Parents & Grandparents',
+          Text(strings.parentsAndGrandparents,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -98,6 +100,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Children Section ───────────────────────────────────────
   Widget _buildChildrenSection() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -109,7 +112,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Children & Grandchildren',
+          Text(strings.childrenAndGrandchildren,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -132,6 +135,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Siblings Section ───────────────────────────────────────
   Widget _buildSiblingsSection() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -143,7 +147,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Full Siblings',
+          Text(strings.fullSiblings,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -160,6 +164,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Half Siblings Section (NEW — FIXED) ────────────────────
   Widget _buildHalfSiblingsSection() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -171,13 +176,13 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Half Siblings',
+          Text(strings.halfSiblings,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          Text('Paternal (same father)',
+          Text(strings.paternalSameFather,
               style: TextStyle(
                   color: colors.textTertiary,
                   fontSize: 10)),
@@ -192,7 +197,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           _counterRow('Paternal Half Sisters', _halfSistersFather, 0, 20,
               (v) => _patchUi(() => _halfSistersFather = v), colors.accent),
           const SizedBox(height: 8),
-          Text('Maternal (same mother)',
+          Text(strings.maternalSameMother,
               style: TextStyle(
                   color: colors.textTertiary,
                   fontSize: 10)),
@@ -208,6 +213,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Other Section ──────────────────────────────────────────
   Widget _buildOtherSection() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -219,7 +225,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Other Relatives',
+          Text(strings.otherRelatives,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -347,6 +353,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Calculate Button ───────────────────────────────────────
   Widget _buildCalculateButton() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final enabled = _understood;
     return GestureDetector(
@@ -374,7 +381,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                   color: enabled ? colors.onPrimary : colors.textSecondary,
                   size: 22),
               const SizedBox(width: 10),
-              Text('Calculate Shares',
+              Text(strings.calculateShares,
                   style: TextStyle(
                       color: enabled ? colors.onPrimary : colors.textSecondary,
                       fontSize: 16,
@@ -392,6 +399,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Result Summary ─────────────────────────────────────────
   Widget _buildResultSummary() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final debt = double.tryParse(_debtController.text) ?? 0;
     final wasiyyah = double.tryParse(_wasiyyahController.text) ?? 0;
@@ -408,7 +416,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       ),
       child: Column(
         children: [
-          Text('DISTRIBUTION SUMMARY',
+          Text(strings.distributionSummary,
               style: TextStyle(
                   color: colors.primarySoft,
                   fontSize: 11,
@@ -568,6 +576,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Pie Chart ──────────────────────────────────────────────
   Widget _buildPieChart() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     if (_results.isEmpty) return const SizedBox.shrink();
     final total = _results.fold<double>(0, (s, r) => s + r.amount);
@@ -581,7 +590,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       ),
       child: Column(
         children: [
-          Text('VISUAL BREAKDOWN',
+          Text(strings.visualBreakdown,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 10,
@@ -625,6 +634,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Reset Button ───────────────────────────────────────────
   Widget _buildResetButton() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: _resetAll,
@@ -642,7 +652,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
             Icon(Icons.refresh_rounded,
                 color: colors.textTertiary, size: 18),
             const SizedBox(width: 8),
-            Text('Reset All',
+            Text(strings.resetAll,
                 style: TextStyle(
                     color: colors.textSecondary,
                     fontSize: 14,
@@ -655,6 +665,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
 
   // ─── Islamic Note ───────────────────────────────────────────
   Widget _buildIslamicNote() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -670,7 +681,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
             children: [
               Icon(Icons.menu_book_rounded, size: 14),
               SizedBox(width: 8),
-              Text('Quran Reference',
+              Text(strings.quranReference,
                   style: TextStyle(
                       color: colors.primarySoft,
                       fontSize: 12,

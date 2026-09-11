@@ -1173,6 +1173,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final prefs = ref.watch(readingPreferencesProvider);
     return SafeArea(
@@ -1191,7 +1192,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             AppSwitchListTile(
-              title: const Text('Show translation'),
+              title: Text(strings.showTranslation),
               subtitle: Text(
                 'Display the bundled translation under the Arabic.',
                 style: AppTextStyles.bodySmall
@@ -1203,7 +1204,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                   .setShowTranslation(v),
             ),
             AppSwitchListTile(
-              title: const Text('Show transliteration'),
+              title: Text(strings.showTransliteration),
               subtitle: Text(
                 'Only where a roman edition exists in the bundle.',
                 style: AppTextStyles.bodySmall

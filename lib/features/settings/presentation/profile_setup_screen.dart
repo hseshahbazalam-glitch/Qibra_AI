@@ -21,6 +21,7 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 part 'profile_setup_form.dart';
 
@@ -377,6 +378,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   ///   • failure (permission denied, copy error) → the real error text is
   ///     shown and the stored avatar state stays exactly as it was.
   Future<void> pickAvatar(ImageSource source) async {
+    final strings = AppStrings.of(context);
     try {
       final picked = await ImagePicker().pickImage(source: source);
       if (picked == null) return; // user cancelled — no toast, no state change
@@ -432,7 +434,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       final colors = QibraColors.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Avatar not changed — $e'),
+          content: Text(strings.avatarNotChanged('$e')),
           backgroundColor: colors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -446,6 +448,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   /// Delete the stored file first; only on a real delete does the UI
   /// drop the avatar. A failed delete keeps the avatar (the file exists).
   Future<void> _removeAvatar() async {
+    final strings = AppStrings.of(context);
     final path = _avatarPath;
     if (path == null) return;
     try {
@@ -457,7 +460,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       final colors = QibraColors.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Photo still stored — delete failed: $e'),
+          content: Text(strings.photoDeleteFailed('$e')),
           backgroundColor: colors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -622,6 +625,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ── HANDLERS ─────────────────────────────────────────
 
   Future<void> _handleSave() async {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     if (!_formKey.currentState!.validate()) {
       HapticFeedback.heavyImpact();
@@ -638,7 +642,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         HapticFeedback.heavyImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
                 Icon(
                   Icons.check_circle,
@@ -646,7 +650,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                   size: 20,
                 ),
                 SizedBox(width: AppSpacing.sm),
-                Text('Profile setup complete!'),
+                Text(strings.profileSetupComplete),
               ],
             ),
             backgroundColor: colors.success,

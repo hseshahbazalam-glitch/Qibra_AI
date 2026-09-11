@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import '../services/halal_service.dart';
 import '../services/scan_history_service.dart';
 
@@ -243,6 +244,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
 
   // ─── App Bar ────────────────────────────────────────────────
   Widget _buildAppBarArea() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: EdgeInsets.only(
@@ -279,7 +281,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                       color: colors.primary,
                     ),
                     textDirection: TextDirection.rtl),
-                Text('Halal Scanner V2',
+                Text(strings.halalScannerV2,
                     style: TextStyle(
                         color: colors.textPrimary,
                         fontSize: 18,
@@ -298,7 +300,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
               children: [
                 Icon(Icons.verified_rounded, color: colors.primary, size: 12),
                 SizedBox(width: 4),
-                Text('PRO',
+                Text(strings.proBadge,
                     style: TextStyle(
                         color: colors.primary,
                         fontSize: 10,
@@ -406,6 +408,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   // TAB 2: OCR
   // ═══════════════════════════════════════════════════════════
   Widget _buildOCRTab() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -440,7 +443,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                   Icon(Icons.photo_camera_rounded,
                       size: 40, color: colors.primary),
                   const SizedBox(height: 12),
-                  Text('Scan Ingredients Label',
+                  Text(strings.scanIngredientsLabel,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 16,
@@ -481,7 +484,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                       Icon(Icons.text_snippet_rounded,
                           color: colors.primary, size: 14),
                       const SizedBox(width: 8),
-                      Text('DETECTED TEXT',
+                      Text(strings.detectedText,
                           style: TextStyle(
                               color: colors.textSecondary,
                               fontSize: 10,
@@ -669,6 +672,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   // TAB 4: HISTORY
   // ═══════════════════════════════════════════════════════════
   Widget _buildHistoryTab() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     if (_history.isEmpty) {
       return Center(
@@ -677,12 +681,12 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           children: [
             Icon(Icons.history_rounded, size: 40, color: colors.textSecondary),
             const SizedBox(height: 12),
-            Text('No Scan History',
+            Text(strings.noScanHistory,
                 style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700)),
-            Text('Your scanned products will appear here',
+            Text(strings.scannedProductsAppearHere,
                 style: TextStyle(color: colors.textSecondary, fontSize: 12)),
           ],
         ),
@@ -706,7 +710,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                     await ScanHistoryService.clearHistory();
                     _loadHistory();
                   },
-                  child: Text('Clear All',
+                  child: Text(strings.clearAll,
                       style: TextStyle(
                           color: colors.error,
                           fontSize: 12,
@@ -785,6 +789,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   // ═══════════════════════════════════════════════════════════
 
   Widget _buildCameraView() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       height: 280,
@@ -839,7 +844,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                                   _torchOn ? colors.accent : colors.textPrimary,
                               size: 16),
                           const SizedBox(width: 6),
-                          Text('Point at barcode',
+                          Text(strings.pointAtBarcode,
                               style: TextStyle(
                                   color:
                                       colors.textPrimary.withValues(alpha: 0.7),
@@ -858,6 +863,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildLoadingView() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(40),
@@ -870,13 +876,13 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                 color: colors.primary, strokeWidth: 3),
           ),
           const SizedBox(height: 16),
-          Text('Analyzing Product...',
+          Text(strings.analyzingProduct,
               style: TextStyle(
                   color: colors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          Text('Checking 100+ ingredients & E-codes',
+          Text(strings.checkingIngredientsAndEcodes,
               style: TextStyle(color: colors.textSecondary, fontSize: 12)),
         ],
       ),
@@ -921,6 +927,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildProductDetails() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final p = _productData!;
     return Container(
@@ -937,7 +944,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             children: [
               Icon(Icons.info_outline_rounded, color: colors.primary, size: 14),
               const SizedBox(width: 8),
-              Text('PRODUCT DETAILS',
+              Text(strings.productDetails,
                   style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 10,
@@ -989,6 +996,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildIngredientsAnalysis() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final v = _verdict!;
     if (v.haramIngredients.isEmpty &&
@@ -1011,7 +1019,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             children: [
               Icon(Icons.science_rounded, color: colors.primary, size: 14),
               const SizedBox(width: 8),
-              Text('INGREDIENTS ANALYSIS',
+              Text(strings.ingredientsAnalysis,
                   style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 10,
@@ -1056,6 +1064,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildWarningsCard() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final warnings = _verdict?.warnings ?? [];
     if (warnings.isEmpty) return const SizedBox.shrink();
@@ -1074,7 +1083,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             children: [
               Icon(Icons.warning_amber_rounded, color: colors.accent, size: 14),
               const SizedBox(width: 8),
-              Text('WARNINGS',
+              Text(strings.warnings,
                   style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 10,
@@ -1104,6 +1113,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildRecommendationsCard() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final recs = _verdict?.recommendations ?? [];
     if (recs.isEmpty) return const SizedBox.shrink();
@@ -1123,7 +1133,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
               Icon(Icons.lightbulb_outline_rounded,
                   color: colors.primary, size: 14),
               const SizedBox(width: 8),
-              Text('RECOMMENDATIONS',
+              Text(strings.recommendations,
                   style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 10,
@@ -1153,6 +1163,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
   }
 
   Widget _buildScanAgainButton() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return GestureDetector(
       onTap: _resetScan,
@@ -1169,7 +1180,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             Icon(Icons.qr_code_scanner_rounded,
                 color: colors.onPrimary, size: 22),
             SizedBox(width: 10),
-            Text('Scan Again',
+            Text(strings.scanAgain,
                 style: TextStyle(
                     color: colors.onPrimary,
                     fontSize: 16,

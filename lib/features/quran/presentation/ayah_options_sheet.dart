@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qibra_ai/features/ai/presentation/ai_explain_screen.dart';
@@ -552,6 +553,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
 
   // ADD NOTE (Real - opens dialog)
   Future<void> _addNote() async {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     Navigator.pop(context);
     final noteKey = 'note_${widget.surahNumber}_${widget.ayahNumber}';
@@ -626,7 +628,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                 _showToast('Note saved');
               }
             },
-            child: const Text('Save'),
+            child: Text(strings.save),
           ),
         ],
       ),

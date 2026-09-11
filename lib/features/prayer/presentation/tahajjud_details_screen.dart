@@ -9,6 +9,7 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import '../data/models/prayer_models.dart';
 import '../providers/prayer_provider.dart';
 
@@ -842,6 +843,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
   }
 
   void _showAlarmSetDialog() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     showDialog(
       context: context,
@@ -880,7 +882,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               foregroundColor: colors.onPrimary,
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+            child: Text(strings.okLabel),
           ),
         ],
       ),

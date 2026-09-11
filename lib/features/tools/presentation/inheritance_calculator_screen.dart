@@ -4,6 +4,7 @@ import 'package:qibra_ai/core/a11y/app_a11y.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import '../logic/inheritance_estimator.dart';
 import 'package:flutter/services.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'dart:math';
 
 part 'inheritance_results.dart';
@@ -825,6 +826,7 @@ class _InheritanceCalculatorScreenState
 
   // ─── Safety Gate — Phase 4: Mandatory confirmation ─────────────
   Widget _buildSafetyGate() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -842,7 +844,7 @@ class _InheritanceCalculatorScreenState
           Row(
             children: [
               Expanded(
-                child: Text('Calculation Method',
+                child: Text(strings.calculationMethod,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 12,
@@ -868,13 +870,13 @@ class _InheritanceCalculatorScreenState
                     items: const [
                       DropdownMenuItem(
                           value: 'Hanafi',
-                          child: Text('Sunni / Hanafi (reference)')),
+                          child: Text(strings.sunniHanafiReference)),
                       DropdownMenuItem(
-                          value: 'Shafi', child: Text('Sunni / Shafi\'i')),
+                          value: 'Shafi', child: Text(strings.sunniShafi)),
                       DropdownMenuItem(
-                          value: 'Maliki', child: Text('Sunni / Maliki')),
+                          value: 'Maliki', child: Text(strings.sunniMaliki)),
                       DropdownMenuItem(
-                          value: 'Hanbali', child: Text('Sunni / Hanbali')),
+                          value: 'Hanbali', child: Text(strings.sunniHanbali)),
                     ],
                     onChanged: (v) {
                       if (v == null) return;
@@ -937,6 +939,7 @@ class _InheritanceCalculatorScreenState
 
   // ─── App Bar ────────────────────────────────────────────────
   SliverAppBar _buildAppBar() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return SliverAppBar(
       expandedHeight: 130,
@@ -975,12 +978,12 @@ class _InheritanceCalculatorScreenState
                     ),
                     textDirection: TextDirection.rtl,
                   ),
-                  Text('Inheritance Calculator',
+                  Text(strings.inheritanceCalculator,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
-                  Text('Islamic Law of Succession',
+                  Text(strings.islamicLawOfSuccession,
                       style: TextStyle(
                           color: colors.textSecondary,
                           fontSize: 12)),
@@ -995,6 +998,7 @@ class _InheritanceCalculatorScreenState
 
   // ─── Info Card ──────────────────────────────────────────────
   Widget _buildInfoCard() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1019,7 +1023,7 @@ class _InheritanceCalculatorScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('How It Works',
+                Text(strings.howItWorks,
                     style: TextStyle(
                         color: colors.primarySoft,
                         fontSize: 13,
@@ -1044,10 +1048,11 @@ class _InheritanceCalculatorScreenState
 
   // ─── Deceased Gender ────────────────────────────────────────
   Widget _buildDeceasedGender() {
+    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     return Row(
       children: [
-        Text('Deceased:',
+        Text(strings.deceasedLabel,
             style: TextStyle(
                 color: colors.textSecondary,
                 fontSize: 12,
