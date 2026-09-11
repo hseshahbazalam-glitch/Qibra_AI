@@ -283,7 +283,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                           color: colors.accent,
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
-                  Text('of Islam',
+                  Text(AppStrings.of(context).ofIslam,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 18,
