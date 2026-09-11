@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
@@ -687,7 +686,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         const Divider(height: 20),
                         AppSwitchListTile(
                           activeColor: QibraNavy.emerald,
-                          title: Text(AppStrings.of(context).arabicTextSection,
+                          title: const Text('Arabic Text (عربي)',
                               style: TextStyle(
                                   color: QibraNavy.textPrimary,
                                   fontSize: 14)),
@@ -817,8 +816,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         .valueOrNull;
     if (hadiths == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(AppStrings.of(context).collectionStillLoading)),
+        const SnackBar(
+            content: Text('This collection is still loading — try again in a moment.')),
       );
       return;
     }
@@ -874,9 +873,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         HadithDatabaseService().getHadith(widget.book.slug, widget.focusHadithNumber);
     if (local == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content:
-                Text(AppStrings.of(context).thatBookmarkNotBundled)),
+                Text('That bookmark is not in the bundled data on this device.')),
       );
       return;
     }
@@ -1063,8 +1062,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Clipboard.setData(ClipboardData(text: text));
                         HapticFeedback.lightImpact();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(AppStrings.of(context).hadithCopiedToClipboard),
+                          const SnackBar(
+                              content: Text('Hadith copied to clipboard'),
                               backgroundColor: QibraNavy.surface),
                         );
                       },
@@ -1214,7 +1213,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             : () => openNeighbour(prevNumber),
                         icon:
                             const Icon(Icons.chevron_left_rounded, size: 18),
-                        label: Text(AppStrings.of(context).previous,
+                        label: const Text('Previous',
                             maxLines: 1, overflow: TextOverflow.ellipsis),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: QibraNavy.textPrimary,
@@ -1241,7 +1240,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             : () => openNeighbour(nextNumber),
                         icon: const Icon(Icons.chevron_right_rounded,
                             size: 18),
-                        label: Text(AppStrings.of(context).next,
+                        label: const Text('Next',
                             maxLines: 1, overflow: TextOverflow.ellipsis),
                       ),
                     ),
@@ -1365,8 +1364,8 @@ class _HadithCard extends ConsumerWidget {
                     Clipboard.setData(ClipboardData(text: shareText));
                     HapticFeedback.lightImpact();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(AppStrings.of(context).hadithCopiedToClipboard),
+                      const SnackBar(
+                          content: Text('Hadith copied to clipboard'),
                           backgroundColor: QibraNavy.surface,
                           duration: Duration(seconds: 1)),
                     );

@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qibra_ai/features/ai/presentation/ai_explain_screen.dart';
@@ -627,7 +626,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
                 _showToast('Note saved');
               }
             },
-            child: Text(AppStrings.of(context).save),
+            child: const Text('Save'),
           ),
         ],
       ),
