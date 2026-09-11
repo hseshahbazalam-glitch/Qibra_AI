@@ -770,7 +770,7 @@ class _BismillahHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Center(
         child: Text(
           'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
@@ -1191,7 +1191,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             AppSwitchListTile(
-              title: Text(AppStrings.of(context).showTranslation),
+              title: const Text('Show translation'),
               subtitle: Text(
                 'Display the bundled translation under the Arabic.',
                 style: AppTextStyles.bodySmall
@@ -1203,7 +1203,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                   .setShowTranslation(v),
             ),
             AppSwitchListTile(
-              title: Text(AppStrings.of(context).showTransliteration),
+              title: const Text('Show transliteration'),
               subtitle: Text(
                 'Only where a roman edition exists in the bundle.',
                 style: AppTextStyles.bodySmall

@@ -662,7 +662,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Icon(
                 Icons.star_rounded,
                 color: colors.accent,
@@ -679,7 +679,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         Text(
           'بَارَكَ اللَّهُ فِيك',
           style: TextStyle(
@@ -690,7 +690,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           textDirection: TextDirection.rtl,
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           'May Allah bless you',
           style: AppTextStyles.labelSmall.copyWith(
@@ -699,7 +699,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 10,
           ),
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         Text(
           '© 2026 Shahbaz Alam',
           style: AppTextStyles.labelSmall.copyWith(
@@ -707,7 +707,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 10,
           ),
         ),
-        SizedBox(height: 2),
+        const SizedBox(height: 2),
         Text(
           'All Rights Reserved',
           style: AppTextStyles.labelSmall.copyWith(
@@ -715,7 +715,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 9,
           ),
         ),
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           'QIBRA AI',
           style: AppTextStyles.labelSmall.copyWith(
@@ -994,7 +994,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(AppStrings.of(context).close, style: TextStyle(color: colors.textSecondary)),
+            child: Text('Close', style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1016,7 +1016,7 @@ class SettingsScreen extends ConsumerWidget {
                 );
               }
             },
-            child: Text(AppStrings.of(context).copyUrl),
+            child: const Text('Copy URL'),
           ),
         ],
       ),
@@ -1050,7 +1050,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(AppStrings.of(context).cancel, style: TextStyle(color: colors.textSecondary)),
+            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1073,7 +1073,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               );
             },
-            child: Text(AppStrings.of(context).deleteLocalData),
+            child: const Text('Delete local data'),
           ),
         ],
       ),
@@ -1159,7 +1159,7 @@ class SettingsScreen extends ConsumerWidget {
               Navigator.pop(ctx);
               await ref.read(authProvider.notifier).logout();
             },
-            child: Text(AppStrings.of(context).logout),
+            child: const Text('Logout'),
           ),
         ],
       ),

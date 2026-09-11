@@ -32,11 +32,6 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    # TEMP(i18n-diag) — REVERTED NEXT CYCLE: blinds the flutter-analyze
-    # gate so the test step can run the probe that reads the real errors
-    # (flutter analyze ignores this exclusion; the probe's own dart-analyze
-    # run strips it at runtime).
-    - 'lib/features/**'
   language:
     strict-casts: true
     strict-inference: false
