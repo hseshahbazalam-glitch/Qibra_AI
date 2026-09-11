@@ -866,7 +866,7 @@ class _InheritanceCalculatorScreenState
                     dropdownColor: colors.card,
                     icon: Icon(Icons.arrow_drop_down_rounded,
                         color: colors.textSecondary, size: 18),
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                           value: 'Hanafi',
                           child: Text(AppStrings.of(context).sunniHanafiReference)),

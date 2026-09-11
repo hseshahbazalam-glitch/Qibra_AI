@@ -301,7 +301,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
                                   _delete(item);
                               }
                             },
-                            itemBuilder: (context) => const [
+                            itemBuilder: (context) => [
                               PopupMenuItem(
                                   value: 'copy', child: Text(AppStrings.of(context).copy)),
                               PopupMenuItem(

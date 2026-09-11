@@ -76,7 +76,7 @@ class AppStrings {
   String get navQuran => _t('Quran', 'القرآن', 'قرآن');
   String get navPrayer => _t('Prayer', 'الصلاة', 'نماز');
   String get navHadith => _t('Hadith', 'الحديث', 'حدیث');
-  String get navAi => _t('AI', 'الذكاء', 'AI');
+  String get navAi => _t('AI', 'الذكاء', 'اے آئی');
   String get navMore => _t('More', 'المزيد', 'مزید');
   String get goHome => _t('Go to Home', 'الذهاب إلى الرئيسية', 'ہوم پر جائیں');
   String get pageNotFound =>
