@@ -32,8 +32,7 @@ void main() {
         pr.kill(ProcessSignal.sigkill);
         return -99;
       });
-      await Future.wait<void>(<Future<void>>[f1, f2])
-          .timeout(const Duration(seconds: 15), onTimeout: () {});
+      await Future.wait<void>(<Future<void>>[f1, f2]);
       final out = '$bo\n$be';
       final lines = out
           .split('\n')
