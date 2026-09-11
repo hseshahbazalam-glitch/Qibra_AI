@@ -11,6 +11,7 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 
@@ -802,9 +803,9 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               const SizedBox(height: 20),
               AppSwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('Enable Adhan',
+                title: Text(AppStrings.of(context).enableAdhan,
                     style: TextStyle(color: colors.textPrimary)),
-                subtitle: Text('Play adhan sound',
+                subtitle: Text(AppStrings.of(context).playAdhanSound,
                     style: TextStyle(
                         color: colors.textSecondary, fontSize: 12)),
                 value: settings.enableAdhan,
@@ -817,9 +818,9 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               ),
               AppSwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('Show Sunrise',
+                title: Text(AppStrings.of(context).showSunrise,
                     style: TextStyle(color: colors.textPrimary)),
-                subtitle: Text('Display sunrise in schedule',
+                subtitle: Text(AppStrings.of(context).displaySunriseInSchedule,
                     style: TextStyle(
                         color: colors.textSecondary, fontSize: 12)),
                 value: settings.showSunrise,
@@ -834,7 +835,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                 contentPadding: EdgeInsets.zero,
                 title: Text('24-Hour Format',
                     style: TextStyle(color: colors.textPrimary)),
-                subtitle: Text('Use 24-hour time',
+                subtitle: Text(AppStrings.of(context).use24HourTime,
                     style: TextStyle(
                         color: colors.textSecondary, fontSize: 12)),
                 value: settings.use24HourFormat,

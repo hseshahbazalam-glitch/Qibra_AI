@@ -22,6 +22,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qibra_ai/core/a11y/app_a11y.dart';
@@ -373,7 +374,7 @@ Juz: ${juz ?? '—'}''';
               foregroundColor: colors.onPrimary,
             ),
             onPressed: () => _goToPage(controller.text, ctx),
-            child: const Text('Go'),
+            child: Text(AppStrings.of(context).goLabel),
           ),
         ],
       ),

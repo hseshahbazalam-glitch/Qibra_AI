@@ -11,6 +11,7 @@ import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import 'package:qibra_ai/shared/widgets/buttons/app_button.dart';
 import 'package:qibra_ai/shared/widgets/media/pattern_backdrop.dart';
@@ -457,7 +458,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () => context.go(AppRoutes.bookmarks),
-              child: Text('View all ${saved.length} saved hadith'),
+              child: Text(AppStrings.of(context).viewAllSavedHadith(saved.length)),
             ),
           ),
       ],
@@ -522,7 +523,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             if (!mounted) return;
             ref.invalidate(hadithHistoryProvider);
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Reading history cleared')),
+              SnackBar(content: Text(AppStrings.of(context).readingHistoryCleared)),
             );
           },
         ),
@@ -551,7 +552,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.lightImpact(); // elevation item 5: success feedback
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Hadith copied')),
+      SnackBar(content: Text(AppStrings.of(context).hadithCopied)),
     );
   }
 
@@ -717,7 +718,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         Navigator.pop(sheetContext);
                         _openBook(context, hadith.bookSlug);
                       },
-                      child: Text('Open ${hadith.bookName}'),
+                      child: Text(AppStrings.of(context).openBook(hadith.bookName)),
                     ),
                     HadithMoreFromChapter(
                       hadith: hadith,
