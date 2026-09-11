@@ -1025,6 +1025,12 @@ for fi in FILES.values():
 _as_path = ROOT / "lib" / "core" / "l10n" / "app_strings.dart"
 _as_code = strip_noise(_as_path.read_text()) if _as_path.is_file() else ""
 _as_defined = set(re.findall(r"\bString\s+get\s+(\w+)", _as_code))
+# I18N phase A: parameterized getters ("String name(sig) => _t(...)") are a
+# code shape that did not exist before it; recognizing it strictly ADDS to
+# the defined set only when the method IS defined with _t — dangling uses
+# keep failing exactly as before.
+_as_defined |= set(re.findall(
+    r"\bString\s+(\w+)\s*\([^)]*\)\s*=>\s*_t\(", _as_code))
 if not _as_defined:
     err("G17", _as_path if _as_path.is_file() else ROOT, 1,
         "no AppStrings getters parsed — the gate would be blind, failing "
