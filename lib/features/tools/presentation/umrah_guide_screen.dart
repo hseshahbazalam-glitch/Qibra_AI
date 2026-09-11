@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class UmrahGuideScreen extends StatefulWidget {
   const UmrahGuideScreen({super.key});
@@ -212,12 +211,12 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                     ),
                     textDirection: TextDirection.rtl,
                   ),
-                  Text(AppStrings.of(context).umrahGuide,
+                  Text('Umrah Guide',
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.bold)),
-                  Text(AppStrings.of(context).stepByStep,
+                  Text('Step-by-Step',
                       style: TextStyle(
                           color: colors.textSecondary,
                           fontSize: 12)),
@@ -250,12 +249,12 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppStrings.of(context).theMinorPilgrimage,
+                  Text('The Minor Pilgrimage',
                       style: TextStyle(
                           color: colors.primary,
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
-                  Text(AppStrings.of(context).sunnahMuakkadah,
+                  Text('Sunnah Mu\'akkadah',
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 18,
@@ -378,7 +377,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(AppStrings.of(context).stepNumber(step.number),
+                      Text('Step ${step.number}',
                           style: TextStyle(
                               color: step.color,
                               fontSize: 11,
@@ -534,7 +533,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
             children: [
               Icon(Icons.menu_book_rounded, size: 14, color: colors.primary),
               SizedBox(width: 8),
-              Text(AppStrings.of(context).hadithLabel,
+              Text('Hadith',
                   style: TextStyle(
                       color: colors.primary,
                       fontSize: 12,

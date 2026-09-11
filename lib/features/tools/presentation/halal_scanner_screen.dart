@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import '../services/halal_service.dart';
 import '../services/scan_history_service.dart';
 
@@ -279,7 +280,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                       color: colors.primary,
                     ),
                     textDirection: TextDirection.rtl),
-                Text('Halal Scanner V2',
+                Text(AppStrings.of(context).halalScannerV2,
                     style: TextStyle(
                         color: colors.textPrimary,
                         fontSize: 18,
@@ -298,7 +299,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
               children: [
                 Icon(Icons.verified_rounded, color: colors.primary, size: 12),
                 SizedBox(width: 4),
-                Text('PRO',
+                Text(AppStrings.of(context).proBadge,
                     style: TextStyle(
                         color: colors.primary,
                         fontSize: 10,
@@ -440,7 +441,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                   Icon(Icons.photo_camera_rounded,
                       size: 40, color: colors.primary),
                   const SizedBox(height: 12),
-                  Text('Scan Ingredients Label',
+                  Text(AppStrings.of(context).scanIngredientsLabel,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 16,
@@ -481,7 +482,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                       Icon(Icons.text_snippet_rounded,
                           color: colors.primary, size: 14),
                       const SizedBox(width: 8),
-                      Text('DETECTED TEXT',
+                      Text(AppStrings.of(context).detectedText,
                           style: TextStyle(
                               color: colors.textSecondary,
                               fontSize: 10,
@@ -677,12 +678,12 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           children: [
             Icon(Icons.history_rounded, size: 40, color: colors.textSecondary),
             const SizedBox(height: 12),
-            Text('No Scan History',
+            Text(AppStrings.of(context).noScanHistory,
                 style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700)),
-            Text('Your scanned products will appear here',
+            Text(AppStrings.of(context).scannedProductsAppearHere,
                 style: TextStyle(color: colors.textSecondary, fontSize: 12)),
           ],
         ),
@@ -706,7 +707,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                     await ScanHistoryService.clearHistory();
                     _loadHistory();
                   },
-                  child: Text('Clear All',
+                  child: Text(AppStrings.of(context).clearAll,
                       style: TextStyle(
                           color: colors.error,
                           fontSize: 12,
@@ -839,7 +840,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                                   _torchOn ? colors.accent : colors.textPrimary,
                               size: 16),
                           const SizedBox(width: 6),
-                          Text('Point at barcode',
+                          Text(AppStrings.of(context).pointAtBarcode,
                               style: TextStyle(
                                   color:
                                       colors.textPrimary.withValues(alpha: 0.7),
@@ -870,13 +871,13 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
                 color: colors.primary, strokeWidth: 3),
           ),
           const SizedBox(height: 16),
-          Text('Analyzing Product...',
+          Text(AppStrings.of(context).analyzingProduct,
               style: TextStyle(
                   color: colors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          Text('Checking 100+ ingredients & E-codes',
+          Text(AppStrings.of(context).checkingIngredientsAndEcodes,
               style: TextStyle(color: colors.textSecondary, fontSize: 12)),
         ],
       ),
@@ -937,7 +938,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             children: [
               Icon(Icons.info_outline_rounded, color: colors.primary, size: 14),
               const SizedBox(width: 8),
-              Text('PRODUCT DETAILS',
+              Text(AppStrings.of(context).productDetails,
                   style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 10,
@@ -1011,7 +1012,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             children: [
               Icon(Icons.science_rounded, color: colors.primary, size: 14),
               const SizedBox(width: 8),
-              Text('INGREDIENTS ANALYSIS',
+              Text(AppStrings.of(context).ingredientsAnalysis,
                   style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 10,
@@ -1074,7 +1075,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             children: [
               Icon(Icons.warning_amber_rounded, color: colors.accent, size: 14),
               const SizedBox(width: 8),
-              Text('WARNINGS',
+              Text(AppStrings.of(context).warnings,
                   style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 10,
@@ -1123,7 +1124,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
               Icon(Icons.lightbulb_outline_rounded,
                   color: colors.primary, size: 14),
               const SizedBox(width: 8),
-              Text('RECOMMENDATIONS',
+              Text(AppStrings.of(context).recommendations,
                   style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 10,
@@ -1169,7 +1170,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
             Icon(Icons.qr_code_scanner_rounded,
                 color: colors.onPrimary, size: 22),
             SizedBox(width: 10),
-            Text('Scan Again',
+            Text(AppStrings.of(context).scanAgain,
                 style: TextStyle(
                     color: colors.onPrimary,
                     fontSize: 16,
