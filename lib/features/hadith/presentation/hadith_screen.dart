@@ -11,7 +11,6 @@ import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import 'package:qibra_ai/shared/widgets/buttons/app_button.dart';
 import 'package:qibra_ai/shared/widgets/media/pattern_backdrop.dart';
@@ -431,7 +430,6 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   // from the on-device corpus, or routes to the collection when that
   // book is not downloaded yet (verified behavior, never a dead card).
   List<Widget> _libraryPane(BuildContext context) {
-    final strings = AppStrings.of(context);
     final saved = ref.watch(hadithBookmarksProvider);
     return [
       QibraSectionHeader(
@@ -459,7 +457,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () => context.go(AppRoutes.bookmarks),
-              child: Text(strings.viewAllSavedHadith(saved.length)),
+              child: Text('View all ${saved.length} saved hadith'),
             ),
           ),
       ],
@@ -511,7 +509,6 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   // nothing while history is empty; the Clear action clears the real
   // store, not just the view.
   Widget _buildRecentlyRead(AsyncValue<List<HadithModel>> history) {
-    final strings = AppStrings.of(context);
     final items = history.valueOrNull ?? const <HadithModel>[];
     if (items.isEmpty) return const SizedBox.shrink();
     return Column(
@@ -525,7 +522,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             if (!mounted) return;
             ref.invalidate(hadithHistoryProvider);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(strings.readingHistoryCleared)),
+              const SnackBar(content: Text('Reading history cleared')),
             );
           },
         ),
@@ -547,7 +544,6 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   }
 
   void _copyHadith(BuildContext context, HadithModel hadith) {
-    final strings = AppStrings.of(context);
     final copyTranslation = hadithTextForLanguage(
         hadith, ref.read(hadithLanguageProvider));
     final text =
@@ -555,12 +551,11 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.lightImpact(); // elevation item 5: success feedback
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(strings.hadithCopied)),
+      const SnackBar(content: Text('Hadith copied')),
     );
   }
 
   void _showDetail(BuildContext context, HadithModel hadith) {
-    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     // P1 · Item 4 — opening a hadith detail (here or in the book
     // reader) is the one true view event; record it in the LRU.
@@ -722,7 +717,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         Navigator.pop(sheetContext);
                         _openBook(context, hadith.bookSlug);
                       },
-                      child: Text(strings.openBook(hadith.bookName)),
+                      child: Text('Open ${hadith.bookName}'),
                     ),
                     HadithMoreFromChapter(
                       hadith: hadith,

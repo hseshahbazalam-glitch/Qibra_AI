@@ -22,7 +22,6 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qibra_ai/core/a11y/app_a11y.dart';
@@ -301,7 +300,6 @@ Juz: ${juz ?? '—'}''';
 
 
   void _showGoToPageSheet() {
-    final strings = AppStrings.of(context);
     HapticFeedback.selectionClick();
     final colors = QibraColors.of(context);
     final controller = TextEditingController();
@@ -375,7 +373,7 @@ Juz: ${juz ?? '—'}''';
               foregroundColor: colors.onPrimary,
             ),
             onPressed: () => _goToPage(controller.text, ctx),
-            child: Text(strings.goLabel),
+            child: const Text('Go'),
           ),
         ],
       ),

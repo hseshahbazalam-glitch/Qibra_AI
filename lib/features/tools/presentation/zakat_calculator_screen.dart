@@ -10,7 +10,6 @@ import 'package:qibra_ai/core/a11y/app_a11y.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import '../logic/zakat_calculator.dart';
 import 'package:flutter/services.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ZakatCalculatorScreen extends StatefulWidget {
@@ -356,7 +355,6 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
   // ─── Nisab Info (P0.3: explicit source, editable price) ──────
 
   Widget _buildNisabInfoCard() {
-    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final double silverPrice = _silverPricePerGram[_currency] ?? 280.0;
     final double nisab = ZakatCalculator.nisabForSilverPrice(silverPrice);
@@ -414,7 +412,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                       Icon(Icons.edit_rounded,
                           color: colors.primary, size: 12),
                       SizedBox(width: 4),
-                      Text(strings.editPrice,
+                      Text('Edit price',
                           style: TextStyle(
                               color: colors.primary,
                               fontSize: 10,
@@ -484,7 +482,6 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
   }
 
   void _showEditSilverPriceDialog() {
-    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     final controller = TextEditingController(
         text: _silverPricePerGram[_currency]?.toString() ?? '');
@@ -493,7 +490,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: colors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(strings.editSilverPrice(_currency),
+        title: Text('Edit Silver Price ($_currency/g)',
             style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: 16,
@@ -534,7 +531,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(strings.cancel,
+            child: Text('Cancel',
                 style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
@@ -544,7 +541,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
               final v = double.tryParse(controller.text);
               if (v == null || v <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(strings.enterValidPrice)));
+                    const SnackBar(content: Text('Enter valid price')));
                 return;
               }
               setState(() => _silverPricePerGram[_currency] = v);
@@ -552,9 +549,9 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content:
-                      Text(strings.silverPriceUpdated(_formatAmount(v)))));
+                      Text('Silver price updated to ${_formatAmount(v)}/g')));
             },
-            child: Text(strings.save,
+            child: Text('Save',
                 style: TextStyle(
                     color: colors.textPrimary, fontWeight: FontWeight.w700)),
           ),

@@ -16,7 +16,6 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_header.dart';
@@ -276,7 +275,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
   // ── REGISTER HANDLER ─────────────────────────────────
   Future<void> _handleRegister() async {
-    final strings = AppStrings.of(context);
     final colors = QibraColors.of(context);
     if (!_formKey.currentState!.validate()) {
       HapticFeedback.heavyImpact();
@@ -295,7 +293,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                 size: 20,
               ),
               SizedBox(width: AppSpacing.sm),
-              Text(strings.acceptTermsAndConditions),
+              Text('Please accept the Terms & Conditions'),
             ],
           ),
           backgroundColor: colors.error,

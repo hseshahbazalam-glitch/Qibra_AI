@@ -3,7 +3,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qibra_ai/core/services/notification_service.dart';
 
@@ -53,7 +52,6 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _saveSettings() async {
-    final strings = AppStrings.of(context);
     setState(() => _isLoading = true);
     HapticFeedback.mediumImpact();
 
@@ -87,7 +85,7 @@ class _NotificationSettingsScreenState
     setState(() => _isLoading = false);
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(strings.settingsSaved,
+      content: const Text('Settings saved',
           style: TextStyle(color: QibraNavy.textPrimary)),
       backgroundColor: QibraNavy.emeraldDeep,
       behavior: SnackBarBehavior.floating,
@@ -247,7 +245,6 @@ class _NotificationSettingsScreenState
   }
 
   SliverAppBar _buildAppBar() {
-    final strings = AppStrings.of(context);
     return SliverAppBar(
       expandedHeight: 120,
       pinned: true,
@@ -279,12 +276,12 @@ class _NotificationSettingsScreenState
                           color: QibraNavy.emerald,
                           fontSize: 22,
                           fontFamily: 'Amiri')),
-                  Text(strings.notificationSettings,
+                  const Text('Notification Settings',
                       style: TextStyle(
                           color: QibraNavy.textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
-                  Text(strings.prayerAlertsAndReminders,
+                  Text('Prayer alerts & reminders',
                       style: TextStyle(
                           color: QibraNavy.textPrimary.withValues(alpha: 0.4),
                           fontSize: 12)),
@@ -298,7 +295,6 @@ class _NotificationSettingsScreenState
   }
 
   Widget _buildPermissionCard() {
-    final strings = AppStrings.of(context);
     return GestureDetector(
       onTap: () async {
         final service = NotificationService();
@@ -342,12 +338,12 @@ class _NotificationSettingsScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(strings.enableNotifications,
+                  Text('Enable Notifications',
                       style: TextStyle(
                           color: QibraNavy.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
-                  Text(strings.tapToGrantNotificationPermission,
+                  Text('Tap to grant notification permission',
                       style: TextStyle(color: QibraNavy.emerald, fontSize: 11)),
                 ],
               ),
@@ -449,12 +445,11 @@ class _NotificationSettingsScreenState
   }
 
   Widget _minuteSelector() {
-    final strings = AppStrings.of(context);
     final options = [5, 10, 15, 20, 30];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(strings.alertBeforePrayer,
+        Text('Alert before prayer:',
             style: TextStyle(
                 color: QibraNavy.textPrimary.withValues(alpha: 0.4),
                 fontSize: 11,
@@ -621,7 +616,6 @@ class _NotificationSettingsScreenState
   }
 
   Widget _buildTestButton() {
-    final strings = AppStrings.of(context);
     return GestureDetector(
       onTap: _testNotification,
       child: Container(
@@ -633,13 +627,13 @@ class _NotificationSettingsScreenState
           border:
               Border.all(color: QibraNavy.emeraldDeep.withValues(alpha: 0.3)),
         ),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.notifications_rounded,
                 color: QibraNavy.emerald, size: 18),
             SizedBox(width: 8),
-            Text(strings.testAdanAndNotification,
+            Text('Test Azan + Notification',
                 style: TextStyle(
                     color: QibraNavy.emerald,
                     fontSize: 14,
@@ -651,7 +645,6 @@ class _NotificationSettingsScreenState
   }
 
   Widget _buildSaveButton() {
-    final strings = AppStrings.of(context);
     return GestureDetector(
       onTap: _isLoading ? null : _saveSettings,
       child: Container(
@@ -670,13 +663,13 @@ class _NotificationSettingsScreenState
                     height: 20,
                     child: CircularProgressIndicator(
                         color: QibraNavy.textPrimary, strokeWidth: 2)))
-            : Row(
+            : const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.save_rounded,
                       color: QibraNavy.textPrimary, size: 20),
                   SizedBox(width: 10),
-                  Text(strings.saveSettings,
+                  Text('Save Settings',
                       style: TextStyle(
                           color: QibraNavy.textPrimary,
                           fontSize: 16,

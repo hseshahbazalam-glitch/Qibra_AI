@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
@@ -626,7 +625,6 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   /// split scales. Sliders reflect and write REAL SharedPreferences state
   /// — no decorative handles.
   void _showQuickSettingsSheet(BuildContext context) {
-    final strings = AppStrings.of(context);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: QibraNavy.card,
@@ -688,7 +686,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         const Divider(height: 20),
                         AppSwitchListTile(
                           activeColor: QibraNavy.emerald,
-                          title: Text(strings.arabicTextSection,
+                          title: const Text('Arabic Text (عربي)',
                               style: TextStyle(
                                   color: QibraNavy.textPrimary,
                                   fontSize: 14)),
@@ -802,7 +800,6 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   }
 
   void _jumpToHadithNumber(int number) {
-    final strings = AppStrings.of(context);
     if (_selectedChapterNumber != null || _searchQuery.isNotEmpty) {
       // The resume position refers to the whole book — clear the
       // filters first, then the pending jump lands on the next build.
@@ -819,8 +816,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         .valueOrNull;
     if (hadiths == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(strings.collectionStillLoading)),
+        const SnackBar(
+            content: Text('This collection is still loading — try again in a moment.')),
       );
       return;
     }
@@ -866,7 +863,6 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   /// Item 5: a bookmark-tap opened this screen with a target — resolve
   /// it through the REAL service lookup and open its detail sheet.
   Future<void> _openFocusHadith() async {
-    final strings = AppStrings.of(context);
     try {
       await ref.read(hadithDatabaseInitProvider.future);
     } catch (_) {
@@ -877,9 +873,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         HadithDatabaseService().getHadith(widget.book.slug, widget.focusHadithNumber);
     if (local == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
             content:
-                Text(strings.thatBookmarkNotBundled)),
+                Text('That bookmark is not in the bundled data on this device.')),
       );
       return;
     }
@@ -917,7 +913,6 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         void openNeighbour(int number) {
-    final strings = AppStrings.of(context);
           // Pop, then open the neighbour's sheet on the SCREEN context:
           // the same entry point the list rows use, so history/record
           // semantics stay identical (no second code path to drift).
@@ -1067,8 +1062,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         Clipboard.setData(ClipboardData(text: text));
                         HapticFeedback.lightImpact();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(strings.hadithCopiedToClipboard),
+                          const SnackBar(
+                              content: Text('Hadith copied to clipboard'),
                               backgroundColor: QibraNavy.surface),
                         );
                       },
@@ -1218,7 +1213,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             : () => openNeighbour(prevNumber),
                         icon:
                             const Icon(Icons.chevron_left_rounded, size: 18),
-                        label: Text(strings.previous,
+                        label: const Text('Previous',
                             maxLines: 1, overflow: TextOverflow.ellipsis),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: QibraNavy.textPrimary,
@@ -1245,7 +1240,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             : () => openNeighbour(nextNumber),
                         icon: const Icon(Icons.chevron_right_rounded,
                             size: 18),
-                        label: Text(strings.next,
+                        label: const Text('Next',
                             maxLines: 1, overflow: TextOverflow.ellipsis),
                       ),
                     ),
@@ -1281,7 +1276,6 @@ class _HadithCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final strings = AppStrings.of(context);
     final isBookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
     final language = ref.watch(hadithLanguageProvider);
     final rtl = language == 'ar' || language == 'ur';
@@ -1370,8 +1364,8 @@ class _HadithCard extends ConsumerWidget {
                     Clipboard.setData(ClipboardData(text: shareText));
                     HapticFeedback.lightImpact();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(strings.hadithCopiedToClipboard),
+                      const SnackBar(
+                          content: Text('Hadith copied to clipboard'),
                           backgroundColor: QibraNavy.surface,
                           duration: Duration(seconds: 1)),
                     );
