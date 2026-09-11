@@ -9,6 +9,7 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import 'package:qibra_ai/features/duas/presentation/dua_detail_screen.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
@@ -65,7 +66,7 @@ class _BookmarksHubScreenState extends ConsumerState<BookmarksHubScreen>
       backgroundColor: colors.background,
       appBar: AppBar(
         backgroundColor: colors.background,
-        title: const Text('Bookmarks'),
+        title: Text(AppStrings.of(context).bookmarksTitle),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_rounded),
@@ -122,14 +123,14 @@ class _BookmarksHubScreenState extends ConsumerState<BookmarksHubScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(AppStrings.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(bookmarksProvider.notifier).clearAll();
               Navigator.pop(dialogContext);
             },
-            child: const Text('Clear'),
+            child: Text(AppStrings.of(context).clear),
           ),
         ],
       ),
@@ -302,11 +303,11 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
                             },
                             itemBuilder: (context) => const [
                               PopupMenuItem(
-                                  value: 'copy', child: Text('Copy')),
+                                  value: 'copy', child: Text(AppStrings.of(context).copy)),
                               PopupMenuItem(
-                                  value: 'note', child: Text('Note')),
+                                  value: 'note', child: Text(AppStrings.of(context).note)),
                               PopupMenuItem(
-                                  value: 'delete', child: Text('Delete')),
+                                  value: 'delete', child: Text(AppStrings.of(context).delete)),
                             ],
                           ),
                         ],
@@ -367,7 +368,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
     );
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied')),
+      SnackBar(content: Text(AppStrings.of(context).copied)),
     );
   }
 
@@ -400,7 +401,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(AppStrings.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -413,7 +414,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
                   );
               Navigator.pop(dialogContext);
             },
-            child: const Text('Save'),
+            child: Text(AppStrings.of(context).save),
           ),
         ],
       ),
@@ -504,9 +505,9 @@ class _HadithBookmarksTab extends ConsumerWidget {
     if (!ok || !db.isInitialized ||
         db.getHadith(saved.bookSlug, saved.hadithNumber) == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content:
-                Text('That hadith is not in the bundled data on this device.')),
+                Text(AppStrings.of(context).thatHadithNotBundled)),
       );
       return;
     }

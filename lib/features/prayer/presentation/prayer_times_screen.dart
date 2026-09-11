@@ -17,6 +17,7 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/utils/countdown_format.dart';
 import 'package:qibra_ai/shared/widgets/qibra_countdown_ring.dart';
 import 'package:qibra_ai/shared/widgets/qibra_night_sky.dart';
@@ -315,7 +316,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                 ),
               const Divider(),
               SwitchListTile.adaptive(
-                title: const Text('Hanafi Asr'),
+                title: Text(AppStrings.of(context).hanafiAsr),
                 subtitle: const Text(
                     'Later Asr time (shadow ratio 2 instead of 1)'),
                 value: current.asrMethod == AsrMethod.hanafi,

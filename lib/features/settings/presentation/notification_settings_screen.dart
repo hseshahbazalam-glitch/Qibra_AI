@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qibra_ai/core/services/notification_service.dart';
 
@@ -85,7 +86,7 @@ class _NotificationSettingsScreenState
     setState(() => _isLoading = false);
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: const Text('Settings saved',
+      content: Text(AppStrings.of(context).settingsSaved,
           style: TextStyle(color: QibraNavy.textPrimary)),
       backgroundColor: QibraNavy.emeraldDeep,
       behavior: SnackBarBehavior.floating,
@@ -276,12 +277,12 @@ class _NotificationSettingsScreenState
                           color: QibraNavy.emerald,
                           fontSize: 22,
                           fontFamily: 'Amiri')),
-                  const Text('Notification Settings',
+                  Text(AppStrings.of(context).notificationSettings,
                       style: TextStyle(
                           color: QibraNavy.textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
-                  Text('Prayer alerts & reminders',
+                  Text(AppStrings.of(context).prayerAlertsAndReminders,
                       style: TextStyle(
                           color: QibraNavy.textPrimary.withValues(alpha: 0.4),
                           fontSize: 12)),
@@ -338,12 +339,12 @@ class _NotificationSettingsScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Enable Notifications',
+                  Text(AppStrings.of(context).enableNotifications,
                       style: TextStyle(
                           color: QibraNavy.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
-                  Text('Tap to grant notification permission',
+                  Text(AppStrings.of(context).tapToGrantNotificationPermission,
                       style: TextStyle(color: QibraNavy.emerald, fontSize: 11)),
                 ],
               ),
@@ -449,7 +450,7 @@ class _NotificationSettingsScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Alert before prayer:',
+        Text(AppStrings.of(context).alertBeforePrayer,
             style: TextStyle(
                 color: QibraNavy.textPrimary.withValues(alpha: 0.4),
                 fontSize: 11,
@@ -627,13 +628,13 @@ class _NotificationSettingsScreenState
           border:
               Border.all(color: QibraNavy.emeraldDeep.withValues(alpha: 0.3)),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.notifications_rounded,
                 color: QibraNavy.emerald, size: 18),
             SizedBox(width: 8),
-            Text('Test Azan + Notification',
+            Text(AppStrings.of(context).testAdanAndNotification,
                 style: TextStyle(
                     color: QibraNavy.emerald,
                     fontSize: 14,
@@ -663,13 +664,13 @@ class _NotificationSettingsScreenState
                     height: 20,
                     child: CircularProgressIndicator(
                         color: QibraNavy.textPrimary, strokeWidth: 2)))
-            : const Row(
+            : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.save_rounded,
                       color: QibraNavy.textPrimary, size: 20),
                   SizedBox(width: 10),
-                  Text('Save Settings',
+                  Text(AppStrings.of(context).saveSettings,
                       style: TextStyle(
                           color: QibraNavy.textPrimary,
                           fontSize: 16,

@@ -21,6 +21,7 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 part 'profile_setup_form.dart';
 
@@ -432,7 +433,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       final colors = QibraColors.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Avatar not changed — $e'),
+          content: Text(AppStrings.of(context).avatarNotChanged('$e')),
           backgroundColor: colors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -457,7 +458,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       final colors = QibraColors.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Photo still stored — delete failed: $e'),
+          content: Text(AppStrings.of(context).photoDeleteFailed('$e')),
           backgroundColor: colors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -638,7 +639,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         HapticFeedback.heavyImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
                 Icon(
                   Icons.check_circle,
@@ -646,7 +647,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                   size: 20,
                 ),
                 SizedBox(width: AppSpacing.sm),
-                Text('Profile setup complete!'),
+                Text(AppStrings.of(context).profileSetupComplete),
               ],
             ),
             backgroundColor: colors.success,

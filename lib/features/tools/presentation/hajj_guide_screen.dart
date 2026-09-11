@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class HajjGuideScreen extends StatefulWidget {
   const HajjGuideScreen({super.key});
@@ -241,12 +242,12 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
                     ),
                     textDirection: TextDirection.rtl,
                   ),
-                  Text('Hajj Guide',
+                  Text(AppStrings.of(context).hajjGuide,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.bold)),
-                  Text('Complete Step-by-Step',
+                  Text(AppStrings.of(context).completeStepByStep,
                       style:
                           TextStyle(color: colors.textSecondary, fontSize: 12)),
                 ],
@@ -277,7 +278,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('The Fifth Pillar',
+                  Text(AppStrings.of(context).theFifthPillar,
                       style: TextStyle(
                           color: colors.accent,
                           fontSize: 14,

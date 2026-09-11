@@ -1191,7 +1191,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             AppSwitchListTile(
-              title: const Text('Show translation'),
+              title: Text(AppStrings.of(context).showTranslation),
               subtitle: Text(
                 'Display the bundled translation under the Arabic.',
                 style: AppTextStyles.bodySmall
@@ -1203,7 +1203,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                   .setShowTranslation(v),
             ),
             AppSwitchListTile(
-              title: const Text('Show transliteration'),
+              title: Text(AppStrings.of(context).showTransliteration),
               subtitle: Text(
                 'Only where a roman edition exists in the bundle.',
                 style: AppTextStyles.bodySmall
