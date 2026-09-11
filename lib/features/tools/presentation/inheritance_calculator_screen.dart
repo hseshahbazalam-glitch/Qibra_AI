@@ -4,6 +4,7 @@ import 'package:qibra_ai/core/a11y/app_a11y.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import '../logic/inheritance_estimator.dart';
 import 'package:flutter/services.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'dart:math';
 
 part 'inheritance_results.dart';
@@ -842,7 +843,7 @@ class _InheritanceCalculatorScreenState
           Row(
             children: [
               Expanded(
-                child: Text('Calculation Method',
+                child: Text(AppStrings.of(context).calculationMethod,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 12,
@@ -868,13 +869,13 @@ class _InheritanceCalculatorScreenState
                     items: const [
                       DropdownMenuItem(
                           value: 'Hanafi',
-                          child: Text('Sunni / Hanafi (reference)')),
+                          child: Text(AppStrings.of(context).sunniHanafiReference)),
                       DropdownMenuItem(
-                          value: 'Shafi', child: Text('Sunni / Shafi\'i')),
+                          value: 'Shafi', child: Text(AppStrings.of(context).sunniShafi)),
                       DropdownMenuItem(
-                          value: 'Maliki', child: Text('Sunni / Maliki')),
+                          value: 'Maliki', child: Text(AppStrings.of(context).sunniMaliki)),
                       DropdownMenuItem(
-                          value: 'Hanbali', child: Text('Sunni / Hanbali')),
+                          value: 'Hanbali', child: Text(AppStrings.of(context).sunniHanbali)),
                     ],
                     onChanged: (v) {
                       if (v == null) return;
@@ -975,12 +976,12 @@ class _InheritanceCalculatorScreenState
                     ),
                     textDirection: TextDirection.rtl,
                   ),
-                  Text('Inheritance Calculator',
+                  Text(AppStrings.of(context).inheritanceCalculator,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
-                  Text('Islamic Law of Succession',
+                  Text(AppStrings.of(context).islamicLawOfSuccession,
                       style: TextStyle(
                           color: colors.textSecondary,
                           fontSize: 12)),
@@ -1019,7 +1020,7 @@ class _InheritanceCalculatorScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('How It Works',
+                Text(AppStrings.of(context).howItWorks,
                     style: TextStyle(
                         color: colors.primarySoft,
                         fontSize: 13,
@@ -1047,7 +1048,7 @@ class _InheritanceCalculatorScreenState
     final colors = QibraColors.of(context);
     return Row(
       children: [
-        Text('Deceased:',
+        Text(AppStrings.of(context).deceasedLabel,
             style: TextStyle(
                 color: colors.textSecondary,
                 fontSize: 12,

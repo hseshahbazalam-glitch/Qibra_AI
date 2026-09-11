@@ -41,7 +41,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Spouse',
+          Text(AppStrings.of(context).spouse,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -75,7 +75,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Parents & Grandparents',
+          Text(AppStrings.of(context).parentsAndGrandparents,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -109,7 +109,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Children & Grandchildren',
+          Text(AppStrings.of(context).childrenAndGrandchildren,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -143,7 +143,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Full Siblings',
+          Text(AppStrings.of(context).fullSiblings,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -171,13 +171,13 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Half Siblings',
+          Text(AppStrings.of(context).halfSiblings,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          Text('Paternal (same father)',
+          Text(AppStrings.of(context).paternalSameFather,
               style: TextStyle(
                   color: colors.textTertiary,
                   fontSize: 10)),
@@ -192,7 +192,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
           _counterRow('Paternal Half Sisters', _halfSistersFather, 0, 20,
               (v) => _patchUi(() => _halfSistersFather = v), colors.accent),
           const SizedBox(height: 8),
-          Text('Maternal (same mother)',
+          Text(AppStrings.of(context).maternalSameMother,
               style: TextStyle(
                   color: colors.textTertiary,
                   fontSize: 10)),
@@ -219,7 +219,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Other Relatives',
+          Text(AppStrings.of(context).otherRelatives,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 12,
@@ -374,7 +374,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
                   color: enabled ? colors.onPrimary : colors.textSecondary,
                   size: 22),
               const SizedBox(width: 10),
-              Text('Calculate Shares',
+              Text(AppStrings.of(context).calculateShares,
                   style: TextStyle(
                       color: enabled ? colors.onPrimary : colors.textSecondary,
                       fontSize: 16,
@@ -408,7 +408,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       ),
       child: Column(
         children: [
-          Text('DISTRIBUTION SUMMARY',
+          Text(AppStrings.of(context).distributionSummary,
               style: TextStyle(
                   color: colors.primarySoft,
                   fontSize: 11,
@@ -581,7 +581,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
       ),
       child: Column(
         children: [
-          Text('VISUAL BREAKDOWN',
+          Text(AppStrings.of(context).visualBreakdown,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 10,
@@ -642,7 +642,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
             Icon(Icons.refresh_rounded,
                 color: colors.textTertiary, size: 18),
             const SizedBox(width: 8),
-            Text('Reset All',
+            Text(AppStrings.of(context).resetAll,
                 style: TextStyle(
                     color: colors.textSecondary,
                     fontSize: 14,
@@ -670,7 +670,7 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
             children: [
               Icon(Icons.menu_book_rounded, size: 14),
               SizedBox(width: 8),
-              Text('Quran Reference',
+              Text(AppStrings.of(context).quranReference,
                   style: TextStyle(
                       color: colors.primarySoft,
                       fontSize: 12,
