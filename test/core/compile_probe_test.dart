@@ -3,7 +3,6 @@
 // and mirrors every error/warning line through ::error annotations.
 library;
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
