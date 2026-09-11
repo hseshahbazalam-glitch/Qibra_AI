@@ -3,7 +3,6 @@
 // test shells out to the real Flutter compiler (`flutter build bundle`) —
 // full CFE compile of lib/ — and surfaces any compile errors through the
 // only readable channel from the authoring sandbox: ::error annotations.
-@TestOn('vm')
 library;
 
 import 'dart:io';
