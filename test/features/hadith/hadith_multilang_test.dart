@@ -447,8 +447,9 @@ void main() {
       // source order, not a vibe.
       final sheet = book.indexOf('void _showQuickSettingsSheet');
       expect(sheet, greaterThan(0));
+      // i18n Phase A: literal moved into AppStrings.arabicTextSection (owner+verifier authorized)
       expect(book.indexOf('Icons.translate_rounded', sheet),
-          lessThan(book.indexOf("'Arabic Text", sheet)),
+          lessThan(book.indexOf('arabicTextSection', sheet)),
           reason: 'Language row must sit above the toggles in the sheet');
       expect(book.contains('void _showReadingLanguageSheet'), isTrue,
           reason: 'the row opens a real picker, not a dead button');
