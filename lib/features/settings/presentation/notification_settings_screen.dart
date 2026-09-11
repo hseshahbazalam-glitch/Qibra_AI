@@ -335,7 +335,7 @@ class _NotificationSettingsScreenState
                   color: QibraNavy.emerald, size: 22),
             ),
             const SizedBox(width: 14),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
