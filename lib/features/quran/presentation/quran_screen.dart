@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/shared/widgets/qibra_stat_card.dart';
 import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
@@ -51,7 +52,7 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
     final raw = int.tryParse(_pageController.text.trim());
     if (raw == null || raw < 1 || raw > 604) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a page between 1 and 604')),
+        SnackBar(content: Text(AppStrings.of(context).enterPageRange)),
       );
       return;
     }
@@ -290,7 +291,7 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                     const SizedBox(width: 10),
                     FilledButton(
                       onPressed: _openPage,
-                      child: const Text('Open'),
+                      child: Text(AppStrings.of(context).open),
                     ),
                   ],
                 ),
@@ -307,7 +308,7 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                     const SizedBox(height: 8),
                     OutlinedButton(
                       onPressed: () => context.go('/quran/surahs'),
-                      child: const Text('View all surahs'),
+                      child: Text(AppStrings.of(context).viewAllSurahs),
                     ),
                   ],
                 ),
@@ -438,7 +439,7 @@ class _VerseOfDayCard extends ConsumerWidget {
                         '${ayah.translation ?? ''}\n\n— ${data.reference}',
                   ));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Verse copied with source')),
+                    SnackBar(content: Text(AppStrings.of(context).verseCopiedWithSource)),
                   );
                 },
               ),

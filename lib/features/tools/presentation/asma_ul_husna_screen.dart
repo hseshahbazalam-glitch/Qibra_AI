@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:flutter/services.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -95,7 +94,7 @@ class _AsmaUlHusnaScreenState extends State<AsmaUlHusnaScreen>
       text: '${name.arabic}\n${name.transliteration}\n${name.meaning}',
     ));
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(AppStrings.of(context).copiedToClipboard,
+      content: Text('Copied to clipboard',
           style: TextStyle(color: colors.textPrimary)),
       backgroundColor: colors.primary,
       behavior: SnackBarBehavior.floating,

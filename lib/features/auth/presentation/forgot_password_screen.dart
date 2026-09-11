@@ -16,6 +16,7 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_header.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_text_field.dart';
@@ -186,7 +187,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
               size: 20,
             ),
             SizedBox(width: AppSpacing.sm),
-            Text('Opening email app...'),
+            Text(AppStrings.of(context).openingEmailApp),
           ],
         ),
         backgroundColor: colors.primary,
