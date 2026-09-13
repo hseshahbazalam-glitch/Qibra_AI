@@ -344,45 +344,58 @@ void main() {
       expect(ReadingProgressRepository.parseHighWater(null).isEmpty, isTrue);
     });
 
-    testWidgets('the reader exit records EXACTLY the resume ayah',
+    testWidgets('unmounting the reader mid-visit is clean (bug A stays dead)',
         (tester) async {
       try {
         SharedPreferences.setMockInitialValues({});
         await ReadingProgressRepository.instance.clearAll();
         await pumpReader(tester, initialAyah: 2);
+        // Unmount = dispose(): the exact back-navigation moment that
+        // historically threw 'Cannot use ref after the widget was
+        // disposed'. The dispose path is ref-free (field-captured store)
+        // and must surface zero exceptions here. What it WRITES is
+        // pinned by the real-async end-to-end test right below — the
+        // fake-async pump machinery never drains the prefs method-channel
+        // chain past its first await (proven by A7c forensics: even a
+        // directly awaited markAyahSeen wrote nothing in that zone).
         await tester.pumpWidget(const SizedBox());
-        // The record() chain lands TWO awaits deep (saveLastRead then
-        // markAyahSeen), and each hop needs its own real-loop + fake-
-        // zone drain. Poll until the key exists instead of guessing a
-        // single pump size.
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(tester.takeException(), isNull,
+            reason: 'the exit path must be exception-free');
+      } catch (e) { _pin('unmountClean', e); rethrow; }
+    });
+
+    test('the exit write chain lands: record(ayah 2) credits ONLY [2]',
+        () async {
+      try {
+        // The full dispose-path chain — notifier.record -> saveLastRead
+        // + markAyahSeen — driven through the REAL provider in real-zone
+        // async, so every prefs hop actually resolves.
+        SharedPreferences.setMockInitialValues({});
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        await ReadingProgressRepository.instance.clearAll();
+        await container
+            .read(lastReadStoreProvider.notifier)
+            .record(
+                surahNumber: 1,
+                ayahNumber: 2,
+                surahName: 'Al-Fatihah',
+                totalAyahsInSurah: 7);
         final prefs = await SharedPreferences.getInstance();
-        for (var i = 0;
-            i < 8 && prefs.getString('ayah_high_water_v1') == null;
-            i++) {
-          await tester.runAsync(
-              () => Future<void>.delayed(const Duration(milliseconds: 25)));
-          await tester.pump(const Duration(milliseconds: 25));
-        }
-        expect(tester.takeException(), isNull);
-        var raw = prefs.getString('ayah_high_water_v1');
-        if (raw == null) {
-          // FORENSIC: control write straight to the repository. If THIS
-          // lands, the break is dispose-path-specific; if not, it is the
-          // store/prefs environment itself.
-          await ReadingProgressRepository.instance.markAyahSeen(1, 5);
-          final raw2 = prefs.getString('ayah_high_water_v1');
-          _pin('unmount',
-              'DISPOSE-PATH WRITE ABSENT. direct-mark landed=${raw2 != null} '
-              'lrWritten=${prefs.getString('last_read_position') != null} '
-              'keys=${prefs.getKeys().toList()}');
-        }
+        final raw = prefs.getString('ayah_high_water_v1');
         expect(raw, isNotNull, reason: 'the visit end MUST credit the store');
         final json = jsonDecode(raw!) as Map<String, dynamic>;
         final entry = json['1'] as Map<String, dynamic>;
         expect(entry['c'], 0,
             reason: 'only ayah 2 was seen — no contiguous run from 1 exists');
         expect((entry['s'] as List).cast<int>(), [2]);
-      } catch (e) { _pin('unmount', e); rethrow; }
+        final lr =
+            jsonDecode(prefs.getString('last_read_position')!) as Map<String,
+                dynamic>;
+        expect(lr['ayahNumber'], 2,
+            reason: 'same record() call lands BOTH writes');
+      } catch (e) { _pin('exitchain', e); rethrow; }
     });
   });
 
