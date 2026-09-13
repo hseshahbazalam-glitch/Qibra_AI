@@ -119,13 +119,18 @@ Future<void> pumpReader(
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+  // Typed non-null local: avoids leaning on parameter promotion inside
+  // the override closure (the analyzer gate does not forgive that).
+  final overrides = <Override>[
+    surahDetailProvider(1).overrideWith((ref) async => surah1),
+    quranDownloadProvider.overrideWith(_NoopDownloads.new),
+  ];
+  if (audio != null) {
+    final _RecordingAudio rec = audio;
+    overrides.add(quranAudioProvider.overrideWith(() => rec));
+  }
   await tester.pumpWidget(ProviderScope(
-    overrides: [
-      surahDetailProvider(1).overrideWith((ref) async => surah1),
-      quranDownloadProvider.overrideWith(_NoopDownloads.new),
-      if (audio != null)
-        quranAudioProvider.overrideWith(() => audio),
-    ],
+    overrides: overrides,
     child: MaterialApp(
       home: AppStringsScope(
         locale: const Locale('en'),
