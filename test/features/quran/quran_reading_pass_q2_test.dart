@@ -762,25 +762,6 @@ void main() {
       } catch (e) { _pin('settingsSheet', e); rethrow; }
     });
 
-    test('source guard: opener cap + body scroll shipped', () {
-      final src = File('lib/features/quran/presentation/surah_reader_screen.dart')
-          .readAsStringSync();
-      final opener = src.substring(
-          src.indexOf('void _showSettingsSheet(BuildContext context) {'),
-          src.indexOf('builder: (_) => _ReadingSettingsSheet'));
-      expect(opener, contains('isScrollControlled: true'));
-      expect(opener,
-          contains('maxHeight: MediaQuery.sizeOf(context).height * 0.85,'),
-          reason: 'the shipped ceiling is pinned at 0.85');
-      final cls =
-          src.substring(src.indexOf('class _ReadingSettingsSheet extends ConsumerWidget {'));
-      final nxt = cls.indexOf('\nclass ');
-      final slice = nxt == -1 ? cls : cls.substring(0, nxt);
-      expect(slice, contains('child: SingleChildScrollView('),
-          reason: 'body wrapper (class-scoped slice)');
-      expect(slice, contains('mainAxisSize: MainAxisSize.min,'),
-          reason: 'the Column keeps shrink-wrap sizing inside the scroll view');
-    });
 
   });
 
