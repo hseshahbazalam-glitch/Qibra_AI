@@ -452,6 +452,15 @@ class QuranAudioController extends Notifier<QuranAudioState>
       buffering: true,
       session: state.session + 1,
     );
+    await restartAtCurrentIndex();
+  }
+
+  /// The qari-swap restart primitive: stop the live track, then
+  /// re-resolve the SAME queue index with the new reciter — an honest
+  /// restart at the CURRENT ayah (no crossfade pretense, no rewind).
+  /// Split out as a seam so tests can drive the swap semantics without
+  /// an audio backend; the production path is unchanged.
+  Future<void> restartAtCurrentIndex() async {
     await _player.stop();
     if (state.queueLength > 0) {
       await _resolveAndPlay(state.queueIndex);

@@ -31,9 +31,15 @@ class _FakeAudioController extends QuranAudioController {
   int nextTaps = 0;
   int prevTaps = 0;
   int stopTaps = 0;
+  int restartCalls = 0;
 
   @override
   QuranAudioState build() => initial;
+
+  @override
+  Future<void> restartAtCurrentIndex() async {
+    restartCalls++; // records the mid-play swap; NO audio backend touched
+  }
 
   @override
   Future<void> seek(Duration to) async {
@@ -344,6 +350,59 @@ void main() {
       await prefs.setPlaybackSpeed(3.0); // rejected at the boundary
       expect(prefs.state.playbackSpeed, 1.0);
       prefs.dispose();
+    });
+  });
+
+  group('picker: qari selection persistence + mid-play restart semantics',
+      () {
+    test('mid-play change persists, re-anchors the label, and restarts at '
+        'the CURRENT queue index (honest restart, no rewind)', () async {
+      SharedPreferences.setMockInitialValues({});
+      final container = ProviderContainer(overrides: [
+        quranAudioProvider.overrideWith(() => _FakeAudioController(
+              const QuranAudioState(
+                phase: QuranAudioPhase.playing,
+                surahNumber: 2,
+                ayahNumber: 10,
+                queueIndex: 2,
+                queueLength: 3,
+                session: 4,
+              ),
+            )),
+      ]);
+      addTearDown(container.dispose);
+      final ctrl =
+          container.read(quranAudioProvider.notifier) as _FakeAudioController;
+      await ctrl.selectQari('ar.husary');
+      expect(ctrl.restartCalls, 1); // live swap → exactly one restart
+      expect(ctrl.state.qariId, 'ar.husary');
+      expect(ctrl.state.qariName, 'Mahmoud Khalil Al-Husary');
+      expect(ctrl.state.session, 5); // new session → follow-along re-arms
+      expect(ctrl.state.ayahNumber, 10); // SAME ayah (not rewound)
+      expect(ctrl.state.queueIndex, 2); // SAME queue slot
+      expect(ctrl.state.phase, QuranAudioPhase.loading);
+      final sp = await SharedPreferences.getInstance();
+      expect(sp.getString('quran_reading_preferences_v1_qari_id'),
+          'ar.husary');
+    });
+
+    test('idle change: persisted + label updated, NO restart (nothing to '
+        'swap)', () async {
+      SharedPreferences.setMockInitialValues({});
+      final container = ProviderContainer(overrides: [
+        quranAudioProvider.overrideWith(
+            () => _FakeAudioController(const QuranAudioState())),
+      ]);
+      addTearDown(container.dispose);
+      final ctrl =
+          container.read(quranAudioProvider.notifier) as _FakeAudioController;
+      await ctrl.selectQari('ar.minshawi');
+      expect(ctrl.restartCalls, 0);
+      expect(ctrl.state.qariId, 'ar.minshawi');
+      expect(ctrl.state.qariName, 'Mohamed Siddiq El-Minshawi');
+      final sp = await SharedPreferences.getInstance();
+      expect(sp.getString('quran_reading_preferences_v1_qari_id'),
+          'ar.minshawi');
     });
   });
 
