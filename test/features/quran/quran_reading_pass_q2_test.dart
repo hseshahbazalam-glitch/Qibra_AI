@@ -351,14 +351,19 @@ void main() {
         await ReadingProgressRepository.instance.clearAll();
         await pumpReader(tester, initialAyah: 2);
         await tester.pumpWidget(const SizedBox());
-        // The prefs mock resolves over a real event-loop hop that fake
-        // pump time can't drive — runAsync + a wall delay lets the
-        // disposed widget's awaited record() chain actually complete.
-        await tester.runAsync(
-            () => Future<void>.delayed(const Duration(milliseconds: 120)));
-        await tester.pump();
-        expect(tester.takeException(), isNull);
+        // The record() chain lands TWO awaits deep (saveLastRead then
+        // markAyahSeen), and each hop needs its own real-loop + fake-
+        // zone drain. Poll until the key exists instead of guessing a
+        // single pump size.
         final prefs = await SharedPreferences.getInstance();
+        for (var i = 0;
+            i < 8 && prefs.getString('ayah_high_water_v1') == null;
+            i++) {
+          await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 25)));
+          await tester.pump(const Duration(milliseconds: 25));
+        }
+        expect(tester.takeException(), isNull);
         final raw = prefs.getString('ayah_high_water_v1');
         expect(raw, isNotNull, reason: 'the visit end MUST credit the store');
         final json = jsonDecode(raw!) as Map<String, dynamic>;
