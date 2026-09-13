@@ -30,6 +30,7 @@ class TilawatDownloadResult {
     required this.filesPresent,
     required this.filesTotal,
     required this.failedAyahs,
+    this.aborted = false,
   });
 
   final int surah;
@@ -38,7 +39,39 @@ class TilawatDownloadResult {
   final int filesTotal;
   final List<int> failedAyahs;
 
-  bool get complete => failedAyahs.isEmpty && filesPresent == filesTotal;
+  /// True when the run was cancelled mid-flight (download-all): the
+  /// per-file tallies below stay REAL (files on disk when the user hit
+  /// cancel), only 'complete' can never be claimed.
+  final bool aborted;
+
+  bool get complete =>
+      !aborted && failedAyahs.isEmpty && filesPresent == filesTotal;
+}
+
+/// One qari directory on disk (storage manager row). Numbers are sums
+/// of REAL file lengths — 0-byte files count as absent, never as size.
+typedef TilawatQariUsage = ({
+  String dirName,
+  String displayName,
+  int bytes,
+  int files,
+});
+
+class TilawatStorageReport {
+  const TilawatStorageReport({required this.totalBytes, required this.perQari});
+
+  final int totalBytes;
+  final List<TilawatQariUsage> perQari;
+
+  /// Pure tally from injected per-directory results — the storage UI
+  /// total is defined as EXACTLY this sum (unit-tested without a disk).
+  static int sumBytes(Iterable<TilawatQariUsage> rows) {
+    var n = 0;
+    for (final r in rows) {
+      n += r.bytes;
+    }
+    return n;
+  }
 }
 
 class TilawatDownloader {
@@ -55,8 +88,9 @@ class TilawatDownloader {
   }
 
   /// Disk truth for one surah: per expected file, its size or null.
-  Future<List<int?>> surahFileSizes(String rootPath, int surah) async {
-    final dir = Directory(Tilawat.qariDirPath(rootPath));
+  Future<List<int?>> surahFileSizes(String rootPath, int surah,
+      {TilawatQari? qari}) async {
+    final dir = Directory(Tilawat.qariDirPath(rootPath, qari: qari));
     return _sizesFrom(dir, Tilawat.surahFileNames(surah));
   }
 
@@ -96,13 +130,19 @@ class TilawatDownloader {
   /// receives (completedFiles, totalFiles, currentAyah, fractionOfCurrentFile)
   /// — real counts and real byte progress, nothing interpolated.
   /// Returns honest results incl. per-file failures.
+  /// [qari] selects the download directory + URL set (defaults to the
+  /// primary Alafasy — callers thread the user's pick through).
+  /// [cancelled] is polled before EACH file: a mid-run cancel stops
+  /// cleanly there and the result is reported with aborted=true.
   Future<TilawatDownloadResult> downloadSurah({
     required int surah,
+    TilawatQari? qari,
+    bool Function()? cancelled,
     void Function(int done, int total, int currentAyah, double fileFraction)?
         onProgress,
   }) async {
     final root = await rootDir();
-    final dirPath = Tilawat.qariDirPath(root);
+    final dirPath = Tilawat.qariDirPath(root, qari: qari);
     final dir = Directory(dirPath);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
@@ -110,7 +150,15 @@ class TilawatDownloader {
     final names = Tilawat.surahFileNames(surah);
     final failed = <int>[];
     var done = 0;
+    var aborted = false;
     for (int i = 0; i < names.length; i++) {
+      if (cancelled != null && cancelled()) {
+        // Break happens BEFORE any .part is opened for this index — no
+        // partial-file strays; a later attempt simply tops up what is
+        // still missing.
+        aborted = true;
+        break;
+      }
       final ayah = i + 1;
       final finalPath = '$dirPath/${names[i]}';
       if (usableSize(finalPath) != null) {
@@ -119,13 +167,13 @@ class TilawatDownloader {
         continue;
       }
       var ok = await _fetchOne(
-          Tilawat.primaryUrl(surah, ayah), finalPath, onProgress, done,
-          names.length, ayah);
+          Tilawat.primaryUrl(surah, ayah, qari: qari), finalPath, onProgress,
+          done, names.length, ayah);
       if (!ok) {
         final g = Tilawat.globalAyahNumber(
             surah: surah, ayah: ayah, numberInQuran: 0);
         ok = await _fetchOne(
-            Tilawat.fallbackUrl(g), finalPath, onProgress, done,
+            Tilawat.fallbackUrl(g, qari: qari), finalPath, onProgress, done,
             names.length, ayah);
       }
       if (ok) {
@@ -143,6 +191,7 @@ class TilawatDownloader {
       filesPresent: tally.present,
       filesTotal: tally.total,
       failedAyahs: failed,
+      aborted: aborted,
     );
   }
 
@@ -178,10 +227,84 @@ class TilawatDownloader {
     }
   }
 
-  /// Delete every downloaded file (and leftovers) for [surah].
-  Future<void> deleteSurah(int surah) async {
+  /// Real-disk storage view for the WHOLE tilawat cache: every sub-
+  /// directory of '<root>/tilawat' contributes its own tally (catalog
+  /// qaris by id; any leftover directory keeps its raw name — the
+  /// report lists what is on disk, not what the catalog promises).
+  /// SYNC enumeration (same reasoning as usableSize: a stat-cheap
+  /// metadata sweep; the file count is bounded by 114·5·2 by design).
+  TilawatStorageReport storageReportSync(String rootPath) {
+    final base = Directory('$rootPath/tilawat');
+    final rows = <TilawatQariUsage>[];
+    if (!base.existsSync()) {
+      return const TilawatStorageReport(totalBytes: 0, perQari: []);
+    }
+    for (final e in base.listSync()) {
+      if (e is! Directory) continue;
+      var bytes = 0, files = 0;
+      for (final f in e.listSync(recursive: true)) {
+        if (f is! File) continue;
+        try {
+          final len = f.lengthSync();
+          if (len > 0) {
+            bytes += len; // 0-byte strays count as NOTHING, never size
+            files++;
+          }
+        } catch (_) {}
+      }
+      final name = e.path.split('/').last;
+      TilawatQari? known;
+      for (final q in Tilawat.qaris) {
+        if (q.id == name) known = q;
+      }
+      rows.add((
+        dirName: name,
+        displayName: known?.displayName ?? name,
+        bytes: bytes,
+        files: files,
+      ));
+    }
+    rows.sort((a, b) => a.dirName.compareTo(b.dirName));
+    return TilawatStorageReport(
+      totalBytes: TilawatStorageReport.sumBytes(rows),
+      perQari: rows,
+    );
+  }
+
+  /// Async wrapper used by providers/UI (disk enumeration is sync
+  /// inside, same honesty, one await boundary).
+  Future<TilawatStorageReport> storageReport() async {
     final root = await rootDir();
-    final dir = Directory(Tilawat.qariDirPath(root));
+    return storageReportSync(root);
+  }
+
+  /// Delete EVERY tilawat file of EVERY qari (and .part leftovers).
+  /// Best-effort per file with debug logging — returns the count of
+  /// files actually removed so the UI can confirm with real numbers.
+  Future<int> deleteEverything() async {
+    final root = await rootDir();
+    final base = Directory('$root/tilawat');
+    if (!base.existsSync()) return 0;
+    var removed = 0;
+    for (final e in base.listSync()) {
+      if (e is! Directory) continue;
+      for (final f in e.listSync(recursive: true)) {
+        if (f is! File) continue;
+        try {
+          f.deleteSync();
+          removed++;
+        } catch (err) {
+          debugPrint('⚠️ tilawat delete failed (${f.path}): $err');
+        }
+      }
+    }
+    return removed;
+  }
+
+  /// Delete every downloaded file (and leftovers) for [surah].
+  Future<void> deleteSurah(int surah, {TilawatQari? qari}) async {
+    final root = await rootDir();
+    final dir = Directory(Tilawat.qariDirPath(root, qari: qari));
     if (!await dir.exists()) return;
     for (final n in Tilawat.surahFileNames(surah)) {
       for (final suffix in ['', '.part']) {

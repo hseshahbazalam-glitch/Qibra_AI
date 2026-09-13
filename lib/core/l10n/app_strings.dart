@@ -433,6 +433,55 @@ class AppStrings {
         'چاندی کی قیمت $amount/گرام کر دی گئی',
       );
 
+  // ── Quran audio world-class (Pass Q1) — reciter / downloads / storage / hifz ──
+  String get reciter => _t('Reciter', 'القارئ', 'قاری');
+  String get downloadable =>
+      _t('Downloadable', 'متاح للتنزيل', 'ڈاؤن لوڈ دستیاب');
+  String get downloadedLabel => _t('Downloaded', 'تم التنزيل', 'ڈاؤن لوڈ شدہ');
+  String get downloadAll => _t(
+        'Download full Quran',
+        'تنزيل المصحف كاملًا',
+        'پورا مصحف ڈاؤن لوڈ کریں',
+      );
+  String downloadAllProgress(int done, int total) => _t(
+        'Downloaded $done of $total surahs',
+        'نُزِّل $done من $total سورة',
+        '$total سورتوں میں سے $done ڈاؤن لوڈ ہوئیں',
+      );
+  String get storage => _t('Storage', 'التخزين', 'اسٹوریج');
+  String get tilawatCache =>
+      _t('Tilawat cache', 'ذاكرة التلاوات', 'تلاوتوں کا کیش');
+  String get deleteAllRecitations => _t(
+        'Delete all recitations',
+        'حذف جميع التلاوات',
+        'تمام تلاوتیں حذف کریں',
+      );
+  String get confirmDeleteAllBody => _t(
+        'This removes every downloaded tilawat file on this device. '
+        'Recitation falls back to streaming.',
+        'تُزيل هذه العملية جميع ملفات التلاوات المنزّلة على هذا الجهاز، '
+        'وتعود التلاوة إلى البث المباشر.',
+        'اس ڈیوائس پر ڈاؤن لوڈ شدہ تمام فائلیں ہٹ جائیں گی؛ تلاوت براہِ راست '
+        'اسٹریمنگ پر واپس آ جائے گی۔',
+      );
+  String get repeat => _t('Repeat', 'التكرار', 'دہرائی');
+  String get repeatOff => _t('No repeat', 'بدون تكرار', 'بغیر دہرائے');
+  String get repeatAyah => _t('Repeat ayah', 'تكرار الآية', 'آیت دہرائیں');
+  String get repeatRange => _t('Repeat range', 'تكرار المدى', 'رینج دہرائیں');
+  String get speed => _t('Speed', 'السرعة', 'رفتار');
+  String get pickStartAyah => _t(
+        'Tap the ayah that starts the range',
+        'المس الآية التي يبدأ عندها المدى',
+        'وہ آیت چنیں جہاں سے رینج شروع ہو',
+      );
+  String get pickEndAyah => _t(
+        'Tap the ayah that ends the range',
+        'المس الآية التي ينتهي عندها المدى',
+        'وہ آیت چنیں جہاں رینج ختم ہو',
+      );
+  String get rangeNotSet =>
+      _t('Range not set', 'لم يُحدَّد المدى', 'رینج مقرر نہیں');
+
   String _t(String en, String ar, String ur) {
     switch (_code) {
       case 'ar':

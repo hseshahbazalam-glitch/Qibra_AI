@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qibra_ai/core/content/edition_resolver.dart';
 
+import '../data/audio/tilawat.dart';
+
 enum QuranReadingMode { arabicOnly, arabicAndTranslation, translationOnly }
 
 class ReadingPreferences {
@@ -23,6 +25,8 @@ class ReadingPreferences {
     this.lineHeight = 1.8,
     this.fontFamily = 'Amiri',
     this.mode = QuranReadingMode.arabicAndTranslation,
+    this.qariId = 'ar.alafasy',
+    this.playbackSpeed = 1.0,
   });
 
   /// Shared clamp range for both scales.
@@ -41,6 +45,15 @@ class ReadingPreferences {
   final double lineHeight;
   final String fontFamily;
   final QuranReadingMode mode;
+
+  /// Selected tilawat reciter — a TilawatQari id. Unknown values are
+  /// rejected at the boundary (setter + load), so the player always
+  /// resolves a real catalog entry; default Alafasy (Tilawat.current).
+  final String qariId;
+
+  /// just_audio playback speed — one of Tilawat.knownSpeeds (validated
+  /// at the setter and at load; anything else stores/loads 1.0).
+  final double playbackSpeed;
 
   static double clampScale(double v) => v.clamp(scaleMin, scaleMax).toDouble();
 
@@ -64,6 +77,8 @@ class ReadingPreferences {
     double? lineHeight,
     String? fontFamily,
     QuranReadingMode? mode,
+    String? qariId,
+    double? playbackSpeed,
   }) {
     return ReadingPreferences(
       translationId: translationId ?? this.translationId,
@@ -74,8 +89,26 @@ class ReadingPreferences {
       lineHeight: lineHeight ?? this.lineHeight,
       fontFamily: fontFamily ?? this.fontFamily,
       mode: mode ?? this.mode,
+      qariId: qariId ?? this.qariId,
+      playbackSpeed: playbackSpeed ?? this.playbackSpeed,
     );
   }
+
+  /// Boundary validation for a persisted/recalled qari id: catalog ids
+  /// pass verbatim, everything else becomes the default (never a
+  /// crash, never a guessed slug).
+  static String validQariId(String? id) {
+    if (id != null) {
+      for (final q in Tilawat.qaris) {
+        if (q.id == id) return id;
+      }
+    }
+    return Tilawat.defaultQariId;
+  }
+
+  /// Boundary validation for the speed: whitelist or 1.0.
+  static double validSpeed(double? v) =>
+      (v != null && Tilawat.isKnownSpeed(v)) ? v : 1.0;
 }
 
 class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
@@ -119,6 +152,12 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
       lineHeight: height.clamp(1.4, 2.4),
       fontFamily: font,
       mode: mode,
+      qariId: ReadingPreferences.validQariId(
+        prefs.getString('${_key}_qari_id'),
+      ),
+      playbackSpeed: ReadingPreferences.validSpeed(
+        prefs.getDouble('${_key}_playback_speed'),
+      ),
     );
   }
 
@@ -132,6 +171,23 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     await prefs.setDouble('${_key}_line_height', state.lineHeight);
     await prefs.setString('${_key}_font_family', state.fontFamily);
     await prefs.setString('${_key}_mode', state.mode.name);
+    await prefs.setString('${_key}_qari_id', state.qariId);
+    await prefs.setDouble('${_key}_playback_speed', state.playbackSpeed);
+  }
+
+  /// Persist the selected reciter (validated at the boundary).
+  Future<void> setQariId(String id) async {
+    final v = ReadingPreferences.validQariId(id);
+    if (v == state.qariId) return;
+    state = state.copyWith(qariId: v);
+    await _save();
+  }
+
+  /// Persist the playback speed (whitelist; invalid → 1.0, stored as-is).
+  Future<void> setPlaybackSpeed(double v) async {
+    final s = ReadingPreferences.validSpeed(v);
+    state = state.copyWith(playbackSpeed: s);
+    await _save();
   }
 
   Future<void> setTranslation(String id) async {

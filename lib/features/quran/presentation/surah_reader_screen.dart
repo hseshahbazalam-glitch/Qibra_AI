@@ -587,7 +587,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => const _ReadingSettingsSheet(),
+      builder: (_) => _ReadingSettingsSheet(surahNumber: widget.surahNumber),
     );
   }
 }
@@ -852,6 +852,15 @@ class _AyahCard extends ConsumerWidget {
             : const BoxDecoration(),
         child: QibraCard(
         onTap: () {
+          // Hifz range arming (Pass Q1): while a range endpoint pick is
+          // pending, this tap FIXES the endpoint instead of opening the
+          // per-ayah menu. consumeRangePick returns true when it ate the
+          // tap — real state machine in the controller, never a guess.
+          if (ref
+              .read(quranAudioProvider.notifier)
+              .consumeRangePick(surah.number, ayah.number)) {
+            return;
+          }
           onAyahOpened?.call();
           showAyahOptions(
           context: context,
@@ -1169,7 +1178,12 @@ class _TranslationColumn extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 
 class _ReadingSettingsSheet extends ConsumerWidget {
-  const _ReadingSettingsSheet();
+  const _ReadingSettingsSheet({this.surahNumber});
+
+  /// Surah the reader is on, so the reciter list can show REAL per-surah
+  /// download presence across qaris (null = no context, rows simply
+  /// omit the presence line rather than guess one).
+  final int? surahNumber;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1269,17 +1283,314 @@ class _ReadingSettingsSheet extends ConsumerWidget {
             const SizedBox(height: 14),
             Container(height: 1, color: colors.border),
             const SizedBox(height: 10),
+            // ── Pass Q1: reciter choice / full-Quran download / storage ──
+            _TilawatReciterSection(surahNumber: surahNumber),
+            const SizedBox(height: 8),
+            Container(height: 1, color: colors.border),
+            const SizedBox(height: 8),
+            _TilawatDownloadsSection(surahNumber: surahNumber),
+            const SizedBox(height: 10),
             Text(
-              'Recitation (Mishary Alafasy) streams from everyayah.com with '
-              'a cdn.islamic.network fallback; the download action in the '
-              'app bar saves a surah to this device for offline play. No '
-              'audio files are bundled with the app.',
+              'Recitation streams from everyayah.com with a '
+              'cdn.islamic.network fallback; downloads are per-qari and '
+              'live on this device only. No audio files are bundled '
+              'with the app.',
               style:
                   AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Pass Q1 — reciter choice (with REAL per-qari download presence)
+// and the downloads/storage manager. Everything on screen is read
+// back from the filesystem or from live controller state — unknown
+// renders as unknown, there are no estimates anywhere.
+// ─────────────────────────────────────────────────────────────
+
+class _TilawatReciterSection extends ConsumerStatefulWidget {
+  const _TilawatReciterSection({this.surahNumber});
+
+  final int? surahNumber;
+
+  @override
+  ConsumerState<_TilawatReciterSection> createState() =>
+      _TilawatReciterSectionState();
+}
+
+class _TilawatReciterSectionState
+    extends ConsumerState<_TilawatReciterSection> {
+  Map<String, ({int present, int total})> _presence = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final s = widget.surahNumber;
+    if (s == null) return;
+    final m =
+        await ref.read(quranDownloadProvider.notifier).presenceForSurahAcrossQaris(s);
+    if (mounted) setState(() => _presence = m);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final strings = AppStrings.of(context);
+    final prefs = ref.watch(readingPreferencesProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          strings.reciter,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: colors.textSecondary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        for (final q in Tilawat.qaris)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
+            leading: Icon(
+              prefs.qariId == q.id
+                  ? Icons.check_circle_rounded
+                  : Icons.circle_outlined,
+              size: 18,
+              color: prefs.qariId == q.id ? colors.primary : colors.textTertiary,
+            ),
+            title: Text(
+              q.displayName, // catalog data, not chrome copy
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: colors.textPrimary,
+              ),
+            ),
+            subtitle: _presence.isEmpty
+                ? null
+                : Text(
+                    _presenceLine(q.id, strings),
+                    style: AppTextStyles.labelSmall
+                        .copyWith(color: colors.textTertiary),
+                  ),
+            onTap: () async {
+              await ref
+                  .read(readingPreferencesProvider.notifier)
+                  .setQariId(q.id);
+              // selectQari persists + re-anchors live playback onto the
+              // new qari (no-op safely when idle).
+              await ref.read(quranAudioProvider.notifier).selectQari(q.id);
+              final s = widget.surahNumber;
+              if (s != null) {
+                // Status is per-qari now: re-read it for this surah, and
+                // refresh the presence column for every qari.
+                await ref
+                    .read(quranDownloadProvider.notifier)
+                    .checkSurah(s);
+                _load();
+              }
+            },
+          ),
+      ],
+    );
+  }
+
+  String _presenceLine(
+      String id, AppStrings strings) {
+    final p = _presence[id];
+    if (p == null || p.total <= 0) return strings.downloadable;
+    if (p.present >= p.total) {
+      return '${strings.downloadedLabel} · ${p.total}/${p.total}';
+    }
+    if (p.present <= 0) return '${strings.downloadable} · 0/${p.total}';
+    return '${strings.downloadable} · ${p.present}/${p.total}';
+  }
+}
+
+class _TilawatDownloadsSection extends ConsumerStatefulWidget {
+  const _TilawatDownloadsSection({this.surahNumber});
+
+  final int? surahNumber;
+
+  @override
+  ConsumerState<_TilawatDownloadsSection> createState() =>
+      _TilawatDownloadsSectionState();
+}
+
+class _TilawatDownloadsSectionState
+    extends ConsumerState<_TilawatDownloadsSection> {
+  @override
+  void initState() {
+    super.initState();
+    // The storage report reads the real filesystem — refresh once on
+    // open so the sheet shows CURRENT truth, not the app's memory of it.
+    ref.read(quranStorageProvider.notifier).refresh();
+  }
+
+  void _confirmDeleteAll() {
+    final strings = AppStrings.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: QibraColors.of(dialogContext).card,
+        title: Text(
+          strings.deleteAllRecitations,
+          style: AppTextStyles.titleSmall
+              .copyWith(color: QibraColors.of(dialogContext).textPrimary),
+        ),
+        content: Text(
+          strings.confirmDeleteAllBody,
+          style: AppTextStyles.bodyMedium
+              .copyWith(color: QibraColors.of(dialogContext).textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              strings.cancel,
+              style: AppTextStyles.labelMedium.copyWith(
+                  color: QibraColors.of(dialogContext).textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              ref.read(quranStorageProvider.notifier).deleteEverything();
+            },
+            child: Text(
+              strings.delete,
+              style:
+                  AppTextStyles.labelMedium.copyWith(color: QibraNavy.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final strings = AppStrings.of(context);
+    final dl = ref.watch(quranDownloadAllProvider);
+    final storage = ref.watch(quranStorageProvider);
+    final ctl = ref.read(quranDownloadAllProvider.notifier);
+    final fileProgress = dl.filesTotal > 0
+        ? (dl.filesDone / dl.filesTotal).clamp(0.0, 1.0).toDouble()
+        : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                strings.downloadAll,
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            if (dl.running)
+              TextButton(
+                onPressed: ctl.cancel,
+                child: Text(
+                  strings.cancel,
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: colors.textSecondary),
+                ),
+              )
+            else
+              TextButton(
+                onPressed: () => ctl.start(),
+                child: Text(
+                  strings.downloadAll,
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: colors.primary),
+                ),
+              ),
+          ],
+        ),
+        if (dl.running) ...[
+          LinearProgressIndicator(
+            value: fileProgress,
+            minHeight: 3,
+            color: colors.primary,
+            backgroundColor: colors.border,
+          ),
+          Text(
+            '${dl.filesDone}/${dl.filesTotal} files · '
+            '${dl.surahsDone}/${Tilawat.totalSurahs} surahs',
+            style: AppTextStyles.labelSmall
+                .copyWith(color: colors.textTertiary),
+          ),
+        ] else if (dl.finished)
+          Text(
+            '${dl.surahsDone}/${Tilawat.totalSurahs} surahs · '
+            '${SurahAudioStatus.bytesLabel(dl.bytes)}',
+            style: AppTextStyles.labelSmall
+                .copyWith(color: colors.textTertiary),
+          ),
+        const SizedBox(height: 8),
+        Text(
+          strings.storage,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: colors.textSecondary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        if (storage == null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colors.textTertiary,
+              ),
+            ),
+          )
+        else ...[
+          for (final row in storage.perQari)
+            Text(
+              '${row.displayName} · ${SurahAudioStatus.bytesLabel(row.bytes)}'
+              ' · ${row.files} files',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: colors.textTertiary),
+            ),
+          Text(
+            '${strings.tilawatCache} · '
+            '${SurahAudioStatus.bytesLabel(storage.totalBytes)}',
+            style: AppTextStyles.labelSmall
+                .copyWith(color: colors.textSecondary),
+          ),
+          if (storage.totalBytes > 0 || storage.perQari.isNotEmpty)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: _confirmDeleteAll,
+                child: Text(
+                  strings.deleteAllRecitations,
+                  style:
+                      AppTextStyles.labelSmall.copyWith(color: QibraNavy.red),
+                ),
+              ),
+            ),
+        ],
+      ],
     );
   }
 }

@@ -44,6 +44,12 @@ dependencies:
   # tilawat). audioplayers above stays for the notification-sound preview
   # in settings only — the Quran player is just_audio, one instance, ever.
   just_audio: ^0.9.40
+  # Pass Q1 (2026-09): audio_service wraps the SAME just_audio player in a
+  # media-notification/lock-screen handler (prev/play/pause/next/stop).
+  # 0.18.x is the line compatible with audio_session 0.1.x already resolved
+  # in this app — bumping to 0.19 would drag a breaking audio_session
+  # upgrade through notifications, so it stays pinned to ^0.18.19.
+  audio_service: ^0.18.19
   path_provider: ^2.1.3
 
   # --- PERMISSIONS ---

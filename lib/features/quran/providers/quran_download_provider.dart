@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/audio/tilawat.dart';
 import '../data/audio/tilawat_downloader.dart';
+import 'reading_preferences_provider.dart';
 
 @immutable
 class SurahAudioStatus {
@@ -78,12 +79,20 @@ class QuranDownloadController extends Notifier<Map<int, SurahAudioStatus>> {
   SurahAudioStatus statusFor(int surah) =>
       state[surah] ?? const SurahAudioStatus();
 
+  /// Per-surah status is scoped to the SELECTED qari (Pass Q1): a
+  /// download for Al-Husary must not report Minshawi's files. The map
+  /// keeps per-surah keys — a qari switch re-checks (the reader calls
+  /// checkSurah again on select; honest, cheap).
+  TilawatQari get _selectedQari =>
+      Tilawat.byId(ref.read(readingPreferencesProvider).qariId);
+
   /// Read the real disk state for [surah].
   Future<void> checkSurah(int surah) async {
     state = {...state, surah: const SurahAudioStatus(checking: true)};
     try {
       final root = await _dl.rootDir();
-      final sizes = await _dl.surahFileSizes(root, surah);
+      final sizes =
+          await _dl.surahFileSizes(root, surah, qari: _selectedQari);
       final tally = Tilawat.tallySurah(sizes);
       state = {
         ...state,
@@ -111,6 +120,7 @@ class QuranDownloadController extends Notifier<Map<int, SurahAudioStatus>> {
     try {
       final res = await _dl.downloadSurah(
         surah: surah,
+        qari: _selectedQari,
         onProgress: (done, tot, ayah, frac) {
           state = {
             ...state,
@@ -145,12 +155,190 @@ class QuranDownloadController extends Notifier<Map<int, SurahAudioStatus>> {
   }
 
   Future<void> deleteDownload(int surah) async {
-    await _dl.deleteSurah(surah);
+    await _dl.deleteSurah(surah, qari: _selectedQari);
     await checkSurah(surah);
+  }
+
+  /// Reciter-picker badge math: real presence (n/total files on disk)
+  /// for [surah] across EVERY catalog qari, straight from the filesystem
+  /// — no cache, no estimates; 'Downloadable' is simply present < total.
+  Future<Map<String, ({int present, int total})>>
+      presenceForSurahAcrossQaris(int surah) async {
+    final out = <String, ({int present, int total})>{};
+    try {
+      final root = await _dl.rootDir();
+      for (final q in Tilawat.qaris) {
+        final sizes = await _dl.surahFileSizes(root, surah, qari: q);
+        final t = Tilawat.tallySurah(sizes);
+        out[q.id] = (present: t.present, total: t.total);
+      }
+    } catch (e) {
+      debugPrint('⚠️ tilawat presence scan failed: $e');
+    }
+    return out;
   }
 }
 
 final quranDownloadProvider =
     NotifierProvider<QuranDownloadController, Map<int, SurahAudioStatus>>(
   QuranDownloadController.new,
+);
+
+// ─── Pass Q1: download-all (sequential, cancellable) ─────────────────────
+
+@immutable
+class DownloadAllState {
+  const DownloadAllState({
+    this.running = false,
+    this.finished = false,
+    this.cancelRequested = false,
+    this.cancelled = false,
+    this.filesDone = 0,
+    this.filesTotal = 0,
+    this.surahsDone = 0,
+    this.surahsFailed = 0,
+    this.bytes = 0,
+  });
+
+  final bool running;
+  final bool finished;
+  final bool cancelRequested;
+
+  /// True when a run ENDED because the user cancelled (finished+stopped,
+  /// not an automatic restart — the next start() resumes by topping up).
+  final bool cancelled;
+  final int filesDone;
+
+  /// Real table sum (Tilawat.filesForAllSurahs — 6236 while the app's
+  /// per-surah metadata sums to it), not an estimate.
+  final int filesTotal;
+  final int surahsDone;
+  final int surahsFailed;
+  final int bytes;
+
+  DownloadAllState copyWith({
+    bool? running,
+    bool? finished,
+    bool? cancelRequested,
+    bool? cancelled,
+    int? filesDone,
+    int? filesTotal,
+    int? surahsDone,
+    int? surahsFailed,
+    int? bytes,
+  }) {
+    return DownloadAllState(
+      running: running ?? this.running,
+      finished: finished ?? this.finished,
+      cancelRequested: cancelRequested ?? this.cancelRequested,
+      cancelled: cancelled ?? this.cancelled,
+      filesDone: filesDone ?? this.filesDone,
+      filesTotal: filesTotal ?? this.filesTotal,
+      surahsDone: surahsDone ?? this.surahsDone,
+      surahsFailed: surahsFailed ?? this.surahsFailed,
+      bytes: bytes ?? this.bytes,
+    );
+  }
+}
+
+class QuranDownloadAllController extends Notifier<DownloadAllState> {
+  final TilawatDownloader _dl = const TilawatDownloader();
+  bool _cancel = false;
+
+  @override
+  DownloadAllState build() => const DownloadAllState();
+
+  /// One sequential pass over ALL 114 surahs for the selected qari —
+  /// explicitly NO parallel floods (the downloader is already
+  /// per-file sequential; this adds per-surah sequencing). Progress is
+  /// aggregated from the real per-surah results via Tilawat.tallyAll.
+  Future<void> start() async {
+    if (state.running) return; // one live 'all' — like one per surah
+    final qari =
+        Tilawat.byId(ref.read(readingPreferencesProvider).qariId);
+    _cancel = false;
+    state = DownloadAllState(
+      running: true,
+      filesTotal: Tilawat.filesForAllSurahs(),
+    );
+    final results =
+        <({int present, int total, int bytes, List<int> failed})>[];
+    for (int s = 1; s <= Tilawat.totalSurahs; s++) {
+      if (_cancel) {
+        state = state.copyWith(running: false, cancelled: true, finished: true);
+        return;
+      }
+      final r = await _dl.downloadSurah(
+        surah: s,
+        qari: qari,
+        cancelled: () => _cancel,
+      );
+      results.add((
+        present: r.filesPresent,
+        total: r.filesTotal,
+        bytes: r.bytes,
+        failed: r.failedAyahs,
+      ));
+      final agg = Tilawat.tallyAll(results);
+      state = state.copyWith(
+        filesDone: agg.filesDone,
+        bytes: agg.bytes,
+        surahsDone: agg.surahsDone,
+        surahsFailed: agg.surahsFailed,
+      );
+      if (r.aborted) {
+        state = state.copyWith(running: false, cancelled: true, finished: true);
+        return;
+      }
+    }
+    state = state.copyWith(running: false, finished: true);
+  }
+
+  /// Honest cancel: flips the flag checked before every file — the run
+  /// ends after its current file, never mid-byte.
+  void cancel() {
+    if (!state.running) return;
+    _cancel = true;
+    state = state.copyWith(cancelRequested: true);
+  }
+}
+
+final quranDownloadAllProvider =
+    NotifierProvider<QuranDownloadAllController, DownloadAllState>(
+  QuranDownloadAllController.new,
+);
+
+// ─── Pass Q1: storage manager (real filesystem only) ─────────────────────
+
+class QuranStorageController extends Notifier<TilawatStorageReport?> {
+  final TilawatDownloader _dl = const TilawatDownloader();
+
+  @override
+  TilawatStorageReport? build() => null;
+
+  Future<void> refresh() async {
+    try {
+      state = await _dl.storageReport();
+    } catch (e) {
+      debugPrint('⚠️ tilawat storage scan failed: $e');
+      state = null; // unreadable disk = nothing claimed, never 0-as-fact
+    }
+  }
+
+  /// Delete all caches, then re-scan — the UI afterwards shows the NEW
+  /// real state, not an assumed empty one.
+  Future<void> deleteEverything() async {
+    try {
+      final removed = await _dl.deleteEverything();
+      debugPrint('tilawat: removed $removed files (all qaris)');
+    } catch (e) {
+      debugPrint('⚠️ tilawat delete-all failed: $e');
+    }
+    await refresh();
+  }
+}
+
+final quranStorageProvider =
+    NotifierProvider<QuranStorageController, TilawatStorageReport?>(
+  QuranStorageController.new,
 );

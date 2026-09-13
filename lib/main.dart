@@ -23,6 +23,7 @@ import 'package:qibra_ai/core/router/app_router.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 import 'package:qibra_ai/features/ai/domain/rag_service.dart';
+import 'package:qibra_ai/features/quran/data/audio/quran_audio_service.dart';
 
 // ============================================================
 // GLOBAL HADITH DATABASE INSTANCE
@@ -112,6 +113,13 @@ void main() {
 
   // ─── Boot Info ─────────────────────────
   _printBootInfo(envLoaded);
+
+  // ─── Pass Q1: tilawat media-notification boot ───────────────
+  // AudioService.init runs on the platform channel; TilawatAudioHandler
+  // .boot() swallows ANY failure (tests, desktop, exotic ROMs) and the
+  // app continues without notification controls. Playback never depends
+  // on this — the handler is an optional mirror, wired via a delegate.
+  await TilawatAudioHandler.boot();
 
   // ─── Run App ─────────────────────────
   runApp(
