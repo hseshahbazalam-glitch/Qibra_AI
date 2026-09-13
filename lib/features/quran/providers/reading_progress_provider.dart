@@ -21,6 +21,10 @@ class ReadingProgressState {
   final List<MushafPageModel> readingHistory;
   final bool isLoading;
 
+  /// Pass Q2: honest high-water khatm coverage (definition lives with
+  /// the store: reading_progress_repository.dart).
+  final KhatmStats khatm;
+
   const ReadingProgressState({
     this.currentPage,
     this.streak = const ReadingStreakModel(),
@@ -29,6 +33,7 @@ class ReadingProgressState {
     this.totalPagesRead = 0,
     this.readingHistory = const [],
     this.isLoading = false,
+    this.khatm = const KhatmStats.empty(),
   });
 
   // Daily goal progress (0.0 to 1.0)
@@ -61,6 +66,7 @@ class ReadingProgressState {
     int? totalPagesRead,
     List<MushafPageModel>? readingHistory,
     bool? isLoading,
+    KhatmStats? khatm,
   }) {
     return ReadingProgressState(
       currentPage: currentPage ?? this.currentPage,
@@ -70,6 +76,7 @@ class ReadingProgressState {
       totalPagesRead: totalPagesRead ?? this.totalPagesRead,
       readingHistory: readingHistory ?? this.readingHistory,
       isLoading: isLoading ?? this.isLoading,
+      khatm: khatm ?? this.khatm,
     );
   }
 }
@@ -101,6 +108,7 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
     final dailyGoal = await _repo.getDailyGoalPages();
     final totalPages = await _repo.getTotalPagesRead();
     final history = await _repo.getReadingHistory();
+    final khatm = await _repo.getKhatmStats();
 
     state = ReadingProgressState(
       currentPage: currentPage,
@@ -110,6 +118,7 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
       totalPagesRead: totalPages,
       readingHistory: history,
       isLoading: false,
+      khatm: khatm,
     );
   }
 
@@ -221,6 +230,18 @@ class LastReadNotifier extends StateNotifier<LastReadModel?> {
     );
     state = model;
     await _repo.saveLastRead(model);
+    // Pass Q2 hook (single choke point): the visit's final position is
+    // one of the documented high-water signals — mark exactly that one
+    // ayah (contiguity rules decide what it credits; no prefix lies).
+    await _repo.markAyahSeen(surahNumber, ayahNumber);
+  }
+
+  /// Per-ayah seen signal for the khatm high-water (Pass Q2): fired by
+  /// the reader when the player advances onto an ayah or its options
+  /// card opens. Idempotent per ayah; touches NO UI state (safe from
+  /// listeners; the repo coalesces writes that change nothing).
+  Future<void> markPlayed({required int surah, required int ayah}) async {
+    await _repo.markAyahSeen(surah, ayah);
   }
 
   Future<void> clear() async {
