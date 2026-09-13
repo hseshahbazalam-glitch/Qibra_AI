@@ -1,6 +1,10 @@
 // PASS Q2 — Quran reading & tracking. (Bisect stage A: pure halves.)
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qibra_ai/features/quran/data/search/quran_ayah_search.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_meta.dart';
 import 'package:qibra_ai/features/quran/data/repository/reading_progress_repository.dart';
 
@@ -67,6 +71,90 @@ void main() {
       expect(ReadingProgressRepository.parseHighWater('not json{').isEmpty,
           isTrue);
       expect(ReadingProgressRepository.parseHighWater(null).isEmpty, isTrue);
+    });
+  });
+
+  group('QuranAyahSearch', () {
+    test('normalizer folds marks and letters deterministically', () {
+      expect(QuranAyahSearch.normalize('بِسْمِ  اللَّهِ'), 'بسم الله');
+      expect(QuranAyahSearch.normalize('ٱلْحَمْدُ'), 'الحمد');
+      expect(QuranAyahSearch.normalize('مُوسَى'), equals('موسي'));
+      expect(QuranAyahSearch.normalize('کتاب'), 'كتاب');
+      expect(QuranAyahSearch.normalize('  The   Lord  '), 'the lord');
+    });
+
+    test('scopes filter FIELDS — never borrow hits across them', () {
+      const arabic = 'وَضَجَّ النَّارَ';
+      const english = 'the blazing fire';
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.translations,
+              query: 'fire',
+              arabicText: arabic,
+              translation: english),
+          1);
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.arabic,
+              query: 'fire',
+              arabicText: arabic,
+              translation: english),
+          isNull);
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.all,
+              query: 'fire',
+              arabicText: arabic,
+              translation: english),
+          1);
+    });
+
+    test('empty/whitespace query matches NOTHING (never match-all)', () {
+      for (final scope in QuranSearchScope.values) {
+        expect(
+            QuranAyahSearch.matchType(
+                scope: scope,
+                query: '   ',
+                arabicText: 'الحمد',
+                translation: 'praise'),
+            isNull);
+      }
+    });
+
+    test('bundled data honors the scopes (real translation file)', () {
+      final decoded = jsonDecode(
+              File('assets/data/quran/translation_en.json').readAsStringSync())
+          as Map<String, dynamic>;
+      final data = decoded['data'] as Map<String, dynamic>;
+      final surahs = data['surahs'] as List<dynamic>;
+      final firstSurah = surahs.first as Map<String, dynamic>;
+      final ayahs = firstSurah['ayahs'] as List<dynamic>;
+      final firstAyah = ayahs.first as Map<String, dynamic>;
+      final firstAyahEn = firstAyah['text'] as String;
+      expect(firstAyahEn.length, greaterThan(12));
+      const basmala = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+      final probe = firstAyahEn.substring(3, 9).toLowerCase();
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.translations,
+              query: probe,
+              arabicText: basmala,
+              translation: firstAyahEn),
+          1);
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.arabic,
+              query: 'الرَّحِيم',
+              arabicText: basmala,
+              translation: firstAyahEn),
+          0);
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.arabic,
+              query: probe,
+              arabicText: basmala,
+              translation: firstAyahEn),
+          isNull);
     });
   });
 
