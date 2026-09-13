@@ -633,19 +633,6 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
   void _showSettingsSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
-      // CPH2573 device fix (bottom RenderFlex overflow, verifier-traced):
-      // the DEFAULT sheet caps content at 9/16 of screen height, and this
-      // body is a bare Column — every section Pass Q1/Q2 added (reciter
-      // picker, download-all, storage manager, compare toggle) pushed it
-      // past the cap. isScrollControlled lets the sheet grow to its
-      // content; the 0.85 ceiling keeps a sliver of scrim above it. On
-      // tall screens where everything already fit, height == content and
-      // the scroll view stays dormant — pixel-identical to before (same
-      // dormancy principle as the ModeTabs strip fix).
-      isScrollControlled: true,
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.85,
-      ),
       backgroundColor: QibraColors.of(context).card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -1272,130 +1259,125 @@ class _ReadingSettingsSheet extends ConsumerWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-        // The whole sheet body scrolls (see _showSettingsSheet CPH2573
-        // note): SafeArea+Padding stay OUTSIDE, so drag-to-dismiss and
-        // the rounded surface behave exactly as before.
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Reading settings',
+              style: AppTextStyles.titleMedium.copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            AppSwitchListTile(
+              title: Text(AppStrings.of(context).showTranslation),
+              subtitle: Text(
+                'Display the bundled translation under the Arabic.',
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: colors.textSecondary),
+              ),
+              value: prefs.showTranslation,
+              onChanged: (v) => ref
+                  .read(readingPreferencesProvider.notifier)
+                  .setShowTranslation(v),
+            ),
+            AppSwitchListTile(
+              title: Text(AppStrings.of(context).showTransliteration),
+              subtitle: Text(
+                'Only where a roman edition exists in the bundle.',
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: colors.textSecondary),
+              ),
+              value: prefs.showTransliteration,
+              onChanged: (v) => ref
+                  .read(readingPreferencesProvider.notifier)
+                  .setShowTransliteration(v),
+            ),
+            AppSwitchListTile(
+              title: Text(AppStrings.of(context).compareTranslations),
+              subtitle: Text(
+                AppStrings.of(context).compareTranslationsHint,
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: colors.textSecondary),
+              ),
+              value: prefs.translationCompare,
+              onChanged: (v) => ref
+                  .read(readingPreferencesProvider.notifier)
+                  .setTranslationCompare(v),
+            ),
+            const SizedBox(height: 8),
+            // Split font controls (world-class pass): Arabic and
+            // translation scale independently over the same clamped
+            // range; the sliders reflect and persist REAL pref state.
+            for (final entry in const [
+              ('Arabic text', 'arabic'),
+              ('Translation & transliteration', 'translation'),
+            ]) ...[
               Text(
-                'Reading settings',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: colors.textPrimary,
+                entry.$1,
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: colors.textSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 8),
-              AppSwitchListTile(
-                title: Text(AppStrings.of(context).showTranslation),
-                subtitle: Text(
-                  'Display the bundled translation under the Arabic.',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: colors.textSecondary),
-                ),
-                value: prefs.showTranslation,
-                onChanged: (v) => ref
-                    .read(readingPreferencesProvider.notifier)
-                    .setShowTranslation(v),
-              ),
-              AppSwitchListTile(
-                title: Text(AppStrings.of(context).showTransliteration),
-                subtitle: Text(
-                  'Only where a roman edition exists in the bundle.',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: colors.textSecondary),
-                ),
-                value: prefs.showTransliteration,
-                onChanged: (v) => ref
-                    .read(readingPreferencesProvider.notifier)
-                    .setShowTransliteration(v),
-              ),
-              AppSwitchListTile(
-                title: Text(AppStrings.of(context).compareTranslations),
-                subtitle: Text(
-                  AppStrings.of(context).compareTranslationsHint,
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: colors.textSecondary),
-                ),
-                value: prefs.translationCompare,
-                onChanged: (v) => ref
-                    .read(readingPreferencesProvider.notifier)
-                    .setTranslationCompare(v),
-              ),
-              const SizedBox(height: 8),
-              // Split font controls (world-class pass): Arabic and
-              // translation scale independently over the same clamped
-              // range; the sliders reflect and persist REAL pref state.
-              for (final entry in const [
-                ('Arabic text', 'arabic'),
-                ('Translation & transliteration', 'translation'),
-              ]) ...[
-                Text(
-                  entry.$1,
-                  style: AppTextStyles.labelMedium.copyWith(
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w700,
+              Row(
+                children: [
+                  Expanded(
+                    child: Slider(
+                      value: entry.$2 == 'arabic'
+                          ? prefs.arabicScale
+                          : prefs.translationScale,
+                      min: ReadingPreferences.scaleMin,
+                      max: ReadingPreferences.scaleMax,
+                      divisions: 8,
+                      activeColor: colors.primary,
+                      label:
+                          '${(((entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale) - 1) * 100).round()}%',
+                      onChanged: (v) => entry.$2 == 'arabic'
+                          ? ref
+                              .read(readingPreferencesProvider.notifier)
+                              .setArabicScale(v)
+                          : ref
+                              .read(readingPreferencesProvider.notifier)
+                              .setTranslationScale(v),
+                    ),
                   ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Slider(
-                        value: entry.$2 == 'arabic'
-                            ? prefs.arabicScale
-                            : prefs.translationScale,
-                        min: ReadingPreferences.scaleMin,
-                        max: ReadingPreferences.scaleMax,
-                        divisions: 8,
-                        activeColor: colors.primary,
-                        label:
-                            '${(((entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale) - 1) * 100).round()}%',
-                        onChanged: (v) => entry.$2 == 'arabic'
-                            ? ref
-                                .read(readingPreferencesProvider.notifier)
-                                .setArabicScale(v)
-                            : ref
-                                .read(readingPreferencesProvider.notifier)
-                                .setTranslationScale(v),
+                  SizedBox(
+                    width: 52,
+                    child: Text(
+                      '${(entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale).toStringAsFixed(2)}\u00d7',
+                      textAlign: TextAlign.end,
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.textTertiary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(
-                      width: 52,
-                      child: Text(
-                        '${(entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale).toStringAsFixed(2)}\u00d7',
-                        textAlign: TextAlign.end,
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: colors.textTertiary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-              ],
-              const SizedBox(height: 14),
-              Container(height: 1, color: colors.border),
-              const SizedBox(height: 10),
-              // ── Pass Q1: reciter choice / full-Quran download / storage ──
-              _TilawatReciterSection(surahNumber: surahNumber),
-              const SizedBox(height: 8),
-              Container(height: 1, color: colors.border),
-              const SizedBox(height: 8),
-              _TilawatDownloadsSection(surahNumber: surahNumber),
-              const SizedBox(height: 10),
-              Text(
-                'Recitation streams from everyayah.com with a '
-                'cdn.islamic.network fallback; downloads are per-qari and '
-                'live on this device only. No audio files are bundled '
-                'with the app.',
-                style:
-                    AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
+                  ),
+                ],
               ),
+              const SizedBox(height: 2),
             ],
-          ),
+            const SizedBox(height: 14),
+            Container(height: 1, color: colors.border),
+            const SizedBox(height: 10),
+            // ── Pass Q1: reciter choice / full-Quran download / storage ──
+            _TilawatReciterSection(surahNumber: surahNumber),
+            const SizedBox(height: 8),
+            Container(height: 1, color: colors.border),
+            const SizedBox(height: 8),
+            _TilawatDownloadsSection(surahNumber: surahNumber),
+            const SizedBox(height: 10),
+            Text(
+              'Recitation streams from everyayah.com with a '
+              'cdn.islamic.network fallback; downloads are per-qari and '
+              'live on this device only. No audio files are bundled '
+              'with the app.',
+              style:
+                  AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
+            ),
+          ],
         ),
       ),
     );
