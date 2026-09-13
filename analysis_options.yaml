@@ -29,23 +29,9 @@ linter:
 analyzer:
   errors:
     invalid_annotation_target: ignore
-  # TEMP (compile-probe 2026-09-14): the CI log host is unreachable from
-  # the sandbox, so Pass Q1's analyzer errors are being harvested through
-  # the probe annotation channel (test/core/compile_probe_test.dart, which
-  # patches this block OFF before analyzing and restores it). Both the
-  # probe and this exclusion are DELETED the moment the errors are fixed.
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    - "lib/features/quran/data/audio/*.dart"
-    - "lib/features/quran/presentation/quran_mini_player.dart"
-    - "lib/features/quran/presentation/surah_reader_screen.dart"
-    - "lib/features/quran/providers/quran_audio_provider.dart"
-    - "lib/features/quran/providers/quran_download_provider.dart"
-    - "lib/features/quran/providers/reading_preferences_provider.dart"
-    - "lib/core/l10n/app_strings.dart"
-    - "lib/main.dart"
-    - "test/features/quran/quran_audio_world_class_test.dart"
   language:
     strict-casts: true
     strict-inference: false
