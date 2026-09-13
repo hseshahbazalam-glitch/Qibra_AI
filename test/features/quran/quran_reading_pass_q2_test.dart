@@ -164,12 +164,12 @@ void _pin(String id, Object err) {
       .toString()
       .split('\n')
       .where((l) => l.trim().isNotEmpty)
-      .take(3)
+      .take(10)
       .join(' | ')
       .replaceAll('%', '%25')
       .replaceAll('\r', '');
   // ignore: avoid_print
-  print('::error::Q2PIN $id :: ${head.substring(0, head.length < 460 ? head.length : 460)}');
+  print('::error::Q2PIN $id :: ${head.substring(0, head.length < 1400 ? head.length : 1400)}');
 }
 
 void main() {
@@ -784,6 +784,11 @@ void main() {
         // measured its sheet under a short viewport).
         tester.view.physicalSize = const Size(360, 640);
         await tester.pump(const Duration(milliseconds: 50));
+        // Baseline: drain any layout error the READER PAGE itself
+        // produces at this artificial 640 height (the real CPH2573
+        // class is ~360x800). The assertion below must then speak only
+        // of the sheet.
+        tester.takeException();
         await tester.tap(find.byTooltip('Reading settings'));
         await tester.pump(const Duration(milliseconds: 400));
         // PRE-FIX this printed a bottom RenderFlex overflow (default
@@ -821,21 +826,28 @@ void main() {
           reason: 'the Column keeps shrink-wrap sizing inside the scroll view');
     });
 
-    testWidgets('sweep S1 VERDICT: mushaf _showMoreOptions @360x640',
-        (tester) async {
+    testWidgets('sweep S1: _showMoreOptions OVERFLOWED at 360x640 — '
+        'minimal fix shipped', (tester) async {
       try {
         SharedPreferences.setMockInitialValues({});
         await pumpMushaf360(tester);
         expect(tester.takeException(), isNull,
             reason: 'mushaf screen lays out clean at 360x640');
+        tester.takeException(); // drain page-level noise (none expected)
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
         await tester.pump(const Duration(milliseconds: 400));
         expect(find.text('Page 1 options'), findsOneWidget);
-        // Four ListTiles fit the DEFAULT (no isScrollControlled) 9/16
-        // cap even at 640px height — clean at the strictest short
-        // viewport, so NO fix ships here (evidence-first rule).
+        // VERDICT (evidence-first): the pump proved 4 rows + header do
+        // NOT fit the default 9/16 cap at 640 (RenderFlex overflows
+        // were the first annotation batch). The same minimal remedy as
+        // the settings sheet now ships here; these two lines pin it.
         expect(tester.takeException(), isNull,
-            reason: 'S1 verdict: no overflow at 360x640');
+            reason: 'S1: no overflow after the fix at 360x640');
+        expect(
+            find.ancestor(
+                of: find.text('Page 1 options'),
+                matching: find.byType(SingleChildScrollView)),
+            findsOneWidget);
       } catch (e) { _pin('sweepS1', e); rethrow; }
     });
 
@@ -849,7 +861,11 @@ void main() {
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
         await tester.pump(const Duration(milliseconds: 400));
         await tester.tap(find.text('Bookmark page'));
-        await tester.pump(const Duration(milliseconds: 150));
+        // Settle the sheet pop FULLY (250ms is the default duration) —
+        // tapping while it animates hits its header icon too (proven
+        // by the A-round annotation: 'Found 2 widgets with icon').
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump(const Duration(milliseconds: 300));
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
         await tester.pump(const Duration(milliseconds: 400));
         await tester.tap(find.text('View all bookmarks'));

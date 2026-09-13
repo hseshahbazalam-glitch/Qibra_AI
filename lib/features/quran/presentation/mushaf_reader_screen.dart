@@ -737,6 +737,15 @@ Juz: ${juz ?? '—'}''';
     HapticFeedback.selectionClick();
     showModalBottomSheet<void>(
       context: context,
+      // Sheets sweep verdict (Q2): pumped at 360x640, this sheet's
+      // header + 4 ListTiles EXCEEDED the default 9/16 cap (360px) and
+      // printed RenderFlex overflows — same minimal remedy as
+      // _showSettingsSheet: grow to content, 0.85 ceiling, body scrolls
+      // past it (dormant, pixel-identical, when the content already fit).
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+      ),
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         decoration: BoxDecoration(
@@ -747,74 +756,79 @@ Juz: ${juz ?? '—'}''';
         ),
         child: SafeArea(
           top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: colors.border,
-                  borderRadius: BorderRadius.circular(2),
+          // Sheets sweep fix (verdict = overflow at 360x640):
+          // the body scrolls past the cap; SafeArea stays
+          // outside the scroll view above.
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: colors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Icon(Icons.more_horiz_rounded,
-                        color: colors.textSecondary, size: 22),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Page $currentPage options',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: colors.textPrimary,
-                        fontWeight: FontWeight.w700,
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.more_horiz_rounded,
+                          color: colors.textSecondary, size: 22),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Page $currentPage options',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Divider(color: colors.border, height: 1),
-              _menuOption(
-                icon: Icons.copy_rounded,
-                label: 'Copy page info',
-                onTap: () {
-                  Navigator.pop(context);
-                  _copyPageInfo(currentPage);
-                },
-              ),
-              _menuOption(
-                icon: Icons.share_outlined,
-                label: 'Share page',
-                onTap: () {
-                  Navigator.pop(context);
-                  _sharePage(currentPage);
-                },
-              ),
-              _menuOption(
-                icon: _bookmarkedPages.contains(currentPage)
-                    ? Icons.bookmark_rounded
-                    : Icons.bookmark_border_rounded,
-                label: _bookmarkedPages.contains(currentPage)
-                    ? 'Remove bookmark'
-                    : 'Bookmark page',
-                onTap: () {
-                  Navigator.pop(context);
-                  _toggleBookmark(currentPage);
-                },
-              ),
-              _menuOption(
-                icon: Icons.list_alt_rounded,
-                label: 'View all bookmarks',
-                onTap: () {
-                  Navigator.pop(context);
-                  _showBookmarksList();
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
+                Divider(color: colors.border, height: 1),
+                _menuOption(
+                  icon: Icons.copy_rounded,
+                  label: 'Copy page info',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _copyPageInfo(currentPage);
+                  },
+                ),
+                _menuOption(
+                  icon: Icons.share_outlined,
+                  label: 'Share page',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _sharePage(currentPage);
+                  },
+                ),
+                _menuOption(
+                  icon: _bookmarkedPages.contains(currentPage)
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
+                  label: _bookmarkedPages.contains(currentPage)
+                      ? 'Remove bookmark'
+                      : 'Bookmark page',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _toggleBookmark(currentPage);
+                  },
+                ),
+                _menuOption(
+                  icon: Icons.list_alt_rounded,
+                  label: 'View all bookmarks',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showBookmarksList();
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         ),
       ),
