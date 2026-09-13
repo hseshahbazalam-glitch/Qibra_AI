@@ -736,6 +736,10 @@ void main() {
   // fix only what the pump proves).
   // ────────────────────────────────────────────────────────────
   group('sheet overflow (CPH2573 device fix)', () {
+    testWidgets('the settings sheet itself: NO overflow at 360x640 and '
+        'the body scroll exists', (tester) async {
+      try {
+        SharedPreferences.setMockInitialValues({});
         await pumpReader(tester, initialAyah: 1);
         // Shrink to the device class that reproduced the bug (CPH2573
         // measured its sheet under a short viewport).
@@ -777,5 +781,7 @@ void main() {
       expect(slice, contains('mainAxisSize: MainAxisSize.min,'),
           reason: 'the Column keeps shrink-wrap sizing inside the scroll view');
     });
+
   });
+
 }
