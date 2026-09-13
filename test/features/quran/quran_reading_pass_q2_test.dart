@@ -16,6 +16,8 @@ import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_meta.dart';
 import 'package:qibra_ai/features/quran/data/repository/reading_progress_repository.dart';
 import 'package:qibra_ai/features/quran/data/search/quran_ayah_search.dart';
+import 'package:qibra_ai/features/quran/presentation/ayah_options_sheet.dart';
+import 'package:qibra_ai/features/quran/presentation/mushaf_reader_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
 import 'package:qibra_ai/features/quran/providers/quran_audio_provider.dart';
 import 'package:qibra_ai/features/quran/providers/quran_download_provider.dart';
@@ -154,6 +156,21 @@ Future<void> pumpReader(
         ({int c, Set<int> seen}) from, int ayah) =>
     ReadingProgressRepository.hwApplySeen(
         contiguous: from.c, seen: from.seen, ayah: ayah);
+
+/// TEMP CI diagnostic (A-series discipline): removes failure names and
+/// messages from this run's check-run annotations; strip after green.
+void _pin(String id, Object err) {
+  final head = err
+      .toString()
+      .split('\n')
+      .where((l) => l.trim().isNotEmpty)
+      .take(3)
+      .join(' | ')
+      .replaceAll('%', '%25')
+      .replaceAll('\r', '');
+  // ignore: avoid_print
+  print('::error::Q2PIN $id :: ${head.substring(0, head.length < 460 ? head.length : 460)}');
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -714,4 +731,179 @@ void main() {
     expect(src, contains('String get scopeAll => _t('),
         reason: 'single-line form = parsed by the coverage test');
   });
+
+  // ────────────────────────────────────────────────────────────
+  // CPH2573 device fix — reading-settings sheet bottom overflow, plus
+  // the evidence-first sweep of the three same-pattern suspects. Every
+  // sheet is pumped through its REAL open path at a 360x640 viewport
+  // (the short-viewport rule from the SurahCard-hardening precedent:
+  // fix only what the pump proves).
+  // ────────────────────────────────────────────────────────────
+  group('sheet overflow (CPH2573 device fix)', () {
+    Future<void> pumpMushaf360(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      // REAL page->ayah mapping, derived from the same bundled-Fatihah
+      // fixture the reader tests use — the provider edge is overridden,
+      // the content is not invented.
+      final entry = MushafPageEntry(
+        surahNumber: 1,
+        surahName: surah1.name,
+        ayah: surah1.ayahs.first,
+      );
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          mushafPageIndexProvider
+              .overrideWith((ref) async => <int, List<MushafPageEntry>>{
+                    1: [entry],
+                  }),
+          quranDownloadProvider.overrideWith(_NoopDownloads.new),
+        ],
+        child: MaterialApp(
+          home: AppStringsScope(
+            locale: const Locale('en'),
+            child: Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: const MushafReaderScreen(),
+            ),
+          ),
+        ),
+      ));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    testWidgets('the settings sheet itself: NO overflow at 360x640 and '
+        'the body scroll exists', (tester) async {
+      try {
+        SharedPreferences.setMockInitialValues({});
+        await pumpReader(tester, initialAyah: 1);
+        // Shrink to the device class that reproduced the bug (CPH2573
+        // measured its sheet under a short viewport).
+        tester.view.physicalSize = const Size(360, 640);
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.tap(find.byTooltip('Reading settings'));
+        await tester.pump(const Duration(milliseconds: 400));
+        // PRE-FIX this printed a bottom RenderFlex overflow (default
+        // 9/16 sheet cap vs the Q1/Q2-grown Column) — the device bug as
+        // a permanent tripwire.
+        expect(tester.takeException(), isNull,
+            reason: 'CPH2573 overflow must not reproduce');
+        // The vertical wrapper is an ANCESTOR of the sheet title (the
+        // reader's horizontal chip scroller at :700 is not).
+        expect(
+            find.ancestor(
+                of: find.text('Reading settings'),
+                matching: find.byType(SingleChildScrollView)),
+            findsOneWidget);
+      } catch (e) { _pin('settingsSheet', e); rethrow; }
+    });
+
+    test('source guard: opener cap + body scroll shipped', () {
+      final src = File('lib/features/quran/presentation/surah_reader_screen.dart')
+          .readAsStringSync();
+      final opener = src.substring(
+          src.indexOf('void _showSettingsSheet(BuildContext context) {'),
+          src.indexOf('builder: (_) => _ReadingSettingsSheet'));
+      expect(opener, contains('isScrollControlled: true'));
+      expect(opener,
+          contains('maxHeight: MediaQuery.sizeOf(context).height * 0.85,'),
+          reason: 'the shipped ceiling is pinned at 0.85');
+      final cls =
+          src.substring(src.indexOf('class _ReadingSettingsSheet extends ConsumerWidget {'));
+      final nxt = cls.indexOf('\nclass ');
+      final slice = nxt == -1 ? cls : cls.substring(0, nxt);
+      expect(slice, contains('child: SingleChildScrollView('),
+          reason: 'body wrapper (class-scoped slice)');
+      expect(slice, contains('mainAxisSize: MainAxisSize.min,'),
+          reason: 'the Column keeps shrink-wrap sizing inside the scroll view');
+    });
+
+    testWidgets('sweep S1 VERDICT: mushaf _showMoreOptions @360x640',
+        (tester) async {
+      try {
+        SharedPreferences.setMockInitialValues({});
+        await pumpMushaf360(tester);
+        expect(tester.takeException(), isNull,
+            reason: 'mushaf screen lays out clean at 360x640');
+        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.text('Page 1 options'), findsOneWidget);
+        // Four ListTiles fit the DEFAULT (no isScrollControlled) 9/16
+        // cap even at 640px height — clean at the strictest short
+        // viewport, so NO fix ships here (evidence-first rule).
+        expect(tester.takeException(), isNull,
+            reason: 'S1 verdict: no overflow at 360x640');
+      } catch (e) { _pin('sweepS1', e); rethrow; }
+    });
+
+    testWidgets('sweep S2 VERDICT: _showBookmarksList @360x640',
+        (tester) async {
+      try {
+        SharedPreferences.setMockInitialValues({});
+        await pumpMushaf360(tester);
+        // Reach the sheet through the real path: page -> More ->
+        // Bookmark -> More -> View all bookmarks.
+        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.tap(find.text('Bookmark page'));
+        await tester.pump(const Duration(milliseconds: 150));
+        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.tap(find.text('View all bookmarks'));
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.text('Bookmarked pages'), findsOneWidget);
+        expect(find.text('1 pages'), findsOneWidget,
+            reason: 'the count text is the real set size');
+        // S2 ships DraggableScrollableSheet + Expanded(ListView) —
+        // scrollable by construction, so overflow is structurally
+        // impossible; pinned green = no fix ships here.
+        expect(find.byType(ListView), findsWidgets);
+        expect(tester.takeException(), isNull,
+            reason: 'S2 verdict: no overflow at 360x640');
+      } catch (e) { _pin('sweepS2', e); rethrow; }
+    });
+
+    testWidgets('sweep S3 VERDICT: showAyahOptionsSheet @360x640',
+        (tester) async {
+      try {
+        SharedPreferences.setMockInitialValues({});
+        tester.view.physicalSize = const Size(360, 640);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(ProviderScope(
+          child: MaterialApp(
+            home: AppStringsScope(
+              locale: const Locale('en'),
+              child: const Scaffold(body: Center(child: Text('host'))),
+            ),
+          ),
+        ));
+        await tester.pump();
+        final ctx = tester.element(find.text('host'));
+        final pending = showAyahOptionsSheet(
+          context: ctx,
+          surahNumber: 1,
+          ayahNumber: 1,
+          surahName: surah1.name,
+          ayah: surah1.ayahs.first,
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byType(AyahOptionsSheet), findsOneWidget);
+        // isScrollControlled already grants the Column whatever height
+        // it needs below 640 — nothing to cap, nothing to scroll;
+        // clean here = no fix ships (verdict pinned by this pump).
+        expect(tester.takeException(), isNull,
+            reason: 'S3 verdict: no overflow at 360x640');
+        await tester.tapAt(const Offset(10, 10)); // barrier dismiss
+        await tester.pump(const Duration(milliseconds: 400));
+        await pending;
+      } catch (e) { _pin('sweepS3', e); rethrow; }
+    });
+  });
+
 }
