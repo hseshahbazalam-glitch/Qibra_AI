@@ -21,6 +21,7 @@ import 'package:qibra_ai/shared/widgets/qibra_stat_card.dart';
 import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../data/models/quran_models.dart';
+import '../data/repository/reading_progress_repository.dart' show KhatmStats;
 import '../providers/quran_provider.dart';
 import '../providers/reading_progress_provider.dart';
 
@@ -189,22 +190,104 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
+            const SizedBox(height: 14),
             ],
+
+            // ── Khatm coverage ring (Pass Q2) — honest high-water ──
+            // X counts ONLY surahs whose contiguous seen-run reached
+            // that surah's last ayah; Z = Σ contiguous / 6236. The
+            // metric definition lives (once) with the store in
+            // reading_progress_repository.dart — never 'completed'.
+            QibraCard(
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 54,
+                    height: 54,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox.expand(
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: CircularProgressIndicator(
+                              value: progress.khatm.coverageFraction,
+                              strokeWidth: 5,
+                              color: colors.primary,
+                              backgroundColor: colors.border,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${(progress.khatm.coverageFraction * 100).round()}%',
+                          style: AppTextStyles.labelMedium.copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppStrings.of(context).khatmCoverage,
+                          style: AppTextStyles.labelMedium.copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          AppStrings.of(context).khatmSummary(
+                            progress.khatm.surahsReachedEnd,
+                            KhatmStats.totalSurahs,
+                            progress.khatm.ayahsHighWater,
+                            (progress.khatm.coverageFraction * 100).round(),
+                            KhatmStats.totalAyahs,
+                          ),
+                          style: AppTextStyles.bodySmall
+                              .copyWith(color: colors.textSecondary),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          AppStrings.of(context).khatmHonestCaption,
+                          style: AppTextStyles.labelSmall
+                              .copyWith(color: colors.textTertiary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
 
             // ── Progress & streak ────────────────────────────────
             Row(
               children: [
                 Expanded(
                   child: QibraStatCard(
-                    icon: Icons.local_fire_department_outlined,
+                    // "never a fabricated flame": the fire icon shows
+                    // ONLY with a real streak; 0 renders the honest
+                    // hourglass + 'No streak yet' (a getter, not a
+                    // raw literal — the 0-state copy was previously
+                    // the same generic label as active days).
+                    icon: progress.streak.currentStreak > 0
+                        ? Icons.local_fire_department_outlined
+                        : Icons.hourglass_bottom_rounded,
                     value: progress.streak.currentStreak > 0
                         ? '${progress.streak.currentStreak}'
                         : '0',
                     unit: 'day streak',
-                    label: progress.hasReadToday
-                        ? 'Done today'
-                        : 'Read today to keep it alive',
+                    label: progress.streak.currentStreak == 0
+                        ? AppStrings.of(context).noStreakYet
+                        : (progress.hasReadToday
+                            ? 'Done today'
+                            : 'Read today to keep it alive'),
                   ),
                 ),
                 const SizedBox(width: 10),
