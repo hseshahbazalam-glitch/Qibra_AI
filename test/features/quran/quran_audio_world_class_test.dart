@@ -373,6 +373,12 @@ void main() {
       addTearDown(container.dispose);
       final ctrl =
           container.read(quranAudioProvider.notifier) as _FakeAudioController;
+      // Instantiate the prefs notifier (its _load() only starts on first
+      // read) and let it settle BEFORE selectQari — otherwise the load
+      // lands between setQariId and _save and stores the overwritten
+      // default instead of the user's pick.
+      container.read(readingPreferencesProvider.notifier);
+      await _settle();
       await ctrl.selectQari('ar.husary');
       expect(ctrl.restartCalls, 1); // live swap → exactly one restart
       expect(ctrl.state.qariId, 'ar.husary');
@@ -396,6 +402,8 @@ void main() {
       addTearDown(container.dispose);
       final ctrl =
           container.read(quranAudioProvider.notifier) as _FakeAudioController;
+      container.read(readingPreferencesProvider.notifier);
+      await _settle(); // load/settle ordering — see the mid-play test
       await ctrl.selectQari('ar.minshawi');
       expect(ctrl.restartCalls, 0);
       expect(ctrl.state.qariId, 'ar.minshawi');
