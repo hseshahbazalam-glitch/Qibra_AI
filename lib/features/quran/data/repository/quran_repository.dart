@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
+import '../search/quran_ayah_search.dart';
 import '../models/quran_models.dart';
 
 // Top-level helpers for Isolate (must be top-level for compute/Isolate.run)
@@ -313,7 +314,15 @@ class QuranRepository {
   // SECTION 5 — SEARCH
   // ============================================================
 
-  Future<List<SearchResultModel>> search(String query) async {
+  /// [scope] (Pass Q2) restricts WHICH fields are consulted —
+  /// translations never borrow an Arabic hit, Arabic never borrow a
+  /// translation hit; [QuranSearchScope.all] is the historical
+  /// either-field search. Matching + folding are the ONE pure
+  /// definition in data/search/quran_ayah_search.dart.
+  Future<List<SearchResultModel>> search(
+    String query, {
+    QuranSearchScope scope = QuranSearchScope.all,
+  }) async {
     if (query.trim().isEmpty) return [];
 
     await _ensureInitialized();
@@ -321,7 +330,7 @@ class QuranRepository {
     // Phase 4 P1-4: Heavy Quran search off main isolate where safe (6236 ayahs + translations)
     // Use Isolate.run for queries >2 chars (non-trivial) to avoid jank
     if (query.trim().length > 2) {
-      return _searchInIsolate(query);
+      return _searchInIsolate(query, scope);
     }
 
     final results = <SearchResultModel>[];
@@ -332,24 +341,14 @@ class QuranRepository {
       final surah = entry.value;
 
       for (final ayah in surah.ayahs) {
-        // Arabic text search — Stage 3: diacritic/hamza-folded matching.
-        if (SearchNormalizer.contains(ayah.text, query)) {
-          results.add(SearchResultModel(
-            surahNumber: surah.number,
-            surahName: surah.name,
-            ayahNumber: ayah.number,
-            ayahText: ayah.text,
-            translation: _getTranslationEn(ayah.numberInQuran),
-            matchedText: query,
-            matchType: 0,
-          ));
-          continue;
-        }
-
-        // English translation search
         final translation = _getTranslationEn(ayah.numberInQuran);
-        if (translation != null &&
-            SearchNormalizer.contains(translation, query)) {
+        final t = QuranAyahSearch.matchType(
+          scope: scope,
+          query: query,
+          arabicText: ayah.text,
+          translation: translation,
+        );
+        if (t != null) {
           results.add(SearchResultModel(
             surahNumber: surah.number,
             surahName: surah.name,
@@ -357,7 +356,7 @@ class QuranRepository {
             ayahText: ayah.text,
             translation: translation,
             matchedText: query,
-            matchType: 1,
+            matchType: t,
           ));
         }
 
@@ -425,8 +424,14 @@ class QuranRepository {
     });
   }
 
-  // Isolate helper for heavy search (Phase 4 P1-4)
-  Future<List<SearchResultModel>> _searchInIsolate(String query) async {
+  // Isolate helper for heavy search (Phase 4 P1-4). Pass Q2: the
+  // [scope] enum crosses to the isolate; matching runs through the SAME
+  // pure QuranAyahSearch definition as the main-thread path — no second
+  // dialect.
+  Future<List<SearchResultModel>> _searchInIsolate(
+    String query,
+    QuranSearchScope scope,
+  ) async {
     // Snapshot needed data for isolate (avoid capturing entire repo which is not transferable)
     final surahsSnapshot = _cachedSurahsMap;
     final translationsSnapshot = _cachedTranslationsEn;
@@ -439,21 +444,14 @@ class QuranRepository {
       for (final entry in surahsSnapshot.entries) {
         final surah = entry.value;
         for (final ayah in surah.ayahs) {
-          if (SearchNormalizer.contains(ayah.text, query)) {
-            final trans = translationsSnapshot?[ayah.numberInQuran];
-            results.add(SearchResultModel(
-              surahNumber: surah.number,
-              surahName: surah.name,
-              ayahNumber: ayah.number,
-              ayahText: ayah.text,
-              translation: trans,
-              matchedText: query,
-              matchType: 0,
-            ));
-            continue;
-          }
           final trans = translationsSnapshot?[ayah.numberInQuran];
-          if (trans != null && SearchNormalizer.contains(trans, query)) {
+          final t = QuranAyahSearch.matchType(
+            scope: scope,
+            query: query,
+            arabicText: ayah.text,
+            translation: trans,
+          );
+          if (t != null) {
             results.add(SearchResultModel(
               surahNumber: surah.number,
               surahName: surah.name,
@@ -461,7 +459,7 @@ class QuranRepository {
               ayahText: ayah.text,
               translation: trans,
               matchedText: query,
-              matchType: 1,
+              matchType: t,
             ));
           }
           if (results.length >= 100) return results;

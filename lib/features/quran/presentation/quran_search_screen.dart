@@ -13,11 +13,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../providers/quran_provider.dart';
 import '../data/models/quran_models.dart';
+import '../data/search/quran_ayah_search.dart';
 import 'surah_reader_screen.dart';
 
 // ============================================================
@@ -252,7 +255,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
     HapticFeedback.lightImpact();
   }
 
-  void _openAyah(SearchResultModel result) {
+  void _openAyah(SearchResultModel result, {bool play = false}) {
     HapticFeedback.selectionClick();
     ref.read(recentSearchesProvider.notifier).add(_currentQuery);
     Navigator.of(context).push(
@@ -260,6 +263,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
         builder: (_) => SurahReaderScreen(
           surahNumber: result.surahNumber,
           initialAyah: result.ayahNumber,
+          playOnOpen: play, // Pass Q2: deep-link straight into recitation
         ),
       ),
     );
@@ -772,6 +776,31 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
           ),
         ),
         const SizedBox(height: AppSpacing.md),
+        // Pass Q2 — scope chips: WHICH fields are searched. Honest
+        // filter, not a re-rank: Translations never borrows an Arabic
+        // hit and vice versa (pure rule: data/search/quran_ayah_search).
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Row(
+            children: [
+              Text(
+                AppStrings.of(context).searchScope,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: QibraColors.of(context).textTertiary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _scopeChip(context, QuranSearchScope.translations,
+                  AppStrings.of(context).scopeTranslations),
+              _scopeChip(context, QuranSearchScope.arabic,
+                  AppStrings.of(context).scopeArabic),
+              _scopeChip(context, QuranSearchScope.all,
+                  AppStrings.of(context).scopeAll),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
         Expanded(
           child: ListView.separated(
             physics: const BouncingScrollPhysics(),
@@ -789,11 +818,30 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                 result: result,
                 query: _currentQuery,
                 onTap: () => _openAyah(result),
+                // Pass Q2: play-from-here — opens the reader on this
+                // ayah AND starts its recitation queue immediately.
+                onPlay: () => _openAyah(result, play: true),
               );
             },
           ),
         ),
       ],
+    );
+  }
+
+  Widget _scopeChip(
+      BuildContext context, QuranSearchScope scope, String label) {
+    final selected =
+        ref.read(searchQuranProvider.notifier).scope == scope;
+    return QibraChip(
+      label: label,
+      selected: selected,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        // Re-runs the current query inside the new scope (notifier
+        // owns the scope; state churn rebuilds this row's selection).
+        ref.read(searchQuranProvider.notifier).setScope(scope);
+      },
     );
   }
 
@@ -854,11 +902,16 @@ class _SearchResultCard extends StatelessWidget {
     required this.result,
     required this.query,
     required this.onTap,
+    this.onPlay,
   });
 
   final SearchResultModel result;
   final String query;
   final VoidCallback onTap;
+
+  /// Pass Q2: optional play-from-here — same navigation as [onTap] but
+  /// the reader starts this ayah's recitation queue on open.
+  final VoidCallback? onPlay;
 
   @override
   Widget build(BuildContext context) {
@@ -952,6 +1005,26 @@ class _SearchResultCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (onPlay != null)
+                      Semantics(
+                        button: true,
+                        label: AppStrings.of(context).playFromHere,
+                        child: IconButton(
+                          // stopPropagation: the card's InkWell keeps its
+                          // own tap — the play button wins the hit test.
+                          onPressed: onPlay,
+                          tooltip: AppStrings.of(context).playFromHere,
+                          icon: const Icon(Icons.play_circle_outline,
+                              size: 22),
+                          color: colors.textSecondary,
+                          visualDensity: VisualDensity.compact,
+                          style: IconButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xs),
+                            minimumSize: const Size(36, 36),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

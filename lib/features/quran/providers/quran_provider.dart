@@ -27,6 +27,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/models/quran_models.dart';
 import '../data/repository/quran_repository.dart';
+import '../data/search/quran_ayah_search.dart';
 
 // ============================================================
 // SECTION 1 — REPOSITORY PROVIDER
@@ -216,6 +217,19 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
   SearchNotifier(this._repository) : super(const SearchState());
 
+  /// Pass Q2: search scope (Translations | Arabic | All), owned here so
+  /// the UI and the repository share ONE truth. Default = [all], the
+  /// historical behaviour for every other caller (AI bridge included).
+  QuranSearchScope _scope = QuranSearchScope.all;
+  QuranSearchScope get scope => _scope;
+
+  Future<void> setScope(QuranSearchScope scope) async {
+    if (_scope == scope) return;
+    _scope = scope;
+    final q = state.query;
+    if (q.trim().isNotEmpty) await search(q); // re-run within the scope
+  }
+
   /// Perform search
   Future<void> search(String query) async {
     if (query.trim().isEmpty) {
@@ -226,7 +240,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     state = state.copyWith(query: query, isLoading: true, error: null);
 
     try {
-      final results = await _repository.search(query);
+      final results = await _repository.search(query, scope: _scope);
       state = state.copyWith(
         results: results,
         isLoading: false,
@@ -241,6 +255,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
   /// Clear search
   void clear() {
+    _scope = QuranSearchScope.all;
     state = const SearchState();
   }
 }
