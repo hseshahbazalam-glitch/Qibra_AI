@@ -835,7 +835,12 @@ void main() {
             reason: 'mushaf screen lays out clean at 360x640');
         tester.takeException(); // drain page-level noise (none expected)
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-        await tester.pump(const Duration(milliseconds: 400));
+        await tester.pump(const Duration(milliseconds: 16));
+        final eOpen = tester.takeException();
+        if (eOpen != null) _pin('S1-open16', eOpen);
+        await tester.pump(const Duration(milliseconds: 384));
+        final eSettled = tester.takeException();
+        if (eSettled != null) _pin('S1-settled', eSettled);
         expect(find.text('Page 1 options'), findsOneWidget);
         // VERDICT (evidence-first): the pump proved 4 rows + header do
         // NOT fit the default 9/16 cap at 640 (RenderFlex overflows
@@ -861,11 +866,13 @@ void main() {
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
         await tester.pump(const Duration(milliseconds: 400));
         await tester.tap(find.text('Bookmark page'));
-        // Settle the sheet pop FULLY (250ms is the default duration) —
-        // tapping while it animates hits its header icon too (proven
-        // by the A-round annotation: 'Found 2 widgets with icon').
+        // Settle the sheet pop FULLY (250ms is the default duration).
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pump(const Duration(milliseconds: 300));
+        final ePop = tester.takeException();
+        if (ePop != null) _pin('S2-afterpop', ePop);
+        expect(find.text('Page 1 options'), findsNothing,
+            reason: 'the More sheet must have popped after the row tap');
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
         await tester.pump(const Duration(milliseconds: 400));
         await tester.tap(find.text('View all bookmarks'));
