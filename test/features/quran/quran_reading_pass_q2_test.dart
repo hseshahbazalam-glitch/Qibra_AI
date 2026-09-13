@@ -158,4 +158,25 @@ void main() {
     });
   });
 
+  group('wiring check', () {
+    test('repo threads the scope; notifier owns it', () {
+      final repoSrc =
+          File('lib/features/quran/data/repository/quran_repository.dart')
+              .readAsStringSync();
+      expect(repoSrc,
+          contains('QuranSearchScope scope = QuranSearchScope.all'));
+      expect(repoSrc, contains('_searchInIsolate(query, scope)'));
+      expect(
+          RegExp('QuranAyahSearch\\.matchType\\(').allMatches(repoSrc).length,
+          2,
+          reason: 'exactly the two bundled-search paths use the matcher');
+      final provSrc =
+          File('lib/features/quran/providers/quran_provider.dart')
+              .readAsStringSync();
+      expect(provSrc, contains('search(query, scope: _scope)'));
+      expect(provSrc, contains('Future<void> setScope(QuranSearchScope'));
+      expect(provSrc, contains('QuranSearchScope _scope = QuranSearchScope.all'),
+          reason: 'default preserves historical behavior');
+    });
+  });
 }
