@@ -155,19 +155,6 @@ Future<void> pumpReader(
     ReadingProgressRepository.hwApplySeen(
         contiguous: from.c, seen: from.seen, ayah: ayah);
 
-void _pin(String id, Object err) {
-  final head = err
-      .toString()
-      .split('\n')
-      .where((l) => l.trim().isNotEmpty)
-      .take(3)
-      .join(' | ')
-      .replaceAll('%', '%25')
-      .replaceAll('\r', '');
-  // ignore: avoid_print
-  print('::error::Q2PIN $id :: ${head.substring(0, head.length < 460 ? head.length : 460)}');
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
@@ -193,15 +180,13 @@ void main() {
     });
 
     test('already-credited ayahs change nothing (idempotent marks)', () {
-      try {
-        var r = (c: 3, seen: const <int>{7});
-        r = mark(r, 2); // inside the run — no growth, no frontier churn
-        expect(r.c, 3);
-        expect(r.seen, {7});
-        r = mark(r, 7); // already parked
-        expect(r.c, 3);
-        expect(r.seen, {7});
-      } catch (e) { _pin('idempotent', e); rethrow; }
+      var r = (c: 3, seen: const <int>{7});
+      r = mark(r, 2); // inside the run — no growth, no frontier churn
+      expect(r.c, 3);
+      expect(r.seen, {7});
+      r = mark(r, 7); // already parked
+      expect(r.c, 3);
+      expect(r.seen, {7});
     });
 
     test('a surah counts toward the ring ONLY when the run reaches its '
@@ -244,82 +229,76 @@ void main() {
     // reset that nulls every cache (and now also the high-water cache).
     test('a lone non-contiguous ayah credits NOTHING but is remembered',
         () async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        await ReadingProgressRepository.instance.clearAll();
-        await ReadingProgressRepository.instance.markAyahSeen(1, 7);
-        final stats =
-            await ReadingProgressRepository.instance.getKhatmStats();
-        expect(stats.ayahsHighWater, 0,
-            reason: 'c stays 0 until ayahs 1..6 arrive in order');
-        expect(stats.surahsReachedEnd, 0,
-            reason: 'seen-last-ayah alone never counts toward the ring');
-        expect(stats.openedSurahs, 1,
-            reason: 'opened is honest context — kept, never credited');
-      } catch (e) { _pin('lone', e); rethrow; }
+      SharedPreferences.setMockInitialValues({});
+      await ReadingProgressRepository.instance.clearAll();
+      await ReadingProgressRepository.instance.markAyahSeen(1, 7);
+      final stats =
+          await ReadingProgressRepository.instance.getKhatmStats();
+      expect(stats.ayahsHighWater, 0,
+          reason: 'c stays 0 until ayahs 1..6 arrive in order');
+      expect(stats.surahsReachedEnd, 0,
+          reason: 'seen-last-ayah alone never counts toward the ring');
+      expect(stats.openedSurahs, 1,
+          reason: 'opened is honest context — kept, never credited');
     });
 
     test('the provider state carries those numbers through _loadAll',
         () async {
-      try {
-        // Same process, same singleton: the 7-parked state above is what
-        // a fresh provider must reproduce (zero divergence UI vs store).
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
-        container.read(readingProgressProvider);
-        await Future<void>.delayed(const Duration(milliseconds: 80));
-        final st = container.read(readingProgressProvider);
-        expect(st.khatm.ayahsHighWater, 0);
-        expect(st.khatm.surahsReachedEnd, 0);
-        expect(st.khatm.openedSurahs, 1);
-        // Complete Al-Fatihah contiguously through the store, then a UI
-        // refresh (refresh()) must surface the end-of-surah credit.
-        for (final a in [1, 2, 3, 4, 5, 6]) {
-          await ReadingProgressRepository.instance.markAyahSeen(1, a);
-        }
-        await container.read(readingProgressProvider.notifier).refresh();
-        expect(container.read(readingProgressProvider).khatm.surahsReachedEnd,
-            1, reason: 'contiguous 1..7 = reached the last ayah');
-        expect(container.read(readingProgressProvider).khatm.ayahsHighWater, 7);
-        expect(
-            container.read(readingProgressProvider).khatm.coverageFraction,
-            closeTo(7 / 6236, 1e-9));
-      } catch (e) { _pin('providerstate', e); rethrow; }
+      // Same process, same singleton: the 7-parked state above is what
+      // a fresh provider must reproduce (zero divergence UI vs store).
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(readingProgressProvider);
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      final st = container.read(readingProgressProvider);
+      expect(st.khatm.ayahsHighWater, 0);
+      expect(st.khatm.surahsReachedEnd, 0);
+      expect(st.khatm.openedSurahs, 1);
+      // Complete Al-Fatihah contiguously through the store, then a UI
+      // refresh (refresh()) must surface the end-of-surah credit.
+      for (final a in [1, 2, 3, 4, 5, 6]) {
+        await ReadingProgressRepository.instance.markAyahSeen(1, a);
+      }
+      await container.read(readingProgressProvider.notifier).refresh();
+      expect(container.read(readingProgressProvider).khatm.surahsReachedEnd,
+          1, reason: 'contiguous 1..7 = reached the last ayah');
+      expect(container.read(readingProgressProvider).khatm.ayahsHighWater, 7);
+      expect(
+          container.read(readingProgressProvider).khatm.coverageFraction,
+          closeTo(7 / 6236, 1e-9));
     });
 
     test('markAyahSeen persists, dedups, and re-reads from the store',
         () async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        final repo = ReadingProgressRepository.instance;
-        await repo.clearAll(); // clean caches, same test process
-        await repo.markAyahSeen(1, 1);
-        await repo.markAyahSeen(1, 2);
-        await repo.markAyahSeen(1, 4);
-        expect((await repo.getKhatmStats()).ayahsHighWater, 2);
-        await repo.markAyahSeen(1, 3); // closes the gap -> absorbs 4 too
-        expect((await repo.getKhatmStats()).ayahsHighWater, 4);
-        await repo.markAyahSeen(1, 3); // duplicate: no churn, no growth
-        expect((await repo.getKhatmStats()).ayahsHighWater, 4);
+      SharedPreferences.setMockInitialValues({});
+      final repo = ReadingProgressRepository.instance;
+      await repo.clearAll(); // clean caches, same test process
+      await repo.markAyahSeen(1, 1);
+      await repo.markAyahSeen(1, 2);
+      await repo.markAyahSeen(1, 4);
+      expect((await repo.getKhatmStats()).ayahsHighWater, 2);
+      await repo.markAyahSeen(1, 3); // closes the gap -> absorbs 4 too
+      expect((await repo.getKhatmStats()).ayahsHighWater, 4);
+      await repo.markAyahSeen(1, 3); // duplicate: no churn, no growth
+      expect((await repo.getKhatmStats()).ayahsHighWater, 4);
 
-        // Out-of-range marks are IGNORED, never stored (no fake ayahs).
-        await repo.markAyahSeen(1, 8); // Al-Fatihah has 7 ayahs
-        await repo.markAyahSeen(0, 1);
-        await repo.markAyahSeen(999, 1);
-        final stats = await repo.getKhatmStats();
-        expect(stats.ayahsHighWater, 4);
-        expect(stats.surahsReachedEnd, 0,
-            reason: '4 of 7 contiguous — NOT the last ayah yet');
+      // Out-of-range marks are IGNORED, never stored (no fake ayahs).
+      await repo.markAyahSeen(1, 8); // Al-Fatihah has 7 ayahs
+      await repo.markAyahSeen(0, 1);
+      await repo.markAyahSeen(999, 1);
+      final stats = await repo.getKhatmStats();
+      expect(stats.ayahsHighWater, 4);
+      expect(stats.surahsReachedEnd, 0,
+          reason: '4 of 7 contiguous — NOT the last ayah yet');
 
-        // PERSISTENCE: the disk artifact the next launch reads.
-        final prefs = await SharedPreferences.getInstance();
-        final json = jsonDecode(
-            prefs.getString('ayah_high_water_v1')!) as Map<String, dynamic>;
-        final entry = json['1'] as Map<String, dynamic>;
-        expect(entry['c'], 4);
-        expect(entry['s'] as List, isEmpty,
-            reason: 'seen 1..4 all contiguous — frontier empty');
-      } catch (e) { _pin('persists', e); rethrow; }
+      // PERSISTENCE: the disk artifact the next launch reads.
+      final prefs = await SharedPreferences.getInstance();
+      final json = jsonDecode(
+          prefs.getString('ayah_high_water_v1')!) as Map<String, dynamic>;
+      final entry = json['1'] as Map<String, dynamic>;
+      expect(entry['c'], 4);
+      expect(entry['s'] as List, isEmpty,
+          reason: 'seen 1..4 all contiguous — frontier empty');
     });
 
     test('disk garbage is dropped, never trusted or fatal', () {
@@ -346,56 +325,52 @@ void main() {
 
     testWidgets('unmounting the reader mid-visit is clean (bug A stays dead)',
         (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        await ReadingProgressRepository.instance.clearAll();
-        await pumpReader(tester, initialAyah: 2);
-        // Unmount = dispose(): the exact back-navigation moment that
-        // historically threw 'Cannot use ref after the widget was
-        // disposed'. The dispose path is ref-free (field-captured store)
-        // and must surface zero exceptions here. What it WRITES is
-        // pinned by the real-async end-to-end test right below — the
-        // fake-async pump machinery never drains the prefs method-channel
-        // chain past its first await (proven by A7c forensics: even a
-        // directly awaited markAyahSeen wrote nothing in that zone).
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(const Duration(milliseconds: 100));
-        expect(tester.takeException(), isNull,
-            reason: 'the exit path must be exception-free');
-      } catch (e) { _pin('unmountClean', e); rethrow; }
+      SharedPreferences.setMockInitialValues({});
+      await ReadingProgressRepository.instance.clearAll();
+      await pumpReader(tester, initialAyah: 2);
+      // Unmount = dispose(): the exact back-navigation moment that
+      // historically threw 'Cannot use ref after the widget was
+      // disposed'. The dispose path is ref-free (field-captured store)
+      // and must surface zero exceptions here. What it WRITES is
+      // pinned by the real-async end-to-end test right below — the
+      // fake-async pump machinery never drains the prefs method-channel
+      // chain past its first await (proven by A7c forensics: even a
+      // directly awaited markAyahSeen wrote nothing in that zone).
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.takeException(), isNull,
+          reason: 'the exit path must be exception-free');
     });
 
     test('the exit write chain lands: record(ayah 2) credits ONLY [2]',
         () async {
-      try {
-        // The full dispose-path chain — notifier.record -> saveLastRead
-        // + markAyahSeen — driven through the REAL provider in real-zone
-        // async, so every prefs hop actually resolves.
-        SharedPreferences.setMockInitialValues({});
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
-        await ReadingProgressRepository.instance.clearAll();
-        await container
-            .read(lastReadStoreProvider.notifier)
-            .record(
-                surahNumber: 1,
-                ayahNumber: 2,
-                surahName: 'Al-Fatihah',
-                totalAyahsInSurah: 7);
-        final prefs = await SharedPreferences.getInstance();
-        final raw = prefs.getString('ayah_high_water_v1');
-        expect(raw, isNotNull, reason: 'the visit end MUST credit the store');
-        final json = jsonDecode(raw!) as Map<String, dynamic>;
-        final entry = json['1'] as Map<String, dynamic>;
-        expect(entry['c'], 0,
-            reason: 'only ayah 2 was seen — no contiguous run from 1 exists');
-        expect((entry['s'] as List).cast<int>(), [2]);
-        final lr =
-            jsonDecode(prefs.getString('last_read_position')!) as Map<String,
-                dynamic>;
-        expect(lr['ayahNumber'], 2,
-            reason: 'same record() call lands BOTH writes');
-      } catch (e) { _pin('exitchain', e); rethrow; }
+      // The full dispose-path chain — notifier.record -> saveLastRead
+      // + markAyahSeen — driven through the REAL provider in real-zone
+      // async, so every prefs hop actually resolves.
+      SharedPreferences.setMockInitialValues({});
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await ReadingProgressRepository.instance.clearAll();
+      await container
+          .read(lastReadStoreProvider.notifier)
+          .record(
+              surahNumber: 1,
+              ayahNumber: 2,
+              surahName: 'Al-Fatihah',
+              totalAyahsInSurah: 7);
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('ayah_high_water_v1');
+      expect(raw, isNotNull, reason: 'the visit end MUST credit the store');
+      final json = jsonDecode(raw!) as Map<String, dynamic>;
+      final entry = json['1'] as Map<String, dynamic>;
+      expect(entry['c'], 0,
+          reason: 'only ayah 2 was seen — no contiguous run from 1 exists');
+      expect((entry['s'] as List).cast<int>(), [2]);
+      final lr =
+          jsonDecode(prefs.getString('last_read_position')!) as Map<String,
+              dynamic>;
+      expect(lr['ayahNumber'], 2,
+          reason: 'same record() call lands BOTH writes');
     });
   });
 
@@ -405,37 +380,33 @@ void main() {
   group('streak & ring presentation', () {
     test('home shows the hourglass + getter label at streak 0, flame '
         'only for real streaks; ring reads khatm state', () {
-      try {
-        final src = File('lib/features/quran/presentation/quran_screen.dart')
-            .readAsStringSync();
-        expect(src, contains('Icons.hourglass_bottom_rounded'));
-        expect(src, contains('progress.streak.currentStreak > 0\n'
-            '                        ? Icons.local_fire_department_outlined'));
-        expect(src, contains('AppStrings.of(context).noStreakYet'));
-        expect(src, contains('progress.khatm.coverageFraction'));
-        expect(src, contains('AppStrings.of(context).khatmSummary('),
-            reason: 'the ring row is the ONE summary string');
-        expect(src, contains('AppStrings.of(context).khatmHonestCaption'));
-      } catch (e) { _pin('homesrc', e); rethrow; }
+      final src = File('lib/features/quran/presentation/quran_screen.dart')
+          .readAsStringSync();
+      expect(src, contains('Icons.hourglass_bottom_rounded'));
+      expect(src, contains('progress.streak.currentStreak > 0\n'
+          '                        ? Icons.local_fire_department_outlined'));
+      expect(src, contains('AppStrings.of(context).noStreakYet'));
+      expect(src, contains('progress.khatm.coverageFraction'));
+      expect(src, contains('AppStrings.of(context).khatmSummary('),
+          reason: 'the ring row is the ONE summary string');
+      expect(src, contains('AppStrings.of(context).khatmHonestCaption'));
     });
 
     test('khatmSummary renders the exact EN sentence and real locales',
         () {
-      try {
-        final en = AppStrings.forCode('en').khatmSummary(3, 114, 57, 1, 6236);
-        expect(
-            en,
-            '3 of 114 surahs reached its last ayah · 57 ayahs high-water '
-            '(~1% of 6236)');
-        final ar = AppStrings.forCode('ar').khatmSummary(3, 114, 57, 1, 6236);
-        final ur = AppStrings.forCode('ur').khatmSummary(3, 114, 57, 1, 6236);
-        expect(ar, isNot(contains('surahs')));
-        expect(ur, isNot(contains('surahs')));
-        expect(ar, contains('114'));
-        expect(ur, contains('6236'));
-        expect(AppStrings.forCode('en').khatmHonestCaption,
-            contains('never a completion claim'));
-      } catch (e) { _pin('summary', e); rethrow; }
+      final en = AppStrings.forCode('en').khatmSummary(3, 114, 57, 1, 6236);
+      expect(
+          en,
+          '3 of 114 surahs reached its last ayah · 57 ayahs high-water '
+          '(~1% of 6236)');
+      final ar = AppStrings.forCode('ar').khatmSummary(3, 114, 57, 1, 6236);
+      final ur = AppStrings.forCode('ur').khatmSummary(3, 114, 57, 1, 6236);
+      expect(ar, isNot(contains('surahs')));
+      expect(ur, isNot(contains('surahs')));
+      expect(ar, contains('114'));
+      expect(ur, contains('6236'));
+      expect(AppStrings.forCode('en').khatmHonestCaption,
+          contains('never a completion claim'));
     });
 
   });
@@ -447,56 +418,50 @@ void main() {
     testWidgets('toggle ON renders the card per ayah on the Translation '
         'tab with an honest title; OFF renders only the trailing card',
         (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues(
-            {'quran_reading_preferences_v1_translation_compare': true});
-        await pumpReader(tester, initialTab: 'Translation');
-        expect(find.text('Bundled translations — ayah 1'), findsOneWidget);
-        expect(find.text('Bundled translations — ayah 2'), findsOneWidget);
-        // The trailing shared card's branch is unchanged code; at 844px
-        // the taller list simply leaves it outside the BUILT viewport,
-        // so the OFF test below owns that code path. Here we pin only
-        // what the toggle ADDS (the per-ayah cards) + a clean frame.
-        // The per-ayah card carries BOTH real columns.
-        expect(find.textContaining('Lord of the worlds'), findsWidgets);
-        expect(tester.takeException(), isNull);
-      } catch (e) { _pin('compareOn', e); rethrow; }
+      SharedPreferences.setMockInitialValues(
+          {'quran_reading_preferences_v1_translation_compare': true});
+      await pumpReader(tester, initialTab: 'Translation');
+      expect(find.text('Bundled translations — ayah 1'), findsOneWidget);
+      expect(find.text('Bundled translations — ayah 2'), findsOneWidget);
+      // The trailing shared card's branch is unchanged code; at 844px
+      // the taller list simply leaves it outside the BUILT viewport,
+      // so the OFF test below owns that code path. Here we pin only
+      // what the toggle ADDS (the per-ayah cards) + a clean frame.
+      // The per-ayah card carries BOTH real columns.
+      expect(find.textContaining('Lord of the worlds'), findsWidgets);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('toggle OFF (the default) keeps the pre-Q2 layout exactly',
         (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        await pumpReader(tester, initialTab: 'Translation');
-        expect(find.textContaining('Bundled translations — ayah'), findsNothing);
-        // Al-Fatihah-specific PRE-EXISTING quirk (identical at the Q1
-        // gate commit): with no bismillah row, BOTH trailing items of
-        // the ayahs.length + 3 list render the shared card. The toggle
-        // must leave that count at 2 — one card per trailing slot.
-        expect(find.text('Bundled translations — first ayah'),
-            findsNWidgets(2));
-      } catch (e) { _pin('compareOff', e); rethrow; }
+      SharedPreferences.setMockInitialValues({});
+      await pumpReader(tester, initialTab: 'Translation');
+      expect(find.textContaining('Bundled translations — ayah'), findsNothing);
+      // Al-Fatihah-specific PRE-EXISTING quirk (identical at the Q1
+      // gate commit): with no bismillah row, BOTH trailing items of
+      // the ayahs.length + 3 list render the shared card. The toggle
+      // must leave that count at 2 — one card per trailing slot.
+      expect(find.text('Bundled translations — first ayah'),
+          findsNWidgets(2));
     });
 
     test('the toggle persists round-trip through prefs (settled first)',
         () async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        final n1 = ReadingPreferencesNotifier();
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-        await n1.setTranslationCompare(true);
-        final prefs = await SharedPreferences.getInstance();
-        expect(prefs.getBool('quran_reading_preferences_v1_translation_compare'),
-            isTrue);
-        final n2 = ReadingPreferencesNotifier();
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-        expect(n2.state.translationCompare, isTrue);
-        // Unrelated keys never leak the value: absent stays false.
-        await prefs.remove('quran_reading_preferences_v1_translation_compare');
-        final n3 = ReadingPreferencesNotifier();
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-        expect(n3.state.translationCompare, isFalse);
-      } catch (e) { _pin('prefsround', e); rethrow; }
+      SharedPreferences.setMockInitialValues({});
+      final n1 = ReadingPreferencesNotifier();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await n1.setTranslationCompare(true);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('quran_reading_preferences_v1_translation_compare'),
+          isTrue);
+      final n2 = ReadingPreferencesNotifier();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(n2.state.translationCompare, isTrue);
+      // Unrelated keys never leak the value: absent stays false.
+      await prefs.remove('quran_reading_preferences_v1_translation_compare');
+      final n3 = ReadingPreferencesNotifier();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(n3.state.translationCompare, isFalse);
     });
   });
 
@@ -505,67 +470,63 @@ void main() {
   // ────────────────────────────────────────────────────────────
   group('QuranAyahSearch', () {
     test('normalizer: tashkeel/tatweel die, letters fold, latin folds', () {
-      try {
-        expect(QuranAyahSearch.normalize('بِسْمِ  اللَّهِ'), 'بسم الله');
-        expect(QuranAyahSearch.normalize('ٱلْحَمْدُ'), 'الحمد');
-        expect(QuranAyahSearch.normalize('مُوسَى'), equals('موسي'));
-        expect(QuranAyahSearch.normalize('مُوسٰى'), equals('موسي'),
-            reason: 'alef maqsura == dagger alef after folding');
-        expect(QuranAyahSearch.normalize('بِئْر'), contains('بي'));
-        expect(QuranAyahSearch.normalize('سُؤَالَ'), contains('سو'));
-        expect(QuranAyahSearch.normalize('مدرسة'), contains('مدرسه'));
-        expect(QuranAyahSearch.normalize('کتاب'), 'كتاب',
-            reason: 'persian kaf folds to arabic kaf');
-        expect(QuranAyahSearch.normalize('تـَعـَ'), 'تع',
-            reason: 'tatweel stretches carry no signal');
-        expect(QuranAyahSearch.normalize('  The   Lord  '), 'the lord');
-      } catch (e) { _pin('normalize', e); rethrow; }
+      expect(QuranAyahSearch.normalize('بِسْمِ  اللَّهِ'), 'بسم الله');
+      expect(QuranAyahSearch.normalize('ٱلْحَمْدُ'), 'الحمد');
+      expect(QuranAyahSearch.normalize('مُوسَى'), equals('موسي'));
+      expect(QuranAyahSearch.normalize('مُوسٰى'), equals('موسي'),
+          reason: 'alef maqsura == dagger alef after folding');
+      expect(QuranAyahSearch.normalize('بِئْر'), contains('بي'));
+      expect(QuranAyahSearch.normalize('سُؤَالَ'), contains('سو'));
+      expect(QuranAyahSearch.normalize('مدرسة'), contains('مدرسه'));
+      expect(QuranAyahSearch.normalize('کتاب'), 'كتاب',
+          reason: 'persian kaf folds to arabic kaf');
+      expect(QuranAyahSearch.normalize('تـَعـَ'), 'تع',
+          reason: 'tatweel stretches carry no signal');
+      expect(QuranAyahSearch.normalize('  The   Lord  '), 'the lord');
     });
 
     test('scopes filter FIELDS — never borrow hits across them', () {
-      try {
-        const arabic = 'وَضَجَّ النَّارَ';
-        const english = 'the blazing fire';
-        // A latin word only ever matches the translation column…
-        expect(
-            QuranAyahSearch.matchType(
-                scope: QuranSearchScope.translations,
-                query: 'fire',
-                arabicText: arabic,
-                translation: english),
-            1);
-        expect(
-            QuranAyahSearch.matchType(
-                scope: QuranSearchScope.arabic,
-                query: 'fire',
-                arabicText: arabic,
-                translation: english),
-            isNull,
-            reason: 'Arabic scope never borrows the translation hit');
-        // …and an Arabic-only word never matches the translation column.
-        expect(
-            QuranAyahSearch.matchType(
-                scope: QuranSearchScope.arabic,
-                query: 'النار',
-                arabicText: arabic,
-                translation: english),
-            0);
-        expect(
-            QuranAyahSearch.matchType(
-                scope: QuranSearchScope.translations,
-                query: 'النار',
-                arabicText: arabic,
-                translation: english),
-            isNull);
-        // all = either field, Arabic first (the historical priority).
-        expect(
-            QuranAyahSearch.matchType(
-                scope: QuranSearchScope.all,
-                query: 'fire',
-                arabicText: arabic,
-                translation: english),
-            1);
-      } catch (e) { _pin('scopes', e); rethrow; }
+      const arabic = 'وَضَجَّ النَّارَ';
+      const english = 'the blazing fire';
+      // A latin word only ever matches the translation column…
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.translations,
+              query: 'fire',
+              arabicText: arabic,
+              translation: english),
+          1);
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.arabic,
+              query: 'fire',
+              arabicText: arabic,
+              translation: english),
+          isNull,
+          reason: 'Arabic scope never borrows the translation hit');
+      // …and an Arabic-only word never matches the translation column.
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.arabic,
+              query: 'النار',
+              arabicText: arabic,
+              translation: english),
+          0);
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.translations,
+              query: 'النار',
+              arabicText: arabic,
+              translation: english),
+          isNull);
+      // all = either field, Arabic first (the historical priority).
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.all,
+              query: 'fire',
+              arabicText: arabic,
+              translation: english),
+          1);
     });
 
     test('empty/whitespace query matches NOTHING (never match-all)', () {
@@ -581,45 +542,43 @@ void main() {
     });
 
     test('bundled data honors the scopes (real translation file)', () {
-      try {
-        final decoded = jsonDecode(
-                File('assets/data/quran/translation_en.json').readAsStringSync())
-            as Map<String, dynamic>;
-        final data = decoded['data'] as Map<String, dynamic>;
-        final surahs = data['surahs'] as List<dynamic>;
-        final firstSurah = surahs.first as Map<String, dynamic>;
-        final ayahs = firstSurah['ayahs'] as List<dynamic>;
-        final firstAyah = ayahs.first as Map<String, dynamic>;
-        final firstAyahEn = firstAyah['text'] as String;
-        expect(firstAyahEn.length, greaterThan(12));
-        const basmala = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
-        // A slice of the REAL translation matches under translations…
-        final probe = firstAyahEn.substring(3, 9).toLowerCase();
-        expect(
-            QuranAyahSearch.matchType(
-                scope: QuranSearchScope.translations,
-                query: probe,
-                arabicText: basmala,
-                translation: firstAyahEn),
-            1);
-        // …diacritic-heavy Arabic matches under arabic…
-        expect(
-            QuranAyahSearch.matchType(
-                scope: QuranSearchScope.arabic,
-                query: 'الرَّحِيم',
-                arabicText: basmala,
-                translation: firstAyahEn),
-            0);
-        // …and a latin word NEVER leaks into the Arabic scope (the
-        // basmala holds no latin letters — deterministic, any bundle).
-        expect(
-            QuranAyahSearch.matchType(
-                scope: QuranSearchScope.arabic,
-                query: probe,
-                arabicText: basmala,
-                translation: firstAyahEn),
-            isNull);
-      } catch (e) { _pin('realdata', e); rethrow; }
+      final decoded = jsonDecode(
+              File('assets/data/quran/translation_en.json').readAsStringSync())
+          as Map<String, dynamic>;
+      final data = decoded['data'] as Map<String, dynamic>;
+      final surahs = data['surahs'] as List<dynamic>;
+      final firstSurah = surahs.first as Map<String, dynamic>;
+      final ayahs = firstSurah['ayahs'] as List<dynamic>;
+      final firstAyah = ayahs.first as Map<String, dynamic>;
+      final firstAyahEn = firstAyah['text'] as String;
+      expect(firstAyahEn.length, greaterThan(12));
+      const basmala = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+      // A slice of the REAL translation matches under translations…
+      final probe = firstAyahEn.substring(3, 9).toLowerCase();
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.translations,
+              query: probe,
+              arabicText: basmala,
+              translation: firstAyahEn),
+          1);
+      // …diacritic-heavy Arabic matches under arabic…
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.arabic,
+              query: 'الرَّحِيم',
+              arabicText: basmala,
+              translation: firstAyahEn),
+          0);
+      // …and a latin word NEVER leaks into the Arabic scope (the
+      // basmala holds no latin letters — deterministic, any bundle).
+      expect(
+          QuranAyahSearch.matchType(
+              scope: QuranSearchScope.arabic,
+              query: probe,
+              arabicText: basmala,
+              translation: firstAyahEn),
+          isNull);
     });
 
     test('wiring: repo threads the scope to BOTH paths; notifier owns it',
@@ -676,35 +635,31 @@ void main() {
   group('deep play', () {
     testWidgets('playOnOpen starts the queue at the linked ayah, ONCE',
         (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        final audio = _RecordingAudio();
-        await pumpReader(tester,
-            playOnOpen: true, initialAyah: 2, initialTab: 'Translation', audio: audio);
-        expect(audio.calls, hasLength(1));
-        expect(audio.calls.single.surahNumber, 1);
-        expect(audio.calls.single.startIndex, 1,
-            reason: 'initialAyah 2 is queue index 1 (0-based)');
-        expect(audio.calls.single.queue, hasLength(2));
-        // Tab flip / rebuilds never retrigger the autoplay.
-        await tester.tap(find.text('Arabic').last);
-        await tester.pump(const Duration(milliseconds: 200));
-        await tester.pump(const Duration(milliseconds: 200));
-        expect(audio.calls, hasLength(1), reason: 'one-shot per visit');
-        expect(tester.takeException(), isNull);
-      } catch (e) { _pin('autoplay', e); rethrow; }
+      SharedPreferences.setMockInitialValues({});
+      final audio = _RecordingAudio();
+      await pumpReader(tester,
+          playOnOpen: true, initialAyah: 2, initialTab: 'Translation', audio: audio);
+      expect(audio.calls, hasLength(1));
+      expect(audio.calls.single.surahNumber, 1);
+      expect(audio.calls.single.startIndex, 1,
+          reason: 'initialAyah 2 is queue index 1 (0-based)');
+      expect(audio.calls.single.queue, hasLength(2));
+      // Tab flip / rebuilds never retrigger the autoplay.
+      await tester.tap(find.text('Arabic').last);
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(audio.calls, hasLength(1), reason: 'one-shot per visit');
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('no playOnOpen = plain open (zero queue calls)',
         (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        final audio = _RecordingAudio();
-        await pumpReader(tester, initialAyah: 2, audio: audio);
-        await tester.pump(const Duration(milliseconds: 400));
-        expect(audio.calls, isEmpty,
-            reason: 'autoplay is opt-in via the link param only');
-      } catch (e) { _pin('noautoplay', e); rethrow; }
+      SharedPreferences.setMockInitialValues({});
+      final audio = _RecordingAudio();
+      await pumpReader(tester, initialAyah: 2, audio: audio);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(audio.calls, isEmpty,
+          reason: 'autoplay is opt-in via the link param only');
     });
 
     test('routes parse ?play=; every open-from-here entry offers play', () {
