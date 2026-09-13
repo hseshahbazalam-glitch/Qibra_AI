@@ -184,10 +184,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           final ayahStr = state.uri.queryParameters['ayah'];
           final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
           final tab = state.uri.queryParameters['tab'];
+          // Pass Q2 deep link: ?play=1 opens AND starts recitation at
+          // the linked ayah (anything else — absent/0/garbage — is the
+          // plain open; no autoplay is ever implied).
+          final playParam = state.uri.queryParameters['play'];
+          final play = playParam == '1' || playParam == 'true';
           return SurahReaderScreen(
             surahNumber: surah,
             initialAyah: ayah,
             initialTab: tab,
+            playOnOpen: play,
           );
         },
       ),
@@ -198,7 +204,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           final surah = int.tryParse(state.uri.queryParameters['surah'] ?? '1') ?? 1;
           final ayahStr = state.uri.queryParameters['ayah'];
           final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
-          return SurahReaderScreen(surahNumber: surah, initialAyah: ayah);
+          final playParam = state.uri.queryParameters['play'];
+          final play = playParam == '1' || playParam == 'true';
+          return SurahReaderScreen(
+            surahNumber: surah,
+            initialAyah: ayah,
+            playOnOpen: play,
+          );
         },
       ),
       GoRoute(

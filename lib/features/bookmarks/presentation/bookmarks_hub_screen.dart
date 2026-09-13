@@ -285,6 +285,27 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
                                   .copyWith(color: colors.primary),
                             ),
                           ),
+                          // Pass Q2: play-from-here per bookmark row —
+                          // opens the reader at the ayah AND starts the
+                          // recitation queue there (same deep link the
+                          // search results use).
+                          Semantics(
+                            button: true,
+                            label: AppStrings.of(context).playFromHere,
+                            child: IconButton(
+                              onPressed: () => _openAyah(item, play: true),
+                              tooltip: AppStrings.of(context).playFromHere,
+                              icon: const Icon(Icons.play_circle_outline,
+                                  size: 22),
+                              color: colors.textSecondary,
+                              visualDensity: VisualDensity.compact,
+                              style: IconButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4),
+                                minimumSize: const Size(36, 36),
+                              ),
+                            ),
+                          ),
                           Text(
                             item.formattedTime,
                             style: AppTextStyles.labelSmall
@@ -345,12 +366,15 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
     );
   }
 
-  void _openAyah(BookmarkModel bookmark) {
+  void _openAyah(BookmarkModel bookmark, {bool play = false}) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SurahReaderScreen(
           surahNumber: bookmark.surahNumber,
           initialAyah: bookmark.ayahNumber,
+          // Pass Q2: the row's play affordance resumes recitation at
+          // the bookmarked ayah the moment the reader opens.
+          playOnOpen: play,
         ),
       ),
     );
