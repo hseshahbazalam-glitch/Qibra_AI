@@ -777,6 +777,5 @@ void main() {
       expect(slice, contains('mainAxisSize: MainAxisSize.min,'),
           reason: 'the Column keeps shrink-wrap sizing inside the scroll view');
     });
-
-
+  });
 }
