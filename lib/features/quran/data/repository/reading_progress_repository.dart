@@ -472,6 +472,12 @@ class ReadingProgressRepository {
     required Set<int> seen,
     required int ayah,
   }) {
+    // An ayah at/inside the run is already credited — it must not
+    // squat in the frontier (the store guards upstream too; the PURE
+    // helper keeps its own contract exact, pinned by tests).
+    if (ayah <= contiguous) {
+      return (c: contiguous, seen: Set<int>.of(seen));
+    }
     var c = contiguous;
     final s = Set<int>.of(seen)..add(ayah);
     while (s.remove(c + 1)) {

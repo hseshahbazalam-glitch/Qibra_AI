@@ -137,7 +137,12 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
   /// Arabic text-size stops offered by the pill.
   static const scales = <double>[1.0, 1.25, 1.5];
 
-  late final String _activeTab;
+  /// NOT final despite the old 'late final' — a tab pill tap
+  /// REASSIGNS (setState at the strip's callback); 'late final' made
+  /// that throw LateInitializationError 'already been initialized'.
+  /// Caught by the Pass Q2 widget test that taps a tab; the pre-Q2
+  /// suite never tapped one, so the gate never saw it.
+  late String _activeTab;
   final ScrollController _scroll = ScrollController();
   bool _didInitialScroll = false;
 
