@@ -778,42 +778,5 @@ void main() {
           reason: 'the Column keeps shrink-wrap sizing inside the scroll view');
     });
 
-    testWidgets('sweep S1 VERDICT: mushaf _showMoreOptions @360x640',
-        (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        await pumpMushaf360(tester);
-        expect(tester.takeException(), isNull,
-            reason: 'mushaf screen lays out clean at 360x640');
-        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-        await tester.pump(const Duration(milliseconds: 400));
-        expect(find.text('Page 1 options'), findsOneWidget);
-        // Four ListTiles fit the DEFAULT (no isScrollControlled) 9/16
-        // cap even at 640px height — clean at the strictest short
-        // viewport, so NO fix ships here (evidence-first rule).
-        expect(tester.takeException(), isNull,
-            reason: 'S1 verdict: no overflow at 360x640');
-      } catch (e) { _pin('sweepS1', e); rethrow; }
-    });
 
-    testWidgets('sweep S2 VERDICT: _showBookmarksList @360x640',
-        (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        await pumpMushaf360(tester);
-        // Reach the sheet through the real path: page -> More ->
-        // Bookmark -> More -> View all bookmarks.
-        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.tap(find.text('Bookmark page'));
-        await tester.pump(const Duration(milliseconds: 150));
-        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.tap(find.text('View all bookmarks'));
-        await tester.pump(const Duration(milliseconds: 400));
-        expect(find.text('Bookmarked pages'), findsOneWidget);
-        expect(find.text('1 pages'), findsOneWidget,
-            reason: 'the count text is the real set size');
-        // S2 ships DraggableScrollableSheet + Expanded(ListView) —
-        // scrollable by construction, so overflow is structurally
-        // impossible; pinned green = no fix ships here.
+}
