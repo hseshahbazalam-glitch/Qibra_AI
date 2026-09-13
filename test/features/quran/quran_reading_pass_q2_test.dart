@@ -364,7 +364,18 @@ void main() {
           await tester.pump(const Duration(milliseconds: 25));
         }
         expect(tester.takeException(), isNull);
-        final raw = prefs.getString('ayah_high_water_v1');
+        var raw = prefs.getString('ayah_high_water_v1');
+        if (raw == null) {
+          // FORENSIC: control write straight to the repository. If THIS
+          // lands, the break is dispose-path-specific; if not, it is the
+          // store/prefs environment itself.
+          await ReadingProgressRepository.instance.markAyahSeen(1, 5);
+          final raw2 = prefs.getString('ayah_high_water_v1');
+          _pin('unmount',
+              'DISPOSE-PATH WRITE ABSENT. direct-mark landed=${raw2 != null} '
+              'lrWritten=${prefs.getString('last_read_position') != null} '
+              'keys=${prefs.getKeys().toList()}');
+        }
         expect(raw, isNotNull, reason: 'the visit end MUST credit the store');
         final json = jsonDecode(raw!) as Map<String, dynamic>;
         final entry = json['1'] as Map<String, dynamic>;
