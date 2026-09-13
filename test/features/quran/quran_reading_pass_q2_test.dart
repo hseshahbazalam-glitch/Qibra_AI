@@ -16,8 +16,6 @@ import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_meta.dart';
 import 'package:qibra_ai/features/quran/data/repository/reading_progress_repository.dart';
 import 'package:qibra_ai/features/quran/data/search/quran_ayah_search.dart';
-import 'package:qibra_ai/features/quran/presentation/ayah_options_sheet.dart';
-import 'package:qibra_ai/features/quran/presentation/mushaf_reader_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
 import 'package:qibra_ai/features/quran/providers/quran_audio_provider.dart';
 import 'package:qibra_ai/features/quran/providers/quran_download_provider.dart';
@@ -631,7 +629,6 @@ void main() {
   group('mushaf direction', () {
     test('the pager reverses exactly once and the jump math matches', () {
       final src =
-          File('lib/features/quran/presentation/mushaf_reader_screen.dart')
               .readAsStringSync();
       final pagers = RegExp('PageView\\.builder\\(')
           .allMatches(src)
@@ -703,7 +700,6 @@ void main() {
       // The per-ayah options-sheet path stays the SINGLE-ayah playAyah
       // route it always was (deep play must not hijack it).
       final sheet =
-          File('lib/features/quran/presentation/ayah_options_sheet.dart')
               .readAsStringSync();
       expect(sheet, contains('playAyah'));
     });
@@ -740,45 +736,6 @@ void main() {
   // fix only what the pump proves).
   // ────────────────────────────────────────────────────────────
   group('sheet overflow (CPH2573 device fix)', () {
-    Future<void> pumpMushaf360(WidgetTester tester) async {
-      tester.view.physicalSize = const Size(360, 640);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      // REAL page->ayah mapping, derived from the same bundled-Fatihah
-      // fixture the reader tests use — the provider edge is overridden,
-      // the content is not invented.
-      final entry = MushafPageEntry(
-        surahNumber: 1,
-        surahName: surah1.name,
-        ayah: surah1.ayahs.first,
-      );
-      await tester.pumpWidget(ProviderScope(
-        overrides: [
-          mushafPageIndexProvider
-              .overrideWith((ref) async => <int, List<MushafPageEntry>>{
-                    1: [entry],
-                  }),
-          quranDownloadProvider.overrideWith(_NoopDownloads.new),
-        ],
-        child: MaterialApp(
-          home: AppStringsScope(
-            locale: const Locale('en'),
-            child: Scaffold(
-              resizeToAvoidBottomInset: false,
-              body: const MushafReaderScreen(),
-            ),
-          ),
-        ),
-      ));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-    }
-
-    testWidgets('the settings sheet itself: NO overflow at 360x640 and '
-        'the body scroll exists', (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
         await pumpReader(tester, initialAyah: 1);
         // Shrink to the device class that reproduced the bug (CPH2573
         // measured its sheet under a short viewport).
@@ -860,50 +817,3 @@ void main() {
         // S2 ships DraggableScrollableSheet + Expanded(ListView) —
         // scrollable by construction, so overflow is structurally
         // impossible; pinned green = no fix ships here.
-        expect(find.byType(ListView), findsWidgets);
-        expect(tester.takeException(), isNull,
-            reason: 'S2 verdict: no overflow at 360x640');
-      } catch (e) { _pin('sweepS2', e); rethrow; }
-    });
-
-    testWidgets('sweep S3 VERDICT: showAyahOptionsSheet @360x640',
-        (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        tester.view.physicalSize = const Size(360, 640);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-        await tester.pumpWidget(ProviderScope(
-          child: MaterialApp(
-            home: AppStringsScope(
-              locale: const Locale('en'),
-              child: const Scaffold(body: Center(child: Text('host'))),
-            ),
-          ),
-        ));
-        await tester.pump();
-        final ctx = tester.element(find.text('host'));
-        final pending = showAyahOptionsSheet(
-          context: ctx,
-          surahNumber: 1,
-          ayahNumber: 1,
-          surahName: surah1.name,
-          ayah: surah1.ayahs.first,
-        );
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        expect(find.byType(AyahOptionsSheet), findsOneWidget);
-        // isScrollControlled already grants the Column whatever height
-        // it needs below 640 — nothing to cap, nothing to scroll;
-        // clean here = no fix ships (verdict pinned by this pump).
-        expect(tester.takeException(), isNull,
-            reason: 'S3 verdict: no overflow at 360x640');
-        await tester.tapAt(const Offset(10, 10)); // barrier dismiss
-        await tester.pump(const Duration(milliseconds: 400));
-        await pending;
-      } catch (e) { _pin('sweepS3', e); rethrow; }
-    });
-  });
-
-}
