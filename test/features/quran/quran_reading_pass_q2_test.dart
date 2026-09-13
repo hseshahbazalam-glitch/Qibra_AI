@@ -836,12 +836,12 @@ void main() {
         tester.takeException(); // drain page-level noise (none expected)
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
         await tester.pump(const Duration(milliseconds: 16));
-        final eOpen = tester.takeException();
+        final Object? eOpen = tester.takeException();
         if (eOpen != null) {
           _pin('S1-open16', eOpen);
         }
         await tester.pump(const Duration(milliseconds: 384));
-        final eSettled = tester.takeException();
+        final Object? eSettled = tester.takeException();
         if (eSettled != null) {
           _pin('S1-settled', eSettled);
         }
@@ -873,7 +873,7 @@ void main() {
         // Settle the sheet pop FULLY (250ms is the default duration).
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pump(const Duration(milliseconds: 300));
-        final ePop = tester.takeException();
+        final Object? ePop = tester.takeException();
         if (ePop != null) {
           _pin('S2-afterpop', ePop);
         }
