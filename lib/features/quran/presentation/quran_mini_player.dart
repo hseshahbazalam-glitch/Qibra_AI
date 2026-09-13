@@ -260,7 +260,6 @@ class _QuranMiniPlayerState extends ConsumerState<QuranMiniPlayer> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
                         minWidth: 34, minHeight: 34),
-                    visualDensity: VisualDensity.compact,
                     icon: Icon(
                       Icons.tune_rounded,
                       color: hifzActive ? colors.primary : colors.textTertiary,

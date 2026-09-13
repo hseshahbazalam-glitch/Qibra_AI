@@ -98,6 +98,33 @@ class QuranAudioState {
   /// — e.g. the reader re-arms follow-along only on a new session.
   final int session;
 
+  // Pass Q1 (2026-09-14): reciter, speed and hifz state ride on the
+  // SAME immutable snapshot so every surface (mini player, reader chips,
+  // notification) renders the exact values the controller enforces.
+
+  /// Catalog id of the qari this session plays (see Tilawat.byId).
+  final String qariId;
+
+  /// Display name for the subtitle row — '' until known (never null, so
+  /// the UI can't branch into an invented name).
+  final String qariName;
+
+  /// Playback speed actually applied (whitelist — see Tilawat.knownSpeeds).
+  final double speed;
+
+  /// Hifz repeat mode (off = plain queue).
+  final QuranRepeatMode repeatMode;
+
+  /// Ayah-repeat count, already clamped at set time (1..20).
+  final int repeatCount;
+
+  /// Range bounds (ayah numbers within the playing surah; 0 = unset).
+  final int rangeStart;
+  final int rangeEnd;
+
+  /// Live tap-picker stage for range bounds (none = not picking).
+  final QuranRangePick rangePick;
+
   bool get active => phase != QuranAudioPhase.idle;
   bool get isPlaying => phase == QuranAudioPhase.playing;
   double? get progress {

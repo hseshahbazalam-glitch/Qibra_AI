@@ -25,18 +25,28 @@ void main() {
     try {
       r = await Process.run('bash', [
         '-lc',
-        'dart analyze lib test 2>&1 | grep -E "^ +(error|warning)" | head -40'
+        'dart analyze lib test 2>&1 | grep -E "^ +(error|warning)" '
+            '> /tmp/probe_analyze.txt; wc -l < /tmp/probe_analyze.txt; '
+            'head -55 /tmp/probe_analyze.txt'
       ]);
     } finally {
       opts.writeAsStringSync(orig);
     }
-    final lines = (r.stdout as String).trim().split('\n');
+    final lines = (r.stdout as String).split('\n');
     var n = 0;
-    for (final line in lines) {
+    var shown = 0;
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
       if (line.trim().isEmpty) continue;
+      if (i == 0) {
+        // ignore: avoid_print
+        print('::notice::PROBE total error/warning lines: ${line.trim()}');
+        continue;
+      }
       n++;
+      shown++;
       // ignore: avoid_print
-      print('::error::PROBE $line');
+      print('::error::PROBE($shown/55) ${line.trim()}');
     }
     if (n == 0) {
       // ignore: avoid_print
