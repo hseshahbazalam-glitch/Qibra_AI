@@ -179,4 +179,86 @@ void main() {
           reason: 'default preserves historical behavior');
     });
   });
+  group('source guards (pinned behavior without device access)', () {
+    test('mushaf: the pager reverses exactly once; jump math matches', () {
+      final src =
+          File('lib/features/quran/presentation/mushaf_reader_screen.dart')
+              .readAsStringSync();
+      final pagers = RegExp('PageView\\.builder\\(').allMatches(src).length;
+      final reversals = RegExp('reverse:\\s*true').allMatches(src).length;
+      expect(pagers, 1, reason: 'exactly one page pager');
+      expect(reversals, 1,
+          reason: 'reversed exactly once — left-edge swipe advances');
+      expect(src, contains('jumpToPage(saved.pageNumber - 1)'));
+      expect(src, isNot(contains('Directionality(')),
+          reason: 'no double-reversal override anywhere in the screen');
+    });
+
+    test('deep play: routes parse ?play=; entries offer it; sheet intact',
+        () {
+      final router = File('lib/core/router/app_router.dart').readAsStringSync();
+      expect(
+          RegExp('playParam == \'1\' \\|\\| playParam == \'true\'')
+              .allMatches(router)
+              .length,
+          2);
+      expect(router, contains('playOnOpen: play'));
+      final searchSrc =
+          File('lib/features/quran/presentation/quran_search_screen.dart')
+              .readAsStringSync();
+      expect(searchSrc, contains('onPlay: () => _openAyah(result, play: true)'));
+      expect(searchSrc, contains('playOnOpen: play'));
+      final hubSrc =
+          File('lib/features/bookmarks/presentation/bookmarks_hub_screen.dart')
+              .readAsStringSync();
+      expect(hubSrc, contains('_openAyah(item, play: true)'));
+      expect(hubSrc, contains('playOnOpen: play'));
+      final sheet =
+          File('lib/features/quran/presentation/ayah_options_sheet.dart')
+              .readAsStringSync();
+      expect(sheet, contains('playAyah'));
+    });
+
+    test('compare toggle + streak honesty are wired at their anchors', () {
+      final reader =
+          File('lib/features/quran/presentation/surah_reader_screen.dart')
+              .readAsStringSync();
+      expect(reader, contains('if (prefs.translationCompare && '
+          'activeTab == \'Translation\') ...['));
+      expect(reader, contains('this.playOnOpen = false'));
+      expect(reader, contains('_didAutoPlay = true;'));
+      final home = File('lib/features/quran/presentation/quran_screen.dart')
+          .readAsStringSync();
+      expect(home, contains('Icons.hourglass_bottom_rounded'));
+      expect(home, contains('AppStrings.of(context).noStreakYet'));
+      expect(home, contains('progress.khatm.coverageFraction'));
+      expect(home, contains('AppStrings.of(context).khatmHonestCaption'));
+      final prefs =
+          File('lib/features/quran/providers/reading_preferences_provider.dart')
+              .readAsStringSync();
+      expect(prefs, contains('_translation_compare'));
+      expect(prefs, contains('setTranslationCompare'));
+    });
+
+    test('all Q2 strings carry three locales and the parsed shape', () {
+      final src = File('lib/core/l10n/app_strings.dart').readAsStringSync();
+      for (final name in [
+        'khatmCoverage',
+        'khatmSummary',
+        'khatmHonestCaption',
+        'noStreakYet',
+        'compareTranslations',
+        'compareTranslationsHint',
+        'bundledTranslationsForAyah',
+        'searchScope',
+        'scopeTranslations',
+        'scopeArabic',
+        'scopeAll',
+        'playFromHere',
+      ]) {
+        expect(src, contains(name), reason: 'missing getter: $name');
+      }
+      expect(src, contains('String get scopeAll => _t('));
+    });
+  });
 }
