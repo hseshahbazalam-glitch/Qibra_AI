@@ -605,15 +605,17 @@ class QuranAudioController extends Notifier<QuranAudioState>
           MediaAction.playPause,
           MediaAction.stop,
         },
+        // 0.18.x PlaybackState contract: position is DERIVED from
+        // (updatePosition + speed·elapsed-since-updateTime), so the
+        // honest inputs are: where we are (state.position — player
+        // truth), pushed once per second, and the real speed.
         processingState: state.phase == QuranAudioPhase.loading
             ? AudioProcessingState.loading
             : AudioProcessingState.ready,
         playing: state.isPlaying,
-        position: state.position,
+        updatePosition: state.position,
         bufferedPosition: state.position,
-        updatePosition: DateTime.now(),
-        currentSpeed: state.speed,
-        duration: dur,
+        speed: state.speed,
       ));
     } catch (e) {
       debugPrint('⚠️ tilawat notification sync failed: $e');
