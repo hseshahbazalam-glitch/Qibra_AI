@@ -27,6 +27,7 @@ class ReadingPreferences {
     this.mode = QuranReadingMode.arabicAndTranslation,
     this.qariId = 'ar.alafasy',
     this.playbackSpeed = 1.0,
+    this.translationCompare = false,
   });
 
   /// Shared clamp range for both scales.
@@ -55,6 +56,11 @@ class ReadingPreferences {
   /// at the setter and at load; anything else stores/loads 1.0).
   final double playbackSpeed;
 
+  /// Pass Q2: render the bundled EN+UR compare card under EVERY ayah on
+  /// the Translation tab (off = only the trailing first-ayah card,
+  /// exactly the pre-Q2 layout).
+  final bool translationCompare;
+
   static double clampScale(double v) => v.clamp(scaleMin, scaleMax).toDouble();
 
   /// Pure legacy migration — unit-tested. A missing/null old value means
@@ -79,6 +85,7 @@ class ReadingPreferences {
     QuranReadingMode? mode,
     String? qariId,
     double? playbackSpeed,
+    bool? translationCompare,
   }) {
     return ReadingPreferences(
       translationId: translationId ?? this.translationId,
@@ -91,6 +98,7 @@ class ReadingPreferences {
       mode: mode ?? this.mode,
       qariId: qariId ?? this.qariId,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
+      translationCompare: translationCompare ?? this.translationCompare,
     );
   }
 
@@ -158,6 +166,8 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
       playbackSpeed: ReadingPreferences.validSpeed(
         prefs.getDouble('${_key}_playback_speed'),
       ),
+      translationCompare:
+          prefs.getBool('${_key}_translation_compare') ?? false,
     );
   }
 
@@ -173,6 +183,15 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     await prefs.setString('${_key}_mode', state.mode.name);
     await prefs.setString('${_key}_qari_id', state.qariId);
     await prefs.setDouble('${_key}_playback_speed', state.playbackSpeed);
+    await prefs.setBool(
+        '${_key}_translation_compare', state.translationCompare);
+  }
+
+  /// Persist the per-ayah translation-compare toggle (Pass Q2).
+  Future<void> setTranslationCompare(bool value) async {
+    if (value == state.translationCompare) return;
+    state = state.copyWith(translationCompare: value);
+    await _save();
   }
 
   /// Persist the selected reciter (validated at the boundary).

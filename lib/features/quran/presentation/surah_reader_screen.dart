@@ -111,6 +111,7 @@ class SurahReaderScreen extends ConsumerStatefulWidget {
     required this.surahNumber,
     this.initialAyah,
     this.initialTab,
+    this.playOnOpen = false,
   });
 
   final int surahNumber;
@@ -118,6 +119,12 @@ class SurahReaderScreen extends ConsumerStatefulWidget {
 
   /// One of 'Arabic' | 'Translation' | 'Transliteration'.
   final String? initialTab;
+
+  /// Pass Q2 deep links: open AND start recitation at [initialAyah]
+  /// (falls back to the surah's first ayah — documented fallback, only
+  /// when no position was in the link). One-shot per visit; rides the
+  /// SAME startQueue as the in-card play button — no parallel path.
+  final bool playOnOpen;
 
   @override
   ConsumerState<SurahReaderScreen> createState() => _SurahReaderScreenState();
@@ -133,6 +140,10 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
   late final String _activeTab;
   final ScrollController _scroll = ScrollController();
   bool _didInitialScroll = false;
+
+  /// Pass Q2: playOnOpen is a ONE-SHOT per visit (rebuilds and tab
+  /// flips never retrigger it — the queue owns playback from there).
+  bool _didAutoPlay = false;
 
   // Last-read tracking (item 2). Written on dispose/app-pause; NOT
   // setState-bound — no UI depends on these mid-frame.
@@ -242,6 +253,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
   }
 
   void _jumpToInitialAyah(SurahModel surah) {
+    _maybeAutoPlay(surah);
     if (_didInitialScroll || widget.initialAyah == null) return;
     _didInitialScroll = true;
     final idx = surah.ayahs.indexWhere((a) => a.number == widget.initialAyah);
@@ -250,6 +262,25 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
       if (!mounted || !_scroll.hasClients) return;
       // Approximate per-item height; lands close enough to fine-tune.
       _scroll.jumpTo((idx + 1) * 184.0);
+    });
+  }
+
+  /// Pass Q2 deep-open-and-play: after data arrives, start the surah's
+  /// recitation queue at the linked ayah via the SAME startQueue the
+  /// in-card button uses (session bump re-arms follow automatically).
+  void _maybeAutoPlay(SurahModel surah) {
+    if (!widget.playOnOpen || _didAutoPlay) return;
+    _didAutoPlay = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final idx = surah.ayahs
+          .indexWhere((a) => a.number == (widget.initialAyah ?? 1));
+      ref.read(quranAudioProvider.notifier).startQueue(
+            surahNumber: surah.number,
+            surahName: surah.name,
+            queue: tilawatQueueFor(surah),
+            startIndex: idx < 0 ? 0 : idx,
+          );
     });
   }
 
@@ -287,7 +318,13 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
               ? aud.ayahNumber
               : null),
       (_, next) {
-        if (next != null) _playedAyah = next;
+        if (next != null) {
+          _playedAyah = next;
+          // Pass Q2 seen-signal: the player ADVANCING onto an ayah is
+          // a documented khatm mark — no setState, no rebuild churn.
+          _lastReadStore.markPlayed(
+              surah: widget.surahNumber, ayah: next);
+        }
         if (next == null || !_followM.armed) return;
         _ensureAyahVisible(next);
       },
@@ -468,8 +505,16 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
                           ayah: s.ayahs[ayahIndex],
                           activeTab: _activeTab,
                           prefs: prefs,
-                          onAyahOpened: () =>
-                              _tappedAyah = s.ayahs[ayahIndex].number,
+                          onAyahOpened: () {
+                            _tappedAyah = s.ayahs[ayahIndex].number;
+                            // Pass Q2 seen-signal: opening an ayah's
+                            // options card credits EXACTLY this ayah to
+                            // the khatm high-water (idempotent store).
+                            _lastReadStore.markPlayed(
+                              surah: widget.surahNumber,
+                              ayah: s.ayahs[ayahIndex].number,
+                            );
+                          },
                         ),
                       );
                     }
@@ -1007,6 +1052,16 @@ class _AyahCard extends ConsumerWidget {
                 ),
               ),
             ],
+            // Pass Q2 (reader setting 'Compare translations'): the ONE
+            // compare card, rendered per ayah while the Translation
+            // tab is active. Gated on real prefs; title states the ayah.
+            if (prefs.translationCompare && activeTab == 'Translation') ...[
+              const SizedBox(height: 10),
+              _TranslationCompareCard(
+                ayah: ayah,
+                title: strings.bundledTranslationsForAyah(ayah.number),
+              ),
+            ],
             // Playback UI for THIS ayah exists only while the player is
             // on it: real reported progress, an honest indeterminate
             // line while buffering, and the truthful failure copy.
@@ -1067,9 +1122,15 @@ class _AyahCard extends ConsumerWidget {
 // ─────────────────────────────────────────────────────────────
 
 class _TranslationCompareCard extends StatelessWidget {
-  const _TranslationCompareCard({required this.ayah});
+  const _TranslationCompareCard({required this.ayah, this.title});
 
   final AyahModel ayah;
+
+  /// Pass Q2: per-ayah instances (reader settings toggle) pass a real
+  /// title; the trailing list item keeps its original text untouched —
+  /// ONE widget serves both, no fork (the compare card was already this
+  /// shape, so extending it beat re-inventing an equal row widget).
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
@@ -1086,7 +1147,8 @@ class _TranslationCompareCard extends StatelessWidget {
               Icon(Icons.language_rounded, size: 16, color: colors.primary),
               const SizedBox(width: 6),
               Text(
-                'Bundled translations — first ayah',
+                title ??
+                    'Bundled translations — first ayah',
                 style: AppTextStyles.labelMedium.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w700,
@@ -1227,6 +1289,18 @@ class _ReadingSettingsSheet extends ConsumerWidget {
               onChanged: (v) => ref
                   .read(readingPreferencesProvider.notifier)
                   .setShowTransliteration(v),
+            ),
+            AppSwitchListTile(
+              title: Text(AppStrings.of(context).compareTranslations),
+              subtitle: Text(
+                AppStrings.of(context).compareTranslationsHint,
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: colors.textSecondary),
+              ),
+              value: prefs.translationCompare,
+              onChanged: (v) => ref
+                  .read(readingPreferencesProvider.notifier)
+                  .setTranslationCompare(v),
             ),
             const SizedBox(height: 8),
             // Split font controls (world-class pass): Arabic and
