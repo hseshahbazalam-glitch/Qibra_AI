@@ -482,6 +482,37 @@ class AppStrings {
   String get rangeNotSet =>
       _t('Range not set', 'لم يُحدَّد المدى', 'رینج مقرر نہیں');
 
+  // ── Quran reading & tracking (Pass Q2) — khatm / streak / compare / search scope ──
+  String get khatmCoverage => _t('Khatm coverage', 'تغطية الختم', 'ختم کا احاطہ');
+  String khatmSummary(
+          int opened, int totalSurahs, int ayahs, int pct, int totalAyahs) => _t(
+        '$opened of $totalSurahs surahs reached its last ayah · $ayahs ayahs high-water (~$pct% of $totalAyahs)',
+        'بلغت $opened من $totalSurahs سورةً آيتها الأخير · أعلى تسلسل مقروء: $ayahs آية (~$pct٪ من $totalAyahs)',
+        '$totalSurahs سورتوں میں سے $opened نے اپنی آخری آیت پائی · بلندیِ تسلسل $ayahs آیات (~$totalAyahs میں سے $pct٪)',
+      );
+  String get khatmHonestCaption => _t(
+        'High-water coverage only — never a completion claim.',
+        'تغطية أعلى تسلسل مقروء فقط — ليست دعوى إتمام.',
+        'بلندیِ تسلسل کا احاطہ — مکمل ہونے کا دعوٰی ہرگز نہیں۔',
+      );
+  String get noStreakYet => _t('No streak yet', 'لا توجد سلسلة بعد', 'ابھی کوئی سلسلہ نہیں');
+  String get compareTranslations => _t('Compare translations', 'مقارنة التراجم', 'تراجم کا موازنہ');
+  String get compareTranslationsHint => _t(
+        'Show the English and Urdu columns under every ayah on the Translation tab.',
+        'اعرض العمودين الإنجليزي والأردوي تحت كل آية في تبويب الترجمة.',
+        'ترجمہ ٹیب پر ہر آیت کے نیچے انگریزی اور اردو کالم دکھائیں۔',
+      );
+  String bundledTranslationsForAyah(int n) => _t(
+        'Bundled translations — ayah $n',
+        'الترجمتان المضمَّنتان — الآية $n',
+        'مضمون ترجمے — آیت $n',
+      );
+  String get searchScope => _t('Scope', 'نطاق البحث', 'تلاش کا دائرہ');
+  String get playFromHere => _t('Play from here', 'التشغيل من هنا', 'یہاں سے چلائیں');
+  String get scopeTranslations => _t('Translations', 'الترجمات', 'تراجم');
+  String get scopeArabic => _t('Arabic', 'العربية', 'عربی');
+  String get scopeAll => _t('All', 'الكل', 'سب کچھ');
+
   String _t(String en, String ar, String ur) {
     switch (_code) {
       case 'ar':
