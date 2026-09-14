@@ -861,6 +861,13 @@ void main() {
           'mushaf_bookmarked_pages': ['1'],
         });
         await pumpMushaf360(tester);
+        // _loadBookmarks awaits a prefs hop from initState — give the
+        // channel round-trip a real-loop window (the file-wide lesson:
+        // fake pump time alone does not drain method-channel replies),
+        // then one pump to land the resulting setState/rebuild.
+        await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 80)));
+        await tester.pump();
         tester.takeException(); // drain page-level noise
         final errors = <String>[];
         final prev = FlutterError.onError;
