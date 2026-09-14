@@ -157,6 +157,21 @@ Future<void> pumpReader(
     ReadingProgressRepository.hwApplySeen(
         contiguous: from.c, seen: from.seen, ayah: ayah);
 
+/// TEMP probe (B11 round only): failure names+messages reach check-run
+/// annotations via the ::error:: workflow command; strip at the fix.
+void _pin(String id, Object err) {
+  final head = err
+      .toString()
+      .split('\n')
+      .where((l) => l.trim().isNotEmpty)
+      .take(6)
+      .join(' | ')
+      .replaceAll('%', '%25')
+      .replaceAll('\r', '');
+  // ignore: avoid_print
+  print('::error::Q2PIN $id :: ${head.substring(0, head.length < 1200 ? head.length : 1200)}');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
@@ -811,58 +826,62 @@ void main() {
 
     testWidgets('sweep S1: mushaf _showMoreOptions @360x640 — ink fix '
         'shipped, no wrap needed', (tester) async {
-      SharedPreferences.setMockInitialValues({});
-      await pumpMushaf360(tester);
-      tester.takeException(); // drain page-level noise (none expected)
-      final errors = <String>[];
-      final prev = FlutterError.onError;
-      FlutterError.onError = (FlutterErrorDetails d) {
-        errors.add(d.exception.toString());
-      };
-      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-      await tester.pump(const Duration(milliseconds: 400));
-      FlutterError.onError = prev;
-      // VERDICT (evidence-first): the short-viewport pump proved NO
-      // overflow (the ~340px body fits the default 9/16 cap, so no
-      // scroll wrap ships here), and it proved four 'ink splashes may
-      // be invisible' diagnostics on the tiles — silenced by
-      // _menuOption's transparent Material. Zero recorded errors IS the
-      // pinned verdict; the earlier 'overflow' reading of the folded
-      // 'Multiple exceptions (4)' annotation is corrected here.
-      expect(errors, isEmpty, reason: 'no layout/ink errors at 360x640');
-      expect(find.text('Page 1 options'), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      try {
+        SharedPreferences.setMockInitialValues({});
+        await pumpMushaf360(tester);
+        tester.takeException(); // drain page-level noise (none expected)
+        final errors = <String>[];
+        final prev = FlutterError.onError;
+        FlutterError.onError = (FlutterErrorDetails d) {
+          errors.add(d.exception.toString());
+        };
+        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+        await tester.pump(const Duration(milliseconds: 400));
+        FlutterError.onError = prev;
+        // VERDICT (evidence-first): the short-viewport pump proved NO
+        // overflow (the ~340px body fits the default 9/16 cap, so no
+        // scroll wrap ships here), and it proved four 'ink splashes may
+        // be invisible' diagnostics on the tiles — silenced by
+        // _menuOption's transparent Material. Zero recorded errors IS the
+        // pinned verdict; the earlier 'overflow' reading of the folded
+        // 'Multiple exceptions (4)' annotation is corrected here.
+        expect(errors, isEmpty, reason: 'no layout/ink errors at 360x640');
+        expect(find.text('Page 1 options'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      } catch (e) { _pin('sweepS1', e); rethrow; }
     });
 
     testWidgets('sweep S2: _showBookmarksList @360x640 — VERDICT clean, '
         'no fix ships', (tester) async {
-      // Real saved-state path: _loadBookmarks reads the actual prefs
-      // key the screen's own toggle writes — prefilled in that exact
-      // format, so the sheet opens non-empty without tap-dances.
-      SharedPreferences.setMockInitialValues({
-        'mushaf_bookmarked_pages': ['1'],
-      });
-      await pumpMushaf360(tester);
-      tester.takeException(); // drain page-level noise
-      final errors = <String>[];
-      final prev = FlutterError.onError;
-      FlutterError.onError = (FlutterErrorDetails d) {
-        errors.add(d.exception.toString());
-      };
-      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.tap(find.text('View all bookmarks'));
-      await tester.pump(const Duration(milliseconds: 400));
-      FlutterError.onError = prev;
-      expect(find.text('Bookmarked pages'), findsOneWidget);
-      expect(find.text('1 pages'), findsOneWidget,
-          reason: 'the count text is the real set size');
-      // S2 ships DraggableScrollableSheet + Expanded(ListView), and its
-      // rows already carry the transparent-Material ink wrap (owner
-      // sweep) — scrollable and ink-safe by CONSTRUCTION. Zero recorded
-      // errors at 360x640 = no fix ships here. VERDICT pinned.
-      expect(errors, isEmpty, reason: 'no layout/ink errors at 360x640');
-      expect(tester.takeException(), isNull);
+      try {
+        // Real saved-state path: _loadBookmarks reads the actual prefs
+        // key the screen's own toggle writes — prefilled in that exact
+        // format, so the sheet opens non-empty without tap-dances.
+        SharedPreferences.setMockInitialValues({
+          'mushaf_bookmarked_pages': ['1'],
+        });
+        await pumpMushaf360(tester);
+        tester.takeException(); // drain page-level noise
+        final errors = <String>[];
+        final prev = FlutterError.onError;
+        FlutterError.onError = (FlutterErrorDetails d) {
+          errors.add(d.exception.toString());
+        };
+        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.tap(find.text('View all bookmarks'));
+        await tester.pump(const Duration(milliseconds: 400));
+        FlutterError.onError = prev;
+        expect(find.text('Bookmarked pages'), findsOneWidget);
+        expect(find.text('1 pages'), findsOneWidget,
+            reason: 'the count text is the real set size');
+        // S2 ships DraggableScrollableSheet + Expanded(ListView), and its
+        // rows already carry the transparent-Material ink wrap (owner
+        // sweep) — scrollable and ink-safe by CONSTRUCTION. Zero recorded
+        // errors at 360x640 = no fix ships here. VERDICT pinned.
+        expect(errors, isEmpty, reason: 'no layout/ink errors at 360x640');
+        expect(tester.takeException(), isNull);
+      } catch (e) { _pin('sweepS2', e); rethrow; }
     });
 
     testWidgets('sweep S3 VERDICT: showAyahOptions @360x640',
