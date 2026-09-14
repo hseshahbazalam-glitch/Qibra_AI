@@ -879,6 +879,20 @@ void main() {
         await tester.tap(find.text('View all bookmarks'));
         await tester.pump(const Duration(milliseconds: 400));
         FlutterError.onError = prev;
+        _pin(
+            's2state',
+            () {
+              final bmTip = find.text('Bookmark page').evaluate().length;
+              final rmTip = find.text('Remove bookmark').evaluate().length;
+              final sheet1 = find.text('Page 1 options').evaluate().length;
+              final toast =
+                  find.textContaining('No bookmarks yet').evaluate().length;
+              final errs = errors.join(' | ');
+              final cut = errs.length < 400 ? errs.length : 400;
+              return 'sheet1=$sheet1 bmTip=$bmTip rmTip=$rmTip '
+                  'toast=$toast errs(${errs.length})=$cut ${errs.substring(0, cut)}';
+            }(),
+        );
         expect(find.text('Bookmarked pages'), findsOneWidget);
         expect(find.text('1 pages'), findsOneWidget,
             reason: 'the count text is the real set size');
