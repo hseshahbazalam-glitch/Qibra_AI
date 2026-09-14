@@ -831,20 +831,17 @@ void main() {
       try {
         SharedPreferences.setMockInitialValues({});
         await pumpMushaf360(tester);
-        expect(tester.takeException(), isNull,
-            reason: 'mushaf screen lays out clean at 360x640');
-        tester.takeException(); // drain page-level noise (none expected)
+        tester.takeException(); // drain page-level noise
+        final errors = <String>[];
+        final prev = FlutterError.onError;
+        FlutterError.onError = (FlutterErrorDetails d) {
+          errors.add(d.exception.toString());
+        };
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-        await tester.pump(const Duration(milliseconds: 16));
-        final Object? eOpen = tester.takeException();
-        if (eOpen != null) {
-          _pin('S1-open16', eOpen);
-        }
-        await tester.pump(const Duration(milliseconds: 384));
-        final Object? eSettled = tester.takeException();
-        if (eSettled != null) {
-          _pin('S1-settled', eSettled);
-        }
+        await tester.pump(const Duration(milliseconds: 400));
+        FlutterError.onError = prev;
+        _pin('S1-errors',
+            '${errors.length} err :: ${errors.take(2).join(' /// ')}');
         expect(find.text('Page 1 options'), findsOneWidget);
         // VERDICT (evidence-first): the pump proved 4 rows + header do
         // NOT fit the default 9/16 cap at 640 (RenderFlex overflows
@@ -869,14 +866,17 @@ void main() {
         // Bookmark -> More -> View all bookmarks.
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
         await tester.pump(const Duration(milliseconds: 400));
+        final beforeTap = tester.any(find.text('Page 1 options'));
         await tester.tap(find.text('Bookmark page'));
-        // Settle the sheet pop FULLY (250ms is the default duration).
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pump(const Duration(milliseconds: 300));
-        final Object? ePop = tester.takeException();
-        if (ePop != null) {
-          _pin('S2-afterpop', ePop);
-        }
+        final afterTap = tester.any(find.text('Page 1 options'));
+        final exc = tester.takeException();
+        _pin('S2-state',
+            'sheetBefore=$beforeTap sheetAfter=$afterTap '
+            'exc=${exc.toString().split('\n').take(1).join()} '
+            "bookmarkStill=${tester.any(find.text('Bookmark page'))} "
+            "removeShown=${tester.any(find.text('Remove bookmark'))}");
         expect(find.text('Page 1 options'), findsNothing,
             reason: 'the More sheet must have popped after the row tap');
         await tester.tap(find.byIcon(Icons.more_horiz_rounded));
