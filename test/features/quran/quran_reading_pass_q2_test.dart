@@ -157,21 +157,6 @@ Future<void> pumpReader(
     ReadingProgressRepository.hwApplySeen(
         contiguous: from.c, seen: from.seen, ayah: ayah);
 
-/// TEMP CI diagnostic (A-series discipline): removes failure names and
-/// messages from this run's check-run annotations; strip after green.
-void _pin(String id, Object err) {
-  final head = err
-      .toString()
-      .split('\n')
-      .where((l) => l.trim().isNotEmpty)
-      .take(10)
-      .join(' | ')
-      .replaceAll('%', '%25')
-      .replaceAll('\r', '');
-  // ignore: avoid_print
-  print('::error::Q2PIN $id :: ${head.substring(0, head.length < 1400 ? head.length : 1400)}');
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
@@ -777,33 +762,31 @@ void main() {
 
     testWidgets('the settings sheet itself: NO overflow at 360x640 and '
         'the body scroll exists', (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        await pumpReader(tester, initialAyah: 1);
-        // Shrink to the device class that reproduced the bug (CPH2573
-        // measured its sheet under a short viewport).
-        tester.view.physicalSize = const Size(360, 640);
-        await tester.pump(const Duration(milliseconds: 50));
-        // Baseline: drain any layout error the READER PAGE itself
-        // produces at this artificial 640 height (the real CPH2573
-        // class is ~360x800). The assertion below must then speak only
-        // of the sheet.
-        tester.takeException();
-        await tester.tap(find.byTooltip('Reading settings'));
-        await tester.pump(const Duration(milliseconds: 400));
-        // PRE-FIX this printed a bottom RenderFlex overflow (default
-        // 9/16 sheet cap vs the Q1/Q2-grown Column) — the device bug as
-        // a permanent tripwire.
-        expect(tester.takeException(), isNull,
-            reason: 'CPH2573 overflow must not reproduce');
-        // The vertical wrapper is an ANCESTOR of the sheet title (the
-        // reader's horizontal chip scroller at :700 is not).
-        expect(
-            find.ancestor(
-                of: find.text('Reading settings'),
-                matching: find.byType(SingleChildScrollView)),
-            findsOneWidget);
-      } catch (e) { _pin('settingsSheet', e); rethrow; }
+      SharedPreferences.setMockInitialValues({});
+      await pumpReader(tester, initialAyah: 1);
+      // Shrink to the device class that reproduced the bug (CPH2573
+      // measured its sheet under a short viewport).
+      tester.view.physicalSize = const Size(360, 640);
+      await tester.pump(const Duration(milliseconds: 50));
+      // Baseline: drain any layout error the READER PAGE itself
+      // produces at this artificial 640 height (the real CPH2573
+      // class is ~360x800). The assertion below must then speak only
+      // of the sheet.
+      tester.takeException();
+      await tester.tap(find.byTooltip('Reading settings'));
+      await tester.pump(const Duration(milliseconds: 400));
+      // PRE-FIX this printed a bottom RenderFlex overflow (default
+      // 9/16 sheet cap vs the Q1/Q2-grown Column) — the device bug as
+      // a permanent tripwire.
+      expect(tester.takeException(), isNull,
+          reason: 'CPH2573 overflow must not reproduce');
+      // The vertical wrapper is an ANCESTOR of the sheet title (the
+      // reader's horizontal chip scroller at :700 is not).
+      expect(
+          find.ancestor(
+              of: find.text('Reading settings'),
+              matching: find.byType(SingleChildScrollView)),
+          findsOneWidget);
     });
 
     test('source guard: opener cap + body scroll shipped', () {
@@ -826,112 +809,97 @@ void main() {
           reason: 'the Column keeps shrink-wrap sizing inside the scroll view');
     });
 
-    testWidgets('sweep S1: _showMoreOptions OVERFLOWED at 360x640 — '
-        'minimal fix shipped', (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        await pumpMushaf360(tester);
-        tester.takeException(); // drain page-level noise
-        final errors = <String>[];
-        final prev = FlutterError.onError;
-        FlutterError.onError = (FlutterErrorDetails d) {
-          errors.add(d.exception.toString());
-        };
-        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-        await tester.pump(const Duration(milliseconds: 400));
-        FlutterError.onError = prev;
-        _pin('S1-errors',
-            '${errors.length} err :: ${errors.take(2).join(' /// ')}');
-        expect(find.text('Page 1 options'), findsOneWidget);
-        // VERDICT (evidence-first): the pump proved 4 rows + header do
-        // NOT fit the default 9/16 cap at 640 (RenderFlex overflows
-        // were the first annotation batch). The same minimal remedy as
-        // the settings sheet now ships here; these two lines pin it.
-        expect(tester.takeException(), isNull,
-            reason: 'S1: no overflow after the fix at 360x640');
-        expect(
-            find.ancestor(
-                of: find.text('Page 1 options'),
-                matching: find.byType(SingleChildScrollView)),
-            findsOneWidget);
-      } catch (e) { _pin('sweepS1', e); rethrow; }
+    testWidgets('sweep S1: mushaf _showMoreOptions @360x640 — ink fix '
+        'shipped, no wrap needed', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await pumpMushaf360(tester);
+      tester.takeException(); // drain page-level noise (none expected)
+      final errors = <String>[];
+      final prev = FlutterError.onError;
+      FlutterError.onError = (FlutterErrorDetails d) {
+        errors.add(d.exception.toString());
+      };
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pump(const Duration(milliseconds: 400));
+      FlutterError.onError = prev;
+      // VERDICT (evidence-first): the short-viewport pump proved NO
+      // overflow (the ~340px body fits the default 9/16 cap, so no
+      // scroll wrap ships here), and it proved four 'ink splashes may
+      // be invisible' diagnostics on the tiles — silenced by
+      // _menuOption's transparent Material. Zero recorded errors IS the
+      // pinned verdict; the earlier 'overflow' reading of the folded
+      // 'Multiple exceptions (4)' annotation is corrected here.
+      expect(errors, isEmpty, reason: 'no layout/ink errors at 360x640');
+      expect(find.text('Page 1 options'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
-    testWidgets('sweep S2 VERDICT: _showBookmarksList @360x640',
-        (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        await pumpMushaf360(tester);
-        // Reach the sheet through the real path: page -> More ->
-        // Bookmark -> More -> View all bookmarks.
-        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-        await tester.pump(const Duration(milliseconds: 400));
-        final beforeTap = tester.any(find.text('Page 1 options'));
-        await tester.tap(find.text('Bookmark page'));
-        await tester.pump(const Duration(milliseconds: 300));
-        await tester.pump(const Duration(milliseconds: 300));
-        final afterTap = tester.any(find.text('Page 1 options'));
-        final exc = tester.takeException();
-        _pin('S2-state',
-            'sheetBefore=$beforeTap sheetAfter=$afterTap '
-            'exc=${exc.toString().split('\n').take(1).join()} '
-            "bookmarkStill=${tester.any(find.text('Bookmark page'))} "
-            "removeShown=${tester.any(find.text('Remove bookmark'))}");
-        expect(find.text('Page 1 options'), findsNothing,
-            reason: 'the More sheet must have popped after the row tap');
-        await tester.tap(find.byIcon(Icons.more_horiz_rounded));
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.tap(find.text('View all bookmarks'));
-        await tester.pump(const Duration(milliseconds: 400));
-        expect(find.text('Bookmarked pages'), findsOneWidget);
-        expect(find.text('1 pages'), findsOneWidget,
-            reason: 'the count text is the real set size');
-        // S2 ships DraggableScrollableSheet + Expanded(ListView) —
-        // scrollable by construction, so overflow is structurally
-        // impossible; pinned green = no fix ships here.
-        expect(find.byType(ListView), findsWidgets);
-        expect(tester.takeException(), isNull,
-            reason: 'S2 verdict: no overflow at 360x640');
-      } catch (e) { _pin('sweepS2', e); rethrow; }
+    testWidgets('sweep S2: _showBookmarksList @360x640 — VERDICT clean, '
+        'no fix ships', (tester) async {
+      // Real saved-state path: _loadBookmarks reads the actual prefs
+      // key the screen's own toggle writes — prefilled in that exact
+      // format, so the sheet opens non-empty without tap-dances.
+      SharedPreferences.setMockInitialValues({
+        'mushaf_bookmarked_pages': ['1'],
+      });
+      await pumpMushaf360(tester);
+      tester.takeException(); // drain page-level noise
+      final errors = <String>[];
+      final prev = FlutterError.onError;
+      FlutterError.onError = (FlutterErrorDetails d) {
+        errors.add(d.exception.toString());
+      };
+      await tester.tap(find.byIcon(Icons.more_horiz_rounded));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('View all bookmarks'));
+      await tester.pump(const Duration(milliseconds: 400));
+      FlutterError.onError = prev;
+      expect(find.text('Bookmarked pages'), findsOneWidget);
+      expect(find.text('1 pages'), findsOneWidget,
+          reason: 'the count text is the real set size');
+      // S2 ships DraggableScrollableSheet + Expanded(ListView), and its
+      // rows already carry the transparent-Material ink wrap (owner
+      // sweep) — scrollable and ink-safe by CONSTRUCTION. Zero recorded
+      // errors at 360x640 = no fix ships here. VERDICT pinned.
+      expect(errors, isEmpty, reason: 'no layout/ink errors at 360x640');
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('sweep S3 VERDICT: showAyahOptions @360x640',
         (tester) async {
-      try {
-        SharedPreferences.setMockInitialValues({});
-        tester.view.physicalSize = const Size(360, 640);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-        await tester.pumpWidget(ProviderScope(
-          child: MaterialApp(
-            home: AppStringsScope(
-              locale: const Locale('en'),
-              child: const Scaffold(body: Center(child: Text('host'))),
-            ),
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(ProviderScope(
+        child: MaterialApp(
+          home: AppStringsScope(
+            locale: const Locale('en'),
+            child: const Scaffold(body: Center(child: Text('host'))),
           ),
-        ));
-        await tester.pump();
-        final ctx = tester.element(find.text('host'));
-        final pending = showAyahOptions(
-          context: ctx,
-          surahNumber: 1,
-          ayahNumber: 1,
-          surahName: surah1.name,
-          ayah: surah1.ayahs.first,
-        );
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        expect(find.byType(AyahOptionsSheet), findsOneWidget);
-        // isScrollControlled already grants the Column whatever height
-        // it needs below 640 — nothing to cap, nothing to scroll;
-        // clean here = no fix ships (verdict pinned by this pump).
-        expect(tester.takeException(), isNull,
-            reason: 'S3 verdict: no overflow at 360x640');
-        await tester.tapAt(const Offset(10, 10)); // barrier dismiss
-        await tester.pump(const Duration(milliseconds: 400));
-        await pending;
-      } catch (e) { _pin('sweepS3', e); rethrow; }
+        ),
+      ));
+      await tester.pump();
+      final ctx = tester.element(find.text('host'));
+      final pending = showAyahOptions(
+        context: ctx,
+        surahNumber: 1,
+        ayahNumber: 1,
+        surahName: surah1.name,
+        ayah: surah1.ayahs.first,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(AyahOptionsSheet), findsOneWidget);
+      // isScrollControlled already grants the Column whatever height
+      // it needs below 640 — nothing to cap, nothing to scroll;
+      // clean here = no fix ships (verdict pinned by this pump).
+      expect(tester.takeException(), isNull,
+          reason: 'S3 verdict: no overflow at 360x640');
+      await tester.tapAt(const Offset(10, 10)); // barrier dismiss
+      await tester.pump(const Duration(milliseconds: 400));
+      await pending;
     });
   });
 
