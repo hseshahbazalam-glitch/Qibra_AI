@@ -237,6 +237,19 @@ class QuranRepository {
     return _cachedSurahInfoList ?? [];
   }
 
+  /// Pass Q3 (word layer): the raw Uthmani texts of all 6236 ayahs,
+  /// straight from the already-loaded cache — the occurrence counter
+  /// runs over exactly the text the app renders (no second source).
+  /// Empty when the corpus has not been initialized yet (honest zero).
+  List<String> allAyahTextsSync() {
+    final map = _cachedSurahsMap;
+    if (map == null) return const [];
+    return [
+      for (final n in map.keys.toList()..sort())
+        for (final a in map[n]!.ayahs) a.text,
+    ];
+  }
+
   Future<SurahModel?> getSurah(int surahNumber) async {
     if (surahNumber < 1 || surahNumber > 114) {
       throw ArgumentError('Surah number must be between 1 and 114');

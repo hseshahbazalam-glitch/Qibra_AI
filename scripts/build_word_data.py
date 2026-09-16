@@ -16,7 +16,9 @@
 #             n|n|id' entries (columns 3-4 are upstream metadata,
 #             ignored). Some lines embed a literal '\n' between gloss
 #             parts — splitting on it makes every entry one word.
-#   timings   github.com/GlobalQuran/Quran-word-for-word (Apache-2.0)
+#   timings   github.com/GlobalQuran/Quran-word-for-word (NO license
+#             file upstream — status UNKNOWN in the manifest; see its
+#             entry text for the honest licensing read)
 #             — QuranSeg/qaree102.js (Abdul Basit Murattal) and
 #             qaree103.js (Al-Husary): cue rows "s\t a\t start_ms\t
 #             dur_ms\t word_idx" against the PER-AYAH mp3s of the
@@ -260,7 +262,9 @@ def main():
                 'file': 'QuranSeg/%s.js' % label,
                 'audio': 'everyayah per-ayah master cuts; app streams '
                          'the 128/192kbps encodes of the same cuts',
-                'license': 'Apache-2.0',
+                'license': 'UNKNOWN (upstream repo ships no license '
+                           'file; cues descend from everyayah timing '
+                           'shared for non-commercial use)'
             },
             'ayahs': ordered,
         }
