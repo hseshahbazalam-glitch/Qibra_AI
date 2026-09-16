@@ -26,6 +26,7 @@ class ReadingPreferences {
     this.fontFamily = 'Amiri',
     this.mode = QuranReadingMode.arabicAndTranslation,
     this.qariId = 'ar.alafasy',
+    this.listenWordByWord = false,
     this.playbackSpeed = 1.0,
     this.translationCompare = false,
   });
@@ -51,6 +52,12 @@ class ReadingPreferences {
   /// rejected at the boundary (setter + load), so the player always
   /// resolves a real catalog entry; default Alafasy (Tilawat.current).
   final String qariId;
+
+  /// Listen word-by-word (Pass Q3): when ON, tapping a word plays the
+  /// recitation FROM THAT WORD (exact where the qari has bundled cue
+  /// data; otherwise honestly from the ayah start). Explicit user
+  /// state only — never auto-armed.
+  final bool listenWordByWord;
 
   /// just_audio playback speed — one of Tilawat.knownSpeeds (validated
   /// at the setter and at load; anything else stores/loads 1.0).
@@ -84,6 +91,7 @@ class ReadingPreferences {
     String? fontFamily,
     QuranReadingMode? mode,
     String? qariId,
+    bool? listenWordByWord,
     double? playbackSpeed,
     bool? translationCompare,
   }) {
@@ -97,6 +105,7 @@ class ReadingPreferences {
       fontFamily: fontFamily ?? this.fontFamily,
       mode: mode ?? this.mode,
       qariId: qariId ?? this.qariId,
+      listenWordByWord: listenWordByWord ?? this.listenWordByWord,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       translationCompare: translationCompare ?? this.translationCompare,
     );
@@ -134,6 +143,8 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     final height = prefs.getDouble('${_key}_line_height') ?? 1.8;
     final font = prefs.getString('${_key}_font_family') ?? 'Amiri';
     final modeName = prefs.getString('${_key}_mode') ?? QuranReadingMode.arabicAndTranslation.name;
+    final listenWord =
+        prefs.getBool('${_key}_listen_word_by_word') ?? false;
     final mode = QuranReadingMode.values.firstWhere(
       (m) => m.name == modeName,
       orElse: () => QuranReadingMode.arabicAndTranslation,
@@ -163,6 +174,7 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
       qariId: ReadingPreferences.validQariId(
         prefs.getString('${_key}_qari_id'),
       ),
+      listenWordByWord: listenWord,
       playbackSpeed: ReadingPreferences.validSpeed(
         prefs.getDouble('${_key}_playback_speed'),
       ),
@@ -182,6 +194,8 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     await prefs.setString('${_key}_font_family', state.fontFamily);
     await prefs.setString('${_key}_mode', state.mode.name);
     await prefs.setString('${_key}_qari_id', state.qariId);
+    await prefs.setBool('${_key}_listen_word_by_word',
+        state.listenWordByWord);
     await prefs.setDouble('${_key}_playback_speed', state.playbackSpeed);
     await prefs.setBool(
         '${_key}_translation_compare', state.translationCompare);
@@ -199,6 +213,14 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     final v = ReadingPreferences.validQariId(id);
     if (v == state.qariId) return;
     state = state.copyWith(qariId: v);
+    await _save();
+  }
+
+  /// Persist the Listen word-by-word mode (Pass Q3). Explicit user
+  /// state only: nothing in the app flips this without this call.
+  Future<void> setListenWordByWord(bool value) async {
+    if (value == state.listenWordByWord) return;
+    state = state.copyWith(listenWordByWord: value);
     await _save();
   }
 

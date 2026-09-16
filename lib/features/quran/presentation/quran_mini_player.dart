@@ -206,6 +206,18 @@ class _QuranMiniPlayerState extends ConsumerState<QuranMiniPlayer> {
                                   : colors.textSecondary,
                             ),
                           ),
+                          // Pass Q3: a word tap WITHOUT exact cue data
+                          // for this qari plays from the ayah start —
+                          // say so plainly, never fake the sync.
+                          if (audio.wordFallbackNotice)
+                            Text(
+                              strings.wordTimingsNotAvailable,
+                              maxLines: 2,
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: colors.textTertiary,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
                         ],
                       ),
                     ),

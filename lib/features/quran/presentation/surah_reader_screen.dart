@@ -47,6 +47,9 @@ import '../providers/reading_progress_provider.dart';
 import '../providers/quran_provider.dart';
 import '../providers/reading_preferences_provider.dart';
 import 'ayah_options_sheet.dart';
+import '../data/word/quran_word_data.dart';
+import '../providers/quran_word_provider.dart';
+import 'word_explain_sheet.dart';
 
 /// The reader's auto-advance queue, built from the REAL ayah list with
 /// the app's own global ayah numbers (numberInQuran; QuranMeta prefix
@@ -1036,15 +1039,19 @@ class _AyahCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              ayah.text,
-              textAlign: TextAlign.right,
-              textDirection: TextDirection.rtl,
-              style: AppArabicStyles.quranMedium.copyWith(
-                fontSize: arabicSize,
-                height: prefs.lineHeight,
-                color: colors.textPrimary,
-              ),
+            // Pass Q3 word layer: the SAME ayah text as per-word spans
+            // whenever the bundled dataset aligns (validator-gated —
+            // a non-aligned ayah renders the plain Text below, exactly
+            // the historical behavior). Long-press a word = explain
+            // sheet (always available for aligned ayahs); tap = play
+            // from that word ONLY in listen word-by-word mode, else it
+            // bubbles to the card's whole-ayah options (unchanged).
+            _AyahArabicLayer(
+              surah: surah,
+              ayah: ayah,
+              prefs: prefs,
+              arabicSize: arabicSize,
+              color: colors.textPrimary,
             ),
             if (showTranslit) ...[
               const SizedBox(height: 8),
@@ -1311,6 +1318,18 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                 onChanged: (v) => ref
                     .read(readingPreferencesProvider.notifier)
                     .setShowTransliteration(v),
+              ),
+              AppSwitchListTile(
+                title: Text(AppStrings.of(context).listenWordByWord),
+                subtitle: Text(
+                  AppStrings.of(context).listenWordByWordHint,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: colors.textSecondary),
+                ),
+                value: prefs.listenWordByWord,
+                onChanged: (v) => ref
+                    .read(readingPreferencesProvider.notifier)
+                    .setListenWordByWord(v),
               ),
               AppSwitchListTile(
                 title: Text(AppStrings.of(context).compareTranslations),
@@ -1688,6 +1707,111 @@ class _TilawatDownloadsSectionState
             ),
         ],
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Pass Q3 — per-word Arabic layer (validator-gated, additive)
+// ─────────────────────────────────────────────────────────────
+
+class _AyahArabicLayer extends ConsumerWidget {
+  const _AyahArabicLayer({
+    required this.surah,
+    required this.ayah,
+    required this.prefs,
+    required this.arabicSize,
+    required this.color,
+  });
+
+  final SurahModel surah;
+  final AyahModel ayah;
+  final ReadingPreferences prefs;
+  final double arabicSize;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final corpus = ref.watch(quranWordCorpusProvider).valueOrNull;
+    final words = corpus?.wordsFor(surah.number, ayah.number, ayah.text);
+    final style = AppArabicStyles.quranMedium.copyWith(
+      fontSize: arabicSize,
+      height: prefs.lineHeight,
+      color: color,
+    );
+    if (words == null) {
+      // No verified word mapping for this ayah (or the corpus failed to
+      // load): the historical single-Text render, byte-identical UX.
+      return Text(
+        ayah.text,
+        textAlign: TextAlign.right,
+        textDirection: TextDirection.rtl,
+        style: style,
+      );
+    }
+
+    final cues = corpus!.cuesFor(prefs.qariId, surah.number, ayah.number);
+    final roman = ayah.translationRoman?.trim();
+
+    void playFromSpan(int spanIndex) {
+      final ctl = ref.read(quranAudioProvider.notifier);
+      final idx =
+          surah.ayahs.indexWhere((a) => a.number == ayah.number);
+      ctl.playFromWord(
+        surahNumber: surah.number,
+        surahName: surah.name,
+        queue: tilawatQueueFor(surah),
+        startIndex: idx < 0 ? 0 : idx,
+        spanIndex: spanIndex,
+        cues: cues,
+      );
+    }
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Text.rich(
+        TextSpan(
+          style: style,
+          children: [
+            for (var i = 0; i < words.spans.length; i++) ...[
+              WidgetSpan(
+                alignment: PlaceholderAlignment.baseline,
+                baseline: TextBaseline.alphabetic,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  // Tap follows listen word-by-word mode ONLY; when
+                  // OFF the child claims no tap so the card's existing
+                  // whole-ayah options gesture fires (zero conflict).
+                  onTap: prefs.listenWordByWord
+                      ? () => playFromSpan(i)
+                      : null,
+                  onLongPress: () {
+                    showWordExplainSheet(
+                      context,
+                      surahNumber: surah.number,
+                      surahName: surah.name,
+                      ayahNumber: ayah.number,
+                      ayahText: ayah.text,
+                      word: words.spans[i].word,
+                      gloss: words.spans[i].gloss,
+                      spanIndex: i,
+                      hasExactTimings:
+                          QuranWordCorpus.seekStartMs(cues, i) != null,
+                      transliteration:
+                          (roman != null && roman.isNotEmpty) ? roman : null,
+                      onPlayFromWord: () => playFromSpan(i),
+                    );
+                  },
+                  child: Text(words.spans[i].word, style: style),
+                ),
+              ),
+              if (i != words.spans.length - 1)
+                const TextSpan(text: ' '),
+            ],
+          ],
+        ),
+        textAlign: TextAlign.right,
+      ),
     );
   }
 }

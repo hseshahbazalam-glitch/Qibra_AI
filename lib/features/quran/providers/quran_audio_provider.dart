@@ -36,6 +36,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../data/audio/quran_audio_service.dart';
 import '../data/audio/tilawat.dart';
+import '../data/word/quran_word_data.dart';
 import '../data/audio/tilawat_downloader.dart';
 import 'reading_preferences_provider.dart';
 
@@ -78,6 +79,8 @@ class QuranAudioState {
     this.rangeStart = 0,
     this.rangeEnd = 0,
     this.rangePick = QuranRangePick.none,
+    this.wordSpan,
+    this.wordExact = false,
   });
 
   final QuranAudioPhase phase;
@@ -125,6 +128,19 @@ class QuranAudioState {
   /// Live tap-picker stage for range bounds (none = not picking).
   final QuranRangePick rangePick;
 
+  /// Pass Q3: index of the WORD this playback started from within the
+  /// current ayah's rendered word spans (null = plain ayah playback).
+  final int? wordSpan;
+
+  /// Whether [wordSpan] seek was EXACT (bundled cue data for this qari)
+  /// or the honest whole-ayah-start fallback — the mini player must
+  /// surface the fallback notice, never present approximate as exact.
+  final bool wordExact;
+
+  /// True when a word play had to fall back to the ayah start: the only
+  /// state in which the honest notice line renders.
+  bool get wordFallbackNotice => wordSpan != null && !wordExact;
+
   bool get active => phase != QuranAudioPhase.idle;
   bool get isPlaying => phase == QuranAudioPhase.playing;
   double? get progress {
@@ -158,6 +174,9 @@ class QuranAudioState {
     int? rangeStart,
     int? rangeEnd,
     QuranRangePick? rangePick,
+    int? wordSpan,
+    bool? wordExact,
+    bool clearWord = false,
     bool clearError = false,
     bool clearDuration = false,
   }) {
@@ -181,6 +200,8 @@ class QuranAudioState {
       rangeStart: rangeStart ?? this.rangeStart,
       rangeEnd: rangeEnd ?? this.rangeEnd,
       rangePick: rangePick ?? this.rangePick,
+      wordSpan: clearWord ? null : (wordSpan ?? this.wordSpan),
+      wordExact: clearWord ? false : (wordExact ?? this.wordExact),
     );
   }
 }
@@ -188,6 +209,17 @@ class QuranAudioState {
 class QuranAudioController extends Notifier<QuranAudioState>
     implements TilawatPlaybackDelegate {
   late final AudioPlayer _player;
+
+  /// Pass Q3: ms offset into the CURRENT queue item to seek after load
+  /// (word play). Null = whole-ayah. Consumed per resolve; queue
+  /// advance/jump clear it (see _jumpTo / repeat advance).
+  int? _wordSeekMs;
+
+  /// Staged by playFromWord for the NEXT startQueue (intent pattern —
+  /// keeps startQueue's signature frozen for overrides and doubles).
+  int? _wordIntentMs;
+  int? _wordIntentSpan;
+  bool _wordIntentExact = false;
   final List<StreamSubscription<dynamic>> _subs = [];
   List<PlayableAyah> _queue = const [];
   bool _resolving = false;
@@ -283,6 +315,18 @@ class QuranAudioController extends Notifier<QuranAudioState>
     if (queue.isEmpty) return;
     final idx = startIndex.clamp(0, queue.length - 1).toInt();
     _queue = List.unmodifiable(queue);
+    // Pass Q3 word start: a playFromWord call stages an intent which
+    // the NEXT startQueue consumes — signature-stable (subclasses and
+    // test doubles overriding startQueue keep compiling) and plain
+    // queue starts clear any stale intent. The seek applies to THIS
+    // queue item only; auto-advance/jump clear it (whole-ayah next).
+    final intentMs = _wordIntentMs;
+    final intentSpan = _wordIntentSpan;
+    final intentExact = _wordIntentExact;
+    _wordIntentMs = null;
+    _wordIntentSpan = null;
+    _wordIntentExact = false;
+    _wordSeekMs = intentMs;
     // Fresh action: re-read the persisted reciter + speed, reset the
     // hifz run-state (repeat counter + any half-picked range bounds;
     // the MODE/count persist for the session as the chips visibly
@@ -304,8 +348,36 @@ class QuranAudioController extends Notifier<QuranAudioState>
       speed: ReadingPreferences.validSpeed(prefs.playbackSpeed),
       repeatMode: state.repeatMode,
       repeatCount: state.repeatCount,
+      wordSpan: intentSpan,
+      wordExact: intentSpan != null && intentExact,
     );
     await _resolveAndPlay(idx);
+  }
+
+  /// Pass Q3: play this ayah starting at word [spanIndex] (index into
+  /// the ayah's rendered word spans). [cues] are that qari's word
+  /// timings for this ayah (null = no dataset coverage): then the play
+  /// honestly starts at the AYAH BEGINNING and the state carries
+  /// wordFallbackNotice so surfaces say so plainly. Pure resolution
+  /// lives in QuranWordCorpus.seekStartMs (unit-tested).
+  Future<void> playFromWord({
+    required int surahNumber,
+    required String surahName,
+    required List<PlayableAyah> queue,
+    required int startIndex,
+    required int spanIndex,
+    List<WordCue>? cues,
+  }) async {
+    final seekMs = QuranWordCorpus.seekStartMs(cues, spanIndex);
+    _wordIntentMs = seekMs;
+    _wordIntentSpan = spanIndex;
+    _wordIntentExact = seekMs != null;
+    await startQueue(
+      surahNumber: surahNumber,
+      surahName: surahName,
+      queue: queue,
+      startIndex: startIndex,
+    );
   }
 
   /// Toggle play/pause when [surah]:[ayah] is the current track;
@@ -363,6 +435,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
     // stop() itself — with state already idle, the stream handler skips
     // it instead of misreporting a failure.
     _queue = const [];
+    _wordSeekMs = null;
     state = const QuranAudioState();
     await _player.stop();
     _syncService(); // idle ⇒ notification goes away
@@ -414,12 +487,15 @@ class QuranAudioController extends Notifier<QuranAudioState>
 
   Future<void> _jumpTo(int index) async {
     _repeatsDone = 0; // manual jump restarts the repeat tally
+    // A jump leaves the word-play context: the target ayah plays whole.
+    _wordSeekMs = null;
     state = state.copyWith(
       queueIndex: index,
       ayahNumber: _queue[index].ayah,
       position: Duration.zero,
       clearDuration: true,
       buffering: true,
+      clearWord: true,
     );
     await _resolveAndPlay(index);
   }
@@ -702,11 +778,13 @@ class QuranAudioController extends Notifier<QuranAudioState>
         final next =
             Tilawat.nextQueueIndex(state.queueIndex, _queue.length)!;
         _repeatsDone = 0;
+        _wordSeekMs = null; // next ayah plays whole (word play was local)
         state = state.copyWith(
           queueIndex: next,
           ayahNumber: _queue[next].ayah,
           position: Duration.zero,
           clearDuration: true,
+          clearWord: true,
         );
         await _resolveAndPlay(next);
         return;
@@ -759,6 +837,19 @@ class QuranAudioController extends Notifier<QuranAudioState>
         await _player.setSpeed(state.speed);
       } catch (e) {
         debugPrint('⚠️ tilawat speed re-apply failed: $e');
+      }
+      // Word play: seek BEFORE play() so the first sample heard IS the
+      // word start. A failed seek is silent — the ayah plays whole, and
+      // (honesty rule) the notice flag was set from the SAME cue
+      // lookup, so a silent seek error is the one case this app cannot
+      // claim: just_audio's seek on a loaded source does not error.
+      final seekMs = _wordSeekMs;
+      if (seekMs != null && seekMs > 0) {
+        try {
+          await _player.seek(Duration(milliseconds: seekMs));
+        } catch (e) {
+          debugPrint('⚠️ tilawat word seek failed: $e');
+        }
       }
       state = state.copyWith(clearError: true, buffering: true);
       // play()'s Future completes when the track pauses/ends — never

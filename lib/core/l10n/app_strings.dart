@@ -513,6 +513,47 @@ class AppStrings {
   String get scopeArabic => _t('Arabic', 'العربية', 'عربی');
   String get scopeAll => _t('All', 'الكل', 'سب کچھ');
 
+  // ── Pass Q3: word-touch & explain ──
+  String get listenWordByWord => _t(
+        'Listen word-by-word',
+        'الاستماع كلمة بكلمة',
+        'لفظ بہ لفظ سنیں');
+  String get listenWordByWordHint => _t(
+        'When on, tapping a word plays the recitation from that word.',
+        'عند التشغيل، تؤدي اللمسة على أي كلمة إلى تشغيل التلاوة من تلك الكلمة.',
+        'آن ہونے پر کسی لفظ کو چھونے سے تلاوت اُسی لفظ سے شروع ہو جاتی ہے۔');
+  String get wordTimingsNotAvailable => _t(
+        'word timings not available for this reciter — playing from '
+        'ayah start',
+        'توقيتات الكلمات غير متوفرة لهذا القارئ — تُشغَّل التلاوة من '
+        'بداية الآية',
+        'اس قاری کے لیے الفاظ کا وقت دستیاب نہیں — تلاوت آیہ کے آغاز '
+        'سے شروع ہو رہی ہے');
+  String get playFromThisWord => _t(
+        'Play from this word',
+        'شغّل من هذه الكلمة',
+        'اس لفظ سے سنیں');
+  String wordAppearsNTimes(int n) => _t(
+        'Appears $n times in the Quran',
+        'يتكرر $n مرة في القرآن',
+        'قرآن میں $n بار آیا');
+  String get wordGlossUnavailable => _t(
+        'No gloss bundled for this word',
+        'لا يتوفر شرح هذه الكلمة في النسخة المضمّنة',
+        'اس لفظ کا ترجمہ بنڈل میں شامل نہیں');
+  String get wordRootDataNotBundled => _t(
+        'Root morphology is not bundled in this build',
+        'تحليل الجذور غير مضمّن في هذا الإصدار',
+        'روٹ کا تجزیہ اس بلڈ میں شامل نہیں');
+  String get openTafseer => _t(
+        'Open Tafseer',
+        'افتح التفسير',
+        'تفسیر کھولیں');
+  String get askAiAboutWord => _t(
+        'Ask AI about this word',
+        'اسأل الذكاء الاصطناعي عن هذه الكلمة',
+        'اس لفظ کے بارے میں AI سے پوچھیں');
+
   String _t(String en, String ar, String ur) {
     switch (_code) {
       case 'ar':

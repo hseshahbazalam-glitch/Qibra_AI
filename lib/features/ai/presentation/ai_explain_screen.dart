@@ -33,6 +33,10 @@ class AIExplainScreen extends ConsumerStatefulWidget {
     this.duaTitle,
     this.duaArabic,
     this.duaTranslation,
+    // Pass Q3: the word a long-press started from. It only SHAPES THE
+    // QUESTION; grounding stays the real ayah passage (the backend RAG
+    // is ayah-passage based — no fake word-scope claims).
+    this.focusWord,
   });
 
   final String? ayahText;
@@ -42,6 +46,7 @@ class AIExplainScreen extends ConsumerStatefulWidget {
   final String? duaTitle;
   final String? duaArabic;
   final String? duaTranslation;
+  final String? focusWord;
 
   bool get _hasDuaContext =>
       ayahText == null && duaTitle != null && duaTitle!.isNotEmpty;
@@ -170,8 +175,14 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       _autoSpeakLastMessage();
       return;
     }
-    final question =
-        'Please explain this ayah: "${widget.ayahText}" from ${widget.surahName} (${widget.surahNumber}:${widget.ayahNumber})';
+    final word = widget.focusWord?.trim();
+    final question = (word == null || word.isEmpty)
+        ? 'Please explain this ayah: "${widget.ayahText}" '
+            'from ${widget.surahName} '
+            '(${widget.surahNumber}:${widget.ayahNumber})'
+        : 'Please explain the word "$word" in this ayah: '
+            '"${widget.ayahText}" from ${widget.surahName} '
+            '(${widget.surahNumber}:${widget.ayahNumber})';
     await ref.read(chatProvider.notifier).sendMessage(
           question,
           context: 'Surah ${widget.surahName}, Ayah ${widget.ayahNumber}',
