@@ -417,7 +417,7 @@ void main() {
         'cues flow through)', (tester) async {
       final corpus = _realCorpus();
       final audio = _RecordingAudio();
-      await SharedPreferences.setMockInitialValues({
+      SharedPreferences.setMockInitialValues({
         'quran_reading_preferences_v1_listen_word_by_word': true,
         'quran_reading_preferences_v1_qari_id': 'ar.abdulbasitmurattal',
       });
@@ -485,7 +485,7 @@ void main() {
 
     testWidgets('listen toggle in the settings sheet persists to prefs',
         (tester) async {
-      await SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({});
       await _pumpReader(tester, corpus: _realCorpus());
       await tester.tap(find.byTooltip('Reading settings'));
       await tester.pump();
