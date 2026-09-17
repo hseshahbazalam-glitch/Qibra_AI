@@ -34,7 +34,16 @@ class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final canPop = Navigator.of(context).canPop();
+    // "Can this PAGE pop" — not "can the navigator pop". Navigator
+    // .canPop() also flips true while a modal SHEET sits above this
+    // page: a settings toggle then relaied the page mid-sheet, growing
+    // a phantom back button whose 48px stole the title slot (real
+    // 7px RenderFlex overflow on narrow phones — surfaced by the
+    // Pass Q3 settings-sheet widget test, device class CPH2573).
+    // hasActiveUnderlyingRoute stays false for a root page no matter
+    // how many modals ride it, and true for every pushed page —
+    // exactly the back button's contract.
+    final canPop = ModalRoute.of(context)?.hasActiveUnderlyingRoute ?? false;
     return Material(
       color: colors.background,
       child: SafeArea(
