@@ -202,11 +202,18 @@ class QuranWordCorpus {
     return out;
   }
 
-  /// [QuranAyahSearch.normalize] with whitespace fully removed — the
-  /// alignment identity both the builder and this validator agree on
-  /// (spaces only separate; they never carry meaning for equality).
+  /// [QuranAyahSearch.normalize] with whitespace and the ZWNBSP
+  /// (U+FEFF) fully removed — the alignment identity both the builder
+  /// and this validator agree on (spaces only separate; they never
+  /// carry meaning for equality). ZWNBSP must go too: Dart's RegExp \s
+  /// follows ECMAScript, which counts U+FEFF as whitespace (Python's
+  /// re does not) — so a leading ZWNJ in the app's own 1:1 is consumed
+  /// as a SEPARATOR by [unitize] while it stays glued to the dataset's
+  /// span word. Treating it as the inert mark it is — on both sides —
+  /// is what keeps the fold honest (CI run 35179679229 caught exactly
+  /// this asymmetry at 1:1).
   static String normalizeUnits(String s) =>
-      QuranAyahSearch.normalize(s).replaceAll(' ', '');
+      QuranAyahSearch.normalize(s).replaceAll(' ', '').replaceAll('\uFEFF', '');
 
   /// Occurrences of a word FORM across the corpus, LIVE over the app's
   /// own bundled texts with the search fold (never a shipped number —

@@ -66,6 +66,13 @@ FOLD = {'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا',
 def norm(s):
     out = []
     for ch in s:
+        # Dart parity (CI 35179679229): Dart's RegExp \s is ECMAScript
+        # and counts U+FEFF (ZWNBSP, present at the app's 1:1 head) as a
+        # SEPARATOR, while Python's isspace does not — the app then
+        # strips it in normalizeUnits. Strip it here too so the builder
+        # fold and the shipped validator agree byte-for-byte on reruns.
+        if ch == '\ufeff':
+            continue
         if ch.isspace() or INERT.match(ch):
             continue
         out.append(FOLD.get(ch, ch.lower() if ord(ch) < 0x80 else ch))
