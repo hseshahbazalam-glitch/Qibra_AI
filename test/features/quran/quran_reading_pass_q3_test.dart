@@ -89,6 +89,11 @@ class _RecordingAudio extends QuranAudioController {
   }
 }
 
+// The Q2-era fixture simplified the Arabic to search-friendly letters;
+// the Pass Q3 word layer's validator compares the dataset against the
+// app's CANONICAL bytes, so the fixture carries exactly what
+// assets/data/quran/quran_arabic.json ships for 1:1 and 1:2 (the
+// leading \uFEFF on 1:1 is the app's own ZWNBSP — real, not decoration).
 const surah1 = SurahModel(
   number: 1,
   name: 'Al-Fatihah',
@@ -100,7 +105,7 @@ const surah1 = SurahModel(
     AyahModel(
       number: 1,
       numberInQuran: 1,
-      text: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+      text: '\uFEFFبِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
       juz: 1,
       page: 1,
       translation: 'In the name of Allah, the Entirely Merciful,',
@@ -108,7 +113,7 @@ const surah1 = SurahModel(
     AyahModel(
       number: 2,
       numberInQuran: 2,
-      text: 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ',
+      text: 'ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ',
       juz: 1,
       page: 1,
       translation: 'All praise is due to Allah, Lord of the worlds',
@@ -225,7 +230,7 @@ void main() {
         'null (whole-ayah fallback), never a wrong mapping', () {
       final corpus = _realCorpus();
       final good = corpus.wordsFor(
-          1, 2, 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ');
+          1, 2, surah1.ayahs[1].text);
       expect(good, isNotNull);
       expect(good!.spans.length, 4);
       final corrupt = QuranWordCorpus.fromJson(glossJson: {
@@ -242,8 +247,18 @@ void main() {
         }
       });
       expect(
-          corrupt.wordsFor(1, 2, 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ'),
+          corrupt.wordsFor(1, 2, surah1.ayahs[1].text),
           isNull);
+    });
+
+    test('normalizeUnits folds U+FEFF (the ECMAScript-\\s trap that made '
+        'CI reject 1:1 while every Python check passed)', () {
+      // Dart's RegExp \\s counts ZWNBSP as whitespace; Python's does not.
+      // unitize therefore eats a leading U+FEFF off the app's 1:1 while
+      // the dataset's span words keep it — the fold must be blind to it.
+      expect(QuranWordCorpus.normalizeUnits('\uFEFFبِسْمِ ٱللَّهِ'),
+          QuranWordCorpus.normalizeUnits('بِسْمِ ٱللَّهِ'));
+      expect(QuranWordCorpus.unitize('\uFEFFبِسْمِ ٱللَّهِ').length, 2);
     });
 
     test('seekStartMs: exact start, clamp, and honest absence', () {
@@ -306,8 +321,12 @@ void main() {
       }
     });
 
-    test('timing files: consecutive span indices from 0, positive '
-        'windows, and exactly the cued-ayah census', () {
+    test('timing files: honest index space — non-head ayahs run '
+        'consecutive from 0; sura heads fold the lead basmala into ONE '
+        'merged cue (span 0) and shift own words to 4,5,6… (the seek on '
+        'spans 1-3 then honestly falls back to earlier data — the gap IS '
+        'the merge, pinned so silent drift fails CI); positive windows, '
+        'cued census exact', () {
       final census = {
         'ar.abdulbasitmurattal': 5544,
         'ar.husary': 5792,
@@ -322,17 +341,22 @@ void main() {
           final cues = (entry.value as List)
               .map((c) => (c as List).cast<int>())
               .toList();
-          expect(cues.map((c) => c[0]).toList(),
-              List<int>.generate(cues.length, (i) => i),
-              reason: '${entry.key} $qari cue indices must be '
-                  'consecutive from the first rendered span');
+          final g = glossAyahs[entry.key] as Map;
+          final idx = cues.map((c) => c[0]).toList();
+          final leadMerged = (g['p'] as int? ?? 0) == 1;
+          expect(
+              idx,
+              leadMerged
+                  ? [0, ...List<int>.generate(idx.length - 1, (i) => 4 + i)]
+                  : List<int>.generate(idx.length, (i) => i),
+              reason: '${entry.key} $qari cue indices must address the '
+                  'rendered spans exactly (head ayahs: merged lead + 4+)');
           expect(
               cues.every((c) => c[1] >= 0 && c[2] > c[1]),
               isTrue,
               reason: '${entry.key} $qari windows must have positive '
                   'length');
-          final g = glossAyahs[entry.key] as Map;
-          expect(cues.last[0], lessThanOrEqualTo((g['w'] as List).length),
+          expect(idx.last, lessThan((g['w'] as List).length),
               reason: 'cues address spans that exist in the gloss file');
         }
       }
@@ -365,14 +389,14 @@ void main() {
       final corpus = _realCorpus();
       await _pumpReader(tester, corpus: corpus);
       final spans = corpus.wordsFor(
-          1, 2, 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ')!;
+          1, 2, surah1.ayahs[1].text)!;
       for (final s in spans.spans) {
         expect(find.text(s.word), findsOneWidget,
             reason: 'span "${s.word}" must render as its own word');
       }
       // The word layer REPLACES the single Text for aligned ayahs:
       expect(
-          find.text('الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ'), findsNothing);
+          find.text(surah1.ayahs[1].text), findsNothing);
     });
 
     testWidgets('corrupted corpus → the validator withholds words and '
@@ -389,7 +413,7 @@ void main() {
       });
       await _pumpReader(tester, corpus: corpus);
       expect(
-          find.text('الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ'), findsOneWidget);
+          find.text(surah1.ayahs[1].text), findsOneWidget);
       expect(find.textContaining('نonsense'), findsNothing);
     });
 
@@ -400,7 +424,7 @@ void main() {
       final audio = _RecordingAudio();
       await _pumpReader(tester, corpus: corpus, audio: audio);
       final spanWord = corpus.wordsFor(
-          1, 2, 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ')!
+          1, 2, surah1.ayahs[1].text)!
         .spans[1]
         .word;
       await tester.tap(find.text(spanWord));
@@ -422,25 +446,11 @@ void main() {
         'quran_reading_preferences_v1_qari_id': 'ar.abdulbasitmurattal',
       });
       final prefs = await SharedPreferences.getInstance();
-      await tester.pumpWidget(ProviderScope(
-        overrides: [
-          surahDetailProvider(1).overrideWith((ref) async => surah1),
-          quranDownloadProvider.overrideWith(_NoopDownloads.new),
-          quranWordCorpusProvider.overrideWith((ref) async => corpus),
-          quranAudioProvider.overrideWith(() => audio),
-        ],
-        child: MaterialApp(
-          home: AppStringsScope(
-            locale: const Locale('en'),
-            child: Scaffold(
-              resizeToAvoidBottomInset: false,
-              body: const SurahReaderScreen(surahNumber: 1),
-            ),
-          ),
-        ),
-      ));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
+      // Pumps through _pumpReader: a real 390x844 phone viewport (the
+      // inline default-800x600 frame manufactured the bogus appbar
+      // overflow that sank this test in CI run 35179679229) and the
+      // shared settle cadence.
+      await _pumpReader(tester, corpus: corpus, audio: audio);
       // The persisted flag IS the reader's listen-mode state (the prefs
       // check below is load-bearing; a stray second container would read
       // defaults asynchronously and flake — the tap outcome proves the
@@ -448,7 +458,7 @@ void main() {
       expect(prefs.getBool('quran_reading_preferences_v1_listen_word_by_word'),
           isTrue);
       final words = corpus.wordsFor(
-          1, 2, 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ')!;
+          1, 2, surah1.ayahs[1].text)!;
       await tester.tap(find.text(words.spans[1].word));
       await tester.pump();
       expect(audio.wordCalls.length, 1);
@@ -465,7 +475,7 @@ void main() {
         (tester) async {
       final corpus = _realCorpus();
       final words = corpus.wordsFor(
-          1, 2, 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ')!;
+          1, 2, surah1.ayahs[1].text)!;
       final target = words.spans[1];
       await _pumpReader(tester, corpus: corpus);
       await tester.longPress(find.text(target.word));
@@ -500,6 +510,18 @@ void main() {
       await tester.tap(tile);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
+      // Regression pin (CI run 35179679229): the page's Navigator.canPop()
+      // flipped TRUE the moment the modal sheet rode the reader, growing a
+      // phantom 48px 'Back' button that squeezed the appbar title slot to
+      // 86px — and the prefs rebuild this tap triggers then re-laid the
+      // page into a 7.0px RenderFlex overflow. The QibraAppBar now asks
+      // its own route (hasActiveUnderlyingRoute), so under any modal: no
+      // phantom button, no layout errors, toggle still works.
+      expect(find.byTooltip('Back'), findsNothing,
+          reason: 'an open modal must not fabricate a back button in the '
+              'page app bar');
+      expect(tester.takeException(), isNull,
+          reason: 'prefs rebuild under the open sheet must be layout-clean');
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('quran_reading_preferences_v1_listen_word_by_word'),
           isTrue,
