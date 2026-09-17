@@ -40,10 +40,13 @@ class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
     // a phantom back button whose 48px stole the title slot (real
     // 7px RenderFlex overflow on narrow phones — surfaced by the
     // Pass Q3 settings-sheet widget test, device class CPH2573).
-    // hasActiveUnderlyingRoute stays false for a root page no matter
-    // how many modals ride it, and true for every pushed page —
-    // exactly the back button's contract.
-    final canPop = ModalRoute.of(context)?.hasActiveUnderlyingRoute ?? false;
+    // The Navigator always pins its first route, so isFirst is immune
+    // to whatever rides on top: root pages never grow a back button,
+    // pushed pages always have one — exactly the contract. (isFirst,
+    // NOT hasActiveUnderlyingRoute — flutter 3.44.6 does not define the
+    // latter; CI run 35181150868 said so the honest way.)
+    final route = ModalRoute.of(context);
+    final canPop = route != null && !route.isFirst;
     return Material(
       color: colors.background,
       child: SafeArea(
