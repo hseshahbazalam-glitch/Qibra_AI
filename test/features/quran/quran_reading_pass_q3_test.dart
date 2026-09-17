@@ -515,8 +515,9 @@ void main() {
       // phantom 48px 'Back' button that squeezed the appbar title slot to
       // 86px — and the prefs rebuild this tap triggers then re-laid the
       // page into a 7.0px RenderFlex overflow. The QibraAppBar now asks
-      // its own route (hasActiveUnderlyingRoute), so under any modal: no
-      // phantom button, no layout errors, toggle still works.
+      // its own route (ModalRoute.isFirst — 3.44.6 has no
+      // hasActiveUnderlyingRoute, CI 35181150868 proved it), so under any
+      // modal: no phantom button, no layout errors, toggle still works.
       expect(find.byTooltip('Back'), findsNothing,
           reason: 'an open modal must not fabricate a back button in the '
               'page app bar');
