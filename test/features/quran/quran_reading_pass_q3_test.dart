@@ -125,13 +125,17 @@ Future<void> _pumpReader(
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+  // Local-final hoist: a mutable PARAMETER's non-null promotion never
+  // flows into the override's closure (analyzer error), a final local's
+  // does. (Pass Q3 CI red: the analyzer caught what we must not fake.)
+  final recordingAudio = audio;
   await tester.pumpWidget(ProviderScope(
     overrides: [
       surahDetailProvider(1).overrideWith((ref) async => surah1),
       quranDownloadProvider.overrideWith(_NoopDownloads.new),
       quranWordCorpusProvider.overrideWith((ref) async => corpus),
-      if (audio != null)
-        quranAudioProvider.overrideWith(() => audio),
+      if (recordingAudio != null)
+        quranAudioProvider.overrideWith(() => recordingAudio),
     ],
     child: MaterialApp(
       home: AppStringsScope(
@@ -147,8 +151,36 @@ Future<void> _pumpReader(
   await tester.pump(const Duration(milliseconds: 400));
 }
 
+/// Real Inter + Amiri faces (mirrors the Q2 harness verbatim — file
+/// bytes through FontLoader; no rootBundle needed in a test VM).
+Future<void> loadAppTestFonts() async {
+  Future<void> faces(String family, List<String> paths) async {
+    final loader = FontLoader(family);
+    for (final path in paths) {
+      final bytes = File(path).readAsBytesSync();
+      loader.addFont(Future.value(ByteData.view(bytes.buffer)));
+    }
+    await loader.load();
+  }
+
+  await faces('Inter', [
+    for (final w in [
+      'Light', 'Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold', 'Black',
+    ])
+      'assets/fonts/Inter-$w.ttf',
+  ]);
+  await faces('Amiri', [
+    'assets/fonts/Amiri-Regular.ttf',
+    'assets/fonts/Amiri-Bold.ttf',
+  ]);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  // Same real-fonts-first rule as the Q2 harness: Ahem metrics
+  // manufacture fake overflow in the reader's Arabic card (the
+  // widget tests here would drown in bogus RenderFlex reports).
+  setUpAll(loadAppTestFonts);
 
   group('word units + folding (pure, mirrors the builder)', () {
     test('unitize: diacritics never split words; standalone pause marks '
