@@ -467,6 +467,27 @@
    "verification_status": "UNKNOWN",
    "status": "UNKNOWN",
    "language": "en"
+  },
+  {
+   "id": "hadith_kitab_names",
+   "content": "Kitab-name join ledger for the hadith corpus (Pass H1) — provenance and the unnamed-book census; ships NO name data (names stay in each edition's metadata.sections)",
+   "source": "assets/data/hadith/kitab_names.json",
+   "source_name": "census computed in-repo 2026-09-25; upstream cross-checked against fawazahmed0/hadith-api branch 1 (git clone, same-day)",
+   "collection": "hadith",
+   "edition": "ledger-v1",
+   "translator": null,
+   "author": "Qibra (derived ledger); upstream edition metadata: fawazahmed0/hadith-api",
+   "license": "The Unlicense (repo-level, public-domain grant; per-translator licensing of underlying editions UNKNOWN)",
+   "license_url": "https://github.com/fawazahmed0/hadith-api/blob/1/LICENSE",
+   "license_file": null,
+   "copyright_status": "UNKNOWN",
+   "attribution_required": "UNKNOWN (repo grant requires none; translator-level licensing unverified)",
+   "commercial_use": "UNKNOWN",
+   "redistribution": "UNKNOWN",
+   "attribution": "Ledger records: (a) join by (collection, book_number) — never positional; (b) upstream ara-*/urd-* editions carry the SAME English sections dict, so no native book names exist upstream and none were invented; (c) unnamed refs = the '0' sentinel of bukhari/nasai/malik (3 of 401 distinct pairs).",
+   "verification_status": "UNKNOWN",
+   "status": "UNKNOWN",
+   "language": "meta (en/ar/ur render labels live)"
   }
  ]
 }

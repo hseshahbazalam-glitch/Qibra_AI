@@ -1,0 +1,25 @@
+{
+  "schema": "qibra.kitab_names.v1",
+  "generated": "2026-09-25",
+  "purpose": "Pass H1 join ledger: which (collection, book_number) pairs the app can name, and what upstream could and could not supply. The NAMES themselves stay in each bundled edition's metadata.sections (the loader's existing join) — this file adds no name data and duplicates none.",
+  "upstream": {
+    "repo": "fawazahmed0/hadith-api",
+    "ref": "1 (branch; same source as Phase B, 2026-09-05)",
+    "license": "The Unlicense (repo-level public-domain grant; per-translator licensing UNKNOWN)",
+    "fetched": "2026-09-25 (git clone, branch 1)",
+    "nativeBookNames": "none-upstream",
+    "nativeBookNamesNote": "Every edition's metadata.sections dict — including ara-* and urd-* — is the SAME English dict (verified against the cloned repo, 2026-09-25). No Arabic/Urdu book names exist upstream; none were invented here."
+  },
+  "joinRule": "by (collection, book_number) on metadata.sections keys; POSITIONAL joins are wrong by construction (language files differ in record count: muslim/urdu +1, malik/urdu +31)",
+  "unnamedBookRefs": {
+    "bukhari": [0],
+    "muslim": [],
+    "abudawud": [],
+    "nasai": [0],
+    "tirmidhi": [],
+    "ibnmajah": [],
+    "malik": [0]
+  },
+  "fallbackLabel": "Book {number}",
+  "fallbackNote": "Rendered via the app's i18n label (hadithKitabLabel) when a referenced book number carries no section name in any edition."
+}
