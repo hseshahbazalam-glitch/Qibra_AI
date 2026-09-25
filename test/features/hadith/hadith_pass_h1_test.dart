@@ -543,7 +543,8 @@ void main() {
       // The validator scans assets/data/hadith/<coll>/<lang>.json only.
       final perBook = RegExp(r'^[a-z]+/[a-z]+\.json$');
       expect(perBook.hasMatch('kitab_names.json'), isFalse);
-      expect(File('assets/data/hadith').listSync().whereType<File>().length,
+      expect(
+          Directory('assets/data/hadith').listSync().whereType<File>().length,
           1 + 7); // 7 collection dirs + the one sidecar
     });
   });

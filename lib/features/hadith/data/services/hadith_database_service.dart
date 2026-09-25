@@ -395,7 +395,7 @@ class HadithDatabaseService {
       // 'absent' row via the matrix — two honest views of the same fact,
       // no silent substitution at any of the three levels (collection,
       // language, hadith number).
-      int nonEmpty(bool Function(LocalHadith h) text) =>
+      int nonEmpty(String Function(LocalHadith h) text) =>
           hadiths.where((h) => text(h).trim().isNotEmpty).length;
       _languageCoverage[slug] = {
         'en': (
