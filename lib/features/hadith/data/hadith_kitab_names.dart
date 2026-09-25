@@ -15,7 +15,7 @@
 // (collection, book_number) and this accessor is the single honest
 // window onto that map, including the "no name" case:
 //
-//   referenced pairs across all 7 collections: 401
+//   referenced pairs across all 7 collections: 399
 //   unnamed: 3 — the '0' sentinel groups (bukhari, nasai, malik)
 //   → UI shows the i18n fallback label 'Book {n}', never a blank.
 //

@@ -484,7 +484,7 @@
    "attribution_required": "UNKNOWN (repo grant requires none; translator-level licensing unverified)",
    "commercial_use": "UNKNOWN",
    "redistribution": "UNKNOWN",
-   "attribution": "Ledger records: (a) join by (collection, book_number) — never positional; (b) upstream ara-*/urd-* editions carry the SAME English sections dict, so no native book names exist upstream and none were invented; (c) unnamed refs = the '0' sentinel of bukhari/nasai/malik (3 of 401 distinct pairs).",
+   "attribution": "Ledger records: (a) join by (collection, book_number) — never positional; (b) upstream ara-*/urd-* editions carry the SAME English sections dict, so no native book names exist upstream and none were invented; (c) unnamed refs = the '0' sentinel of bukhari/nasai/malik (3 of 399 distinct pairs).",
    "verification_status": "UNKNOWN",
    "status": "UNKNOWN",
    "language": "meta (en/ar/ur render labels live)"

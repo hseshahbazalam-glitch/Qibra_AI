@@ -138,11 +138,13 @@ void main() {
           for (final n in (e.value as List<dynamic>)) '${e.key}/$n',
       };
       expect(unnamed, ledgerRefs);
-      // The 401 referenced (collection, book_number) pairs — the honest
-      // matched-vs-unknown ratio of the pass spec (398 named, 3 not).
+      // The 399 referenced (collection, book_number) pairs — the honest
+      // matched-vs-unknown ratio (396 named, 3 not). The pass spec's
+      // '401' predated this app-side recount; raw file book values are
+      // themselves 399 distinct (no fractional folding here).
       final totalRefs =
           refsByColl.values.map((s) => s.length).reduce((a, b) => a + b);
-      expect(totalRefs, 401);
+      expect(totalRefs, 399);
     });
 
     test('sections dicts: key counts, blank sentinels, language-invariance',
@@ -496,7 +498,10 @@ void main() {
       final bySlug = {for (final b in popularHadithBooks) b.name: b.color};
       expect(bySlug['Sahih al-Bukhari'], AppEmerald.s500);
       expect(bySlug['Sahih Muslim'], AppEmerald.s400);
-      expect(bySlug['Sunan Abi Dawud'], AppGold.s700);
+      expect(bySlug['Sunan Abu Dawud'], AppGold.s700);
+      // (The legacy model list spells 'Sunan Abu Dawud'; the loader and
+      // bookDisplayNames spell 'Sunan Abi Dawud' — two tables, pinned
+      // against THEIR OWN sources by design above.)
       expect(bySlug['Jami at-Tirmidhi'], AppGold.s500);
     });
 
@@ -517,7 +522,8 @@ void main() {
 
     test('manifest carries the ledger entry with UNKNOWN honesty', () {
       final manifest =
-          jsonDecode(File('assets/data/content_manifest.json').readAsStringSync())
+          ((jsonDecode(File('assets/data/content_manifest.json')
+                  .readAsStringSync()) as Map)['sources'])
               as List<dynamic>;
       final entry = manifest
           .cast<Map<String, dynamic>>()
@@ -543,9 +549,9 @@ void main() {
       // The validator scans assets/data/hadith/<coll>/<lang>.json only.
       final perBook = RegExp(r'^[a-z]+/[a-z]+\.json$');
       expect(perBook.hasMatch('kitab_names.json'), isFalse);
-      expect(
-          Directory('assets/data/hadith').listSync().whereType<File>().length,
-          1 + 7); // 7 collection dirs + the one sidecar
+      final entries = Directory('assets/data/hadith').listSync();
+      expect(entries.whereType<File>().length, 1); // the sidecar alone
+      expect(entries.whereType<Directory>().length, 7); // the collections
     });
   });
 }
