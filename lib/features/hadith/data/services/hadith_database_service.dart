@@ -167,6 +167,14 @@ class HadithDatabaseService {
 
   final Map<String, List<LocalHadith>> _bookData = {};
   final Map<String, LocalBookInfo> _bookInfo = {};
+  final Map<String, Map<String, ({int nonEmpty, int total})>>
+      _languageCoverage = {};
+
+  /// Pass H1 parity math source: per book, per language — rows with
+  /// joined non-empty text over loaded rows. Populated by _loadBook;
+  /// empty before init (surfaces must hide notes then, never guess).
+  Map<String, Map<String, ({int nonEmpty, int total})>>
+      get languageCoverage => _languageCoverage;
   bool _isInitialized = false;
   bool _isLoading = false;
 
@@ -379,6 +387,46 @@ class HadithDatabaseService {
         sections: sections,
         totalHadiths: hadiths.length,
       );
+
+      // Pass H1 parity disclosure — per language, how many rows of THIS
+      // book actually carry joined text, over the loaded row count. The
+      // numbers are counted, never shipped: a language file that is
+      // absent (French Tirmidhi) contributes 0 non-empty here AND an
+      // 'absent' row via the matrix — two honest views of the same fact,
+      // no silent substitution at any of the three levels (collection,
+      // language, hadith number).
+      int nonEmpty(bool Function(LocalHadith h) text) =>
+          hadiths.where((h) => text(h).trim().isNotEmpty).length;
+      _languageCoverage[slug] = {
+        'en': (
+          nonEmpty: nonEmpty((h) => h.textEnglish),
+          total: hadiths.length
+        ),
+        'ar': (
+          nonEmpty: nonEmpty((h) => h.textArabic),
+          total: hadiths.length
+        ),
+        'ur': (
+          nonEmpty: nonEmpty((h) => h.textUrdu),
+          total: hadiths.length
+        ),
+        'bn': (
+          nonEmpty: nonEmpty((h) => h.textBengali),
+          total: hadiths.length
+        ),
+        'tr': (
+          nonEmpty: nonEmpty((h) => h.textTurkish),
+          total: hadiths.length
+        ),
+        'id': (
+          nonEmpty: nonEmpty((h) => h.textIndonesian),
+          total: hadiths.length
+        ),
+        'fr': (
+          nonEmpty: nonEmpty((h) => h.textFrench),
+          total: hadiths.length
+        ),
+      };
 
       debugPrint('[HADITH_DB] Loaded $name: ${hadiths.length} hadiths');
     } catch (e) {

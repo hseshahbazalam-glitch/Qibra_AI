@@ -15,22 +15,28 @@
 //   ✅ HadithBookmark   — User bookmarks
 //   ✅ HadithSearchResult — Search results
 //
+// Colors: design tokens only (Pass H1 token hygiene — the 13 raw
+// hexes this file carried were value-identical swaps to AppEmerald/
+// AppGold/AppNeutral/AppSemanticColors; no visual change).
+//
 // API: hadithapi.com (free tier)
 // ============================================================
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
+import 'package:qibra_ai/core/design_system/app_colors.dart';
+
 // ============================================================
 // SECTION 1 — HADITH GRADE (Authenticity)
 // ============================================================
 
 enum HadithGrade {
-  sahih('Sahih', 'صحيح', 'Sahih (collection grade, not independently verified)', Color(0xFF123F36)),
-  hasan('Hasan', 'حسن', 'Good', Color(0xFF2F6B5D)),
-  daif('Daif', 'ضعيف', 'Weak', Color(0xFFC6A15B)),
-  mawdu('Mawdu', 'موضوع', 'Fabricated', Color(0xFFB42318)),
-  unknown('Unknown', 'غير معروف', 'Unknown grade', Color(0xFF71807A));
+  sahih('Sahih', 'صحيح', 'Sahih (collection grade, not independently verified)', AppEmerald.s500),
+  hasan('Hasan', 'حسن', 'Good', AppEmerald.s400),
+  daif('Daif', 'ضعيف', 'Weak', AppGold.s500),
+  mawdu('Mawdu', 'موضوع', 'Fabricated', AppSemanticColors.error),
+  unknown('Unknown', 'غير معروف', 'Unknown grade', AppNeutral.s500);
 
   const HadithGrade(this.label, this.arabicLabel, this.description, this.color);
 
@@ -196,13 +202,13 @@ class HadithBook extends Equatable {
       ];
 
   static Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return const Color(0xFF123F36);
+    if (hex == null || hex.isEmpty) return AppEmerald.s500;
     try {
       final cleanHex = hex.replaceAll('#', '');
       final value = int.parse('FF$cleanHex', radix: 16);
       return Color(value);
     } catch (_) {
-      return const Color(0xFF123F36);
+      return AppEmerald.s500;
     }
   }
 }
@@ -705,7 +711,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 97,
     description:
         'The most authentic book after the Holy Quran. Compiled by Imam Muhammad al-Bukhari.',
-    color: Color(0xFF123F36),
+    color: AppEmerald.s500,
     compiledYear: '846 CE',
   ),
   HadithBook(
@@ -719,7 +725,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 56,
     description:
         'Second most authentic hadith collection. Compiled by Imam Muslim ibn al-Hajjaj.',
-    color: Color(0xFF2F6B5D),
+    color: AppEmerald.s400,
     compiledYear: '875 CE',
   ),
   HadithBook(
@@ -733,7 +739,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 43,
     description:
         'Collection of hadiths focusing on Islamic jurisprudence and rulings.',
-    color: Color(0xFF8A6D38),
+    color: AppGold.s700,
     compiledYear: '888 CE',
   ),
   HadithBook(
@@ -747,7 +753,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 49,
     description:
         'Comprehensive collection with commentary on the strength of each hadith.',
-    color: Color(0xFFC6A15B),
+    color: AppGold.s500,
     compiledYear: '892 CE',
   ),
   HadithBook(
@@ -761,7 +767,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 51,
     description:
         'Known for its strict criteria in accepting hadiths, focusing on chains.',
-    color: Color(0xFFC6A15B),
+    color: AppGold.s500,
     compiledYear: '915 CE',
   ),
   HadithBook(
@@ -775,7 +781,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 37,
     description:
         'Sixth of the Kutub al-Sittah, containing many unique hadiths.',
-    color: Color(0xFFC6A15B),
+    color: AppGold.s500,
     compiledYear: '887 CE',
   ),
 ];

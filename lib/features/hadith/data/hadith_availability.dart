@@ -107,4 +107,66 @@ class HadithAvailability {
         ),
     ];
   }
+
+  // ─── Pass H1: parity-disclosure math (ADDITIVE — the pinned matrix
+  // maps and selectorOptions() above are untouched by construction;
+  // hadith_pass_h1_test byte-pins them) ─────────────────────────────
+
+  /// Display names for disclosure sentences. Same strings the loader's
+  /// private table uses; kept here so the pure note math never reaches
+  /// into the singleton (and UI widgets never hand-write a book name
+  /// next to a percentage).
+  static const Map<String, String> bookDisplayNames = {
+    'bukhari': 'Sahih al-Bukhari',
+    'muslim': 'Sahih Muslim',
+    'nasai': "Sunan an-Nasa'i",
+    'abudawud': 'Sunan Abi Dawud',
+    'tirmidhi': 'Jami` at-Tirmidhi',
+    'ibnmajah': 'Sunan Ibn Majah',
+    'malik': 'Muwatta Malik',
+  };
+
+  /// Percent of [total] rows that actually carry text, ROUNDED to the
+  /// nearest whole number (a floored 10% would understate 10.9% just
+  /// as a rounded-up 12% would overstate — honest math is symmetric).
+  static int coveragePercent(int nonEmpty, int total) =>
+      total <= 0 ? 0 : (100 * nonEmpty + total ~/ 2) ~/ total;
+
+  /// Language/book pairs that need a depth note: an absent edition is
+  /// always disclosed (percent 0, [absent] true); a present one when
+  /// its text coverage is below [noteThresholdPercent]. Pairs the
+  /// caller cannot count (null entry — e.g. corpus not loaded yet) are
+  /// never guessed: they simply produce no row.
+  static List<({String language, String book, int percent, bool absent})>
+      thinCoverage(
+    Map<String, Map<String, ({int nonEmpty, int total})>> countsByBook, {
+    int noteThresholdPercent = 90,
+  }) {
+    final rows =
+        <({String language, String book, int percent, bool absent})>[];
+    for (final code in languageCodes) {
+      for (final book in kHadithBookSlugs) {
+        if (!hasBook(code, book)) {
+          rows.add(
+              (language: code, book: book, percent: 0, absent: true));
+          continue;
+        }
+        final c = countsByBook[book]?[code];
+        if (c == null) continue;
+        final pct = coveragePercent(c.nonEmpty, c.total);
+        if (pct < noteThresholdPercent) {
+          rows.add((
+            language: code,
+            book: book,
+            percent: pct,
+            absent: false
+          ));
+        }
+      }
+    }
+    rows.sort((a, b) => a.percent != b.percent
+        ? a.percent.compareTo(b.percent)
+        : a.language.compareTo(b.language));
+    return rows;
+  }
 }

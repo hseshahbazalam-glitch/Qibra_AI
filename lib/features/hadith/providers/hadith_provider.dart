@@ -11,6 +11,7 @@ import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/hadith_availability.dart';
+import '../data/hadith_kitab_names.dart';
 import '../data/models/hadith_models.dart';
 import '../data/services/hadith_database_service.dart';
 import '../data/services/hadith_view_history.dart';
@@ -254,12 +255,29 @@ final hadithChaptersProvider =
     return HadithChapter(
       id: 'ch_${bookSlug}_$chapterNum',
       number: chapterNum,
-      name: entry.value,
+      // Pass H1: the accessor is the one honest window onto the name
+      // map (trim-aware); 'no name' arrives as '' and the chip renders
+      // the i18n 'Book {n}' fallback — nothing downstream guesses.
+      name: HadithKitabNames.name(bookInfo.sections, chapterNum) ?? '',
       nameArabic: '',
       bookSlug: bookSlug,
       hadithCount: db.getChapterHadiths(bookSlug, chapterNum).length,
     );
   }).toList();
+});
+
+// ============================================================
+// SECTION 5b: LANGUAGE COVERAGE (Pass H1 parity disclosure)
+// ============================================================
+
+/// Per book, per language translation counts from the REAL loaded
+/// corpus (never a shipped number). Unresolved while the database
+/// initializes — selector surfaces omit depth notes until it resolves,
+/// so nothing ever renders a placeholder 0% or 100%.
+final hadithLanguageCoverageProvider = FutureProvider<
+    Map<String, Map<String, ({int nonEmpty, int total})>>>((ref) async {
+  await ref.watch(hadithDatabaseInitProvider.future);
+  return ref.watch(hadithDatabaseProvider).languageCoverage;
 });
 
 // ============================================================

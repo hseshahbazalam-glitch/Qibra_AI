@@ -59,6 +59,23 @@ class HadithBookScreen extends ConsumerStatefulWidget {
   static String hadithPositionLabel(int number, int total) =>
       total > 0 ? 'Hadith $number of $total' : 'Hadith $number';
 
+  /// Chapter-chip label (Pass H1). A book number the corpus does not
+  /// name renders as the i18n honest fallback ('Book 0' for the
+  /// sentinel group), never 'Ch 0: ' with a dangling colon and never an
+  /// invented title. Pure + static in the neighbourNumber tradition so
+  /// CI pins the rule without pumping the 234 MB corpus.
+  @visibleForTesting
+  static String chapterChipLabel(
+      int number, String name, String unnamedLabel) {
+    final trimmed = name.trim();
+    return trimmed.isEmpty ? unnamedLabel : 'Ch $number: $trimmed';
+  }
+
+  /// `label · note · note` join over non-empty parts — null segments
+  /// (undisclosed or uncounted) drop out silently instead of printing.
+  static String _dotJoin(List<String?> parts) =>
+      parts.whereType<String>().where((p) => p.isNotEmpty).join('  ·  ');
+
   @override
   ConsumerState<HadithBookScreen> createState() => _HadithBookScreenState();
 }
@@ -537,7 +554,11 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              'Ch ${ch.number}: ${ch.name}',
+                              HadithBookScreen.chapterChipLabel(
+                                  ch.number,
+                                  ch.name,
+                                  AppStrings.of(context)
+                                      .hadithKitabLabel(ch.number)),
                               style: TextStyle(
                                 color: isSelected
                                     ? QibraNavy.emerald
@@ -575,6 +596,23 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       ),
       builder: (ctx) {
         final current = ref.read(hadithLanguageProvider);
+        // Pass H1 parity disclosure, per BOOK: translation depth for
+        // this row, computed from the loaded corpus. Read (not watched)
+        // once per sheet open — this builder is outside the widget's
+        // build scope; while the DB is still initializing the note is
+        // simply absent, the sheet never renders a placeholder number.
+        final cov = ref.read(hadithLanguageCoverageProvider).valueOrNull;
+        final sheetStrings = AppStrings.of(context);
+        String? depthNote(String code) {
+          if (!HadithAvailability.hasBook(code, widget.book.slug)) {
+            return sheetStrings.hadithNotAvailableForBook;
+          }
+          final c = cov?[widget.book.slug]?[code];
+          if (c == null) return null;
+          final pct =
+              HadithAvailability.coveragePercent(c.nonEmpty, c.total);
+          return pct >= 100 ? null : sheetStrings.hadithCoverageOfBook(pct);
+        }
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -594,9 +632,11 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(
-                      option.note == null
-                          ? option.label
-                          : '${option.label}  ·  ${option.note}',
+                      HadithBookScreen._dotJoin([
+                        option.label,
+                        option.note,
+                        depthNote(option.code),
+                      ]),
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: QibraNavy.textPrimary,
                       ),
@@ -1187,6 +1227,28 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                      ] else ...[
+                        // Pass H1: an ungraded hadith says so. The old
+                        // silence-read-as-clean gap is closed — the row
+                        // is NEVER blank and the grade is NEVER guessed.
+                        // Data truth (H1 census): the corpus carries
+                        // grade tags for all five Sunan/Muwatta
+                        // collections (Tirmidhi 3954/3998, Abu Dawud
+                        // 5274/5274, Nasa'i 5758/5765, Ibn Majah
+                        // 4341/4343, Malik 1858/1858) — the line shows
+                        // exactly where a tag is absent there (Nasa'i 7,
+                        // Ibn Majah 2, Tirmidhi 44). Bukhari/Muslim rows
+                        // ride the pre-existing collection-level Sahih
+                        // rule (untouched by this pass), so they show
+                        // the banner, not this line.
+                        const SizedBox(height: 14),
+                        Text(
+                          AppStrings.of(context).hadithGradeNotRecorded,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: QibraNavy.textSecondary,
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
                       ],

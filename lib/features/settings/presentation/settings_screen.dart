@@ -915,6 +915,15 @@ class SettingsScreen extends ConsumerWidget {
       ),
       builder: (ctx) {
         final sheetColors = QibraColors.of(ctx);
+        // Pass H1 parity disclosure: absent editions are derivable from
+        // the matrix alone (shown at once); depth percentages need the
+        // loaded corpus — until then they are OMITTED, never guessed.
+        // Read, not watched: this sheet builder runs outside the widget's
+        // build scope (Riverpod rule), and a point-in-time snapshot is
+        // exactly what a disclosure footnote needs.
+        final covRows = HadithAvailability.thinCoverage(
+            ref.read(hadithLanguageCoverageProvider).valueOrNull ??
+                const <String, Map<String, ({int nonEmpty, int total})>>{});
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -956,6 +965,35 @@ class SettingsScreen extends ConsumerWidget {
                       Navigator.pop(ctx);
                     },
                   ),
+                // Pass H1 depth notes (Part 3a+b): every language/book
+                // pair below 90% translated — percent rounded from real
+                // loaded counts, never a shipped number — plus every
+                // absent edition named at reason level (e.g. French has
+                // NO Jami at-Tirmidhi edition upstream at all).
+                if (covRows.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  for (final row in covRows)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        row.absent
+                            ? AppStrings.of(context).hadithNoEditionFor(
+                                HadithAvailability.label(row.language),
+                                HadithAvailability.bookDisplayNames[row.book] ??
+                                    row.book,
+                              )
+                            : AppStrings.of(context).hadithThinCoverage(
+                                HadithAvailability.label(row.language),
+                                HadithAvailability.bookDisplayNames[row.book] ??
+                                    row.book,
+                                row.percent,
+                              ),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: sheetColors.textTertiary,
+                        ),
+                      ),
+                    ),
+                ],
               ],
             ),
           ),

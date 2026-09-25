@@ -139,6 +139,40 @@ class AppStrings {
         'تمام محفوظ احادیث دیکھیں ($count)',
       );
 
+  // Pass H1 — hadith depth & disclosure. Real translations in all three
+  // shipped languages (no machine-literal filler; census-safe: features
+  // render these through getters, never as Text('Capital…') literals).
+  String get hadithGradeNotRecorded => _t(
+        'Grade not recorded',
+        'لم تُسجَّل درجة لهذا الحديث',
+        'اس حدیث کا درجہ ریکارڈ نہیں ہے',
+      );
+  String hadithKitabLabel(int number) => _t(
+        'Book $number',
+        'كتاب $number',
+        'کتاب $number',
+      );
+  String hadithCoverageOfBook(int percent) => _t(
+        '$percent% of this book',
+        '$percent٪ من هذا الكتاب',
+        'اس کتاب کا $percent٪',
+      );
+  String get hadithNotAvailableForBook => _t(
+        'not available for this book',
+        'غير متوفر لهذا الكتاب',
+        'اس کتاب کے لیے دستیاب نہیں',
+      );
+  String hadithThinCoverage(String lang, String book, int percent) => _t(
+        '$lang: $percent% of $book',
+        '$lang: $percent٪ من $book',
+        '$lang: $book کا $percent٪',
+      );
+  String hadithNoEditionFor(String lang, String book) => _t(
+        '$lang is not available for $book',
+        'ترجمة $lang غير متوفرة لـ$book',
+        '$book کے لیے $lang ترجمہ دستیاب نہیں',
+      );
+
   // ── Prayer ──
   String get displaySunriseInSchedule => _t(
         'Display sunrise in schedule',
