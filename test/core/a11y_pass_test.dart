@@ -289,8 +289,10 @@ void main() {
       // A6: mini-player fallback + QibraStatus loading + status body.
       expect(live, 3);
       // 11 pre-existing Semantics + Pass A additions (word node, calendar
-      // chip/day, sheet header, mini player, QibraStatus ×2).
-      expect(semantics, 18);
+      // chip/day, sheet header, mini player, QibraStatus ×2) + Pass M
+      // (the mushaf ribbon bookmark is a custom gesture control — it
+      // announces through Semantics, not Tooltip/IconButton censuses).
+      expect(semantics, 19);
     });
 
     test('forbidden liveRegion: the home countdown never announces', () {
