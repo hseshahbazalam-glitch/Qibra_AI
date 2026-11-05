@@ -452,7 +452,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                 child: location.status == LocationStatus.initial ||
                         location.isLoading
-                    ? const QibraStatus.loading(
+                    ? QibraStatus.loading(
                         message: 'Finding your location for prayer times…',
                       )
                     : QibraStatus.error(

@@ -58,8 +58,8 @@ class _PrayerStatisticsScreenState
       backgroundColor: colors.background,
       body: SafeArea(
         child: pendingHydration
-            ? const Padding(
-                padding: EdgeInsets.fromLTRB(16, 48, 16, 16),
+            ? Padding(
+                padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
                 child: QibraStatus.loading(
                     message: 'Loading your prayer log…'),
               )
