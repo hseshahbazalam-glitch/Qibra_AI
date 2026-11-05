@@ -10,6 +10,7 @@ import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class IslamicCalendarScreen extends StatefulWidget {
   const IslamicCalendarScreen({super.key});
@@ -291,6 +292,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       backgroundColor: colors.background,
       elevation: 0,
       leading: IconButton(
+        tooltip: AppStrings.of(context).tooltipBack,
         icon: Container(
           width: 48,
           height: 48,
@@ -562,7 +564,11 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
               HapticFeedback.selectionClick();
               setState(() => _selectedFilter = cat);
             },
-            child: Container(
+            child: Semantics(
+              // Pass A: the chip's selected state is color-only otherwise.
+              button: true,
+              selected: isSelected,
+              child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected ? colors.primary : colors.surface,
@@ -579,6 +585,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+            ),
             ),
           );
         },
@@ -602,6 +609,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
       child: Row(
         children: [
           IconButton(
+            tooltip: AppStrings.of(context).tooltipPrevMonth,
             icon: Icon(Icons.chevron_left_rounded,
                 color: colors.primary),
             onPressed: () {
@@ -633,6 +641,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             ),
           ),
           IconButton(
+            tooltip: AppStrings.of(context).tooltipNextMonth,
             icon: Icon(Icons.chevron_right_rounded,
                 color: colors.primary),
             onPressed: () {
@@ -708,7 +717,12 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                         HapticFeedback.selectionClick();
                         setState(() => _selectedDate = date);
                       },
-                      child: Container(
+                      child: Semantics(
+                        // Pass A: day selection/today are color-only
+                        // otherwise; selected is a real a11y state.
+                        button: true,
+                        selected: isSelected,
+                        child: Container(
                         height: 36,
                         margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
@@ -739,6 +753,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                                   : FontWeight.w600,
                             ),
                           ),
+                        ),
                         ),
                       ),
                     ),

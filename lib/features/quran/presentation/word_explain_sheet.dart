@@ -135,15 +135,20 @@ class _WordExplainBody extends ConsumerWidget {
               ),
             ),
           ),
+          // A3: the word is the sheet's headline — announced as a header
+          // when the modal takes accessibility focus on open.
           SizedBox(
             width: double.infinity,
-            child: Text(
-              word,
+            child: Semantics(
+              header: true,
+              child: Text(
+                word,
               textAlign: TextAlign.center,
               textDirection: TextDirection.rtl,
-              style: AppArabicStyles.quranMedium.copyWith(
-                fontSize: 34,
-                color: colors.textPrimary,
+                style: AppArabicStyles.quranMedium.copyWith(
+                  fontSize: 34,
+                  color: colors.textPrimary,
+                ),
               ),
             ),
           ),

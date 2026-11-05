@@ -35,6 +35,10 @@ class SafeImage extends StatelessWidget {
   final BoxFit? fit;
   final BorderRadius? borderRadius;
   final Color? fallbackTint;
+  /// Pass A (a11y): meaningful images get a label; everything the
+  /// app currently ships is decorative brand art / backdrops, so the default
+  /// is to hide the image from assistive tech (never a fake description).
+  final String? semanticLabel;
   final SafeImageFallback? fallback;
   /// Decode-size hint (pixels). Set for large art so memory matches
   /// display size (P0 perf pass).
@@ -49,6 +53,7 @@ class SafeImage extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.borderRadius,
     this.fallbackTint,
+    this.semanticLabel,
     this.fallback,
     this.cacheWidth,
     this.alignment = Alignment.center,
@@ -85,6 +90,7 @@ class SafeImage extends StatelessWidget {
 
     Widget image = Image.asset(
       assetPath,
+      semanticLabel: semanticLabel,
       width: width,
       height: height,
       fit: fit,
@@ -106,6 +112,9 @@ class SafeImage extends StatelessWidget {
       },
     );
 
+    if (semanticLabel == null) {
+      image = ExcludeSemantics(child: image);
+    }
     if (borderRadius != null) {
       image = ClipRRect(borderRadius: borderRadius!, child: image);
     }

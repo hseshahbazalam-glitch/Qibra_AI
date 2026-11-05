@@ -76,25 +76,31 @@ class QibraStatus extends StatelessWidget {
           ),
         );
       }
-      return Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: colors.primary,
+      // A6: the status surface announces itself — polite live region so
+      // loading → error transitions are spoken without stealing focus.
+      return Semantics(
+        liveRegion: true,
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: colors.primary,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message ?? s.loading,
-              style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                message ?? s.loading,
+                style:
+                    AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -119,12 +125,14 @@ class QibraStatus extends StatelessWidget {
           _ => null,
         };
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 40, color: colors.textTertiary),
+    return Semantics(
+      liveRegion: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 40, color: colors.textTertiary),
           const SizedBox(height: 12),
           Text(
             resolvedTitle,
@@ -139,17 +147,18 @@ class QibraStatus extends StatelessWidget {
               style: AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
             ),
           ],
-          if (onRetry != null) ...[
-            const SizedBox(height: 16),
-            SizedBox(
-              height: AppA11y.minTapTarget,
-              child: FilledButton(
-                onPressed: onRetry,
-                child: Text(retryLabel ?? s.retry),
+            if (onRetry != null) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                height: AppA11y.minTapTarget,
+                child: FilledButton(
+                  onPressed: onRetry,
+                  child: Text(retryLabel ?? s.retry),
+                ),
               ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

@@ -36,7 +36,9 @@ class PatternBackdrop extends StatelessWidget {
       children: [
         Positioned.fill(
           child: IgnorePointer(
-            child: Image.asset(
+            // Pass A (a11y): purely decorative tiled pattern — no node.
+            child: ExcludeSemantics(
+              child: Image.asset(
               AppAssets.patternTileFaded,
               repeat: ImageRepeat.repeat,
               fit: BoxFit.none,
@@ -44,6 +46,7 @@ class PatternBackdrop extends StatelessWidget {
               // ~2x logical for typical densities (256px unit).
               cacheWidth: 256,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
             ),
           ),
         ),

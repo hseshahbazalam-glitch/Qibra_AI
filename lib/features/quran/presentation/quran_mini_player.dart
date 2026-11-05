@@ -210,12 +210,17 @@ class _QuranMiniPlayerState extends ConsumerState<QuranMiniPlayer> {
                           // for this qari plays from the ayah start —
                           // say so plainly, never fake the sync.
                           if (audio.wordFallbackNotice)
-                            Text(
-                              strings.wordTimingsNotAvailable,
-                              maxLines: 2,
-                              style: AppTextStyles.labelSmall.copyWith(
-                                color: colors.textTertiary,
-                                fontStyle: FontStyle.italic,
+                            // A6: this notice appears mid-playback — a
+                            // live region so it is announced when it shows.
+                            Semantics(
+                              liveRegion: true,
+                              child: Text(
+                                strings.wordTimingsNotAvailable,
+                                maxLines: 2,
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: colors.textTertiary,
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
                             ),
                         ],
@@ -234,7 +239,7 @@ class _QuranMiniPlayerState extends ConsumerState<QuranMiniPlayer> {
                   )
                 else ...[
                   IconButton(
-                    tooltip: 'Previous ayah',
+                    tooltip: AppStrings.of(context).tooltipPrevAyah,
                     visualDensity: VisualDensity.compact,
                     constraints: const BoxConstraints(
                         minWidth: 34, minHeight: 34),
@@ -244,7 +249,7 @@ class _QuranMiniPlayerState extends ConsumerState<QuranMiniPlayer> {
                         size: 22, color: colors.textPrimary),
                   ),
                   IconButton(
-                    tooltip: audio.isPlaying ? 'Pause' : 'Play',
+                    tooltip: audio.isPlaying ? strings.tooltipPause : strings.tooltipPlay,
                     onPressed: ctrl.toggle,
                     icon: Icon(
                       audio.isPlaying
@@ -254,7 +259,7 @@ class _QuranMiniPlayerState extends ConsumerState<QuranMiniPlayer> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Next ayah',
+                    tooltip: AppStrings.of(context).tooltipNextAyah,
                     visualDensity: VisualDensity.compact,
                     constraints: const BoxConstraints(
                         minWidth: 34, minHeight: 34),
@@ -302,7 +307,7 @@ class _QuranMiniPlayerState extends ConsumerState<QuranMiniPlayer> {
                   ),
                 ],
                 IconButton(
-                  tooltip: 'Stop',
+                  tooltip: AppStrings.of(context).tooltipStop,
                   visualDensity: VisualDensity.compact,
                   constraints:
                       const BoxConstraints(minWidth: 34, minHeight: 34),

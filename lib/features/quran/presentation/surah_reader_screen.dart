@@ -350,12 +350,12 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
         actions: [
           IconButton(
             tooltip: audioMark == 2
-                ? 'Pause recitation'
+                ? AppStrings.of(context).tooltipPauseRecitation
                 : (audioMark == 1
-                    ? 'Buffering…'
+                    ? AppStrings.of(context).tooltipBuffering
                     : (audioMark == 0
-                        ? 'Resume / retry recitation'
-                        : 'Play surah (auto-advances through the ayahs)')),
+                        ? AppStrings.of(context).tooltipResumeRecitation
+                        : AppStrings.of(context).tooltipPlaySurah)),
             icon: audioMark == 1
                 ? SizedBox(
                     width: 18,
@@ -426,17 +426,17 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
                   ),
           ),
           IconButton(
-            tooltip: 'Search the Quran',
+            tooltip: AppStrings.of(context).tooltipSearchQuran,
             icon: const Icon(Icons.search_rounded),
             onPressed: () => context.go(AppRoutes.quranSearch),
           ),
           IconButton(
-            tooltip: 'Bookmarks',
+            tooltip: AppStrings.of(context).bookmarksTitle,
             icon: const Icon(Icons.bookmark_border_rounded),
             onPressed: () => context.push('/quran/bookmarks'),
           ),
           IconButton(
-            tooltip: 'Reading settings',
+            tooltip: AppStrings.of(context).tooltipReadingSettings,
             icon: const Icon(Icons.tune_rounded),
             onPressed: () => _showSettingsSheet(context),
           ),
@@ -968,15 +968,15 @@ class _AyahCard extends ConsumerWidget {
                 const Spacer(),
                 IconButton(
                   tooltip: cur == null
-                      ? 'Play from here'
+                      ? AppStrings.of(context).playFromHere
                       : (cur.phase == QuranAudioPhase.failed
-                          ? 'Retry'
+                          ? AppStrings.of(context).retry
                           : (cur.isPlaying
-                              ? 'Pause'
+                              ? AppStrings.of(context).tooltipPause
                               : (cur.buffering ||
                                       cur.phase == QuranAudioPhase.loading
-                                  ? 'Buffering…'
-                                  : 'Resume'))),
+                                  ? AppStrings.of(context).tooltipBuffering
+                                  : AppStrings.of(context).tooltipResume))),
                   onPressed: () {
                     HapticFeedback.selectionClick();
                     final ctl = ref.read(quranAudioProvider.notifier);
@@ -1015,7 +1015,10 @@ class _AyahCard extends ConsumerWidget {
                         ),
                 ),
                 IconButton(
-                  tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark ayah',
+                  tooltip: bookmarked
+                      ? AppStrings.of(context)
+                          .tooltipRemoveBookmark
+                      : AppStrings.of(context).tooltipBookmarkAyah,
                   onPressed: () {
                     HapticFeedback.selectionClick();
                     ref.read(bookmarksProvider.notifier).toggleBookmark(
@@ -1767,6 +1770,24 @@ class _AyahArabicLayer extends ConsumerWidget {
       );
     }
 
+    void openSheet(int spanIndex) {
+      final w = words.spans[spanIndex];
+      showWordExplainSheet(
+        context,
+        surahNumber: surah.number,
+        surahName: surah.name,
+        ayahNumber: ayah.number,
+        ayahText: ayah.text,
+        word: w.word,
+        gloss: w.gloss,
+        spanIndex: spanIndex,
+        hasExactTimings:
+            QuranWordCorpus.seekStartMs(cues, spanIndex) != null,
+        transliteration: (roman != null && roman.isNotEmpty) ? roman : null,
+        onPlayFromWord: () => playFromSpan(spanIndex),
+      );
+    }
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Text.rich(
@@ -1785,24 +1806,26 @@ class _AyahArabicLayer extends ConsumerWidget {
                   onTap: prefs.listenWordByWord
                       ? () => playFromSpan(i)
                       : null,
-                  onLongPress: () {
-                    showWordExplainSheet(
-                      context,
-                      surahNumber: surah.number,
-                      surahName: surah.name,
-                      ayahNumber: ayah.number,
-                      ayahText: ayah.text,
-                      word: words.spans[i].word,
-                      gloss: words.spans[i].gloss,
-                      spanIndex: i,
-                      hasExactTimings:
-                          QuranWordCorpus.seekStartMs(cues, i) != null,
-                      transliteration:
-                          (roman != null && roman.isNotEmpty) ? roman : null,
-                      onPlayFromWord: () => playFromSpan(i),
-                    );
-                  },
-                  child: Text(words.spans[i].word, style: style),
+                  onLongPress: () => openSheet(i),
+                  // Pass A: each word is its own semantics node — the
+                  // gestures above are otherwise invisible to TalkBack.
+                  // excludeSemantics keeps one clean node (the child Text
+                  // would duplicate the word); button only when a tap
+                  // actually does something, so we never promise a
+                  // double-tap that no-ops.
+                  child: Semantics(
+                    button: prefs.listenWordByWord,
+                    label: words.spans[i].word,
+                    tooltip: prefs.listenWordByWord
+                        ? AppStrings.of(context).a11yWordPlayHint
+                        : AppStrings.of(context).a11yWordMeaningHint,
+                    excludeSemantics: true,
+                    onTap: prefs.listenWordByWord
+                        ? () => playFromSpan(i)
+                        : null,
+                    onLongPress: () => openSheet(i),
+                    child: Text(words.spans[i].word, style: style),
+                  ),
                 ),
               ),
               if (i != words.spans.length - 1)
