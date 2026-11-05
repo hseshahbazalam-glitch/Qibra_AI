@@ -159,7 +159,7 @@ void main() {
     });
 
     test('the gap note is real in all three locales', () {
-      const arabic = RegExp(r'[؀-ۿ]');
+      final arabic = RegExp(r'[؀-ۿ]'); // RegExp is not a const ctor
       final en = AppStrings.forCode('en').quranTqGapNote;
       final ar = AppStrings.forCode('ar').quranTqGapNote;
       final ur = AppStrings.forCode('ur').quranTqGapNote;
@@ -231,7 +231,7 @@ void main() {
       expect(PrayerType.isha.color, const Color(0xFF19312C));
       expect(PrayerStatus.pending.color, const Color(0xFF71807A));
       expect(PrayerStatus.prayed.color, const Color(0xFF123F36));
-      expect(PrayerStatus.inMosque.color, const Color(0xFF2F6B5D));
+      expect(PrayerStatus.prayedInMosque.color, const Color(0xFF2F6B5D));
       expect(PrayerStatus.missed.color, const Color(0xFFB42318));
       expect(PrayerStatus.makeup.color, const Color(0xFFC6A15B));
       // …and the tokens are the SAME consts, not copies:
