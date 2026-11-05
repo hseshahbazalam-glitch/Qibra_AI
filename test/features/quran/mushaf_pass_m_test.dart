@@ -181,6 +181,12 @@ void main() {
       final g = await tester.startGesture(const Offset(195, 420));
       await g.moveBy(const Offset(120, 0));
       await tester.pump();
+      // The move that WINS the arena fires onDragStart only — a second
+      // move is what delivers the first onDragUpdate, and the overlay
+      // latches its direction on update (by design: start measures,
+      // update decides). One extra step and the leaf is live.
+      await g.moveBy(const Offset(2, 0));
+      await tester.pump();
       // Mid-turn: leaf is up, pinned to the spine (right edge), its
       // left edge has travelled RIGHTWARD past the screen's left.
       // Mid-turn the leaf + the revealed base are BOTH mounted (the
@@ -303,8 +309,11 @@ void main() {
       // lastRead at this point is whatever onPageChanged saved (2) —
       // drag the ribbon down past the arm distance and release.
       final g = await tester.startGesture(const Offset(24, 30));
-      for (var i = 0; i < 4; i++) {
-        await g.moveBy(const Offset(0, 12)); // 48 px total, stepped
+      // SIX 12px steps: the accepting move becomes onDragStart, so only
+      // the moves AFTER it are updates — 4 would deliver 24px (< the
+      // 26px arm threshold); 6 delivers 48px of real drag.
+      for (var i = 0; i < 6; i++) {
+        await g.moveBy(const Offset(0, 12));
         await tester.pump(const Duration(milliseconds: 12));
       }
       expect(find.byKey(const ValueKey('mushaf-ribbon-hint')), findsOneWidget,
