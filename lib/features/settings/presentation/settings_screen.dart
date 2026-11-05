@@ -886,6 +886,18 @@ class SettingsScreen extends ConsumerWidget {
                         color: sheetColors.textPrimary,
                       ),
                     ),
+                    // Pass P3 (TQ-217 honest blank): the row for an
+                    // edition with a known upstream coverage gap says
+                    // so, in all three locales, right where the choice
+                    // is made.
+                    subtitle: edition.disclosesGap
+                        ? Text(
+                            AppStrings.of(context).quranTqGapNote,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: sheetColors.textSecondary,
+                            ),
+                          )
+                        : null,
                     trailing: current == edition.id
                         ? Icon(Icons.check_rounded, color: sheetColors.primary)
                         : null,
