@@ -18,9 +18,9 @@ class SajdahPoint {
 }
 
 abstract final class QuranMeta {
-  /// Total surahs and ayahs (totalJuz was removed in Pass P3: it had
-  /// zero references — the juz screens take their count from
-  /// `AppIslamicConstants.juzBoundaries.length` instead).
+  /// Total surahs and ayahs. (A juz-count constant that used to live here
+  /// was removed in Pass P3 — zero references; the juz screens take their
+  /// count from `AppIslamicConstants.juzBoundaries.length` instead.)
   static const int totalSurahs = 114;
   static const int totalAyahs = 6236;
 
