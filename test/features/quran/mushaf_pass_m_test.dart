@@ -48,7 +48,7 @@ class _NoopDownloads extends QuranDownloadController {
   Future<void> checkSurah(int surah) async {}
 }
 
-final _p1a1 = AyahModel(
+const _p1a1 = AyahModel(
   number: 1,
   numberInQuran: 1,
   text: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
@@ -346,7 +346,7 @@ void main() {
       final en = AppStrings.forCode('en');
       final ar = AppStrings.forCode('ar');
       final ur = AppStrings.forCode('ur');
-      const arabic = RegExp(r'[؀-ۿ]');
+      final arabic = RegExp(r'[؀-ۿ]');
       expect(en.mushafRibbonA11y, contains('Ribbon'));
       expect(arabic.hasMatch(ar.mushafRibbonA11y), isTrue);
       expect(arabic.hasMatch(ur.mushafRibbonA11y), isTrue);
