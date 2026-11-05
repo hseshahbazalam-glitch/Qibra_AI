@@ -348,15 +348,23 @@ void main() {
       // it MEANS something — save via a turn to page 2 from 1.
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
-      await pumpMushaf(tester); // NOW a fresh open: saved page = 2…
-      // …restore auto-jumps to it (existing Q2 behaviour), so verify the
-      // ribbon renders at the SAVED fraction, not the route's. The
-      // restore chain is initState → seeded frame → awaited prefs hop →
-      // jumpToPage + provider write: settle on ANY pending frames instead
-      // of guessing how many async hops the store takes.
+      // Route page WINS on open (restore skips when initialPage != 1 —
+      // the pre-M contract, pinned by Q2's own jump-math test). That is
+      // what makes this the honest ribbon-TAP test: page 3 is not the
+      // saved page, so ONLY the ribbon can move the reader now. And the
+      // ribbon must still know the saved page — mirroring it before the
+      // early return is exactly the Pass M integration line under test.
+      await pumpMushaf(tester, initialPage: 3);
       await tester.pumpAndSettle();
+      expect(find.text('3 / 604'), findsOneWidget,
+          reason: 'the explicit route page holds against the store');
+      // Tap the silk column itself (left margin band, mid-height).
+      await tester.tapAt(const Offset(30, 47));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('2 / 604'), findsOneWidget,
-          reason: 'restore-from-store stays intact through the M rewrite');
+          reason: 'ribbon tap jumped 3 -> the saved page 2');
+      expect(tester.takeException(), isNull);
       final f = MushafRibbon.progressFraction(2, 604);
       expect(f, greaterThan(0.0));
       expect(f, lessThan(0.01));
