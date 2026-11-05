@@ -222,7 +222,9 @@ class TilawatDownloader {
       debugPrint('⚠️ tilawat download failed ($ayah): $e');
       try {
         if (await File(partPath).exists()) await File(partPath).delete();
-      } catch (_) {}
+      } catch (_) {
+        // Pass P3 honest-silence: part-file cleanup after a failed download — any leftover is swept by the next pass
+      }
       return false;
     }
   }
@@ -250,7 +252,9 @@ class TilawatDownloader {
             bytes += len; // 0-byte strays count as NOTHING, never size
             files++;
           }
-        } catch (_) {}
+        } catch (_) {
+          // Pass P3 honest-silence: unreadable file skipped — 0-byte strays never count toward the stored size
+        }
       }
       final name = e.path.split('/').last;
       TilawatQari? known;

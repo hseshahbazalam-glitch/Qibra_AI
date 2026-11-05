@@ -308,7 +308,9 @@ class BookmarksNotifier extends StateNotifier<List<BookmarkModel>> {
       state = list
           .map((e) => BookmarkModel.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: corrupt bookmark JSON → start empty rather than crash (the next save rewrites it)
+    }
   }
 
   Future<void> _persist() async {

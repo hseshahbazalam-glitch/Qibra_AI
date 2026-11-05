@@ -298,7 +298,9 @@ class TasbihNotifier extends StateNotifier<TasbihState> {
               // Streak broken
               currentStreak = 0;
             }
-          } catch (_) {}
+          } catch (_) {
+            // Pass P3 honest-silence: unparseable last date → the streak is treated as unbroken, never falsely reset
+          }
         }
       }
 
@@ -333,7 +335,9 @@ class TasbihNotifier extends StateNotifier<TasbihState> {
         history: history,
         lastActiveDate: lastDate,
       );
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: corrupt tasbih storage → fresh defaults for this session
+    }
   }
 
   Future<void> _saveAll() async {
@@ -344,7 +348,9 @@ class TasbihNotifier extends StateNotifier<TasbihState> {
       await prefs.setInt(_keyStreak, state.currentStreak);
       await prefs.setInt(_keyBestStreak, state.bestStreak);
       await prefs.setString(_keyLastDate, state.lastActiveDate);
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: counter persistence is best-effort; the session stays authoritative
+    }
   }
 
   Future<void> _saveHistory() async {
@@ -353,28 +359,36 @@ class TasbihNotifier extends StateNotifier<TasbihState> {
       final historyJson =
           state.history.map((e) => jsonEncode(e.toJson())).toList();
       await prefs.setStringList(_keyHistory, historyJson);
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: history persistence is best-effort
+    }
   }
 
   Future<void> _saveDhikr(String id) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyLastDhikr, id);
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: last-dhikr persistence is best-effort
+    }
   }
 
   Future<void> _saveVibration(bool enabled) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_keyVibration, enabled);
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: vibration persistence is best-effort
+    }
   }
 
   Future<void> _saveDailyGoal(int goal) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_keyDailyGoal, goal);
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: daily-goal persistence is best-effort
+    }
   }
 
   /// Increment counter

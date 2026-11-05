@@ -368,7 +368,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await _secureStorage.delete(key: AppStorageKeys.refreshToken);
         await _secureStorage.delete(key: AppStorageKeys.userId);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: legacy-token purge is best-effort: unreadable storage must not block session restore
+    }
   }
 
   // ── LOGIN ──────────────────────────────────────────────
@@ -491,7 +493,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
           final refresh =
               await _secureStorage.read(key: AppStorageKeys.refreshToken);
           await _repository.logout(refreshToken: refresh);
-        } catch (_) {}
+        } catch (_) {
+          // Pass P3 honest-silence: backend logout is best-effort — local sign-out always proceeds
+        }
       }
       ApiClient.instance.setBearer(null);
       await _secureStorage.delete(key: AppStorageKeys.accessToken);

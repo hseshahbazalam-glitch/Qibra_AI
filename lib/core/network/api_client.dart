@@ -85,7 +85,9 @@ class ApiClient {
               try {
                 final resp = await _dio.fetch<dynamic>(e.requestOptions);
                 return handler.resolve(resp);
-              } catch (_) {}
+              } catch (_) {
+                // Pass P3 honest-silence: post-refresh re-fetch failed — fall through so the ORIGINAL error surfaces (never swallowed)
+              }
             } else if (outcome == RefreshOutcome.rejected) {
               onAuthExpired?.call();
             }
@@ -99,7 +101,9 @@ class ApiClient {
             try {
               final resp = await _dio.fetch<dynamic>(e.requestOptions);
               return handler.resolve(resp);
-            } catch (_) {}
+            } catch (_) {
+              // Pass P3 honest-silence: retry attempt failed — the retry loop ends here and the caller sees the original error
+            }
           }
           return handler.next(e);
         },

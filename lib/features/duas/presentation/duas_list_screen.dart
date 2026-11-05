@@ -35,7 +35,9 @@ class DuasListScreen extends ConsumerWidget {
     DuaCategoryModel? category;
     try {
       category = categories.firstWhere((c) => c.id == categoryId);
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: unknown category id → headerless list; the name-lookup miss is cosmetic
+    }
 
     // One accent per domain (Stage D): the legacy per-category colorHex
     // palette is no longer parsed into the UI.

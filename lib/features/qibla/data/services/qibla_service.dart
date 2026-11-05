@@ -263,7 +263,9 @@ class QiblaService {
       if (altitude != null) await prefs.setDouble(_kLastAltitude, altitude);
       if (accuracy != null) await prefs.setDouble(_kLastAccuracy, accuracy);
       await prefs.setString(_kLastUpdated, DateTime.now().toIso8601String());
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: cache write is best-effort: a fresh fix is returned even if it cannot be stored
+    }
   }
 
   static Future<QiblaResult> _getFromCache() async {
@@ -282,7 +284,9 @@ class QiblaService {
       if (updatedStr != null) {
         try {
           updatedAt = DateTime.parse(updatedStr);
-        } catch (_) {}
+        } catch (_) {
+          // Pass P3 honest-silence: unreadable timestamp → updatedAt stays null and the UI hides the label
+        }
       }
 
       if (lat != null && lng != null && angle != null && distance != null) {
@@ -299,7 +303,9 @@ class QiblaService {
           updatedAt: updatedAt,
         );
       }
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: corrupt qibla cache → treated as no cache; the fresh-calculation path continues
+    }
 
     return const QiblaResult(
       qiblaAngle: 0,

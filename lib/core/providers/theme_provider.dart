@@ -84,7 +84,9 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
       if (savedMode != null) {
         state = AppThemeMode.fromStorageString(savedMode);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: theme read failed → stay on the system default; saving still works from now on
+    }
   }
 
   Future<void> setThemeMode(AppThemeMode mode) async {
@@ -130,7 +132,9 @@ class LocaleNotifier extends StateNotifier<Locale> {
       if (savedLang != null && AppLanguages.supported.contains(savedLang)) {
         state = Locale(savedLang);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: language read failed → stay on the default locale
+    }
   }
 
   Future<void> setLocale(String languageCode) async {

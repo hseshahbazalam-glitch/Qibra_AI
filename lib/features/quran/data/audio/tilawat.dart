@@ -256,7 +256,9 @@ class Tilawat {
   /// '×20 (max)' — NO uncapped ∞ mode exists, so a mis-tap can never
   /// produce the silent endless loop the player comments forbid.
   static const int maxAyahRepeats = 20;
-  static const List<int> repeatCountChoices = [1, 3, 5, 20];
+  // (Pass P3 dead-code sweep: `repeatCountChoices` here was removed —
+  //  the repeat sheet builds its own options; the cap above is the one
+  //  consumer the clamp shares with it.)
 
   static int clampRepeatCount(int n) =>
       n < 1 ? 1 : (n > maxAyahRepeats ? maxAyahRepeats : n);

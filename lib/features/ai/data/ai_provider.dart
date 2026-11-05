@@ -119,7 +119,9 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       try {
         final conn = await Connectivity().checkConnectivity();
         offline = conn.contains(ConnectivityResult.none) || conn.isEmpty;
-      } catch (_) {}
+      } catch (_) {
+        // Pass P3 honest-silence: connectivity probe failed → assume online; real request failures surface their own errors
+      }
 
       String finalMessage = userMessage;
       if (context != null) {

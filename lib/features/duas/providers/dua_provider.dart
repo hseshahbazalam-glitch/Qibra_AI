@@ -106,7 +106,9 @@ class FavoriteDuasNotifier extends StateNotifier<Set<String>> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList(_kFavoriteDuasKey, state.toList());
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: favorites persistence is best-effort; the session state stays authoritative
+    }
   }
 
   // Toggle favorite

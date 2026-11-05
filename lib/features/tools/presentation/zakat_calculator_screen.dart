@@ -89,14 +89,18 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         }
       }
       if (updated && mounted) setState(() {});
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: unreadable custom price → the built-in market price stands
+    }
   }
 
   Future<void> _saveCustomPrice(String currency, double price) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setDouble('$_customPriceKeyPrefix$currency', price);
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: custom-price persistence is best-effort; this session keeps the value
+    }
   }
 
   @override

@@ -397,7 +397,9 @@ class HadithBookmarksNotifier extends StateNotifier<List<HadithBookmark>> {
       state = list
           .map((e) => HadithBookmark.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: corrupt bookmark JSON → start empty rather than crash (the next save rewrites it)
+    }
   }
 
   Future<void> _persist() async {
