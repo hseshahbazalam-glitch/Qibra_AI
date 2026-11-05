@@ -118,6 +118,20 @@ def parse_line(line):
             continue
         g = p[1].strip() if len(p) > 1 else ''
         for w in ar.split():
+            # Pass P3 (sajdah recovery): an entry whose Arabic run carries
+            # a standalone inert mark ('يَسْجُدُونَ ۩' — the U+06E9 sajdah
+            # sign as its own whitespace token) is ONE word on the app
+            # side, because unit_tokens() attaches marker-only runs to the
+            # PREVIOUS unit. Attaching here too keeps the two token spaces
+            # aligned 1:1 — the exact ZWNBSP-mirror rule (the mark is
+            # decoration, never a word). Its gloss rides on the word.
+            if not norm(w):
+                if raw:
+                    raw[-1] += w
+                else:
+                    raw.append(w)
+                    gs.append(g if g else (gs[-1] if gs else ''))
+                continue
             raw.append(w)
             gs.append(g if g else (gs[-1] if gs else ''))
     return raw, gs

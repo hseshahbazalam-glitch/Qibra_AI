@@ -304,10 +304,11 @@ void main() {
     });
 
     test('every gloss entry is present in the corpus, aligns to the app '
-        'text, and the census is exactly 6221/6236 (15 degrade — pinned, '
+        'text, and the census is exactly 6236/6236 (sajdah-15 recovered by '
+        'the P3 inert-mark rule — the 15.6236 degrade era is over, pinned, '
         'so silent drift fails CI)', () {
       final ayahs = gloss['ayahs'] as Map<String, dynamic>;
-      expect(ayahs.length, 6221);
+      expect(ayahs.length, 6236);
       expect(texts.length, 6236);
       final corpus = QuranWordCorpus.fromJson(glossJson: gloss);
       for (final entry in ayahs.entries) {
@@ -328,8 +329,8 @@ void main() {
         'the merge, pinned so silent drift fails CI); positive windows, '
         'cued census exact', () {
       final census = {
-        'ar.abdulbasitmurattal': 5544,
-        'ar.husary': 5792,
+        'ar.abdulbasitmurattal': 5557,
+        'ar.husary': 5807,
       };
       final glossAyahs = (gloss['ayahs'] as Map).cast<String, dynamic>();
       for (final qari in census.keys) {

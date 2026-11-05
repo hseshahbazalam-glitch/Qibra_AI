@@ -211,9 +211,18 @@ class QuranWordCorpus {
   /// as a SEPARATOR by [unitize] while it stays glued to the dataset's
   /// span word. Treating it as the inert mark it is — on both sides —
   /// is what keeps the fold honest (CI run 35179679229 caught exactly
-  /// this asymmetry at 1:1).
-  static String normalizeUnits(String s) =>
-      QuranAyahSearch.normalize(s).replaceAll(' ', '').replaceAll('\uFEFF', '');
+  /// this asymmetry at 1:1). Pass P3 adds the explicit U+06E9 (sajdah
+  /// mark) strip for the same reason the ZWNBSP got one: the mark rides
+  /// at the end of a word token in both spaces and must NEVER count as
+  /// a word unit. It is already inert inside [QuranAyahSearch.normalize]
+  /// via the \u06D6-\u06ED range — this strip pins the CONTRACT at the
+  /// alignment site, so narrowing the search-side range can never
+  /// silently re-degrade the 15 sajdah ayahs (the builder applies the
+  /// mirror rule in parse_line for the dataset side).
+  static String normalizeUnits(String s) => QuranAyahSearch.normalize(s)
+      .replaceAll(' ', '')
+      .replaceAll('\uFEFF', '')
+      .replaceAll('\u06E9', '');
 
   /// Occurrences of a word FORM across the corpus, LIVE over the app's
   /// own bundled texts with the search fold (never a shipped number —

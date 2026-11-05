@@ -409,7 +409,7 @@
    "id": "quran_word_gloss_en",
    "content": "Per-word English glosses (Pass Q3 word layer)",
    "source": "assets/data/quran/word_gloss_en.json",
-   "source_name": "quran-wordbyword.txt (built by scripts/build_word_data.py 2026-09-17)",
+   "source_name": "quran-wordbyword.txt (built by scripts/build_word_data.py 2026-09-17; rebuilt 2026-11-05 with the P3 inert-mark attach rule — sajdah-15 recovered, upstream content otherwise unchanged, verified by whole-corpus diff)",
    "collection": "quran",
    "edition": "globalquran-wordbyword-en",
    "translator": null,
@@ -442,7 +442,7 @@
    "attribution_required": "YES (attribution in upstream README)",
    "commercial_use": "UNKNOWN",
    "redistribution": "UNKNOWN",
-   "attribution": "upstream repo publishes NO license file (GitHub reports none); cues descend from everyayah.com per-ayah timing shared for non-commercial use. Cues address the everyayah per-ayah master cuts the app itself streams (bitrate-invariant); cross-checked vs the Quran.com v4 per-ayah segments API (±150ms annotation noise). Unverified ayahs play from ayah start, surfaced honestly in the UI. Alafasy/Sudais/Minshawi: no verified cue source exists — word play on those qaris starts at the ayah beginning. 5544/6236 ayahs verified.",
+   "attribution": "upstream repo publishes NO license file (GitHub reports none); cues descend from everyayah.com per-ayah timing shared for non-commercial use. Cues address the everyayah per-ayah master cuts the app itself streams (bitrate-invariant); cross-checked vs the Quran.com v4 per-ayah segments API (±150ms annotation noise). Unverified ayahs play from ayah start, surfaced honestly in the UI. Alafasy/Sudais/Minshawi: no verified cue source exists — word play on those qaris starts at the ayah beginning. 5557/6236 ayahs verified (P3 sajdah recovery +13).",
    "verification_status": "UNKNOWN",
    "status": "UNKNOWN",
    "language": "en"
@@ -463,7 +463,7 @@
    "attribution_required": "YES (attribution in upstream README)",
    "commercial_use": "UNKNOWN",
    "redistribution": "UNKNOWN",
-   "attribution": "upstream repo publishes NO license file (GitHub reports none); cues descend from everyayah.com per-ayah timing shared for non-commercial use. Cues address the everyayah per-ayah master cuts the app itself streams (bitrate-invariant); cross-checked vs the Quran.com v4 per-ayah segments API (±150ms annotation noise). Unverified ayahs play from ayah start, surfaced honestly in the UI. Alafasy/Sudais/Minshawi: no verified cue source exists — word play on those qaris starts at the ayah beginning. 5792/6236 ayahs verified.",
+   "attribution": "upstream repo publishes NO license file (GitHub reports none); cues descend from everyayah.com per-ayah timing shared for non-commercial use. Cues address the everyayah per-ayah master cuts the app itself streams (bitrate-invariant); cross-checked vs the Quran.com v4 per-ayah segments API (±150ms annotation noise). Unverified ayahs play from ayah start, surfaced honestly in the UI. Alafasy/Sudais/Minshawi: no verified cue source exists — word play on those qaris starts at the ayah beginning. 5807/6236 ayahs verified (P3 sajdah recovery +15).",
    "verification_status": "UNKNOWN",
    "status": "UNKNOWN",
    "language": "en"
