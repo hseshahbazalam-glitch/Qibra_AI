@@ -350,13 +350,11 @@ void main() {
       await tester.pump();
       await pumpMushaf(tester); // NOW a fresh open: saved page = 2…
       // …restore auto-jumps to it (existing Q2 behaviour), so verify the
-      // ribbon renders at the SAVED fraction, not the route's. Two more
-      // frames: initState's post-frame seed lands first, THEN the
-      // awaited prefs read completes and the jump lands — a single
-      // 400ms pump can settle on the wrong side of that await.
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump(const Duration(milliseconds: 300));
+      // ribbon renders at the SAVED fraction, not the route's. The
+      // restore chain is initState → seeded frame → awaited prefs hop →
+      // jumpToPage + provider write: settle on ANY pending frames instead
+      // of guessing how many async hops the store takes.
+      await tester.pumpAndSettle();
       expect(find.text('2 / 604'), findsOneWidget,
           reason: 'restore-from-store stays intact through the M rewrite');
       final f = MushafRibbon.progressFraction(2, 604);
