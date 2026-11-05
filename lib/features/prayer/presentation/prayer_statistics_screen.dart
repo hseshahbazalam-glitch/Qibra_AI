@@ -11,6 +11,7 @@ import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 
 import '../data/models/prayer_models.dart';
 import '../providers/prayer_provider.dart';
@@ -29,6 +30,20 @@ class _PrayerStatisticsScreenState
     extends ConsumerState<PrayerStatisticsScreen> {
   StatsPeriod _selectedPeriod = StatsPeriod.thisWeek;
 
+  // Pass P3 (weak-state sweep): the prayer log hydrates from storage
+  // asynchronously; until it answers, an empty list is 'loading', not
+  // 'zero prayers'. No fake state — this flag flips exactly when the
+  // notifier's own future completes.
+  bool _hydrated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(prayerRecordsProvider.notifier).ready.then((_) {
+      if (mounted) setState(() => _hydrated = true);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
@@ -37,11 +52,18 @@ class _PrayerStatisticsScreenState
     final filtered = _recordsForPeriod(records);
     final periodStats = _statsFrom(filtered);
     final weekly = _weeklyCounts(records);
+    final pendingHydration = !_hydrated && records.isEmpty;
 
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
-        child: CustomScrollView(
+        child: pendingHydration
+            ? const Padding(
+                padding: EdgeInsets.fromLTRB(16, 48, 16, 16),
+                child: QibraStatus.loading(
+                    message: 'Loading your prayer log…'),
+              )
+            : CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverAppBar(

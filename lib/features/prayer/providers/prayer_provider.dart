@@ -258,7 +258,9 @@ class PrayerSettingsNotifier extends StateNotifier<PrayerSettings> {
         try {
           final type = PrayerType.values.firstWhere((p) => p.name == entry.key);
           adjustments[type] = entry.value as int;
-        } catch (_) {}
+        } catch (_) {
+          // Pass P3 honest-silence: unknown/corrupt adjustment entry → skipped; other valid adjustments still apply
+        }
       }
 
       state = PrayerSettings(
@@ -586,8 +588,17 @@ final currentPrayerProvider = Provider<PrayerTime?>((ref) {
 
 class PrayerRecordsNotifier extends StateNotifier<List<PrayerRecord>> {
   PrayerRecordsNotifier() : super([]) {
-    _loadRecords();
+    // Pass P3 (weak-state sweep): expose the hydration future so the
+    // statistics screen can tell 'loading' from a genuinely empty log.
+    // The old constructor fired _loadRecords() and dropped the future —
+    // an empty list then meant 'no records' even if storage had not
+    // answered yet. _loadRecords swallows its own errors, so `ready`
+    // completing never throws.
+    ready = _loadRecords();
   }
+
+  /// Completes once the first storage read has answered (records or not).
+  late final Future<void> ready;
 
   static const String _key = 'prayer_records';
 

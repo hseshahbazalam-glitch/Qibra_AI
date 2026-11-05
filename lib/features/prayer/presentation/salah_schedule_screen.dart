@@ -14,6 +14,7 @@ import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 
 import '../providers/prayer_provider.dart';
 import '../data/models/prayer_models.dart';
@@ -413,7 +414,16 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                 icon: Icons.location_on_rounded,
                 iconColor: colors.textSecondary,
                 title: 'My Location',
-                subtitle: location.location?.displayName ?? 'Auto-detected',
+                // Pass P3 (weak-state sweep): 'Auto-detected' used to
+                // claim a fix that never happened while location was
+                // pending or denied.
+                subtitle: location.location?.displayName ??
+                    switch (location.status) {
+                      LocationStatus.initial ||
+                      LocationStatus.loading =>
+                        'Detecting…',
+                      _ => 'Not available — tap to set',
+                    },
                 onTap: _showLocationOptions,
               ),
             ),
@@ -428,6 +438,32 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               ),
             ),
           ),
+
+          // Pass P3 (weak-state sweep): the schedule's REAL loading/error
+          // signal lives on the location provider — dailyTimes is null
+          // exactly while geolocation is unresolved, and before this row
+          // the prayer list rendered silent '—' times forever. Initial /
+          // loading get the spinner; every failure mode (denied,
+          // deniedForever, disabled, timeout, unavailable, error) gets
+          // the honest card with a retry wired to fetchCurrentLocation.
+          if (dailyTimes == null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: location.status == LocationStatus.initial ||
+                        location.isLoading
+                    ? const QibraStatus.loading(
+                        message: 'Finding your location for prayer times…',
+                      )
+                    : QibraStatus.error(
+                        message: location.error ??
+                            'Prayer times need a location — permission denied or GPS unavailable. Set one manually or retry.',
+                        onRetry: () => ref
+                            .read(locationProvider.notifier)
+                            .fetchCurrentLocation(),
+                      ),
+              ),
+            ),
 
           // Prayer List
           SliverToBoxAdapter(
