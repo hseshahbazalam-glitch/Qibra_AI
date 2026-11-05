@@ -7,21 +7,30 @@
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:qibra_ai/core/design_system/app_colors.dart';
 
 // ============================================================
 // SECTION 1 — PRAYER TYPE ENUM
 // ============================================================
 
+// Pass P3: the accent colours below are design tokens. Values are
+// byte-identical to the raw literals this file carried since its first
+// commit (AppEmerald.s500 = 0xFF123F36, AppGold.s500 = 0xFFC6A15B,
+// AppEmerald.s400 = 0xFF2F6B5D, AppGold.s700 = 0xFF8A6D38,
+// AppNeutral.s800 = 0xFF19312C; PrayerStatus adds AppNeutral.s500 =
+// 0xFF71807A and AppSemanticColors.error = 0xFFB42318) — pinned equal in
+// the P3 test so a future token re-theme can never silently re-colour
+// the prayer list. Pure refactor: nothing about rendering changed.
 enum PrayerType {
-  fajr('Fajr', 'الفجر', 'Dawn', 'assets/icons/prayer.svg', Color(0xFF123F36)),
+  fajr('Fajr', 'الفجر', 'Dawn', 'assets/icons/prayer.svg', AppEmerald.s500),
   sunrise('Sunrise', 'الشروق', 'Sunrise', 'assets/icons/prayer.svg',
-      Color(0xFFC6A15B)),
-  dhuhr('Dhuhr', 'الظهر', 'Noon', 'assets/icons/prayer.svg', Color(0xFF2F6B5D)),
+      AppGold.s500),
+  dhuhr('Dhuhr', 'الظهر', 'Noon', 'assets/icons/prayer.svg', AppEmerald.s400),
   asr('Asr', 'العصر', 'Afternoon', 'assets/icons/prayer.svg',
-      Color(0xFF8A6D38)),
+      AppGold.s700),
   maghrib('Maghrib', 'المغرب', 'Sunset', 'assets/icons/prayer.svg',
-      Color(0xFF123F36)),
-  isha('Isha', 'العشاء', 'Night', 'assets/icons/prayer.svg', Color(0xFF19312C));
+      AppEmerald.s500),
+  isha('Isha', 'العشاء', 'Night', 'assets/icons/prayer.svg', AppNeutral.s800);
 
   const PrayerType(
     this.name,
@@ -422,11 +431,11 @@ class PrayerLocation extends Equatable {
 // ============================================================
 
 enum PrayerStatus {
-  pending('Pending', Icons.schedule_rounded, Color(0xFF71807A)),
-  prayed('Prayed', Icons.check_circle_rounded, Color(0xFF123F36)),
-  prayedInMosque('In Mosque', Icons.mosque_rounded, Color(0xFF2F6B5D)),
-  missed('Missed', Icons.cancel_rounded, Color(0xFFB42318)),
-  makeup('Made Up', Icons.autorenew_rounded, Color(0xFFC6A15B));
+  pending('Pending', Icons.schedule_rounded, AppNeutral.s500),
+  prayed('Prayed', Icons.check_circle_rounded, AppEmerald.s500),
+  prayedInMosque('In Mosque', Icons.mosque_rounded, AppEmerald.s400),
+  missed('Missed', Icons.cancel_rounded, AppSemanticColors.error),
+  makeup('Made Up', Icons.autorenew_rounded, AppGold.s500);
 
   const PrayerStatus(this.label, this.icon, this.color);
   final String label;
