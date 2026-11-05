@@ -26,6 +26,7 @@ import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
 import 'package:qibra_ai/features/quran/providers/reading_progress_provider.dart';
 import 'widgets/home_hero.dart';
 import 'widgets/home_sections.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -266,4 +267,3 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
-import 'package:qibra_ai/core/l10n/app_strings.dart';

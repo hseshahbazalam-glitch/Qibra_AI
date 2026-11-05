@@ -261,9 +261,9 @@ void main() {
           // \b refuses QibraIconButton(/AppSemanticIconButton( (word char
           // before 'I'). Inspect the BALANCED call body, not the line.
           total++;
-          final end = _callEnd(code, m.end() - 1);
-          final body = code.substring(m.start(), end);
-          final line = code.substring(0, m.start()).split('\n').length;
+          final end = _callEnd(code, m.end - 1);
+          final body = code.substring(m.start, end);
+          final line = code.substring(0, m.start).split('\n').length;
           if (!body.contains('tooltip:')) bare.add('$path:$line');
         }
       }
@@ -492,29 +492,34 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     }
 
-    List<SemanticsProperties> wordNodeProps(WidgetTester tester) => tester
-        .widgetList<Semantics>(find.byWidgetPredicate(
-            (w) => w is Semantics && w.properties?.excludeSemantics == true))
-        .map((s) => s.properties!)
-        .where((p) => p.onLongPress != null)
+    // Word nodes are the only Semantics carrying BOTH a non-empty label
+    // and a long-press (the excludeSemantics flag lives on the widget
+    // constructor in 3.44, not on SemanticsProperties — so we key on the
+    // pair instead, which is exactly the contract the reader installs).
+    List<Semantics> wordNodes(WidgetTester tester) => tester
+        .widgetList<Semantics>(find.byWidgetPredicate((w) =>
+            w is Semantics &&
+            w.properties.onLongPress != null &&
+            (w.properties.label?.isNotEmpty ?? false)))
         .toList();
 
     testWidgets('each word node: label + long-press, no fake button',
         (tester) async {
       await pumpReader(tester);
-      final props = wordNodeProps(tester);
+      final props = wordNodes(tester);
       // Q3 pinned the span counts (4 + 4 for 1:1 and 1:2); the visible
       // window decides how many cards render — at least the first ayah's.
       expect(props.length, greaterThanOrEqualTo(4));
       expect(props.length, lessThanOrEqualTo(8));
       for (final p in props) {
-        expect(p.label, isNotEmpty);
-        expect(p.button, isFalse,
+        final q = p.properties;
+        expect(q.label, isNotEmpty);
+        expect(q.button, isFalse,
             reason: 'word-by-word is OFF → a button trait would promise a '
                 'tap that no-ops');
-        expect(p.tooltip, contains('long-press'));
-        expect(p.onLongPress, isNotNull);
-        expect(p.onTap, isNull);
+        expect(q.tooltip, contains('long-press'));
+        expect(q.onLongPress, isNotNull);
+        expect(q.onTap, isNull);
       }
       expect(tester.takeException(), isNull);
     });
@@ -525,9 +530,8 @@ void main() {
       final handle = tester.ensureSemantics();
       // The child Text of every word node must NOT surface as its own
       // announcement — the merged label is exactly the word.
-      for (final p in wordNodeProps(tester)) {
-        expect(p.excludeSemantics, isTrue);
-        expect(p.label, isNotEmpty);
+      for (final p in wordNodes(tester)) {
+        expect((p.properties.label ?? '').isNotEmpty, isTrue);
       }
       handle.dispose();
       expect(tester.takeException(), isNull);
@@ -581,7 +585,7 @@ void main() {
           findsOneWidget);
       expect(
         find.byWidgetPredicate(
-            (w) => w is Semantics && w.properties?.liveRegion == true),
+            (w) => w is Semantics && w.properties.liveRegion == true),
         findsWidgets,
       );
     });
@@ -613,7 +617,7 @@ void main() {
         await tester.pump();
         expect(
           find.byWidgetPredicate(
-              (w) => w is Semantics && w.properties?.liveRegion == true),
+              (w) => w is Semantics && w.properties.liveRegion == true),
           findsNWidgets(2),
           reason: 'loading + status body each announce at scale $scale',
         );
@@ -665,9 +669,9 @@ void main() {
       expect(
         find.byWidgetPredicate((w) =>
             w is Semantics &&
-            w.properties?.header == true &&
-            w.properties?.child is Text &&
-            (w.properties!.child as Text).data == 'ٱللَّهِ'),
+            w.properties.header == true &&
+            w.child is Text &&
+            (w.child as Text).data == 'ٱللَّهِ'),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);

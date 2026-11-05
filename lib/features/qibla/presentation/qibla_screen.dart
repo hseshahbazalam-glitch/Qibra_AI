@@ -32,6 +32,7 @@ import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../data/services/qibla_service.dart';
 import '../providers/qibla_provider.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 bool _qiblaAligned(QiblaState s) {
   final off = ((s.needleAngle % 360) + 360) % 360;
@@ -892,4 +893,3 @@ class _NeedlePainter extends CustomPainter {
   @override
   bool shouldRepaint(_NeedlePainter old) => old.tip != tip || old.tail != tail;
 }
-import 'package:qibra_ai/core/l10n/app_strings.dart';

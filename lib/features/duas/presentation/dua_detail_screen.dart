@@ -18,6 +18,7 @@ import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
 import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/features/ai/presentation/ai_explain_screen.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class DuaDetailScreen extends ConsumerStatefulWidget {
   final String duaId;
@@ -905,4 +906,3 @@ Shared via QIBRA AI''';
     );
   }
 }
-import 'package:qibra_ai/core/l10n/app_strings.dart';

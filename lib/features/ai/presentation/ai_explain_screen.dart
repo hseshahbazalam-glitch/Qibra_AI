@@ -21,6 +21,7 @@ import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../data/ai_provider.dart';
 import '../domain/ai_action_service.dart';
 import '../domain/voice_service.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class AIExplainScreen extends ConsumerStatefulWidget {
   const AIExplainScreen({
@@ -1170,4 +1171,3 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
     );
   }
 }
-import 'package:qibra_ai/core/l10n/app_strings.dart';
