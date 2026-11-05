@@ -246,7 +246,11 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
       duration: Duration(milliseconds: commit ? 200 : 240),
     );
     _settle = c;
-    final anim = Tween<double>(begin: _t, end: target).animate(
+    // 'late' so the listener closure below can read anim: a plain final
+    // initializer that references its own variable (even through a
+    // callback) is a hard analyzer error, not a taste note.
+    late final Animation<double> anim;
+    anim = Tween<double>(begin: _t, end: target).animate(
       CurvedAnimation(
         parent: c,
         curve: commit ? Curves.easeOutCubic : Curves.easeOutBack,

@@ -522,7 +522,7 @@ Juz: ${juz ?? '—'}''';
   Widget _pageAt(
     int page,
     Map<int, List<MushafPageEntry>> index,
-    (int, int)? playing,
+    (int?, int?)? playing,
   ) =>
       _MushafPage(
         pageNumber: page,
