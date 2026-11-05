@@ -78,7 +78,10 @@ class _MushafRibbonState extends State<MushafRibbon> {
     return LayoutBuilder(
       key: const ValueKey('mushaf-ribbon'),
       builder: (context, constraints) {
-        final hit = MushafRibbon.ribbonWidth + 16;
+        // 40 logical px of grabbable column (the silk itself stays
+        // ribbonWide) — 28 made the drop gesture easy to miss near the
+        // screen corner; fingers, not pixels, are the spec.
+        final hit = MushafRibbon.ribbonWidth + 28;
         final usable =
             math.max(0.0, constraints.maxWidth - 2 * 10 - hit);
         final left = 10 + usable * f;
@@ -138,7 +141,9 @@ class _MushafRibbonState extends State<MushafRibbon> {
                 key: const ValueKey('mushaf-ribbon-hint'),
                 left: left + hit + 4,
                 top: 6,
-                child: Container(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 240),
+                  child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -150,9 +155,12 @@ class _MushafRibbonState extends State<MushafRibbon> {
                   ),
                   child: Text(
                     strings.mushafRibbonDropHint,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.labelSmall
                         .copyWith(color: colors.textSecondary),
                   ),
+                ),
                 ),
               ),
           ],

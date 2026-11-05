@@ -263,6 +263,11 @@ void main() {
       expect(find.byKey(const ValueKey('mushaf-peel-flap')), findsNothing);
       expect(tester.takeException(), isNull);
 
+      // Force a FRESH State for the reduced-motion visit (same widget
+      // type + pumpWidget would silently reuse the old overlay state,
+      // carrying _hintUsed over and killing the very behaviour tested).
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
       await pumpMushaf(tester, reduceMotion: true);
       await tester.pump(const Duration(seconds: 5, milliseconds: 120));
       expect(find.byKey(const ValueKey('mushaf-peel-flap')), findsOneWidget,
@@ -298,8 +303,10 @@ void main() {
       // lastRead at this point is whatever onPageChanged saved (2) —
       // drag the ribbon down past the arm distance and release.
       final g = await tester.startGesture(const Offset(24, 30));
-      await g.moveBy(const Offset(0, 40));
-      await tester.pump();
+      for (var i = 0; i < 4; i++) {
+        await g.moveBy(const Offset(0, 12)); // 48 px total, stepped
+        await tester.pump(const Duration(milliseconds: 12));
+      }
       expect(find.byKey(const ValueKey('mushaf-ribbon-hint')), findsOneWidget,
           reason: 'the armed drop hint appears past the threshold');
       await g.up();
@@ -330,7 +337,9 @@ void main() {
       // Saved page == current page here: the jump is a no-op but the
       // affordance must fire without errors; then move to a state where
       // it MEANS something — save via a turn to page 2 from 1.
-      await pumpMushaf(tester); // fresh open on page 1, saved page = 2…
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      await pumpMushaf(tester); // NOW a fresh open: saved page = 2…
       // …restore auto-jumps to it (existing Q2 behaviour), so verify the
       // ribbon renders at the SAVED fraction, not the route's.
       await tester.pump(const Duration(milliseconds: 300));
@@ -372,6 +381,10 @@ void main() {
       // label line — and only there:
       expect(find.text('Page 1 / 604'), findsOneWidget);
       expect(find.text('Page 1 of 604'), findsNothing);
+      // pumpWidget on the same widget TYPE reuses State — initState (and
+      // the PageController seed) would never re-run. Unmount first.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
       await pumpMushaf(tester, initialPage: 2);
       expect(find.text('Juz 3'), findsOneWidget,
           reason: 'fixture p2 carries juz 3 — real field, styled');
@@ -393,7 +406,9 @@ void main() {
       final turn = File(
               'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
           .readAsStringSync();
-      expect(turn, isNot(contains('PageView')));
+      // Comments may say 'PageView' (they explain the contract); a
+      // SECOND pager CONSTRUCTION is what must never appear.
+      expect(turn, isNot(contains('PageView(')));
       expect(turn, isNot(contains('Color(0x')));
       expect(turn, isNot(contains("tooltip: '")));
     });
