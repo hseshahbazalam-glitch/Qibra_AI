@@ -76,12 +76,12 @@ class _QuranScreenState extends ConsumerState<QuranScreen> {
       actions: [
         QibraIconButton(
           icon: Icons.search_rounded,
-          tooltip: 'Search',
+          tooltip: AppStrings.of(context).tooltipSearch,
           onTap: () => context.go(AppRoutes.quranSearch),
         ),
         QibraIconButton(
           icon: Icons.bookmark_border_rounded,
-          tooltip: 'Bookmarks',
+          tooltip: AppStrings.of(context).bookmarksTitle,
           onTap: () => context.push('/quran/bookmarks'),
         ),
       ],

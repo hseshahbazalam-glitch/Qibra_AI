@@ -98,7 +98,7 @@ class HomeScreen extends ConsumerWidget {
                 const Spacer(),
                 QibraIconButton(
                   icon: Icons.person_outline_rounded,
-                  tooltip: 'Profile',
+                  tooltip: AppStrings.of(context).tooltipProfile,
                   onTap: () => context.go(AppRoutes.profile),
                 ),
               ],
@@ -266,3 +266,4 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
+import 'package:qibra_ai/core/l10n/app_strings.dart';

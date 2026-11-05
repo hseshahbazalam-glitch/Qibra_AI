@@ -55,12 +55,12 @@ class PrayerTimesScreen extends ConsumerWidget {
       actions: [
         QibraIconButton(
           icon: Icons.notifications_none_rounded,
-          tooltip: 'Notifications',
+          tooltip: AppStrings.of(context).tooltipNotifications,
           onTap: () => context.push('/settings/notifications'),
         ),
         QibraIconButton(
           icon: Icons.explore_outlined,
-          tooltip: 'Qibla',
+          tooltip: AppStrings.of(context).tooltipQibla,
           onTap: () => context.go(AppRoutes.qibla),
         ),
       ],
@@ -607,7 +607,7 @@ class _PrayerHeroBody extends ConsumerWidget {
             _HeroChip(
               icon: Icons.place_outlined,
               label: locationLabel,
-              tooltip: 'Tap to update location from GPS',
+              tooltip: AppStrings.of(context).tooltipGpsUpdate,
               onTap: onUpdateLocation,
             ),
             if (dailyTimes != null)

@@ -21,6 +21,7 @@ import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_social_buttons.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 // ============================================================
 // PREMIUM LOGIN SCREEN
@@ -537,6 +538,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       suffixIcon: _obscurePassword
           ? Icons.visibility_off_rounded
           : Icons.visibility_rounded,
+      suffixTooltip: _obscurePassword
+          ? AppStrings.of(context).tooltipShowPassword
+          : AppStrings.of(context).tooltipHidePassword,
       onSuffixPressed: () {
         HapticFeedback.selectionClick();
         setState(() => _obscurePassword = !_obscurePassword);

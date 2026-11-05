@@ -88,6 +88,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
             backgroundColor: colors.background,
             elevation: 0,
             leading: IconButton(
+              tooltip: AppStrings.of(context).tooltipBack,
               icon: Container(
                 width: 48,
                 height: 48,
@@ -143,6 +144,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                     border: Border.all(color: colors.border),
                   ),
                   child: IconButton(
+                    tooltip: AppStrings.of(context).tooltipStatistics,
                     padding: EdgeInsets.zero,
                     icon: Icon(
                       Icons.bar_chart_rounded,
@@ -167,6 +169,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                     border: Border.all(color: colors.border),
                   ),
                   child: IconButton(
+                    tooltip: AppStrings.of(context).settings,
                     padding: EdgeInsets.zero,
                     icon: Icon(
                       Icons.settings_rounded,

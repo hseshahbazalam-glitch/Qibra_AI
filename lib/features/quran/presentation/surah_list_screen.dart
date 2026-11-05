@@ -16,6 +16,7 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_provider.dart';
 import 'surah_reader_screen.dart';
@@ -443,6 +444,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
               ),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
+                      tooltip: AppStrings.of(context).tooltipClearSearch,
                       onPressed: _clearSearch,
                       icon: Icon(
                         Icons.close_rounded,

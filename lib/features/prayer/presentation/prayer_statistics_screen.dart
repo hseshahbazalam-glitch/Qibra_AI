@@ -10,6 +10,7 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 import '../data/models/prayer_models.dart';
 import '../providers/prayer_provider.dart';
@@ -49,6 +50,7 @@ class _PrayerStatisticsScreenState
               backgroundColor: colors.background,
               elevation: 0,
               leading: IconButton(
+                tooltip: AppStrings.of(context).tooltipBack,
                 icon: Container(
                   width: 48,
                   height: 48,

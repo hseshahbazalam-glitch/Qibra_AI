@@ -62,7 +62,7 @@ class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
                 else if (onBack != null || canPop)
                   AppA11y.ensureTapTarget(
                     child: IconButton(
-                      tooltip: 'Back',
+                      tooltip: AppStrings.of(context).tooltipBack,
                       icon: Icon(
                         Directionality.of(context) == TextDirection.rtl
                             ? Icons.arrow_forward_rounded
@@ -564,3 +564,4 @@ class QibraSoftButton extends StatelessWidget {
     );
   }
 }
+import 'package:qibra_ai/core/l10n/app_strings.dart';

@@ -12,6 +12,7 @@ import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import 'package:qibra_ai/features/duas/data/models/dua_model.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'dua_detail_screen.dart';
 
 class DuasListScreen extends ConsumerWidget {
@@ -51,6 +52,7 @@ class DuasListScreen extends ConsumerWidget {
             pinned: true,
             backgroundColor: colors.background,
             leading: IconButton(
+              tooltip: AppStrings.of(context).tooltipBack,
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(

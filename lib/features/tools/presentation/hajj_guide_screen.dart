@@ -211,7 +211,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       pinned: true,
       backgroundColor: colors.background,
       leading: IconButton(
-        tooltip: 'Back',
+        tooltip: AppStrings.of(context).tooltipBack,
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(

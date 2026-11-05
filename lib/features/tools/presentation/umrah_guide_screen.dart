@@ -183,6 +183,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
       pinned: true,
       backgroundColor: colors.background,
       leading: IconButton(
+        tooltip: AppStrings.of(context).tooltipBack,
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(

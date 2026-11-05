@@ -19,6 +19,7 @@ class AuthTextField extends StatelessWidget {
     this.onSubmitted,
     this.obscureText = false,
     this.suffixIcon,
+    this.suffixTooltip,
     this.onSuffixPressed,
     this.style,
   });
@@ -36,6 +37,8 @@ class AuthTextField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final bool obscureText;
   final IconData? suffixIcon;
+  /// Pass A (a11y): what the suffix button does — TalkBack says it.
+  final String? suffixTooltip;
   final VoidCallback? onSuffixPressed;
   final TextStyle? style;
 
@@ -77,6 +80,7 @@ class AuthTextField extends StatelessWidget {
           suffixIcon: suffixIcon == null
               ? null
               : IconButton(
+                  tooltip: suffixTooltip,
                   icon: Icon(
                     suffixIcon,
                     color: colors.textSecondary,

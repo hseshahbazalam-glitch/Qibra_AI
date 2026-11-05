@@ -317,7 +317,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             children: [
               _CircleButton(
                 icon: Icons.arrow_back_ios_new_rounded,
-                tooltip: 'Back',
+                tooltip: AppStrings.of(context).tooltipBack,
                 onTap: () {
                   HapticFeedback.lightImpact();
                   Navigator.of(context).maybePop();
@@ -398,6 +398,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
           ),
           suffixIcon: hasText
               ? IconButton(
+                  tooltip: AppStrings.of(context).tooltipClearSearch,
                   onPressed: _clearSearch,
                   icon: Icon(
                     Icons.close_rounded,

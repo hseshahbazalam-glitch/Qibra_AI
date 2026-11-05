@@ -944,6 +944,7 @@ class _InheritanceCalculatorScreenState
       pinned: true,
       backgroundColor: colors.background,
       leading: IconButton(
+        tooltip: AppStrings.of(context).tooltipBack,
         constraints: const BoxConstraints(
           minWidth: AppA11y.minTapTarget,
           minHeight: AppA11y.minTapTarget,

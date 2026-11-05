@@ -251,6 +251,7 @@ class _NotificationSettingsScreenState
       pinned: true,
       backgroundColor: QibraNavy.canvas,
       leading: IconButton(
+        tooltip: AppStrings.of(context).tooltipBack,
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(

@@ -68,6 +68,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
             backgroundColor: colors.background,
             elevation: 0,
             leading: IconButton(
+              tooltip: AppStrings.of(context).tooltipBack,
               icon: Container(
                 width: 48,
                 height: 48,

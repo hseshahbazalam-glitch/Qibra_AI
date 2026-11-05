@@ -489,7 +489,7 @@ Juz: ${juz ?? '—'}''';
         children: [
           _iconButton(
             icon: Icons.arrow_back_rounded,
-            tooltip: 'Back',
+            tooltip: AppStrings.of(context).tooltipBack,
             onTap: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
@@ -520,7 +520,9 @@ Juz: ${juz ?? '—'}''';
             icon: isBookmarked
                 ? Icons.bookmark_rounded
                 : Icons.bookmark_border_rounded,
-            tooltip: isBookmarked ? 'Remove bookmark' : 'Bookmark page',
+            tooltip: isBookmarked
+                ? AppStrings.of(context).tooltipRemoveBookmark
+                : AppStrings.of(context).tooltipBookmarkPage,
             highlight: isBookmarked,
             onTap: () => _toggleBookmark(currentPage),
           ),
@@ -588,7 +590,7 @@ Juz: ${juz ?? '—'}''';
               children: [
                 _iconButton(
                   icon: Icons.chevron_left_rounded,
-                  tooltip: 'Next page (right-to-left)',
+                  tooltip: AppStrings.of(context).tooltipNextPage,
                   onTap: () {
                     if (currentPage < 604) {
                       _pageController.nextPage(
@@ -622,7 +624,7 @@ Juz: ${juz ?? '—'}''';
                 ),
                 _iconButton(
                   icon: Icons.chevron_right_rounded,
-                  tooltip: 'Previous page (right-to-left)',
+                  tooltip: AppStrings.of(context).tooltipPrevPage,
                   onTap: () {
                     if (currentPage > 1) {
                       _pageController.previousPage(
@@ -966,7 +968,7 @@ Juz: ${juz ?? '—'}''';
                             ),
                           ),
                           trailing: IconButton(
-                            tooltip: 'Remove bookmark',
+                            tooltip: AppStrings.of(context).tooltipRemoveBookmark,
                             icon: Icon(Icons.delete_outline_rounded,
                                 color: colors.textTertiary),
                             onPressed: () {

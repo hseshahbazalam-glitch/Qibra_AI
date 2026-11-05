@@ -87,12 +87,12 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
       actions: [
         QibraIconButton(
           icon: Icons.search_rounded,
-          tooltip: 'Search',
+          tooltip: AppStrings.of(context).tooltipSearch,
           onTap: () => _showSearchSheet(context),
         ),
         QibraIconButton(
           icon: Icons.bookmark_border_rounded,
-          tooltip: 'Bookmarks',
+          tooltip: AppStrings.of(context).bookmarksTitle,
           onTap: () => context.go(AppRoutes.bookmarks),
         ),
       ],
@@ -635,7 +635,10 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                           ),
                         ),
                         IconButton(
-                          tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark',
+                          tooltip: bookmarked
+                                  ? AppStrings.of(context)
+                                      .tooltipRemoveBookmark
+                                  : AppStrings.of(context).tooltipBookmark,
                           icon: Icon(
                             bookmarked
                                 ? Icons.bookmark_rounded
@@ -650,7 +653,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                           },
                         ),
                         IconButton(
-                          tooltip: 'Copy',
+                          tooltip: AppStrings.of(context).copy,
                           icon: Icon(Icons.copy_outlined, color: colors.primary),
                           onPressed: () => _copyHadith(context, hadith),
                         ),
@@ -1120,12 +1123,12 @@ class _TodaysHadithCard extends ConsumerWidget {
                 icon: bookmarked
                     ? Icons.bookmark_rounded
                     : Icons.bookmark_border_rounded,
-                tooltip: 'Bookmark',
+                tooltip: AppStrings.of(context).tooltipBookmark,
                 onPressed: onBookmark,
               ),
               HadithGhostIconButton(
                 icon: Icons.ios_share_rounded,
-                tooltip: 'Share',
+                tooltip: AppStrings.of(context).tooltipShare,
                 onPressed: onShare,
               ),
             ],
@@ -1295,7 +1298,10 @@ class _HadithTile extends ConsumerWidget {
                   ),
                 ),
               IconButton(
-                tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark',
+                tooltip: bookmarked
+                                  ? AppStrings.of(context)
+                                      .tooltipRemoveBookmark
+                                  : AppStrings.of(context).tooltipBookmark,
                 icon: Icon(
                   bookmarked
                       ? Icons.bookmark_rounded

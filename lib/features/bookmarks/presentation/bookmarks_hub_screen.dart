@@ -68,7 +68,7 @@ class _BookmarksHubScreenState extends ConsumerState<BookmarksHubScreen>
         backgroundColor: colors.background,
         title: Text(AppStrings.of(context).bookmarksTitle),
         leading: IconButton(
-          tooltip: 'Back',
+          tooltip: AppStrings.of(context).tooltipBack,
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
             if (context.canPop()) {
@@ -81,7 +81,7 @@ class _BookmarksHubScreenState extends ConsumerState<BookmarksHubScreen>
         actions: [
           if (_tabs.index == 0 && quran.isNotEmpty)
             IconButton(
-              tooltip: 'Clear Quran bookmarks',
+              tooltip: AppStrings.of(context).tooltipClearQuranBookmarks,
               icon: const Icon(Icons.delete_sweep_outlined),
               onPressed: _confirmClearQuran,
             ),
@@ -217,6 +217,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
                     suffixIcon: _search.text.isEmpty
                         ? null
                         : IconButton(
+                            tooltip: AppStrings.of(context).tooltipClearSearch,
                             icon: const Icon(Icons.close_rounded, size: 18),
                             onPressed: () {
                               _search.clear();
@@ -239,7 +240,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
               ),
               const SizedBox(width: 8),
               PopupMenuButton<BookmarkSortOption>(
-                tooltip: 'Sort',
+                tooltip: AppStrings.of(context).tooltipSort,
                 initialValue: _sort,
                 onSelected: (value) => setState(() => _sort = value),
                 itemBuilder: (context) => [
@@ -497,7 +498,7 @@ class _HadithBookmarksTab extends ConsumerWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Remove bookmark',
+                tooltip: AppStrings.of(context).tooltipRemoveBookmark,
                 icon: Icon(Icons.delete_outline, color: colors.textTertiary),
                 onPressed: () {
                   ref

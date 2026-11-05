@@ -178,6 +178,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
               pinned: true,
               backgroundColor: colors.background,
               leading: IconButton(
+                tooltip: AppStrings.of(context).tooltipBack,
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -196,6 +197,9 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
               actions: [
                 // Favorite button
                 IconButton(
+                  tooltip: dua.isFavorite
+                    ? AppStrings.of(context).tooltipUnfavorite
+                    : AppStrings.of(context).tooltipFavorite,
                   icon: Icon(
                     dua.isFavorite
                         ? Icons.favorite_rounded
@@ -215,7 +219,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 // the AI surface). Reuses the existing explain screen
                 // with this dua's real bundled text as the context.
                 IconButton(
-                  tooltip: 'Explain with AI',
+                  tooltip: AppStrings.of(context).tooltipExplainAI,
                   icon: Icon(
                     // Violet marks the AI surface (G14/design rule): ride
                     // the sanctioned theme token, never the raw palette
@@ -236,6 +240,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 ),
                 // Share button
                 IconButton(
+                  tooltip: AppStrings.of(context).tooltipShare,
                   icon: Icon(
                     Icons.share_rounded,
                     color: colors.textSecondary,
@@ -244,6 +249,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 ),
                 // Copy button
                 IconButton(
+                  tooltip: AppStrings.of(context).copy,
                   icon: Icon(
                     Icons.copy_rounded,
                     color: colors.textSecondary,
@@ -899,3 +905,4 @@ Shared via QIBRA AI''';
     );
   }
 }
+import 'package:qibra_ai/core/l10n/app_strings.dart';

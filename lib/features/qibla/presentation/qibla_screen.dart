@@ -149,12 +149,12 @@ Shared via QIBRA AI''';
         actions: [
           if (state.result != null)
             IconButton(
-              tooltip: 'Copy qibla info',
+              tooltip: AppStrings.of(context).tooltipCopyQiblaInfo,
               icon: const Icon(Icons.share_outlined),
               onPressed: () => _shareQibla(state.result!),
             ),
           IconButton(
-            tooltip: 'Refresh location',
+            tooltip: AppStrings.of(context).tooltipRefreshLocation,
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () {
               HapticFeedback.selectionClick();
@@ -701,7 +701,7 @@ class _LocationCard extends StatelessWidget {
               ),
               if (onCopyCoordinates != null)
                 IconButton(
-                  tooltip: 'Copy coordinates',
+                  tooltip: AppStrings.of(context).tooltipCopyCoordinates,
                   icon: Icon(Icons.copy_rounded,
                       size: 18, color: colors.textSecondary),
                   onPressed: onCopyCoordinates,
@@ -892,3 +892,4 @@ class _NeedlePainter extends CustomPainter {
   @override
   bool shouldRepaint(_NeedlePainter old) => old.tip != tip || old.tail != tail;
 }
+import 'package:qibra_ai/core/l10n/app_strings.dart';

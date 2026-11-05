@@ -301,7 +301,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         width: 48,
         height: 48,
         child: IconButton(
-          tooltip: 'Back',
+          tooltip: AppStrings.of(context).tooltipBack,
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: QibraNavy.textPrimary, size: 18),
           onPressed: () => Navigator.of(context).pop(),
@@ -318,7 +318,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       centerTitle: true,
       actions: [
         IconButton(
-          tooltip: 'Reading settings',
+          tooltip: AppStrings.of(context).tooltipReadingSettings,
           icon: const Icon(Icons.display_settings_rounded,
               color: QibraNavy.gold, size: 20),
           onPressed: () => _showQuickSettingsSheet(context),
@@ -460,7 +460,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     color: QibraNavy.gold, size: 18),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        tooltip: 'Clear search',
+                        tooltip: AppStrings.of(context).tooltipClearSearch,
                         icon: const Icon(Icons.clear_rounded,
                             color: QibraNavy.textSecondary, size: 16),
                         onPressed: () => setState(() => _searchQuery = ''),
@@ -1047,7 +1047,10 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         final isSaved =
                             ref.watch(isHadithBookmarkedProvider(hadith.id));
                         return IconButton(
-                          tooltip: isSaved ? 'Remove bookmark' : 'Bookmark',
+                          tooltip: isSaved
+                              ? AppStrings.of(context)
+                                  .tooltipRemoveBookmark
+                              : AppStrings.of(context).tooltipBookmark,
                           icon: Icon(
                             isSaved
                                 ? Icons.bookmark_rounded
@@ -1066,7 +1069,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       },
                     ),
                     IconButton(
-                      tooltip: 'Previous hadith',
+                      tooltip: AppStrings.of(context).tooltipPrevHadith,
                       icon: const Icon(Icons.chevron_left_rounded,
                           color: QibraNavy.textSecondary),
                       onPressed: prevNumber == null
@@ -1079,7 +1082,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             },
                     ),
                     IconButton(
-                      tooltip: 'Next hadith',
+                      tooltip: AppStrings.of(context).tooltipNextHadith,
                       icon: const Icon(Icons.chevron_right_rounded,
                           color: QibraNavy.textSecondary),
                       onPressed: nextNumber == null
@@ -1090,7 +1093,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             },
                     ),
                     IconButton(
-                      tooltip: 'Copy to share',
+                      tooltip: AppStrings.of(context).tooltipCopyToShare,
                       icon: const Icon(Icons.share_rounded,
                           color: QibraNavy.textSecondary),
                       onPressed: () {
@@ -1110,7 +1113,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       },
                     ),
                     IconButton(
-                      tooltip: 'Close',
+                      tooltip: AppStrings.of(context).close,
                       icon: const Icon(Icons.close_rounded,
                           color: QibraNavy.textSecondary),
                       onPressed: () => Navigator.of(sheetContext).pop(),
@@ -1287,7 +1290,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      tooltip: 'Text size & language',
+                      tooltip: AppStrings.of(context).tooltipTextSizeLanguage,
                       icon: const Icon(Icons.text_format_rounded,
                           color: QibraNavy.emerald),
                       onPressed: () {
@@ -1400,7 +1403,10 @@ class _HadithCard extends ConsumerWidget {
                 ),
                 const Spacer(),
                 IconButton(
-                  tooltip: isBookmarked ? 'Remove bookmark' : 'Bookmark',
+                  tooltip: isBookmarked
+                              ? AppStrings.of(context)
+                                  .tooltipRemoveBookmark
+                              : AppStrings.of(context).tooltipBookmark,
                   icon: Icon(
                     isBookmarked
                         ? Icons.bookmark_rounded
@@ -1418,7 +1424,7 @@ class _HadithCard extends ConsumerWidget {
                   },
                 ),
                 IconButton(
-                  tooltip: 'Copy to share',
+                  tooltip: AppStrings.of(context).tooltipCopyToShare,
                   icon: const Icon(Icons.share_rounded,
                       color: QibraNavy.textSecondary, size: 18),
                   onPressed: () {

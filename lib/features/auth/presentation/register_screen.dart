@@ -706,6 +706,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
       obscureText: obscure,
       suffixIcon:
           obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+      suffixTooltip: obscure
+          ? AppStrings.of(context).tooltipShowPassword
+          : AppStrings.of(context).tooltipHidePassword,
       onSuffixPressed: onToggle,
     );
   }

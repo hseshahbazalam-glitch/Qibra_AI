@@ -279,7 +279,9 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           : (_isListening ? 'Listening...' : 'Retrieval only — not a fatwa'),
       actions: [
         IconButton(
-          tooltip: _autoSpeak ? 'Auto speak on' : 'Auto speak off',
+          tooltip: _autoSpeak
+              ? AppStrings.of(context).tooltipAutoSpeakOn
+              : AppStrings.of(context).tooltipAutoSpeakOff,
           onPressed: _toggleAutoSpeak,
           icon: Icon(
             _autoSpeak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
@@ -290,7 +292,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           width: 48,
           height: 48,
           child: IconButton(
-            tooltip: 'Delete conversation',
+            tooltip: AppStrings.of(context).tooltipDeleteConversation,
             onPressed: () {
               HapticFeedback.mediumImpact();
               _showClearDialog();
@@ -846,7 +848,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               );
               if (tag.surah == null) return chip;
               return Tooltip(
-                message: 'Open in the reader',
+                message: AppStrings.of(context).tooltipOpenInReader,
                 triggerMode: TooltipTriggerMode.manual,
                 showDuration: const Duration(milliseconds: 600),
                 child: GestureDetector(
@@ -1168,3 +1170,4 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
     );
   }
 }
+import 'package:qibra_ai/core/l10n/app_strings.dart';
