@@ -17,9 +17,6 @@ dependencies:
     sdk: flutter
   intl: 0.20.2
 
-  # --- UI & FONTS ---
-  cupertino_icons: ^1.0.8
-
   # --- STATE MANAGEMENT ---
   flutter_riverpod: ^2.5.1
 
@@ -39,10 +36,10 @@ dependencies:
   geolocator: ^11.1.0
 
   # --- AUDIO ---
-  audioplayers: ^6.1.0
-  # just_audio: the single app-wide Quran player (streaming + offline
-  # tilawat). audioplayers above stays for the notification-sound preview
-  # in settings only — the Quran player is just_audio, one instance, ever.
+  # just_audio: the single app-wide player (streaming + offline tilawat
+  # and the settings notification-sound preview — Pass P3 retired the
+  # second stack, audioplayers, whose only consumer was that preview).
+  # The Quran player is just_audio, one instance, ever.
   just_audio: ^0.9.40
   # Pass Q1 (2026-09): audio_service wraps the SAME just_audio player in a
   # media-notification/lock-screen handler (prev/play/pause/next/stop).

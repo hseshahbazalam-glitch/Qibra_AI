@@ -1,5 +1,7 @@
 // lib/features/settings/presentation/notification_settings_screen.dart
-import 'package:audioplayers/audioplayers.dart';
+import 'dart:async';
+
+import 'package:just_audio/just_audio.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -99,13 +101,27 @@ class _NotificationSettingsScreenState
   Future<void> _testNotification() async {
     HapticFeedback.heavyImpact();
 
-    // Azan sound bajao
+    // Azan sound bajao (Pass P3: migrated to just_audio — the app's one
+    // audio stack; the audioplayers dependency is gone). setAsset resolves
+    // through AudioCache to assets/audio/azan_makkah.mp3 (asset dir is
+    // registered in pubspec). Semantic note vs the old audioplayers call:
+    // just_audio's play() resolves when playback ENDS, so it is kicked
+    // fire-and-forget and disposed on completion — the notification below
+    // must never wait for the azan, and the preview must never swallow an
+    // error into an unhandled zone failure (the old code had no dispose at
+    // all; this one does, on both paths).
+    final player = AudioPlayer();
     try {
-      final player = AudioPlayer();
-      await player.play(AssetSource('audio/azan_makkah.mp3'));
+      await player.setAsset('audio/azan_makkah.mp3');
       debugPrint('Azan test playing');
+      unawaited(player.play()
+          .whenComplete(player.dispose)
+          .catchError((Object e) {
+        debugPrint('Azan preview end error: $e');
+      }));
     } catch (e) {
       debugPrint('Azan test error: $e');
+      unawaited(player.dispose());
     }
 
     // Notification bhi bhejna
