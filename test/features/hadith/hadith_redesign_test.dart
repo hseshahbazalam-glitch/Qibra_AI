@@ -152,9 +152,11 @@ void main() {
     test('header/bottom-rail actions all exist on real state', () {
       expect(book.contains('void openNeighbour(int number) {'), isTrue);
       expect(book.contains('HadithBookScreen.neighbourNumber('), isTrue);
-      expect(book.contains("tooltip: 'Previous hadith'"), isTrue);
-      expect(book.contains("tooltip: 'Next hadith'"), isTrue);
-      expect(book.contains("tooltip: 'Text size & language'"), isTrue);
+      // Pass A migrated these tooltip literals to AppStrings (en bytes
+      // identical) — the affordance pins now key on the getter calls.
+      expect(book.contains('.tooltipPrevHadith'), isTrue);
+      expect(book.contains('.tooltipNextHadith'), isTrue);
+      expect(book.contains('.tooltipTextSizeLanguage'), isTrue);
       // Aa opens the EXISTING quick-settings sheet (single source of the
       // split scales AND the Language row) — never a forked control.
       expect(book.contains('_showQuickSettingsSheet(context);'), isTrue);
@@ -264,8 +266,9 @@ void main() {
           File('lib/features/hadith/presentation/hadith_screen.dart')
               .readAsStringSync();
       expect(home.contains('HadithGhostIconButton('), isTrue);
-      expect(home.contains("tooltip: 'Bookmark'"), isTrue);
-      expect(home.contains("tooltip: 'Share'"), isTrue);
+      // Pass A: same migration as above — real labels live in AppStrings.
+      expect(home.contains('.tooltipBookmark'), isTrue);
+      expect(home.contains('.tooltipShare'), isTrue);
       // The labeled soft-button pair must NOT come back into this row.
       expect(
           home.contains("label: bookmarked ? 'Saved' : 'Bookmark'"), isFalse,

@@ -74,25 +74,45 @@ class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: AppTextStyles.titleLarge.copyWith(
-                          color: colors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (subtitle != null)
+                  child: FittedBox(
+                    // Pass A (A5 sweep): the band height is fixed 56/72
+                    // via preferredSize and the Scaffold's appBar slot is
+                    // tight — wrapped or 2.0x tall text overflowed the
+                    // band by 30/68px. Flutter's toolbar contract is a
+                    // single-line ellipsized title; on top of that the
+                    // scaleDown fit is the graceful-degradation valve: it
+                    // is a NO-OP whenever the content fits (every 1.0/1.3
+                    // rendering stays pixel-identical) and only trims
+                    // scale at extremes the fixed band cannot show.
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // One line each — long titles ellipsize instead of
+                        // stacking into the fixed band.
                         Text(
-                          subtitle!,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: colors.textSecondary,
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.titleLarge.copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                    ],
+                        if (subtitle != null)
+                          Text(
+                            subtitle!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
                 ...actions.map((a) => AppA11y.ensureTapTarget(child: a)),
