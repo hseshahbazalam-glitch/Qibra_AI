@@ -26,6 +26,9 @@ import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qibra_ai/core/a11y/app_a11y.dart';
+import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_chrome.dart';
+import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_ribbon.dart';
+import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_turn.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
@@ -94,6 +97,12 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   late PageController _pageController;
   Set<int> _bookmarkedPages = {};
   bool _userPaged = false;
+  // Pass M: the ribbon reads/writes the SAME progress store the restore
+  // path uses; this mirror is display-only (null = nothing saved yet).
+  int? _lastReadPage;
+  // Pass M: a committed turn jumps the pager itself — the page-change
+  // haptic belongs to the turn's settle thump, not to this jump.
+  bool _suppressTurnHaptic = false;
 
   @override
   void initState() {
@@ -109,10 +118,13 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   /// Restore the last-viewed page from the shared progress store (item 2).
   /// An explicit route page argument always wins over the stored one.
   Future<void> _restoreLastPage() async {
-    if (widget.initialPage != 1) return;
     try {
       final saved =
           await ReadingProgressRepository.instance.getCurrentPage();
+      // Pass M: the ribbon always learns the saved page (display truth),
+      // but an explicit route page argument still wins over auto-jump.
+      if (mounted && saved != null) _lastReadPage = saved.pageNumber;
+      if (widget.initialPage != 1) return;
       if (saved == null || !mounted || _userPaged) return;
       if (saved.pageNumber < 1 || saved.pageNumber > 604) return;
       if (saved.pageNumber == widget.initialPage) return;
@@ -129,6 +141,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   /// the corpus index loads there are no real fields to store — the save
   /// is skipped rather than fabricated.
   void _saveProgress(int page) {
+    _lastReadPage = page; // Pass M: ribbon display follows the real save
     final list = _index(ref)?[page];
     if (list == null || list.isEmpty) return;
     final first = list.first;
@@ -428,26 +441,36 @@ Juz: ${juz ?? '—'}''';
                 GestureDetector(
                   onTap: () => ref.read(_showControlsProvider.notifier).state =
                       !showControls,
-                  child: PageView.builder(
-                    controller: _pageController,
-                    reverse: true,
-                    itemCount: 604,
-                    onPageChanged: (page) {
-                      HapticFeedback.selectionClick();
-                      _userPaged = true;
-                      ref.read(_currentPageProvider.notifier).state = page + 1;
-                      _saveProgress(page + 1);
+                  // Pass M: the turn overlay owns horizontal drags and
+                  // paints the lift; the pager underneath is switched to
+                  // a NON-user-scrollable physics so one gesture never
+                  // drives two systems (programmatic jump/animate — the
+                  // slider, the chevrons, turn commits — all still work).
+                  child: MushafTurnOverlay(
+                    currentPage: currentPage,
+                    pageCount: 604,
+                    pageAt: (page) => _pageAt(page, index, playingHere),
+                    onCommitPage: (page) {
+                      _suppressTurnHaptic = true;
+                      _pageController.jumpToPage(page - 1);
                     },
-                    itemBuilder: (context, page) => _MushafPage(
-                      pageNumber: page + 1,
-                      entries: _entriesFor(index, page + 1),
-                      // Real playback follow (item 1, mushaf): the
-                      // playing ayah on the open page gets its ACTUAL
-                      // TextSpan tinted — the flow layout has no per-
-                      // ayah box geometry, so nothing fancier is
-                      // claimed or faked, and non-playing renders zero.
-                      playingSurah: playingHere?.$1,
-                      playingAyah: playingHere?.$2,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      reverse: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: 604,
+                      onPageChanged: (page) {
+                        if (_suppressTurnHaptic) {
+                          _suppressTurnHaptic = false;
+                        } else {
+                          HapticFeedback.selectionClick();
+                        }
+                        _userPaged = true;
+                        ref.read(_currentPageProvider.notifier).state = page + 1;
+                        _saveProgress(page + 1);
+                      },
+                      itemBuilder: (context, page) =>
+                          _pageAt(page + 1, index, playingHere),
                     ),
                   ),
                 ),
@@ -467,12 +490,62 @@ Juz: ${juz ?? '—'}''';
                   right: 0,
                   child: _buildBottomBar(currentPage),
                 ),
+                // Pass M (ribbon bookmark) — topmost so the chrome never
+                // clips it; both actions reuse EXISTING progress paths.
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 96,
+                  child: MushafRibbon(
+                    totalPages: 604,
+                    lastReadPage: _lastReadPage,
+                    currentPage: currentPage,
+                    onJumpToLastRead: _ribbonJump,
+                    onDropHere: () {
+                      _saveProgress(currentPage);
+                      _showToast('Progress saved on page $currentPage');
+                    },
+                  ),
+                ),
               ],
             ),
           ),
         );
       },
     );
+  }
+
+  /// Single source for settled AND turning page content (Pass M): the
+  /// PageView's itemBuilder and the turn overlay's leaf both call this,
+  /// so the two renders can never drift apart.
+  Widget _pageAt(
+    int page,
+    Map<int, List<MushafPageEntry>> index,
+    (int, int)? playing,
+  ) =>
+      _MushafPage(
+        pageNumber: page,
+        entries: _entriesFor(index, page),
+        // Real playback follow (item 1, mushaf): the playing ayah on
+        // the open page gets its ACTUAL TextSpan tinted — the flow
+        // layout has no per-ayah box geometry, so nothing fancier is
+        // claimed or faked, and non-playing renders zero.
+        playingSurah: playing?.$1,
+        playingAyah: playing?.$2,
+      );
+
+  /// Ribbon tap: jump to the saved page, or say honestly there is none.
+  void _ribbonJump() {
+    final saved = _lastReadPage;
+    if (saved == null) {
+      _showToast('No saved page yet — turn a page first');
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    // Clamp, don't trust: the store is prefs-serialisable and a corrupt
+    // page must land on the last real page, not throw inside the pager.
+    _pageController.jumpToPage(saved.clamp(1, 604) - 1);
   }
 
   Widget _buildTopBar(int currentPage) {
@@ -506,12 +579,27 @@ Juz: ${juz ?? '—'}''';
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                Text(
-                  juz == null
-                      ? 'Page $currentPage of 604'
-                      : 'Juz $juz · Page $currentPage / 604',
-                  style: AppTextStyles.labelSmall
-                      .copyWith(color: colors.textSecondary),
+                Row(
+                  children: [
+                    // Pass M (chrome): the juz marker that was plain
+                    // text becomes a chip — same single data source
+                    // (ayah.juz from the authentic page index).
+                    if (juz != null) ...[
+                      MushafJuzChip(juz: juz),
+                      const SizedBox(width: 6),
+                    ],
+                    Flexible(
+                      child: Text(
+                        juz == null
+                            ? 'Page $currentPage of 604'
+                            : 'Page $currentPage / 604',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.labelSmall
+                            .copyWith(color: colors.textSecondary),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -601,25 +689,12 @@ Juz: ${juz ?? '—'}''';
                   },
                 ),
                 Expanded(
-                  child: InkWell(
+                  // Pass M (chrome): flat pill -> page medallion (code-
+                  // drawn rosette, token colors). Same tap target, same
+                  // text — the '$currentPage / 604' string is untouched.
+                  child: MushafPageMedallion(
+                    pageLabel: '$currentPage / 604',
                     onTap: _showGoToPageSheet,
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: colors.cardMuted,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: colors.border),
-                      ),
-                      child: Text(
-                        '$currentPage / 604',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.labelLarge.copyWith(
-                          color: colors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
                   ),
                 ),
                 _iconButton(
