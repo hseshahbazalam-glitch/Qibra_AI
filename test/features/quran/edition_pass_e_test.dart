@@ -229,7 +229,7 @@ void main() {
       // back to the Jalandhry face — absent resolves to the honest
       // unavailable line upstream.
       expect(resolve('ur_usmani', {}), isNull);
-      expect(resolve('ur_usmani', {'1:1': 'other'}), isNull);
+      expect(resolve('ur_usmani', {'1:2': 'x'}), isNull);
       // Not loaded yet: keep the model's default face (keep-old-until-
       // ready), roman edition riding its own resident face.
       expect(resolve('ur_usmani', null), faceAyah1);

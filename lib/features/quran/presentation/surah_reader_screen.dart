@@ -1213,7 +1213,7 @@ class _TranslationCompareCard extends StatelessWidget {
     final urdu = named
         ? UrduEditionCatalog.selectedText(
             ayah: ayah,
-            prefs: p!,
+            prefs: p,
             surahNumber: surahNumber ?? ayah.number,
             editionTexts: editionTexts,
           )
