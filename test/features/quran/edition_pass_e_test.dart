@@ -117,7 +117,8 @@ Map<String, String> urduFile(String name) => UrduEditionCatalog
 Future<void> pumpE(
   WidgetTester tester, {
   String? initialTab,
-  Map<String, Object?>? mockPrefs,
+  Map<String, Object>? mockPrefs, // setMockInitialValues wants Object, not
+  // Object? — the mock store rejects nullable-valued maps at compile time.
   Override? editionOverride,
 }) async {
   tester.view.physicalSize = const Size(390, 844);
