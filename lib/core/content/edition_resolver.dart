@@ -28,6 +28,14 @@ class ResolvedEdition {
 }
 
 abstract final class EditionResolver {
+  /// Legacy alias: 'ur' predates the per-edition ids and IS Jalandhry.
+  /// Pinned down once here so the picker checkmark, prefs round-trip
+  /// and the reader all agree on the canonical identity (Pass E).
+  static String canonical(String id) {
+    final low = id.toLowerCase();
+    return low == 'ur' ? 'ur_jalandhry' : low;
+  }
+
   static const Map<String, ResolvedEdition> bundled = {
     'ar': ResolvedEdition(
       id: 'ar',
@@ -99,4 +107,13 @@ abstract final class EditionResolver {
   }
 
   static List<ResolvedEdition> allBundled() => bundled.values.toList();
+
+  /// Pass E: the picker's truth list — everything bundled that a reader
+  /// can actually load and that renders as ITSELF. The Arabic row is the
+  /// base text, not a translation; the legacy 'ur' alias is a duplicate
+  /// of ur_jalandhry (one row per edition — "jo offer ho wo LOAD ho").
+  static List<ResolvedEdition> pickerEntries() => [
+        for (final e in bundled.values)
+          if (e.id != 'ar' && e.id != 'ur') e,
+      ];
 }

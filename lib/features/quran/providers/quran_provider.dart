@@ -27,6 +27,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/models/quran_models.dart';
 import '../data/repository/quran_repository.dart';
+import '../data/repository/urdu_edition_catalog.dart';
 import '../data/search/quran_ayah_search.dart';
 
 // ============================================================
@@ -50,6 +51,21 @@ final quranInitProvider = FutureProvider<bool>((ref) async {
   await repository.initialize();
   return true;
 });
+
+// ============================================================
+// SECTION 2b — PASS E: SELECTED EDITION TEXTS
+// ============================================================
+
+/// The selected Urdu edition's ayah map, lazy-loaded through the
+/// catalog's LRU. Null (the resolved value, not the loading state)
+/// means "the model's default face serves" — English and the two
+/// editions the repository already attaches (Jalandhry, Maududi
+/// roman). Consumers keep the previous face while this is in flight:
+/// never blank-by-switch, never a wrong edition.
+final editionTextProvider =
+    FutureProvider.family<Map<String, String>?, String>(
+  (ref, editionId) => UrduEditionCatalog.instance.ensure(editionId),
+);
 
 // ============================================================
 // SECTION 3 — SURAHS LIST PROVIDERS

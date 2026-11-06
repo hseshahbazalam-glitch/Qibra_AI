@@ -163,7 +163,11 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
         (arabic: ReadingPreferences.clampScale(arabic!),
          translation: ReadingPreferences.clampScale(translation!));
     state = ReadingPreferences(
-      translationId: EditionResolver.isBundled(id) ? id : 'en',
+      // Canonicalize on the way in: a persisted legacy 'ur' alias
+      // becomes ur_jalandhry — same content, one identity (Pass E).
+      translationId: EditionResolver.isBundled(id)
+          ? EditionResolver.canonical(id)
+          : 'en',
       showTranslation: showT,
       showTransliteration: showTr,
       arabicScale: scales.arabic,
@@ -236,7 +240,9 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     if (miss != null) {
       return;
     }
-    state = state.copyWith(translationId: id);
+    // One identity persisted — the picker checkmark and every reader
+    // seam read exactly this string (Pass E).
+    state = state.copyWith(translationId: EditionResolver.canonical(id));
     await _save();
   }
 
