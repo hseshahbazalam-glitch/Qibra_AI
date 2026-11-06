@@ -1156,12 +1156,18 @@ class _AyahCard extends ConsumerWidget {
     // every selected Urdu edition (its blanks stored as absent, so the
     // caller's honest unavailable line fires); the legacy model fields
     // serve English and the two resident Urdu faces exactly as before.
-    return UrduEditionCatalog.selectedText(
+    final urdu = UrduEditionCatalog.selectedText(
       ayah: ayah,
       prefs: prefs,
       surahNumber: surahNumber,
       editionTexts: texts,
     );
+    // A blank that arrives from ANY face collapses to null here — the
+    // P3 contract (pinned in pass_p3_polish_test): the reader can
+    // never show a silent blank; null renders the honest unavailable
+    // line. The catalog already stores blanks absent; this is the
+    // consumer-side guarantee for the model-field faces.
+    return (urdu == null || urdu.isEmpty) ? null : urdu;
   }
 }
 

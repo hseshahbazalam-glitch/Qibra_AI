@@ -149,9 +149,16 @@ Future<void> pumpE(
       ),
     ),
   ));
+  // Q2's exact settle ritual — deliberate pump frames, NEVER
+  // pumpAndSettle: the reader carries a live pulse (audio-bar/download
+  // status surfaces) that keeps scheduling frames forever under fake
+  // async, so settle spins to its timeout. Four deliberate pumps flush
+  // every microtask hop here (prefs load -> provider -> card rebuild);
+  // Q2's green suite renders full cards under this same ritual.
   await tester.pump();
+  await tester.pump(const Duration(milliseconds: 100));
   await tester.pump(const Duration(milliseconds: 400));
-  await tester.pumpAndSettle();
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
@@ -370,7 +377,8 @@ void main() {
           findsNothing);
       expect(tester.takeException(), isNull);
       gate.complete({'1:1': 'junagarhi-one', '1:2': 'junagarhi-two'});
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 64));
       // Ready flips the SAME frame forward: text now is the edition.
       expect(find.text('junagarhi-one'), findsOneWidget);
       expect(find.text(faceAyah1), findsNothing);
@@ -513,8 +521,10 @@ void main() {
 
   testWidgets('end-to-end: the loader really reads a bundled asset file',
       (tester) async {
-    // runAsync: real file IO + a real isolate cannot complete inside
-    // fake-async pump time.
+    // runAsync: real file IO cannot complete inside fake-async pump
+    // time. The catalog's test-env branch reads the same assetPath from
+    // disk and parses inline (the bundle+isolate pair would never
+    // resolve here) — so this really exercises the loader, not a mock.
     Map<String, String>? map;
     await tester.runAsync(() async {
       map = await UrduEditionCatalog.instance.ensure('ur_junagarhi');

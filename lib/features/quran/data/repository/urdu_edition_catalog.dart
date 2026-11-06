@@ -27,6 +27,7 @@
 // ============================================================
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
@@ -102,9 +103,26 @@ class UrduEditionCatalog {
     final edition = EditionResolver.resolve(id);
     if (edition == null) return null;
     try {
-      final jsonString = await rootBundle.loadString(edition.assetPath);
-      final decoded =
-          await Isolate.run(() => _parseJsonIsolate(jsonString));
+      dynamic decoded;
+      if (_underFlutterTest) {
+        // In flutter test the bundle+isolate machinery never resolves —
+        // their completions ride a real event loop that the fake-async
+        // zone does not run. Read the SAME registered file straight from
+        // disk (the tool runs the suite from the package root) and parse
+        // inline: same bytes, same parser, none of the async machinery a
+        // harness cannot wait on. Devices never take this branch — the
+        // tool sets FLUTTER_TEST, no shipped build carries it.
+        final file = File(edition.assetPath);
+        if (!file.existsSync()) {
+          debugPrint('[EDITION] asset not on disk for test: '
+              '${edition.assetPath}');
+          return null;
+        }
+        decoded = jsonDecode(file.readAsStringSync());
+      } else {
+        final jsonString = await rootBundle.loadString(edition.assetPath);
+        decoded = await Isolate.run(() => _parseJsonIsolate(jsonString));
+      }
       final map = parseUrduShape(decoded);
       _loaded[id] = map;
       _evictOverflow();
@@ -114,6 +132,11 @@ class UrduEditionCatalog {
       return null;
     }
   }
+
+  /// True only under `flutter test` — the tool sets this environment
+  /// variable for the test VM (see the branch in [_load]).
+  static bool get _underFlutterTest =>
+      Platform.environment.containsKey('FLUTTER_TEST');
 
   void _evictOverflow() {
     while (_loaded.length > maxCachedEditions) {
