@@ -307,9 +307,9 @@ void main() {
       // enAyah2 can ONLY come from the cards — those stay findsOneWidget
       // / findsNothing.
       expect(find.text(enAyah1), findsAtLeastNWidgets(2));
-      expect(find.text(enAyah1), findsAtMostNWidgets(3));
+      expect(find.text(enAyah1).evaluate().length, lessThanOrEqualTo(3));
       expect(find.text(enAyah2), findsOneWidget);
-      expect(find.text(faceAyah1), findsAtMostNWidgets(2));
+      expect(find.text(faceAyah1).evaluate().length, lessThanOrEqualTo(2));
       expect(find.text(faceAyah2), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -326,9 +326,9 @@ void main() {
       // faceAyah1 rides the two demo cards too (their fixed model-face
       // copies, 1-2 built), so it's bounded rather than counted.
       expect(find.text(faceAyah1), findsAtLeastNWidgets(2));
-      expect(find.text(faceAyah1), findsAtMostNWidgets(3));
+      expect(find.text(faceAyah1).evaluate().length, lessThanOrEqualTo(3));
       expect(find.text(faceAyah2), findsOneWidget);
-      expect(find.text(enAyah1), findsAtMostNWidgets(2));
+      expect(find.text(enAyah1).evaluate().length, lessThanOrEqualTo(2));
       expect(tester.takeException(), isNull);
     });
 
@@ -352,9 +352,9 @@ void main() {
       // from no card but the first-ayah demo — those stay zero.
       expect(find.text(tq['1:1']!), findsOneWidget);
       expect(find.text(tq['1:2']!), findsOneWidget);
-      expect(find.text(faceAyah1), findsAtMostNWidgets(2));
+      expect(find.text(faceAyah1).evaluate().length, lessThanOrEqualTo(2));
       expect(find.text(faceAyah2), findsNothing);
-      expect(find.text(enAyah1), findsAtMostNWidgets(2));
+      expect(find.text(enAyah1).evaluate().length, lessThanOrEqualTo(2));
       expect(find.text(enAyah2), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -412,7 +412,7 @@ void main() {
       // face lingers only inside the demo cards' fixed budget.
       expect(find.text('junagarhi-one'), findsOneWidget);
       expect(find.text('junagarhi-two'), findsOneWidget);
-      expect(find.text(faceAyah1), findsAtMostNWidgets(2));
+      expect(find.text(faceAyah1).evaluate().length, lessThanOrEqualTo(2));
     });
 
     testWidgets('compare mode pairs EN with the SELECTED edition — the '
