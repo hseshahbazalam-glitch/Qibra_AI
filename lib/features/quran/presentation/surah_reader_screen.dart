@@ -45,6 +45,8 @@ import '../providers/quran_audio_provider.dart';
 import '../providers/quran_download_provider.dart';
 import '../providers/reading_progress_provider.dart';
 import '../providers/quran_provider.dart';
+import 'package:qibra_ai/core/content/edition_resolver.dart';
+import '../data/repository/urdu_edition_catalog.dart';
 import '../providers/reading_preferences_provider.dart';
 import 'ayah_options_sheet.dart';
 import '../data/word/quran_word_data.dart';
@@ -120,7 +122,10 @@ class SurahReaderScreen extends ConsumerStatefulWidget {
   final int surahNumber;
   final int? initialAyah;
 
-  /// One of 'Arabic' | 'Translation' | 'Transliteration'.
+  /// One of 'Arabic' | 'Translation' | 'Roman Urdu'. (Pass E renamed
+  /// the third tab: its content is the Maududi ROMAN URDU TRANSLATION
+  /// — a translation written in latin script, not a transliteration.
+  /// Calling it 'Transliteration' was the picker's last lie.)
   final String? initialTab;
 
   /// Pass Q2 deep links: open AND start recitation at [initialAyah]
@@ -135,7 +140,7 @@ class SurahReaderScreen extends ConsumerStatefulWidget {
 
 class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     with WidgetsBindingObserver {
-  static const _tabs = ['Arabic', 'Translation', 'Transliteration'];
+  static const _tabs = ['Arabic', 'Translation', 'Roman Urdu'];
 
   /// Arabic text-size stops offered by the pill.
   static const scales = <double>[1.0, 1.25, 1.5];
@@ -898,8 +903,15 @@ class _AyahCard extends ConsumerWidget {
     final showTranslation = activeTab == 'Translation' ||
         (activeTab != 'Arabic' && prefs.showTranslation);
     final showTranslit =
-        activeTab == 'Transliteration' && prefs.showTransliteration;
-    final translation = _translationFor(ayah, prefs);
+        activeTab == 'Roman Urdu' && prefs.showTransliteration;
+    // Pass E: the selected edition resolves through the catalog (LRU,
+    // lazy). While a map is still loading, .valueOrNull is null and the
+    // model's default face keeps the frame stable — keep-old-until-
+    // ready, never blank-by-switch, never another edition in the slot.
+    final editionId = EditionResolver.canonical(prefs.translationId);
+    final editionTexts = ref.watch(editionTextProvider(editionId)).valueOrNull;
+    final translation = _translationFor(ayah, prefs,
+        surahNumber: surah.number, texts: editionTexts);
     final roman = ayah.translationRoman?.trim();
 
     return Padding(
@@ -1061,7 +1073,7 @@ class _AyahCard extends ConsumerWidget {
               Text(
                 (roman != null && roman.isNotEmpty)
                     ? roman
-                    : 'Transliteration is not bundled for this ayah.',
+                    : strings.romanUrduUnavailable,
                 style: AppTextStyles.bodySmall.copyWith(
                   fontSize: translitSize,
                   color: colors.textSecondary,
@@ -1088,6 +1100,9 @@ class _AyahCard extends ConsumerWidget {
               _TranslationCompareCard(
                 ayah: ayah,
                 title: strings.bundledTranslationsForAyah(ayah.number),
+                prefs: prefs,
+                surahNumber: surah.number,
+                editionTexts: editionTexts,
               ),
             ],
             // Playback UI for THIS ayah exists only while the player is
@@ -1133,15 +1148,20 @@ class _AyahCard extends ConsumerWidget {
 
   static String? _translationFor(
     AyahModel ayah,
-    ReadingPreferences prefs,
-  ) {
-    final id = prefs.translationId.toLowerCase();
-    if (id.startsWith('ur')) {
-      final urdu = ayah.translationUrdu?.trim();
-      return (urdu == null || urdu.isEmpty) ? null : urdu;
-    }
-    final english = ayah.translation?.trim();
-    return (english == null || english.isEmpty) ? null : english;
+    ReadingPreferences prefs, {
+    required int surahNumber,
+    Map<String, String>? texts,
+  }) {
+    // Pass E: edition truth in ONE seam — the loaded map answers for
+    // every selected Urdu edition (its blanks stored as absent, so the
+    // caller's honest unavailable line fires); the legacy model fields
+    // serve English and the two resident Urdu faces exactly as before.
+    return UrduEditionCatalog.selectedText(
+      ayah: ayah,
+      prefs: prefs,
+      surahNumber: surahNumber,
+      editionTexts: texts,
+    );
   }
 }
 
@@ -1150,9 +1170,23 @@ class _AyahCard extends ConsumerWidget {
 // ─────────────────────────────────────────────────────────────
 
 class _TranslationCompareCard extends StatelessWidget {
-  const _TranslationCompareCard({required this.ayah, this.title});
+  const _TranslationCompareCard({
+    required this.ayah,
+    this.title,
+    this.prefs,
+    this.surahNumber,
+    this.editionTexts,
+  });
 
   final AyahModel ayah;
+
+  // Pass E: reader instances pass preferences, so the Urdu column
+  // shows the SELECTED edition; the trailing surah-list card (no
+  // prefs) keeps the fixed EN + Jalandhry pairing its 'first ayah'
+  // title has always meant — Q2's pinned contract, untouched.
+  final ReadingPreferences? prefs;
+  final int? surahNumber;
+  final Map<String, String>? editionTexts;
 
   /// Pass Q2: per-ayah instances (reader settings toggle) pass a real
   /// title; the trailing list item keeps its original text untouched —
@@ -1165,7 +1199,28 @@ class _TranslationCompareCard extends StatelessWidget {
     final colors = QibraColors.of(context);
     final strings = AppStrings.of(context);
     final english = ayah.translation?.trim();
-    final urdu = ayah.translationUrdu?.trim();
+    final p = prefs;
+    final id =
+        p == null ? '' : EditionResolver.canonical(p.translationId);
+    final urduSelected = p != null && id.startsWith('ur');
+    // A column may only NAME an edition once it shows that edition:
+    // the two faces riding the model are immediately true; a lazy
+    // edition names itself when its map lands (before that, the
+    // unlabeled default face holds the frame — no mislabel window).
+    final byModelFace =
+        id == 'ur_jalandhry' || id == 'ur_maududi_roman';
+    final named = urduSelected && (byModelFace || editionTexts != null);
+    final urdu = named
+        ? UrduEditionCatalog.selectedText(
+            ayah: ayah,
+            prefs: p!,
+            surahNumber: surahNumber ?? ayah.number,
+            editionTexts: editionTexts,
+          )
+        : ayah.translationUrdu?.trim();
+    final urduLang =
+        named ? (EditionResolver.resolve(id)?.label ?? 'اردو') : 'اردو';
+    final urduRtl = !(named && id == 'ur_maududi_roman');
     return QibraCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1200,11 +1255,11 @@ class _TranslationCompareCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _TranslationColumn(
-                  lang: 'اردو',
+                  lang: urduLang,
                   text: (urdu != null && urdu.isNotEmpty)
                       ? urdu
                       : strings.translationUnavailable,
-                  isRtl: true,
+                  isRtl: urduRtl,
                 ),
               ),
             ],
@@ -1783,7 +1838,7 @@ class _AyahArabicLayer extends ConsumerWidget {
         spanIndex: spanIndex,
         hasExactTimings:
             QuranWordCorpus.seekStartMs(cues, spanIndex) != null,
-        transliteration: (roman != null && roman.isNotEmpty) ? roman : null,
+        romanUrdu: (roman != null && roman.isNotEmpty) ? roman : null,
         onPlayFromWord: () => playFromSpan(spanIndex),
       );
     }

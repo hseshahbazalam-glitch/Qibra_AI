@@ -61,6 +61,11 @@ class AppStrings {
         'لا تتوفر ترجمة موثّقة لهذه اللغة.',
         'اس زبان کا تصدیق شدہ ترجمہ دستیاب نہیں۔',
       );
+  String get romanUrduUnavailable => _t(
+        'Roman Urdu text is not bundled for this ayah.',
+        'النص الأوردوي اللاتيني غير مضمّن لهذه الآية.',
+        'اس آیت کا رومن اردو متن بلڈ میں شامل نہیں۔',
+      );
   String get quranTranslation => _t(
         'Quran translation',
         'ترجمة القرآن',
@@ -200,10 +205,15 @@ class AppStrings {
         '1 سے 604 کے درمیان صفحہ درج کریں',
       );
   String get showTranslation => _t('Show translation', 'إظهار الترجمة', 'ترجمہ دکھائیں');
+  // Pass E (label truth): what the reader tab shows is the Maududi
+  // Roman Urdu TRANSLATION (112:1 = "Kaho woh Allah hai, Yakta") —
+  // roman-script Urdu, not a letter-for-letter transliteration. The
+  // name now matches the data; the prefs key and field stay
+  // show_transliteration for user-persistence continuity.
   String get showTransliteration => _t(
-        'Show transliteration',
-        'إظهار الكتابة الصوتية',
-        'نقلِ حرفی دکھائیں',
+        'Show Roman Urdu',
+        'إظهار الأوردو بالحروف اللاتينية',
+        'رومن اردو دکھائیں',
       );
   String get verseCopiedWithSource => _t(
         'Verse copied with source',

@@ -7,7 +7,9 @@
 // Uthmani text, the English gloss from the verified word-by-word
 // dataset (honest "unavailable" when the file carries none), an
 // occurrence count computed LIVE from the bundled corpus with the
-// search fold, and the ayah's bundled transliteration line. Root
+// search fold, and the ayah's bundled ROMAN URDU line (Maududi — a
+// roman-script translation, honestly named since Pass E; never a
+// transliteration despite the old field name). Root
 // morphology is disclosed as NOT BUNDLED (the Quranic Arabic Corpus
 // redistribution license could not be verified — deferred, per brief;
 // no improvised glosses, no machine Urdu per-word layer either since
@@ -48,7 +50,7 @@ Future<void> showWordExplainSheet(
   required String gloss,
   required int spanIndex,
   required bool hasExactTimings,
-  required String? transliteration,
+  required String? romanUrdu,
   required VoidCallback onPlayFromWord,
 }) {
   HapticFeedback.mediumImpact();
@@ -78,7 +80,7 @@ Future<void> showWordExplainSheet(
             gloss: gloss,
             spanIndex: spanIndex,
             hasExactTimings: hasExactTimings,
-            transliteration: transliteration,
+            romanUrdu: romanUrdu,
             onPlayFromWord: onPlayFromWord,
           ),
         ),
@@ -97,7 +99,7 @@ class _WordExplainBody extends ConsumerWidget {
     required this.gloss,
     required this.spanIndex,
     required this.hasExactTimings,
-    required this.transliteration,
+    required this.romanUrdu,
     required this.onPlayFromWord,
   });
 
@@ -109,7 +111,7 @@ class _WordExplainBody extends ConsumerWidget {
   final String gloss;
   final int spanIndex;
   final bool hasExactTimings;
-  final String? transliteration;
+  final String? romanUrdu;
   final VoidCallback onPlayFromWord;
 
   @override
@@ -185,11 +187,11 @@ class _WordExplainBody extends ConsumerWidget {
                         gloss.isEmpty ? FontStyle.italic : FontStyle.normal,
                   ),
                 ),
-                if (transliteration != null &&
-                    transliteration!.isNotEmpty) ...[
+                if (romanUrdu != null &&
+                    romanUrdu!.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
-                    transliteration!,
+                    romanUrdu!,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: colors.textSecondary,
                       fontStyle: FontStyle.italic,
