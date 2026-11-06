@@ -36,7 +36,10 @@ class SettingsScreen extends ConsumerWidget {
     final readingPrefs = ref.watch(readingPreferencesProvider);
     final hadithLang = ref.watch(hadithLanguageProvider);
     final quranEdition =
-        EditionResolver.resolve(readingPrefs.translationId)?.label ?? 'English';
+        EditionResolver.resolve(
+                EditionResolver.canonical(readingPrefs.translationId))
+                ?.label ??
+            'English';
     // The settings knob sets BOTH split scales together; the label
     // follows the Arabic scale (equal unless fine-tuned in the reader).
     final fontLabel = readingPrefs.arabicScale >= 1.25
@@ -850,10 +853,12 @@ class SettingsScreen extends ConsumerWidget {
 
   void _showQuranTranslationSheet(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final current = ref.read(readingPreferencesProvider).translationId;
-    final editions = EditionResolver.allBundled()
-        .where((e) => e.id != 'ar')
-        .toList();
+    // Pass E: the list below IS the loadable set — every row is a real
+    // bundled file the catalog can serve (the legacy 'ur' duplicate and
+    // the Arabic base row are filtered at the resolver, single source).
+    final current = EditionResolver.canonical(
+        ref.read(readingPreferencesProvider).translationId);
+    final editions = EditionResolver.pickerEntries();
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: colors.card,

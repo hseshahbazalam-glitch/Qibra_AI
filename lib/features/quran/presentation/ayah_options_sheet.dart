@@ -14,6 +14,8 @@ import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
 import '../data/audio/tilawat.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_audio_provider.dart';
+import '../data/repository/urdu_edition_catalog.dart';
+import '../providers/reading_preferences_provider.dart';
 import 'surah_reader_screen.dart';
 
 Future<void> showAyahOptions({
@@ -682,8 +684,23 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
       buffer.writeln();
     }
 
-    if (widget.ayah?.translation != null) {
-      buffer.writeln('"${widget.ayah!.translation}"');
+    // Pass E (E1 census): the share carries the SELECTED edition's
+    // text — peek only (a share tap never waits on disk). Absent entry
+    // (a lazy edition still loading, or the TQ 7+100 gap) keeps the
+    // pre-E behavior of omitting the quote line: honest, never wrong.
+    final a = widget.ayah;
+    final prefs = ref.read(readingPreferencesProvider);
+    final shared = a == null
+        ? null
+        : UrduEditionCatalog.selectedText(
+            ayah: a,
+            prefs: prefs,
+            surahNumber: widget.surahNumber,
+            editionTexts: UrduEditionCatalog.instance.peek(
+                prefs.translationId),
+          );
+    if (shared != null) {
+      buffer.writeln('"$shared"');
       buffer.writeln();
     }
 

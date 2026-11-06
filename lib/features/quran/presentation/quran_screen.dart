@@ -23,6 +23,8 @@ import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../data/models/quran_models.dart';
 import '../data/repository/reading_progress_repository.dart' show KhatmStats;
 import '../providers/quran_provider.dart';
+import '../data/repository/urdu_edition_catalog.dart';
+import '../providers/reading_preferences_provider.dart';
 import '../providers/reading_progress_provider.dart';
 
 class QuranScreen extends ConsumerStatefulWidget {
@@ -517,9 +519,23 @@ class _VerseOfDayCard extends ConsumerWidget {
                 icon: Icons.ios_share_rounded,
                 label: 'Copy',
                 onTap: () {
+                  // Pass E (E1 census): the copy carries the SELECTED
+                  // edition's text when the catalog holds it — peek is
+                  // synchronous so the button never waits on a load,
+                  // and while the selection rides its default face the
+                  // copied line IS that face (never a silent mismatch).
+                  final prefs = ref.read(readingPreferencesProvider);
+                  final copied = UrduEditionCatalog.selectedText(
+                        ayah: ayah,
+                        prefs: prefs,
+                        surahNumber: data.surah.number,
+                        editionTexts: UrduEditionCatalog.instance.peek(
+                            prefs.translationId),
+                      ) ??
+                      '';
                   Clipboard.setData(ClipboardData(
-                    text: '${ayah.text}\n\n'
-                        '${ayah.translation ?? ''}\n\n— ${data.reference}',
+                    text:
+                        '${ayah.text}\n\n$copied\n\n— ${data.reference}',
                   ));
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(AppStrings.of(context).verseCopiedWithSource)),
