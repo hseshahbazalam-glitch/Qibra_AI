@@ -653,7 +653,7 @@ void main() {
                     gloss: 'Allah',
                     spanIndex: 1,
                     hasExactTimings: true,
-                    transliteration: null,
+                    romanUrdu: null,
                     onPlayFromWord: () {},
                   ),
                   child: const Text('open-sheet'),

@@ -27,7 +27,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/content/edition_resolver.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
-import 'package:qibra_ai/features/quran/data/repository/quran_meta.dart';
 import 'package:qibra_ai/features/quran/data/repository/urdu_edition_catalog.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
 import 'package:qibra_ai/features/quran/providers/quran_download_provider.dart';
