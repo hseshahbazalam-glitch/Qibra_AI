@@ -133,10 +133,23 @@ class UrduEditionCatalog {
     }
   }
 
-  /// True only under `flutter test` — the tool sets this environment
-  /// variable for the test VM (see the branch in [_load]).
-  static bool get _underFlutterTest =>
-      Platform.environment.containsKey('FLUTTER_TEST');
+  /// True only under `flutter test` (see the branch in [_load]). The tool
+  /// sets FLUTTER_TEST for the test VM, but CI has been observed running
+  /// without that env visible to the isolate — so the live binding says it
+  /// too: a TestWidgets binding means the bundle+isolate pair will never
+  /// resolve in this zone. Probed through ServicesBinding to keep this file
+  /// import-clean; an uninitialized binding (plain dart run, real device)
+  /// throws LateInitializationError and is emphatically not a test.
+  static bool get _underFlutterTest {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) return true;
+    try {
+      return ServicesBinding.instance.runtimeType
+          .toString()
+          .contains('TestWidgetsFlutterBinding');
+    } on Error {
+      return false;
+    }
+  }
 
   void _evictOverflow() {
     while (_loaded.length > maxCachedEditions) {
