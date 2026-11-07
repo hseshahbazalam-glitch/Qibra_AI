@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/shared/widgets/qibra_status.dart';
@@ -73,6 +74,7 @@ class _PrayerMini extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     final accent = isNext ? colors.primary : colors.textTertiary;
     return Semantics(
       button: true,
@@ -105,7 +107,8 @@ class _PrayerMini extends StatelessWidget {
                 Icon(prayer.type.icon, size: 16, color: accent),
                 const SizedBox(height: 6),
                 Text(
-                  prayer.type.name,
+                  s.prayerDisplayName(
+                      prayer.type.name, prayer.type.arabicName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.labelSmall.copyWith(
@@ -127,7 +130,7 @@ class _PrayerMini extends StatelessWidget {
                   height: 13,
                   child: isNext
                       ? Text(
-                          'NEXT',
+                          AppStrings.of(context).pillNextCaps,
                           style: AppTextStyles.labelSmall.copyWith(
                             color: colors.primary,
                             fontSize: 8.5,
@@ -167,6 +170,7 @@ class HomeContinueReading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     return QibraCard(
       onTap: onResume,
       padding: const EdgeInsets.all(18),
@@ -186,7 +190,7 @@ class HomeContinueReading extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      page == null ? 'Start reading' : 'Continue Quran',
+                      page == null ? s.startReading : s.continueQuran,
                       style: AppTextStyles.labelSmall.copyWith(
                         color: colors.primary,
                         fontWeight: FontWeight.w800,
@@ -195,9 +199,7 @@ class HomeContinueReading extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      page == null
-                          ? 'Al-Fatihah — the Opening'
-                          : page!.surahName,
+                      page == null ? s.alFatihahOpening : page!.surahName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.titleMedium.copyWith(
@@ -206,9 +208,9 @@ class HomeContinueReading extends StatelessWidget {
                     ),
                     Text(
                       page == null
-                          ? 'Every ayah with verified sources'
-                          : 'Juz ${page!.juzNumber} · Page ${page!.pageNumber}'
-                              ' · Ayah ${page!.ayahNumber}',
+                          ? s.everyAyahVerifiedSources
+                          : s.juzPageAyah(page!.juzNumber, page!.pageNumber,
+                              page!.ayahNumber),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bodySmall.copyWith(
@@ -245,8 +247,9 @@ class HomeContinueReading extends StatelessWidget {
             children: [
               Text(
                 page == null
-                    ? 'Surah 1 · Juz 1'
-                    : '${(overallProgress * 100).toStringAsFixed(0)}% of the Quran',
+                    ? s.surah1Juz1
+                    : s.ofTheQuran((overallProgress * 100).toStringAsFixed(0)
+                        .toInt()),
                 style: AppTextStyles.labelSmall
                     .copyWith(color: colors.textTertiary),
               ),
@@ -262,7 +265,7 @@ class HomeContinueReading extends StatelessWidget {
                           size: 15, color: QibraNavy.blue),
                       const SizedBox(width: 4),
                       Text(
-                        'Find a surah',
+                        s.findASurah,
                         style: AppTextStyles.labelSmall.copyWith(
                             color: QibraNavy.blue,
                             fontWeight: FontWeight.w600),
@@ -291,6 +294,7 @@ class HomeAskAiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     return Semantics(
       button: true,
       label: 'Ask QIBRA — answers with Quran and Hadith sources',
@@ -332,7 +336,7 @@ class HomeAskAiCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Ask QIBRA',
+                            s.askQibra,
                             style: AppTextStyles.titleMedium.copyWith(
                               color: colors.textPrimary,
                               fontWeight: FontWeight.w800,
@@ -340,7 +344,7 @@ class HomeAskAiCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Quran & Hadith answers with sources.',
+                            s.askQibraTagline,
                             style: AppTextStyles.bodySmall.copyWith(
                               color: colors.textSecondary,
                             ),
@@ -361,7 +365,7 @@ class HomeAskAiCard extends StatelessWidget {
                                   ),
                                 ),
                                 child: Text(
-                                  'Retrieval only — not a fatwa',
+                                  s.retrievalOnlyBadge,
                                   style: AppTextStyles.labelSmall.copyWith(
                                     color: colors.aiAccentSoft,
                                     fontWeight: FontWeight.w600,
@@ -382,7 +386,7 @@ class HomeAskAiCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        'Ask',
+                        s.askLabel,
                         style: AppTextStyles.labelMedium.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -413,11 +417,12 @@ class HomeAyahCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     final ayah = bundle?.ayah;
     if (bundle == null || ayah == null) {
       return QibraStatus.empty(
-        title: 'Daily ayah unavailable',
-        message: 'Offline Quran files are still loading.',
+        title: s.dailyAyahUnavailable,
+        message: s.offlineQuranLoading,
       );
     }
     final translation = ayah.translation;
@@ -431,7 +436,7 @@ class HomeAyahCard extends StatelessWidget {
               Icon(Icons.format_quote, size: 15, color: colors.primary),
               const SizedBox(width: 6),
               Text(
-                'AYAH OF THE DAY',
+                s.ayahOfDayBadge,
                 style: AppTextStyles.labelSmall.copyWith(
                   color: colors.textSecondary,
                   fontWeight: FontWeight.w800,
@@ -488,11 +493,12 @@ class HomeHadithCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     final h = hadith;
     if (h == null) {
       return QibraStatus.empty(
-        title: 'Daily hadith unavailable',
-        message: 'Cached collections will appear when they finish loading.',
+        title: s.dailyHadithUnavailable,
+        message: s.cachedCollectionsLoading,
       );
     }
     return QibraCard(
@@ -505,7 +511,7 @@ class HomeHadithCard extends ConsumerWidget {
               Icon(Icons.verified_outlined, size: 15, color: QibraNavy.blue),
               const SizedBox(width: 6),
               Text(
-                'HADITH OF THE DAY',
+                s.hadithOfDayBadge,
                 style: AppTextStyles.labelSmall.copyWith(
                   color: QibraNavy.blue,
                   fontWeight: FontWeight.w800,
@@ -565,10 +571,13 @@ class _GradeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Trust UI: show the collection's stated grade with its honest
-    // qualifier — never marketing copy like "100% Authentic".
+    // qualifier — never marketing copy like "100% Authentic". A2: the
+    // 'Grade:' prefix localizes; grade words themselves are hadith-model
+    // data, out of this pass's scope by decision.
+    final s = AppStrings.of(context);
     final label = grade == HadithGrade.sahih
-        ? 'Grade: ${grade.label} · ${grade.description}'
-        : 'Grade: ${grade.label}';
+        ? s.gradeLabelFull(grade.label, grade.description)
+        : s.gradeLabel(grade.label);
     final color = grade == HadithGrade.unknown
         ? QibraNavy.textMuted
         : QibraNavy.blue;
@@ -602,6 +611,7 @@ class HomeDuaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     return QibraCard(
       onTap: onTap,
       child: Column(
@@ -613,7 +623,7 @@ class HomeDuaCard extends StatelessWidget {
                   size: 15, color: colors.primary),
               const SizedBox(width: 6),
               Text(
-                'A DUA FOR TODAY',
+                s.aDuaForToday,
                 style: AppTextStyles.labelSmall.copyWith(
                   color: colors.primary,
                   fontWeight: FontWeight.w800,
@@ -677,16 +687,17 @@ class HomeProgressPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Row(
       children: [
         Expanded(
           child: QibraStatCard(
             icon: Icons.local_fire_department_outlined,
             value: streak.currentStreak > 0 ? '${streak.currentStreak}' : '—',
-            unit: streak.currentStreak == 1 ? 'day' : 'days',
+            unit: streak.currentStreak == 1 ? s.unitDayLower : s.unitDaysLower,
             label: streak.currentStreak > 0
-                ? 'Reading streak'
-                : 'Read today to start a streak',
+                ? s.readingStreak
+                : s.readTodayStartStreak,
           ),
         ),
         const SizedBox(width: 10),
@@ -694,8 +705,8 @@ class HomeProgressPanel extends StatelessWidget {
           child: QibraStatCard(
             icon: Icons.auto_stories_rounded,
             value: '$todayPagesRead/$dailyGoalPages',
-            unit: 'pages today',
-            label: dailyGoalProgressLabel,
+            unit: s.pagesToday,
+            label: dailyGoalProgressLabel(s),
             progress: dailyGoalPages == 0
                 ? 0.0
                 : (todayPagesRead / dailyGoalPages).clamp(0.0, 1.0),
@@ -706,12 +717,13 @@ class HomeProgressPanel extends StatelessWidget {
           child: QibraStatCard(
             icon: Icons.mosque,
             value: prayerStreak > 0 ? '$prayerStreak' : '—',
-            unit: prayerStreak == 1 ? 'day' : 'days',
+            unit: prayerStreak == 1 ? s.unitDayLower : s.unitDaysLower,
             label: prayerStreak > 0
-                ? 'Prayer streak'
-                : 'Track prayers in Prayer',
+                ? s.prayerStreak
+                : s.trackPrayersInPrayer,
             footnote: overallProgress > 0
-                ? 'Quran ${(overallProgress * 100).toStringAsFixed(0)}%'
+                ? s.ofTheQuran(
+                    (overallProgress * 100).toStringAsFixed(0).toInt())
                 : null,
           ),
         ),
@@ -719,11 +731,9 @@ class HomeProgressPanel extends StatelessWidget {
     );
   }
 
-  String get dailyGoalProgressLabel {
-    if (dailyGoalPages == 0) return 'Daily goal';
-    return todayPagesRead >= dailyGoalPages
-        ? 'Daily goal met'
-        : 'Daily goal';
+  String dailyGoalProgressLabel(AppStrings s) {
+    if (dailyGoalPages == 0) return s.dailyGoal;
+    return todayPagesRead >= dailyGoalPages ? s.dailyGoalMet : s.dailyGoal;
   }
 }
 

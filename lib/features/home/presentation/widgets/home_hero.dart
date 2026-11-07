@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hijri/hijri_calendar.dart';
 
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/utils/countdown_format.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
@@ -48,20 +49,18 @@ class HomeNightHero extends StatelessWidget {
   final bool isLoading;
   final bool hasLocation;
 
-  String get _greeting {
-    final hour = now.hour;
-    if (hour < 4) return 'Peaceful night';
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
+  // A2: hour-routed in AppStrings (greetingForHour) so the four words
+  // localize together and the routing table lives with the strings.
+  String _greeting(AppStrings s) => s.greetingForHour(now.hour);
 
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     final hijri = HijriCalendar.now();
     final hijriLabel =
-        '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH';
+        '${hijri.hDay} ${s.hijriMonthName(hijri.hMonth, hijri.longMonthName)} '
+        '${hijri.hYear} AH';
 
     return QibraNightSkyBackdrop(
       semanticsLabel: 'Next prayer — open the prayer schedule',
@@ -74,7 +73,7 @@ class HomeNightHero extends StatelessWidget {
         children: [
           // ── Greeting ──────────────────────────────────────────
           Text(
-            'Assalamu Alaikum',
+            s.assalamuAlaikum,
             style: AppTextStyles.labelMedium.copyWith(
               color: colors.goldText,
               fontWeight: FontWeight.w600,
@@ -86,7 +85,7 @@ class HomeNightHero extends StatelessWidget {
             TextSpan(
               children: [
                 TextSpan(
-                  text: '$_greeting, ',
+                  text: '${_greeting(s)}, ',
                   style: AppTextStyles.headlineSmall
                       .copyWith(color: colors.textSecondary),
                 ),
@@ -121,7 +120,7 @@ class HomeNightHero extends StatelessWidget {
                 icon: notificationsOn
                     ? Icons.notifications_outlined
                     : Icons.notifications_off,
-                label: notificationsOn ? 'Adhan alerts on' : 'Alerts off',
+                label: notificationsOn ? s.adhanAlertsOn : s.alertsOff,
               ),
             ],
           ),
@@ -162,6 +161,7 @@ class _NextPrayerBody extends ConsumerWidget {
       currentPrayerProvider.select((p) => p?.type.name),
     );
     final tick = ref.watch(currentTimeProvider.select((a) => a.value));
+    final s = AppStrings.of(context);
     final divider = Container(
       height: 1,
       color: colors.border.withValues(alpha: 0.7),
@@ -191,15 +191,15 @@ class _NextPrayerBody extends ConsumerWidget {
           divider,
           const SizedBox(height: 12),
           Text(
-            'Next prayer',
+            s.nextPrayer,
             style:
                 AppTextStyles.labelMedium.copyWith(color: colors.textSecondary),
           ),
           const SizedBox(height: 6),
           Text(
             hasLocation
-                ? 'Prayer times are unavailable right now.'
-                : 'Set your location to see prayer times.',
+                ? s.prayerTimesUnavailableNow
+                : s.setLocationToSeeTimes,
             style:
                 AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
           ),
@@ -248,7 +248,7 @@ class _NextPrayerBody extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'left',
+                      s.countdownLeft,
                       style: AppTextStyles.labelSmall.copyWith(
                         color: colors.textTertiary,
                         fontSize: 9.5,
@@ -265,7 +265,7 @@ class _NextPrayerBody extends ConsumerWidget {
           children: [
             Expanded(
               child: Text(
-                'Tap for full prayer schedule',
+                s.tapForFullSchedule,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.labelSmall
@@ -295,6 +295,11 @@ class _PrayerIdentity extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
+    // The side arabicName label is shown only while the display name is
+    // Latin — in ar/ur the name IS the Arabic-script word, so a second
+    // Arabic label would print the same word twice.
+    final latinName = s.locale.languageCode == 'en';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -310,7 +315,7 @@ class _PrayerIdentity extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              'NEXT PRAYER',
+              s.nextPrayerCaps,
               style: AppTextStyles.labelSmall.copyWith(
                 color: colors.textSecondary,
                 letterSpacing: 1.6,
@@ -321,7 +326,8 @@ class _PrayerIdentity extends StatelessWidget {
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  '· now $currentName',
+                  s.nowWindow(s.prayerDisplayName(
+                      currentName!, prayer.type.arabicName)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.labelSmall
@@ -337,19 +343,21 @@ class _PrayerIdentity extends StatelessWidget {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Text(
-              prayer.type.name,
+              s.prayerDisplayName(prayer.type.name, prayer.type.arabicName),
               style: AppTextStyles.displaySmall.copyWith(
                 color: colors.textPrimary,
                 height: 1.05,
               ),
             ),
-            const SizedBox(width: 10),
-            Text(
-              prayer.type.arabicName,
-              style: AppArabicStyles.quranSmall.copyWith(
-                color: colors.textPrimary,
+            if (latinName) ...[
+              const SizedBox(width: 10),
+              Text(
+                prayer.type.arabicName,
+                style: AppArabicStyles.quranSmall.copyWith(
+                  color: colors.textPrimary,
+                ),
               ),
-            ),
+            ],
           ],
         ),
         const SizedBox(height: 8),
