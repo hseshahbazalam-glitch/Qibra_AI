@@ -790,7 +790,7 @@ class AppStrings {
   String get pillNextCaps => _t('NEXT', 'قادمة', 'اگلی');
   String get pillNext => _t('Next', 'قادمة', 'اگلی');
   String get pillNow => _t('Now', 'الآن', 'ابھی');
-  String get todaysTimes => _t('Today\'s times\', 'أوقات اليوم', 'آج کے اوقات');
+  String get todaysTimes => _t('Today\'s times', 'أوقات اليوم', 'آج کے اوقات');
   String get timesUnavailable => _t('Times unavailable', 'الأوقات غير متوفرة', 'اوقات دستیاب نہیں');
   String get prayerTimesAppearAfterLocation => _t(
       'Prayer times appear after a location is set.',
