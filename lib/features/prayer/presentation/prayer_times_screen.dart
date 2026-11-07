@@ -415,13 +415,11 @@ class PrayerTimesScreen extends ConsumerWidget {
                   ),
                   _WhyRow(
                     icon: Icons.schedule_rounded,
-                    title: 'Timezone',
+                    title: s.whyTimezoneTitle,
                     body: (location?.timezone != null &&
                             location!.timezone!.isNotEmpty)
-                        ? 'Times use ${location.timezone} resolved from your '
-                            'location (daylight-saving handled by the '
-                            'timezone database).'
-                        : 'Device timezone (no city timezone resolved).',
+                        ? s.timezoneResolvedBody(location!.timezone!)
+                        : s.timezoneDeviceFallback,
                   ),
                   const SizedBox(height: 16),
                   Container(
