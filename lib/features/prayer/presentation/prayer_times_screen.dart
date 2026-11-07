@@ -396,19 +396,16 @@ class PrayerTimesScreen extends ConsumerWidget {
                   ),
                   _WhyRow(
                     icon: Icons.shield_outlined,
-                    title: 'Asr (madhab) setting',
+                    title: s.asrMadhabSetting,
                     body: settings.asrMethod == AsrMethod.hanafi
-                        ? 'Hanafi — shadow ratio 2, so Asr is later.'
-                        : 'Standard (Shafi\u2019i/Maliki/Hanbali) — '
-                            'shadow ratio 1.',
+                        ? s.whyAsrHanafi
+                        : s.whyAsrStandard,
                   ),
                   _WhyRow(
                     icon: Icons.wb_twilight_rounded,
-                    title: 'High-latitude rule',
-                    body:
-                        'Rule applied when the sun never reaches the Fajr/'
-                        'Isha angle: ${settings.highLatitudeMethod.name} '
-                        '(none means no correction is applied).',
+                    title: s.highLatitudeRule,
+                    body: s.whyHighLatitudeBody(
+                        settings.highLatitudeMethod.name),
                   ),
                   _WhyRow(
                     icon: Icons.tune_rounded,
