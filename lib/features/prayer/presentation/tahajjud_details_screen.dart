@@ -93,7 +93,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
             ),
             centerTitle: true,
             title: Text(
-              'Tahajjud Details',
+              AppStrings.of(context).tahajjudDetailsTitle,
               style: AppTextStyles.titleLarge.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w900,
@@ -146,7 +146,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Tahajjud',
+                          AppStrings.of(context).tahajjudLabel,
                           style: AppTextStyles.displaySmall.copyWith(
                             color: colors.textPrimary,
                             fontWeight: FontWeight.w900,
@@ -162,7 +162,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'The best time for Tahajjud is in the last third of the night.',
+                          AppStrings.of(context).tahajjudBestTimeNote,
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: colors.textSecondary,
                             height: 1.5,
@@ -183,8 +183,9 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               child: _buildInfoTile(
                 icon: Icons.access_time_filled_rounded,
                 iconColor: colors.primary,
-                title: 'Recommended Time',
-                subtitle: windows?.last ?? 'Not available',
+                title: AppStrings.of(context).recommendedTime,
+                subtitle: windows?.last ??
+                    AppStrings.of(context).notAvailableLabel,
                 onTap: () => _showTimeDetails(windows),
               ),
             ),
@@ -222,7 +223,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Alarm',
+                            AppStrings.of(context).alarmLabel,
                             style: AppTextStyles.titleSmall.copyWith(
                               color: colors.textPrimary,
                               fontWeight: FontWeight.w800,
@@ -230,7 +231,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                             ),
                           ),
                           Text(
-                            'Wake me for Tahajjud',
+                            AppStrings.of(context).wakeMeForTahajjud,
                             style: AppTextStyles.labelSmall.copyWith(
                               color: colors.textSecondary,
                               fontSize: 11,
@@ -260,7 +261,9 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               child: _buildInfoTile(
                 icon: Icons.menu_book_rounded,
                 iconColor: colors.primary,
-                title: 'Recommended Surahs',
+                title: AppStrings.of(context).recommendedSurahs,
+                // Surah names are proper nouns — catalog convention by
+                // the pass decision (A3 will revisit).
                 subtitle: 'Al-Mulk, Al-Insan, Al-Jinn, Al-Muzzammil',
                 onTap: _showSurahsSheet,
               ),
@@ -274,7 +277,8 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               child: _buildInfoTile(
                 icon: Icons.volunteer_activism_rounded,
                 iconColor: colors.primary,
-                title: 'Recommended Duas',
+                title: AppStrings.of(context).recommendedDuas,
+                // Dua names — same proper-noun decision.
                 subtitle: 'Dua Qunoot, Istighfar, Any Dua',
                 onTap: _showDuasSheet,
               ),
@@ -288,8 +292,8 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               child: _buildInfoTile(
                 icon: Icons.local_fire_department_rounded,
                 iconColor: colors.primary,
-                title: 'Tahajjud Streak',
-                subtitle: 'Not tracked',
+                title: AppStrings.of(context).tahajjudStreak,
+                subtitle: AppStrings.of(context).notTrackedLabel,
                 onTap: _showStreakSheet,
               ),
             ),
@@ -321,7 +325,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Set Tahajjud Alarm',
+                        AppStrings.of(context).setTahajjudAlarm,
                         style: AppTextStyles.titleSmall.copyWith(
                           color: colors.onPrimary,
                           fontWeight: FontWeight.w800,
@@ -402,7 +406,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Best Times for Tahajjud',
+            AppStrings.of(context).bestTimesForTahajjud,
             style: AppTextStyles.titleLarge.copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
@@ -411,31 +415,31 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           const SizedBox(height: 8),
           Text(
             windows == null
-                ? 'Windows appear after Maghrib and Fajr can be calculated.'
-                : 'Divided from today\'s Maghrib to Fajr.',
+                ? AppStrings.of(context).windowsAppearNote
+                : AppStrings.of(context).dividedMaghribToFajr,
             style: AppTextStyles.bodySmall.copyWith(
               color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
           _buildTimeSection(
-            'Last Third of Night',
-            windows?.last ?? 'Not available',
-            'Usually the preferred window',
+            AppStrings.of(context).lastThirdOfNight,
+            windows?.last ?? AppStrings.of(context).notAvailableLabel,
+            AppStrings.of(context).usuallyPreferredWindow,
             colors.primary,
           ),
           const SizedBox(height: 12),
           _buildTimeSection(
-            'Middle of Night',
-            windows?.middle ?? 'Not available',
-            'Optional window',
+            AppStrings.of(context).middleOfNight,
+            windows?.middle ?? AppStrings.of(context).notAvailableLabel,
+            AppStrings.of(context).optionalWindow,
             colors.textSecondary,
           ),
           const SizedBox(height: 12),
           _buildTimeSection(
-            'First Third',
-            windows?.first ?? 'Not available',
-            'Optional window',
+            AppStrings.of(context).firstThird,
+            windows?.first ?? AppStrings.of(context).notAvailableLabel,
+            AppStrings.of(context).optionalWindow,
             colors.textSecondary,
           ),
         ],
@@ -525,7 +529,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Recommended Surahs',
+            AppStrings.of(context).recommendedSurahs,
             style: AppTextStyles.titleLarge.copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
@@ -533,7 +537,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Suggested surahs for Tahajjud prayer',
+            AppStrings.of(context).suggestedSurahsNote,
             style: AppTextStyles.bodySmall.copyWith(
               color: colors.textSecondary,
             ),
@@ -643,7 +647,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Tahajjud Duas',
+            AppStrings.of(context).tahajjudDuasTitle,
             style: AppTextStyles.titleLarge.copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w900,
@@ -717,7 +721,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Tahajjud Streak',
+                AppStrings.of(context).tahajjudStreak,
                 style: AppTextStyles.titleLarge.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w900,
@@ -727,16 +731,18 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Tahajjud nights are not tracked in this build. Counts will appear here only after a real record exists.',
+            AppStrings.of(context).tahajjudNotTrackedBody,
             style: AppTextStyles.bodySmall.copyWith(
               color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
-          _buildStatRow('Current streak', 'Not available', colors.primary),
-          _buildStatRow(
-              'Longest streak', 'Not available', colors.primary),
-          _buildStatRow('Total Tahajjud', 'Not available', colors.primary),
+          _buildStatRow(AppStrings.of(context).currentStreakLabel,
+              AppStrings.of(context).notAvailableLabel, colors.primary),
+          _buildStatRow(AppStrings.of(context).longestStreakLabel,
+              AppStrings.of(context).notAvailableLabel, colors.primary),
+          _buildStatRow(AppStrings.of(context).totalTahajjudLabel,
+              AppStrings.of(context).notAvailableLabel, colors.primary),
         ],
       ),
     );
@@ -861,7 +867,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Reminder',
+              AppStrings.of(context).reminderDialogTitle,
               style: AppTextStyles.titleMedium.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w900,
@@ -870,7 +876,7 @@ class _TahajjudDetailsScreenState extends ConsumerState<TahajjudDetailsScreen> {
           ],
         ),
         content: Text(
-          'This toggle is only a reminder on this screen. No device alarm is scheduled.',
+          AppStrings.of(context).reminderHonestNote,
           style: AppTextStyles.bodyMedium.copyWith(
             color: colors.textSecondary,
           ),
