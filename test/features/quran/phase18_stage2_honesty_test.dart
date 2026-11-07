@@ -2,6 +2,7 @@
 // Hadith / AI screens. These are source-scan assertions that run in
 // `flutter test` without a widget harness.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -67,7 +68,15 @@ void main() {
 
   test('prayer screen explains calculation transparently', () {
     final src = File(_stage2Screens[0]).readAsStringSync();
-    expect(src.contains('Why is my prayer time different?'), isTrue);
+    // A2 moved this chrome copy into AppStrings; pin both ends of the
+    // honest-rendering chain: the call site renders the getter and the
+    // English copy lives (verbatim) in its single source of truth.
+    expect(src.contains('s.whyTimeDifferent'), isTrue);
+    expect(
+        File('lib/core/l10n/app_strings.dart')
+            .readAsStringSync(encoding: utf8)
+            .contains("'Why is my prayer time different?'"),
+        isTrue);
     expect(src.contains('calculationMethod'), isTrue);
     expect(src.contains('asrMethod'), isTrue);
     expect(src.contains('highLatitudeMethod'), isTrue);
