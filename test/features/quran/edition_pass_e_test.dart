@@ -565,6 +565,17 @@ void main() {
     // branch ever misses, the frame names itself 'PENDING:…' — a
     // readable failure at second one, not a hang at minute ten.
     final catalog = UrduEditionCatalog.instance;
+    catalog.debugReset();
+    // Probe: can THIS moment in THIS isolate open the bytes? E5 read
+    // the same path 0.1s earlier; if this line ever throws, the file
+    // — not the zone — is the story. If it passes and the frame still
+    // says waiting, the only culprit left is a recycled _inFlight
+    // future — which debugReset() just foreclosed.
+    final raw =
+        File('assets/data/quran/translation_ur_junagarhi.json')
+            .readAsStringSync();
+    // ignore: avoid_print
+    print('[E2E] raw read ok: ${raw.length}b');
     final fly = catalog.ensure('ur_junagarhi');
     AsyncSnapshot<Map<String, String>?>? seen;
     await tester.pumpWidget(MaterialApp(
