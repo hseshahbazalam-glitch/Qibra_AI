@@ -752,17 +752,18 @@ class _SunriseRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     return ListTile(
       dense: true,
       leading: Icon(prayer.type.icon,
           color: colors.textSecondary, size: 20),
       title: Text(
-        'Sunrise',
+        s.sunriseName,
         style: AppTextStyles.titleSmall
             .copyWith(color: colors.textSecondary),
       ),
       subtitle: Text(
-        'Dhuhr begins after sunrise ends',
+        s.dhuhrAfterSunrise,
         style:
             AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
       ),
@@ -793,6 +794,7 @@ class _PrayerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     final prayed = record?.status == PrayerStatus.prayed ||
         record?.status == PrayerStatus.prayedInMosque ||
         record?.status == PrayerStatus.makeup;
@@ -821,7 +823,7 @@ class _PrayerRow extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              prayer.type.name,
+              s.prayerDisplayName(prayer.type.name, prayer.type.arabicName),
               style: AppTextStyles.titleSmall.copyWith(
                 color: colors.textPrimary,
                 fontWeight: isNext ? FontWeight.w700 : FontWeight.w600,
@@ -837,7 +839,7 @@ class _PrayerRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Next',
+                  s.pillNext,
                   style: AppTextStyles.labelSmall
                       .copyWith(color: colors.primary),
                 ),
@@ -853,7 +855,7 @@ class _PrayerRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Now',
+                  s.pillNow,
                   style: AppTextStyles.labelSmall
                       .copyWith(color: colors.accent),
                 ),
@@ -861,11 +863,13 @@ class _PrayerRow extends StatelessWidget {
             ],
           ],
         ),
-        subtitle: Text(
-          prayer.type.arabicName,
-          style: AppArabicStyles.quranSmall
-              .copyWith(color: colors.textSecondary, fontSize: 14),
-        ),
+        subtitle: s.locale.languageCode == 'en'
+            ? Text(
+                prayer.type.arabicName,
+                style: AppArabicStyles.quranSmall
+                    .copyWith(color: colors.textSecondary, fontSize: 14),
+              )
+            : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
