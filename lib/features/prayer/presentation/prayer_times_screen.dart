@@ -185,13 +185,12 @@ class PrayerTimesScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Why is my prayer time different?',
+                          s.whyTimeDifferent,
                           style: AppTextStyles.titleSmall.copyWith(
                               color: colors.textPrimary),
                         ),
                         Text(
-                          'Method, Asr, high latitude and adjustments — '
-                          'see exactly what this app used today.',
+                          s.whyTimeDifferentHint,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.bodySmall.copyWith(
@@ -207,27 +206,27 @@ class PrayerTimesScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
 
-            const QibraSectionHeader(title: 'Also in Prayer'),
+            QibraSectionHeader(title: s.alsoInPrayer),
             QibraCard(
               child: Row(
                 children: [
                   QibraSoftButton(
-                    label: 'Schedule',
+                    label: s.scheduleLabel,
                     icon: Icons.calendar_view_day_outlined,
                     onTap: () => context.push(AppRoutes.prayerSchedule),
                   ),
                   QibraSoftButton(
-                    label: 'Statistics',
+                    label: s.statisticsLabel,
                     icon: Icons.bar_chart_rounded,
                     onTap: () => context.push(AppRoutes.prayerStatistics),
                   ),
                   QibraSoftButton(
-                    label: 'Tahajjud',
+                    label: s.tahajjudLabel,
                     icon: Icons.nights_stay_outlined,
                     onTap: () => context.push(AppRoutes.tahajjud),
                   ),
                   QibraSoftButton(
-                    label: 'Mosques',
+                    label: s.mosquesLabel,
                     icon: Icons.mosque,
                     onTap: () => context.push(AppRoutes.mosques),
                   ),
@@ -291,7 +290,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 8),
                 child: Text(
-                  'Calculation method',
+                  AppStrings.of(context).calculationMethodLower,
                   style: AppTextStyles.titleMedium
                       .copyWith(color: colors.textPrimary),
                 ),
