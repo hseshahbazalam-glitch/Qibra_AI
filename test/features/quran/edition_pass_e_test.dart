@@ -550,29 +550,21 @@ void main() {
     );
   });
 
-  testWidgets('end-to-end: the loader really reads a bundled asset file',
-      (tester) async {
-    // runAsync: real file IO cannot complete inside fake-async pump
-    // time. The catalog's test-env branch (env flag OR live test
-    // binding — CI has shipped without the former) reads the same
-    // assetPath from disk and parses inline; the bundle+isolate pair
-    // would never resolve here. The real-time timeout is the tripwire:
-    // if that branch stops firing this test fails in 45s naming the
-    // hang, instead of eating the framework's 10-minute clock.
-    Map<String, String>? map;
-    Object? hang;
-    await tester.runAsync(() async {
-      try {
-        map = await UrduEditionCatalog.instance
-            .ensure('ur_junagarhi')
-            .timeout(const Duration(seconds: 45));
-      } catch (e) {
-        hang = e;
-      }
-    });
-    expect(hang, isNull,
-        reason: 'loader must not await bundle/isolate machinery under a '
-            'test binding — it cannot complete there');
+  test('end-to-end: the loader really reads a bundled asset file',
+      () async {
+    // A plain test(), NOT testWidgets: the fake-async zone of
+    // testWidgets never dispatches the rootBundle/isolate completions —
+    // not even through runAsync (CI-proven: the awaited future sat dead
+    // for 45 real seconds, tripwire below). A plain test runs on the
+    // root zone, so whichever branch _underFlutterTest picks completes:
+    // the disk read inline, or the real bundle+isolate pair with a real
+    // event loop to receive it. This is the same ensure() production
+    // calls, on the same registered asset bytes.
+    final map = await UrduEditionCatalog.instance
+        .ensure('ur_junagarhi')
+        .timeout(const Duration(seconds: 45),
+            onTimeout: () => throw StateError(
+                'loader hung — no branch completed in 45s of real time'));
     expect(map, isNotNull);
     expect(map!['112:1'], 'آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے');
     expect(UrduEditionCatalog.instance.loadedIds, contains('ur_junagarhi'));
