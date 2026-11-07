@@ -341,6 +341,7 @@ class PrayerTimesScreen extends ConsumerWidget {
     final s = AppStrings.of(context);
     final settings = ref.read(prayerSettingsProvider);
     final location = ref.read(locationProvider).location;
+    final tz = location?.timezone;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -416,9 +417,8 @@ class PrayerTimesScreen extends ConsumerWidget {
                   _WhyRow(
                     icon: Icons.schedule_rounded,
                     title: s.whyTimezoneTitle,
-                    body: (location?.timezone != null &&
-                            location!.timezone!.isNotEmpty)
-                        ? s.timezoneResolvedBody(location!.timezone!)
+                    body: tz != null && tz.isNotEmpty
+                        ? s.timezoneResolvedBody(tz)
                         : s.timezoneDeviceFallback,
                   ),
                   const SizedBox(height: 16),
