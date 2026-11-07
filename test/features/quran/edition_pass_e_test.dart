@@ -552,24 +552,31 @@ void main() {
 
   testWidgets('end-to-end: the loader really reads a bundled asset file',
       (tester) async {
-    // WHY testWidgets and not a plain test(): the loader's disk branch
-    // was CI-proven to RUN to completion under the harness (the run log
-    // printed read HIT 1393273b before the tripwire fired) — the bytes
-    // are read, parsed, stored inline with zero awaits — yet a plain
-    // test()'s await of the already-complete future is never resumed:
-    // the file's binding guards that zone's microtask delivery
-    // forever (no pump exists to drain it). testWidgets owns a clock
-    // that DOES flush — exactly how the t8 render test rides this same
-    // ensure() green. So: start the REAL load (no overrides), pump once
-    // so the fake clock ticks past any bookkeeping hop, then await the
-    // (by then already-complete) load future and assert through the
-    // catalog's own synchronous eyes — cache and order included.
+    // The zone law this file paid for in full: under its binding a
+    // plain test()'s await of the loader's future is never resumed
+    // (CI: 'read HIT 1393273b' printed, the future completed inline —
+    // and only the tripwire woke the test), and a testWidgets body's
+    // direct await strands the same way (CI: 10-min clock, zero body
+    // frames). The ONLY future delivery CI has proven green here is
+    // one the widget tree observes through pumps — t8's render rides
+    // the very same ensure(). So the e2e hands the REAL future (no
+    // overrides — disk branch completes inline before the first
+    // frame) to a FutureBuilder and asserts the painted truth. If the
+    // branch ever misses, the frame names itself 'PENDING:…' — a
+    // readable failure at second one, not a hang at minute ten.
     final catalog = UrduEditionCatalog.instance;
     final fly = catalog.ensure('ur_junagarhi');
-    await tester.pump(const Duration(seconds: 1));
-    final map = await fly;
-    expect(map, isNotNull);
-    expect(map!['112:1'], 'آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے');
+    await tester.pumpWidget(MaterialApp(
+      home: FutureBuilder<Map<String, String>?>(
+        future: fly,
+        builder: (context, snapshot) => Text(
+          snapshot.data?['112:1'] ?? 'PENDING:${snapshot.connectionState}',
+        ),
+      ),
+    ));
+    await tester.pump();
+    expect(find.text('آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے'),
+        findsOneWidget);
     expect(catalog.loadedIds, contains('ur_junagarhi'));
   });
 }
