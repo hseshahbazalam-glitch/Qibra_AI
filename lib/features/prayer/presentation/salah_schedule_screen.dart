@@ -76,10 +76,10 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
     final totalSeconds = displayCountdown?.inSeconds.abs() ?? 0;
     final h = totalSeconds ~/ 3600;
     final m = (totalSeconds % 3600) ~/ 60;
-    final s = totalSeconds % 60;
+    final sec = totalSeconds % 60;
     final formattedCountdown = displayCountdown == null
         ? '—'
-        : '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+        : '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
 
     return Scaffold(
       backgroundColor: colors.background,
