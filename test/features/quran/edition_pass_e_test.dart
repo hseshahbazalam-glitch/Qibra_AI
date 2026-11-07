@@ -552,12 +552,14 @@ void main() {
 
   test('end-to-end: the loader really reads a bundled asset file',
       () async {
-    // The loader is disk-first (File.existsSync decides), so under the
-    // test harness ensure() completes inline — no bundle/isolate await
-    // for any zone to strand (that pair sat dead through a 45s
-    // tripwire AND a plain test()'s real clock: CI-proven, twice). The
-    // 25s guard lands before the framework's 30s test timeout so a
-    // regression names itself instead of eating the clock.
+    // The loader is disk-first and decides by attempting the read (the
+    // exact primitive E5's file pins exercise green on CI — a stat
+    // probe sat wrong here once), so ensure() completes inline under
+    // the harness: no bundle/isolate await for any zone to strand (that
+    // pair sat dead through a 45s tripwire AND a plain test()'s real
+    // clock: CI-proven, twice). The 25s guard lands before the
+    // framework's 30s test timeout so a regression names itself
+    // instead of eating the clock.
     final map = await UrduEditionCatalog.instance
         .ensure('ur_junagarhi')
         .timeout(const Duration(seconds: 25),

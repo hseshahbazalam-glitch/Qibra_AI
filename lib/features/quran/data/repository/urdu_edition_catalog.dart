@@ -103,22 +103,22 @@ class UrduEditionCatalog {
     final edition = EditionResolver.resolve(id);
     if (edition == null) return null;
     try {
+      // Disk-first, decided by physics, not by sniffing the room: a
+      // registered asset's relative path resolves ONLY where the asset
+      // tree sits next to the process — the test harness and desktop
+      // dev runs from the repo. A shipped mobile build has no such
+      // path (CWD is not the bundle), so devices fall through to
+      // rootBundle. The read is attempted, not stat-ed: open() is the
+      // primitive the E5 file pins already exercise green on CI, while
+      // a stat-based probe was proven to mislead once this very branch
+      // was chosen. The disk bytes go through the same parser inline —
+      // the same registered file, no unwaitable port machinery (the
+      // bundle+isolate pair completes over channels a test zone never
+      // dispatches: CI-proven three ways before this landed).
       dynamic decoded;
-      final file = File(edition.assetPath);
-      if (file.existsSync()) {
-        // Disk-first, decided by physics rather than environment
-        // sniffing: the relative path of a registered asset resolves
-        // ONLY where the asset tree sits next to the process — the
-        // test harness (CWD = package root; the E5 file reads prove the
-        // same bytes reachable on CI) and desktop dev runs from the
-        // repo. A shipped mobile build has no such path (its CWD is
-        // not the bundle), so devices fall through to rootBundle. This
-        // is also the branch tests CAN await: the bundle+isolate pair
-        // completes over ports a fake-async zone never dispatches
-        // (CI-proven twice — 10 minutes, then a 45s tripwire, both
-        // dead); the disk read is the same registered bytes through the
-        // same parser, inline, no unwaitable machinery.
-        decoded = jsonDecode(file.readAsStringSync());
+      final read = _tryReadAssetFile(edition.assetPath);
+      if (read != null) {
+        decoded = jsonDecode(read);
       } else {
         final jsonString = await rootBundle.loadString(edition.assetPath);
         decoded = await Isolate.run(() => _parseJsonIsolate(jsonString));
@@ -129,6 +129,17 @@ class UrduEditionCatalog {
       return map;
     } catch (e) {
       debugPrint('[EDITION] load failed ($id): $e');
+      return null;
+    }
+  }
+
+  /// One-shot attempt: read the file if the process can; null on any
+  /// failure (missing path, permissions, a device bundle layout). Never
+  /// throws — the caller treats null as "use the bundle".
+  static String? _tryReadAssetFile(String path) {
+    try {
+      return File(path).readAsStringSync();
+    } catch (_) {
       return null;
     }
   }
