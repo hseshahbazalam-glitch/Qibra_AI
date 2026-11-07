@@ -439,7 +439,10 @@ class PrayerTimesScreen extends ConsumerWidget {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            s.whyMosqueNote,
+                            'Mosque calendars round times and follow local '
+                            'ijtihad, so a minute or two of difference is '
+                            'normal. For your local jamaat schedule, ask '
+                            'your mosque.',
                             style: AppTextStyles.bodySmall.copyWith(
                               color: colors.textSecondary,
                               height: 1.5,
@@ -486,7 +489,6 @@ class _PrayerHeroBody extends ConsumerWidget {
     // the tab-level ListView rebuilds at minute cadence only.
     final tick = ref.watch(currentTimeProvider.select((a) => a.value));
     final colors = QibraColors.of(context);
-    final s = AppStrings.of(context);
     if (isLoading) {
       return QibraStatus.skeleton(height: 148);
     }
@@ -496,7 +498,7 @@ class _PrayerHeroBody extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            s.nextPrayer,
+            'Next prayer',
             style: AppTextStyles.labelMedium
                 .copyWith(color: colors.textSecondary),
           ),
@@ -509,8 +511,8 @@ class _PrayerHeroBody extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             hasLocation
-                ? s.timesWillAppearOnceCalculated
-                : s.enableLocationForTimes,
+                ? 'Times will appear once they can be calculated.'
+                : 'Enable location to calculate prayer times.',
             style:
                 AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
           ),
@@ -531,7 +533,7 @@ class _PrayerHeroBody extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    s.nextPrayerCaps,
+                    'NEXT PRAYER',
                     style: AppTextStyles.labelSmall.copyWith(
                       color: colors.textSecondary,
                       letterSpacing: 1.8,
@@ -544,32 +546,28 @@ class _PrayerHeroBody extends ConsumerWidget {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        s.prayerDisplayName(
-                            prayer.type.name, prayer.type.arabicName),
+                        prayer.type.name,
                         style: AppTextStyles.headlineLarge
                             .copyWith(color: colors.textPrimary),
                       ),
-                      if (s.locale.languageCode == 'en') ...[
-                        const SizedBox(width: 10),
-                        Text(
-                          prayer.type.arabicName,
-                          style: AppArabicStyles.quranMedium
-                              .copyWith(color: colors.textPrimary),
-                        ),
-                      ],
+                      const SizedBox(width: 10),
+                      Text(
+                        prayer.type.arabicName,
+                        style: AppArabicStyles.quranMedium
+                            .copyWith(color: colors.textPrimary),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    s.atTime(prayer.formattedTime),
+                    'at ${prayer.formattedTime}',
                     style: AppTextStyles.titleSmall
                         .copyWith(color: colors.textSecondary),
                   ),
                   if (currentPrayerName != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      s.currentWindow(s.prayerDisplayName(
-                          currentPrayerName!, prayer.type.arabicName)),
+                      'Current window: $currentPrayerName',
                       style: AppTextStyles.labelSmall
                           .copyWith(color: colors.textTertiary),
                     ),
@@ -618,14 +616,14 @@ class _PrayerHeroBody extends ConsumerWidget {
                   icon: Icons.calculate_outlined,
                   label:
                       '${dailyTimes!.method.shortName} · '
-                      '${settings.asrMethod == AsrMethod.hanafi ? s.hanafiAsr : s.standardAsr}'),
+                      '${settings.asrMethod == AsrMethod.hanafi ? 'Hanafi' : 'Standard'} Asr'),
             _HeroChip(
               icon: settings.enableNotifications && settings.enableAdhan
                   ? Icons.notifications_outlined
                   : Icons.notifications_off,
               label: settings.enableNotifications && settings.enableAdhan
-                  ? s.adhanAlertsOn
-                  : s.azanAlertsOff,
+                  ? 'Adhan alerts on'
+                  : 'Adhan alerts off',
             ),
           ],
         ),
@@ -752,18 +750,17 @@ class _SunriseRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final s = AppStrings.of(context);
     return ListTile(
       dense: true,
       leading: Icon(prayer.type.icon,
           color: colors.textSecondary, size: 20),
       title: Text(
-        s.sunriseName,
+        'Sunrise',
         style: AppTextStyles.titleSmall
             .copyWith(color: colors.textSecondary),
       ),
       subtitle: Text(
-        s.dhuhrAfterSunrise,
+        'Dhuhr begins after sunrise ends',
         style:
             AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
       ),
@@ -794,7 +791,6 @@ class _PrayerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final s = AppStrings.of(context);
     final prayed = record?.status == PrayerStatus.prayed ||
         record?.status == PrayerStatus.prayedInMosque ||
         record?.status == PrayerStatus.makeup;
@@ -823,7 +819,7 @@ class _PrayerRow extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              s.prayerDisplayName(prayer.type.name, prayer.type.arabicName),
+              prayer.type.name,
               style: AppTextStyles.titleSmall.copyWith(
                 color: colors.textPrimary,
                 fontWeight: isNext ? FontWeight.w700 : FontWeight.w600,
@@ -839,7 +835,7 @@ class _PrayerRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  s.pillNext,
+                  'Next',
                   style: AppTextStyles.labelSmall
                       .copyWith(color: colors.primary),
                 ),
@@ -855,7 +851,7 @@ class _PrayerRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  s.pillNow,
+                  'Now',
                   style: AppTextStyles.labelSmall
                       .copyWith(color: colors.accent),
                 ),
@@ -863,13 +859,11 @@ class _PrayerRow extends StatelessWidget {
             ],
           ],
         ),
-        subtitle: s.locale.languageCode == 'en'
-            ? Text(
-                prayer.type.arabicName,
-                style: AppArabicStyles.quranSmall
-                    .copyWith(color: colors.textSecondary, fontSize: 14),
-              )
-            : null,
+        subtitle: Text(
+          prayer.type.arabicName,
+          style: AppArabicStyles.quranSmall
+              .copyWith(color: colors.textSecondary, fontSize: 14),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
