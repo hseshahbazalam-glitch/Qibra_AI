@@ -583,7 +583,7 @@ void main() {
     // If the future strands, this names the exact snapshot (state +
     // data) the frame saw — waiting vs done-with-null vs done-with-map
     // are three different worlds and the log must not have to guess.
-    expect(seen!.connectionState, AsyncConnectionState.done,
+    expect(seen!.data, isNotNull,
         reason: 'loader snapshot was: $seen');
     expect(find.text('آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے'),
         findsOneWidget);
