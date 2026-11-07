@@ -319,8 +319,7 @@ class PrayerTimesScreen extends ConsumerWidget {
               const Divider(),
               SwitchListTile.adaptive(
                 title: Text(AppStrings.of(context).hanafiAsr),
-                subtitle: const Text(
-                    'Later Asr time (shadow ratio 2 instead of 1)'),
+                subtitle: Text(AppStrings.of(context).laterAsrSubtitle),
                 value: current.asrMethod == AsrMethod.hanafi,
                 activeThumbColor: colors.primary,
                 onChanged: (value) {
