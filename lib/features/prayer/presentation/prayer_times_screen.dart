@@ -377,19 +377,22 @@ class PrayerTimesScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Why is my prayer time different?',
+                    s.whyTimeDifferent,
                     style: AppTextStyles.titleLarge
                         .copyWith(color: colors.textPrimary),
                   ),
                   const SizedBox(height: 12),
                   _WhyRow(
                     icon: Icons.calculate_outlined,
-                    title: 'Calculation method',
-                    body:
-                        '${settings.calculationMethod.fullName} — '
-                        'Fajr angle ${settings.calculationMethod.fajrAngle}°, '
-                        'Isha '
-                        '${settings.calculationMethod.useIshaInterval ? '${settings.calculationMethod.ishaIntervalMinutes} min after Maghrib' : '${settings.calculationMethod.ishaAngle}°'}.',
+                    title: s.calculationMethodLower,
+                    body: s.whyMethodBody(
+                      settings.calculationMethod.fullName,
+                      '${settings.calculationMethod.fajrAngle}',
+                      settings.calculationMethod.useIshaInterval
+                          ? s.whyIshaInterval(
+                              settings.calculationMethod.ishaIntervalMinutes)
+                          : '${settings.calculationMethod.ishaAngle}°',
+                    ),
                   ),
                   _WhyRow(
                     icon: Icons.shield_outlined,
