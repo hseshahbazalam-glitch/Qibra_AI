@@ -338,6 +338,7 @@ class PrayerTimesScreen extends ConsumerWidget {
 
   void _showWhySheet(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     final settings = ref.read(prayerSettingsProvider);
     final location = ref.read(locationProvider).location;
     showModalBottomSheet<void>(
@@ -349,7 +350,9 @@ class PrayerTimesScreen extends ConsumerWidget {
       ),
       builder: (sheetContext) {
         final adjustments = settings.adjustments.entries
-            .map((e) => '${e.key.name} ${e.value > 0 ? '+' : ''}${e.value}m')
+            .map((e) =>
+                '${s.prayerDisplayName(e.key.name, e.key.arabicName)} '
+                '${e.value > 0 ? '+' : ''}${e.value}m')
             .join(' · ');
         return SafeArea(
           child: DraggableScrollableSheet(
