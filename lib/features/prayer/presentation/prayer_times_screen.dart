@@ -409,10 +409,9 @@ class PrayerTimesScreen extends ConsumerWidget {
                   ),
                   _WhyRow(
                     icon: Icons.tune_rounded,
-                    title: 'Manual adjustments',
-                    body: adjustments.isEmpty
-                        ? 'None — times shown are pure calculated values.'
-                        : adjustments,
+                    title: s.manualAdjustments,
+                    body:
+                        adjustments.isEmpty ? s.adjustmentsNone : adjustments,
                   ),
                   _WhyRow(
                     icon: Icons.schedule_rounded,
@@ -442,10 +441,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Mosque calendars round times and follow local '
-                            'ijtihad, so a minute or two of difference is '
-                            'normal. For your local jamaat schedule, ask '
-                            'your mosque.',
+                            s.whyMosqueNote,
                             style: AppTextStyles.bodySmall.copyWith(
                               color: colors.textSecondary,
                               height: 1.5,
