@@ -61,8 +61,7 @@ class _PrayerStatisticsScreenState
             ? Padding(
                 padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
                 child: QibraStatus.loading(
-                    message:
-                        AppStrings.of(context).loadingPrayerLog),
+                    message: 'Loading your prayer log…'),
               )
             : CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -98,7 +97,7 @@ class _PrayerStatisticsScreenState
               ),
               centerTitle: true,
               title: Text(
-                AppStrings.of(context).prayerStatisticsTitle,
+                'Prayer Statistics',
                 style: AppTextStyles.titleLarge.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w900,
@@ -125,7 +124,7 @@ class _PrayerStatisticsScreenState
                     Expanded(
                       child: _buildStatCard(
                         icon: Icons.check_circle_rounded,
-                        label: AppStrings.of(context).prayedLabel,
+                        label: 'Prayed',
                         value: '${periodStats.prayedCount}',
                         color: colors.primary,
                       ),
@@ -134,7 +133,7 @@ class _PrayerStatisticsScreenState
                     Expanded(
                       child: _buildStatCard(
                         icon: Icons.mosque_rounded,
-                        label: AppStrings.of(context).inMosqueLabel,
+                        label: 'In mosque',
                         value: '${periodStats.inMosqueCount}',
                         color: colors.primary,
                       ),
@@ -143,7 +142,7 @@ class _PrayerStatisticsScreenState
                     Expanded(
                       child: _buildStatCard(
                         icon: Icons.cancel_rounded,
-                        label: AppStrings.of(context).missedLabel,
+                        label: 'Missed',
                         value: '${periodStats.missedCount}',
                         color: QibraNavy.red,
                       ),
@@ -256,12 +255,9 @@ class _PrayerStatisticsScreenState
       ),
       child: Row(
         children: [
-          _buildPeriodTab(AppStrings.of(context).periodThisWeek,
-              StatsPeriod.thisWeek),
-          _buildPeriodTab(AppStrings.of(context).periodThisMonth,
-              StatsPeriod.thisMonth),
-          _buildPeriodTab(AppStrings.of(context).periodAllTime,
-              StatsPeriod.allTime),
+          _buildPeriodTab('This Week', StatsPeriod.thisWeek),
+          _buildPeriodTab('This Month', StatsPeriod.thisMonth),
+          _buildPeriodTab('All Time', StatsPeriod.allTime),
         ],
       ),
     );
@@ -317,7 +313,7 @@ class _PrayerStatisticsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppStrings.of(context).prayerCompletion,
+                      'Prayer Completion',
                       style: AppTextStyles.titleSmall.copyWith(
                         color: colors.textSecondary,
                         fontWeight: FontWeight.w700,
@@ -358,9 +354,8 @@ class _PrayerStatisticsScreenState
           const SizedBox(height: 12),
           Text(
             stats.totalPrayers == 0
-                ? AppStrings.of(context).markPrayersHint
-                : AppStrings.of(context)
-                    .recordedPrayedOf(stats.prayedCount, stats.totalPrayers),
+                ? 'Mark prayers on the Prayer tab to see completion here.'
+                : '${stats.prayedCount} of ${stats.totalPrayers} recorded prayers were marked prayed.',
             style: AppTextStyles.labelSmall.copyWith(
               color: colors.textSecondary,
               fontWeight: FontWeight.w600,
@@ -453,7 +448,7 @@ class _PrayerStatisticsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppStrings.of(context).prayerStreakCardTitle,
+                  'Prayer Streak',
                   style: AppTextStyles.labelMedium.copyWith(
                     color: colors.onPrimary.withValues(alpha: 0.85),
                     fontWeight: FontWeight.w700,
@@ -475,9 +470,7 @@ class _PrayerStatisticsScreenState
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
-                        stats.currentStreak == 1
-                            ? AppStrings.of(context).unitDayUpper
-                            : AppStrings.of(context).unitDaysUpper,
+                        stats.currentStreak == 1 ? 'Day' : 'Days',
                         style: AppTextStyles.titleSmall.copyWith(
                           color: colors.onPrimary.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w800,
@@ -492,7 +485,7 @@ class _PrayerStatisticsScreenState
           Column(
             children: [
               Text(
-                AppStrings.of(context).bestLabel,
+                'Best',
                 style: AppTextStyles.labelSmall.copyWith(
                   color: colors.onPrimary.withValues(alpha: 0.85),
                   fontWeight: FontWeight.w600,
@@ -500,7 +493,7 @@ class _PrayerStatisticsScreenState
                 ),
               ),
               Text(
-                AppStrings.of(context).daysCount(stats.longestStreak),
+                '${stats.longestStreak} Days',
                 style: AppTextStyles.titleSmall.copyWith(
                   color: colors.onPrimary,
                   fontWeight: FontWeight.w900,
@@ -528,7 +521,7 @@ class _PrayerStatisticsScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppStrings.of(context).last7Days,
+            'Last 7 days',
             style: AppTextStyles.titleSmall.copyWith(
               color: colors.textPrimary,
               fontWeight: FontWeight.w800,
@@ -601,14 +594,10 @@ class _PrayerStatisticsScreenState
   Widget _buildAchievementsCard(PrayerStatistics stats) {
     final colors = QibraColors.of(context);
     final badges = [
-      _Badge(AppStrings.of(context).daysCount(7),
-          stats.longestStreak >= 7),
-      _Badge(AppStrings.of(context).daysCount(30),
-          stats.longestStreak >= 30),
-      _Badge(AppStrings.of(context).firstPrayerBadge,
-          stats.prayedCount > 0),
-      _Badge(AppStrings.of(context).daysCount(100),
-          stats.longestStreak >= 100),
+      _Badge('7 Days', stats.longestStreak >= 7),
+      _Badge('30 Days', stats.longestStreak >= 30),
+      _Badge('First prayer', stats.prayedCount > 0),
+      _Badge('100 Days', stats.longestStreak >= 100),
     ];
     final unlocked = badges.where((badge) => badge.unlocked).length;
     return Container(
@@ -624,7 +613,7 @@ class _PrayerStatisticsScreenState
           Row(
             children: [
               Text(
-                AppStrings.of(context).milestonesTitle,
+                'Milestones',
                 style: AppTextStyles.titleSmall.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w800,

@@ -31,9 +31,9 @@ import 'package:qibra_ai/core/l10n/app_strings.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  String _locationLabel(LocationState location, AppStrings s) {
+  String _locationLabel(LocationState location) {
     final loc = location.location;
-    if (loc == null) return s.locationNotSet;
+    if (loc == null) return 'Location not set';
     if (loc.city == 'UNKNOWN' || loc.country == 'UNKNOWN') return 'UNKNOWN';
     return loc.displayName;
   }
@@ -41,7 +41,6 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final s = AppStrings.of(context);
     final name = ref.watch(userDisplayNameProvider);
     // P0 perf (fix pass): nothing below watches the 1-second ticker —
     // that lives solely inside HomeNightHero's live countdown body.
@@ -111,7 +110,7 @@ class HomeScreen extends ConsumerWidget {
             HomeNightHero(
               name: name,
               now: now,
-              locationLabel: _locationLabel(location, s),
+              locationLabel: _locationLabel(location),
               methodShortName: dailyTimes?.method.shortName,
               notificationsOn:
                   prayerSettings.enableNotifications && prayerSettings.enableAdhan,
@@ -124,8 +123,8 @@ class HomeScreen extends ConsumerWidget {
             // ── 3b · Prayer times strip ─────────────────────────
             if (dailyTimes == null && !location.isLoading)
               QibraStatus.empty(
-                title: s.prayerTimesUnavailable,
-                message: s.timesAppearAfterLocation,
+                title: 'Prayer times unavailable',
+                message: 'Times appear after a location is set.',
               )
             else if (dailyTimes != null)
               HomePrayerStrip(
@@ -157,7 +156,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 22),
 
             // ── 6 · Daily content ───────────────────────────────
-            QibraSectionHeader(title: s.sectionToday),
+            const QibraSectionHeader(title: 'Today'),
             dailyVerse.when(
               data: (bundle) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -173,8 +172,9 @@ class HomeScreen extends ConsumerWidget {
               error: (_, __) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: QibraStatus.error(
-                  title: s.ayahUnavailable,
-                  message: s.dailyAyahLoadingNote,
+                  title: 'Ayah unavailable',
+                  message:
+                      'The daily ayah will appear when offline files finish loading.',
                   onRetry: () => ref.invalidate(dailyVerseBundleProvider),
                 ),
               ),
@@ -194,8 +194,8 @@ class HomeScreen extends ConsumerWidget {
               error: (_, __) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: QibraStatus.error(
-                  title: s.hadithUnavailable,
-                  message: s.cachedCollectionsLoading,
+                  title: 'Hadith unavailable',
+                  message: 'Cached collections will appear when they finish loading.',
                   onRetry: () => ref.invalidate(dailyHadithProvider),
                 ),
               ),
@@ -208,8 +208,8 @@ class HomeScreen extends ConsumerWidget {
 
             // ── 7 · Spiritual progress ──────────────────────────
             QibraSectionHeader(
-              title: s.sectionYourProgress,
-              actionLabel: s.actionDetails,
+              title: 'Your progress',
+              actionLabel: 'Details',
               onAction: () => context.push(AppRoutes.prayerStatistics),
             ),
             HomeProgressPanel(
@@ -223,40 +223,40 @@ class HomeScreen extends ConsumerWidget {
 
             // ── 8 · Quick actions ───────────────────────────────
             QibraSectionHeader(
-              title: s.sectionQuickActions,
-              actionLabel: s.navMore,
+              title: 'Quick actions',
+              actionLabel: 'More',
               onAction: () => context.go(AppRoutes.more),
             ),
             HomeQuickActions(
               actions: [
                 HomeQuickAction(
                   icon: Icons.explore_outlined,
-                  label: s.toolQibla,
+                  label: 'Qibla',
                   onTap: () => context.go(AppRoutes.qibla),
                 ),
                 HomeQuickAction(
                   icon: Icons.radio_button_checked,
-                  label: s.toolTasbih,
+                  label: 'Tasbih',
                   onTap: () => context.go(AppRoutes.tasbih),
                 ),
                 HomeQuickAction(
                   icon: Icons.volunteer_activism_outlined,
-                  label: s.toolDuas,
+                  label: 'Duas',
                   onTap: () => context.go(AppRoutes.dua),
                 ),
                 HomeQuickAction(
                   icon: Icons.calendar_month_outlined,
-                  label: s.toolCalendar,
+                  label: 'Calendar',
                   onTap: () => context.push(AppRoutes.islamicCalendar),
                 ),
                 HomeQuickAction(
                   icon: Icons.library_books_outlined,
-                  label: s.navHadith,
+                  label: 'Hadith',
                   onTap: () => context.go(AppRoutes.hadith),
                 ),
                 HomeQuickAction(
                   icon: Icons.grid_view_rounded,
-                  label: s.navMore,
+                  label: 'More',
                   onTap: () => context.go(AppRoutes.more),
                 ),
               ],
