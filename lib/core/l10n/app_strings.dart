@@ -1234,84 +1234,46 @@ class AppStrings {
   ];
 
   /// weekday 1=Monday..7=Sunday (DateTime.weekday).
-  String dayName(int weekday) {
-    final i = (weekday - 1) % 7;
-    switch (_code) {
-      case 'ar':
-        return _dayNamesAr[i];
-      case 'ur':
-        return _dayNamesUr[i];
-      default:
-        return _dayNamesEn[i];
-    }
-  }
+  String dayName(int weekday) => _t(
+      _dayNamesEn[(weekday - 1) % 7],
+      _dayNamesAr[(weekday - 1) % 7],
+      _dayNamesUr[(weekday - 1) % 7]);
 
   /// Gregorian month 1..12.
-  String monthName(int month) {
-    final i = (month - 1) % 12;
-    switch (_code) {
-      case 'ar':
-        return _monthsAr[i];
-      case 'ur':
-        return _monthsUr[i];
-      default:
-        return _monthsEn[i];
-    }
-  }
+  String monthName(int month) => _t(
+      _monthsEn[(month - 1) % 12],
+      _monthsAr[(month - 1) % 12],
+      _monthsUr[(month - 1) % 12]);
 
   /// Hijri month 1..12. EN callers pass their own long month name
   /// (the package value), so the English render is untouched; Arabic
   /// borrows the canonical list, Urdu the standard Urdu month names.
-  String hijriMonthName(int hijriMonth, String enFallback) {
-    final i = (hijriMonth - 1) % 12;
-    switch (_code) {
-      case 'ar':
-        return AppIslamicConstants.hijriMonthsArabic[i];
-      case 'ur':
-        return _hijriMonthsUr[i];
-      default:
-        return enFallback;
-    }
-  }
+  String hijriMonthName(int hijriMonth, String enFallback) => _t(
+      enFallback,
+      AppIslamicConstants.hijriMonthsArabic[(hijriMonth - 1) % 12],
+      _hijriMonthsUr[(hijriMonth - 1) % 12]);
 
   /// Prayer names: EN keeps the current word; AR renders the model's
   /// arabicName; UR gets its own table (ar and ur can diverge — the
   /// pass decision). Unknown words pass through untouched.
-  String prayerDisplayName(String en, String arabicName) {
-    switch (_code) {
-      case 'ar':
-        return arabicName;
-      case 'ur':
+  String prayerDisplayName(String en, String arabicName) => _t(
+        en,
+        arabicName,
         switch (en) {
-          case 'Fajr':
-            return 'فجر';
-          case 'Sunrise':
-            return 'طلوعِ آفتاب';
-          case 'Dhuhr':
-            return 'ظہر';
-          case 'Asr':
-            return 'عصر';
-          case 'Maghrib':
-            return 'مغرب';
-          case 'Isha':
-            return 'عشاء';
-          default:
-            return en;
-        }
-      default:
-        return en;
-    }
-  }
+          'Fajr' => 'فجر',
+          'Sunrise' => 'طلوعِ آفتاب',
+          'Dhuhr' => 'ظہر',
+          'Asr' => 'عصر',
+          'Maghrib' => 'مغرب',
+          'Isha' => 'عشاء',
+          _ => en,
+        },
+      );
 
-  /// The hero greeting, hour-routed exactly like the home widget did
-  /// before this pass (night <4, morning <12, afternoon <17, else
-  /// evening) — so EN output is byte-identical.
-  String greetingForHour(int hour) {
-    if (hour < 4) return greetingPeacefulNight;
-    if (hour < 12) return greetingGoodMorning;
-    if (hour < 17) return greetingGoodAfternoon;
-    return greetingGoodEvening;
-  }
+  /// The active language code (en/ar/ur). Screens branch on this instead
+  /// of reaching for the raw locale, so every l10n member is a String
+  /// member (battery G17 shape rule).
+  String get languageCode => _code;
 
   String _t(String en, String ar, String ur) {
     switch (_code) {

@@ -549,7 +549,7 @@ class _PrayerHeroBody extends ConsumerWidget {
                         style: AppTextStyles.headlineLarge
                             .copyWith(color: colors.textPrimary),
                       ),
-                      if (s.locale.languageCode == 'en') ...[
+                      if (s.languageCode == 'en') ...[
                         const SizedBox(width: 10),
                         Text(
                           prayer.type.arabicName,
@@ -863,7 +863,7 @@ class _PrayerRow extends StatelessWidget {
             ],
           ],
         ),
-        subtitle: s.locale.languageCode == 'en'
+        subtitle: s.languageCode == 'en'
             ? Text(
                 prayer.type.arabicName,
                 style: AppArabicStyles.quranSmall

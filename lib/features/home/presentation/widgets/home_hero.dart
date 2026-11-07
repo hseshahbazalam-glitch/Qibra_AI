@@ -49,9 +49,19 @@ class HomeNightHero extends StatelessWidget {
   final bool isLoading;
   final bool hasLocation;
 
-  // A2: hour-routed in AppStrings (greetingForHour) so the four words
-  // localize together and the routing table lives with the strings.
-  String _greeting(AppStrings s) => s.greetingForHour(now.hour);
+  // A2: hour routed here, words owned by AppStrings getters, so the four
+  // greetings localize together and the routing matches the hero's old
+  // table exactly (night <4, morning <12, afternoon <17, else evening).
+  String _greeting(AppStrings s) {
+    final hour = now.hour;
+    return hour < 4
+        ? s.greetingPeacefulNight
+        : hour < 12
+            ? s.greetingGoodMorning
+            : hour < 17
+                ? s.greetingGoodAfternoon
+                : s.greetingGoodEvening;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -299,7 +309,7 @@ class _PrayerIdentity extends StatelessWidget {
     // The side arabicName label is shown only while the display name is
     // Latin — in ar/ur the name IS the Arabic-script word, so a second
     // Arabic label would print the same word twice.
-    final latinName = s.locale.languageCode == 'en';
+    final latinName = s.languageCode == 'en';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

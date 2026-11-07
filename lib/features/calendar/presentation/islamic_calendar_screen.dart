@@ -884,7 +884,7 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
                 Text(
                   // In ar the card's name IS the Arabic word — the twin
                   // line blanks to avoid printing it twice.
-                  AppStrings.of(context).locale.languageCode == 'ar'
+                  AppStrings.of(context).languageCode == 'ar'
                       ? ''
                       : event.nameArabic,
                   textDirection: TextDirection.rtl,
