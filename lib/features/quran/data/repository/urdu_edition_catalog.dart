@@ -116,16 +116,26 @@ class UrduEditionCatalog {
       // bundle+isolate pair completes over channels a test zone never
       // dispatches: CI-proven three ways before this landed).
       dynamic decoded;
+      // ignore: avoid_print
+      print('[EDITION-STEP] enter _load($id)');
       final read = _tryReadAssetFile(edition.assetPath);
+      // ignore: avoid_print
+      print('[EDITION-STEP] ${id}: read ${read == null ? 'MISS' : '${read.length}b'}');
       if (read != null) {
         decoded = jsonDecode(read);
+        // ignore: avoid_print
+        print('[EDITION-STEP] $id: decoded');
       } else {
         final jsonString = await rootBundle.loadString(edition.assetPath);
         decoded = await Isolate.run(() => _parseJsonIsolate(jsonString));
       }
       final map = parseUrduShape(decoded);
+      // ignore: avoid_print
+      print('[EDITION-STEP] $id: parsed ${map.length} keys');
       _loaded[id] = map;
       _evictOverflow();
+      // ignore: avoid_print
+      print('[EDITION-STEP] $id: stored');
       return map;
     } catch (e) {
       debugPrint('[EDITION] load failed ($id): $e');

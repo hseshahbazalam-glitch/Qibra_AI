@@ -577,6 +577,8 @@ void main() {
     // ignore: avoid_print
     print('[E2E] raw read ok: ${raw.length}b');
     final fly = catalog.ensure('ur_junagarhi');
+    // ignore: avoid_print
+    print('[E2E] ensure() returned; isCompleted via then-chain pending');
     AsyncSnapshot<Map<String, String>?>? seen;
     await tester.pumpWidget(MaterialApp(
       home: FutureBuilder<Map<String, String>?>(
@@ -591,6 +593,8 @@ void main() {
     ));
     await tester.pump();
     await tester.pump();
+    // ignore: avoid_print
+    print('[E2E] after pumps: snapshot=$seen');
     // If the future strands, this names the exact snapshot (state +
     // data) the frame saw — waiting vs done-with-null vs done-with-map
     // are three different worlds and the log must not have to guess.
