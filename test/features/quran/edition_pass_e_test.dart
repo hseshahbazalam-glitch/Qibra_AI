@@ -550,23 +550,26 @@ void main() {
     );
   });
 
-  test('end-to-end: the loader really reads a bundled asset file',
-      () async {
-    // The loader is disk-first and decides by attempting the read (the
-    // exact primitive E5's file pins exercise green on CI — a stat
-    // probe sat wrong here once), so ensure() completes inline under
-    // the harness: no bundle/isolate await for any zone to strand (that
-    // pair sat dead through a 45s tripwire AND a plain test()'s real
-    // clock: CI-proven, twice). The 25s guard lands before the
-    // framework's 30s test timeout so a regression names itself
-    // instead of eating the clock.
-    final map = await UrduEditionCatalog.instance
-        .ensure('ur_junagarhi')
-        .timeout(const Duration(seconds: 25),
-            onTimeout: () => throw StateError(
-                'loader hung — the disk branch did not complete in 25s'));
+  testWidgets('end-to-end: the loader really reads a bundled asset file',
+      (tester) async {
+    // WHY testWidgets and not a plain test(): the loader's disk branch
+    // was CI-proven to RUN to completion under the harness (the run log
+    // printed read HIT 1393273b before the tripwire fired) — the bytes
+    // are read, parsed, stored inline with zero awaits — yet a plain
+    // test()'s await of the already-complete future is never resumed:
+    // the file's binding guards that zone's microtask delivery
+    // forever (no pump exists to drain it). testWidgets owns a clock
+    // that DOES flush — exactly how the t8 render test rides this same
+    // ensure() green. So: start the REAL load (no overrides), pump once
+    // so the fake clock ticks past any bookkeeping hop, then await the
+    // (by then already-complete) load future and assert through the
+    // catalog's own synchronous eyes — cache and order included.
+    final catalog = UrduEditionCatalog.instance;
+    final fly = catalog.ensure('ur_junagarhi');
+    await tester.pump(const Duration(seconds: 1));
+    final map = await fly;
     expect(map, isNotNull);
     expect(map!['112:1'], 'آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے');
-    expect(UrduEditionCatalog.instance.loadedIds, contains('ur_junagarhi'));
+    expect(catalog.loadedIds, contains('ur_junagarhi'));
   });
 }
