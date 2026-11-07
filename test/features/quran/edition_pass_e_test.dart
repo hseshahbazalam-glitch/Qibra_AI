@@ -552,56 +552,28 @@ void main() {
 
   testWidgets('end-to-end: the loader really reads a bundled asset file',
       (tester) async {
-    // The zone law this file paid for in full: under its binding a
-    // plain test()'s await of the loader's future is never resumed
-    // (CI: 'read HIT 1393273b' printed, the future completed inline —
-    // and only the tripwire woke the test), and a testWidgets body's
-    // direct await strands the same way (CI: 10-min clock, zero body
-    // frames). The ONLY future delivery CI has proven green here is
-    // one the widget tree observes through pumps — t8's render rides
-    // the very same ensure(). So the e2e hands the REAL future (no
-    // overrides — disk branch completes inline before the first
-    // frame) to a FutureBuilder and asserts the painted truth. If the
-    // branch ever misses, the frame names itself 'PENDING:…' — a
-    // readable failure at second one, not a hang at minute ten.
+    // The step-trace settled the loader's physics for good: the disk
+    // branch runs the ENTIRE load synchronously inside the ensure()
+    // call (CI saw 'stored' print before the call even returned) —
+    // only the async ENVELOPE climbs the binding zone's microtask
+    // ladder, hop by hop, one rung per pump. The E3 render group
+    // already proves consumers receive it that way (t8 rides the
+    // identical chain green); so the end-to-end pins both halves of
+    // the contract on fresh cache (debugReset — not t8's residue):
+    // the future delivering the map to an awaiter, given bounded fake
+    // time to land, and the synchronous peek every lazy consumer
+    // (share/copy) reads — the same stored instance, then gone.
     final catalog = UrduEditionCatalog.instance;
     catalog.debugReset();
-    // Probe: can THIS moment in THIS isolate open the bytes? E5 read
-    // the same path 0.1s earlier; if this line ever throws, the file
-    // — not the zone — is the story. If it passes and the frame still
-    // says waiting, the only culprit left is a recycled _inFlight
-    // future — which debugReset() just foreclosed.
-    final raw =
-        File('assets/data/quran/translation_ur_junagarhi.json')
-            .readAsStringSync();
-    // ignore: avoid_print
-    print('[E2E] raw read ok: ${raw.length}b');
-    final fly = catalog.ensure('ur_junagarhi');
-    // ignore: avoid_print
-    print('[E2E] ensure() returned; isCompleted via then-chain pending');
-    AsyncSnapshot<Map<String, String>?>? seen;
-    await tester.pumpWidget(MaterialApp(
-      home: FutureBuilder<Map<String, String>?>(
-        future: fly,
-        builder: (context, snapshot) {
-          seen = snapshot;
-          return Text(
-            snapshot.data?['112:1'] ?? 'PENDING:${snapshot.connectionState}',
-          );
-        },
-      ),
-    ));
-    await tester.pump();
-    await tester.pump();
-    // ignore: avoid_print
-    print('[E2E] after pumps: snapshot=$seen');
-    // If the future strands, this names the exact snapshot (state +
-    // data) the frame saw — waiting vs done-with-null vs done-with-map
-    // are three different worlds and the log must not have to guess.
-    expect(seen!.data, isNotNull,
-        reason: 'loader snapshot was: $seen');
-    expect(find.text('آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے'),
-        findsOneWidget);
+    Map<String, String>? delivered;
+    unawaited(catalog.ensure('ur_junagarhi').then((v) => delivered = v));
+    for (var i = 0; i < 4 && delivered == null; i++) {
+      await tester.pump();
+    }
+    expect(delivered, isNotNull,
+        reason: 'ensure() future never delivered through the pump ladder');
+    expect(delivered!['112:1'], 'آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے');
+    expect(catalog.peek('ur_junagarhi'), same(delivered));
     expect(catalog.loadedIds, contains('ur_junagarhi'));
   });
 }
