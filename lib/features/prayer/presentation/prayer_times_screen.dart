@@ -29,9 +29,9 @@ import '../providers/prayer_provider.dart';
 class PrayerTimesScreen extends ConsumerWidget {
   const PrayerTimesScreen({super.key});
 
-  String _locationLabel(LocationState location) {
+  String _locationLabel(LocationState location, AppStrings s) {
     final loc = location.location;
-    if (loc == null) return 'Location not set';
+    if (loc == null) return s.locationNotSet;
     if (loc.city == 'UNKNOWN' || loc.country == 'UNKNOWN') return 'UNKNOWN';
     return loc.displayName;
   }
@@ -39,6 +39,7 @@ class PrayerTimesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     final nextPrayer = ref.watch(nextPrayerInfoProvider);
     final currentPrayerName = ref.watch(
       currentPrayerProvider.select((p) => p?.type.name),
@@ -50,8 +51,10 @@ class PrayerTimesScreen extends ConsumerWidget {
     final hijri = HijriCalendar.now();
 
     return QibraPage(
-      title: 'Prayer',
-      subtitle: '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH',
+      title: s.navPrayer,
+      subtitle:
+          '${hijri.hDay} ${s.hijriMonthName(hijri.hMonth, hijri.longMonthName)} '
+          '${hijri.hYear} AH',
       actions: [
         QibraIconButton(
           icon: Icons.notifications_none_rounded,
@@ -80,7 +83,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                 currentPrayerName: currentPrayerName,
                 dailyTimes: dailyTimes,
                 settings: settings,
-                locationLabel: _locationLabel(location),
+                locationLabel: _locationLabel(location, s),
                 hasLocation: location.hasLocation,
                 isLoading: location.isLoading,
                 onUpdateLocation: () {
@@ -95,15 +98,15 @@ class PrayerTimesScreen extends ConsumerWidget {
 
             // ── Today's times ────────────────────────────────────
             QibraSectionHeader(
-              title: "Today's times",
+              title: s.todaysTimes,
               actionLabel: settings.calculationMethod.shortName,
               onAction: () => _showMethodSheet(context, ref),
             ),
             if (dailyTimes == null)
-              const QibraEmptyState(
+              QibraEmptyState(
                 icon: Icons.access_time,
-                title: 'Times unavailable',
-                message: 'Prayer times appear after a location is set.',
+                title: s.timesUnavailable,
+                message: s.prayerTimesAppearAfterLocation,
               )
             else
               QibraCard(
@@ -132,14 +135,14 @@ class PrayerTimesScreen extends ConsumerWidget {
               child: SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: Text(
-                  'Adhan notifications',
+                  s.adhanNotificationsTitle,
                   style: AppTextStyles.titleSmall
                       .copyWith(color: colors.textPrimary),
                 ),
                 subtitle: Text(
                   settings.enableAdhan
-                      ? 'Azan alerts are on'
-                      : 'Azan alerts are off',
+                      ? s.azanAlertsOn
+                      : s.azanAlertsOff,
                   style: AppTextStyles.bodySmall
                       .copyWith(color: colors.textSecondary),
                 ),
@@ -182,13 +185,12 @@ class PrayerTimesScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Why is my prayer time different?',
+                          s.whyTimeDifferent,
                           style: AppTextStyles.titleSmall.copyWith(
                               color: colors.textPrimary),
                         ),
                         Text(
-                          'Method, Asr, high latitude and adjustments — '
-                          'see exactly what this app used today.',
+                          s.whyTimeDifferentHint,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.bodySmall.copyWith(
@@ -204,27 +206,27 @@ class PrayerTimesScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
 
-            const QibraSectionHeader(title: 'Also in Prayer'),
+            QibraSectionHeader(title: s.alsoInPrayer),
             QibraCard(
               child: Row(
                 children: [
                   QibraSoftButton(
-                    label: 'Schedule',
+                    label: s.scheduleLabel,
                     icon: Icons.calendar_view_day_outlined,
                     onTap: () => context.push(AppRoutes.prayerSchedule),
                   ),
                   QibraSoftButton(
-                    label: 'Statistics',
+                    label: s.statisticsLabel,
                     icon: Icons.bar_chart_rounded,
                     onTap: () => context.push(AppRoutes.prayerStatistics),
                   ),
                   QibraSoftButton(
-                    label: 'Tahajjud',
+                    label: s.tahajjudLabel,
                     icon: Icons.nights_stay_outlined,
                     onTap: () => context.push(AppRoutes.tahajjud),
                   ),
                   QibraSoftButton(
-                    label: 'Mosques',
+                    label: s.mosquesLabel,
                     icon: Icons.mosque,
                     onTap: () => context.push(AppRoutes.mosques),
                   ),
@@ -288,7 +290,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 8),
                 child: Text(
-                  'Calculation method',
+                  AppStrings.of(context).calculationMethodLower,
                   style: AppTextStyles.titleMedium
                       .copyWith(color: colors.textPrimary),
                 ),
@@ -317,8 +319,7 @@ class PrayerTimesScreen extends ConsumerWidget {
               const Divider(),
               SwitchListTile.adaptive(
                 title: Text(AppStrings.of(context).hanafiAsr),
-                subtitle: const Text(
-                    'Later Asr time (shadow ratio 2 instead of 1)'),
+                subtitle: Text(AppStrings.of(context).laterAsrSubtitle),
                 value: current.asrMethod == AsrMethod.hanafi,
                 activeThumbColor: colors.primary,
                 onChanged: (value) {
@@ -337,6 +338,7 @@ class PrayerTimesScreen extends ConsumerWidget {
 
   void _showWhySheet(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     final settings = ref.read(prayerSettingsProvider);
     final location = ref.read(locationProvider).location;
     showModalBottomSheet<void>(
@@ -348,7 +350,9 @@ class PrayerTimesScreen extends ConsumerWidget {
       ),
       builder: (sheetContext) {
         final adjustments = settings.adjustments.entries
-            .map((e) => '${e.key.name} ${e.value > 0 ? '+' : ''}${e.value}m')
+            .map((e) =>
+                '${s.prayerDisplayName(e.key.name, e.key.arabicName)} '
+                '${e.value > 0 ? '+' : ''}${e.value}m')
             .join(' · ');
         return SafeArea(
           child: DraggableScrollableSheet(
@@ -373,52 +377,49 @@ class PrayerTimesScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Why is my prayer time different?',
+                    s.whyTimeDifferent,
                     style: AppTextStyles.titleLarge
                         .copyWith(color: colors.textPrimary),
                   ),
                   const SizedBox(height: 12),
                   _WhyRow(
                     icon: Icons.calculate_outlined,
-                    title: 'Calculation method',
-                    body:
-                        '${settings.calculationMethod.fullName} — '
-                        'Fajr angle ${settings.calculationMethod.fajrAngle}°, '
-                        'Isha '
-                        '${settings.calculationMethod.useIshaInterval ? '${settings.calculationMethod.ishaIntervalMinutes} min after Maghrib' : '${settings.calculationMethod.ishaAngle}°'}.',
+                    title: s.calculationMethodLower,
+                    body: s.whyMethodBody(
+                      settings.calculationMethod.fullName,
+                      '${settings.calculationMethod.fajrAngle}',
+                      settings.calculationMethod.useIshaInterval
+                          ? s.whyIshaInterval(
+                              settings.calculationMethod.ishaIntervalMinutes)
+                          : '${settings.calculationMethod.ishaAngle}°',
+                    ),
                   ),
                   _WhyRow(
                     icon: Icons.shield_outlined,
-                    title: 'Asr (madhab) setting',
+                    title: s.asrMadhabSetting,
                     body: settings.asrMethod == AsrMethod.hanafi
-                        ? 'Hanafi — shadow ratio 2, so Asr is later.'
-                        : 'Standard (Shafi\u2019i/Maliki/Hanbali) — '
-                            'shadow ratio 1.',
+                        ? s.whyAsrHanafi
+                        : s.whyAsrStandard,
                   ),
                   _WhyRow(
                     icon: Icons.wb_twilight_rounded,
-                    title: 'High-latitude rule',
-                    body:
-                        'Rule applied when the sun never reaches the Fajr/'
-                        'Isha angle: ${settings.highLatitudeMethod.name} '
-                        '(none means no correction is applied).',
+                    title: s.highLatitudeRule,
+                    body: s.whyHighLatitudeBody(
+                        settings.highLatitudeMethod.name),
                   ),
                   _WhyRow(
                     icon: Icons.tune_rounded,
-                    title: 'Manual adjustments',
-                    body: adjustments.isEmpty
-                        ? 'None — times shown are pure calculated values.'
-                        : adjustments,
+                    title: s.manualAdjustments,
+                    body:
+                        adjustments.isEmpty ? s.adjustmentsNone : adjustments,
                   ),
                   _WhyRow(
                     icon: Icons.schedule_rounded,
-                    title: 'Timezone',
+                    title: s.whyTimezoneTitle,
                     body: (location?.timezone != null &&
                             location!.timezone!.isNotEmpty)
-                        ? 'Times use ${location.timezone} resolved from your '
-                            'location (daylight-saving handled by the '
-                            'timezone database).'
-                        : 'Device timezone (no city timezone resolved).',
+                        ? s.timezoneResolvedBody(location!.timezone!)
+                        : s.timezoneDeviceFallback,
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -438,10 +439,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Mosque calendars round times and follow local '
-                            'ijtihad, so a minute or two of difference is '
-                            'normal. For your local jamaat schedule, ask '
-                            'your mosque.',
+                            s.whyMosqueNote,
                             style: AppTextStyles.bodySmall.copyWith(
                               color: colors.textSecondary,
                               height: 1.5,
@@ -488,6 +486,7 @@ class _PrayerHeroBody extends ConsumerWidget {
     // the tab-level ListView rebuilds at minute cadence only.
     final tick = ref.watch(currentTimeProvider.select((a) => a.value));
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     if (isLoading) {
       return QibraStatus.skeleton(height: 148);
     }
@@ -497,7 +496,7 @@ class _PrayerHeroBody extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Next prayer',
+            s.nextPrayer,
             style: AppTextStyles.labelMedium
                 .copyWith(color: colors.textSecondary),
           ),
@@ -510,8 +509,8 @@ class _PrayerHeroBody extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             hasLocation
-                ? 'Times will appear once they can be calculated.'
-                : 'Enable location to calculate prayer times.',
+                ? s.timesWillAppearOnceCalculated
+                : s.enableLocationForTimes,
             style:
                 AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
           ),
@@ -532,7 +531,7 @@ class _PrayerHeroBody extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'NEXT PRAYER',
+                    s.nextPrayerCaps,
                     style: AppTextStyles.labelSmall.copyWith(
                       color: colors.textSecondary,
                       letterSpacing: 1.8,
@@ -545,28 +544,32 @@ class _PrayerHeroBody extends ConsumerWidget {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        prayer.type.name,
+                        s.prayerDisplayName(
+                            prayer.type.name, prayer.type.arabicName),
                         style: AppTextStyles.headlineLarge
                             .copyWith(color: colors.textPrimary),
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        prayer.type.arabicName,
-                        style: AppArabicStyles.quranMedium
-                            .copyWith(color: colors.textPrimary),
-                      ),
+                      if (s.locale.languageCode == 'en') ...[
+                        const SizedBox(width: 10),
+                        Text(
+                          prayer.type.arabicName,
+                          style: AppArabicStyles.quranMedium
+                              .copyWith(color: colors.textPrimary),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'at ${prayer.formattedTime}',
+                    s.atTime(prayer.formattedTime),
                     style: AppTextStyles.titleSmall
                         .copyWith(color: colors.textSecondary),
                   ),
                   if (currentPrayerName != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      'Current window: $currentPrayerName',
+                      s.currentWindow(s.prayerDisplayName(
+                          currentPrayerName!, prayer.type.arabicName)),
                       style: AppTextStyles.labelSmall
                           .copyWith(color: colors.textTertiary),
                     ),
@@ -615,14 +618,14 @@ class _PrayerHeroBody extends ConsumerWidget {
                   icon: Icons.calculate_outlined,
                   label:
                       '${dailyTimes!.method.shortName} · '
-                      '${settings.asrMethod == AsrMethod.hanafi ? 'Hanafi' : 'Standard'} Asr'),
+                      '${settings.asrMethod == AsrMethod.hanafi ? s.hanafiAsr : s.standardAsr}'),
             _HeroChip(
               icon: settings.enableNotifications && settings.enableAdhan
                   ? Icons.notifications_outlined
                   : Icons.notifications_off,
               label: settings.enableNotifications && settings.enableAdhan
-                  ? 'Adhan alerts on'
-                  : 'Adhan alerts off',
+                  ? s.adhanAlertsOn
+                  : s.azanAlertsOff,
             ),
           ],
         ),
@@ -749,17 +752,18 @@ class _SunriseRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     return ListTile(
       dense: true,
       leading: Icon(prayer.type.icon,
           color: colors.textSecondary, size: 20),
       title: Text(
-        'Sunrise',
+        s.sunriseName,
         style: AppTextStyles.titleSmall
             .copyWith(color: colors.textSecondary),
       ),
       subtitle: Text(
-        'Dhuhr begins after sunrise ends',
+        s.dhuhrAfterSunrise,
         style:
             AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
       ),
@@ -790,6 +794,7 @@ class _PrayerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     final prayed = record?.status == PrayerStatus.prayed ||
         record?.status == PrayerStatus.prayedInMosque ||
         record?.status == PrayerStatus.makeup;
@@ -818,7 +823,7 @@ class _PrayerRow extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              prayer.type.name,
+              s.prayerDisplayName(prayer.type.name, prayer.type.arabicName),
               style: AppTextStyles.titleSmall.copyWith(
                 color: colors.textPrimary,
                 fontWeight: isNext ? FontWeight.w700 : FontWeight.w600,
@@ -834,7 +839,7 @@ class _PrayerRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Next',
+                  s.pillNext,
                   style: AppTextStyles.labelSmall
                       .copyWith(color: colors.primary),
                 ),
@@ -850,7 +855,7 @@ class _PrayerRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Now',
+                  s.pillNow,
                   style: AppTextStyles.labelSmall
                       .copyWith(color: colors.accent),
                 ),
@@ -858,11 +863,13 @@ class _PrayerRow extends StatelessWidget {
             ],
           ],
         ),
-        subtitle: Text(
-          prayer.type.arabicName,
-          style: AppArabicStyles.quranSmall
-              .copyWith(color: colors.textSecondary, fontSize: 14),
-        ),
+        subtitle: s.locale.languageCode == 'en'
+            ? Text(
+                prayer.type.arabicName,
+                style: AppArabicStyles.quranSmall
+                    .copyWith(color: colors.textSecondary, fontSize: 14),
+              )
+            : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
