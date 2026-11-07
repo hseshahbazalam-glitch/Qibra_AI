@@ -104,20 +104,20 @@ class UrduEditionCatalog {
     if (edition == null) return null;
     try {
       dynamic decoded;
-      if (_underFlutterTest) {
-        // In flutter test the bundle+isolate machinery never resolves —
-        // their completions ride a real event loop that the fake-async
-        // zone does not run. Read the SAME registered file straight from
-        // disk (the tool runs the suite from the package root) and parse
-        // inline: same bytes, same parser, none of the async machinery a
-        // harness cannot wait on. Devices never take this branch — the
-        // tool sets FLUTTER_TEST, no shipped build carries it.
-        final file = File(edition.assetPath);
-        if (!file.existsSync()) {
-          debugPrint('[EDITION] asset not on disk for test: '
-              '${edition.assetPath}');
-          return null;
-        }
+      final file = File(edition.assetPath);
+      if (file.existsSync()) {
+        // Disk-first, decided by physics rather than environment
+        // sniffing: the relative path of a registered asset resolves
+        // ONLY where the asset tree sits next to the process — the
+        // test harness (CWD = package root; the E5 file reads prove the
+        // same bytes reachable on CI) and desktop dev runs from the
+        // repo. A shipped mobile build has no such path (its CWD is
+        // not the bundle), so devices fall through to rootBundle. This
+        // is also the branch tests CAN await: the bundle+isolate pair
+        // completes over ports a fake-async zone never dispatches
+        // (CI-proven twice — 10 minutes, then a 45s tripwire, both
+        // dead); the disk read is the same registered bytes through the
+        // same parser, inline, no unwaitable machinery.
         decoded = jsonDecode(file.readAsStringSync());
       } else {
         final jsonString = await rootBundle.loadString(edition.assetPath);
@@ -130,24 +130,6 @@ class UrduEditionCatalog {
     } catch (e) {
       debugPrint('[EDITION] load failed ($id): $e');
       return null;
-    }
-  }
-
-  /// True only under `flutter test` (see the branch in [_load]). The tool
-  /// sets FLUTTER_TEST for the test VM, but CI has been observed running
-  /// without that env visible to the isolate — so the live binding says it
-  /// too: a TestWidgets binding means the bundle+isolate pair will never
-  /// resolve in this zone. Probed through ServicesBinding to keep this file
-  /// import-clean; an uninitialized binding (plain dart run, real device)
-  /// throws LateInitializationError and is emphatically not a test.
-  static bool get _underFlutterTest {
-    if (Platform.environment.containsKey('FLUTTER_TEST')) return true;
-    try {
-      return ServicesBinding.instance.runtimeType
-          .toString()
-          .contains('TestWidgetsFlutterBinding');
-    } on Error {
-      return false;
     }
   }
 

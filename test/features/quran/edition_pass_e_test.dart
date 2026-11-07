@@ -552,19 +552,17 @@ void main() {
 
   test('end-to-end: the loader really reads a bundled asset file',
       () async {
-    // A plain test(), NOT testWidgets: the fake-async zone of
-    // testWidgets never dispatches the rootBundle/isolate completions —
-    // not even through runAsync (CI-proven: the awaited future sat dead
-    // for 45 real seconds, tripwire below). A plain test runs on the
-    // root zone, so whichever branch _underFlutterTest picks completes:
-    // the disk read inline, or the real bundle+isolate pair with a real
-    // event loop to receive it. This is the same ensure() production
-    // calls, on the same registered asset bytes.
+    // The loader is disk-first (File.existsSync decides), so under the
+    // test harness ensure() completes inline — no bundle/isolate await
+    // for any zone to strand (that pair sat dead through a 45s
+    // tripwire AND a plain test()'s real clock: CI-proven, twice). The
+    // 25s guard lands before the framework's 30s test timeout so a
+    // regression names itself instead of eating the clock.
     final map = await UrduEditionCatalog.instance
         .ensure('ur_junagarhi')
-        .timeout(const Duration(seconds: 45),
+        .timeout(const Duration(seconds: 25),
             onTimeout: () => throw StateError(
-                'loader hung — no branch completed in 45s of real time'));
+                'loader hung — the disk branch did not complete in 25s'));
     expect(map, isNotNull);
     expect(map!['112:1'], 'آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے');
     expect(UrduEditionCatalog.instance.loadedIds, contains('ur_junagarhi'));
