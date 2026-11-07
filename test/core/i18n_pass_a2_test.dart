@@ -92,7 +92,7 @@ void main() {
         'countdownInPrefix',
       ]) {
         expect(
-            RegExp('String (get $name\\b|$name\\(').hasMatch(appStrings),
+            RegExp('String (?:get $name\\b|$name\\()').hasMatch(appStrings),
             isTrue,
             reason: 'A2 getter missing from AppStrings: $name');
       }
@@ -100,68 +100,68 @@ void main() {
   });
 
   group('A2 census — wired files render no raw chrome', () {
-//    test('zero Text(\'Capital word\') literals in the ten wired files', () {
-//      // Direct capitalized text literals (interpolations of s.* getters do
-//      // not match: the quote must be followed by a letter, not a $).
-//      final rx = RegExp(r"Text\(\s*'[A-Za-z][^'\n]* [^'\n]*'");
-//      final hits = <String>[];
-//      for (final path in wiredFiles) {
-//        final lines = File(path).readAsLinesSync();
-//        for (var i = 0; i < lines.length; i++) {
-//          final l = lines[i];
-//          if (l.trimLeft().startsWith('//')) continue;
-//          final m = rx.firstMatch(l);
-//          if (m != null) hits.add('$path:${i + 1} ${l.trim()}');
-//        }
-//      }
-//      expect(hits, isEmpty, reason: 'unmigrated chrome: $hits');
-//    });
+    test('zero Text(\'Capital word\') literals in the ten wired files', () {
+      // Direct capitalized text literals (interpolations of s.* getters do
+      // not match: the quote must be followed by a letter, not a $).
+      final rx = RegExp(r"Text\(\s*'[A-Za-z][^'\n]* [^'\n]*'");
+      final hits = <String>[];
+      for (final path in wiredFiles) {
+        final lines = File(path).readAsLinesSync();
+        for (var i = 0; i < lines.length; i++) {
+          final l = lines[i];
+          if (l.trimLeft().startsWith('//')) continue;
+          final m = rx.firstMatch(l);
+          if (m != null) hits.add('$path:${i + 1} ${l.trim()}');
+        }
+      }
+      expect(hits, isEmpty, reason: 'unmigrated chrome: $hits');
+    });
 
-//    test('Arabic twin suppression keeps nameArabic out of en duplication',
-//        () {
-//      // Calendar blanks the Arabic twin line when locale is ar (one word,
-//      // one render). Pinned so a future refactor cannot quietly drop it.
-//      final cal =
-//          File(wiredFiles[8]).readAsStringSync(); // islamic_calendar_screen
-//      expect(cal, contains("languageCode == 'ar'"));
-//    });
+    test('Arabic twin suppression keeps nameArabic out of en duplication',
+        () {
+      // Calendar blanks the Arabic twin line when locale is ar (one word,
+      // one render). Pinned so a future refactor cannot quietly drop it.
+      final cal =
+          File(wiredFiles[8]).readAsStringSync(); // islamic_calendar_screen
+      expect(cal, contains("languageCode == 'ar'"));
+    });
 
-//    test('schedule/calendar day-month English lists stay deleted', () {
-//      for (final path in [
-//        'lib/features/prayer/presentation/salah_schedule_screen.dart',
-//        'lib/features/calendar/presentation/islamic_calendar_screen.dart',
-//      ]) {
-//        final src = File(path).readAsStringSync();
-//        expect(RegExp(r'String _getDayName\(').hasMatch(src), isFalse,
-//            reason: '$path re-introduced the _getDayName helper');
-//        expect(RegExp(r'String _getMonth\(').hasMatch(src), isFalse,
-//            reason: '$path re-introduced the _getMonth helper');
-//        expect(src.contains("'January'"), isFalse,
-//            reason: '$path still hardcodes month names');
-//        expect(src.contains("'Monday'"), isFalse,
-//            reason: '$path still hardcodes weekday names');
-//      }
-//    });
+    test('schedule/calendar day-month English lists stay deleted', () {
+      for (final path in [
+        'lib/features/prayer/presentation/salah_schedule_screen.dart',
+        'lib/features/calendar/presentation/islamic_calendar_screen.dart',
+      ]) {
+        final src = File(path).readAsStringSync();
+        expect(RegExp(r'String _getDayName\(').hasMatch(src), isFalse,
+            reason: '$path re-introduced the _getDayName helper');
+        expect(RegExp(r'String _getMonth\(').hasMatch(src), isFalse,
+            reason: '$path re-introduced the _getMonth helper');
+        expect(src.contains("'January'"), isFalse,
+            reason: '$path still hardcodes month names');
+        expect(src.contains("'Monday'"), isFalse,
+            reason: '$path still hardcodes weekday names');
+      }
+    });
 
-//    test('hijriMonthName is the single month-word renderer', () {
-//      final users = wiredFiles
-//          .map((p) => File(p).readAsStringSync())
-//          .where((src) => src.contains('s.hijriMonthName(') ||
-//              src.contains('AppStrings.of(context)\n'
-//                  '                                .hijriMonthName('))
-//          .length;
-//      expect(users, greaterThanOrEqualTo(4),
-//          reason: 'hero/schedule/calendar/stats should all render '
-//              'the Hijri month through the getter');
-//    });
+    test('hijriMonthName is the single month-word renderer', () {
+      final users = wiredFiles
+          .map((p) => File(p).readAsStringSync())
+          .where((src) => src.contains('s.hijriMonthName(') ||
+              src.contains('AppStrings.of(context)\n'
+                  '                                .hijriMonthName('))
+          .length;
+      expect(users, greaterThanOrEqualTo(4),
+          reason: 'hero/schedule/calendar/stats should all render '
+              'the Hijri month through the getter');
+    });
 
-//    test('proper-noun KEEPs are annotated in place', () {
-//      // Pass decision: calculation-method and surah/dua names stay Latin.
-//      // Pinned by their KEEP comment markers so the decision travels.
-//      final sched = File(wiredFiles[4]).readAsStringSync();
-//      expect(sched, contains("'MWL (Muslim World League)'"));
-//      final tah = File(wiredFiles[6]).readAsStringSync();
-//      expect(tah, contains("'Al-Mulk'")); // data-side proper nouns
-//    });
+    test('proper-noun KEEPs are annotated in place', () {
+      // Pass decision: calculation-method and surah/dua names stay Latin.
+      // Pinned by their KEEP comment markers so the decision travels.
+      final sched = File(wiredFiles[4]).readAsStringSync();
+      expect(sched, contains("'MWL (Muslim World League)'"));
+      final tah = File(wiredFiles[6]).readAsStringSync();
+      expect(tah, contains("'Al-Mulk'")); // data-side proper nouns
+    });
   });
 }
