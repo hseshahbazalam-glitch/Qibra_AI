@@ -550,36 +550,41 @@ void main() {
     );
   });
 
-  testWidgets('end-to-end: the loader really reads a bundled asset file',
+  // LADDER DIAGNOSTIC (one CI cycle, staged): each stage re-runs the
+  // previous contract plus one hop, so the suite's failure COUNT names
+  // the first broken stage: 1 fail = fake-async envelope only; 2 = the
+  // real-loop future; 3 = the parser/pin itself. Replaces the single
+  // e2e that 541/1 kept hiding the culprit of.
+  test('LADDER stage-1: resolver file, disk read, parser, pin', () {
+    final raw = File('assets/data/quran/translation_ur_junagarhi.json')
+        .readAsStringSync();
+    final m = UrduEditionCatalog.parseUrduShape(jsonDecode(raw));
+    expect(m['112:1'], 'آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے', reason: 'stage-1 parser/pin');
+  });
+  test('LADDER stage-2: ensure() delivers on the real event loop', () async {
+    final c = UrduEditionCatalog.instance;
+    c.debugReset();
+    final v =
+        await c.ensure('ur_junagarhi').timeout(const Duration(seconds: 10));
+    expect(v, isNotNull, reason: 'stage-2 envelope never resolved');
+    expect(v!['112:1'], 'آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے', reason: 'stage-2 pin mismatch');
+    expect(c.peek('ur_junagarhi'), same(v), reason: 'stage-2 cache identity');
+  });
+  testWidgets('LADDER stage-3: ensure() delivers under elapse pumping',
       (tester) async {
-    // The step-trace settled the loader's physics for good: the disk
-    // branch runs the ENTIRE load synchronously inside the ensure()
-    // call (CI saw 'stored' print before the call even returned) —
-    // only the async ENVELOPE climbs the binding zone's microtask
-    // ladder, hop by hop, one rung per pump. The E3 render group
-    // already proves consumers receive it that way (t8 rides the
-    // identical chain green); so the end-to-end pins both halves of
-    // the contract on fresh cache (debugReset — not t8's residue):
-    // the future delivering the map to an awaiter, given bounded fake
-    // time to land, and the synchronous peek every lazy consumer
-    // (share/copy) reads — the same stored instance, then gone.
-    final catalog = UrduEditionCatalog.instance;
-    catalog.debugReset();
+    final c = UrduEditionCatalog.instance;
+    c.debugReset();
     Map<String, String>? delivered;
-    unawaited(catalog.ensure('ur_junagarhi').then((v) => delivered = v));
-    // Duration-bearing pump ONLY: bare pump() runs flushTimers(), which
-    // no-ops with no timers queued and never drains microtasks — the
-    // future's .then hops sat exactly there (CI: waiting after bare
-    // pumps; and the 10-min hang resumed-into by nothing was the
-    // body's own await needing one elapse that never came). elapse(1ms)
-    // flushes the fake queue: hop, hop, delivered.
+    unawaited(c.ensure('ur_junagarhi').then((v) {
+      delivered = v;
+    }));
     for (var i = 0; i < 4 && delivered == null; i++) {
       await tester.pump(const Duration(milliseconds: 1));
     }
-    expect(delivered, isNotNull,
-        reason: 'ensure() future never delivered through the pump ladder');
-    expect(delivered!['112:1'], 'آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے');
-    expect(catalog.peek('ur_junagarhi'), same(delivered));
-    expect(catalog.loadedIds, contains('ur_junagarhi'));
+    expect(delivered, isNotNull, reason: 'stage-3 fake-async envelope');
+    expect(delivered!['112:1'], 'آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے', reason: 'stage-3 pin mismatch');
+    expect(c.peek('ur_junagarhi'), same(delivered),
+        reason: 'stage-3 cache identity');
+    expect(c.loadedIds, contains('ur_junagarhi'), reason: 'stage-3 LRU list');
   });
 }
