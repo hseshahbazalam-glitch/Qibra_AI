@@ -415,11 +415,13 @@ class PrayerTimesScreen extends ConsumerWidget {
                   ),
                   _WhyRow(
                     icon: Icons.schedule_rounded,
-                    title: s.whyTimezoneTitle,
+                    title: 'Timezone',
                     body: (location?.timezone != null &&
                             location!.timezone!.isNotEmpty)
-                        ? s.timezoneResolvedBody(location.timezone!)
-                        : s.timezoneDeviceFallback,
+                        ? 'Times use ${location.timezone} resolved from your '
+                            'location (daylight-saving handled by the '
+                            'timezone database).'
+                        : 'Device timezone (no city timezone resolved).',
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -569,7 +571,7 @@ class _PrayerHeroBody extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       s.currentWindow(s.prayerDisplayName(
-                          currentPrayerName, prayer.type.arabicName)),
+                          currentPrayerName!, prayer.type.arabicName)),
                       style: AppTextStyles.labelSmall
                           .copyWith(color: colors.textTertiary),
                     ),
@@ -752,18 +754,17 @@ class _SunriseRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final s = AppStrings.of(context);
     return ListTile(
       dense: true,
       leading: Icon(prayer.type.icon,
           color: colors.textSecondary, size: 20),
       title: Text(
-        s.sunriseName,
+        'Sunrise',
         style: AppTextStyles.titleSmall
             .copyWith(color: colors.textSecondary),
       ),
       subtitle: Text(
-        s.dhuhrAfterSunrise,
+        'Dhuhr begins after sunrise ends',
         style:
             AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
       ),
@@ -794,7 +795,6 @@ class _PrayerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final s = AppStrings.of(context);
     final prayed = record?.status == PrayerStatus.prayed ||
         record?.status == PrayerStatus.prayedInMosque ||
         record?.status == PrayerStatus.makeup;
@@ -823,7 +823,7 @@ class _PrayerRow extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              s.prayerDisplayName(prayer.type.name, prayer.type.arabicName),
+              prayer.type.name,
               style: AppTextStyles.titleSmall.copyWith(
                 color: colors.textPrimary,
                 fontWeight: isNext ? FontWeight.w700 : FontWeight.w600,
@@ -839,7 +839,7 @@ class _PrayerRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  s.pillNext,
+                  'Next',
                   style: AppTextStyles.labelSmall
                       .copyWith(color: colors.primary),
                 ),
@@ -855,7 +855,7 @@ class _PrayerRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  s.pillNow,
+                  'Now',
                   style: AppTextStyles.labelSmall
                       .copyWith(color: colors.accent),
                 ),
@@ -863,13 +863,11 @@ class _PrayerRow extends StatelessWidget {
             ],
           ],
         ),
-        subtitle: s.locale.languageCode == 'en'
-            ? Text(
-                prayer.type.arabicName,
-                style: AppArabicStyles.quranSmall
-                    .copyWith(color: colors.textSecondary, fontSize: 14),
-              )
-            : null,
+        subtitle: Text(
+          prayer.type.arabicName,
+          style: AppArabicStyles.quranSmall
+              .copyWith(color: colors.textSecondary, fontSize: 14),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
