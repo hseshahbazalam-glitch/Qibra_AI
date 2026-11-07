@@ -567,8 +567,14 @@ void main() {
     catalog.debugReset();
     Map<String, String>? delivered;
     unawaited(catalog.ensure('ur_junagarhi').then((v) => delivered = v));
+    // Duration-bearing pump ONLY: bare pump() runs flushTimers(), which
+    // no-ops with no timers queued and never drains microtasks — the
+    // future's .then hops sat exactly there (CI: waiting after bare
+    // pumps; and the 10-min hang resumed-into by nothing was the
+    // body's own await needing one elapse that never came). elapse(1ms)
+    // flushes the fake queue: hop, hop, delivered.
     for (var i = 0; i < 4 && delivered == null; i++) {
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1));
     }
     expect(delivered, isNotNull,
         reason: 'ensure() future never delivered through the pump ladder');
