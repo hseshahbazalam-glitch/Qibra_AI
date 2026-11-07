@@ -2,7 +2,6 @@
 // Timeline prayer tile with notification bell
 
 import 'package:flutter/material.dart';
-import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:flutter/services.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
@@ -92,7 +91,7 @@ class SchedulePrayerTile extends StatelessWidget {
                           borderRadius: AppRadius.pillRadius,
                         ),
                         child: Text(
-                          AppStrings.of(context).pillNextCaps,
+                          'NEXT',
                           style: AppTextStyles.labelSmall.copyWith(
                             color: iconColor,
                             fontWeight: FontWeight.w800,

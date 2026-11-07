@@ -194,10 +194,9 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       _bookmarkedPages.map((e) => e.toString()).toList(),
     );
     if (!mounted) return;
-    final s = AppStrings.of(context);
     _showToast(_bookmarkedPages.contains(page)
-        ? s.pageBookmarkedToast(page)
-        : s.bookmarkRemovedToast(page));
+        ? 'Page $page bookmarked'
+        : 'Bookmark removed from page $page');
   }
 
   // ── Page helpers (REAL data from the index) ─────────────────
@@ -255,7 +254,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   void _openTafsir(int page) {
     final surah = _firstSurahOnPage(page);
     if (surah == null) {
-      _showToast(AppStrings.of(context).tafsirAwaitDataToast);
+      _showToast('Tafsir is available once the Quran data is loaded');
       return;
     }
     HapticFeedback.mediumImpact();
@@ -282,7 +281,7 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   void _openTranslation(int page) {
     final surah = _firstSurahOnPage(page);
     if (surah == null) {
-      _showToast(AppStrings.of(context).textAwaitDataToast);
+      _showToast('The text is available once the Quran data is loaded');
       return;
     }
     HapticFeedback.mediumImpact();
@@ -302,14 +301,14 @@ Surah: ${_pageSurahLabel(page)}
 Juz: ${juz ?? '—'}''';
     Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.mediumImpact();
-    _showToast(AppStrings.of(context).pageInfoCopiedToast);
+    _showToast('Page info copied');
   }
 
   void _sharePage(int page) {
     // Sharing goes through the same clipboard handoff the rest of the
     // app uses (no share plugin is bundled).
     _copyPageInfo(page);
-    _showToast(AppStrings.of(context).pageInfoCopiedShareToast);
+    _showToast('Page info copied — paste it anywhere to share');
   }
 
 
@@ -330,7 +329,7 @@ Juz: ${juz ?? '—'}''';
             Icon(Icons.article_outlined, color: colors.textSecondary, size: 22),
             const SizedBox(width: 8),
             Text(
-              AppStrings.of(context).goToPageTitle,
+              'Go to page',
               style: AppTextStyles.titleMedium.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -343,7 +342,7 @@ Juz: ${juz ?? '—'}''';
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              AppStrings.of(context).enterPageNumberHint,
+              'Enter a page number (1 – 604)',
               style:
                   AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
             ),
@@ -377,7 +376,7 @@ Juz: ${juz ?? '—'}''';
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              AppStrings.of(context).cancel,
+              'Cancel',
               style: AppTextStyles.labelLarge
                   .copyWith(color: colors.textSecondary),
             ),
@@ -398,13 +397,13 @@ Juz: ${juz ?? '—'}''';
   void _goToPage(String text, BuildContext dialogContext) {
     final page = int.tryParse(text);
     if (page == null || page < 1 || page > 604) {
-      _showToast(AppStrings.of(context).invalidPageToast);
+      _showToast('Enter a valid page (1–604)');
       return;
     }
     Navigator.pop(dialogContext);
     _pageController.jumpToPage(page - 1);
     HapticFeedback.mediumImpact();
-    _showToast(AppStrings.of(context).onPageToast(page));
+    _showToast('On page $page');
   }
 
   // ── Build ───────────────────────────────────────────────────
@@ -424,8 +423,8 @@ Juz: ${juz ?? '—'}''';
       error: (e, st) => Scaffold(
         backgroundColor: colors.background,
         body: QibraStatus.error(
-          title: AppStrings.of(context).quranTextUnavailableTitle,
-          message: AppStrings.of(context).quranTextUnavailableBody,
+          title: 'Quran text unavailable',
+          message: 'The bundled Quran data could not be read.',
           onRetry: () => ref.invalidate(mushafPageIndexProvider),
         ),
       ),
@@ -505,8 +504,7 @@ Juz: ${juz ?? '—'}''';
                     onJumpToLastRead: _ribbonJump,
                     onDropHere: () {
                       _saveProgress(currentPage);
-                      _showToast(AppStrings.of(context)
-                          .progressSavedToast(currentPage));
+                      _showToast('Progress saved on page $currentPage');
                     },
                   ),
                 ),
@@ -541,7 +539,7 @@ Juz: ${juz ?? '—'}''';
   void _ribbonJump() {
     final saved = _lastReadPage;
     if (saved == null) {
-      _showToast(AppStrings.of(context).noSavedPageToast);
+      _showToast('No saved page yet — turn a page first');
       return;
     }
     HapticFeedback.mediumImpact();
@@ -593,10 +591,8 @@ Juz: ${juz ?? '—'}''';
                     Flexible(
                       child: Text(
                         juz == null
-                            ? AppStrings.of(context)
-                                .mushafPageOfTotal(currentPage)
-                            : AppStrings.of(context)
-                                .mushafPageSlash604(currentPage),
+                            ? 'Page $currentPage of 604'
+                            : 'Page $currentPage / 604',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.labelSmall
@@ -726,22 +722,22 @@ Juz: ${juz ?? '—'}''';
               children: [
                 _actionButton(
                   icon: Icons.article_outlined,
-                  label: AppStrings.of(context).goToShort,
+                  label: 'Go to',
                   onTap: _showGoToPageSheet,
                 ),
                 _actionButton(
                   icon: Icons.menu_book_outlined,
-                  label: AppStrings.of(context).toolTafsir,
+                  label: 'Tafsir',
                   onTap: () => _openTafsir(currentPage),
                 ),
                 _actionButton(
                   icon: Icons.translate_rounded,
-                  label: AppStrings.of(context).translateLabel,
+                  label: 'Translate',
                   onTap: () => _openTranslation(currentPage),
                 ),
                 _actionButton(
                   icon: Icons.more_horiz_rounded,
-                  label: AppStrings.of(context).navMore,
+                  label: 'More',
                   onTap: () => _showMoreOptions(currentPage),
                 ),
               ],
@@ -851,8 +847,7 @@ Juz: ${juz ?? '—'}''';
                         color: colors.textSecondary, size: 22),
                     const SizedBox(width: 8),
                     Text(
-                      AppStrings.of(context)
-                          .pageOptionsTitle(currentPage),
+                      'Page $currentPage options',
                       style: AppTextStyles.titleMedium.copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w700,
@@ -864,7 +859,7 @@ Juz: ${juz ?? '—'}''';
               Divider(color: colors.border, height: 1),
               _menuOption(
                 icon: Icons.copy_rounded,
-                label: AppStrings.of(context).copyPageInfoLabel,
+                label: 'Copy page info',
                 onTap: () {
                   Navigator.pop(context);
                   _copyPageInfo(currentPage);
@@ -872,7 +867,7 @@ Juz: ${juz ?? '—'}''';
               ),
               _menuOption(
                 icon: Icons.share_outlined,
-                label: AppStrings.of(context).sharePageLabel,
+                label: 'Share page',
                 onTap: () {
                   Navigator.pop(context);
                   _sharePage(currentPage);
@@ -883,8 +878,8 @@ Juz: ${juz ?? '—'}''';
                     ? Icons.bookmark_rounded
                     : Icons.bookmark_border_rounded,
                 label: _bookmarkedPages.contains(currentPage)
-                    ? AppStrings.of(context).tooltipRemoveBookmark
-                    : AppStrings.of(context).tooltipBookmarkPage,
+                    ? 'Remove bookmark'
+                    : 'Bookmark page',
                 onTap: () {
                   Navigator.pop(context);
                   _toggleBookmark(currentPage);
@@ -892,7 +887,7 @@ Juz: ${juz ?? '—'}''';
               ),
               _menuOption(
                 icon: Icons.list_alt_rounded,
-                label: AppStrings.of(context).viewAllBookmarksLabel,
+                label: 'View all bookmarks',
                 onTap: () {
                   Navigator.pop(context);
                   _showBookmarksList();
@@ -945,7 +940,7 @@ Juz: ${juz ?? '—'}''';
   void _showBookmarksList() {
     final colors = QibraColors.of(context);
     if (_bookmarkedPages.isEmpty) {
-      _showToast(AppStrings.of(context).noBookmarksToast);
+      _showToast('No bookmarks yet — long-press the bookmark to save one');
       return;
     }
     final pages = _bookmarkedPages.toList()..sort();
@@ -975,7 +970,7 @@ Juz: ${juz ?? '—'}''';
                         color: colors.primary, size: 22),
                     const SizedBox(width: 8),
                     Text(
-                      AppStrings.of(context).bookmarkedPagesTitle,
+                      'Bookmarked pages',
                       style: AppTextStyles.titleMedium.copyWith(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w700,
@@ -983,7 +978,7 @@ Juz: ${juz ?? '—'}''';
                     ),
                     const Spacer(),
                     Text(
-                      AppStrings.of(context).pagesCountLabel(pages.length),
+                      '${pages.length} pages',
                       style: AppTextStyles.labelSmall
                           .copyWith(color: colors.textTertiary),
                     ),
@@ -1035,7 +1030,7 @@ Juz: ${juz ?? '—'}''';
                             ),
                           ),
                           title: Text(
-                            AppStrings.of(context).bookmarkPageEntry(page),
+                            'Page $page',
                             style: AppTextStyles.titleSmall.copyWith(
                               color: colors.textPrimary,
                               fontWeight: FontWeight.w600,
@@ -1116,7 +1111,7 @@ class _MushafPage extends StatelessWidget {
     if (entries.isEmpty) {
       return Center(
         child: Text(
-          AppStrings.of(context).mushafNoVersesNote,
+          'No verses recorded for this page in the bundled data.',
           style: AppTextStyles.bodyMedium.copyWith(color: colors.textTertiary),
         ),
       );
@@ -1205,7 +1200,7 @@ class _MushafPage extends StatelessWidget {
                   Icon(Icons.mosque, size: 14, color: colors.textSecondary),
                   const SizedBox(width: 6),
                   Text(
-                    AppStrings.of(context).mushafSajdahNote,
+                    'Sajdah of recitation on this page',
                     style: AppTextStyles.labelSmall
                         .copyWith(color: colors.textSecondary),
                   ),
