@@ -566,15 +566,25 @@ void main() {
     // readable failure at second one, not a hang at minute ten.
     final catalog = UrduEditionCatalog.instance;
     final fly = catalog.ensure('ur_junagarhi');
+    AsyncSnapshot<Map<String, String>?>? seen;
     await tester.pumpWidget(MaterialApp(
       home: FutureBuilder<Map<String, String>?>(
         future: fly,
-        builder: (context, snapshot) => Text(
-          snapshot.data?['112:1'] ?? 'PENDING:${snapshot.connectionState}',
-        ),
+        builder: (context, snapshot) {
+          seen = snapshot;
+          return Text(
+            snapshot.data?['112:1'] ?? 'PENDING:${snapshot.connectionState}',
+          );
+        },
       ),
     ));
     await tester.pump();
+    await tester.pump();
+    // If the future strands, this names the exact snapshot (state +
+    // data) the frame saw — waiting vs done-with-null vs done-with-map
+    // are three different worlds and the log must not have to guess.
+    expect(seen!.connectionState, AsyncConnectionState.done,
+        reason: 'loader snapshot was: $seen');
     expect(find.text('آپ کہہ دیجئے کہ وه اللہ تعالیٰ ایک (ہی) ہے'),
         findsOneWidget);
     expect(catalog.loadedIds, contains('ur_junagarhi'));
