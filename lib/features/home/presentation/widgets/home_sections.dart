@@ -248,8 +248,7 @@ class HomeContinueReading extends StatelessWidget {
               Text(
                 page == null
                     ? s.surah1Juz1
-                    : s.ofTheQuran((overallProgress * 100).toStringAsFixed(0)
-                        .toInt()),
+                    : s.ofTheQuran((overallProgress * 100).round()),
                 style: AppTextStyles.labelSmall
                     .copyWith(color: colors.textTertiary),
               ),
@@ -722,8 +721,7 @@ class HomeProgressPanel extends StatelessWidget {
                 ? s.prayerStreak
                 : s.trackPrayersInPrayer,
             footnote: overallProgress > 0
-                ? s.ofTheQuran(
-                    (overallProgress * 100).toStringAsFixed(0).toInt())
+                ? s.ofTheQuran((overallProgress * 100).round())
                 : null,
           ),
         ),

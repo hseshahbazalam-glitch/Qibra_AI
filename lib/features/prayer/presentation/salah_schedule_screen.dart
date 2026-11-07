@@ -62,10 +62,13 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
     final location = ref.watch(locationProvider);
     final settings = ref.watch(prayerSettingsProvider);
 
+    final s = AppStrings.of(context);
     final now = DateTime.now();
     final hijri = HijriCalendar.now();
     final displayType = nextPrayerInfo?.prayer.type;
-    final displayName = displayType == null ? '—' : _getName(displayType);
+    final displayName = displayType == null
+        ? '—'
+        : s.prayerDisplayName(displayType.name, _getName(displayType));
     final displayArabic = displayType == null ? '' : _getArabicName(displayType);
     final displayTime = nextPrayerInfo?.prayer.formattedTime ?? '—';
     final displayCountdown = nextPrayerInfo?.countdown;
@@ -73,10 +76,10 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
     final totalSeconds = displayCountdown?.inSeconds.abs() ?? 0;
     final h = totalSeconds ~/ 3600;
     final m = (totalSeconds % 3600) ~/ 60;
-    final s = totalSeconds % 60;
+    final sec = totalSeconds % 60;
     final formattedCountdown = displayCountdown == null
         ? '—'
-        : '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+        : '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -116,7 +119,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'PRAYER TIMES',
+                  s.prayerTimesEyebrow,
                   style: AppTextStyles.labelSmall.copyWith(
                     color: colors.primary,
                     fontWeight: FontWeight.w800,
@@ -125,7 +128,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                   ),
                 ),
                 Text(
-                  'Salah Schedule',
+                  s.salahScheduleTitle,
                   style: AppTextStyles.titleLarge.copyWith(
                     color: colors.textPrimary,
                     fontWeight: FontWeight.w900,
@@ -216,14 +219,17 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${_getDayName(now.weekday)}, ${now.day} ${_getMonth(now.month)} ${now.year}',
+                            '${s.dayName(now.weekday)}, ${now.day} '
+                                '${s.monthName(now.month)} ${now.year}',
                             style: AppTextStyles.titleSmall.copyWith(
                               color: colors.textPrimary,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                           Text(
-                            '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH',
+                            '${hijri.hDay} '
+                            '${s.hijriMonthName(hijri.hMonth, hijri.longMonthName)} '
+                            '${hijri.hYear} AH',
                             style: AppTextStyles.labelSmall.copyWith(
                               color: colors.accent,
                               fontWeight: FontWeight.w700,
@@ -295,7 +301,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                                   borderRadius: AppRadius.pillRadius,
                                 ),
                                 child: Text(
-                                  'NEXT PRAYER',
+                                  s.nextPrayerCaps,
                                   style: AppTextStyles.labelSmall.copyWith(
                                     color: colors.primary,
                                     fontWeight: FontWeight.w800,
@@ -413,7 +419,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               child: _buildInfoCard(
                 icon: Icons.location_on_rounded,
                 iconColor: colors.textSecondary,
-                title: 'My Location',
+                title: s.myLocation,
                 // Pass P3 (weak-state sweep): 'Auto-detected' used to
                 // claim a fix that never happened while location was
                 // pending or denied.
@@ -421,8 +427,8 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                     switch (location.status) {
                       LocationStatus.initial ||
                       LocationStatus.loading =>
-                        'Detecting…',
-                      _ => 'Not available — tap to set',
+                        s.detectingLabel,
+                      _ => s.notAvailableTapToSet,
                     },
                 onTap: _showLocationOptions,
               ),
@@ -433,8 +439,8 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: const QibraSectionHeader(
-                title: "Today's schedule",
+              child: QibraSectionHeader(
+                title: s.todaysSchedule,
               ),
             ),
           ),
@@ -453,11 +459,11 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                 child: location.status == LocationStatus.initial ||
                         location.isLoading
                     ? QibraStatus.loading(
-                        message: 'Finding your location for prayer times…',
+                        message: s.findingLocationForTimes,
                       )
                     : QibraStatus.error(
-                        message: location.error ??
-                            'Prayer times need a location — permission denied or GPS unavailable. Set one manually or retry.',
+                        message:
+                            location.error ?? s.prayerNeedsLocation,
                         onRetry: () => ref
                             .read(locationProvider.notifier)
                             .fetchCurrentLocation(),
@@ -499,7 +505,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Manage Prayer Notifications',
+                        s.managePrayerNotifications,
                         style: AppTextStyles.labelMedium.copyWith(
                           color: colors.primary,
                           fontWeight: FontWeight.w800,
@@ -524,6 +530,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
 
   void _showMethodSelector() {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
@@ -552,7 +559,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Calculation Method',
+                s.calculationMethod,
                 style: AppTextStyles.titleLarge.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w900,
@@ -601,6 +608,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
 
   void _showLocationOptions() {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
@@ -628,7 +636,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Location Settings',
+                s.locationSettingsTitle,
                 style: AppTextStyles.titleLarge.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w900,
@@ -650,14 +658,14 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                   ),
                 ),
                 title: Text(
-                  'Auto-detect Location',
+                  s.autoDetectLocation,
                   style: AppTextStyles.titleSmall.copyWith(
                     color: colors.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 subtitle: Text(
-                  'Use GPS to detect your location',
+                  s.useGpsToDetect,
                   style: AppTextStyles.labelSmall.copyWith(
                     color: colors.textSecondary,
                   ),
@@ -686,14 +694,14 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                   ),
                 ),
                 title: Text(
-                  'Reset to Makkah',
+                  s.resetToMakkah,
                   style: AppTextStyles.titleSmall.copyWith(
                     color: colors.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 subtitle: Text(
-                  'Use Makkah as default location',
+                  s.useMakkahDefault,
                   style: AppTextStyles.labelSmall.copyWith(
                     color: colors.textSecondary,
                   ),
@@ -718,6 +726,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
 
   void _showNotificationsSheet() {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
@@ -747,7 +756,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Prayer Notifications',
+                    s.prayerNotificationsTitle,
                     style: AppTextStyles.titleLarge.copyWith(
                       color: colors.textPrimary,
                       fontWeight: FontWeight.w900,
@@ -755,7 +764,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Toggle azan alerts for each prayer',
+                    s.toggleAzanPerPrayer,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: colors.textSecondary,
                     ),
@@ -765,7 +774,8 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
                     return AppSwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
-                        _getName(entry.key),
+                        s.prayerDisplayName(
+                            entry.key.name, _getName(entry.key)),
                         style: AppTextStyles.titleSmall.copyWith(
                           color: colors.textPrimary,
                           fontWeight: FontWeight.w700,
@@ -805,6 +815,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
 
   void _showPrayerSettings() {
     final colors = QibraColors.of(context);
+    final s = AppStrings.of(context);
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
@@ -833,7 +844,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Prayer Settings',
+                s.prayerSettingsTitle,
                 style: AppTextStyles.titleLarge.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w900,
@@ -872,7 +883,7 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
               ),
               AppSwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('24-Hour Format',
+                title: Text(s.hour24FormatTitle,
                     style: TextStyle(color: colors.textPrimary)),
                 subtitle: Text(AppStrings.of(context).use24HourTime,
                     style: TextStyle(
@@ -1008,7 +1019,8 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
     return SchedulePrayerTile(
       icon: _getIcon(type),
       iconColor: _getColor(context, type),
-      name: _getName(type),
+      name: AppStrings.of(context).prayerDisplayName(
+          type.name, _getName(type)),
       nameArabic: _getArabicName(type),
       time: time,
       isNext: isNext,
@@ -1103,34 +1115,6 @@ class _SalahScheduleScreenState extends ConsumerState<SalahScheduleScreen> {
     return colors.primary;
   }
 
-  String _getDayName(int weekday) {
-    const days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    return days[weekday - 1];
-  }
-
-  String _getMonth(int month) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return months[month - 1];
-  }
+  // A2: the _getDayName/_getMonth hardcoded English lists are GONE —
+  // every caller renders s.dayName/s.monthName (the one source of truth).
 }
