@@ -183,14 +183,14 @@ void main() {
     final bar = find.byType(AnimatedPositioned).at(1);
     final barRect = tester.getRect(bar);
     final barH = barRect.height;
-    debugPrint('::error::B3MEASURE barH=$barH reserve=148 '
-        'overflow=${(barH - 148).toStringAsFixed(1)}');
-    expect(barH, lessThanOrEqualTo(148.0),
-        reason: 'B3 CONFIRMED: the bottom chrome is ${barH}px tall '
-            'but the page reserves only 148px of bottom padding — '
-            'the last ${(barH - 148).toStringAsFixed(1)}px band of '
-            'content sits UNDER the bar (visual cut, worst on the '
-            'medallion/sajdah-footer lines)');
+    debugPrint('::error::B3MEASURE barH=$barH '
+        'reserve=$kMushafChromeBottomReserve');
+    expect(barH,
+        lessThanOrEqualTo(kMushafChromeBottomReserve - 8.0),
+        reason: 'the bottom chrome is ${barH}px tall but the page '
+            'reserve is $kMushafChromeBottomReserve — under 8px of '
+            'air is a cut waiting for the next textScale step '
+            '(#289 base-red evidence: 175 vs 148)');
   });
 
   // ── B2 — first-frame containment right after the goto jump ────

@@ -43,6 +43,16 @@ import '../providers/reading_preferences_provider.dart';
 import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
 
+/// B3 (M6): the bottom-chrome reserve the page layout pays against.
+/// #289 measured the settled bottom bar (slider row + medallion row
+/// + extras row) at 175px on 390/1.0 — the old hard 148 was 27px
+/// short and content slid UNDER the bar (the persistent half of
+/// 'neeche se cut ho rha h'). 196 covers the bar plus its air up to
+/// textScale 1.3; the M6 test pins the measured bar against this
+/// constant with >= 8px of slack at BOTH scales, so the number can
+/// never again be folklore.
+const double kMushafChromeBottomReserve = 196;
+
 /// One ayah occurrence on a mushaf page, with its surah context.
 class MushafPageEntry {
   const MushafPageEntry({
@@ -451,6 +461,14 @@ Juz: ${juz ?? '—'}''';
                 ? (a.surahNumber, a.ayahNumber)
                 : null));
         return Scaffold(
+          // B1 (M6): the goto dialog's keyboard must NOT resize the
+          // reading surface. The #289 probe measured the page slot
+          // going 844 -> 508 -> 844 across one IME cycle: the jump
+          // renders at the mid-animation size and the last band of
+          // the page shaves (device: 'neeche se cut… goto wajh se').
+          // The AlertDialog lifts itself over viewInsets — Dialog
+          // handles that internally — so the reader needs no resize.
+          resizeToAvoidBottomInset: false,
           backgroundColor: colors.background,
           body: SafeArea(
             child: Stack(
@@ -1297,8 +1315,13 @@ class _MushafPage extends StatelessWidget {
 
     return Container(
       // T3 (paper): page margins ride the 24 rhythm; navy keeps 20.
-      padding: EdgeInsets.fromLTRB(
-          QibraPaper.pad(context, 20), 84, QibraPaper.pad(context, 20), 148),
+      // B3 (M6): the bottom reserve is the MEASURED chrome height —
+      // #289 found the settled bar at 175px under the old 148, i.e.
+      // the last 27px of content sat under the chrome. The named
+      // constant (public, top of this file) is what the M6 test
+      // pins the real bar against — at textScale 1.0 AND 1.3.
+      padding: EdgeInsets.fromLTRB(QibraPaper.pad(context, 20), 84,
+          QibraPaper.pad(context, 20), kMushafChromeBottomReserve),
       child: Column(
         children: [
           Expanded(
