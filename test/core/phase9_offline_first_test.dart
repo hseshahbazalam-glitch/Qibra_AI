@@ -66,7 +66,6 @@ void main() {
     for (final x in _m6bad) {
       print('::error::M6BAD ${x.length > 230 ? x.substring(0, 230) : x}');
     }
-    print('::error::M6BADEND core_phase9_offline_first_test ${_m6bad.length}');
   });
 
   DateTime t0 = DateTime.utc(2026, 8, 30, 12);

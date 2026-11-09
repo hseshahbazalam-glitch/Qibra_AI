@@ -59,7 +59,6 @@ void main() {
     for (final x in _m6bad) {
       print('::error::M6BAD ${x.length > 230 ? x.substring(0, 230) : x}');
     }
-    print('::error::M6BADEND core_phase5_reliability_test ${_m6bad.length}');
   });
 
   // Truth-up (owner flip abee22e, 2026-09-02; this pin missed in 1fd6ee9):

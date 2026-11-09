@@ -245,7 +245,6 @@ void main() {
     for (final x in _m6bad) {
       print('::error::M6BAD ${x.length > 230 ? x.substring(0, 230) : x}');
     }
-    print('::error::M6BADEND mushaf_pass_m4_test.dart ${_m6bad.length}');
   });
 
   TestWidgetsFlutterBinding.ensureInitialized();

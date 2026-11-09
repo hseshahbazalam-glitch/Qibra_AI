@@ -61,7 +61,6 @@ void main() {
     for (final x in _m6bad) {
       print('::error::M6BAD ${x.length > 230 ? x.substring(0, 230) : x}');
     }
-    print('::error::M6BADEND core_phase_continue_wiring_test ${_m6bad.length}');
   });
 
   test('Hindi Quran edition is an honest miss', () {
