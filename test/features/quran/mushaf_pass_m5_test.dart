@@ -37,7 +37,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // FontLoader + ByteData (M-suite pattern)
-import 'package:flutter/transform.dart'; // Matrix4/Vector4 (getTransformTo math)
+import 'package:vector_math/vector_math_64.dart'; // Matrix4/Vector4 (getTransformTo math; transitive flutter dep, info-level depend_on_referenced_packages sanctioned)
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
@@ -355,14 +355,17 @@ void main() {
         reason: 'the leaf must be live mid-turn for this audit');
     final clipRO = tester.renderObject(_leafClip(tester));
     final clipSize = tester.getSize(_leafClip(tester));
+    expect(tester.getRect(_leafClip(tester)).top, greaterThanOrEqualTo(0.0));
     final path = liveClipper(tester).getClip(clipSize);
     final texts = find.descendant(
         of: _leaf, matching: find.byType(RichText));
     expect(texts, findsWidgets);
     for (final rich in texts.evaluate()) {
-      final ro = tester.renderObject(rich) as RenderBox;
-      final m = ro.getTransformTo(clipRO);
-      final r = Offset.zero & ro.size;
+      // No RenderBox by name (no repo precedent that material exports
+      // it): the transform comes off the raw RenderObject and the
+      // local box is tester.getSize — both already-sanctioned APIs.
+      final m = tester.renderObject(rich).getTransformTo(clipRO);
+      final r = Offset.zero & tester.getSize(rich);
       for (final p in [
         r.topLeft,
         Offset(r.right, r.top),
