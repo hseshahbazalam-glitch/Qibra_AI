@@ -35,6 +35,9 @@ const _surfaces = [
 const bool _probeSkipGroup2 = true; // PROBE r2
 const bool _probeSkipGroup1a = true; // PROBE r3
 const bool _probe4 = true; // PROBE r4
+final List<bool> _probeFlags = [false, false, false, false];
+// PROBE r5 sentinels: failure COUNT encodes which sub-step broke:
+// +1 pump threw; +2 paper-side isActive; +4 night isActive; +8 of().
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -127,37 +130,56 @@ void main() {
       expect(p.lerp(p, 1.0), same(p));
     });
 
+    // PROBE r5 (single run, count-encoded diagnosis): the live-red
+    // T5 gets each sub-step wrapped; every broken step flips a bool,
+    // and the sentinel tests below turn bools into failure COUNT.
     testWidgets('isActive is contextual — per subtree, not per app',
         (tester) async {
       late BuildContext paperCtx;
       late BuildContext nightCtx;
-      await tester.pumpWidget(MaterialApp(
-        home: Column(
-          children: [
-            QibraPaper.scope(
-              active: true,
-              child: Builder(
-                  builder: (c) {
-                    paperCtx = c;
-                    return const SizedBox();
-                  }),
-            ),
-            QibraPaper.scope(
-              active: false,
-              child: Builder(
-                  builder: (c) {
-                    nightCtx = c;
-                    return const SizedBox();
-                  }),
-            ),
-          ],
-        ),
-      ));
-      expect(QibraPaper.isActive(paperCtx), isTrue);
-      expect(QibraPaper.isActive(nightCtx), isFalse);
-      expect(QibraColors.of(nightCtx), isA<QibraColors>());
+      try {
+        await tester.pumpWidget(MaterialApp(
+          home: Column(
+            children: [
+              QibraPaper.scope(
+                active: true,
+                child: Builder(
+                    builder: (c) {
+                      paperCtx = c;
+                      return const SizedBox();
+                    }),
+              ),
+              QibraPaper.scope(
+                active: false,
+                child: Builder(
+                    builder: (c) {
+                      nightCtx = c;
+                      return const SizedBox();
+                    }),
+              ),
+            ],
+          ),
+        ));
+      } catch (_) {
+        _probeFlags[0] = true;
+        return;
+      }
+      try {
+        expect(QibraPaper.isActive(paperCtx), isTrue);
+      } catch (_) {
+        _probeFlags[1] = true;
+      }
+      try {
+        expect(QibraPaper.isActive(nightCtx), isFalse);
+      } catch (_) {
+        _probeFlags[2] = true;
+      }
+      try {
+        expect(QibraColors.of(nightCtx), isA<QibraColors>());
+      } catch (_) {
+        _probeFlags[3] = true;
+      }
     });
-
     test('typography helpers hit the T1/T2 bands', () {
       if (_probe4) return; // PROBE r4
       // T1: 1.75–1.85 clamp in both directions.
@@ -174,6 +196,15 @@ void main() {
       expect(QibraPaper.headingLetterSpacing, 0.2);
     });
   });
+
+    test('PROBE r5 sentinel A — pump', () => expect(_probeFlags[0], isFalse,
+        reason: 'pump threw'));
+    test('PROBE r5 sentinel B — paper isActive', () =>
+        expect(_probeFlags[1], isFalse, reason: 'paper isActive'));
+    test('PROBE r5 sentinel C — night isActive', () =>
+        expect(_probeFlags[2], isFalse, reason: 'night isActive'));
+    test('PROBE r5 sentinel D — night of()', () =>
+        expect(_probeFlags[3], isFalse, reason: 'night of()'));
 
   group('D2 mode contract', () {
     // PROBE COMMIT (round 2): skip: flags below isolate the lone red.
