@@ -207,6 +207,18 @@ MushafReamPainter ream(
         turn: turn, sheetA: a, sheetB: b, crease: c, depth: depth);
 
 void main() {
+  // M6LEDGER-mushaf_pass_m5_test (transient, one round): IN/DONE ledgers + the
+  // TALLY in tearDownAll — starts minus completes == the failure.
+  final _m6in = <String>[];
+  final _m6done = <String>[];
+  setUp(() => _m6in.add(testCase.name));
+  tearDown(() => _m6done.add(testCase.name));
+  tearDownAll(() {
+    final missing = _m6in.toSet().difference(_m6done.toSet());
+    print('::error::M6T mushaf_pass_m5_test :: '
+        '${missing.isEmpty ? 'none-failed' : missing.join(' ;; ')}');
+  });
+
 
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
