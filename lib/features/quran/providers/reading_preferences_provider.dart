@@ -222,7 +222,16 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
   }
 
   Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
+    late final SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } catch (_) {
+      // Same boundary discipline as _load(): an unreachable store must
+      // not surface as an unhandled async error from a setter. State
+      // itself is updated regardless; persistence is retried by the
+      // next setter call once the store answers.
+      return;
+    }
     await prefs.setString('${_key}_translation', state.translationId);
     await prefs.setBool('${_key}_show_translation', state.showTranslation);
     await prefs.setBool('${_key}_show_transliteration', state.showTransliteration);
