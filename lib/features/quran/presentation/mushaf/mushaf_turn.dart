@@ -150,7 +150,16 @@ abstract final class MushafTurnGeometry {
   /// One shared 0→1→0 envelope: peaks mid-turn, exactly zero at the
   /// touch-down frame AND at commit — so nothing (lift, parallax)
   /// survives into the swap frame or rests on the settled page.
-  static double swell(double t) => math.sin(math.pi * clampT(t));
+  static double swell(double t) {
+    final c = clampT(t);
+    // EXACT zero at the closed ends: sin(math.pi) is 1.2246e-16 in
+    // floating point, and a 4e-16px lift is visually nothing but is a
+    // NON-zero delta riding every derived alpha — the 'at rest the
+    // settled frame is untouched' property (M2 no-repaint) deserves the
+    // exactness, and W3/W5 pins it.
+    if (c <= 0.0 || c >= 1.0) return 0.0;
+    return math.sin(math.pi * c);
+  }
 
   /// W3: micro-lift of the free edge while the drag lives (px).
   static double anticipation(double t) => 3.0 * swell(t);
