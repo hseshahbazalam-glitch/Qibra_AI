@@ -1245,7 +1245,7 @@ class _TodaysHadithCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: AppGoldButton(
-                  label: AppStrings.readFullHadith(context),
+                  label: AppStrings.of(context).readFullHadith,
                   size: AppButtonSize.small,
                   fullWidth: true,
                   suffixIcon: Icons.arrow_forward_rounded,

@@ -496,12 +496,13 @@ void main() {
       // today-card CTA reads its label from AppStrings too (I proper).
       expect(book.contains("'All Chapters'"), isFalse,
           reason: 'must come from AppStrings.hadithAllChapters');
-      expect(book.contains('AppStrings.hadithAllChapters(context)'), isTrue);
+      expect(book.contains('strings.hadithAllChapters'), isTrue);
       expect(book.contains("label: 'Ch '"), isFalse);
-      expect(book.contains('hadithChapterShort(context, n)'), isTrue,
+      expect(book.contains('.hadithChapterShort(hadith.chapterNumber)'), isTrue,
           reason: 'chip labels must route through the l10n builder');
       expect(home.contains("label: 'Read Full Hadith'"), isFalse);
-      expect(home.contains('label: AppStrings.readFullHadith(context)'), isTrue);
+      expect(home.contains('label: AppStrings.of(context).readFullHadith'),
+          isTrue);
     });
 
     test('G — search rows badge the real match channel; empty is honest', () {
