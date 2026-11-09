@@ -121,7 +121,7 @@ Future<void> pumpReaderM5(
   double dpr = 1.0,
   double textScale = 1.0,
 }) async {
-  tester.view.physicalSize = logical * dpr;
+  tester.view.physicalSize = Size(logical.width * dpr, logical.height * dpr);
   tester.view.devicePixelRatio = dpr;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
