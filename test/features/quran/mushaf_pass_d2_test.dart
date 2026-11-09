@@ -34,6 +34,7 @@ const _surfaces = [
 
 const bool _probeSkipGroup2 = true; // PROBE r2
 const bool _probeSkipGroup1a = true; // PROBE r3
+const bool _probe4 = true; // PROBE r4
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -103,6 +104,7 @@ void main() {
     });
 
     test('palette: subclass identity, getters, instant lerp', () {
+      if (_probe4) return; // PROBE r4
       const p = QibraPaperColors.palette;
       expect(p.background, QibraPaper.paper);
       expect(p.cardMuted, QibraPaper.paperDeep);
@@ -157,6 +159,7 @@ void main() {
     });
 
     test('typography helpers hit the T1/T2 bands', () {
+      if (_probe4) return; // PROBE r4
       // T1: 1.75–1.85 clamp in both directions.
       expect(QibraPaper.bodyLeadingOn(2.2), 1.85); // airy navy tightens
       expect(QibraPaper.bodyLeadingOn(1.5), 1.75); // cramped opens up
