@@ -411,15 +411,18 @@ void main() {
           ),
         ),
       ));
-      // Turn #1 — the cycle the buggy build survived.
-      await _swipe(tester, 300);
+      // Turn #1 — the cycle the buggy build survived. 600px so the
+      // DELIVERED 400px (first move only wins the arena) clears the
+      // 0.42 position threshold at the default 800-wide test surface
+      // — TestGesture.up() carries zero velocity by default.
+      await _swipe(tester, 600);
       await tester.pumpAndSettle(const Duration(milliseconds: 40));
       // ignore: avoid_print
       print('::error ::DIAG R1 phase1 commits=$commits exc=${tester.takeException()}');
       expect(commits, 1);
       // Turn #2 — the device killer: re-settling must REUSE the one
       // controller, never construct a second ticker.
-      await _swipe(tester, 300);
+      await _swipe(tester, 600);
       await tester.pumpAndSettle(const Duration(milliseconds: 40));
       expect(commits, 2,
           reason: 'the second turn commits exactly like the first');
