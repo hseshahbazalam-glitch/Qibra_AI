@@ -540,8 +540,12 @@ void main() {
       // home/collections must NEVER join the scope (brief-fixed boundary).
       expect(home.contains('QibraPaper'), isFalse,
           reason: 'home stays navy: scope is book-reader only');
-      expect(home.contains('QibraNavy.canvas'), isTrue,
-          reason: 'home keeps the raw navy canvas constant');
+      // Home's navy is token-mediated (the F sweep) — the honest pin is
+      // that its Scaffold-level chrome never resolves through the paper
+      // palette type; the canvas constant it once held is colors.background.
+      expect(RegExp(r'QibraPaperColors|QibraPaper\\.palette')
+          .hasMatch(home), isFalse,
+          reason: 'home must not hard-wire paper — navy by construction');
       // the split scales are the ONLY scales: the legacy single
       // hadithTextScale is gone from the whole feature, and the store
       // round-trips both values through SharedPreferences.
