@@ -24,6 +24,8 @@ import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
+import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
 
 // ============================================================
 // PROVIDERS
@@ -85,7 +87,11 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
     final surahAsync = ref.watch(surahDetailProvider(widget.surahNumber));
     final currentAyah = ref.watch(_currentAyahProvider);
 
-    return Scaffold(
+    // Pass D2: paper scope (night → child unwrapped, byte-identical).
+    return QibraPaper.scope(
+      active:
+          ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
+      child: Scaffold(
       backgroundColor: colors.background,
       body: surahAsync.when(
         data: (surah) {
@@ -131,7 +137,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           );
         },
         loading: () => Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
           child: Column(
             children: [
               QibraStatus.skeleton(height: 120),
@@ -144,6 +150,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
         ),
         error: (e, _) => _buildError(e.toString()),
       ),
+    ),
     );
   }
 
@@ -401,7 +408,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           final currentSize = ref.watch(_tafsirFontSizeProvider);
 
           return Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
             decoration: BoxDecoration(
               color: colors.surface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -501,7 +508,7 @@ class _TranslationTab extends ConsumerWidget {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -515,12 +522,21 @@ class _TranslationTab extends ConsumerWidget {
               ayah.text,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style: AppArabicStyles.quranMedium.copyWith(
-                fontSize: fontSize + 10,
-                color: colors.textPrimary,
-                height: 2.2,
-                fontWeight: FontWeight.w600,
-              ),
+              // D2 T1: the quoted Arabic sits in the paper leading
+              // window on paper (2.2 navy stays exactly 2.2).
+              style: QibraPaper.isActive(context)
+                  ? AppArabicStyles.quranMedium.copyWith(
+                      fontSize: fontSize + 10,
+                      color: colors.textPrimary,
+                      height: QibraPaper.bodyLeadingOn(2.2),
+                      fontWeight: FontWeight.w600,
+                    )
+                  : AppArabicStyles.quranMedium.copyWith(
+                      fontSize: fontSize + 10,
+                      color: colors.textPrimary,
+                      height: 2.2,
+                      fontWeight: FontWeight.w600,
+                    ),
             ),
           ),
 
@@ -710,7 +726,7 @@ class _TafsirTab extends ConsumerWidget {
         : null;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -727,12 +743,19 @@ class _TafsirTab extends ConsumerWidget {
               ayah.text,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style: AppArabicStyles.quranMedium.copyWith(
-                fontSize: fontSize + 8,
-                color: colors.textPrimary,
-                height: 2.2,
-                fontWeight: FontWeight.w600,
-              ),
+              style: QibraPaper.isActive(context)
+                  ? AppArabicStyles.quranMedium.copyWith(
+                      fontSize: fontSize + 8,
+                      color: colors.textPrimary,
+                      height: QibraPaper.bodyLeadingOn(2.2),
+                      fontWeight: FontWeight.w600,
+                    )
+                  : AppArabicStyles.quranMedium.copyWith(
+                      fontSize: fontSize + 8,
+                      color: colors.textPrimary,
+                      height: 2.2,
+                      fontWeight: FontWeight.w600,
+                    ),
             ),
           ),
 
@@ -896,7 +919,7 @@ class _WordByWordTab extends StatelessWidget {
     final words = WordByWordResolver.tokenize(ayah.text);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

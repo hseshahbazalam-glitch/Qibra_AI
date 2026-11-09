@@ -39,6 +39,8 @@ import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import '../providers/quran_audio_provider.dart';
 import '../providers/quran_provider.dart';
 import '../providers/reading_progress_provider.dart';
+import '../providers/reading_preferences_provider.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
 
 /// One ayah occurrence on a mushaf page, with its surah context.
@@ -416,7 +418,14 @@ Juz: ${juz ?? '—'}''';
     final showControls = ref.watch(_showControlsProvider);
     final indexAsync = ref.watch(mushafPageIndexProvider);
 
-    return indexAsync.when(
+    // Pass D2: one paper scope over the whole reader (all when
+    // branches ride it). NIGHT: scope returns the child UNWRAPPED —
+    // zero added widgets on the navy path, which is why Night stays
+    // byte-identical by construction, not by promise.
+    return QibraPaper.scope(
+      active:
+          ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
+      child: indexAsync.when(
       loading: () => Scaffold(
         backgroundColor: colors.background,
         body: Center(child: QibraStatus.skeleton(height: 420)),
@@ -524,6 +533,7 @@ Juz: ${juz ?? '—'}''';
           ),
         );
       },
+    ),
     );
   }
 
@@ -1227,7 +1237,12 @@ class _MushafPage extends StatelessWidget {
                     child: Text(
                       'سُورَة ${e.surahName}',
                       style: AppArabicStyles.quranSmall.copyWith(
-                        color: colors.textSecondary,
+                        // D2 mapping: surah-header hairlines pair
+                        // hairlinePaper + INK on paper (navy keeps
+                        // textSecondary exactly as before).
+                        color: QibraPaper.isActive(context)
+                            ? colors.textPrimary
+                            : colors.textSecondary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -1243,18 +1258,24 @@ class _MushafPage extends StatelessWidget {
           playingAyah != null &&
           e.surahNumber == playingSurah &&
           e.ayah.number == playingAyah;
-      spans.add(
-        TextSpan(
-          text: '${e.ayah.text} ',
-          style: AppArabicStyles.quranMedium.copyWith(
-            color: colors.textPrimary,
-            // Restrained gold tint on the REAL span of the playing ayah
-            // (background wash token only — the highlight IS the text's
-            // own region; no invented geometry overlay).
-            backgroundColor: isPlayingHere ? QibraNavy.goldWash : null,
-          ),
-        ),
+      // D2: the wash token follows the surface — navy's goldWash on
+      // the navy page, the antique #A8823F wash on paper (mapping
+      // rule; marker only, the text on top stays full ink).
+      final wash = QibraPaper.isActive(context)
+          ? QibraPaper.playingWash
+          : QibraNavy.goldWash;
+      var ayahStyle = AppArabicStyles.quranMedium.copyWith(
+        color: colors.textPrimary,
+        // Restrained gold tint on the REAL span of the playing ayah
+        // (background wash token only — the highlight IS the text's
+        // own region; no invented geometry overlay).
+        backgroundColor: isPlayingHere ? wash : null,
       );
+      // T1/T2 (paper only): one size step up, 1.75–1.85 leading.
+      if (QibraPaper.isActive(context)) {
+        ayahStyle = QibraPaper.paperArabicBody(ayahStyle);
+      }
+      spans.add(TextSpan(text: '${e.ayah.text} ', style: ayahStyle));
       spans.add(
         TextSpan(
           text: '(${_toArabicDigits(e.ayah.number)}) ',
@@ -1267,7 +1288,9 @@ class _MushafPage extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 84, 20, 148),
+      // T3 (paper): page margins ride the 24 rhythm; navy keeps 20.
+      padding: EdgeInsets.fromLTRB(
+          QibraPaper.pad(context, 20), 84, QibraPaper.pad(context, 20), 148),
       child: Column(
         children: [
           Expanded(

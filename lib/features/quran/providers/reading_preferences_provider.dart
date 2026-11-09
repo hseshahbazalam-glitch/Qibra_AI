@@ -13,6 +13,8 @@ import 'package:qibra_ai/core/content/edition_resolver.dart';
 
 import '../data/audio/tilawat.dart';
 
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
+
 enum QuranReadingMode { arabicOnly, arabicAndTranslation, translationOnly }
 
 class ReadingPreferences {
@@ -29,6 +31,7 @@ class ReadingPreferences {
     this.listenWordByWord = false,
     this.playbackSpeed = 1.0,
     this.translationCompare = false,
+    this.readingTheme = QibraReadingTheme.night,
   });
 
   /// Shared clamp range for both scales.
@@ -68,6 +71,23 @@ class ReadingPreferences {
   /// exactly the pre-Q2 layout).
   final bool translationCompare;
 
+  /// Pass D2: the reading-surface palette switch. NIGHT (default) is
+  /// the untouched global navy; PAPER paints the cream duotone on
+  /// the reading surfaces via QibraPaper.scope. The app theme, every
+  /// other screen, and every default in this class stay navy.
+  final QibraReadingTheme readingTheme;
+
+  /// Convenience for the scopes: true only in paper mode.
+  bool get isPaper => readingTheme == QibraReadingTheme.paper;
+
+  /// Boundary validation for the persisted surface name: known names
+  /// pass, everything else is night (never a crash, never a guess).
+  static QibraReadingTheme validSurface(String? name) =>
+      QibraReadingTheme.values.firstWhere(
+        (t) => t.name == name,
+        orElse: () => QibraReadingTheme.night,
+      );
+
   static double clampScale(double v) => v.clamp(scaleMin, scaleMax).toDouble();
 
   /// Pure legacy migration — unit-tested. A missing/null old value means
@@ -94,6 +114,7 @@ class ReadingPreferences {
     bool? listenWordByWord,
     double? playbackSpeed,
     bool? translationCompare,
+    QibraReadingTheme? readingTheme,
   }) {
     return ReadingPreferences(
       translationId: translationId ?? this.translationId,
@@ -108,6 +129,7 @@ class ReadingPreferences {
       listenWordByWord: listenWordByWord ?? this.listenWordByWord,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       translationCompare: translationCompare ?? this.translationCompare,
+      readingTheme: readingTheme ?? this.readingTheme,
     );
   }
 
@@ -184,6 +206,9 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
       ),
       translationCompare:
           prefs.getBool('${_key}_translation_compare') ?? false,
+      readingTheme: ReadingPreferences.validSurface(
+        prefs.getString('${_key}_reading_theme'),
+      ),
     );
   }
 
@@ -203,6 +228,15 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     await prefs.setDouble('${_key}_playback_speed', state.playbackSpeed);
     await prefs.setBool(
         '${_key}_translation_compare', state.translationCompare);
+    await prefs.setString('${_key}_reading_theme', state.readingTheme.name);
+  }
+
+  /// Persist the reading-surface theme (Pass D2). Fires on the spot —
+  /// every scoped surface rebuilds through the provider; no restart.
+  Future<void> setReadingTheme(QibraReadingTheme theme) async {
+    if (theme == state.readingTheme) return;
+    state = state.copyWith(readingTheme: theme);
+    await _save();
   }
 
   /// Persist the per-ayah translation-compare toggle (Pass Q2).

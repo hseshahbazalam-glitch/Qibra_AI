@@ -17,6 +17,7 @@ import '../providers/quran_audio_provider.dart';
 import '../data/repository/urdu_edition_catalog.dart';
 import '../providers/reading_preferences_provider.dart';
 import 'surah_reader_screen.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 
 Future<void> showAyahOptions({
   required BuildContext context,
@@ -89,7 +90,9 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    return Container(
+    return QibraPaper.scope(
+      active: ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
+      child: Container(
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -120,7 +123,8 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
           ],
         ),
       ),
-    );
+    ),
+    );;
   }
 
   Widget _buildHeader() {

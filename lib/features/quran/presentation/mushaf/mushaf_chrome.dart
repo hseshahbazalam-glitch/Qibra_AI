@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 
 class MushafPageMedallion extends StatelessWidget {
   const MushafPageMedallion({
@@ -39,7 +40,12 @@ class MushafPageMedallion extends StatelessWidget {
       child: CustomPaint(
         painter: _RosettePainter(
           border: colors.border,
-          gild: AppGold.s500,
+          // D2 mapping: gilding reads antique-gold deep on paper,
+          // AppGold on the navy surface (context-probed — no flag
+          // threading through the chrome).
+          gild: QibraPaper.isActive(context)
+              ? QibraPaper.gild
+              : AppGold.s500,
           fill: colors.cardMuted,
         ),
         child: Padding(
@@ -132,7 +138,10 @@ class MushafJuzChip extends StatelessWidget {
         color: colors.primarySoft,
         borderRadius: BorderRadius.circular(7),
         border: Border.all(
-          color: AppGold.s500.withValues(alpha: 0.35),
+          color: (QibraPaper.isActive(context)
+                  ? QibraPaper.gild
+                  : AppGold.s500)
+              .withValues(alpha: 0.35),
         ),
       ),
       child: Text(

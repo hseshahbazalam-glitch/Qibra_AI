@@ -15,6 +15,7 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/content/edition_resolver.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/features/hadith/data/hadith_availability.dart';
 import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
@@ -86,6 +87,39 @@ class SettingsScreen extends ConsumerWidget {
                         onChanged: (_) {
                           HapticFeedback.lightImpact();
                           ref.read(themeProvider.notifier).toggleTheme();
+                        },
+                      ),
+                    ),
+                    // Pass D2: the reading-surface theme. GLOBAL app
+                    // identity untouched — this only repaints the
+                    // Quran-reading surfaces (mushaf, surah reader,
+                    // tafseer, word/ayah sheets). Persists instantly
+                    // through the reading-preferences store; every
+                    // scoped surface rebuilds live.
+                    _SettingsTile(
+                      icon: Icons.book_rounded,
+                      iconColor: colors.accent,
+                      title: 'Reading Theme',
+                      subtitle: 'Night keeps navy everywhere; Paper '
+                          'paints the cream duo-tone on reading pages',
+                      trailing: SegmentedButton<QibraReadingTheme>(
+                        showSelectedIcon: false,
+                        style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                        segments: const [
+                          ButtonSegment(
+                              value: QibraReadingTheme.night, label: Text('Night')),
+                          ButtonSegment(
+                              value: QibraReadingTheme.paper, label: Text('Paper')),
+                        ],
+                        selected: {
+                          ref.watch(readingPreferencesProvider
+                              .select((p) => p.readingTheme))
+                        },
+                        onSelectionChanged: (sel) {
+                          HapticFeedback.lightImpact();
+                          ref
+                              .read(readingPreferencesProvider.notifier)
+                              .setReadingTheme(sel.first);
                         },
                       ),
                     ),

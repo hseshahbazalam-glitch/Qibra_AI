@@ -35,6 +35,8 @@ import '../../../core/l10n/app_strings.dart';
 import '../../ai/presentation/ai_explain_screen.dart';
 import '../../tafseer/presentation/tafseer_screen.dart';
 import '../providers/quran_word_provider.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
+import '../providers/reading_preferences_provider.dart';
 
 /// Open the word explain sheet. [word] is the displayed span (raw
 /// Uthmani bytes); [gloss] may be empty (honest-unavailable);
@@ -120,7 +122,9 @@ class _WordExplainBody extends ConsumerWidget {
     final strings = AppStrings.of(context);
     final occurrences = ref.watch(quranWordOccurrencesProvider(word));
 
-    return Padding(
+    return QibraPaper.scope(
+      active: ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
+      child: Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -277,7 +281,8 @@ class _WordExplainBody extends ConsumerWidget {
           const SizedBox(height: 6),
         ],
       ),
-    );
+    ),
+    );;
   }
 
   Widget _infoRow(BuildContext context,

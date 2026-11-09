@@ -21,6 +21,7 @@ import 'package:flutter/services.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class MushafRibbon extends StatefulWidget {
@@ -127,7 +128,11 @@ class _MushafRibbonState extends State<MushafRibbon> {
                         length: MushafRibbon.restLength + _drag,
                         armed: _armed,
                         base: colors.primary,
-                        trim: AppGold.s500,
+                        // D2: the ribbon lives on the reading surface —
+                        // paper gild deep, navy AppGold as ever.
+                        trim: QibraPaper.isActive(context)
+                            ? QibraPaper.gild
+                            : AppGold.s500,
                       ),
                     ),
                   ),
@@ -150,7 +155,10 @@ class _MushafRibbonState extends State<MushafRibbon> {
                     color: colors.card,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppGold.s500.withValues(alpha: 0.6),
+                      color: (QibraPaper.isActive(context)
+                              ? QibraPaper.gild
+                              : AppGold.s500)
+                          .withValues(alpha: 0.6),
                     ),
                   ),
                   child: Text(

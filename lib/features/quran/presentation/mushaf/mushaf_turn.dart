@@ -63,6 +63,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 
 enum MushafTurnDirection { forward, backward }
@@ -444,6 +445,13 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                       ? 0.0
                       : w * MushafTurnGeometry.freeEdgeFrac(dir, t);
                   final colors = QibraColors.of(context);
+                  // D2: the fore-edge glint rides the surface — one
+                  // readable antique gold on paper, the AppGold pair
+                  // on navy. COLOR ONLY; the M2 band mechanics and all
+                  // M3 lifecycle mechanics below are untouched.
+                  final gildBase = QibraPaper.isActive(context)
+                      ? QibraPaper.gild
+                      : AppGold.s500;
                   // Byte-identical to the pre-M2 sheen gate.
                   final settling = _settle.isAnimating == true;
                   return Stack(
@@ -604,16 +612,19 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
                                       colors: [
-                                        AppGold.s500.withValues(
+                                        gildBase.withValues(
                                             alpha:
                                                 MushafTurnShading.gildAlpha(
                                                         t) *
                                                     0.35),
-                                        AppGold.s500.withValues(
+                                        gildBase.withValues(
                                           alpha:
                                               MushafTurnShading.gildAlpha(t),
                                         ),
-                                        AppGold.s700.withValues(
+                                        (QibraPaper.isActive(context)
+                                                ? QibraPaper.gild
+                                                : AppGold.s700)
+                                            .withValues(
                                           alpha:
                                               MushafTurnShading.gildAlpha(
                                                       t) *

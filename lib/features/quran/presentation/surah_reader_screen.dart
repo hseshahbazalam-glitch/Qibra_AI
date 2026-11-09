@@ -42,12 +42,13 @@ import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../data/audio/tilawat.dart';
 import '../data/models/quran_models.dart';
 import '../providers/quran_audio_provider.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
+import '../providers/reading_preferences_provider.dart';
 import '../providers/quran_download_provider.dart';
 import '../providers/reading_progress_provider.dart';
 import '../providers/quran_provider.dart';
 import 'package:qibra_ai/core/content/edition_resolver.dart';
 import '../data/repository/urdu_edition_catalog.dart';
-import '../providers/reading_preferences_provider.dart';
 import 'ayah_options_sheet.dart';
 import '../data/word/quran_word_data.dart';
 import '../providers/quran_word_provider.dart';
@@ -347,7 +348,13 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     ref.listen(quranAudioProvider.select((aud) => aud.session),
         (_, __) => setState(() => _followM = _followM.newSession()));
 
-    return Scaffold(
+    // Pass D2: paper scope over the whole reading surface. NIGHT:
+    // scope(active:false) returns the child UNWRAPPED — identical
+    // widget identity, zero added objects on the navy path.
+    return QibraPaper.scope(
+      active:
+          ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
+      child: Scaffold(
       backgroundColor: colors.background,
       appBar: QibraAppBar(
         title: surah?.name ?? 'Surah ${widget.surahNumber}',
@@ -588,6 +595,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
               ref.invalidate(surahDetailProvider(widget.surahNumber)),
         ),
       ),
+    ),
     );
   }
 
@@ -654,7 +662,12 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
       constraints: BoxConstraints(
         maxHeight: MediaQuery.sizeOf(context).height * 0.85,
       ),
-      backgroundColor: QibraColors.of(context).card,
+      // D2: the sheet's own frame matches the surface (paper reader →
+      // paper sheet chrome, rounded corners included). Modal content
+      // cannot toggle while open, so a read is the honest primitive.
+      backgroundColor: ref.read(readingPreferencesProvider).isPaper
+          ? QibraPaper.paper
+          : QibraColors.of(context).card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -1088,7 +1101,10 @@ class _AyahCard extends ConsumerWidget {
                 style: AppTextStyles.bodyMedium.copyWith(
                   fontSize: translationSize,
                   color: colors.textSecondary,
-                  height: 1.5,
+                  // D2 T1: paper leading window for the body line.
+                  height: QibraPaper.isActive(context)
+                      ? QibraPaper.bodyLeadingOn(1.5)
+                      : 1.5,
                 ),
               ),
             ],
@@ -1313,10 +1329,21 @@ class _TranslationColumn extends StatelessWidget {
             text,
             textAlign: isRtl ? TextAlign.right : TextAlign.left,
             textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-            style: isRtl
-                ? AppArabicStyles.quranSmall.copyWith(color: colors.textPrimary)
-                : AppTextStyles.bodySmall
-                    .copyWith(color: colors.textSecondary, height: 1.5),
+            // D2 T1: the compare columns ride the same paper leading
+            // window as the body (Urdu and latin alike).
+            style: QibraPaper.isActive(context)
+                ? (isRtl
+                    ? AppArabicStyles.quranSmall
+                        .copyWith(color: colors.textPrimary)
+                        .copyWith(height: QibraPaper.bodyLeadingOn(1.8))
+                    : AppTextStyles.bodySmall.copyWith(
+                        color: colors.textSecondary,
+                        height: QibraPaper.bodyLeadingOn(1.5)))
+                : (isRtl
+                    ? AppArabicStyles.quranSmall
+                        .copyWith(color: colors.textPrimary)
+                    : AppTextStyles.bodySmall
+                        .copyWith(color: colors.textSecondary, height: 1.5)),
           ),
         ],
       ),
@@ -1340,7 +1367,10 @@ class _ReadingSettingsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final prefs = ref.watch(readingPreferencesProvider);
-    return SafeArea(
+    return QibraPaper.scope(
+      active: ref.watch(
+          readingPreferencesProvider.select((p) => p.isPaper)),
+      child: SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
         // The whole sheet body scrolls (see _showSettingsSheet CPH2573
@@ -1481,7 +1511,8 @@ class _ReadingSettingsSheet extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ),
+    );;
   }
 }
 
@@ -1798,11 +1829,17 @@ class _AyahArabicLayer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final corpus = ref.watch(quranWordCorpusProvider).valueOrNull;
     final words = corpus?.wordsFor(surah.number, ayah.number, ayah.text);
-    final style = AppArabicStyles.quranMedium.copyWith(
+    var style = AppArabicStyles.quranMedium.copyWith(
       fontSize: arabicSize,
       height: prefs.lineHeight,
       color: color,
     );
+    // D2 T1/T2 (paper only): one size step up and the 1.75–1.85
+    // leading window; the word-chip render below inherits the bumped
+    // size through the same style object.
+    if (QibraPaper.isActive(context)) {
+      style = QibraPaper.paperArabicBody(style);
+    }
     if (words == null) {
       // No verified word mapping for this ayah (or the corpus failed to
       // load): the historical single-Text render, byte-identical UX.
