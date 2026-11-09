@@ -1,5 +1,4 @@
 // ignore_for_file: unused_import, unused_local_variable, unused_element
-// ignore_for_file: unused_import, unused_local_variable, unused_element
 // test/features/quran/mushaf_pass_m5_test.dart
 // ============================================================
 // PASS M5 — THE EDGE-CUT CLOSURE (C) AND THE REAM (R).
@@ -182,35 +181,45 @@ MushafTurnLeafClipper liveClipper(WidgetTester tester) =>
     tester.widget<ClipPath>(_leafClip(tester)).clipper
         as MushafTurnLeafClipper;
 
+Offset projectPoint(Matrix4 m, Offset o) =>
+    // The API that ACTUALLY exists on vector_math's Matrix4:
+    // perspectiveTransform does the full multiply AND the divide by w
+    // (there is no transform4 on Matrix4 — that was #226-#232's
+    // undefined_method, one line, hiding in a six-line helper).
+    (() {
+      final v = m.perspectiveTransform(Vector3(o.dx, o.dy, 0));
+      return Offset(v.x, v.y);
+    })();
+
+/// One test-rebuildable painter value set (R6's data-only compare).
+MushafReamPainter ream(
+        {double turn = 0.0,
+        double depth = 0.02,
+        Color a = const Color.from(alpha: 1, red: .9, green: .9, blue: .8),
+        Color b = const Color.from(alpha: 1, red: .8, green: .8, blue: .7),
+        Color c = const Color.from(alpha: 1, red: .5, green: .5, blue: .5)}) =>
+    MushafReamPainter(
+        turn: turn, sheetA: a, sheetB: b, crease: c, depth: depth);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  // ── C1 — the formula and its device closure ───────────────────
-  // C1 group content, unwrapped, test 2 only
-    test('alignment XA decls only', () {
-      const matrix = {
-        1.0, 2.75, 2.8125, 3.0, // 2.8125 = the reporting CPH2573
-      };
-      for (final dpr in matrix) {
-        for (final w in [360.0, 384.0, 390.0, 411.0, 480.0]) {
-          final size = Size(w, w == 480 ? 1050 : 844);
-          final base = MushafTurnGeometry.clipSlackFor(size);
-          final aligned =
-              MushafTurnGeometry.clipSlackAligned(size, dpr);
-          final px = aligned * dpr;
-          expect(px, isNotNull);
-        }
+  test('alignment XA2 — const set, NO trailing comma, NO inline comment',
+      () {
+    const matrix = {1.0, 2.75, 2.8125, 3.0};
+    for (final dpr in matrix) {
+      for (final w in [360.0, 384.0, 390.0, 411.0, 480.0]) {
+        final size = Size(w, w == 480 ? 1050 : 844);
+        final base = MushafTurnGeometry.clipSlackFor(size);
+        final aligned = MushafTurnGeometry.clipSlackAligned(size, dpr);
+        final px = aligned * dpr;
+        expect(px, isNotNull);
       }
-    });
+    }
+  });
 
-  testWidgets('anchor', (tester) async {});
-
-  // ── C3 — CONTENT containment, widget level, per textScale ────
-
-
-  // ── C4 — ancestor-clip audit at EVERY width + the CPH2573 ────
   for (final profile in const [
     Size(360, 780),
     Size(390, 844),
@@ -239,19 +248,4 @@ void main() {
       await releaseTurn(tester, g);
     });
   }
-
-
-  // ── C5 — the debug clip diagnostic ships SILENT ───────────────
-
-
-  // ── R — the ream ──────────────────────────────────────────────
-
-
-
-
-
-
-
-  // ── Z6 — physics zero-diff (scope lock, substring form) ─────
-
 }
