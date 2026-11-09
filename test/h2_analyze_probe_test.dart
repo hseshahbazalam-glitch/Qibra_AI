@@ -13,11 +13,9 @@ void main() {
         'test',
         '--reporter',
         'expanded',
-        'test/features/hadith/hadith_pass_h2_test.dart',
-        'test/features/hadith/hadith_topclass_test.dart',
-        'test/features/hadith/hadith_redesign_test.dart',
-        'test/features/hadith/content_pass_test.dart',
-        'test/features/hadith/hadith_multilang_test.dart',
+        'test/phase18_stage2_honesty_test.dart',
+        'test/features/quran/phase18_stage2_honesty_test.dart',
+        'test/content_pass_test.dart',
       ]);
       final o = r.stdout.transform(Utf8Decoder()).join();
       final e = r.stderr.transform(Utf8Decoder()).join();
