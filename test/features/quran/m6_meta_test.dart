@@ -32,5 +32,6 @@ void main() {
           'bash', ['-lc', 'flutter test $f --reporter expanded 2>&1 | tail -c 2500']);
       print('::error::M6RAW ${f.split('/').last} :: '
           '${r.length > 1500 ? r.substring(r.length - 1500) : r}');
+    }
   }, timeout: const Timeout(Duration(minutes: 25)));
 }
