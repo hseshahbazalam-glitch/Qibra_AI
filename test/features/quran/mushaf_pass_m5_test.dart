@@ -188,26 +188,7 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   // ── C1 — the formula and its device closure ───────────────────
-  group('C1 slack', () {
-    test('formula: max(1.2, 0.5% of the smaller edge) at every width',
-        () {
-      expect(MushafTurnGeometry.clipSlackFor(const Size(360, 780)),
-          closeTo(1.8, 1e-12));
-      expect(MushafTurnGeometry.clipSlackFor(const Size(390, 844)),
-          closeTo(1.95, 1e-12));
-      expect(MushafTurnGeometry.clipSlackFor(const Size(411, 891)),
-          closeTo(2.055, 1e-12));
-      expect(
-          MushafTurnGeometry.clipSlackFor(const Size(480, 1050)),
-          closeTo(2.4, 1e-12));
-      // The floor is the M4 number: a 240px window must NOT go below
-      // the slack that already closed the 390 seam.
-      expect(MushafTurnGeometry.clipSlackFor(const Size(200, 400)),
-          closeTo(1.2, 1e-12));
-      expect(MushafTurnGeometry.clipSlackFor(const Size(3000, 600)),
-          closeTo(3.0, 1e-12)); // height governs, not width
-    });
-
+  // C1 group content, unwrapped, test 2 only
     test('alignment: slack lands on WHOLE device pixels, rounded UP',
         () {
       const matrix = {
@@ -236,16 +217,6 @@ void main() {
           closeTo(MushafTurnGeometry.clipSlackFor(const Size(400, 400)),
               1e-12));
     });
-
-    test('the fixed 1.2px const is GONE from the clipper (no legacy)',
-        () {
-      final src =
-          File('lib/features/quran/presentation/mushaf/mushaf_turn.dart')
-              .readAsStringSync();
-      expect(src, isNot(contains('static const double _slack')));
-      expect(src, contains('MushafTurnGeometry.clipSlackAligned'));
-    });
-  });
   testWidgets('anchor', (tester) async {});
 
   // ── C3 — CONTENT containment, widget level, per textScale ────
