@@ -346,7 +346,7 @@ void main() {
               'if this were >= 0 the old clip never cut anything');
       final opened = MushafTurnLeafClipper(angle: ang, lift: lift)
           .getClip(const Size(w, h))
-          .bounds;
+          .getBounds();
       expect(opened.top, lessThan(corners.first.dy),
           reason: 'the clip encloses that corner WITH its AA slack — the '
               'cut region is inside now...');
@@ -358,7 +358,7 @@ void main() {
                   MushafTurnDirection.forward, 0),
               lift: 0)
           .getClip(const Size(w, h))
-          .bounds;
+          .getBounds();
       expect(rest.top, inInclusiveRange(-2.0, 0.0),
           reason: 'at touch-down the quad is THE BOX within its AA '
               'slack only — no lift, no parallax, the settled frame is '
@@ -414,6 +414,165 @@ void main() {
       expect(shadowX + 64, closeTo(gildX + 1, 1e-9),
           reason: 'shadow right edge == gild center == the free edge');
       await releaseLeaf(tester, g);
+    });
+  });
+
+  // ── W — the deliberate retune ────────────────────────────────
+  group('W turn physics', () {
+    test('W1: velocity carries into the settle — a flung page lands '
+        'sooner, monotonic, never pings past the stack', () {
+      (double, double) sim(double x, double v) {
+        var t = 0.0;
+        while (!MushafTurnPhysics.converged(x, v, 1.0) && t < 10) {
+          (x, v) = MushafTurnPhysics.step(
+              x, v, 1.0, MushafTurnPhysics.kCommit, MushafTurnPhysics.stepDt);
+          t += MushafTurnPhysics.stepDt;
+          expect(x, lessThanOrEqualTo(1.0),
+              reason: 'critically damped from below is monotonic — the '
+                  'brief\'s '
+                  'deliberate, no carousel bounce');
+        }
+        return (t, x);
+      }
+
+      final (tRest, _) = sim(0.5, 0.0);
+      final (tFling, _) = sim(0.5, 2.5);
+      expect(tFling, lessThan(tRest),
+          reason: 'release velocity SHORTENS the landing — continuity, '
+              'not a retimed tween');
+      expect(tRest, inInclusiveRange(0.10, 0.35),
+          reason: 'still inside the old ~200 ms commit band — deliberate, '
+              'not sluggish');
+      // The retract ω sits in its own honest band too.
+      final tRetract = MushafTurnPhysics.settleTimeFromRest(
+          MushafTurnPhysics.kRetract);
+      expect(tRetract, inInclusiveRange(0.15, 0.40));
+    });
+
+    test('W2: 60 Hz and 120 Hz integrate the SAME page — and a stalled '
+        'frame cannot teleport it', () {
+      final (x60, v60) = MushafTurnPhysics.advanceFrame(
+          0.3, 4.0, 1.0, MushafTurnPhysics.kCommit, 1 / 60);
+      final s1 = MushafTurnPhysics.advanceFrame(
+          0.3, 4.0, 1.0, MushafTurnPhysics.kCommit, 1 / 120);
+      final (x120, v120) = MushafTurnPhysics.advanceFrame(
+          s1.$1, s1.$2, 1.0, MushafTurnPhysics.kCommit, 1 / 120);
+      expect((x60 - x120).abs(), lessThan(1e-9),
+          reason: 'one 1/60 frame IS two 1/120 substeps — exact');
+      expect((v60 - v120).abs(), lessThan(1e-9));
+      double run(double dt) {
+        var (x, v) = (0.0, 3.0);
+        var t = 0.0;
+        while (!MushafTurnPhysics.converged(x, v, 1.0) && t < 10) {
+          (x, v) =
+              MushafTurnPhysics.advanceFrame(x, v, 1.0, 34.0, dt);
+          t += dt;
+        }
+        return t;
+      }
+
+      expect((run(1 / 60) - run(1 / 120)).abs(), lessThan(0.02),
+          reason: 'total settle time drifts <20 ms across display rates');
+      // A stalled frame (GC hitch, backgrounded app) must advance the
+      // physics by AT MOST maxDt — the clamp, pinned exactly:
+      final (xcHuge, _) = MushafTurnPhysics.advanceFrame(
+          0.1, 3.0, 1.0, MushafTurnPhysics.kCommit, 9.99);
+      final (xcClamped, _) = MushafTurnPhysics.advanceFrame(
+          0.1, 3.0, 1.0, MushafTurnPhysics.kCommit,
+          MushafTurnPhysics.maxDt);
+      expect(xcHuge, xcClamped,
+          reason: 'dt clamped at maxDt — a hitch is one small step, not '
+              'a teleport; the spring may move FAST (0.9 behind the '
+              'target pulls hard) but never further than the clamp');
+      expect(xcHuge, lessThan(1.3),
+          reason: 'one clamped frame cannot cross the whole page');
+    });
+
+    test('W3/W5: the envelopes are zero at the ends and capped — lift '
+        '3px, parallax 8px, shadow grows off the same swell', () {
+      expect(MushafTurnGeometry.anticipation(0), 0.0);
+      expect(MushafTurnGeometry.anticipation(1), 0.0);
+      expect(MushafTurnGeometry.anticipation(0.5), closeTo(3.0, 1e-12));
+      expect(MushafTurnGeometry.parallax(0), 0.0);
+      expect(MushafTurnGeometry.parallax(1), 0.0);
+      for (var i = 0; i <= 50; i++) {
+        final t = i / 50;
+        expect(MushafTurnGeometry.anticipation(t), inInclusiveRange(0.0, 4.0));
+        expect(MushafTurnGeometry.parallax(t), inInclusiveRange(0.0, 8.0));
+      }
+      expect(MushafTurnShading.castShadowAlpha(0.08),
+          greaterThan(MushafTurnShading.castShadowAlpha(0)),
+          reason: 'the drop deepens as the leaf lifts off the stack');
+      expect(MushafTurnShading.castShadowAlpha(1), lessThan(0.31),
+          reason: 'and is back at the settled line at commit');
+    });
+
+    testWidgets('W3/W5: mid-drag the leaf LIFTS (negative y in its '
+        'matrix) and the base PARALLAXES right by ≤8px — both gone at '
+        'rest', (tester) async {
+      await pumpReader(tester);
+      final g = await grabLeaf(tester);
+      final leaf = find.byKey(const ValueKey('mushaf-turn-leaf'));
+      final m = tester
+          .widget<Transform>(find
+              .descendant(of: leaf, matching: find.byType(Transform))
+              .first)
+          .transform;
+      expect(m.getTranslation().y, lessThan(0.0),
+          reason: 'anticipation: the free edge rose into the light');
+      final base = tester
+          .widget<Transform>(find
+              .descendant(
+                  of: find.byKey(const ValueKey('mushaf-turn-base')),
+                  matching: find.byType(Transform))
+              .first)
+          .transform;
+      final dx = base.getTranslation().x;
+      expect(dx, greaterThan(0.0),
+          reason: 'the revealed page chases the leaf — coordinated depth');
+      expect(dx, lessThanOrEqualTo(8.0001));
+      // Release (t < 0.42 → the retract spring walks it home).
+      await g.up();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle(const Duration(milliseconds: 40));
+      expect(find.byKey(const ValueKey('mushaf-turn-base')), findsNothing);
+      expect(find.byKey(const ValueKey('mushaf-turn-leaf')), findsNothing,
+          reason: 'the envelope is zero at the landing AND the layers '
+              'unmount — no residue in the swap frame');
+    });
+
+    test('W4: haptics — the tick lands on the COMMIT, never the release '
+        'frame or the drag start', () {
+      final src = File(
+              'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
+          .readAsStringSync();
+      expect(src, contains('HapticFeedback.lightImpact()'));
+      expect(src, contains('HapticFeedback.selectionClick()'),
+          reason: 'the soft decline tick stays where it was');
+      expect(src, isNot(contains('mediumImpact')),
+          reason: 'the release-frame thump MOVED to the landing; the '
+              'file must not keep both');
+      expect(src, isNot(contains('onHorizontalDragStart')),
+          reason: 'and no haptic ever fires at touch-down');
+    });
+
+    test('W6: the M-suite physics pins stayed UNMOVED — 0.42 / 520, one '
+        'controller, one dispose, notifier-only ticks', () {
+      final turn = File(
+              'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
+          .readAsStringSync();
+      expect(turn, contains('static const double commitFraction = 0.42;'));
+      expect(turn, contains('static const double commitVelocity = 520;'));
+      expect(turn, contains('late final AnimationController _settle'));
+      expect(RegExp(r'AnimationController\(').allMatches(turn).length, 1);
+      expect(
+          RegExp(r'_settle\?*\.dispose\(\)').allMatches(turn).length, 1);
+      expect(turn, contains('..addListener(_onSettleTick)'));
+      expect(turn, contains('..addStatusListener(_onSettleStatus)'));
+      expect(turn, contains('ValueNotifier<double> _turnT'));
+      expect(turn, isNot(contains('setState(() => _t')));
+      expect(turn, isNot(contains('Color(0x')));
+      expect(turn, isNot(contains('saveLayer')));
     });
   });
 }
