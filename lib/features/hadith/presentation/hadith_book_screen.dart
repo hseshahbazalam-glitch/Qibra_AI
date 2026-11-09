@@ -255,7 +255,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                 );
               },
               // D6: the shared status widget carries loading — a real
-              // spinner, no skeleton shimmer anywhere in the feature.
+              // spinner; the feature keeps its no-skeleton-sweep restraint.
               loading: () => const SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.all(48),
