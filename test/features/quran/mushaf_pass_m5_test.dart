@@ -112,66 +112,6 @@ final _index = <int, List<MushafPageEntry>>{
   ],
 };
 
-/// The M4 harness with two dials: DEVICE PROFILE (physical size +
-/// dpr — the CPH2573 is a real config here, not an assumption) and
-/// TEXT SCALE (C2's second axis).
-Future<void> pumpReaderM5(
-  WidgetTester tester, {
-  Size logical = const Size(390, 844),
-  double dpr = 1.0,
-  double textScale = 1.0,
-}) async {
-  tester.view.physicalSize = logical * dpr;
-  tester.view.devicePixelRatio = dpr;
-  addTearDown(tester.view.resetPhysicalSize);
-  addTearDown(tester.view.resetDevicePixelRatio);
-  final container = ProviderContainer(
-    overrides: [
-      mushafPageIndexProvider
-          .overrideWith((ref) async => Map.of(_index)),
-      quranDownloadProvider.overrideWith(_NoopDownloads.new),
-    ],
-  );
-  addTearDown(container.dispose);
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: container,
-    child: MaterialApp(
-      builder: (context, child) => MediaQuery.withClampedTextScaling(
-        minScaleFactor: textScale,
-        maxScaleFactor: textScale,
-        child: child!,
-      ),
-      home: const AppStringsScope(
-        locale: Locale('en'),
-        child: MushafReaderScreen(initialPage: 1),
-      ),
-    ),
-  ));
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 400));
-}
-
-Future<TestGesture> grabTurn(WidgetTester tester, Size logical) async {
-  // Same two-step the M suite proved the arena needs: 120 wins the
-  // gesture arena, the rest delivers travel (against the span
-  // max(120, w-32), 180px parks t near the sine peak).
-  final dy = logical.height / 2;
-  final g = await tester.startGesture(Offset(logical.width / 2, dy));
-  await g.moveBy(const Offset(120, 0));
-  await tester.pump();
-  await g.moveBy(const Offset(60, 0));
-  await tester.pump();
-  return g;
-}
-
-Future<void> releaseTurn(WidgetTester tester, TestGesture g) async {
-  // Zero-velocity up -> settle spring -> pumps past convergence, the
-  // M4 releaseLeaf pattern.
-  await g.up();
-  await tester.pump(const Duration(milliseconds: 500));
-  await tester.pumpAndSettle(const Duration(milliseconds: 40));
-}
-
 final _leaf = find.byKey(const ValueKey('mushaf-turn-leaf'));
 Finder _leafClip(WidgetTester tester) =>
     find.descendant(of: _leaf, matching: find.byType(ClipPath)).first;
