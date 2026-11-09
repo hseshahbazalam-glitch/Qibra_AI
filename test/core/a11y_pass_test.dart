@@ -293,7 +293,12 @@ void main() {
       // chip/day, sheet header, mini player, QibraStatus ×2) + Pass M
       // (the mushaf ribbon bookmark is a custom gesture control — it
       // announces through Semantics, not Tooltip/IconButton censuses).
-      expect(semantics, 19);
+      // Pass W (M6): the word-gloss cell is a tappable control too —
+      // one node per cell, excludeSemantics swallowing its children —
+      // the measured value moves 19 -> 20 (red named by the shadow
+      // probe: 'label/exclude/live-region counts are the measured
+      // ones :: Expected: <19>'; labels/excludes/live untouched).
+      expect(semantics, 20);
     });
 
     test('forbidden liveRegion: the home countdown never announces', () {
