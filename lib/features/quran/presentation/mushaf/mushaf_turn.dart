@@ -25,6 +25,16 @@
 //   • In-motion renders use the host's non-selectable twin when it
 //     supplies one (a moving page is never selectable by hand).
 //
+// PASS M3 (turn lifeline — device-caught hotfix):
+//   The settle controller is created EXACTLY ONCE, in initState, and
+//   disposed EXACTLY ONCE, in dispose(). A per-call
+//   dispose-then-recreate on a SingleTickerProviderStateMixin state
+//   throws on the second ticker creation (the mixin's slot is a
+//   lifetime lease) — that is the device's second-turn crash, and the
+//   disposed-field cascade that followed it. Re-settling is now a
+//   RETARGET of the one controller; the tick/status listeners are
+//   attached once, in initState, and never again.
+//
 // RTL TRUTH (measured against this repo, not against vibes):
 //   The codex is bound RIGHT, so the free edge is the LEFT edge: a
 //   forward turn lifts it and sweeps RIGHT onto the right-hand stack.
@@ -166,7 +176,19 @@ class MushafTurnOverlay extends StatefulWidget {
 
 class _MushafTurnOverlayState extends State<MushafTurnOverlay>
     with SingleTickerProviderStateMixin {
-  AnimationController? _settle;
+  // M3 (F1): THE single controller for this State's whole life —
+  // created in initState, disposed in dispose(), retargeted per
+  // settle. late final + non-nullable makes the null-aware dance that
+  // leaked the disposed field (the cascade) structurally impossible.
+  late final AnimationController _settle;
+  // M3 (F1/F2): the retarget state the permanent listeners read.
+  // ONE Tween math, no per-call objects: the settle is
+  // turnT = lerp(_animFrom, _animTo, curve(controller t)).
+  double _animFrom = 0;
+  double _animTo = 0;
+  bool _animCommit = false;
+  MushafTurnDirection _animDir = MushafTurnDirection.forward;
+  Curve _animCurve = Curves.easeOutCubic;
   // M2 (F2): the turn's progress lives in a notifier — ticks publish
   // to the AnimatedBuilder only; nothing else rebuilds mid-drag.
   final ValueNotifier<double> _turnT = ValueNotifier<double>(0);
@@ -186,6 +208,17 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
   @override
   void initState() {
     super.initState();
+    // M3 (F1/F2): the ONE ticker the SingleTickerProvider contract
+    // allots this State (F4), created up-front — _animateTo can never
+    // reach createTicker again. The settle listeners attach exactly
+    // here, once (F2). Durations/curve are retarget fields set per
+    // settle below.
+    _settle = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 240),
+    )
+      ..addListener(_onSettleTick)
+      ..addStatusListener(_onSettleStatus);
     _armIdleHint();
   }
 
@@ -193,7 +226,8 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
   void dispose() {
     _idleTimer?.cancel();
     _hintRetract?.cancel();
-    _settle?.dispose();
+    // M3 (F1): the only dispose this controller ever sees.
+    _settle.dispose();
     _turnT.dispose();
     super.dispose();
   }
@@ -228,7 +262,10 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
 
   void _advance(MushafTurnDirection dir, double dx) {
     if (_dir != dir) {
-      _settle?.stop();
+      // Interrupting a live settle with a new drag: plain stop on the
+      // one controller (its status handler ignores anything but
+      // completed — mid-flight retargets never fire the commit).
+      _settle.stop();
       setState(() {
         _dir = dir;
         _turnT.value = 0;
@@ -277,7 +314,7 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
   }
 
   void _releaseWithoutTurn() {
-    if (_dir != null && _settle?.isAnimating != true) {
+    if (_dir != null && _settle.isAnimating != true) {
       _turnT.value = 0;
       setState(() {
         _dir = null;
@@ -290,43 +327,58 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
 
   void _animateTo(double target,
       {required bool commit, required MushafTurnDirection dir}) {
-    _settle?.dispose();
-    final c = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: commit ? 200 : 240),
-    );
-    _settle = c;
-    // 'late' so the listener closure below can read anim: a plain final
-    // initializer that references its own variable (even through a
-    // callback) is a hard analyzer error, not a taste note.
-    late final Animation<double> anim;
-    anim = Tween<double>(begin: _turnT.value, end: target).animate(
-      CurvedAnimation(
-        parent: c,
-        curve: commit ? Curves.easeOutCubic : Curves.easeOutBack,
-      ),
-    )..addListener(() {
-        // M2: settle ticks are scoped — the AnimatedBuilder transforms,
-        // the tree around it does not rebuild.
-        if (mounted) _turnT.value = anim.value;
-      });
-    c.addStatusListener((status) {
-      if (status != AnimationStatus.completed || !mounted) return;
-      _turnT.value = 0;
-      setState(() {
-        _dir = null;
-        _leafContent = null;
-        _baseContent = null;
-      });
-      if (commit) {
-        final target = dir == MushafTurnDirection.forward
-            ? math.min(widget.pageCount, widget.currentPage + 1)
-            : math.max(1, widget.currentPage - 1);
-        if (target != widget.currentPage) widget.onCommitPage(target);
-      }
-      _armIdleHint();
+    // M3 (F1): NEVER create — retarget the single controller. The
+    // old dispose-then-recreate is what the SingleTicker provider
+    // forbids (second ticker in one State = hard assert; the device's
+    // second-turn crash), and the throw left _settle pointing at a
+    // disposed controller (the stop-after-dispose cascade).
+    final c = _settle;
+    c.stop(); // canceled=true: status listeners get dismissed, which
+              // the permanent handler below ignores — only completed
+              // ever commits. (Same net effect as the old per-call
+              // controllers stopping with their own listeners.)
+    _animFrom = _turnT.value;
+    _animTo = target;
+    _animCommit = commit;
+    _animDir = dir;
+    // Durations/curve verbatim from the pre-M3 settle: 200 ms on
+    // commit with easeOutCubic, 240 ms retract with easeOutBack.
+    c.duration = Duration(milliseconds: commit ? 200 : 240);
+    _animCurve = commit ? Curves.easeOutCubic : Curves.easeOutBack;
+    // forward(from: 0) seeds value 0 through the listener — the lerp
+    // at t=0 is exactly _animFrom, i.e. _turnT unchanged (no
+    // first-frame pop; that is also why the capture above comes first).
+    c.forward(from: 0);
+  }
+
+  /// M3 (F2): the permanent tick listener — attached once in
+  /// initState, reading the retarget fields. The M2 rule holds:
+  /// settle ticks write ONLY the notifier, never setState, so the
+  /// AnimatedBuilder transforms and nothing else rebuilds.
+  void _onSettleTick() {
+    _turnT.value = _animFrom +
+        (_animTo - _animFrom) * _animCurve.transform(_settle.value);
+  }
+
+  /// M3 (F2): the permanent status handler — the completion contract
+  /// (silent turnT reset, content release, commit-then-rearm) exactly
+  /// as the per-call closure did, now with the commit facts latched in
+  /// the retarget fields.
+  void _onSettleStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed || !mounted) return;
+    _turnT.value = 0;
+    setState(() {
+      _dir = null;
+      _leafContent = null;
+      _baseContent = null;
     });
-    c.forward();
+    if (_animCommit) {
+      final target = _animDir == MushafTurnDirection.forward
+          ? math.min(widget.pageCount, widget.currentPage + 1)
+          : math.max(1, widget.currentPage - 1);
+      if (target != widget.currentPage) widget.onCommitPage(target);
+    }
+    _armIdleHint();
   }
 
   // ── Render ───────────────────────────────────────────────────
@@ -386,7 +438,7 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                       : w * MushafTurnGeometry.freeEdgeFrac(dir, t);
                   final colors = QibraColors.of(context);
                   // Byte-identical to the pre-M2 sheen gate.
-                  final settling = _settle?.isAnimating == true;
+                  final settling = _settle.isAnimating == true;
                   return Stack(
                     fit: StackFit.expand,
                     children: [
