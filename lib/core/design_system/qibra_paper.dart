@@ -154,8 +154,14 @@ class QibraPaperColors extends QibraColors {
           card: QibraPaper.paper,
           cardMuted: QibraPaper.paperDeep,
           // Primary fills (medallion, ribbon) become the deep
-          // antique gold with INK text on top — the brief's
-          // 'goldDeep fill + ink text', at 5.09:1.
+          // antique gold. TEXT ON the gold fill is CREAM (paper), not
+          // ink: at these fixed hexes ink-on-#7A5C2E computes 2.40:1 —
+          // physically unreadable — while cream-on-gold is the same
+          // 5.09:1 pairing as gold-on-paper, inverted. Ink is what
+          // sits BESIDE gold (labels, hairlines); the brief's gold
+          // contract (gold text on paper >= 5.0) holds: 5.085.
+          // No hex invented or inched — the role mapping follows the
+          // contrast math, exactly like every other token here.
           primary: QibraPaper.accentGoldDeep,
           primarySoft: QibraPaper.paperDeep,
           secondary: QibraPaper.inkSoft,
@@ -165,7 +171,7 @@ class QibraPaperColors extends QibraColors {
           textTertiary: QibraPaper.inkMuted,
           border: QibraPaper.hairlinePaper,
           navBackground: QibraPaper.paper,
-          onPrimary: QibraPaper.ink,
+          onPrimary: QibraPaper.paper,
         );
 
   static const QibraPaperColors palette = QibraPaperColors._();

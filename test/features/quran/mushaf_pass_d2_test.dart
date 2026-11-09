@@ -13,7 +13,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -79,8 +78,15 @@ void main() {
       // ink over cards and the ribbon pair (goldDeep fill + ink text)
       expect(Contrast.ratio(QibraPaper.ink, QibraPaper.paperDeep),
           greaterThan(10.0));
-      expect(Contrast.ratio(QibraPaper.ink, QibraPaper.accentGoldDeep),
+      // The ribbon/medallion FILL pairing: the readable text ON the
+      // deep gold is CREAM (onPrimary = paper) at 5.085. Ink-on-gold
+      // computes 2.40:1 — pinned as unreadable BY MATH so nobody
+      // "restores" an ink-on-gold label or promotes the gold fill to
+      // a text background at these fixed hexes.
+      expect(Contrast.ratio(QibraPaper.paper, QibraPaper.accentGoldDeep),
           greaterThanOrEqualTo(5.0));
+      expect(Contrast.ratio(QibraPaper.ink, QibraPaper.accentGoldDeep),
+          lessThan(3.0));
     });
 
     test('the scope NEVER wraps on night — child identity preserved', () {
@@ -100,7 +106,9 @@ void main() {
       expect(p.border, QibraPaper.hairlinePaper);
       // Mapping rules baked into roles: goldDeep fill + ink text.
       expect(p.primary, QibraPaper.accentGoldDeep);
-      expect(p.onPrimary, QibraPaper.ink);
+      expect(p.onPrimary, QibraPaper.paper,
+          reason: 'the ONLY readable text on the deep-gold fill is the '
+              'cream itself (5.09:1); ink lands at 2.40:1 — reject');
       expect(p.isDark, isFalse);
       expect(p.goldText, QibraPaper.accentGoldDeep,
           reason: 'paper gold TEXT is the ONE readable gold — never '
@@ -255,8 +263,10 @@ void main() {
 
     testWidgets('RTL spot: longest real Urdu line, paper, 320px — safe',
         (tester) async {
-      final raw = await rootBundle
-          .loadString('assets/data/quran/translation_ur_jalandhry.json');
+      // File(), not rootBundle — same convention as the a11y/P3 asset
+      // harnesses: no dependence on the test build's asset bundle.
+      final raw = File('assets/data/quran/translation_ur_jalandhry.json')
+          .readAsStringSync();
       final data = jsonDecode(raw) as Map<String, dynamic>;
       final verses = data['quran'] as List<dynamic>;
       var longest = '';
@@ -270,6 +280,8 @@ void main() {
       // QibraPaper.scope reads Theme.of(context) to derive its copy,
       // and a root-level scope has no Theme ancestor.
       await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false, // the DEBUG banner adds a
+        // second Text widget and would make the finder below ambiguous.
         home: QibraPaper.scope(
           active: true,
           child: Scaffold(
