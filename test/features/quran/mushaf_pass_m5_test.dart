@@ -206,7 +206,10 @@ void main() {
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('micro', () {});
+  test('M1 const-set only', () {
+    const matrix = {1.0, 2.75, 2.8125, 3.0};
+    expect(matrix.length, 4);
+  });
 
   for (final profile in const [
     Size(360, 780),
