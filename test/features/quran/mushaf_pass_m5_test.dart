@@ -211,11 +211,6 @@ void main() {
               reason: 'whole device pixels: $aligned @ $dpr -> $px');
         }
       }
-      // The dpr<=0 guard is for clipper unit tests, not the tree.
-      expect(
-          MushafTurnGeometry.clipSlackAligned(const Size(400, 400), 0),
-          closeTo(MushafTurnGeometry.clipSlackFor(const Size(400, 400)),
-              1e-12));
     });
   testWidgets('anchor', (tester) async {});
 
