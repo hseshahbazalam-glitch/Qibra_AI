@@ -208,7 +208,6 @@ MushafReamPainter ream(
 
 void main() {
 
-
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));

@@ -191,7 +191,6 @@ Future<void> releaseLeaf(WidgetTester tester, TestGesture g) async {
 
 void main() {
 
-
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));

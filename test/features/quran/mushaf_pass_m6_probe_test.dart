@@ -140,7 +140,6 @@ double _deepestTextBottom(WidgetTester tester) {
 
 void main() {
 
-
   setUpAll(loadAppTestFonts);
 
   // ── B1 — IME resize must NOT reach the page slot ───────────────

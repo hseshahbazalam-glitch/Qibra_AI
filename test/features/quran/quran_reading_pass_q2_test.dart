@@ -159,7 +159,6 @@ Future<void> pumpReader(
 
 void main() {
 
-
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
 
