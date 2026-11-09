@@ -556,4 +556,3 @@ void main() {
       expect(store.contains('translationScale'), isTrue);
     });
   }
-}
