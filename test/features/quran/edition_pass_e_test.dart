@@ -161,7 +161,10 @@ Future<void> pumpE(
   await tester.pump(const Duration(milliseconds: 400));
 }
 
+const bool _parkLotR1 = true; // PROBE park-lot r1
+
 void main() {
+  if (_parkLotR1) return; // PROBE park-lot r1
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
 

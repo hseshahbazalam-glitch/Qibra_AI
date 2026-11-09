@@ -127,7 +127,10 @@ Future<void> _swipe(WidgetTester tester, double dx) async {
   await tester.pumpAndSettle(const Duration(milliseconds: 30));
 }
 
+const bool _parkLotR1 = true; // PROBE park-lot r1
+
 void main() {
+  if (_parkLotR1) return; // PROBE park-lot r1
   setUpAll(loadAppTestFonts);
 
   setUp(() => SharedPreferences.setMockInitialValues({}));

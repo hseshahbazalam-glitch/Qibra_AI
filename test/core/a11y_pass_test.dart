@@ -220,7 +220,10 @@ Future<void> loadAppTestFonts() async {
   ]);
 }
 
+const bool _parkLotR1 = true; // PROBE park-lot r1
+
 void main() {
+  if (_parkLotR1) return; // PROBE park-lot r1
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});

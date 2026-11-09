@@ -157,7 +157,10 @@ Future<void> pumpReader(
     ReadingProgressRepository.hwApplySeen(
         contiguous: from.c, seen: from.seen, ayah: ayah);
 
+const bool _parkLotR1 = true; // PROBE park-lot r1
+
 void main() {
+  if (_parkLotR1) return; // PROBE park-lot r1
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
 

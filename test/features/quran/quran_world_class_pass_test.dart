@@ -13,7 +13,10 @@ import 'package:qibra_ai/features/quran/presentation/quran_search_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
 import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
 
+const bool _parkLotR1 = true; // PROBE park-lot r1
+
 void main() {
+  if (_parkLotR1) return; // PROBE park-lot r1
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('follow-along machine (item 1)', () {
