@@ -122,22 +122,20 @@ Future<void> pumpReaderM6(
   await tester.pump(const Duration(milliseconds: 400));
 }
 
-/// Bottom edges of every rendered text line, mapped into the slot's
-/// coordinate space; used by both containment probes. FINDER in/out
-/// only — the Element-side renderObject is @protected (the C3b
-/// lesson: tester.renderObject/getSize take a Finder).
-List<double> _textBottoms(WidgetTester tester, Finder against) {
-  final out = <double>[];
-  final slotRO = tester.renderObject(against);
+/// Bottom edges of every rendered text line, in GLOBAL space (the
+/// pageView's slot rect is global too — no matrix math, no
+/// Rect.transform version trap — that was the analyze red: modern
+/// Flutter's Rect.transform wants Matrix4, and .storage stopped
+/// being acceptable).
+double _deepestTextBottom(WidgetTester tester) {
   final texts = find.byType(RichText);
   final count = texts.evaluate().length;
+  double maxB = 0;
   for (var i = 0; i < count; i++) {
-    final f = texts.at(i);
-    final m = tester.renderObject(f).getTransformTo(slotRO);
-    final r = Offset.zero & tester.getSize(f);
-    out.add(r.transform(m.storage).bottom);
+    final b = tester.getRect(texts.at(i)).bottom;
+    if (b > maxB) maxB = b;
   }
-  return out;
+  return maxB;
 }
 
 void main() {
@@ -205,14 +203,12 @@ void main() {
     await tester.pump();
     await tester.tap(find.byType(FilledButton));
     await tester.pump(); // exactly the first post-jump frame
-    final pv = find.byType(PageView);
-    final slotRect = tester.getRect(pv);
-    final bottoms = _textBottoms(tester, pv);
-    debugPrint('::error::B2MEASURE slot=${slotRect.bottom} '
-        'bottoms=$bottoms');
-    expect(bottoms, isNotEmpty, reason: 'probe wiring: page text '
+    final slotRect = tester.getRect(find.byType(PageView));
+    final maxB = _deepestTextBottom(tester);
+    debugPrint('::error::B2MEASURE slotBottom=${slotRect.bottom} '
+        'deepestText=$maxB');
+    expect(maxB, greaterThan(0.0), reason: 'probe wiring: page text '
         'must be live for this measurement');
-    final maxB = bottoms.reduce((a, b) => a > b ? a : b);
     expect(maxB, lessThanOrEqualTo(slotRect.bottom + 0.5),
         reason: 'B2 CONFIRMED: ${maxB - slotRect.bottom}px of text '
             'past the page slot on the first frame after the jump '
