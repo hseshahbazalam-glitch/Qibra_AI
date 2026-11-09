@@ -363,34 +363,29 @@ void main() {
     test('D3: the controls row is sticky, singular, and holds its trio',
         () {
       final src = File(book).readAsStringSync();
-      expect(src.contains('bottom: PreferredSize('), isTrue,
-          reason: 'the pinned bar must CARRY the controls row');
-      expect(src.contains('child: _buildStickyControlsRow(context, '
-          'chapters),'), isTrue);
-      expect(src.contains('Widget _buildControlsBar'), isFalse,
-          reason: 'the scroll-away controls sliver is retired — one row, '
-              'not two truths');
-      expect('query: _searchQuery,'.allMatches(src).length, 1,
-          reason: 'exactly ONE search field in the tree');
-      // [search | chapter filter | settings] — all three in the row:
-      expect(
-          RegExp(r'Expanded\(\s*child: HadithSearchField\(')
-              .hasMatch(src),
-          isTrue,
-          reason: 'search flexes to fill (formatting-agnostic pin)');
-      expect(src.contains('PopupMenuButton<String>('), isTrue,
-          reason: 'the chapter filter (dropdown, from the chip rail)');
-      expect(src.contains('tooltipReadingSettings'), isTrue,
-          reason: 'settings rides the row (and left the appbar action slot)');
-      expect(src.contains('tooltip: strings.tooltipFilterChapters'), isTrue,
-          reason: 'the filter button is NOT anonymous to screen readers');
-      // Meta line replaces the stat chips; the fake grade prop dies:
-      expect(src.contains('_buildStatChip'), isFalse);
-      expect(src.contains("'UNKNOWN'"), isFalse,
-          reason: 'D6: no grade claim at book level — the trio\'s third '
-              'chip asserted UNKNOWN as chrome, not as data');
-      expect(src.contains(r'hadiths ·'), isTrue,
-          reason: 'stats survive as ONE honest meta line');
+      final checks = <String, bool>{
+        'sticky-bottom': src.contains('bottom: PreferredSize('),
+        'row-wired': src
+            .contains('child: _buildStickyControlsRow(context, chapters),'),
+        'controls-bar-gone': !src.contains('Widget _buildControlsBar'),
+        'single-search':
+            'query: _searchQuery,'.allMatches(src).length == 1,
+        'search-flexes': RegExp(
+                r'Expanded\(\s*child: HadithSearchField\(')
+            .hasMatch(src),
+        'filter-dropdown': src.contains('PopupMenuButton<String>('),
+        'settings-on-row': src.contains('tooltipReadingSettings'),
+        'filter-a11y':
+            src.contains('tooltip: strings.tooltipFilterChapters'),
+        'stat-chips-gone': !src.contains('_buildStatChip'),
+        'no-grade-prop': !src.contains("'UNKNOWN'"),
+        'meta-line': src.contains(r'hadiths \u00b7'),
+      };
+      expect(checks.entries.where((e) => !e.value).map((e) => e.key).toList(),
+          isEmpty,
+          reason: 'failed H2-D3 pins — the sticky row must carry '
+              '[search | chapter filter | settings] and the hero must '
+              'state only honest totals');
     });
 
     test('D5: the quick-settings sheet remains the single organized place',
