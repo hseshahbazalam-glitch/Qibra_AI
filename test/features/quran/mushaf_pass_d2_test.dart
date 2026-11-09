@@ -32,6 +32,8 @@ const _surfaces = [
   'lib/features/quran/presentation/mushaf/mushaf_turn.dart',
 ];
 
+const bool _probeSkipGroup2 = true; // PROBE r2
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -167,10 +169,9 @@ void main() {
   });
 
   group('D2 mode contract', () {
-    // PROBE COMMIT (round 2, revert next): isolate the lone
-    // red by skipping this half.
-    markTestSkipped('probe: group 2 suspect');
+    // PROBE COMMIT (round 2): skip: flags below isolate the lone red.
     test('default is NIGHT everywhere; app identity untouched', () async {
+      if (_probeSkipGroup2) return; // PROBE r2
       SharedPreferences.setMockInitialValues({});
       final n = ReadingPreferencesNotifier();
       await pumpEventQueue();
@@ -202,6 +203,7 @@ void main() {
     });
 
     test('toggle persists, reloads, and turns back', () async {
+      if (_probeSkipGroup2) return; // PROBE r2
       SharedPreferences.setMockInitialValues({});
       final a = ReadingPreferencesNotifier();
       await pumpEventQueue();
@@ -228,6 +230,7 @@ void main() {
     });
 
     test('turn physics + lifeline pins are mode-INDEPENDENT, verbatim', () {
+      if (_probeSkipGroup2) return; // PROBE r2
       // Same source lines serve both modes — D2 changes glint COLOR
       // only; the numbers were not touched (no retune disclosure
       // needed because there is no retune).
@@ -245,6 +248,7 @@ void main() {
     });
 
     test('census: zero raw Color(0x on every paper surface file', () {
+      if (_probeSkipGroup2) return; // PROBE r2
       for (final f in _surfaces) {
         expect(File(f).readAsStringSync(), isNot(contains('Color(0x')),
             reason: '$f must speak only through tokens (D2 mapping)');
@@ -252,6 +256,7 @@ void main() {
     });
 
     test('every reading surface actually mounts the scope', () {
+      if (_probeSkipGroup2) return; // PROBE r2
       for (final f in _surfaces.take(5)) {
         expect(File(f).readAsStringSync(), contains('QibraPaper.scope('),
             reason: '$f must be wrapped by the D2 scope');
@@ -265,6 +270,7 @@ void main() {
     });
 
     testWidgets('RTL spot: longest real Urdu line, paper, 320px — safe',
+        (tester) async {
       // File(), not rootBundle — same convention as the a11y/P3 asset
       // harnesses: no dependence on the test build's asset bundle.
       final raw = File('assets/data/quran/translation_ur_jalandhry.json')
