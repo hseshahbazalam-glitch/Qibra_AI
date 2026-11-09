@@ -12,13 +12,26 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('h2b: nested rerun of the suspect file for [E] context', () async {
-    final r = await Process.start('flutter',
-        ['test', '--reporter', 'compact', 'test/features/hadith/hadith_pass_h2_test.dart']);
+    final r = await Process.start('flutter', [
+      'test',
+      '--reporter',
+      'expanded',
+      'test/features/hadith/hadith_pass_h2_test.dart',
+      '--plain-name',
+      'D1 anatomy: badge',
+    ]);
     final o = r.stdout.transform(Utf8Decoder()).join();
     final e = r.stderr.transform(Utf8Decoder()).join();
     final joined = await Future.wait([o, e]);
     await r.exitCode;
     final all = '${joined[0]}\n${joined[1]}'.split('\n');
+    final tail = all.length > 18 ? all.sublist(all.length - 18) : all;
+    for (final l in tail) {
+      final c = l.trim();
+      if (c.isEmpty) continue;
+      print('::error::H2C ${c.length > 220 ? c.substring(0, 220) : c}');
+    }
+    if (false) {
     final keep = <String>[];
     for (var i = 0; i < all.length && keep.length < 20; i++) {
       final l = all[i];
@@ -37,5 +50,6 @@ void main() {
     for (final l in keep) {
       print('::error::H2B $l');
     }
+  }
   }, timeout: const Timeout(Duration(minutes: 20)));
 }
