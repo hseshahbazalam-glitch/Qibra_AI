@@ -13,6 +13,18 @@
 // not attempted — lift + shadow carry ~90% of the physical read at
 // 60fps and stay fully controllable.
 //
+// PASS M2 (device-jank contract, pinned by the M suite):
+//   • Page content is built EXACTLY TWICE per turn — once, when the
+//     direction latches — and never again while the finger moves.
+//   • Drag ticks write a ValueNotifier<double>; an AnimatedBuilder
+//     re-applies transforms/shading around the latched widgets. No
+//     setState runs per tick, so no content build, no layout pass of
+//     SelectableText/RichText while the page is in flight.
+//   • The moving shadow and gild bands are fixed-size layers slid by
+//     Transform.translate (composition only — no relayout per frame).
+//   • In-motion renders use the host's non-selectable twin when it
+//     supplies one (a moving page is never selectable by hand).
+//
 // RTL TRUTH (measured against this repo, not against vibes):
 //   The codex is bound RIGHT, so the free edge is the LEFT edge: a
 //   forward turn lifts it and sweeps RIGHT onto the right-hand stack.
@@ -115,6 +127,7 @@ class MushafTurnOverlay extends StatefulWidget {
     required this.currentPage,
     required this.pageCount,
     required this.pageAt,
+    this.pageAtStatic,
     required this.onCommitPage,
     this.enabled = true,
   });
@@ -130,6 +143,13 @@ class MushafTurnOverlay extends StatefulWidget {
   /// the EXACT same builder the PageView's itemBuilder uses, so leaf
   /// and revealed page are pixel-identical to the settled render.
   final Widget Function(int page) pageAt;
+
+  /// Pass M2 (F3): the non-selectable twin used for every IN-MOTION
+  /// render (leaf and revealed base). Selection only lives on the
+  /// settled page; a page under a finger is never selectable anyway,
+  /// so the motion renders skip SelectableText's gesture machinery.
+  /// Falls back to [pageAt] when the host does not supply one.
+  final Widget Function(int page)? pageAtStatic;
 
   /// Called once a committed turn's animation lands; the screen
   /// performs the jumpToPage here (the visual work is already done).
@@ -147,8 +167,15 @@ class MushafTurnOverlay extends StatefulWidget {
 class _MushafTurnOverlayState extends State<MushafTurnOverlay>
     with SingleTickerProviderStateMixin {
   AnimationController? _settle;
-  double _t = 0;
+  // M2 (F2): the turn's progress lives in a notifier — ticks publish
+  // to the AnimatedBuilder only; nothing else rebuilds mid-drag.
+  final ValueNotifier<double> _turnT = ValueNotifier<double>(0);
   MushafTurnDirection? _dir;
+  // M2 (F1): contents latched at turn start. pageAt/pageAtStatic are
+  // called from _advance/_release/_settle boundaries only — never per
+  // tick — so even a host without a cache builds each page once.
+  Widget? _leafContent;
+  Widget? _baseContent;
   double _dragSpan = 360;
   bool _hintVisible = false;
   bool _hintUsed = false;
@@ -167,6 +194,7 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
     _idleTimer?.cancel();
     _hintRetract?.cancel();
     _settle?.dispose();
+    _turnT.dispose();
     super.dispose();
   }
 
@@ -203,12 +231,32 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
       _settle?.stop();
       setState(() {
         _dir = dir;
-        _t = 0;
+        _turnT.value = 0;
+        _leafContent = _latchLeafContent(dir);
+        _baseContent = dir == MushafTurnDirection.forward
+            ? _latchBaseContent()
+            : null;
       });
     }
     final travel = dir == MushafTurnDirection.forward ? dx : -dx;
-    setState(() => _t = MushafTurnGeometry.clampT(_t + travel / _dragSpan));
+    _turnT.value =
+        MushafTurnGeometry.clampT(_turnT.value + travel / _dragSpan);
   }
+
+  /// Latch-time content (M2): one RepaintBoundary-wrapped build per
+  /// page per turn, through the motion twin when the host has one.
+  Widget _latchContent(int page) => RepaintBoundary(
+        child: widget.pageAtStatic != null
+            ? widget.pageAtStatic!(page)
+            : widget.pageAt(page),
+      );
+
+  Widget _latchLeafContent(MushafTurnDirection dir) => _latchContent(
+      dir == MushafTurnDirection.forward
+          ? widget.currentPage
+          : _neighbour(forward: false));
+
+  Widget _latchBaseContent() => _latchContent(_neighbour(forward: true));
 
   void _onDragEnd(DragEndDetails d) {
     final dir = _dir;
@@ -219,7 +267,7 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
       return;
     }
     final vx = d.velocity.pixelsPerSecond.dx;
-    if (MushafTurnGeometry.commits(dir, _t, vx)) {
+    if (MushafTurnGeometry.commits(dir, _turnT.value, vx)) {
       _animateTo(1, commit: true, dir: dir);
       HapticFeedback.mediumImpact(); // the settle thump
     } else {
@@ -230,9 +278,11 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
 
   void _releaseWithoutTurn() {
     if (_dir != null && _settle?.isAnimating != true) {
+      _turnT.value = 0;
       setState(() {
         _dir = null;
-        _t = 0;
+        _leafContent = null;
+        _baseContent = null;
       });
       _armIdleHint();
     }
@@ -250,19 +300,23 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
     // initializer that references its own variable (even through a
     // callback) is a hard analyzer error, not a taste note.
     late final Animation<double> anim;
-    anim = Tween<double>(begin: _t, end: target).animate(
+    anim = Tween<double>(begin: _turnT.value, end: target).animate(
       CurvedAnimation(
         parent: c,
         curve: commit ? Curves.easeOutCubic : Curves.easeOutBack,
       ),
     )..addListener(() {
-        if (mounted) setState(() => _t = anim.value);
+        // M2: settle ticks are scoped — the AnimatedBuilder transforms,
+        // the tree around it does not rebuild.
+        if (mounted) _turnT.value = anim.value;
       });
     c.addStatusListener((status) {
       if (status != AnimationStatus.completed || !mounted) return;
+      _turnT.value = 0;
       setState(() {
         _dir = null;
-        _t = 0;
+        _leafContent = null;
+        _baseContent = null;
       });
       if (commit) {
         final target = dir == MushafTurnDirection.forward
@@ -291,8 +345,6 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         final h = constraints.maxHeight;
-        final dir = _dir;
-        final t = dir == null ? 0.0 : _t;
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onHorizontalDragDown: (_) => _disarmIdle(),
@@ -318,104 +370,250 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
             fit: StackFit.expand,
             children: [
               widget.child, // the settled pager, always mounted
-              if (dir != null) ...[
-                // Forward: the next page rides UNDER the leaf. Backward
-                // needs no base — the pager's own frame is what the
-                // incoming leaf has not covered yet.
-                if (dir == MushafTurnDirection.forward)
-                  Positioned.fill(
-                    key: const ValueKey('mushaf-turn-base'),
-                    child: IgnorePointer(child: _revealedLayer()),
-                  ),
-                Positioned.fill(child: ClipRect(child: _leafLayer(dir, t))),
-                // Cast shadow riding the free edge, on the revealed page.
-                Positioned(
-                  left: w * MushafTurnGeometry.freeEdgeFrac(dir, t) -
-                      (48 * (1 - 0.6 * t) + 8),
-                  top: 0,
-                  width: 48 * (1 - 0.6 * t) + 8,
-                  height: h,
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Colors.black.withValues(alpha: 0),
-                            Colors.black.withValues(
-                              alpha: MushafTurnShading.castShadowAlpha(t),
+              // The whole motion group is one AnimatedBuilder over the
+              // latched contents (M2): ticks re-run ONLY this builder —
+              // transforms, band offsets, shading alphas. The pages
+              // below it are the same widget instances every frame,
+              // so their elements skip update entirely: zero content
+              // builds, zero text relayout per tick.
+              AnimatedBuilder(
+                animation: _turnT,
+                builder: (context, _) {
+                  final dir = _dir;
+                  final t = dir == null ? 0.0 : _turnT.value;
+                  final edgeX = dir == null
+                      ? 0.0
+                      : w * MushafTurnGeometry.freeEdgeFrac(dir, t);
+                  final colors = QibraColors.of(context);
+                  // Byte-identical to the pre-M2 sheen gate.
+                  final settling = _settle?.isAnimating == true;
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Forward: the next page rides UNDER the leaf.
+                      // Backward needs no base — the pager's own frame
+                      // is what the incoming leaf has not covered yet.
+                      if (dir == MushafTurnDirection.forward &&
+                          _baseContent != null)
+                        Positioned.fill(
+                          key: const ValueKey('mushaf-turn-base'),
+                          child: IgnorePointer(child: _baseContent!),
+                        ),
+                      if (dir != null && _leafContent != null)
+                        Positioned.fill(
+                          key: const ValueKey('mushaf-turn-leaf'),
+                          child: RepaintBoundary(
+                            child: ClipRect(
+                              child: Transform(
+                                alignment: Alignment.centerRight,
+                                transform: Matrix4.identity()
+                                  // Gentle depth: at full-page width a
+                                  // stronger entry (0.0015+) visibly
+                                  // bows the far edge — 0.0009 reads as
+                                  // paper, not as a lens.
+                                  ..setEntry(3, 0, 0.0009)
+                                  // free (left) edge lifts toward reader
+                                  ..rotateY(-MushafTurnGeometry.angleFor(
+                                      dir, t)),
+                                child: Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    ColoredBox(
+                                      color: colors.card,
+                                      child: _leafContent!,
+                                    ),
+                                    // L1 (M2 look): curl shading — the
+                                    // fixed across-page light gradient
+                                    // plus a top-edge fold band. Static
+                                    // colors on purpose: they ride the
+                                    // transform for free, and the read
+                                    // survives any theme (M2 discipline).
+                                    const Positioned.fill(
+                                      child: IgnorePointer(
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                              colors: [
+                                                Colors.white24,
+                                                Colors.white10,
+                                                Colors.black12,
+                                              ],
+                                              stops: [0.0, 0.65, 1.0],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const Positioned(
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      height: 24,
+                                      child: IgnorePointer(
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                              colors: [
+                                                Colors.white24,
+                                                Colors.transparent,
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ],
+                          ),
+                        ),
+                      if (dir != null)
+                        // L2 (M2 look): cast shadow riding the free
+                        // edge — TWO-TONE now (soft ambient + tight
+                        // contact stop) and moved by TRANSFORM ONLY:
+                        // fixed-size box, translate per tick, zero
+                        // relayout (F4).
+                        Positioned(
+                          top: 0,
+                          bottom: 0,
+                          left: 0,
+                          width: 64,
+                          child: IgnorePointer(
+                            child: Transform.translate(
+                              offset: Offset(edgeX - 56, 0),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      Colors.black
+                                          .withValues(alpha: 0),
+                                      Colors.black.withValues(
+                                        alpha:
+                                            MushafTurnShading
+                                                .castShadowAlpha(t) *
+                                            0.45,
+                                      ),
+                                      Colors.black.withValues(
+                                        alpha: MushafTurnShading
+                                            .castShadowAlpha(t),
+                                      ),
+                                      Colors.black.withValues(
+                                        alpha: MushafTurnShading
+                                            .castShadowAlpha(t) *
+                                            0.85,
+                                      ),
+                                    ],
+                                    stops: const [0.0, 0.55, 0.88, 1.0],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (dir != null)
+                        // GILDED EDGE — fore-edge shimmer, turn-
+                        // duration ONLY (≤8% gold discipline; never
+                        // survives into the settled state). L3: the
+                        // band RIDES the edge curve — its vertical
+                        // inset breathes with t, so the glint grows
+                        // mid-turn and retracts at commit — inside the
+                        // existing AppGold ramp, no new tokens.
+                        Positioned(
+                          top: 0,
+                          bottom: 0,
+                          left: 0,
+                          width: 2,
+                          child: IgnorePointer(
+                            child: Transform.translate(
+                              offset: Offset(edgeX - 1, 0),
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  top: 24 * (1 - 0.6 * math.sin(math.pi * t)),
+                                  bottom:
+                                      24 * (1 - 0.6 * math.sin(math.pi * t)),
+                                ),
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        AppGold.s500.withValues(
+                                            alpha:
+                                                MushafTurnShading.gildAlpha(
+                                                        t) *
+                                                    0.35),
+                                        AppGold.s500.withValues(
+                                          alpha:
+                                              MushafTurnShading.gildAlpha(t),
+                                        ),
+                                        AppGold.s700.withValues(
+                                          alpha:
+                                              MushafTurnShading.gildAlpha(
+                                                      t) *
+                                                  0.55,
+                                        ),
+                                      ],
+                                      stops: const [0.0, 0.5, 1.0],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      // The spine strip (binding side = screen right):
+                      // a static crease at rest, a dynamic fold shadow
+                      // + settle sheen while turning (and through the
+                      // settle — 'settling' — window).
+                      Positioned(
+                        key: const ValueKey('mushaf-spine'),
+                        right: 0,
+                        top: 0,
+                        width: dir == null ? 8 : 10,
+                        height: h,
+                        child: IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: dir == null
+                                    ? const [
+                                        Colors.transparent,
+                                        Colors.black26
+                                      ]
+                                    : [
+                                        Colors.black
+                                            .withValues(alpha: 0),
+                                        Colors.black.withValues(
+                                          alpha: MushafTurnShading
+                                              .spineCrease(t),
+                                        ),
+                                        Colors.white.withValues(
+                                          alpha: settling
+                                              ? 0.30 * (1 - t).abs()
+                                              : 0.0,
+                                        ),
+                                      ],
+                                stops: dir == null
+                                    ? const [0.0, 1.0]
+                                    : const [0.0, 0.72, 1.0],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                // GILDED EDGE — fore-edge shimmer, turn-duration ONLY:
-                // a 2px band (the ≤8% gold discipline; it never
-                // survives into the settled state).
-                Positioned(
-                  left: w * MushafTurnGeometry.freeEdgeFrac(dir, t) - 1,
-                  top: 24,
-                  width: 2,
-                  height: math.max(0, h - 48),
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            AppGold.s500.withValues(
-                                alpha: MushafTurnShading.gildAlpha(t) * 0.35),
-                            AppGold.s500.withValues(
-                                alpha: MushafTurnShading.gildAlpha(t)),
-                            AppGold.s700.withValues(
-                                alpha: MushafTurnShading.gildAlpha(t) * 0.55),
-                          ],
-                          stops: const [0.0, 0.5, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              // The spine strip (binding side = screen right): a static
-              // crease at rest, a dynamic fold shadow + settle sheen
-              // while turning.
-              Positioned(
-                key: const ValueKey('mushaf-spine'),
-                right: 0,
-                top: 0,
-                width: dir == null ? 8 : 10,
-                height: h,
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: dir == null
-                            ? const [Colors.transparent, Colors.black26]
-                            : [
-                                Colors.black.withValues(alpha: 0),
-                                Colors.black.withValues(
-                                  alpha: MushafTurnShading.spineCrease(t),
-                                ),
-                                Colors.white.withValues(
-                                  alpha: _settle?.isAnimating == true
-                                      ? 0.30 * (1 - t).abs()
-                                      : 0.0,
-                                ),
-                              ],
-                        stops: dir == null
-                            ? const [0.0, 1.0]
-                            : const [0.0, 0.72, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
+                    ],
+                  );
+                },
               ),
               const Positioned.fill(
                 // Procedural paper grain (no asset): a deterministic
@@ -428,7 +626,7 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                   ),
                 ),
               ),
-              if (_hintVisible && dir == null) _buildPeelFlap(),
+              if (_hintVisible && _dir == null) _buildPeelFlap(),
             ],
           ),
         );
@@ -436,62 +634,9 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
     );
   }
 
-  Widget _revealedLayer() =>
-      RepaintBoundary(child: widget.pageAt(_neighbour(forward: true)));
-
   int _neighbour({required bool forward}) => forward
       ? math.min(widget.pageCount, widget.currentPage + 1)
       : math.max(1, widget.currentPage - 1);
-
-  Widget _leafLayer(MushafTurnDirection dir, double t) {
-    final angle = MushafTurnGeometry.angleFor(dir, t);
-    final content = widget.pageAt(
-      dir == MushafTurnDirection.forward
-          ? widget.currentPage
-          : _neighbour(forward: false),
-    );
-    final colors = QibraColors.of(context);
-    return KeyedSubtree(
-      key: const ValueKey('mushaf-turn-leaf'),
-      child: RepaintBoundary(
-        child: Transform(
-          alignment: Alignment.centerRight,
-          transform: Matrix4.identity()
-            // Gentle depth: at full-page width a stronger entry
-            // (0.0015+) visibly bows the far edge — 0.0009 reads as
-            // paper, not as a lens.
-            ..setEntry(3, 0, 0.0009)
-            ..rotateY(-angle), // free (left) edge lifts toward the reader
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              ColoredBox(color: colors.card, child: content),
-              // Light riding the lifting leaf — brightest at the free
-              // edge, fading toward the spine, dynamic with drag t.
-              const Positioned.fill(
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          Colors.white24,
-                          Colors.white10,
-                          Colors.black12,
-                        ],
-                        stops: [0.0, 0.65, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildPeelFlap() {
     final reduceMotion =

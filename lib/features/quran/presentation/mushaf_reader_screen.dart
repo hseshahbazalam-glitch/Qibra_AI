@@ -451,6 +451,11 @@ Juz: ${juz ?? '—'}''';
                     currentPage: currentPage,
                     pageCount: 604,
                     pageAt: (page) => _pageAt(page, index, playingHere),
+                    // M2 (F3): in-motion renders get the non-selectable
+                    // twin; the settled page keeps SelectableText.
+                    pageAtStatic: (page) =>
+                        _pageAt(page, index, playingHere,
+                            selectable: false),
                     onCommitPage: (page) {
                       _suppressTurnHaptic = true;
                       _pageController.jumpToPage(page - 1);
@@ -469,6 +474,10 @@ Juz: ${juz ?? '—'}''';
                         _userPaged = true;
                         ref.read(_currentPageProvider.notifier).state = page + 1;
                         _saveProgress(page + 1);
+                        // M2 (F1): the window follows the settled page;
+                        // neighbours are built in a post-frame so the
+                        // next turn's first tick is a cache hit.
+                        _warmPageCache(page + 1, index, playingHere);
                       },
                       itemBuilder: (context, page) =>
                           _pageAt(page + 1, index, playingHere),
@@ -518,15 +527,74 @@ Juz: ${juz ?? '—'}''';
     );
   }
 
+  // ── Pass M2 (F1): the page cache ──────────────────────────────
+  // Every render path (PageView itemBuilders, the overlay's latched
+  // leaf/base) asks _pageAt. Building a page costs the full spans
+  // loop + a justified RTL paragraph per call; mid-turn that ran on
+  // EVERY drag tick (the device-jank report). The cache hands out the
+  // SAME widget instance for the same (page, variant) while inputs
+  // hold — an identical config makes the framework skip the element
+  // update outright, so a tick costs zero. Window: current ±1 × both
+  // variants (≤6 entries: the LRU-3 window per variant the brief
+  // asks for). Retired on every page change; the neighbours are
+  // pre-warmed in a post-frame so the FIRST drag tick finds a hit.
+  // Deps are (index map, playing tuple): identity check clears
+  // everything when data or the follow-tint changes.
+  final Map<int, Widget> _pageCache = <int, Widget>{};
+  Object? _cacheIndex;
+  Object? _cachePlaying;
+
+  static int _pageCacheKey(int page, bool selectable) =>
+      page * 2 + (selectable ? 1 : 0);
+
+  void _retirePageCache(int around) {
+    final keep = <int>{
+      for (var p = around - 1; p <= around + 1; p++)
+        if (p >= 1 && p <= 604) ...[
+          _pageCacheKey(p, true),
+          _pageCacheKey(p, false),
+        ],
+    };
+    _pageCache.removeWhere((k, _) => !keep.contains(k));
+  }
+
+  void _warmPageCache(
+    int around,
+    Map<int, List<MushafPageEntry>> index,
+    (int?, int?)? playing,
+  ) {
+    _retirePageCache(around);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      for (final p in [
+        if (around > 1) around - 1,
+        around,
+        if (around < 604) around + 1,
+      ]) {
+        _pageAt(p, index, playing, selectable: false);
+        _pageAt(p, index, playing);
+      }
+    });
+  }
+
   /// Single source for settled AND turning page content (Pass M): the
   /// PageView's itemBuilder and the turn overlay's leaf both call this,
-  /// so the two renders can never drift apart.
+  /// so the two renders can never drift apart. Pass M2: results are
+  /// cached per (page, variant) — see [_pageCache].
   Widget _pageAt(
     int page,
     Map<int, List<MushafPageEntry>> index,
-    (int?, int?)? playing,
-  ) =>
-      _MushafPage(
+    (int?, int?)? playing, {
+    bool selectable = true,
+  }) {
+    if (!identical(_cacheIndex, index) || _cachePlaying != playing) {
+      _cacheIndex = index;
+      _cachePlaying = playing;
+      _pageCache.clear();
+    }
+    return _pageCache.putIfAbsent(
+      _pageCacheKey(page, selectable),
+      () => _MushafPage(
         pageNumber: page,
         entries: _entriesFor(index, page),
         // Real playback follow (item 1, mushaf): the playing ayah on
@@ -535,7 +603,10 @@ Juz: ${juz ?? '—'}''';
         // claimed or faked, and non-playing renders zero.
         playingSurah: playing?.$1,
         playingAyah: playing?.$2,
-      );
+        selectable: selectable,
+      ),
+    );
+  }
 
   /// Ribbon tap: jump to the saved page, or say honestly there is none.
   void _ribbonJump() {
@@ -1081,7 +1152,17 @@ class _MushafPage extends StatelessWidget {
     required this.entries,
     this.playingSurah,
     this.playingAyah,
+    this.selectable = true,
   });
+
+  /// Pass M2 (F3): false renders the EXACT same justified RTL paragraph
+  /// through [Text.rich] instead of [SelectableText.rich] — a page in
+  /// motion (turn leaf / revealed base) is never selectable by hand,
+  /// and dropping the selection machinery keeps that paragraph's
+  /// gesture layer out of the arena while the finger turns. Copy and
+  /// Share behavior live solely on the settled render and are
+  /// byte-identical; the resting page still owns the SelectableText.
+  final bool selectable;
 
   final int pageNumber;
   final List<MushafPageEntry> entries;
@@ -1133,7 +1214,10 @@ class _MushafPage extends StatelessWidget {
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              // L4 (M2 look): one spacing refinement on the surah
+              // hairline — 8 → 10 vertical breathing; weight/height
+              // untouched (1.0 stays crisp at every DPR).
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
                 children: [
                   Expanded(child: Container(height: 1, color: colors.border)),
@@ -1188,11 +1272,20 @@ class _MushafPage extends StatelessWidget {
           Expanded(
             child: Scrollbar(
               child: SingleChildScrollView(
-                child: SelectableText.rich(
-                  TextSpan(children: spans),
-                  textAlign: TextAlign.justify,
-                  textDirection: TextDirection.rtl,
-                ),
+                child: selectable
+                    // The settled render: selectable, exactly as ever.
+                    ? SelectableText.rich(
+                        TextSpan(children: spans),
+                        textAlign: TextAlign.justify,
+                        textDirection: TextDirection.rtl,
+                      )
+                    // The motion render (M2 F3): same span list, same
+                    // justify + rtl paragraph — zero gesture machinery.
+                    : Text.rich(
+                        TextSpan(children: spans),
+                        textAlign: TextAlign.justify,
+                        textDirection: TextDirection.rtl,
+                      ),
               ),
             ),
           ),

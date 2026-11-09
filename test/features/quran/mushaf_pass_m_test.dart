@@ -296,6 +296,92 @@ void main() {
   });
 
   // ── M3 — ribbon bookmark ─────────────────────────────────────
+  // ── M2 jank contract — build scoping (pass M2) ───────────────
+  group('M2 jank contract', () {
+    test('scoped rebuild + cache shapes live in the sources', () {
+      final turn = File(
+              'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
+          .readAsStringSync();
+      final rdr =
+          File('lib/features/quran/presentation/mushaf_reader_screen.dart')
+              .readAsStringSync();
+      expect(turn, contains('ValueNotifier<double> _turnT'));
+      expect(turn, contains('AnimatedBuilder('));
+      expect(turn, isNot(contains('setState(() => _t')),
+          reason: 'drag/settle ticks must not setState the whole overlay');
+      expect(turn, contains('Widget? _leafContent'));
+      expect(turn, contains('_latchLeafContent'));
+      expect(turn, contains('pageAtStatic'),
+          reason: 'the F3 motion twin is part of the contract');
+      expect(turn, contains('Transform.translate('));
+      expect(turn, isNot(contains('48 * (1 - 0.6 * t)')),
+          reason: 'the old per-tick re-sized Positioned band is gone');
+      // Physics pins UNTOUCHED — no silent retune (discipline):
+      expect(turn, contains('static const double commitFraction = 0.42;'));
+      expect(turn, contains('static const double commitVelocity = 520;'));
+      expect(rdr, contains('_pageCache'));
+      expect(rdr, contains('putIfAbsent'));
+      expect(rdr, contains('pageAtStatic:'));
+      expect(rdr, contains('selectable: false'));
+      expect(rdr, contains('_warmPageCache'));
+      expect(rdr, contains('identical(_cacheIndex, index)'),
+          reason: 'dep-identity invalidation keeps play-follow honest');
+      // F3 scope rule: the SETTLED render still owns SelectableText.
+      expect(rdr, contains('SelectableText.rich('));
+      expect(RegExp(r'PageView\.builder\(').allMatches(rdr).length, 1);
+    });
+
+    testWidgets('a drag builds each page EXACTLY ONCE per turn',
+        (tester) async {
+      int builds = 0;
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: MushafTurnOverlay(
+            currentPage: 1,
+            pageCount: 604,
+            pageAt: (page) {
+              builds++;
+              return SelectableText('live $page',
+                  textDirection: TextDirection.ltr);
+            },
+            pageAtStatic: (page) {
+              builds++;
+              return Text('motion $page', textDirection: TextDirection.ltr);
+            },
+            onCommitPage: (_) {},
+            child: const Center(
+                key: ValueKey('stub-child'), child: Text('settled')),
+          ),
+        ),
+      ));
+      final g = await tester.startGesture(const Offset(200, 300));
+      for (var i = 0; i < 8; i++) {
+        await g.moveBy(const Offset(24, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(builds, 2,
+          reason: 'leaf + base latch once at the direction lock; the '
+              'seven further ticks build nothing');
+      // F3: the leaf in motion shows the NON-selectable twin — the
+      // selection layer never competes in the arena mid-turn.
+      final leaf = find.byKey(const ValueKey('mushaf-turn-leaf'));
+      expect(leaf, findsOneWidget);
+      expect(
+          find.descendant(of: leaf, matching: find.byType(SelectableText)),
+          findsNothing);
+      expect(find.text('motion 1'), findsOneWidget,
+          reason: 'forward leaf renders the current page statically');
+      await g.up();
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.pumpAndSettle(const Duration(milliseconds: 40));
+      expect(builds, 2,
+          reason: 'commit and settle add zero builds — the pager owns '
+              'the settled render from here');
+      expect(find.byKey(const ValueKey('mushaf-turn-leaf')), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   group('M3 ribbon', () {
     testWidgets('drop-the-ribbon writes the real progress store',
         (tester) async {
