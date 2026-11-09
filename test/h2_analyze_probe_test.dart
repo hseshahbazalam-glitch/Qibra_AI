@@ -24,19 +24,12 @@ void main() {
       final l = all[i];
       if (l.contains('[E]')) {
         keep.add(l.trim());
-        for (var j = i + 1;
-            j < all.length && keep.length < 20 && j < i + 12;
-            j++) {
+        // RAW following lines — the assertion message lives between the
+        // banner lines; no filter this time.
+        for (var j = i + 1; j < all.length && keep.length < 20 && j < i + 14; j++) {
           final c = all[j].trim();
-          if (c.startsWith('Expected:') ||
-              c.startsWith('Actual:') ||
-              c.startsWith('Which:') ||
-              c.startsWith('What:') ||
-              c.startsWith('The following') ||
-              c.startsWith('Test failed') ||
-              c.contains('EXCEPTION CAUGHT')) {
-            keep.add(c.length > 220 ? '${c.substring(0, 220)}…' : c);
-          }
+          if (c.isEmpty) continue;
+          keep.add(c.length > 220 ? '${c.substring(0, 220)}…' : c);
         }
       }
     }
