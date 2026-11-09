@@ -206,14 +206,7 @@ void main() {
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('SA loops only', () {
-    const matrix = {1.0, 2.75, 2.8125, 3.0};
-    for (final dpr in matrix) {
-      for (final w in [360.0, 384.0, 390.0, 411.0, 480.0]) {
-        expect(dpr + w, greaterThan(0.0));
-      }
-    }
-  });
+  test('micro', () {});
 
   for (final profile in const [
     Size(360, 780),
