@@ -543,7 +543,7 @@ void main() {
       // Home's navy is token-mediated (the F sweep) — the honest pin is
       // that its Scaffold-level chrome never resolves through the paper
       // palette type; the canvas constant it once held is colors.background.
-      expect(RegExp(r'QibraPaperColors|QibraPaper\\.palette')
+      expect(RegExp(r'QibraPaperColors|QibraPaper\.palette')
           .hasMatch(home), isFalse,
           reason: 'home must not hard-wire paper — navy by construction');
       // the split scales are the ONLY scales: the legacy single
