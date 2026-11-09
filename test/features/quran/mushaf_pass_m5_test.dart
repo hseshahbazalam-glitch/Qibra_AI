@@ -1,4 +1,4 @@
-// ignore_for_file: unused_element
+// ignore_for_file: unused_local_variable
 // test/features/quran/mushaf_pass_m5_test.dart
 // ============================================================
 // PASS M5 — THE EDGE-CUT CLOSURE (C) AND THE REAM (R).
