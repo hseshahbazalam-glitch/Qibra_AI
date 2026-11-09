@@ -33,6 +33,14 @@ const _surfaces = [
 ];
 
 void main() {
+  // M6LEDGER-mushaf_pass_d2_test (transient, removed with the triage file): IN/DONE
+  // name ledgers; the final TALLY annotation prints what started but
+  // never completed — exactly the failing test(s) in this file.
+  final _m6in = <String>[];
+  final _m6done = <String>[];
+  setUp(() => _m6in.add(testCase.name));
+  tearDown(() => _m6done.add(testCase.name));
+
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -315,5 +323,12 @@ void main() {
       final ctx = tester.element(find.byType(Text).first);
       expect(QibraPaper.isActive(ctx), isTrue);
     });
+  });
+
+  test('M6TALLY mushaf_pass_d2_test', () {
+    final missing = _m6in.toSet().difference(_m6done.toSet());
+    print('::error::M6T mushaf_pass_d2_test :: '
+        '${missing.isEmpty ? 'none-failed' : missing.join(' ;; ')}');
+    expect(missing, isEmpty, reason: 'file mushaf_pass_d2_test had failures');
   });
 }

@@ -158,6 +158,14 @@ Future<void> pumpReader(
         contiguous: from.c, seen: from.seen, ayah: ayah);
 
 void main() {
+  // M6LEDGER-quran_reading_pass_q2_test (transient, removed with the triage file): IN/DONE
+  // name ledgers; the final TALLY annotation prints what started but
+  // never completed — exactly the failing test(s) in this file.
+  final _m6in = <String>[];
+  final _m6done = <String>[];
+  setUp(() => _m6in.add(testCase.name));
+  tearDown(() => _m6done.add(testCase.name));
+
 
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
@@ -908,4 +916,11 @@ void main() {
     });
   });
 
+
+  test('M6TALLY quran_reading_pass_q2_test', () {
+    final missing = _m6in.toSet().difference(_m6done.toSet());
+    print('::error::M6T quran_reading_pass_q2_test :: '
+        '${missing.isEmpty ? 'none-failed' : missing.join(' ;; ')}');
+    expect(missing, isEmpty, reason: 'file quran_reading_pass_q2_test had failures');
+  });
 }
