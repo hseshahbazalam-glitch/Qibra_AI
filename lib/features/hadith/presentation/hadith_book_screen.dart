@@ -4,7 +4,6 @@
 // Complete Arabic + Urdu + English translations with chapter selector & search
 // ============================================================
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1513,7 +1512,7 @@ class HadithCard extends ConsumerWidget {
                 // (d) translation block (language-driven since Phase B —
                 // the one-block semantics the redesign pins stay).
                 if (showTranslationBlock) ...[
-                  Container(
+                  SizedBox(
                     key: const ValueKey('hadith-card-translation'),
                     width: double.infinity,
                     child: Column(

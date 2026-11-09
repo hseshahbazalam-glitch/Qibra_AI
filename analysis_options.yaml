@@ -32,12 +32,6 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    # H2PROBE (transient): suspects skip the analyze STEP so the suite
-    # can boot; the probe test re-checks copies and smuggles verdicts
-    # through ::error::. Gone with the fix.
-    - "lib/features/hadith/presentation/hadith_book_screen.dart"
-    - "test/features/hadith/hadith_pass_h2_test.dart"
-    - "lib/core/l10n/app_strings.dart"
   language:
     strict-casts: true
     strict-inference: false

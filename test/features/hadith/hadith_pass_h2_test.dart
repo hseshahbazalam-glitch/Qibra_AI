@@ -247,12 +247,12 @@ void main() {
       ]) {
         expect(find.byKey(ValueKey(k)), findsOneWidget, reason: k);
       }
-      final badge = tester.getRect(ValueKey('hadith-card-badge')).bottom;
-      final arabic = tester.getRect(ValueKey('hadith-card-arabic')).bottom;
-      final ornament = tester.getRect(ValueKey('hadith-card-ornament')).top;
+      final badge = tester.getRect(find.byKey(const ValueKey('hadith-card-badge'))).bottom;
+      final arabic = tester.getRect(find.byKey(const ValueKey('hadith-card-arabic'))).bottom;
+      final ornament = tester.getRect(find.byKey(const ValueKey('hadith-card-ornament'))).top;
       final trans =
-          tester.getRect(ValueKey('hadith-card-translation')).top;
-      final meta = tester.getRect(ValueKey('hadith-card-meta')).top;
+          tester.getRect(find.byKey(const ValueKey('hadith-card-translation'))).top;
+      final meta = tester.getRect(find.byKey(const ValueKey('hadith-card-meta'))).top;
       expect(badge, lessThan(arabic));
       expect(arabic, lessThan(ornament));
       expect(ornament, lessThan(trans));
