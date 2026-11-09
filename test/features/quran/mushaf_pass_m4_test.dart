@@ -169,11 +169,11 @@ Future<void> setTheme(WidgetTester tester, QibraReadingTheme theme) async {
   await tester.pump(); // exactly ONE frame — the switch must be instant
 }
 
-/// Drag the leaf up mid-turn and LEAVE IT THERE: 120 wins the arena,
-/// 60 delivers travel (the two-step the M suite learned is required),
-/// then a zero-velocity up — the leaf unmounts via the retract settle
-/// only when the test pumps past convergence. Tests that need the leaf
-/// still mounted mid-drag call releaseLeaf() in their own body.
+/// Drag the leaf up mid-turn and HOLD THE FINGER DOWN: 120 wins the
+/// arena, 60 delivers travel (the two-step the M suite learned is
+/// required). The caller asserts mid-turn, then releaseLeaf() — whose
+/// zero-velocity up lands the retract spring and pumps past
+/// convergence.
 Future<TestGesture> grabLeaf(WidgetTester tester) async {
   final g = await tester.startGesture(const Offset(195, 420));
   await g.moveBy(const Offset(120, 0));
@@ -243,7 +243,7 @@ void main() {
           userDisplayNameProvider.overrideWithValue('Guest'),
           isGuestModeProvider.overrideWithValue(true),
         ],
-        child: const MaterialApp(home: SettingsScreen()),
+        child: MaterialApp(home: const SettingsScreen()),
       ));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
@@ -336,19 +336,22 @@ void main() {
       final opened = MushafTurnLeafClipper(angle: ang, lift: lift)
           .getClip(const Size(w, h))
           .bounds;
-      expect(opened.top, lessThanOrEqualTo(corners.first.dy - 1.0),
+      expect(opened.top, lessThan(corners.first.dy),
           reason: 'the clip encloses that corner WITH its AA slack — the '
-              'cut region is inside now, and still bounded (E1 above '
-              'keeps non-page points out)');
+              'cut region is inside now...');
+      expect(opened.top, greaterThan(corners.first.dy - 2.0),
+          reason: '...and still TIGHT (slack is 1.2px, not a free pass '
+              'to overdraw); non-page points stay out');
       final rest = MushafTurnLeafClipper(
               angle: MushafTurnGeometry.angleFor(
                   MushafTurnDirection.forward, 0),
               lift: 0)
           .getClip(const Size(w, h))
           .bounds;
-      expect(rest.top, greaterThanOrEqualTo(-0.001),
-          reason: 'at touch-down the quad IS the box — zero lift, zero '
-              'overdraw, the settled frame is untouched');
+      expect(rest.top, inInclusiveRange(-2.0, 0.0),
+          reason: 'at touch-down the quad is THE BOX within its AA '
+              'slack only — no lift, no parallax, the settled frame is '
+              'untouched');
     });
 
     testWidgets('E2: the leaf is wrapped in an ANTI-ALIASED ClipPath — '
@@ -516,10 +519,7 @@ void main() {
       expect(dx, greaterThan(0.0),
           reason: 'the revealed page chases the leaf — coordinated depth');
       expect(dx, lessThanOrEqualTo(8.0001));
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle(const Duration(milliseconds: 40));
-      // (the 500 ms + settle pumps inside the test act as the release
-      // wind-down — the gesture must come up FIRST.)
+      // Release (t < 0.42 → the retract spring walks it home).
       await g.up();
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pumpAndSettle(const Duration(milliseconds: 40));

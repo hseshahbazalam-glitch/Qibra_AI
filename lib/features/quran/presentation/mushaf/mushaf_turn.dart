@@ -330,7 +330,7 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
   double _springTo = 0;
   double _springOmega = MushafTurnPhysics.kCommit;
   bool _springLive = false;
-  // -1 = no tick yet (0 is a legal elapsed value — the first frame's).
+  // Elapsed microseconds (value × 10 s) of the last tick; -1 = none yet.
   int _lastTickUs = -1;
   bool _animCommit = false;
   MushafTurnDirection _animDir = MushafTurnDirection.forward;
@@ -526,13 +526,19 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
 
   /// M3 (F2) + M4 (W1/W2): the permanent tick listener — attached once
   /// in initState. Each frame advances the spring by the REAL elapsed
-  /// dt the ticker reports, in fixed 1/120 s substeps (clamped at 48 ms
-  /// per frame), so 60/120/144 Hz integrate the same trajectory. The M2
-  /// rule holds: settle ticks write ONLY the notifier, never setState.
+  /// dt, in fixed 1/120 s substeps (clamped at 48 ms per frame), so
+  /// 60/120/144 Hz integrate the same trajectory. The M2 rule holds:
+  /// settle ticks write ONLY the notifier, never setState.
+  ///
+  /// The clock: the controller runs at a KNOWN 10 s duration purely as
+  /// a metronome, so elapsed microseconds = value × 1e7 — the ticker's
+  /// own frame math, with no dependence on any framework timer getter.
   void _onSettleTick() {
-    if (!_springLive) return;
-    final elapsed = _settle.lastElapsedDuration ?? Duration.zero;
-    final us = elapsed.inMicroseconds;
+    // mounted: State.dispose stops the controller, whose notifyListeners
+    // re-enters this tick — the spring must not (and cannot) publish into
+    // a defunct tree (R2's unmount-mid-settle contract).
+    if (!_springLive || !mounted) return;
+    final us = (_settle.value * 1e7).round();
     final dt = _lastTickUs < 0
         ? 1 / 60 // first tick after forward(from: 0): one nominal frame
         : math.max(0.0, (us - _lastTickUs)) / 1e6;
@@ -1037,7 +1043,8 @@ class _PaperGrainPainter extends CustomPainter {
 /// stays OUT — the shadow below remains masked by the page, never a
 /// rectangle's worth of it painted onto the stack.
 class MushafTurnLeafClipper extends CustomClipper<Path> {
-  const MushafTurnLeafClipper({required this.angle, required this.lift});
+  // NOT const — CustomClipper's own constructor is non-const.
+  MushafTurnLeafClipper({required this.angle, required this.lift});
 
   final double angle;
   final double lift;
