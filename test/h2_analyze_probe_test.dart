@@ -13,8 +13,12 @@ void main() {
         'test',
         '--reporter',
         'expanded',
-        'test/features/hadith/hadith_pass_h2_test.dart',
-        'test/features/hadith/hadith_pass_h1_test.dart',
+        'test/core/perf_pass_test.dart',
+        'test/core/device_log_fixes_test.dart',
+        'test/stage_c_font_test.dart',
+        'test/core/stage_c_font_test.dart',
+        'test/features/hadith/hadith_redesign_test.dart',
+        'test/features/hadith/hadith_multilang_test.dart',
       ]);
       final o = r.stdout.transform(Utf8Decoder()).join();
       final e = r.stderr.transform(Utf8Decoder()).join();
