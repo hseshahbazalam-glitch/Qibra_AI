@@ -972,12 +972,19 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                                 sheetA: colors.card,
                                 sheetB: colors.cardMuted,
                                 crease: colors.border,
-                                depth: 0.02 +
-                                    0.02 *
-                                        ((MushafTurnShading.spineCrease(
-                                                        t) -
-                                                    0.10) /
-                                                0.08),
+                                // The SAME dir-guard as turn: a landed
+                                // commit parks _turnT at 1.0, and a
+                                // rest depth of 0.04 would mean the
+                                // settled frame differs from the
+                                // mounted one — at rest is 0.02, exact.
+                                depth: dir == null
+                                    ? 0.02
+                                    : 0.02 +
+                                        0.02 *
+                                            ((MushafTurnShading.spineCrease(
+                                                            t) -
+                                                        0.10) /
+                                                    0.08),
                               ),
                             ),
                           ),
