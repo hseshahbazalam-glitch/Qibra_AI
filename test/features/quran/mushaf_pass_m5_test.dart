@@ -191,17 +191,6 @@ Offset projectPoint(Matrix4 m, Offset o) =>
       return Offset(v.x, v.y);
     })();
 
-/// One test-rebuildable painter value set (R6's data-only compare).
-MushafReamPainter ream(
-        {double turn = 0.0,
-        double depth = 0.02,
-        Color a = const Color.from(alpha: 1, red: .9, green: .9, blue: .8),
-        Color b = const Color.from(alpha: 1, red: .8, green: .8, blue: .7),
-        Color c = const Color.from(alpha: 1, red: .5, green: .5, blue: .5)}) =>
-    MushafReamPainter(
-        turn: turn, sheetA: a, sheetB: b, crease: c, depth: depth);
-
-
 void main() {
   testWidgets('probe', (tester) async {});
 }
