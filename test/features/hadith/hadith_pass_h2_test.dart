@@ -182,47 +182,51 @@ void main() {
           narrator: const HadithNarrator(name: 'Abu Huraira'),
         );
 
-    Widget card(WidgetTester tester, HadithModel h,
-        {required bool Function() expanded,
-        required void Function() onToggle}) {
-      return ProviderScope(
+    // A REAL StatefulBuilder drives expansion — a bare closure variable
+    // flipped by onToggleExpand never rebuilds the tree (that harness bug
+    // was one of the two CI reds; the assertion passed pre-tap and died
+    // post-tap exactly as a stale build should).
+    Future<void> pump(WidgetTester tester, HadithModel h) async {
+      SharedPreferences.setMockInitialValues({});
+      late StateSetter setSheet;
+      var exp = false;
+      await tester.pumpWidget(ProviderScope(
         child: MaterialApp(
           theme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.dark,
             extensions: <ThemeExtension<dynamic>>[QibraColors.dark],
           ),
-          home: Scaffold(
-            body: Center(
-              child: SizedBox(
-                width: 360,
-                child: HadithCard(
-                  hadith: h,
-                  showArabic: true,
-                  showTranslation: true,
-                  positionLabel: HadithBookScreen.hadithPositionLabel(
-                      h.hadithNumber, 7563),
-                  expanded: expanded(),
-                  onToggleExpand: onToggle,
-                  onTap: () {},
+          home: StatefulBuilder(
+            builder: (context, setter) {
+              setSheet = setter;
+              return Scaffold(
+                body: Center(
+                  child: SizedBox(
+                    width: 360,
+                    child: HadithCard(
+                      hadith: h,
+                      showArabic: true,
+                      showTranslation: true,
+                      positionLabel: HadithBookScreen.hadithPositionLabel(
+                          h.hadithNumber, 7563),
+                      expanded: exp,
+                      onToggleExpand: () =>
+                          setSheet(() => exp = !exp),
+                      onTap: () {},
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
-      );
-    }
-
-    Future<void> pump(WidgetTester tester, HadithModel h,
-        {bool Function()? isExpanded, void Function()? onToggle}) async {
-      SharedPreferences.setMockInitialValues({});
-      var exp = false;
-      await tester.pumpWidget(card(tester, h,
-          expanded: isExpanded ?? () => exp,
-          onToggle: onToggle ?? (() => exp = !exp)));
+      ));
       await tester.pump();
     }
 
+
+    
     Text bodyText(WidgetTester tester, String key) => tester
         .widgetList<Text>(find.descendant(
             of: find.byKey(ValueKey(key)), matching: find.byType(Text)))
@@ -288,8 +292,8 @@ void main() {
 
     testWidgets('D1 honest-null: an ungraded hadith says so — no silent '
         'Sahih default', (tester) async {
-      await pump(
-          tester, mkHadith(english: 'short one', grade: HadithGrade.unknown));
+      await pump(tester,
+          mkHadith(english: 'short one', grade: HadithGrade.unknown));
       expect(
           find.text(AppStrings.forCode('en').hadithGradeNotRecorded),
           findsOneWidget);
@@ -301,16 +305,13 @@ void main() {
         (tester) async {
       final long =
           List.filled(60, 'patience is a habit of the heart').join(' ');
-      var exp = false;
-      await pump(tester, mkHadith(english: long),
-          isExpanded: () => exp, onToggle: () => exp = !exp);
+      await pump(tester, mkHadith(english: long));
       final strings = AppStrings.forCode('en');
       expect(find.text(strings.readFullHadith), findsOneWidget);
       expect(bodyText(tester, 'hadith-card-arabic').maxLines, 4);
       expect(bodyText(tester, 'hadith-card-translation').maxLines, 4);
       await tester.tap(find.text(strings.readFullHadith));
       await tester.pump();
-      expect(exp, isTrue);
       expect(find.text(strings.showLessHadith), findsOneWidget);
       expect(find.text(strings.readFullHadith), findsNothing);
       expect(bodyText(tester, 'hadith-card-translation').maxLines, isNull);
@@ -334,7 +335,11 @@ void main() {
       expect(find.text(strings.readFullHadith), findsOneWidget,
           reason: 'precondition — the card IS collapsed');
       await tester.tap(find.byTooltip(strings.tooltipCopyToShare));
-      await tester.pump();
+      await tester.pump(); // the SnackBar appears...
+      await tester.pump(const Duration(seconds: 2)); // ...its 1s timer
+      // must EXPIRE inside the test — a pending SnackBar timer is the
+      // teardown failure that was red CI #2.
+      await tester.pumpAndSettle(); // dismissal animation ends
       final data = calls
           .firstWhere((c) => c.method == 'Clipboard.setData')
           .arguments as Map<Object?, Object?>;
