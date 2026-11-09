@@ -202,7 +202,8 @@ void main() {
               setSheet = setter;
               return Scaffold(
                 body: Center(
-                  child: SizedBox(
+                  child: SingleChildScrollView(
+                    child: SizedBox(
                     width: 360,
                     child: HadithCard(
                       hadith: h,
@@ -216,8 +217,9 @@ void main() {
                       onTap: () {},
                     ),
                   ),
-                ),
-              );
+                  ), // SingleChildScrollView — the 600px test viewport must
+                ),    // never fight a tall collapsed card (RenderFlex
+              );      // overflow is a LAYOUT failure, not a pin)
             },
           ),
         ),
