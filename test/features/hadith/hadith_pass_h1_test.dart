@@ -110,10 +110,7 @@ Map<String, Map<String, ({int nonEmpty, int total})>> _coverageByBook() {
   return out;
 }
 
-const bool _parkLotR2 = true; // PROBE park-lot r2
-
 void main() {
-  if (_parkLotR2) return; // PROBE park-lot r2
   group('Pass H1 · kitab names — no invention, honest fallback', () {
     test('ledger ⇄ shipped data: the 3 unnamed refs are EXACTLY the census',
         () {

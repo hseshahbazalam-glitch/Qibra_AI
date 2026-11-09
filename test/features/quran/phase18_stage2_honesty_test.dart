@@ -14,10 +14,7 @@ const _stage2Screens = [
   'lib/features/ai/presentation/ai_explain_screen.dart',
 ];
 
-const bool _parkLotR2 = true; // PROBE park-lot r2
-
 void main() {
-  if (_parkLotR2) return; // PROBE park-lot r2
   test('stage 2 screens exist', () {
     for (final p in _stage2Screens) {
       expect(File(p).existsSync(), isTrue, reason: p);

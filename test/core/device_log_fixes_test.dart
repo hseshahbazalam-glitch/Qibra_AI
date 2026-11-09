@@ -7,10 +7,7 @@ import 'package:qibra_ai/features/prayer/data/services/mosque_service.dart';
 
 String read(String rel) => File(rel).readAsStringSync();
 
-const bool _parkLotR2 = true; // PROBE park-lot r2
-
 void main() {
-  if (_parkLotR2) return; // PROBE park-lot r2
   group('ListTile/ink surface guards (fix 1)', () {
     test('hadith detail-sheet body is a Material with the same radius', () {
       final src =

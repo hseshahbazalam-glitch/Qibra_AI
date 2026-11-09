@@ -23,10 +23,7 @@ const wiredFiles = <String>[
   'lib/features/quran/presentation/mushaf_reader_screen.dart',
 ];
 
-const bool _parkLotR2 = true; // PROBE park-lot r2
-
 void main() {
-  if (_parkLotR2) return; // PROBE park-lot r2
   final appStrings =
       File('lib/core/l10n/app_strings.dart').readAsStringSync();
 

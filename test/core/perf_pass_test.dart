@@ -15,10 +15,7 @@ import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.d
 
 import '../support/source_guards.dart';
 
-const bool _parkLotR2 = true; // PROBE park-lot r2
-
 void main() {
-  if (_parkLotR2) return; // PROBE park-lot r2
   group('item 1 — hadith boot decodes OFF the UI isolate', () {
     test('decodeHadithAsset is the pure isolate body (fixture, no spawns)',
         () {

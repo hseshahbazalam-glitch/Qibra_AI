@@ -4,10 +4,7 @@ import 'package:qibra_ai/core/content/content_provenance.dart';
 import 'package:qibra_ai/core/content/content_validator.dart';
 import 'package:qibra_ai/core/content/edition_resolver.dart';
 
-const bool _parkLotR2 = true; // PROBE park-lot r2
-
 void main() {
-  if (_parkLotR2) return; // PROBE park-lot r2
   test('canonical 114/6236', () {
     expect(ContentValidator.expectedSurahs, 114);
     expect(ContentValidator.expectedAyahs, 6236);

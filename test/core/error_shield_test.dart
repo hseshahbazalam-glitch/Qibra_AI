@@ -12,10 +12,7 @@ String repoRoot() => Directory.current.path;
 String read(String rel) =>
     File('${repoRoot()}/${rel}').readAsStringSync();
 
-const bool _parkLotR2 = true; // PROBE park-lot r2
-
 void main() {
-  if (_parkLotR2) return; // PROBE park-lot r2
   group('LocalErrorLog ring', () {
     test('cap 100: recording 105 evicts the oldest five', () async {
       final captured = <String>[];
