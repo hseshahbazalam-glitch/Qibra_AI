@@ -152,14 +152,20 @@ Future<void> pumpReaderM5(
 }
 
 Future<TestGesture> grabTurn(WidgetTester tester, Size logical) async {
-  // Same two-step the M suite proved the arena needs: 120 wins the
-  // gesture arena, the rest delivers travel (against the span
-  // max(120, w-32), 180px parks t near the sine peak).
+  // Three-step, and the count matters: the FIRST moveBy is what wins
+  // the gesture arena and its delta is consumed in the arbitration
+  // (M-suite lesson #23 — proven again by R2 in #286, where the old
+  // "120+60" shape delivered only 60px and t parked at 0.168). The
+  // 60+120 that follow DELIVER 180px against the span
+  // max(120, w-32) = 358 at w=390, parking t at 0.503 — the sine
+  // peak the R-tests assert against.
   final dy = logical.height / 2;
   final g = await tester.startGesture(Offset(logical.width / 2, dy));
   await g.moveBy(const Offset(120, 0));
   await tester.pump();
   await g.moveBy(const Offset(60, 0));
+  await tester.pump();
+  await g.moveBy(const Offset(120, 0));
   await tester.pump();
   return g;
 }
@@ -546,8 +552,9 @@ void main() {
           .painter as MushafReamPainter;
     }();
     expect(p.turn, greaterThan(0.9),
-        reason: 'grabTurn parks t near the sine peak (travel 180 of '
-            'span 358 — the M-suite arithmetic)');
+        reason: 'grabTurn parks t near the sine peak (DELIVERED '
+            'travel 180 of span 358 — the arena-consumed first step '
+            'is why the helper is three moveBys, not two)');
     await releaseTurn(tester, g); // spring back to the rest frame
     final reamF = find.byKey(const ValueKey('mushaf-ream'));
     final settled = tester
@@ -742,8 +749,11 @@ print('::error::TALLY ' + _res.join(' ~ ')); _res.add('Z7 run');     final turn 
     final reamSrc = File(
             'lib/features/quran/presentation/mushaf/mushaf_ream.dart')
         .readAsStringSync();
-    expect(turn, isNot(contains('saveLayer')));
-    expect(reamSrc, isNot(contains('saveLayer')));
+    // The CALL form is the ban; doc prose that mentions the word must
+    // not trip the pin (a #286 red: the ream header says "no
+    // saveLayer" in a comment — prose is not a shader budget).
+    expect(turn, isNot(contains('.saveLayer(')));
+    expect(reamSrc, isNot(contains('.saveLayer(')));
     expect(turn, isNot(contains('Color(0x')));
     expect(RegExp(r'AnimationController\(').allMatches(turn).length, 1);
     expect(turn, contains('AnimatedBuilder(')); // still the one loop
