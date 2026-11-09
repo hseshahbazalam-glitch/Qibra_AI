@@ -304,7 +304,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     );
         },
       ),
-    )
+    );
   }
 
   // ────────────────────────────────────────────────────────
