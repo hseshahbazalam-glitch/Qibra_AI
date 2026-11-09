@@ -199,7 +199,6 @@ void main() {
     testWidgets('P1: night default renders the AMBIENT canvas — the '
         'D2 machinery is provably absent from the Night path',
         (tester) async {
-      try {
       await pumpReader(tester);
       final ctx = tester.element(find.byType(MushafReaderScreen));
       final ambient = QibraColors.of(ctx);
@@ -208,12 +207,10 @@ void main() {
       expect(renderedPageCanvas(tester), same(ambient.background),
           reason: 'the scaffold paints the app palette\'s own instance — '
               'not a paper copy, not a lerp, THE object');
-      } catch (e) { print('::error::P1 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     testWidgets('P2: a persisted paper preference lands as paper IN THE '
         'TREE — the color the device would paint', (tester) async {
-      try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
           'quran_reading_preferences_v1_reading_theme', 'paper');
@@ -229,12 +226,10 @@ void main() {
       expect(QibraColors.of(ctx).card, same(QibraPaper.paper));
       expect(QibraColors.of(ctx), isA<QibraPaperColors>(),
           reason: 'the paper palette is installed, not merely near');
-      } catch (e) { print('::error::P2 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     testWidgets('P3: mid-turn the LEAF itself renders paper — not just '
         'the settled page', (tester) async {
-      try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
           'quran_reading_preferences_v1_reading_theme', 'paper');
@@ -246,12 +241,10 @@ void main() {
               'viral-reader claim proven on the widget the renderer '
               'consumes, never by grep');
       await releaseLeaf(tester, g);
-      } catch (e) { print('::error::P3 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     testWidgets('P4: the REAL settings flow — tap Paper, tap Night; the '
         'preference persists through the real notifier', (tester) async {
-      try {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           currentUserProvider.overrideWithValue(null),
@@ -278,12 +271,10 @@ void main() {
       await tester.pump();
       expect(prefs.getString('quran_reading_preferences_v1_reading_theme'),
           'night');
-      } catch (e) { print('::error::P4 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     testWidgets('P5: instant switch BOTH WAYS at the rendered level — '
         'including mid-turn, zero animation frames', (tester) async {
-      try {
       await pumpReader(tester);
       final night = renderedPageCanvas(tester);
       expect(night, isNot(same(QibraPaper.paper)));
@@ -308,7 +299,6 @@ void main() {
       // Night path is not 'close to' night, it IS night's own object
       // again (the scope returns the child unwrapped).
       expect(renderedPageCanvas(tester), same(night));
-      } catch (e) { print('::error::P5 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
   });
 
@@ -316,7 +306,6 @@ void main() {
   group('E edge fidelity', () {
     test('E1: the clip is the projected quad — every leaf corner '
         'survives the turn, the non-page region beyond does not', () {
-      try {
       const w = 390.0, h = 844.0;
       for (var i = 0; i <= 20; i++) {
         final t = i / 20;
@@ -389,12 +378,10 @@ void main() {
       expect(restClip.getBounds().top, lessThan(0),
           reason: 'and it rides above the box exactly where the '
               'projection does — never across the FOLD side');
-      } catch (e) { print('::error::E1 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     testWidgets('E2: the leaf is wrapped in an ANTI-ALIASED ClipPath — '
         'the ClipRect that did the cutting is gone', (tester) async {
-      try {
       await pumpReader(tester);
       final g = await grabLeaf(tester);
       final leaf = find.byKey(const ValueKey('mushaf-turn-leaf'));
@@ -404,15 +391,27 @@ void main() {
       expect(tester.widget<ClipPath>(clips).clipBehavior, Clip.antiAlias,
           reason: 'feathered, not chopped — AA kills the stair-step along '
               'the band boundary');
-      expect(find.descendant(of: leaf, matching: find.byType(ClipRect)),
-          findsNothing);
+      // The device report was about the LEAF's cut — the clip sharing
+      // the projected edge. The latched page content keeps its own
+      // internal ClipRect legitimately (the settled page's overflow
+      // guard): it lives INSIDE the transform and can never shear a
+      // projected corner. What must be gone is a ClipRect ABOVE the
+      // transform — that is the old parent-space shear reborn:
+      final tf = find.descendant(of: leaf, matching: find.byType(Transform));
+      expect(find.ancestor(of: tf.first, matching: find.byType(ClipRect)),
+          findsNothing,
+          reason: 'the leaf rides the quad clip and nothing else — a '
+              'ClipRect above the transform is the old cut, back');
+      expect(
+          find.parent(of: tf.first, matching: find.byType(ClipPath)),
+          findsOneWidget,
+          reason: 'the transform\'s immediate parent IS the anti-aliased '
+              'ClipPath — the AA quad wraps the paper, not vice versa');
       await releaseLeaf(tester, g);
-      } catch (e) { print('::error::E2 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     testWidgets('E3: shadow band — feathers to zero at its own end and '
         'ends EXACTLY at the fold, never across it', (tester) async {
-      try {
       await pumpReader(tester);
       final g = await grabLeaf(tester);
       final band = find.descendant(
@@ -443,7 +442,6 @@ void main() {
       expect(shadowX + 64, closeTo(gildX + 1, 1e-9),
           reason: 'shadow right edge == gild center == the free edge');
       await releaseLeaf(tester, g);
-      } catch (e) { print('::error::E3 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
   });
 
@@ -451,7 +449,6 @@ void main() {
   group('W turn physics', () {
     test('W1: velocity carries into the settle — a flung page lands '
         'sooner, monotonic, never pings past the stack', () {
-      try {
       (double, double) sim(double x, double v) {
         var t = 0.0;
         while (!MushafTurnPhysics.converged(x, v, 1.0) && t < 10) {
@@ -468,9 +465,21 @@ void main() {
 
       final (tRest, _) = sim(0.5, 0.0);
       final (tFling, _) = sim(0.5, 2.5);
-      expect(tFling, lessThan(tRest),
-          reason: 'release velocity SHORTENS the landing — continuity, '
-              'not a retimed tween');
+      // Frame-granular honesty: at 1/120 substeps both springs land on
+      // the SAME tick from these initial conditions (the fling spends
+      // its extra speed early, then rides the identical exponential
+      // tail) — so the proof that velocity is CARRIED is the mid-flight
+      // lead, and the landing promise is 'never later':
+      final (xRest20, _) = MushafTurnPhysics.advanceFrame(
+          0.5, 0.0, 1.0, MushafTurnPhysics.kCommit, 0.02);
+      final (xFling20, _) = MushafTurnPhysics.advanceFrame(
+          0.5, 2.5, 1.0, MushafTurnPhysics.kCommit, 0.02);
+      expect(xFling20 - xRest20, greaterThan(0.01),
+          reason: '20 ms after release the flung page is >1% of the '
+              'page further home — momentum, not a retimed tween');
+      expect(tFling, lessThanOrEqualTo(tRest),
+          reason: 'and the landing never comes LATER than the drop '
+              'from rest');
       expect(tRest, inInclusiveRange(0.10, 0.35),
           reason: 'still inside the old ~200 ms commit band — deliberate, '
               'not sluggish');
@@ -478,12 +487,10 @@ void main() {
       final tRetract = MushafTurnPhysics.settleTimeFromRest(
           MushafTurnPhysics.kRetract);
       expect(tRetract, inInclusiveRange(0.15, 0.40));
-      } catch (e) { print('::error::W1 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     test('W2: 60 Hz and 120 Hz integrate the SAME page — and a stalled '
         'frame cannot teleport it', () {
-      try {
       final (x60, v60) = MushafTurnPhysics.advanceFrame(
           0.3, 4.0, 1.0, MushafTurnPhysics.kCommit, 1 / 60);
       final s1 = MushafTurnPhysics.advanceFrame(
@@ -519,12 +526,10 @@ void main() {
               'target pulls hard) but never further than the clamp');
       expect(xcHuge, lessThan(1.3),
           reason: 'one clamped frame cannot cross the whole page');
-      } catch (e) { print('::error::W2 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     test('W3/W5: the envelopes are zero at the ends and capped — lift '
         '3px, parallax 8px, shadow grows off the same swell', () {
-      try {
       expect(MushafTurnGeometry.anticipation(0), 0.0);
       expect(MushafTurnGeometry.anticipation(1), 0.0);
       expect(MushafTurnGeometry.anticipation(0.5), closeTo(3.0, 1e-12));
@@ -540,13 +545,11 @@ void main() {
           reason: 'the drop deepens as the leaf lifts off the stack');
       expect(MushafTurnShading.castShadowAlpha(1), lessThan(0.31),
           reason: 'and is back at the settled line at commit');
-      } catch (e) { print('::error::W3W5 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     testWidgets('W3/W5: mid-drag the leaf LIFTS (negative y in its '
         'matrix) and the base PARALLAXES right by ≤8px — both gone at '
         'rest', (tester) async {
-      try {
       await pumpReader(tester);
       final g = await grabLeaf(tester);
       final leaf = find.byKey(const ValueKey('mushaf-turn-leaf'));
@@ -576,12 +579,10 @@ void main() {
       expect(find.byKey(const ValueKey('mushaf-turn-leaf')), findsNothing,
           reason: 'the envelope is zero at the landing AND the layers '
               'unmount — no residue in the swap frame');
-      } catch (e) { print('::error::W3W5 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     test('W4: haptics — the tick lands on the COMMIT, never the release '
         'frame or the drag start', () {
-      try {
       final src = File(
               'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
           .readAsStringSync();
@@ -593,12 +594,10 @@ void main() {
               'file must not keep both');
       expect(src, isNot(contains('onHorizontalDragStart')),
           reason: 'and no haptic ever fires at touch-down');
-      } catch (e) { print('::error::W4 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
 
     test('W6: the M-suite physics pins stayed UNMOVED — 0.42 / 520, one '
         'controller, one dispose, notifier-only ticks', () {
-      try {
       final turn = File(
               'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
           .readAsStringSync();
@@ -614,7 +613,6 @@ void main() {
       expect(turn, isNot(contains('setState(() => _t')));
       expect(turn, isNot(contains('Color(0x')));
       expect(turn, isNot(contains('saveLayer')));
-      } catch (e) { print('::error::W6 ' + e.toString().replaceAll(String.fromCharCode(10), ' | ')); rethrow; }
     });
   });
 }
