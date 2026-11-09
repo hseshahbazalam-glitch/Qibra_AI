@@ -458,9 +458,7 @@ void main() {
       expect(
           src.contains('.hadithCoverageOfBook('), isTrue,
           reason: 'the coverage line reuses the H1 helper, not a new one');
-      expect(src.contains('<
-                                100)'),
-          isTrue,
+      expect(RegExp(r'total\) <\s*100\)').hasMatch(src), isTrue,
           reason: 'full coverage must NOT badge itself');
     });
 
