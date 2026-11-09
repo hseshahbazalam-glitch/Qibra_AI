@@ -122,15 +122,20 @@ Future<void> pumpReaderM6(
   await tester.pump(const Duration(milliseconds: 400));
 }
 
-/// Bottom edges of every rendered text line, page-space; used by both
-/// containment probes.
-List<double> _textBottoms(WidgetTester tester, RenderObject against) {
+/// Bottom edges of every rendered text line, mapped into the slot's
+/// coordinate space; used by both containment probes. FINDER in/out
+/// only — the Element-side renderObject is @protected (the C3b
+/// lesson: tester.renderObject/getSize take a Finder).
+List<double> _textBottoms(WidgetTester tester, Finder against) {
   final out = <double>[];
-  for (final e in find.byType(RichText).evaluate()) {
-    final ro = e.renderObject!;
-    final r = (Offset.zero & ro.size)
-        .transform(ro.getTransformTo(against).storage);
-    out.add(r.bottom);
+  final slotRO = tester.renderObject(against);
+  final texts = find.byType(RichText);
+  final count = texts.evaluate().length;
+  for (var i = 0; i < count; i++) {
+    final f = texts.at(i);
+    final m = tester.renderObject(f).getTransformTo(slotRO);
+    final r = Offset.zero & tester.getSize(f);
+    out.add(r.transform(m.storage).bottom);
   }
   return out;
 }
@@ -202,8 +207,7 @@ void main() {
     await tester.pump(); // exactly the first post-jump frame
     final pv = find.byType(PageView);
     final slotRect = tester.getRect(pv);
-    final slotRO = tester.renderObject(pv);
-    final bottoms = _textBottoms(tester, slotRO);
+    final bottoms = _textBottoms(tester, pv);
     debugPrint('::error::B2MEASURE slot=${slotRect.bottom} '
         'bottoms=$bottoms');
     expect(bottoms, isNotEmpty, reason: 'probe wiring: page text '
