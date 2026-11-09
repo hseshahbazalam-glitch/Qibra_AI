@@ -208,7 +208,8 @@ void main() {
   // ── C1 — the formula and its device closure ───────────────────
     test('formula: max(1.2, 0.5% of the smaller edge) at every width',
         () {
-      expect(const Size(360, 780).width, 360.0);
+      const sz = Size(360, 780);
+      expect(sz.width, 360.0);
     });
 
   // ── C2 — the containment MATRIX (the most important test) ────
