@@ -66,10 +66,7 @@ class _NoopDownloads extends QuranDownloadController {
   Future<void> checkSurah(int surah) async {}
 }
 
-const bool _parkLotR1 = true; // PROBE park-lot r1
-
 void main() {
-  if (_parkLotR1) return; // PROBE park-lot r1
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
 

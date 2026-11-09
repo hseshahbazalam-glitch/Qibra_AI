@@ -42,10 +42,7 @@ Iterable<String> _libDartFiles() => Directory('lib')
     .where((f) => f.path.endsWith('.dart'))
     .map((f) => f.path);
 
-const bool _parkLotR1 = true; // PROBE park-lot r1
-
 void main() {
-  if (_parkLotR1) return; // PROBE park-lot r1
   // ── Item 1 — sajdah-15 recovery ──────────────────────────────────────
   group('P3-1 sajdah recovery', () {
     test('gloss ships ALL 6236 ayahs — the 15 sajdah entries recovered', () {

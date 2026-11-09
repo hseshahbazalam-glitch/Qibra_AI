@@ -180,10 +180,7 @@ Future<void> loadAppTestFonts() async {
   ]);
 }
 
-const bool _parkLotR1 = true; // PROBE park-lot r1
-
 void main() {
-  if (_parkLotR1) return; // PROBE park-lot r1
   TestWidgetsFlutterBinding.ensureInitialized();
   // Same real-fonts-first rule as the Q2 harness: Ahem metrics
   // manufacture fake overflow in the reader's Arabic card (the
