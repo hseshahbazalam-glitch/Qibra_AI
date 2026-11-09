@@ -314,7 +314,11 @@ void main() {
       final declared = RegExp(r'String get (tooltip[A-Z]\w*|a11yWord\w+) =>')
           .allMatches(src)
           .length;
-      expect(declared, 50);
+      // Ledger (H2-D3): 50 -> 51 — tooltipFilterChapters added by the
+      // sticky chapter-filter button (used in hadith_book_screen.dart, so
+      // the 'referenced' half of this census is satisfied by the same
+      // commit; drift here is exactly what this test exists to catch).
+      expect(declared, 51);
       var used = 0;
       for (final path in _dartFiles('lib')) {
         final s = File(path).readAsStringSync(encoding: utf8);
@@ -354,6 +358,7 @@ void main() {
       'tooltipBookmarkPage': (s) => s.tooltipBookmarkPage,
       'tooltipExplainAI': (s) => s.tooltipExplainAI,
       'tooltipCopyToShare': (s) => s.tooltipCopyToShare,
+      'tooltipFilterChapters': (s) => s.tooltipFilterChapters,
       'tooltipShare': (s) => s.tooltipShare,
       'tooltipClearSearch': (s) => s.tooltipClearSearch,
       'tooltipDeleteConversation': (s) => s.tooltipDeleteConversation,
@@ -392,11 +397,12 @@ void main() {
       'a11yWordMeaningHint': (s) => s.a11yWordMeaningHint,
     };
 
-    test('all 50 getters localized — ar/ur in Arabic script, never en', () {
+    test('all 51 getters localized — ar/ur in Arabic script, never en',
+        () {
       final ar = AppStrings.forCode('ar');
       final ur = AppStrings.forCode('ur');
       final arabic = RegExp(r'[؀-ۿ]');
-      expect(getters.length, 50);
+      expect(getters.length, 51);
       getters.forEach((name, get) {
         final en = get(AppStrings.forCode('en'));
         expect(en.length, greaterThan(2), reason: name);
