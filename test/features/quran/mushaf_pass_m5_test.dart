@@ -1,4 +1,3 @@
-// ignore_for_file: unused_local_variable
 // test/features/quran/mushaf_pass_m5_test.dart
 // ============================================================
 // PASS M5 — THE EDGE-CUT CLOSURE (C) AND THE REAM (R).
@@ -209,7 +208,10 @@ void main() {
   // ── C1 — the formula and its device closure ───────────────────
   group('C1 slack', () {
     test('formula: max(1.2, 0.5% of the smaller edge) at every width',
-        () {
+        () 
+
+      try {      } catch (e) { print('::error::FAIL formula :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
       expect(MushafTurnGeometry.clipSlackFor(const Size(360, 780)),
           closeTo(1.8, 1e-12));
       expect(MushafTurnGeometry.clipSlackFor(const Size(390, 844)),
@@ -228,7 +230,10 @@ void main() {
     });
 
     test('alignment: slack lands on WHOLE device pixels, rounded UP',
-        () {
+        () 
+
+      try {      } catch (e) { print('::error::FAIL alignment :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
       // NOT const: this analyzer env rejects const Set<double>
       // literals (proven: M6/M7/M8@426358/426361) — final is
       // semantically identical here, the set is read-only anyway.
@@ -260,7 +265,10 @@ void main() {
     });
 
     test('the fixed 1.2px const is GONE from the clipper (no legacy)',
-        () {
+        () 
+
+      try {      } catch (e) { print('::error::FAIL the fixed 1.2px const is G :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
       final src =
           File('lib/features/quran/presentation/mushaf/mushaf_turn.dart')
               .readAsStringSync();
@@ -271,7 +279,10 @@ void main() {
 
   // ── C2 — the containment MATRIX (the most important test) ────
   test('C2: clip quad strictly contains the page box at 4 widths x '
-      '21 angles x 4 device ratios', () {
+      '21 angles x 4 device ratios', () 
+
+      try {      } catch (e) { print('::error::FAIL C2 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     const sizes = [
       Size(360, 780),
       Size(390, 844),
@@ -332,7 +343,10 @@ void main() {
 
   // ── C3 — CONTENT containment, widget level, per textScale ────
   test('C3: every in-bounds point of the leaf content stays inside '
-      'the clip at 1.0 / 1.15 / 1.3 (390 and 411)', () {
+      'the clip at 1.0 / 1.15 / 1.3 (390 and 411)', () 
+
+      try {      } catch (e) { print('::error::FAIL C3 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     // Body below; per-case asserts in testWidgets form — the real
     // work is in the widget test; this pins the PURE projection
     // identity the widget test leans on.
@@ -341,9 +355,9 @@ void main() {
       for (var a = 0.0; a <= 1.001; a += 0.1) {
         final ang = a * MushafTurnGeometry.maxAngle;
         final box = MushafTurnGeometry.projectedQuad(
-            0, 0, w, 800, ang, 0.0);
+            0, 0, size.width, size.height, ang, 0.0);
         final corners = MushafTurnGeometry.projectedCorners(
-            w, 800, ang, 0.0);
+            size.width, size.height, ang, 0.0);
         for (var i = 0; i < 4; i++) {
           expect((box[i] - corners[i]).distance, lessThan(1e-12),
               reason: 'projectedQuad must equal projectedCorners '
@@ -356,7 +370,10 @@ void main() {
 
   testWidgets('C3b: at mid-turn on a 411/1.3 device, each RichText '
       'corner inside the leaf bounds lies inside the clip path',
-      (tester) async {
+      (tester) async 
+
+      try {      } catch (e) { print('::error::FAIL C3b :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     const size = Size(411, 891);
     await pumpReaderM5(tester, logical: size, dpr: 2.8125, textScale: 1.3);
     final g = await grabTurn(tester, size);
@@ -404,7 +421,10 @@ void main() {
     Size(480, 1050),
   ]) {
     testWidgets('C4: no Clip* ancestor above the leaf at '
-        '${profile.width.toInt()} logical px', (tester) async {
+        '${profile.width.toInt()} logical px', (tester) async 
+
+      try {      } catch (e) { print('::error::FAIL C4 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
       await pumpReaderM5(tester, logical: profile);
       final g = await grabTurn(tester, profile);
       for (final t in [ClipRect, ClipRRect, ClipOval]) {
@@ -427,7 +447,10 @@ void main() {
   }
 
   testWidgets('C4b: the CPH2573 profile — dpr reaches the clipper '
-      'and its slack is whole device pixels', (tester) async {
+      'and its slack is whole device pixels', (tester) async 
+
+      try {      } catch (e) { print('::error::FAIL C4b :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     const size = Size(384, 853); // 1080x2400 @ 2.8125
     await pumpReaderM5(tester, logical: size, dpr: 2.8125);
     final g = await grabTurn(tester, size);
@@ -448,7 +471,10 @@ void main() {
 
   // ── C5 — the debug clip diagnostic ships SILENT ───────────────
   test('C5: MUSHAF_DEBUG_CLIP exists, defaults OFF, outline absent',
-      () {
+      () 
+
+      try {      } catch (e) { print('::error::FAIL C5 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     final src =
         File('lib/features/quran/presentation/mushaf/mushaf_turn.dart')
             .readAsStringSync();
@@ -461,7 +487,10 @@ void main() {
   });
 
   testWidgets('C5b: shipping tree carries no outline painter, even '
-      'mid-turn', (tester) async {
+      'mid-turn', (tester) async 
+
+      try {      } catch (e) { print('::error::FAIL C5b :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     await pumpReaderM5(tester);
     final g = await grabTurn(tester, const Size(390, 844));
     expect(find.byKey(const ValueKey('mushaf-clip-outline')),
@@ -471,7 +500,10 @@ void main() {
 
   // ── R — the ream ──────────────────────────────────────────────
   testWidgets('R1: static at rest — five hairline sheets, turn '
-      'exact-zero, tokens in scope', (tester) async {
+      'exact-zero, tokens in scope', (tester) async 
+
+      try {      } catch (e) { print('::error::FAIL R1 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     await pumpReaderM5(tester);
     final reamF = find.byKey(const ValueKey('mushaf-ream'));
     expect(reamF, findsOneWidget,
@@ -489,7 +521,10 @@ void main() {
   });
 
   testWidgets('R2: at turn peak the outermost sheet rides swell; at '
-      'landing the block is whole again', (tester) async {
+      'landing the block is whole again', (tester) async 
+
+      try {      } catch (e) { print('::error::FAIL R2 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     await pumpReaderM5(tester);
     final g = await grabTurn(tester, const Size(390, 844));
     final p = () {
@@ -514,7 +549,10 @@ void main() {
   });
 
   testWidgets('R3: depth rides the spineCrease ramp (2%..4%)',
-      (tester) async {
+      (tester) async 
+
+      try {      } catch (e) { print('::error::FAIL R3 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     await pumpReaderM5(tester);
     MushafReamPainter live() {
       final reamF = find.byKey(const ValueKey('mushaf-ream'));
@@ -538,7 +576,10 @@ void main() {
   });
 
   test('R4: free-edge line dims while gild shares the edge — the '
-      'coordination math is the gild ramp itself', () {
+      'coordination math is the gild ramp itself', () 
+
+      try {      } catch (e) { print('::error::FAIL R4 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     final reamSrc = File(
             'lib/features/quran/presentation/mushaf/mushaf_ream.dart')
         .readAsStringSync();
@@ -562,7 +603,10 @@ void main() {
   });
 
   test('R5: token-only — zero Color(0x) literals in the ream file, '
-      'and palette fields flow at the call site', () {
+      'and palette fields flow at the call site', () 
+
+      try {      } catch (e) { print('::error::FAIL R5 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     final reamSrc = File(
             'lib/features/quran/presentation/mushaf/mushaf_ream.dart')
         .readAsStringSync();
@@ -582,7 +626,10 @@ void main() {
   });
 
   testWidgets('R6: RepaintBoundary + data-only shouldRepaint (the '
-      'grain discipline copied)', (tester) async {
+      'grain discipline copied)', (tester) async 
+
+      try {      } catch (e) { print('::error::FAIL R6 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     await pumpReaderM5(tester);
     final reamF = find.byKey(const ValueKey('mushaf-ream'));
     expect(
@@ -596,7 +643,10 @@ void main() {
   });
 
   test('R6b: shouldRepaint compares DATA only — same values no, '
-      'turn/depth/color moves yes', () {
+      'turn/depth/color moves yes', () 
+
+      try {      } catch (e) { print('::error::FAIL R6b :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     expect(ream().shouldRepaint(ream()), isFalse);
     expect(ream(turn: 0.5).shouldRepaint(ream()), isTrue,
         reason: 'a mid-turn frame must repaint');
@@ -612,7 +662,10 @@ void main() {
   });
 
   // ── Z6 — physics zero-diff (scope lock, substring form) ─────
-  test('Z6: every tuned physics string survived M5 verbatim', () {
+  test('Z6: every tuned physics string survived M5 verbatim', () 
+
+      try {      } catch (e) { print('::error::FAIL Z6 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     final src =
         File('lib/features/quran/presentation/mushaf/mushaf_turn.dart')
             .readAsStringSync();
@@ -661,7 +714,10 @@ void main() {
   });
 
   test('Z7: no new saveLayer, no hex literals in touched files, one '
-      'controller still (M-suite invariants hold through M5)', () {
+      'controller still (M-suite invariants hold through M5)', () 
+
+      try {      } catch (e) { print('::error::FAIL Z7 :: ' + e.toString().split('\n').take(4).join(' | ')); throw e; }
+    {
     final turn =
         File('lib/features/quran/presentation/mushaf/mushaf_turn.dart')
             .readAsStringSync();
