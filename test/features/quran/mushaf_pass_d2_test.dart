@@ -32,19 +32,11 @@ const _surfaces = [
   'lib/features/quran/presentation/mushaf/mushaf_turn.dart',
 ];
 
-const bool _probeSkipGroup2 = true; // PROBE r2
-const bool _probeSkipGroup1a = true; // PROBE r3
-const bool _probe4 = true; // PROBE r4
-final List<bool> _probeFlags = List<bool>.filled(16, false); // PROBE r8: 8..13 = T12
-// PROBE r5 sentinels: failure COUNT encodes which sub-step broke:
-// +1 pump threw; +2 paper-side isActive; +4 night isActive; +8 of().
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('D2 paper tokens', () {
     test('the single source pins the EXACT brief hexes', () {
-      if (_probeSkipGroup1a) return; // PROBE r3
       final src =
           File('lib/core/design_system/qibra_paper.dart').readAsStringSync();
       // Brief-fixed token contract — these literals live HERE and only
@@ -67,7 +59,6 @@ void main() {
     });
 
     test('contrast ladder — computed WCAG (the brief, verified)', () {
-      if (_probeSkipGroup1a) return; // PROBE r3
       expect(Contrast.ratio(QibraPaper.ink, QibraPaper.paper),
           greaterThanOrEqualTo(12.0));
       expect(Contrast.ratio(QibraPaper.inkSoft, QibraPaper.paper),
@@ -99,7 +90,6 @@ void main() {
     });
 
     test('the scope NEVER wraps on night — child identity preserved', () {
-      if (_probeSkipGroup1a) return; // PROBE r3
       const child = SizedBox(key: ValueKey('d2-child'));
       expect(QibraPaper.scope(active: false, child: child), same(child),
           reason: 'Night-mode byte-identity is structural: the night '
@@ -107,7 +97,6 @@ void main() {
     });
 
     test('palette: subclass identity, getters, instant lerp', () {
-      if (_probe4) return; // PROBE r4
       const p = QibraPaperColors.palette;
       expect(p.background, QibraPaper.paper);
       expect(p.cardMuted, QibraPaper.paperDeep);
@@ -130,67 +119,38 @@ void main() {
       expect(p.lerp(p, 1.0), same(p));
     });
 
-    // PROBE r5 (single run, count-encoded diagnosis): the live-red
-    // T5 gets each sub-step wrapped; every broken step flips a bool,
-    // and the sentinel tests below turn bools into failure COUNT.
     testWidgets('isActive is contextual — per subtree, not per app',
         (tester) async {
-      if (_probe4) return; // PROBE r8: T5 exonerated, parked.
       late BuildContext paperCtx;
       late BuildContext nightCtx;
-      try {
-        await tester.pumpWidget(MaterialApp(
-          home: Column(
-            children: [
-              QibraPaper.scope(
-                active: true,
-                child: Builder(
-                    builder: (c) {
-                      paperCtx = c;
-                      return const SizedBox();
-                    }),
-              ),
-              QibraPaper.scope(
-                active: false,
-                child: Builder(
-                    builder: (c) {
-                      nightCtx = c;
-                      return const SizedBox();
-                    }),
-              ),
-            ],
-          ),
-        ));
-      } catch (_) {
-        _probeFlags[0] = true;
-        return;
-      }
-      // Async errors surface via takeException, not the throw channel:
-      if (tester.takeException() != null) _probeFlags[4] = true;
-      await tester.pumpAndSettle();
-      if (tester.takeException() != null) _probeFlags[5] = true;
-      try {
-        expect(QibraPaper.isActive(paperCtx), isTrue);
-      } catch (_) {
-        _probeFlags[1] = true;
-      }
-      try {
-        expect(QibraPaper.isActive(nightCtx), isFalse);
-      } catch (_) {
-        _probeFlags[2] = true;
-      }
-      try {
-        expect(QibraColors.of(nightCtx), isA<QibraColors>());
-      } catch (_) {
-        _probeFlags[3] = true;
-      }
-      // Anything still pending when the body ends = lifecycle error:
-      if (tester.takeException() != null) _probeFlags[6] = true;
-      await tester.pump(const Duration(seconds: 2));
-      if (tester.takeException() != null) _probeFlags[6] = true;
+      await tester.pumpWidget(MaterialApp(
+        home: Column(
+          children: [
+            QibraPaper.scope(
+              active: true,
+              child: Builder(
+                  builder: (c) {
+                    paperCtx = c;
+                    return const SizedBox();
+                  }),
+            ),
+            QibraPaper.scope(
+              active: false,
+              child: Builder(
+                  builder: (c) {
+                    nightCtx = c;
+                    return const SizedBox();
+                  }),
+            ),
+          ],
+        ),
+      ));
+      expect(QibraPaper.isActive(paperCtx), isTrue);
+      expect(QibraPaper.isActive(nightCtx), isFalse);
+      expect(QibraColors.of(nightCtx), isA<QibraColors>());
     });
+
     test('typography helpers hit the T1/T2 bands', () {
-      if (_probe4) return; // PROBE r4
       // T1: 1.75–1.85 clamp in both directions.
       expect(QibraPaper.bodyLeadingOn(2.2), 1.85); // airy navy tightens
       expect(QibraPaper.bodyLeadingOn(1.5), 1.75); // cramped opens up
@@ -206,37 +166,8 @@ void main() {
     });
   });
 
-    test('PROBE r5 sentinel A — pump', () => expect(_probeFlags[0], isFalse,
-        reason: 'pump threw'));
-    test('PROBE r5 sentinel B — paper isActive', () =>
-        expect(_probeFlags[1], isFalse, reason: 'paper isActive'));
-    test('PROBE r5 sentinel C — night isActive', () =>
-        expect(_probeFlags[2], isFalse, reason: 'night isActive'));
-    test('PROBE r5 sentinel D — night of()', () =>
-        expect(_probeFlags[3], isFalse, reason: 'night of()'));
-    test('PROBE r5 sentinel E — async-at-pump', () =>
-        expect(_probeFlags[4], isFalse, reason: 'async at pump'));
-    test('PROBE r5 sentinel F — async-after-settle', () =>
-        expect(_probeFlags[5], isFalse, reason: 'async after settle'));
-    test('PROBE r5 sentinel G — lifecycle-at-end', () =>
-        expect(_probeFlags[6], isFalse, reason: 'lifecycle at end'));
-    test('PROBE r8 sentinel H — T12 read', () =>
-        expect(_probeFlags[8], isFalse, reason: 'T12 read'));
-    test('PROBE r8 sentinel I — T12 decode', () =>
-        expect(_probeFlags[9], isFalse, reason: 'T12 decode'));
-    test('PROBE r8 sentinel J — T12 sanity', () =>
-        expect(_probeFlags[10], isFalse, reason: 'T12 sanity'));
-    test('PROBE r8 sentinel K — T12 pump', () =>
-        expect(_probeFlags[11], isFalse, reason: 'T12 pump'));
-    test('PROBE r8 sentinel L — T12 pending', () =>
-        expect(_probeFlags[12], isFalse, reason: 'T12 pending'));
-    test('PROBE r8 sentinel M — T12 finder/active', () =>
-        expect(_probeFlags[13], isFalse, reason: 'T12 finder/active'));
-
   group('D2 mode contract', () {
-    // PROBE COMMIT (round 2): skip: flags below isolate the lone red.
     test('default is NIGHT everywhere; app identity untouched', () async {
-      if (_probeSkipGroup2) return; // PROBE r2
       SharedPreferences.setMockInitialValues({});
       final n = ReadingPreferencesNotifier();
       await pumpEventQueue();
@@ -268,7 +199,6 @@ void main() {
     });
 
     test('toggle persists, reloads, and turns back', () async {
-      if (_probeSkipGroup2) return; // PROBE r2
       SharedPreferences.setMockInitialValues({});
       final a = ReadingPreferencesNotifier();
       await pumpEventQueue();
@@ -295,7 +225,6 @@ void main() {
     });
 
     test('turn physics + lifeline pins are mode-INDEPENDENT, verbatim', () {
-      if (_probeSkipGroup2) return; // PROBE r2
       // Same source lines serve both modes — D2 changes glint COLOR
       // only; the numbers were not touched (no retune disclosure
       // needed because there is no retune).
@@ -313,7 +242,6 @@ void main() {
     });
 
     test('census: zero raw Color(0x on every paper surface file', () {
-      if (_probeSkipGroup2) return; // PROBE r2
       for (final f in _surfaces) {
         expect(File(f).readAsStringSync(), isNot(contains('Color(0x')),
             reason: '$f must speak only through tokens (D2 mapping)');
@@ -321,7 +249,6 @@ void main() {
     });
 
     test('every reading surface actually mounts the scope', () {
-      if (_probeSkipGroup2) return; // PROBE r2
       for (final f in _surfaces.take(5)) {
         expect(File(f).readAsStringSync(), contains('QibraPaper.scope('),
             reason: '$f must be wrapped by the D2 scope');
@@ -336,50 +263,32 @@ void main() {
 
     testWidgets('RTL spot: longest real Urdu line, paper, 320px — safe',
         (tester) async {
-      // PROBE r8: T12 stages flagged individually (8..13).
-      String raw;
-      try {
-        raw = File('assets/data/quran/translation_ur_jalandhry.json')
-            .readAsStringSync();
-      } catch (_) {
-        _probeFlags[8] = true; // read failed
-        return;
-      }
-      List<dynamic> verses;
-      try {
-        final data = jsonDecode(raw) as Map<String, dynamic>;
-        verses = data['quran'] as List<dynamic>;
-      } catch (_) {
-        _probeFlags[9] = true; // decode/cast failed
-        return;
-      }
+      // File(), not rootBundle — same convention as the a11y/P3 asset
+      // harnesses: no dependence on the test build's asset bundle.
+      final raw = File('assets/data/quran/translation_ur_jalandhry.json')
+          .readAsStringSync();
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      final verses = data['quran'] as List<dynamic>;
       var longest = '';
       for (final v in verses) {
         final body = (v as Map<String, dynamic>)['text'] as String;
         if (body.length > longest.length) longest = body;
       }
-      if (longest.length <= 120) _probeFlags[10] = true;
-      try {
-        expect(longest.length, greaterThan(120),
-            reason: 'bundle sanity — an actual long Urdu line was found');
-      } catch (_) {
-        _probeFlags[10] = true;
-      }
+      expect(longest.length, greaterThan(120),
+          reason: 'bundle sanity — an actual long Urdu line was found');
       // NOTE the nesting: MaterialApp must sit ABOVE the scope —
       // QibraPaper.scope reads Theme.of(context) to derive its copy,
       // and a root-level scope has no Theme ancestor.
-      try {
-        await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(MaterialApp(
         debugShowCheckedModeBanner: false, // the DEBUG banner adds a
         // second Text widget and would make the finder below ambiguous.
         home: QibraPaper.scope(
           active: true,
           child: Scaffold(
             // Unbounded height: the longest line is 1341 chars (~100
-            // Ahem lines at 24px) — a 600px test viewport would leave
-            // the paragraph overflow-flagged; scrolling gives the
-            // RenderParagraph its natural extent, exactly like a real
-            // reader page.
+            // Ahem lines at 24px in the test font) — a fixed 600px
+            // viewport leaves the paragraph overflow-flagged; the
+            // scroll view gives it natural extent, like a real page.
             body: SingleChildScrollView(
               child: SizedBox(
               width: 320,
@@ -398,17 +307,12 @@ void main() {
           ),
         ),
       ));
-      } catch (_) {
-        _probeFlags[11] = true; // pump threw
-        return;
-      }
-      if (tester.takeException() != null) _probeFlags[12] = true;
-      try {
-        final ctx = tester.element(find.byType(Text).first);
-        if (!QibraPaper.isActive(ctx)) _probeFlags[13] = true;
-      } catch (_) {
-        _probeFlags[13] = true;
-      }
+      expect(tester.takeException(), isNull,
+          reason: 'paper typography must lay out the longest real line '
+              'inside a narrow RTL column without overflow or throw');
+      // And the scope really painted paper behind it:
+      final ctx = tester.element(find.byType(Text).first);
+      expect(QibraPaper.isActive(ctx), isTrue);
     });
   });
 }

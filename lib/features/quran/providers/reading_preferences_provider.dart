@@ -158,7 +158,16 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
   static const _key = 'quran_reading_preferences_v1';
 
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
+    late final SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } catch (_) {
+      // Storage unreachable (pure-widget tests without the platform
+      // mock; transient store failures on device): keep the compiled
+      // defaults — an unawaited constructor load must never raise an
+      // unhandled async error into the spawning zone.
+      return;
+    }
     final id = prefs.getString('${_key}_translation') ?? 'en';
     final showT = prefs.getBool('${_key}_show_translation') ?? true;
     final showTr = prefs.getBool('${_key}_show_transliteration') ?? false;
