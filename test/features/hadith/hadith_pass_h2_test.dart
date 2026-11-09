@@ -55,7 +55,7 @@ void main() {
             onChanged: (_) {},
           ),
           QibraColors.dark);
-      final dec = fieldWidget(tester).decoration;
+      final dec = fieldWidget(tester).decoration!;
       // The bug shipped `fillColor: QibraNavy.textPrimary` — the fill
       // literally WAS the text color. Pin both halves of the fix:
       expect(dec.fillColor, QibraColors.dark.cardMuted);
@@ -83,8 +83,7 @@ void main() {
           QibraPaper.palette);
       // R2 preview: the field is theme-resolved, so the reading surface
       // it will sit on (book reader, Paper scope) paints the right slab.
-      expect(fieldWidget(tester).decoration.fillColor,
-          QibraPaper.paperDeep);
+      expect(fieldWidget(tester).decoration!.fillColor, QibraPaper.paperDeep);
     });
 
     testWidgets('F3b: the field is controlled — clear resets the TEXT too',
