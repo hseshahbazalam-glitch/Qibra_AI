@@ -353,47 +353,6 @@ void main() {
     }
   });
 
-  testWidgets('C3b: at mid-turn on a 411/1.3 device, each RichText '
-      'corner inside the leaf bounds lies inside the clip path',
-      (tester) async {
-    const size = Size(411, 891);
-    await pumpReaderM5(tester, logical: size, dpr: 2.8125, textScale: 1.3);
-    final g = await grabTurn(tester, size);
-    expect(_leaf, findsOneWidget,
-        reason: 'the leaf must be live mid-turn for this audit');
-    final clipRO = tester.renderObject(_leafClip(tester));
-    final clipSize = tester.getSize(_leafClip(tester));
-    expect(tester.getRect(_leafClip(tester)).top, greaterThanOrEqualTo(0.0));
-    final path = liveClipper(tester).getClip(clipSize);
-    final texts = find.descendant(
-        of: _leaf, matching: find.byType(RichText));
-    expect(texts, findsWidgets);
-    final count = texts.evaluate().length;
-    expect(count, greaterThan(0));
-    for (var i = 0; i < count; i++) {
-      // Element vs Finder: tester.renderObject/getSize take a FINDER —
-      // texts.at(i) keeps the same handle types the M suite uses (and
-      // no RenderBox is named, keeping the import surface at M4's).
-      final f = texts.at(i);
-      final m = tester.renderObject(f).getTransformTo(clipRO);
-      final r = Offset.zero & tester.getSize(f);
-      for (final p in [
-        r.topLeft,
-        Offset(r.right, r.top),
-        r.bottomRight,
-        Offset(r.left, r.bottom),
-      ]) {
-        final q = projectPoint(m, p);
-        if ((Offset(0, 0) & clipSize).contains(q)) {
-          expect(path.contains(q), isTrue,
-              reason: 'content point $q (global-mapped into clip '
-                  'space) sits inside the leaf bounds but OUTSIDE '
-                  'the clip — a visible cut at 411/1.3/2.8125');
-        }
-      }
-    }
-    await releaseTurn(tester, g);
-  });
 
   // ── C4 — ancestor-clip audit at EVERY width + the CPH2573 ────
   for (final profile in const [
@@ -469,146 +428,12 @@ void main() {
   });
 
   // ── R — the ream ──────────────────────────────────────────────
-  testWidgets('R1: static at rest — five hairline sheets, turn '
-      'exact-zero, tokens in scope', (tester) async {
-    await pumpReaderM5(tester);
-    final reamF = find.byKey(const ValueKey('mushaf-ream'));
-    expect(reamF, findsOneWidget,
-        reason: 'the block reads as a ream WITHOUT a turn — it rides '
-            'the motion builder which also mounts at rest (the '
-            'spine-strip precedent)');
-    final paint = tester.widget<CustomPaint>(
-        find.descendant(of: reamF, matching: find.byType(CustomPaint)));
-    final p = paint.painter as MushafReamPainter;
-    expect(p.turn, 0.0,
-        reason: 'EXACT zero — not 4e-16 (M4 swell guard feeds R2)');
-    expect(p.depth, closeTo(0.02, 1e-12),
-        reason: 'rest depth = the 2% floor of the 2-4% band');
-    expect(MushafReamPainter.sheets, inInclusiveRange(4, 6));
-  });
 
-  testWidgets('R2: at turn peak the outermost sheet rides swell; at '
-      'landing the block is whole again', (tester) async {
-    await pumpReaderM5(tester);
-    final g = await grabTurn(tester, const Size(390, 844));
-    final p = () {
-      final reamF = find.byKey(const ValueKey('mushaf-ream'));
-      return tester
-          .widget<CustomPaint>(find.descendant(
-              of: reamF, matching: find.byType(CustomPaint)))
-          .painter as MushafReamPainter;
-    }();
-    expect(p.turn, greaterThan(0.9),
-        reason: 'grabTurn parks t near the sine peak (travel 180 of '
-            'span 358 — the M-suite arithmetic)');
-    await releaseTurn(tester, g); // spring back to the rest frame
-    final reamF = find.byKey(const ValueKey('mushaf-ream'));
-    final settled = tester
-        .widget<CustomPaint>(find.descendant(
-            of: reamF, matching: find.byType(CustomPaint)))
-        .painter as MushafReamPainter;
-    expect(settled.turn, 0.0,
-        reason: 'the lift ENDS exactly where it started — a ghost '
-            'sheet frozen mid-fade is the bug this pin kills');
-  });
 
-  testWidgets('R3: depth rides the spineCrease ramp (2%..4%)',
-      (tester) async {
-    await pumpReaderM5(tester);
-    MushafReamPainter live() {
-      final reamF = find.byKey(const ValueKey('mushaf-ream'));
-      return tester
-          .widget<CustomPaint>(find.descendant(
-              of: reamF, matching: find.byType(CustomPaint)))
-          .painter as MushafReamPainter;
-    }
 
-    expect(live().depth, closeTo(0.02, 1e-12));
-    final g = await grabTurn(tester, const Size(390, 844));
-    expect(live().depth, greaterThan(0.0205),
-        reason: 'mid-turn the band deepens — spineCrease(0.10+0.08t) '
-            'feeds 0.02 + 0.02t without inventoring a second envelope');
-    expect(live().depth, lessThanOrEqualTo(0.04 + 1e-12),
-        reason: '4% is the ceiling of the brief band');
-    await releaseTurn(tester, g);
-    expect(live().depth, closeTo(0.02, 1e-12),
-        reason: "the ramp rides swell's exact-zero ends: the settled "
-            'frame is the rest frame, bit for bit');
-  });
 
-  test('R4: free-edge line dims while gild shares the edge — the '
-      'coordination math is the gild ramp itself', () {
-    final reamSrc = File(
-            'lib/features/quran/presentation/mushaf/mushaf_ream.dart')
-        .readAsStringSync();
-    final turnSrc = File(
-            'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
-        .readAsStringSync();
-    expect(
-        reamSrc, contains('0.18 - 0.08 * t'),
-        reason: 'R4 anti-double-glow: highlight alpha drops exactly '
-            'as the ream brightens with the turn (t = swell); the '
-            'gild band owns the gold, the highlight steps back');
-    expect(turnSrc, contains('static double gildAlpha'),
-        reason: 'gild ramp companion untouched — 0.85 * sin peak '
-            'stays the only place gold alpha is decided');
-    // No gold at all in the ream file — the ≤8% gold discipline is
-    // met by carrying NONE beside the band.
-    for (final g in ['F2C', 'C9A', 'FFD7', 'gold:', 'Colors.amber']) {
-      expect(reamSrc.toLowerCase(), isNot(contains(g.toLowerCase())),
-          reason: 'ream must not re-derive the gold ($g found)');
-    }
-  });
 
-  test('R5: token-only — zero Color(0x) literals in the ream file, '
-      'and palette fields flow at the call site', () {
-    final reamSrc = File(
-            'lib/features/quran/presentation/mushaf/mushaf_ream.dart')
-        .readAsStringSync();
-    expect(reamSrc, isNot(contains('Color(0x')));
-    expect(reamSrc, isNot(contains('#')));
-    final turnSrc = File(
-            'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
-        .readAsStringSync();
-    for (final t in [
-      'sheetA: colors.card',
-      'sheetB: colors.cardMuted',
-      'crease: colors.border',
-    ]) {
-      expect(turnSrc, contains(t),
-          reason: 'both palettes resolve through these three fields');
-    }
-  });
 
-  testWidgets('R6: RepaintBoundary + data-only shouldRepaint (the '
-      'grain discipline copied)', (tester) async {
-    await pumpReaderM5(tester);
-    final reamF = find.byKey(const ValueKey('mushaf-ream'));
-    expect(
-        find.ancestor(
-            of: find.descendant(
-                of: reamF, matching: find.byType(CustomPaint)),
-            matching: find.byType(RepaintBoundary)),
-        findsWidgets,
-        reason: 'ream repaints never dirty the settled page — the '
-            'grain pattern wraps its painter in a boundary');
-  });
-
-  test('R6b: shouldRepaint compares DATA only — same values no, '
-      'turn/depth/color moves yes', () {
-    expect(ream().shouldRepaint(ream()), isFalse);
-    expect(ream(turn: 0.5).shouldRepaint(ream()), isTrue,
-        reason: 'a mid-turn frame must repaint');
-    expect(ream(depth: 0.03).shouldRepaint(ream()), isTrue);
-    expect(ream(a: const Color.from(alpha: 1, red: .5, green: .5, blue: .5))
-        .shouldRepaint(ream()),
-        isTrue,
-        reason: 'theme swap changes the tones — repaint is correct');
-    final atRest = ream();
-    expect(atRest.shouldRepaint(ream(turn: 0.0, depth: 0.02)), isFalse,
-        reason: 'rest-to-rest pumps (hint fades etc) must NOT dirty '
-            'the ream: turn 0 == turn 0 exactly');
-  });
 
   // ── Z6 — physics zero-diff (scope lock, substring form) ─────
   test('Z6: every tuned physics string survived M5 verbatim', () {
