@@ -382,6 +382,105 @@ void main() {
     });
   });
 
+  // ── M3 lifeline — settle controller, device-caught (pass M3) ──
+  // Device log (CPH2573, debug): the SECOND turn in one overlay
+  // lifetime threw "SingleTickerProviderStateMixin but multiple
+  // tickers were created" (per-call AnimationController), and every
+  // later touch spammed stop-after-dispose — because the throw landed
+  // BETWEEN _settle.dispose() and the _settle re-assignment, leaving a
+  // disposed controller in the field. CI-551 missed it: every prior
+  // test settled at most ONE turn per mounted overlay, and the mixin
+  // only bites on the second ticker creation. These tests pin the
+  // single-owner contract so it can never regress silently.
+  group('M3 turn lifeline', () {
+    testWidgets('R1: two committed turns in one overlay lifetime — zero throws',
+        (tester) async {
+      var commits = 0;
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: MushafTurnOverlay(
+            currentPage: 1,
+            pageCount: 604,
+            pageAt: (page) =>
+                Text('page $page', textDirection: TextDirection.ltr),
+            onCommitPage: (_) => commits++,
+            child: const Center(
+                key: ValueKey('stub-child'), child: Text('settled')),
+          ),
+        ),
+      ));
+      // Turn #1 — the cycle the buggy build survived.
+      await _swipe(tester, 300);
+      await tester.pumpAndSettle(const Duration(milliseconds: 40));
+      expect(commits, 1);
+      // Turn #2 — the device killer: re-settling must REUSE the one
+      // controller, never construct a second ticker.
+      await _swipe(tester, 300);
+      await tester.pumpAndSettle(const Duration(milliseconds: 40));
+      expect(commits, 2,
+          reason: 'the second turn commits exactly like the first');
+      expect(find.text('settled'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('R2: unmount mid-settle — zero exceptions', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: MushafTurnOverlay(
+            currentPage: 1,
+            pageCount: 604,
+            pageAt: (page) =>
+                Text('page $page', textDirection: TextDirection.ltr),
+            onCommitPage: (_) {},
+            child: const Center(child: Text('settled')),
+          ),
+        ),
+      ));
+      final g = await tester.startGesture(const Offset(195, 420));
+      await g.moveBy(const Offset(150, 0));
+      await tester.pump();
+      await g.moveBy(const Offset(2, 0));
+      await tester.pump();
+      await g.up();
+      await tester.pump(const Duration(milliseconds: 30)); // settle live
+      // Back-navigation / hot route-change DURING the settle animation.
+      await tester.pumpWidget(const MaterialApp(
+          home: Center(key: ValueKey('gone'), child: Text('elsewhere'))));
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.pumpAndSettle(const Duration(milliseconds: 40));
+      expect(find.text('elsewhere'), findsOneWidget);
+      expect(tester.takeException(), isNull,
+          reason: 'teardown mid-settle must throw nothing (F3 audit)');
+    });
+
+    test('R3: single-owner controller — source pins', () {
+      final turn = File(
+              'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
+          .readAsStringSync();
+      // F1: ONE controller for the State's whole life, created in
+      // initState — a non-nullable late final field makes the nullable
+      // dance (the cascade's root) structurally impossible.
+      expect(turn, contains('late final AnimationController _settle'));
+      expect(RegExp(r'AnimationController\(').allMatches(turn).length, 1,
+          reason: 'exactly one creation site — initState (F1)');
+      expect(RegExp(r'_settle\?*\.dispose\(\)').allMatches(turn).length, 1,
+          reason: 'exactly one dispose site — State.dispose (F1/F3)');
+      // F2: the settle wiring is TWO permanent listeners attached once;
+      // _animateTo attaches nothing per call anymore.
+      expect(turn, contains('..addListener(_onSettleTick)'));
+      expect(turn, contains('..addStatusListener(_onSettleStatus)'));
+      expect(turn, isNot(contains('..addListener(() {')),
+          reason: 'no per-call listener attach (F2)');
+      // F4: the mixin stays SingleTicker — and after F1 the contract is
+      // TRUE (one ticker ever), which is why no TickerProviderStateMixin
+      // escalation is needed.
+      expect(turn, contains('with SingleTickerProviderStateMixin'));
+      // R4: physics lifelines verbatim (nothing retuned here either):
+      expect(turn, contains('static const double commitFraction = 0.42;'));
+      expect(turn, contains('static const double commitVelocity = 520;'));
+    });
+  });
+
   group('M3 ribbon', () {
     testWidgets('drop-the-ribbon writes the real progress store',
         (tester) async {
