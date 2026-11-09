@@ -413,7 +413,6 @@ Juz: ${juz ?? '—'}''';
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
     final currentPage = ref.watch(_currentPageProvider);
     final showControls = ref.watch(_showControlsProvider);
     final indexAsync = ref.watch(mushafPageIndexProvider);
@@ -425,7 +424,15 @@ Juz: ${juz ?? '—'}''';
     return QibraPaper.scope(
       active:
           ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
-      child: indexAsync.when(
+      // P (M4 chain fix): the Scaffold's own colors MUST be read under
+      // the scope-installed Theme. Reading them from the reader's own
+      // context (one frame ABOVE the scope) left the canvas navy while
+      // the pages went paper — P2/P5 caught it at the rendered level.
+      // Night: the Builder resolves to the very same app palette —
+      // identity, not approximation (pinned by P5's same(night)).
+      child: Builder(builder: (scopeContext) {
+        final colors = QibraColors.of(scopeContext);
+        return indexAsync.when(
       loading: () => Scaffold(
         backgroundColor: colors.background,
         body: Center(child: QibraStatus.skeleton(height: 420)),
@@ -533,7 +540,8 @@ Juz: ${juz ?? '—'}''';
           ),
         );
       },
-    ),
+    );
+      }),
     );
   }
 
