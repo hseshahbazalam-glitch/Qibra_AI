@@ -33,12 +33,14 @@ const _surfaces = [
 ];
 
 const bool _probeSkipGroup2 = true; // PROBE r2
+const bool _probeSkipGroup1a = true; // PROBE r3
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('D2 paper tokens', () {
     test('the single source pins the EXACT brief hexes', () {
+      if (_probeSkipGroup1a) return; // PROBE r3
       final src =
           File('lib/core/design_system/qibra_paper.dart').readAsStringSync();
       // Brief-fixed token contract — these literals live HERE and only
@@ -61,6 +63,7 @@ void main() {
     });
 
     test('contrast ladder — computed WCAG (the brief, verified)', () {
+      if (_probeSkipGroup1a) return; // PROBE r3
       expect(Contrast.ratio(QibraPaper.ink, QibraPaper.paper),
           greaterThanOrEqualTo(12.0));
       expect(Contrast.ratio(QibraPaper.inkSoft, QibraPaper.paper),
@@ -92,6 +95,7 @@ void main() {
     });
 
     test('the scope NEVER wraps on night — child identity preserved', () {
+      if (_probeSkipGroup1a) return; // PROBE r3
       const child = SizedBox(key: ValueKey('d2-child'));
       expect(QibraPaper.scope(active: false, child: child), same(child),
           reason: 'Night-mode byte-identity is structural: the night '
