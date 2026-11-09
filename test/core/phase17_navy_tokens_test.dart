@@ -12,6 +12,15 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   test('midnight navy canvas/surface/card ladder is the dark identity', () {
     const canvas = Color(0xFF020B14);
     const surface = Color(0xFF04111C);

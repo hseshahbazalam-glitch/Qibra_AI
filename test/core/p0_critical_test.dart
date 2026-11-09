@@ -146,6 +146,15 @@ class _FakeAuthRepository implements AuthRepository {
 }
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   group('P0.1 Auth Anonymous-First', () {
     test('backend disabled (seam) -> guest error, no fake token, ZERO egress',
         () async {

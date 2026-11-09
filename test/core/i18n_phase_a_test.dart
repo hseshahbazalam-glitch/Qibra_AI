@@ -8,6 +8,15 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   group('AppStrings coverage', () {
     test('every getter: en/ar/ur non-empty and ar/ur distinct from en', () {
       final src = File('lib/core/l10n/app_strings.dart').readAsStringSync();

@@ -37,6 +37,15 @@ HadithModel _model({String en = '', String ar = ''}) => HadithModel(
     );
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   group('HadithBookScreen.neighbourNumber — real walk, honest ends', () {
     test('neighbours follow the PUBLISHED sequence, not arithmetic', () {
       // A gap between 3 and 5 is real corpus structure: next(3) is 5.

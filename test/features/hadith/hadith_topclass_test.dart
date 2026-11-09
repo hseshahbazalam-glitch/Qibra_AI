@@ -50,6 +50,15 @@ HadithModel _model(int number, {String slug = 'bukhari'}) => HadithModel(
     );
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   group('Today card — real Hijri date line (item 1)', () {
     test('label format is exact package math on a FIXED date — no now()', () {
       // HijriCalendar.fromDate is the package's deterministic entry

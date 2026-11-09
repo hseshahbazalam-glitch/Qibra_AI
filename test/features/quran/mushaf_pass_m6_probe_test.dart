@@ -139,6 +139,15 @@ double _deepestTextBottom(WidgetTester tester) {
 }
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   setUpAll(loadAppTestFonts);
 
   // ── B1 — IME resize must NOT reach the page slot ───────────────

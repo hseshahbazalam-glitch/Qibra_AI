@@ -5,6 +5,15 @@ import 'package:qibra_ai/core/sync/sync_engine.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   // Truth-up (owner flip abee22e, 2026-09-02; this pin missed in 1fd6ee9):
   // the build enables the backend. What the OLD test actually guarded —
   // that the flag state is conscious, not drift — is what this pins now.

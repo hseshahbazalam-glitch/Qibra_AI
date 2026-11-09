@@ -43,6 +43,15 @@ Iterable<String> _libDartFiles() => Directory('lib')
     .map((f) => f.path);
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   // ── Item 1 — sajdah-15 recovery ──────────────────────────────────────
   group('P3-1 sajdah recovery', () {
     test('gloss ships ALL 6236 ayahs — the 15 sajdah entries recovered', () {

@@ -13,6 +13,15 @@ import '../../support/source_guards.dart';
 /// from them, the app silently breaks against the live service, so they
 /// fail loudly here instead.
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   group('backend base URL — single source', () {
     // Phase B (2026-09-08): constants decomposed into parts/ — the
     // pinned literals live in the AppApi part; assertions unchanged.

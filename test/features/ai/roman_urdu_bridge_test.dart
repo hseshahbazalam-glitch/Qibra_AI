@@ -8,6 +8,15 @@ import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 /// recovery behind it. These are pure-function tests — no assets or DB
 /// initialization needed; the end-to-end retrieval is the device gate.
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   group('bridge map — owner vocabulary', () {
     test('every owner-named word is a key', () {
       const required = [

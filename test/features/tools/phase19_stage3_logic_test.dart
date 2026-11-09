@@ -19,6 +19,15 @@ NamedPrayerInstant _p(String n, int h, int m) => NamedPrayerInstant(
     );
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   group('SearchNormalizer', () {
     test('Arabic query without tashkeel matches tashkeel text', () {
       const text = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';

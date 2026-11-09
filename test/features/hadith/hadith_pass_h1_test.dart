@@ -111,6 +111,15 @@ Map<String, Map<String, ({int nonEmpty, int total})>> _coverageByBook() {
 }
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   group('Pass H1 · kitab names — no invention, honest fallback', () {
     test('ledger ⇄ shipped data: the 3 unnamed refs are EXACTLY the census',
         () {

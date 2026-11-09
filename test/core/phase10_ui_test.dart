@@ -8,6 +8,15 @@ import 'package:qibra_ai/core/observability/observability.dart';
 import 'package:qibra_ai/core/offline/reachability.dart';
 
 void main() {
+  // M6RED-REPORT (transient): name the culprit test on failure —
+  // same annotation channel as the M5 TALLY, one tearDown, deleted
+  // with the probe commit.
+  tearDown(() {
+    if (testState == TestState.failed) {
+      print('::error::M6RED ${testCase.name}');
+    }
+  });
+
   test('phase 10 — billing stubs unconfigured', () {
     expect(AppA11y.minTapTarget, 48);
     expect(AppLocales.supported.length, 3);
