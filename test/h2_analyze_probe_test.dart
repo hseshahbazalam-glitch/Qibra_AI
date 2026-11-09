@@ -9,44 +9,38 @@ void main() {
   test('h2a: dart analyze verdict for the book screen (via copy)',
       () async {
     const targets = [
-      'lib/features/hadith/presentation/hadith_book_screen.dart',
-      'test/features/hadith/hadith_pass_h2_test.dart',
-      'lib/core/l10n/app_strings.dart',
+      'test/features/hadith/',
     ];
-    final cs = <String>[];
-    for (final t in targets) {
-      final i = t.lastIndexOf('/');
-      final c = '${t.substring(0, i)}/h2copy_${t.substring(i + 1)}';
-      File(c).writeAsStringSync(File(t).readAsStringSync());
-      cs.add(c);
-    }
     String out = '';
-    try {
-      final r = await Process.start('dart', ['analyze', ...cs]);
-      final o = r.stdout.transform(Utf8Decoder()).join();
-      final e = r.stderr.transform(Utf8Decoder()).join();
-      final joined = await Future.wait([o, e]);
-      await r.exitCode;
-      out = '${joined[0]}\n${joined[1]}';
-    } finally {
-      for (final c in cs) {
-        try {
-          File(c).deleteSync();
-        } catch (_) {}
-      }
+    final r = await Process.start('flutter', [
+      'test',
+      '--reporter',
+      'expanded',
+      'test/features/hadith/',
+    ]);
+    final o = r.stdout.transform(Utf8Decoder()).join();
+    final e = r.stderr.transform(Utf8Decoder()).join();
+    final joined = await Future.wait([o, e]);
+    await r.exitCode;
+    out = '${joined[0]}\n${joined[1]}';
+    final all = const LineSplitter().convert(out);
+    final lines = <String>[];
+    for (var i = 0; i < all.length && lines.length < 40; i++) {
+      final c = all[i].trim();
+      if (c.startsWith('00:') && c.contains('[E]')) lines.add(c);
     }
-    final lines = const LineSplitter()
-        .convert(out)
-        .where((l) => (l.contains(' - ') && !l.contains(' info - ')) ||
-            l.contains('issues found'))
-        .take(40)
-        .toList();
+    for (var i = 0; i < all.length; i++) {
+      final c = all[i].trim();
+      if (c.startsWith('Expected:') || c.startsWith('Actual:') ||
+          c.startsWith('Which:')) lines.add(c);
+      if (lines.length > 70) break;
+    }
     for (final l in lines) {
       final v = l.replaceAll('h2copy_', '').trim();
-      print('::error::H2G ${v.length > 225 ? v.substring(0, 225) : v}');
+      print('::error::H2H ${v.length > 225 ? v.substring(0, 225) : v}');
     }
-    if (lines.isEmpty) {
-      print('::error::H2G CLEAN — no error/warning lines');
+    if (false) {
+      print('::error::H2H none');
     }
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
