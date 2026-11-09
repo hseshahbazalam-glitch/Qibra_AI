@@ -402,11 +402,11 @@ void main() {
           findsNothing,
           reason: 'the leaf rides the quad clip and nothing else — a '
               'ClipRect above the transform is the old cut, back');
-      expect(
-          find.parent(of: tf.first, matching: find.byType(ClipPath)),
-          findsOneWidget,
-          reason: 'the transform\'s immediate parent IS the anti-aliased '
-              'ClipPath — the AA quad wraps the paper, not vice versa');
+      expect(tester.widget<ClipPath>(clips).child, isA<Transform>(),
+          reason: 'the ANTI-ALIASED ClipPath directly parents the '
+              'transform — the quad clip wraps the paper, not vice '
+              ' versa (find.parent has no matching: parameter — '
+              'disclosed CI catch, run #224)');
       await releaseLeaf(tester, g);
     });
 
