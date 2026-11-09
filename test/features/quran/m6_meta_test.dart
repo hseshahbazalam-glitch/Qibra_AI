@@ -16,22 +16,17 @@ Future<String> _run(String exe, List<String> args) async {
 
 void main() {
   test('M6META: analyze report + per-file suite triage', () async {
-    final an = await _run(
-        'bash', ['-lc', 'flutter analyze --no-fatal-infos 2>&1 | tail -c 2000']);
-    print('::error::M6ANALYZE :: '
-        '${an.length > 1500 ? an.substring(an.length - 1500) : an}');
     for (final f in [
       'test/features/quran/mushaf_pass_m_test.dart',
-      'test/features/quran/mushaf_pass_m4_test.dart',
       'test/features/quran/mushaf_pass_m5_test.dart',
-      'test/features/quran/mushaf_pass_m6_probe_test.dart',
-      'test/features/quran/mushaf_pass_d2_test.dart',
-      'test/features/quran/quran_reading_pass_q2_test.dart',
     ]) {
-      final r = await _run(
-          'bash', ['-lc', 'flutter test $f --reporter expanded 2>&1 | tail -c 2500']);
+      final r = await _run('bash', [
+        '-lc',
+        'flutter test $f 2>&1 | grep -E '
+            r'"\[E\]|Some tests failed|All tests passed" | head -10'
+      ]);
       print('::error::M6RAW ${f.split('/').last} :: '
-          '${r.length > 1500 ? r.substring(r.length - 1500) : r}');
+          '${r.length > 1400 ? r.substring(r.length - 1400) : r}');
     }
   }, timeout: const Timeout(Duration(minutes: 25)));
 }
