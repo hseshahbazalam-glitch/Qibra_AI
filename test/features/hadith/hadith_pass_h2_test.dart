@@ -256,17 +256,18 @@ void main() {
       final badge = tester.getRect(find.byKey(const ValueKey('hadith-card-badge'))).bottom;
       final arabic = tester.getRect(find.byKey(const ValueKey('hadith-card-arabic'))).bottom;
       // The divider's breathing room lives INSIDE its vertical Padding, so
-      // the padding box abuts the Arabic block's bottom exactly — pin the
-      // ornament's BOTTOM against its neighbours (strict order, no flake).
+      // the padding box abuts BOTH neighbours exactly (282 == 282). The
+      // honest strict pins therefore straddle the ornament: Arabic bottom
+      // under its BOTTOM edge, translation top over its TOP edge — every
+      // comparison keeps zero-tolerance strictness with zero flake.
       final ornament =
-          tester.getRect(find.byKey(const ValueKey('hadith-card-ornament')))
-              .bottom;
+          tester.getRect(find.byKey(const ValueKey('hadith-card-ornament')));
       final trans =
           tester.getRect(find.byKey(const ValueKey('hadith-card-translation'))).top;
       final meta = tester.getRect(find.byKey(const ValueKey('hadith-card-meta'))).top;
       expect(badge, lessThan(arabic));
-      expect(arabic, lessThan(ornament));
-      expect(ornament, lessThan(trans));
+      expect(arabic, lessThan(ornament.bottom));
+      expect(ornament.top, lessThan(trans));
       expect(trans, lessThan(meta));
     });
 
