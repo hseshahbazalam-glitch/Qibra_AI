@@ -524,5 +524,36 @@ void main() {
           RegExp('hadithRecentSearchesProvider').allMatches(home).length, 4,
           reason: 'G must not grow recent-searches wiring');
     });
+    test('R — paper scope is the book reader ONLY; scales persist', () {
+      final book =
+          File('lib/features/hadith/presentation/hadith_book_screen.dart')
+              .readAsStringSync();
+      final home =
+          File('lib/features/hadith/presentation/hadith_screen.dart')
+              .readAsStringSync();
+      // exactly one scope, fed by the persisted shared reading store,
+      // night-safe via the select (unwrapped identity path lives in
+      // QibraPaper.scope itself, pinned D2-side).
+      expect(RegExp('QibraPaper\\.scope\\(').allMatches(book).length, 1);
+      expect(book.contains('p.isPaper'), isTrue);
+      // home/collections must NEVER join the scope (brief-fixed boundary).
+      expect(home.contains('QibraPaper'), isFalse,
+          reason: 'home stays navy: scope is book-reader only');
+      expect(home.contains('QibraNavy.canvas'), isTrue,
+          reason: 'home keeps the raw navy canvas constant');
+      // the split scales are the ONLY scales: the legacy single
+      // hadithTextScale is gone from the whole feature, and the store
+      // round-trips both values through SharedPreferences.
+      final store = File(
+              'lib/features/hadith/providers/hadith_preferences_provider.dart')
+          .readAsStringSync();
+      expect(store.contains('hadithTextScale'), isFalse);
+      expect(RegExp('SharedPreferences\\.getInstance\\(\\)')
+          .allMatches(store)
+          .length, 2,
+          reason: 'one load + one save for the split scales');
+      expect(store.contains('arabicScale'), isTrue);
+      expect(store.contains('translationScale'), isTrue);
+    });
   }
 }

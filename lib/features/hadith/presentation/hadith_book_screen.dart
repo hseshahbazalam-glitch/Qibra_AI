@@ -22,6 +22,8 @@ import '../data/services/hadith_database_service.dart';
 import '../providers/hadith_provider.dart';
 import '../providers/hadith_preferences_provider.dart';
 import 'hadith_related_section.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
+import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
 
 class HadithBookScreen extends ConsumerStatefulWidget {
   final HadithBook book;
@@ -146,7 +148,20 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     // the chip's onTap closure.
     final resumeTarget = resume;
 
-    return Scaffold(
+    // R (H2): the hadith book reader joins Pass D2's paper scope — the
+    // only hadith surface that reads Settings → Reading Theme (persisted
+    // in the shared reading store). Home and collections stay navy.
+    // Night: QibraPaper.scope returns the child UNWRAPPED — the default
+    // path gains literally nothing (D2 identity contract).
+    return QibraPaper.scope(
+      active:
+          ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
+      child: Builder(
+        builder: (pageContext) {
+          final pageBg = QibraPaper.isActive(pageContext)
+              ? QibraColors.of(pageContext).background
+              : QibraNavy.canvas;
+          return Scaffold(
       backgroundColor: QibraNavy.canvas,
       body: SafeArea(
         child: CustomScrollView(
@@ -287,6 +302,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         ),
       ),
     );
+        },
+      ),
+    )
   }
 
   // ────────────────────────────────────────────────────────
