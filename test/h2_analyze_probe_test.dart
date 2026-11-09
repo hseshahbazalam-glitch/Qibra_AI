@@ -9,8 +9,18 @@ void main() {
   test('h2k: which file owns the last red', () async {
     String out = '';
     try {
-      final r = await Process.start('flutter',
-          ['test', '--reporter', 'expanded', 'test/']);
+      final r = await Process.start('flutter', [
+        'test',
+        '--reporter',
+        'expanded',
+        'test/core/a11y_pass_test.dart',
+        'test/core/i18n_phase_a_test.dart',
+        'test/core/i18n_pass_a2_test.dart',
+        'test/core/pass_p3_polish_test.dart',
+        'test/core/phase13_a11y_l10n_test.dart',
+        'test/stage_c_font_test.dart',
+        'test/core/stage_c_font_test.dart',
+      ]);
       final o = r.stdout.transform(Utf8Decoder()).join();
       final e = r.stderr.transform(Utf8Decoder()).join();
       final j = await Future.wait([o, e]);
