@@ -8,14 +8,6 @@ import 'package:qibra_ai/features/prayer/data/services/mosque_service.dart';
 String read(String rel) => File(rel).readAsStringSync();
 
 void main() {
-  // M6RED-REPORT (transient): name the culprit test on failure —
-  // same annotation channel as the M5 TALLY, one tearDown, deleted
-  // with the probe commit.
-  tearDown(() {
-    if (testState == TestState.failed) {
-      print('::error::M6RED ${testCase.name}');
-    }
-  });
 
   group('ListTile/ink surface guards (fix 1)', () {
     test('hadith detail-sheet body is a Material with the same radius', () {

@@ -3,14 +3,6 @@ import 'package:qibra_ai/core/billing/billing_service.dart';
 import 'package:qibra_ai/core/cache/cache_store.dart';
 
 void main() {
-  // M6RED-REPORT (transient): name the culprit test on failure —
-  // same annotation channel as the M5 TALLY, one tearDown, deleted
-  // with the probe commit.
-  tearDown(() {
-    if (testState == TestState.failed) {
-      print('::error::M6RED ${testCase.name}');
-    }
-  });
 
   final now = DateTime.utc(2026, 8, 31, 12);
 

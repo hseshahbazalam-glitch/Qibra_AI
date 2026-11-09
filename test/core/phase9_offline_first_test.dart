@@ -12,14 +12,6 @@ import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 import 'package:qibra_ai/features/prayer/data/services/prayer_schedule_cache.dart';
 
 void main() {
-  // M6RED-REPORT (transient): name the culprit test on failure —
-  // same annotation channel as the M5 TALLY, one tearDown, deleted
-  // with the probe commit.
-  tearDown(() {
-    if (testState == TestState.failed) {
-      print('::error::M6RED ${testCase.name}');
-    }
-  });
 
   DateTime t0 = DateTime.utc(2026, 8, 30, 12);
 

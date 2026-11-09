@@ -16,14 +16,6 @@ import 'package:qibra_ai/features/quran/providers/quran_audio_provider.dart';
 import 'package:qibra_ai/features/quran/providers/quran_download_provider.dart';
 
 void main() {
-  // M6RED-REPORT (transient): name the culprit test on failure —
-  // same annotation channel as the M5 TALLY, one tearDown, deleted
-  // with the probe commit.
-  tearDown(() {
-    if (testState == TestState.failed) {
-      print('::error::M6RED ${testCase.name}');
-    }
-  });
 
   TestWidgetsFlutterBinding.ensureInitialized();
 

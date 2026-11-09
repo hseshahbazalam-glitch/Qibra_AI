@@ -16,14 +16,6 @@ import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.d
 import '../support/source_guards.dart';
 
 void main() {
-  // M6RED-REPORT (transient): name the culprit test on failure —
-  // same annotation channel as the M5 TALLY, one tearDown, deleted
-  // with the probe commit.
-  tearDown(() {
-    if (testState == TestState.failed) {
-      print('::error::M6RED ${testCase.name}');
-    }
-  });
 
   group('item 1 — hadith boot decodes OFF the UI isolate', () {
     test('decodeHadithAsset is the pure isolate body (fixture, no spawns)',

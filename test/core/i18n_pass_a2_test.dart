@@ -24,14 +24,6 @@ const wiredFiles = <String>[
 ];
 
 void main() {
-  // M6RED-REPORT (transient): name the culprit test on failure —
-  // same annotation channel as the M5 TALLY, one tearDown, deleted
-  // with the probe commit.
-  tearDown(() {
-    if (testState == TestState.failed) {
-      print('::error::M6RED ${testCase.name}');
-    }
-  });
 
   final appStrings =
       File('lib/core/l10n/app_strings.dart').readAsStringSync();
