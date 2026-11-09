@@ -255,7 +255,12 @@ void main() {
       }
       final badge = tester.getRect(find.byKey(const ValueKey('hadith-card-badge'))).bottom;
       final arabic = tester.getRect(find.byKey(const ValueKey('hadith-card-arabic'))).bottom;
-      final ornament = tester.getRect(find.byKey(const ValueKey('hadith-card-ornament'))).top;
+      // The divider's breathing room lives INSIDE its vertical Padding, so
+      // the padding box abuts the Arabic block's bottom exactly — pin the
+      // ornament's BOTTOM against its neighbours (strict order, no flake).
+      final ornament =
+          tester.getRect(find.byKey(const ValueKey('hadith-card-ornament')))
+              .bottom;
       final trans =
           tester.getRect(find.byKey(const ValueKey('hadith-card-translation'))).top;
       final meta = tester.getRect(find.byKey(const ValueKey('hadith-card-meta'))).top;
