@@ -76,7 +76,8 @@ class MushafReamPainter extends CustomPainter {
       if (i == sheets - 1) a *= 1.0 - t;
       // R5: tones are the palette fields; alpha is the only math.
       fill.color =
-          (i.isEven ? sheetA : sheetB).withValues(alpha: a.clamp(0.0, 1.0));
+          (i.isEven ? sheetA : sheetB)
+              .withValues(alpha: a.clamp(0.0, 1.0).toDouble());
       canvas.drawRect(Rect.fromLTRB(x - 1.0, h * 0.04, x, h * 0.96), fill);
       if (i == 0) {
         // The binding edge itself — one hairline of the crease tone.
@@ -91,7 +92,7 @@ class MushafReamPainter extends CustomPainter {
       begin: Alignment.centerRight,
       end: Alignment.centerLeft,
       colors: [
-        Colors.black.withValues(alpha: depth.clamp(0.0, 0.04)),
+        Colors.black.withValues(alpha: depth.clamp(0.0, 0.04).toDouble()),
         Colors.black.withValues(alpha: 0.0),
       ],
     ).createShader(band);

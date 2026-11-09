@@ -361,7 +361,7 @@ void main() {
     expect(texts, findsWidgets);
     for (final rich in texts.evaluate()) {
       final ro = tester.renderObject(rich) as RenderBox;
-      final m = ro.getTransformTo(clipRO as RenderObject);
+      final m = ro.getTransformTo(clipRO);
       final r = Offset.zero & ro.size;
       for (final p in [
         r.topLeft,
