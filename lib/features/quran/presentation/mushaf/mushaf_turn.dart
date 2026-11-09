@@ -89,6 +89,7 @@ import 'package:flutter/services.dart';
 import 'package:qibra_ai/core/design_system/app_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_ream.dart';
 
 enum MushafTurnDirection { forward, backward }
 
@@ -168,6 +169,25 @@ abstract final class MushafTurnGeometry {
   /// the gild band's inset breathe — coordinated depth, zero at commit.
   static double parallax(double t) => 8.0 * swell(t);
 
+  /// C1 (M5): the clip's sub-pixel slack, device-scaled. The fixed
+  /// 1.2px closed the 390px seam (M4) but under-corrects a large
+  /// logical page (480dp tablet: wider arcs, coarser rounding). 0.5%
+  /// of the smaller dimension, floored at the 1.2px that already
+  /// worked, keeps the quad hugging the paper at every device class.
+  static double clipSlackFor(Size size) =>
+      math.max(1.2, math.min(size.width, size.height) * 0.005);
+
+  /// C1 device closure: the slack rounded UP to whole device pixels.
+  /// A fractional device-pixel coverage is exactly what the
+  /// rasterizer rounds away — the user's CPH2573 (DPR 2.8125, ~384
+  /// logical px) turned 1.2px into 3.375 device px and lost 0.375 to
+  /// rounding as a visible hairline cut. Rounding UP (never down)
+  /// keeps the quad a strict superset of the paper.
+  static double clipSlackAligned(Size size, double devicePixelRatio) {
+    final dpr = devicePixelRatio <= 0.0 ? 1.0 : devicePixelRatio;
+    return (clipSlackFor(size) * dpr).ceilToDouble() / dpr;
+  }
+
   /// THE leaf matrix (M4): built in one place so the clipper and the
   /// render can never disagree about the quad.
   static Matrix4 leafTransform(double angle, {double lift = 0}) =>
@@ -185,14 +205,24 @@ abstract final class MushafTurnGeometry {
   /// the hinge, then divide by 1 + perspective·x) — so the clip the
   /// painter builds and the paper actually drawn can never drift.
   static List<Offset> projectedCorners(
-      double w, double h, double angle, double lift) {
+          double w, double h, double angle, double lift) =>
+      projectedQuad(0, 0, w, h, angle, lift);
+
+  /// C (M5): the SAME projection over an arbitrary rect (hinge edge at
+  /// x1, vertical centre (y0+y1)/2) — the content-containment story
+  /// (C3) and any future guard share one math with the clipper. For
+  /// the page box the two entry points are numerically identical
+  /// (pinned); physics untouched.
+  static List<Offset> projectedQuad(double x0, double y0, double x1,
+      double y1, double angle, double lift) {
     final cosA = math.cos(angle);
+    final cy = (y0 + y1) / 2;
     Offset p(double x, double y) {
-      final xr = (x - w) * cosA;
+      final xr = (x - x1) * cosA;
       final wr = 1 + perspective * xr;
-      return Offset(xr / wr + w, (y - h / 2 - lift) / wr + h / 2);
+      return Offset(xr / wr + x1, (y - cy - lift) / wr + cy);
     }
-    return [p(0, 0), p(w, 0), p(w, h), p(0, h)];
+    return [p(x0, y0), p(x1, y0), p(x1, y1), p(x0, y1)];
   }
 }
 
@@ -699,6 +729,8 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                                     dir, t),
                                 lift:
                                     MushafTurnGeometry.anticipation(t),
+                                dpr: MediaQuery.devicePixelRatioOf(
+                                    context),
                               ),
                               child: Transform(
                                 alignment: Alignment.centerRight,
@@ -917,6 +949,65 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                           ),
                         ),
                       ),
+                      // R (M5): the ream — spine-side page block
+                      // (R1), outermost sheet lifting with the turn
+                      // (R2: rides swell(t), exact-zero at the ends —
+                      // at rest the block is complete and static),
+                      // inner-spine depth beside spineCrease (R3) and
+                      // the free-edge sheet-thickness line that dims
+                      // while the gild shares that edge (R4). Palette
+                      // fields only (R5); the grain's repaint
+                      // discipline copied (R6). Stack space, like the
+                      // spine strip above — never inside the leaf's
+                      // quad.
+                      Positioned.fill(
+                        key: const ValueKey('mushaf-ream'),
+                        child: IgnorePointer(
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              painter: MushafReamPainter(
+                                turn: dir == null
+                                    ? 0.0
+                                    : MushafTurnGeometry.swell(t),
+                                sheetA: colors.card,
+                                sheetB: colors.cardMuted,
+                                crease: colors.border,
+                                depth: 0.02 +
+                                    0.02 *
+                                        ((MushafTurnShading.spineCrease(
+                                                        t) -
+                                                    0.10) /
+                                                0.08),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (kMushafDebugClip)
+                        Positioned.fill(
+                          // C5 (M5): opt-in diagnostic only —
+                          // --dart-define=MUSHAF_DEBUG_CLIP=true
+                          // outlines the leaf's exact clip path in
+                          // gild so a device report can name where a
+                          // cut lands. Const-false: absent, silent.
+                          key: const ValueKey('mushaf-clip-outline'),
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: _MushafClipOutlinePainter(
+                                angle: dir == null
+                                    ? 0.0
+                                    : MushafTurnGeometry.angleFor(
+                                        dir, t),
+                                lift: dir == null
+                                    ? 0.0
+                                    : MushafTurnGeometry.anticipation(t),
+                                dpr: MediaQuery.devicePixelRatioOf(
+                                    context),
+                                stroke: gildBase,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   );
                 },
@@ -1053,12 +1144,21 @@ class _PaperGrainPainter extends CustomPainter {
 /// rectangle's worth of it painted onto the stack.
 class MushafTurnLeafClipper extends CustomClipper<Path> {
   // NOT const — CustomClipper's own constructor is non-const.
-  MushafTurnLeafClipper({required this.angle, required this.lift});
+  MushafTurnLeafClipper(
+      {required this.angle, required this.lift, this.dpr = 1.0});
 
   final double angle;
   final double lift;
 
-  static const double _slack = 1.2; // sub-pixel overlap for AA seams
+  /// C1 (M5): device pixel ratio of the surface being painted on —
+  /// the slack lands on whole device pixels so rasterizer rounding can
+  /// never shave the seam back into existence.
+  final double dpr;
+
+  /// Public so the pass test can pin 'slack >= the C1 formula, and
+  /// whole-device-pixel' directly against the live clipper.
+  double slackFor(Size size) =>
+      MushafTurnGeometry.clipSlackAligned(size, dpr);
 
   @override
   Path getClip(Size size) {
@@ -1066,6 +1166,7 @@ class MushafTurnLeafClipper extends CustomClipper<Path> {
         size.width, size.height, angle, lift);
     final cx = (pts[0].dx + pts[2].dx) / 2;
     final cy = (pts[0].dy + pts[2].dy) / 2;
+    final slack = slackFor(size);
     final path = Path();
     for (var i = 0; i < 4; i++) {
       final p = pts[i];
@@ -1074,7 +1175,7 @@ class MushafTurnLeafClipper extends CustomClipper<Path> {
       final n = math.sqrt(dx * dx + dy * dy);
       final q = n == 0
           ? p
-          : Offset(p.dx + dx / n * _slack, p.dy + dy / n * _slack);
+          : Offset(p.dx + dx / n * slack, p.dy + dy / n * slack);
       if (i == 0) {
         path.moveTo(q.dx, q.dy);
       } else {
@@ -1087,5 +1188,49 @@ class MushafTurnLeafClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(MushafTurnLeafClipper oldClipper) =>
-      oldClipper.angle != angle || oldClipper.lift != lift;
+      oldClipper.angle != angle ||
+      oldClipper.lift != lift ||
+      oldClipper.dpr != dpr;
+}
+
+/// C5 (M5): ships OFF — every built-in path in the repo runs with the
+/// const false, so the diagnostic layer is dead code and zero paint.
+const bool kMushafDebugClip = bool.fromEnvironment('MUSHAF_DEBUG_CLIP');
+
+/// The clip's own Path, stroked in gild — diagnostic only. Reads the
+/// LIVE clipper (same inputs), so what is outlined is exactly what is
+/// clipped, never a second approximation of it.
+class _MushafClipOutlinePainter extends CustomPainter {
+  _MushafClipOutlinePainter({
+    required this.angle,
+    required this.lift,
+    required this.dpr,
+    required this.stroke,
+  });
+
+  final double angle;
+  final double lift;
+  final double dpr;
+  final Color stroke;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path =
+        MushafTurnLeafClipper(angle: angle, lift: lift, dpr: dpr)
+            .getClip(size);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = stroke
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_MushafClipOutlinePainter oldDelegate) =>
+      oldDelegate.angle != angle ||
+      oldDelegate.lift != lift ||
+      oldDelegate.dpr != dpr ||
+      oldDelegate.stroke != stroke;
 }
