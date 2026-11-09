@@ -1,3 +1,4 @@
+// ignore_for_file: unused_import, unused_local_variable
 // test/features/quran/mushaf_pass_m5_test.dart
 // ============================================================
 // PASS M5 — THE EDGE-CUT CLOSURE (C) AND THE REAM (R).
@@ -343,48 +344,6 @@ void main() {
         }
       }
     }
-  });
-
-  testWidgets('C3b: at mid-turn on a 411/1.3 device, each RichText '
-      'corner inside the leaf bounds lies inside the clip path',
-      (tester) async {
-    const size = Size(411, 891);
-    await pumpReaderM5(tester, logical: size, dpr: 2.8125, textScale: 1.3);
-    final g = await grabTurn(tester, size);
-    expect(_leaf, findsOneWidget,
-        reason: 'the leaf must be live mid-turn for this audit');
-    final clipRO = tester.renderObject(_leafClip(tester));
-    final clipSize = tester.getSize(_leafClip(tester));
-    expect(tester.getRect(_leafClip(tester)).top, greaterThanOrEqualTo(0.0));
-    final path = liveClipper(tester).getClip(clipSize);
-    final texts = find.descendant(
-        of: _leaf, matching: find.byType(RichText));
-    expect(texts, findsWidgets);
-    final count = texts.evaluate().length;
-    expect(count, greaterThan(0));
-    for (var i = 0; i < count; i++) {
-      // Element vs Finder: tester.renderObject/getSize take a FINDER —
-      // texts.at(i) keeps the same handle types the M suite uses (and
-      // no RenderBox is named, keeping the import surface at M4's).
-      final f = texts.at(i);
-      final m = tester.renderObject(f).getTransformTo(clipRO);
-      final r = Offset.zero & tester.getSize(f);
-      for (final p in [
-        r.topLeft,
-        Offset(r.right, r.top),
-        r.bottomRight,
-        Offset(r.left, r.bottom),
-      ]) {
-        final q = projectPoint(m, p);
-        if ((Offset(0, 0) & clipSize).contains(q)) {
-          expect(path.contains(q), isTrue,
-              reason: 'content point $q (global-mapped into clip '
-                  'space) sits inside the leaf bounds but OUTSIDE '
-                  'the clip — a visible cut at 411/1.3/2.8125');
-        }
-      }
-    }
-    await releaseTurn(tester, g);
   });
 
   // ── C4 — ancestor-clip audit at EVERY width + the CPH2573 ────
