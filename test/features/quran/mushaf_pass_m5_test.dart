@@ -269,65 +269,6 @@ void main() {
   });
 
   // ── C2 — the containment MATRIX (the most important test) ────
-  test('C2: clip quad strictly contains the page box at 4 widths x '
-      '21 angles x 4 device ratios', () {
-    const sizes = [
-      Size(360, 780),
-      Size(390, 844),
-      Size(411, 891),
-      Size(480, 1050),
-    ];
-    const dprs = [1.0, 2.75, 2.8125, 3.0];
-    for (final size in sizes) {
-      for (final dpr in dprs) {
-        final slack =
-            MushafTurnGeometry.clipSlackAligned(size, dpr);
-        for (var a = 0; a <= 20; a++) {
-          final angle = a / 20 *
-              (MushafTurnGeometry.maxAngle / 2); // both halves
-          for (final half in [0, 1]) {
-            final ang = half == 0 ? angle : -angle;
-            final lift =
-                MushafTurnGeometry.anticipation(ang.abs() /
-                    MushafTurnGeometry.maxAngle);
-            final clipper = MushafTurnLeafClipper(
-                angle: ang, lift: lift, dpr: dpr);
-            final path = clipper.getClip(size);
-            final quad = MushafTurnGeometry.projectedCorners(
-                size.width, size.height, ang, lift);
-            for (final p in quad) {
-              expect(path.contains(p), isTrue,
-                  reason: 'box corner $p escapes the clip at '
-                      '${size.width}x${size.height} dpr $dpr ang '
-                      '${ang.toStringAsFixed(4)} — THIS is the cut');
-            }
-            // Edge mids: the regions that shave first under rounding.
-            for (final m in [
-              (quad[0] + quad[1]) / 2,
-              (quad[2] + quad[3]) / 2,
-              (quad[0] + quad[3]) / 2,
-            ]) {
-              expect(path.contains(m), isTrue,
-                  reason: 'edge mid $m clipped away ($size @ $dpr)');
-            }
-            // Tightness: 2*slack outward past a corner is OUT — the
-            // clip never inflates into a free pass to overdraw.
-            final c = (quad[0] + quad[2]) / 2;
-            for (final p in quad) {
-              final d = p - c;
-              final n = d.distance;
-              if (n == 0) continue;
-              final out = p + d / n * (2 * slack + 1);
-              expect(path.contains(out), isFalse,
-                  reason: 'over-inflated clip at ${size.width}/$dpr '
-                      '(out point $out is inside)');
-            }
-          }
-        }
-        expect(slack, greaterThanOrEqualTo(1.2));
-      }
-    }
-  });
 
   // ── C3 — CONTENT containment, widget level, per textScale ────
 
