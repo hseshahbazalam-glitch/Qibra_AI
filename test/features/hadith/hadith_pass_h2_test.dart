@@ -373,9 +373,11 @@ void main() {
       expect('query: _searchQuery,'.allMatches(src).length, 1,
           reason: 'exactly ONE search field in the tree');
       // [search | chapter filter | settings] — all three in the row:
-      expect(src.contains('Expanded(
-            child: HadithSearchField('),
-          isTrue, reason: 'search flexes to fill');
+      expect(
+          RegExp(r'Expanded\(\s*child: HadithSearchField\(')
+              .hasMatch(src),
+          isTrue,
+          reason: 'search flexes to fill (formatting-agnostic pin)');
       expect(src.contains('PopupMenuButton<String>('), isTrue,
           reason: 'the chapter filter (dropdown, from the chip rail)');
       expect(src.contains('tooltipReadingSettings'), isTrue,

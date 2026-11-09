@@ -453,7 +453,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
               Text(
                 '${widget.book.totalHadiths} hadiths \u00b7 ${widget.book.totalChapters} chapters',
                 style: AppTextStyles.labelXSmall.copyWith(
-                    color: QibraNavy.textTertiary),
+                    color: QibraNavy.textMuted),
               ),
             ],
             ),
