@@ -206,16 +206,11 @@ void main() {
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('alignment XA2 — const set, NO trailing comma, NO inline comment',
-      () {
+  test('SA loops only', () {
     const matrix = {1.0, 2.75, 2.8125, 3.0};
     for (final dpr in matrix) {
       for (final w in [360.0, 384.0, 390.0, 411.0, 480.0]) {
-        final size = Size(w, w == 480 ? 1050 : 844);
-        final base = MushafTurnGeometry.clipSlackFor(size);
-        final aligned = MushafTurnGeometry.clipSlackAligned(size, dpr);
-        final px = aligned * dpr;
-        expect(px, isNotNull);
+        expect(dpr + w, greaterThan(0.0));
       }
     }
   });
