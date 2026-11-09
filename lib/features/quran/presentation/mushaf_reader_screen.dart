@@ -42,6 +42,11 @@ import '../providers/reading_progress_provider.dart';
 import '../providers/reading_preferences_provider.dart';
 import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
+import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/features/quran/data/word/quran_word_data.dart';
+import 'package:qibra_ai/features/quran/providers/quran_word_provider.dart';
+import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
+import 'word_explain_sheet.dart';
 
 /// B3 (M6): the bottom-chrome reserve the page layout pays against.
 /// #289 measured the settled bottom bar (slider row + medallion row
@@ -460,6 +465,13 @@ Juz: ${juz ?? '—'}''';
             (a) => a.active && a.isPlaying
                 ? (a.surahNumber, a.ayahNumber)
                 : null));
+        // W1/W5 (M6): the gloss mode rides the prefs; OFF costs
+        // nothing (the corpus provider is not even watched) and ON
+        // is INSTANT because the cache keys carry the mode.
+        final wordMode = ref.watch(
+            readingPreferencesProvider.select((p) => p.wordByWordGloss));
+        final wordCorpus =
+            wordMode ? ref.watch(quranWordCorpusProvider).valueOrNull : null;
         return Scaffold(
           // B1 (M6): the goto dialog's keyboard must NOT resize the
           // reading surface. The #289 probe measured the page slot
@@ -484,12 +496,15 @@ Juz: ${juz ?? '—'}''';
                   child: MushafTurnOverlay(
                     currentPage: currentPage,
                     pageCount: 604,
-                    pageAt: (page) => _pageAt(page, index, playingHere),
+                    pageAt: (page) => _pageAt(page, index, playingHere,
+                        wordMode: wordMode, corpus: wordCorpus),
                     // M2 (F3): in-motion renders get the non-selectable
                     // twin; the settled page keeps SelectableText.
-                    pageAtStatic: (page) =>
-                        _pageAt(page, index, playingHere,
-                            selectable: false),
+                    pageAtStatic: (page) => _pageAt(page, index,
+                        playingHere,
+                        selectable: false,
+                        wordMode: wordMode,
+                        corpus: wordCorpus),
                     onCommitPage: (page) {
                       _suppressTurnHaptic = true;
                       _pageController.jumpToPage(page - 1);
@@ -511,10 +526,12 @@ Juz: ${juz ?? '—'}''';
                         // M2 (F1): the window follows the settled page;
                         // neighbours are built in a post-frame so the
                         // next turn's first tick is a cache hit.
-                        _warmPageCache(page + 1, index, playingHere);
+                        _warmPageCache(page + 1, index, playingHere,
+                            wordMode, wordCorpus);
                       },
-                      itemBuilder: (context, page) =>
-                          _pageAt(page + 1, index, playingHere),
+                      itemBuilder: (context, page) => _pageAt(page + 1,
+                          index, playingHere,
+                          wordMode: wordMode, corpus: wordCorpus),
                     ),
                   ),
                 ),
@@ -580,15 +597,20 @@ Juz: ${juz ?? '—'}''';
   Object? _cacheIndex;
   Object? _cachePlaying;
 
-  static int _pageCacheKey(int page, bool selectable) =>
-      page * 2 + (selectable ? 1 : 0);
+  // W5 (M6): the mode is part of the identity — a stale non-word
+  // page can never flash through a word-mode rebuild, and the LRU
+  // window stays current ±1 (now ×4 render variants, ≤12 entries).
+  static int _pageCacheKey(int page, bool selectable, bool wordMode) =>
+      page * 4 + (selectable ? 1 : 0) + (wordMode ? 2 : 0);
 
   void _retirePageCache(int around) {
     final keep = <int>{
       for (var p = around - 1; p <= around + 1; p++)
         if (p >= 1 && p <= 604) ...[
-          _pageCacheKey(p, true),
-          _pageCacheKey(p, false),
+          for (final wm in [false, true]) ...[
+            _pageCacheKey(p, true, wm),
+            _pageCacheKey(p, false, wm),
+          ],
         ],
     };
     _pageCache.removeWhere((k, _) => !keep.contains(k));
@@ -598,6 +620,8 @@ Juz: ${juz ?? '—'}''';
     int around,
     Map<int, List<MushafPageEntry>> index,
     (int?, int?)? playing,
+    bool wordMode,
+    QuranWordCorpus? corpus,
   ) {
     _retirePageCache(around);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -607,8 +631,9 @@ Juz: ${juz ?? '—'}''';
         around,
         if (around < 604) around + 1,
       ]) {
-        _pageAt(p, index, playing, selectable: false);
-        _pageAt(p, index, playing);
+        _pageAt(p, index, playing,
+            selectable: false, wordMode: wordMode, corpus: corpus);
+        _pageAt(p, index, playing, wordMode: wordMode, corpus: corpus);
       }
     });
   }
@@ -622,6 +647,8 @@ Juz: ${juz ?? '—'}''';
     Map<int, List<MushafPageEntry>> index,
     (int?, int?)? playing, {
     bool selectable = true,
+    bool wordMode = false,
+    QuranWordCorpus? corpus,
   }) {
     if (!identical(_cacheIndex, index) || _cachePlaying != playing) {
       _cacheIndex = index;
@@ -629,7 +656,7 @@ Juz: ${juz ?? '—'}''';
       _pageCache.clear();
     }
     return _pageCache.putIfAbsent(
-      _pageCacheKey(page, selectable),
+      _pageCacheKey(page, selectable, wordMode),
       () => _MushafPage(
         pageNumber: page,
         entries: _entriesFor(index, page),
@@ -640,8 +667,56 @@ Juz: ${juz ?? '—'}''';
         playingSurah: playing?.$1,
         playingAyah: playing?.$2,
         selectable: selectable,
+        // W2 (M6): the corpus flows only when the mode is on; the
+        // motion twin keeps the WORDS (a turning page must not
+        // morph — F3's zero-drift twin rule) but loses the TAP:
+        // in-flight renders carry zero gesture machinery.
+        wordCorpus: wordMode ? corpus : null,
+        onWordTap: wordMode && selectable ? _onMushafWordTap : null,
       ),
     );
+  }
+
+  /// W3 (M6): word tap opens the SAME sheet the surah reader shows —
+  /// one explain path for the whole app. It is only armed in word
+  /// mode (the default page keeps selection-and-toolbar exactly as
+  /// it shipped; nothing existing is disturbed).
+  void _onMushafWordTap(MushafPageEntry e, int spanIndex, WordSpan w) {
+    final corpus = ref.read(quranWordCorpusProvider).valueOrNull;
+    final prefs = ref.read(readingPreferencesProvider);
+    final cues =
+        corpus?.cuesFor(prefs.qariId, e.surahNumber, e.ayah.number);
+    final roman = e.ayah.translationRoman?.trim();
+    unawaited(showWordExplainSheet(
+      context,
+      surahNumber: e.surahNumber,
+      surahName: e.surahName,
+      ayahNumber: e.ayah.number,
+      ayahText: e.ayah.text,
+      word: w.word,
+      gloss: w.gloss,
+      spanIndex: spanIndex,
+      hasExactTimings: cues != null &&
+          QuranWordCorpus.seekStartMs(cues, spanIndex) != null,
+      romanUrdu: (roman != null && roman.isNotEmpty) ? roman : null,
+      onPlayFromWord: () => _playMushafFromWord(e, spanIndex, cues),
+    ));
+  }
+
+  Future<void> _playMushafFromWord(
+      MushafPageEntry e, int spanIndex, List<WordCue>? cues) async {
+    final surah =
+        await ref.read(quranRepositoryProvider).getSurah(e.surahNumber);
+    if (surah == null || !mounted) return;
+    final idx = surah.ayahs.indexWhere((a) => a.number == e.ayah.number);
+    await ref.read(quranAudioProvider.notifier).playFromWord(
+          surahNumber: e.surahNumber,
+          surahName: surah.name,
+          queue: tilawatQueueFor(surah),
+          startIndex: idx < 0 ? 0 : idx,
+          spanIndex: spanIndex,
+          cues: cues,
+        );
   }
 
   /// Ribbon tap: jump to the saved page, or say honestly there is none.
@@ -1189,7 +1264,19 @@ class _MushafPage extends StatelessWidget {
     this.playingSurah,
     this.playingAyah,
     this.selectable = true,
+    this.wordCorpus,
+    this.onWordTap,
   });
+
+  /// W2 (M6): a non-null corpus renders every ALIGNED ayah as word
+  /// cells (Arabic glyph over EN gloss); mis-aligned or uncovered
+  /// ayahs fall back to the classic justified line — never a guessed
+  /// segmentation (the same honesty rule as the audio cues).
+  final QuranWordCorpus? wordCorpus;
+
+  /// The word tap, armed only on the settled render (M2 rule).
+  final void Function(MushafPageEntry entry, int spanIndex, WordSpan span)?
+      onWordTap;
 
   /// Pass M2 (F3): false renders the EXACT same justified RTL paragraph
   /// through [Text.rich] instead of [SelectableText.rich] — a page in
@@ -1241,6 +1328,19 @@ class _MushafPage extends StatelessWidget {
     final hasSajdah = entries.any((e) => e.ayah.sajdah);
 
     final spans = <InlineSpan>[];
+    // W2: the gloss line rides the palette's muted meta tone —
+    // textTertiary IS inkMuted on paper (mapping at the token
+    // level, qibra_paper.dart) and textMuted on navy. One field,
+    // both palettes, zero new hex.
+    final glossStyle = AppTextStyles.labelSmall
+        .copyWith(color: colors.textTertiary, height: 1.15);
+    // F1/N2 (M6): the page's gold marks — antique on paper, the
+    // AppGold pair on navy. FIVE tiny places in total (one teardrop
+    // + four 3px corner dots); the frame body itself is hairline,
+    // never gold — the <=8% budget is met by area (test pins it at
+    // <1% coverage), not by an alpha fudge.
+    final cornerGold =
+        QibraPaper.isActive(context) ? QibraPaper.gild : AppGold.s500;
     for (var i = 0; i < entries.length; i++) {
       final e = entries[i];
       final startsSurahHere = e.ayah.number == 1 &&
@@ -1301,27 +1401,76 @@ class _MushafPage extends StatelessWidget {
       if (QibraPaper.isActive(context)) {
         ayahStyle = QibraPaper.paperArabicBody(ayahStyle);
       }
-      spans.add(TextSpan(text: '${e.ayah.text} ', style: ayahStyle));
-      spans.add(
-        TextSpan(
-          text: '(${_toArabicDigits(e.ayah.number)}) ',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: colors.primary,
-            fontWeight: FontWeight.w700,
+      final words = wordCorpus?.wordsFor(
+          e.surahNumber, e.ayah.number, e.ayah.text);
+      if (words != null) {
+        // W2 (M6): word cells over their glosses, flowing RTL like
+        // the paragraph. The playing-ayah wash moves onto the cell
+        // block so the marker stays ONE region (the background per
+        // cell would shatter it into stripes); the number chip
+        // closes the run exactly where the inline (١٢٣) sat.
+        final cellArabic = ayahStyle.copyWith(backgroundColor: null);
+        spans.add(WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Container(
+            color: isPlayingHere ? wash : null,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 10,
+              children: [
+                for (var i = 0; i < words.spans.length; i++)
+                  _WordGlossCell(
+                    word: words.spans[i].word,
+                    gloss: words.spans[i].gloss,
+                    arabic: cellArabic,
+                    glossStyle: glossStyle,
+                    onTap: onWordTap == null
+                        ? null
+                        : () => onWordTap!(e, i, words.spans[i]),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Text(
+                    '(${_toArabicDigits(e.ayah.number)})',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
+        ));
+        spans.add(const TextSpan(text: ' '));
+      } else {
+        spans.add(TextSpan(text: '${e.ayah.text} ', style: ayahStyle));
+        spans.add(
+          TextSpan(
+            text: '(${_toArabicDigits(e.ayah.number)}) ',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: colors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        );
+      }
     }
 
-    return Container(
+    return Stack(
+      children: [
+        Container(
       // T3 (paper): page margins ride the 24 rhythm; navy keeps 20.
-      // B3 (M6): the bottom reserve is the MEASURED chrome height —
+      // The RIGHT margin is the gutter — 30px in BOTH palettes, a
+      // raw value (not pad()): in a codex the spine half carries a
+      // wider inner margin, and 30 keeps the text off the ream
+      // strip. B3 (M6): the bottom reserve is the MEASURED chrome height —
       // #289 found the settled bar at 175px under the old 148, i.e.
       // the last 27px of content sat under the chrome. The named
       // constant (public, top of this file) is what the M6 test
       // pins the real bar against — at textScale 1.0 AND 1.3.
-      padding: EdgeInsets.fromLTRB(QibraPaper.pad(context, 20), 84,
-          QibraPaper.pad(context, 20), kMushafChromeBottomReserve),
+      padding: EdgeInsets.fromLTRB(
+          QibraPaper.pad(context, 20), 84, 30, kMushafChromeBottomReserve),
       child: Column(
         children: [
           Expanded(
@@ -1360,7 +1509,165 @@ class _MushafPage extends StatelessWidget {
                 ],
               ),
             ),
+          // N1/N3 (M6): the page number, Arabic-Indic (١..٦٠٤), the
+          // LAST Column child — it stacks under the sajdah footer by
+          // layout order (zero overlap by construction), and it
+          // renders on EMPTY pages too because it is a page child,
+          // never an entry decoration.
+          Padding(
+            key: const ValueKey('mushaf-page-number'),
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _toArabicDigits(pageNumber),
+                  style: AppTextStyles.labelSmall.copyWith(
+                    // N3: paper reads the ink meta tone, navy its
+                    // secondary — both palette fields, zero hex.
+                    color: QibraPaper.isActive(context)
+                        ? QibraPaper.inkMuted
+                        : colors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                const SizedBox(width: 7),
+                // N2: the teardrop — one 4.5px diamond of the
+                // antique tone, code-drawn, static at rest.
+                Transform.rotate(
+                  angle: 0.7854, // 45deg — pi/4, inline const-safe
+                  child: Container(
+                    key: const ValueKey('mushaf-number-ornament'),
+                    width: 4.5,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: cornerGold,
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+        ),
+        // F1/F4 (M6): the double-rule frame. Sibling overlay of
+        // the content Container, IgnorePointer so it never eats a
+        // tap, RepaintBoundary so the M2/M5 repaint discipline
+        // holds — nothing inside it animates, so at rest it paints
+        // EXACTLY when the page itself does (the M4 E2-style pin
+        // applies; there is no second clock). Geometry carries F2:
+        // the gaps to content are 20 (navy) / 24 (paper) left, 24
+        // top and bottom; the right rule sits at 10px — between
+        // the 9px ream strip and the 30px gutter text edge, so
+        // frame and ream never touch.
+        Positioned.fill(
+          key: const ValueKey('mushaf-page-frame'),
+          child: IgnorePointer(
+            child: RepaintBoundary(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                    0,
+                    60,
+                    10,
+                    kMushafChromeBottomReserve - 24.0),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colors.border, width: 1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2.5),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        // Night pairs hairline/hairlineStrong;
+                        // Paper uses hairlinePaper for BOTH rules
+                        // (the duo-tone has no "strong" tier — the
+                        // depth comes from the weight step alone).
+                        border: Border.all(
+                            color: QibraPaper.isActive(context)
+                                ? QibraPaper.hairlinePaper
+                                : QibraNavy.hairlineStrong,
+                            width: 0.5),
+                        borderRadius: BorderRadius.circular(3.5),
+                      ),
+                      child: Stack(
+                        children: [
+                          for (final a in [
+                            Alignment.topLeft,
+                            Alignment.topRight,
+                            Alignment.bottomLeft,
+                            Alignment.bottomRight,
+                          ])
+                            Align(
+                              alignment: a,
+                              child: Padding(
+                                padding: const EdgeInsets.all(2),
+                                child: Container(
+                                  width: 3,
+                                  height: 3,
+                                  decoration: BoxDecoration(
+                                    color: cornerGold,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// W2 (M6): one word of the word-by-word render — the Arabic glyph
+/// over its English gloss. A cell, not a span pair: the tap and the
+/// semantics node need their own box, and the Wrap lays cells out
+/// RTL exactly like the justified paragraph flows words.
+class _WordGlossCell extends StatelessWidget {
+  const _WordGlossCell({
+    required this.word,
+    required this.gloss,
+    required this.arabic,
+    required this.glossStyle,
+    required this.onTap,
+  });
+
+  final String word;
+  final String gloss;
+  final TextStyle arabic;
+  final TextStyle glossStyle;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      // Pass A a11y shape: the gesture would otherwise be invisible
+      // to TalkBack; one node per word, button only when it does
+      // something (never promise a double-tap that no-ops).
+      child: Semantics(
+        button: onTap != null,
+        label: '$word — $gloss',
+        excludeSemantics: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(word, style: arabic),
+            const SizedBox(height: 1.5),
+            Text(gloss, textAlign: TextAlign.center, style: glossStyle),
+          ],
+        ),
       ),
     );
   }

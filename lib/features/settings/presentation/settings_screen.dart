@@ -123,6 +123,32 @@ class SettingsScreen extends ConsumerWidget {
                         },
                       ),
                     ),
+                    // Pass M6 (W1): word-by-word gloss for the mushaf
+                    // pages, living beside its sibling reading prefs.
+                    // The subtitle states the data truth — English
+                    // glosses, because that is all the corpus holds
+                    // (W4: no fake label, no fake transliteration).
+                    _SettingsTile(
+                      icon: Icons.translate_rounded,
+                      iconColor: colors.accent,
+                      title: 'Word-by-word',
+                      subtitle: 'English gloss under each Arabic '
+'word on the mushaf pages',
+                      trailing: Switch(
+                        value: ref.watch(readingPreferencesProvider
+                            .select((p) => p.wordByWordGloss)),
+                        activeThumbColor: colors.primary,
+                        onChanged: (_) {
+                          HapticFeedback.lightImpact();
+                          final now = ref
+                              .read(readingPreferencesProvider)
+                              .wordByWordGloss;
+                          ref
+                              .read(readingPreferencesProvider.notifier)
+                              .setWordByWordGloss(!now);
+                        },
+                      ),
+                    ),
                     _SettingsTile(
                       icon: Icons.language_rounded,
                       iconColor: colors.primarySoft,

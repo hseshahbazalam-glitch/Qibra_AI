@@ -31,6 +31,7 @@ class ReadingPreferences {
     this.listenWordByWord = false,
     this.playbackSpeed = 1.0,
     this.translationCompare = false,
+    this.wordByWordGloss = false,
     this.readingTheme = QibraReadingTheme.night,
   });
 
@@ -70,6 +71,15 @@ class ReadingPreferences {
   /// the Translation tab (off = only the trailing first-ayah card,
   /// exactly the pre-Q2 layout).
   final bool translationCompare;
+
+  /// Pass M6 (W): WORD-BY-WORD GLOSS on the mushaf pages — each
+  /// Arabic word rendered over its bundled English gloss, tappable
+  /// to the word-explain sheet. Default OFF, persisted, instant.
+  /// Deliberately SEPARATE from [listenWordByWord] (that is the
+  /// audio cue mode on the surah reader). Honest by construction:
+  /// the gloss corpus is English-only — no Urdu data exists, and
+  /// the toggle promises nothing beyond the data (W4).
+  final bool wordByWordGloss;
 
   /// Pass D2: the reading-surface palette switch. NIGHT (default) is
   /// the untouched global navy; PAPER paints the cream duotone on
@@ -114,6 +124,7 @@ class ReadingPreferences {
     bool? listenWordByWord,
     double? playbackSpeed,
     bool? translationCompare,
+    bool? wordByWordGloss,
     QibraReadingTheme? readingTheme,
   }) {
     return ReadingPreferences(
@@ -129,6 +140,7 @@ class ReadingPreferences {
       listenWordByWord: listenWordByWord ?? this.listenWordByWord,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       translationCompare: translationCompare ?? this.translationCompare,
+      wordByWordGloss: wordByWordGloss ?? this.wordByWordGloss,
       readingTheme: readingTheme ?? this.readingTheme,
     );
   }
@@ -215,6 +227,8 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
       ),
       translationCompare:
           prefs.getBool('${_key}_translation_compare') ?? false,
+      wordByWordGloss:
+          prefs.getBool('${_key}_word_by_word_gloss') ?? false,
       readingTheme: ReadingPreferences.validSurface(
         prefs.getString('${_key}_reading_theme'),
       ),
@@ -246,6 +260,8 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     await prefs.setDouble('${_key}_playback_speed', state.playbackSpeed);
     await prefs.setBool(
         '${_key}_translation_compare', state.translationCompare);
+    await prefs.setBool(
+        '${_key}_word_by_word_gloss', state.wordByWordGloss);
     await prefs.setString('${_key}_reading_theme', state.readingTheme.name);
   }
 
@@ -261,6 +277,14 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
   Future<void> setTranslationCompare(bool value) async {
     if (value == state.translationCompare) return;
     state = state.copyWith(translationCompare: value);
+    await _save();
+  }
+
+  /// Persist the mushaf word-by-word gloss mode (M6 W1) — the same
+  /// guard-then-save shape as every other setter.
+  Future<void> setWordByWordGloss(bool value) async {
+    if (value == state.wordByWordGloss) return;
+    state = state.copyWith(wordByWordGloss: value);
     await _save();
   }
 
