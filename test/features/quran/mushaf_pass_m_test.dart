@@ -202,8 +202,6 @@ void main() {
       await g.up();
       await tester.pump(const Duration(milliseconds: 60));
       await tester.pumpAndSettle(const Duration(milliseconds: 40));
-      // ignore: avoid_print
-      print('::error ::DIAG RDR fwd medallion=${find.text('2 / 604').evaluate().length} exc=${tester.takeException()}');
       expect(find.text('2 / 604'), findsOneWidget,
           reason: 'committed turn landed the pager on page 2');
       expect(find.byKey(const ValueKey('mushaf-turn-leaf')), findsNothing,
@@ -417,8 +415,6 @@ void main() {
       // — TestGesture.up() carries zero velocity by default.
       await _swipe(tester, 600);
       await tester.pumpAndSettle(const Duration(milliseconds: 40));
-      // ignore: avoid_print
-      print('::error ::DIAG R1 phase1 commits=$commits exc=${tester.takeException()}');
       expect(commits, 1);
       // Turn #2 — the device killer: re-settling must REUSE the one
       // controller, never construct a second ticker.
@@ -427,8 +423,6 @@ void main() {
       expect(commits, 2,
           reason: 'the second turn commits exactly like the first');
       expect(find.text('settled'), findsOneWidget);
-      // ignore: avoid_print
-      print('::error ::DIAG R1 phase2 commits=$commits exc=${tester.takeException()}');
       expect(tester.takeException(), isNull);
     });
 
@@ -466,13 +460,6 @@ void main() {
       final turn = File(
               'lib/features/quran/presentation/mushaf/mushaf_turn.dart')
           .readAsStringSync();
-      // ignore: avoid_print
-      print('::error ::DIAG R3 late=${turn.contains('late final AnimationController _settle')} '
-          'creations=${RegExp(r'AnimationController\(').allMatches(turn).length} '
-          'disposes=${RegExp(r'_settle\?*\.dispose\(\)').allMatches(turn).length} '
-          'tick=${turn.contains('..addListener(_onSettleTick)')} '
-          'status=${turn.contains('..addStatusListener(_onSettleStatus)')} '
-          'percall=${turn.contains('..addListener(() {')}');
       // F1: ONE controller for the State's whole life, created in
       // initState — a non-nullable late final field makes the nullable
       // dance (the cascade's root) structurally impossible.
