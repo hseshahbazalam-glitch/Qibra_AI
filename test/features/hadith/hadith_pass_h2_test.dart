@@ -503,5 +503,26 @@ void main() {
       expect(home.contains("label: 'Read Full Hadith'"), isFalse);
       expect(home.contains('label: AppStrings.readFullHadith(context)'), isTrue);
     });
+
+    test('G — search rows badge the real match channel; empty is honest', () {
+      final home =
+          File('lib/features/hadith/presentation/hadith_screen.dart')
+              .readAsStringSync();
+      // one source: the pill reads the service's HadithMatchType.label,
+      // never a re-derived guess.
+      expect(home.contains('matchLabel: items[index].matchType.label'), isTrue);
+      expect(home.contains('final String? matchLabel;'), isTrue);
+      // honest empty echoes the query and names the real scope.
+      expect(
+          RegExp(r"No matches',\s*message:\s*'Nothing for").hasMatch(home),
+          isTrue,
+          reason: 'empty state must echo the query');
+      expect(home.contains('searchable collections'), isTrue);
+      // existing recents stay wired; G adds no recent-searches machinery:
+      // exactly the one provider watch + add/clear sites from before.
+      expect(
+          RegExp('hadithRecentSearchesProvider').allMatches(home).length, 4,
+          reason: 'G must not grow recent-searches wiring');
+    });
   }
 }

@@ -996,9 +996,15 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                       return results.when(
                         data: (items) {
                           if (items.isEmpty) {
-                            return const QibraEmptyState(
+                            // Honest empty: echoes what was searched and
+                            // what was searched (the on-device corpus);
+                            // no fabricated collection counts.
+                            return QibraEmptyState(
                               icon: Icons.search_off_rounded,
                               title: 'No matches',
+                              message:
+                                  'Nothing for "${query.trim()}" in the '
+                                  'searchable collections.',
                             );
                           }
                           return ListView.separated(
@@ -1011,6 +1017,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                               return _HadithTile(
                                 hadith: hadith,
                                 highlightQuery: query.trim(),
+                                matchLabel: items[index].matchType.label,
                                 onTap: () => _showDetail(context, hadith),
                               );
                             },
@@ -1346,10 +1353,16 @@ class _HadithTile extends ConsumerWidget {
     required this.hadith,
     required this.onTap,
     this.highlightQuery = '',
+    this.matchLabel,
   });
 
   final HadithModel hadith;
   final VoidCallback onTap;
+
+  /// G: on search rows, the language/match channel the service actually
+  /// matched in (HadithMatchType.label) rides a neutral pill; null (all
+  /// other lists) renders nothing.
+  final String? matchLabel;
 
   /// World-class hadith pass (item 2): when non-empty (search results
   /// only), query terms are emphasised inside the previews — folded
@@ -1424,6 +1437,24 @@ class _HadithTile extends ConsumerWidget {
                     color: colors.textSecondary,
                   ),
                 ),
+              if (matchLabel != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: colors.cardMuted,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    matchLabel!,
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
               IconButton(
                 tooltip: bookmarked
                                   ? AppStrings.of(context)
