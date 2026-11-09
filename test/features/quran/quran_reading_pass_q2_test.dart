@@ -158,17 +158,6 @@ Future<void> pumpReader(
         contiguous: from.c, seen: from.seen, ayah: ayah);
 
 void main() {
-  // M6LEDGER-quran_reading_pass_q2_test (transient, one round): IN/DONE ledgers + the
-  // TALLY in tearDownAll — starts minus completes == the failure.
-  final _m6in = <String>[];
-  final _m6done = <String>[];
-  setUp(() => _m6in.add(testCase.name));
-  tearDown(() => _m6done.add(testCase.name));
-  tearDownAll(() {
-    final missing = _m6in.toSet().difference(_m6done.toSet());
-    print('::error::M6T quran_reading_pass_q2_test :: '
-        '${missing.isEmpty ? 'none-failed' : missing.join(' ;; ')}');
-  });
 
 
   TestWidgetsFlutterBinding.ensureInitialized();
