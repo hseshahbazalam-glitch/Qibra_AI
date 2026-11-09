@@ -18,6 +18,7 @@ import 'package:qibra_ai/shared/widgets/media/pattern_backdrop.dart';
 import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../data/models/hadith_models.dart';
+import '../data/hadith_availability.dart';
 import '../data/services/hadith_database_service.dart';
 import '../data/services/hadith_view_history.dart';
 import '../providers/hadith_provider.dart';
@@ -100,7 +101,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             _buildHero(context, colors, daily),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12), // D4 rhythm: 12 within a block
             // Segment rail (reference): three REAL views over the same
             // providers. QibraChip carries the filled-emerald selected
             // state, matching the reference's active pill.
@@ -125,11 +126,11 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                 ],
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // D4 rhythm
             ...switch (_pane) {
               1 => _collectionsPane(context, colors, books),
               2 => _libraryPane(context),
-              _ => _discoverPane(context, daily, featured),
+              _ => _discoverPane(context, colors, daily, featured, books),
             },
           ],
         ),
@@ -210,9 +211,24 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
 
   List<Widget> _discoverPane(
     BuildContext context,
+    QibraColors colors,
     AsyncValue<HadithModel?> daily,
     AsyncValue<List<HadithModel>> featured,
+    AsyncValue<List<HadithBook>> books,
   ) {
+    // H2-D4 — the home flow in the brief's order: TODAY hero → the
+    // COLLECTIONS rail → CONTINUE reading → RECENTLY READ (compact),
+    // then the featured browse strip keeps its slot last. Rhythm lock:
+    // 24 between sections, 12 within. Every section through
+    // QibraSectionHeader (design rule); continue and recently-read
+    // render NOTHING while history is empty — never a ghost card.
+    final history = ref.watch(hadithHistoryProvider).valueOrNull ??
+        const <HadithModel>[];
+    final continues = <String, HadithModel>{};
+    for (final c in _collections) {
+      final cont = lastReadForBook(history, c['slug']!);
+      if (cont != null) continues[c['slug']!] = cont;
+    }
     return [
       daily.when(
         data: (hadith) => _TodaysHadithCard(
@@ -235,7 +251,15 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
           title: 'Today\'s hadith is unavailable',
         ),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 24),
+      ..._collectionsSection(context, colors, books),
+      if (continues.isNotEmpty) ...[
+        const SizedBox(height: 24),
+        const QibraSectionHeader(title: 'Continue reading'),
+        _continueStrip(context, continues),
+      ],
+      _buildRecentlyRead(ref.watch(hadithHistoryProvider)),
+      const SizedBox(height: 12),
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -255,7 +279,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
           ],
         ),
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 12),
       featured.when(
         data: (hadiths) {
           if (hadiths.isEmpty) {
@@ -269,7 +293,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             children: [
               for (final hadith in hadiths)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: _HadithTile(
                     hadith: hadith,
                     onTap: () => _showDetail(context, hadith),
@@ -291,11 +315,75 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     ];
   }
 
+  /// D4: the per-book continue row over the REAL view history (the same
+  /// lastReadForBook the collection cards use — one source). Empty
+  /// history renders nothing at all; a tap opens the book screen, whose
+  /// resume chip (derived from the same LRU) carries the reader home.
+  Widget _continueStrip(
+      BuildContext context, Map<String, HadithModel> continues) {
+    final slugs = continues.keys.toList();
+    final colors = QibraColors.of(context);
+    return SizedBox(
+      height: 92,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: slugs.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, i) {
+          final slug = slugs[i];
+          final hadith = continues[slug]!;
+          final name = _collections
+              .firstWhere((c) => c['slug'] == slug,
+                  orElse: () => {'name': slug})['name']!;
+          return SizedBox(
+            width: 168,
+            child: QibraCard(
+              padding: const EdgeInsets.all(12),
+              onTap: () => _openBook(context, slug),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.labelMedium.copyWith(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Continue \u00b7 Hadith ${hadith.hadithNumber}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   // Collections pane (reference 'Collections / See all'): a horizontal
   // rail of cover-style cards. No book-cover art is bundled, so the
   // 'cover' is the REAL per-collection accent + icon — never a fake
   // stock cover. Counts come from the downloaded-book metadata.
   List<Widget> _collectionsPane(
+    BuildContext context,
+    QibraColors colors,
+    AsyncValue<List<HadithBook>> books,
+  ) {
+    return [
+      ..._collectionsSection(context, colors, books),
+      const SizedBox(height: 24),
+    ];
+  }
+
+  List<Widget> _collectionsSection(
     BuildContext context,
     QibraColors colors,
     AsyncValue<List<HadithBook>> books,
@@ -306,6 +394,12 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     // guessed.
     final history = ref.watch(hadithHistoryProvider).valueOrNull ??
         const <HadithModel>[];
+    // D4 coverage honesty: per-book translation coverage for the ACTIVE
+    // reading language, from the real corpus census (the same
+    // hadithLanguageCoverageProvider the book screen's language sheet
+    // uses). Rendered ONLY when <100% — full coverage needs no badge.
+    final covLang = ref.watch(hadithLanguageProvider);
+    final covAll = ref.watch(hadithLanguageCoverageProvider).valueOrNull;
     return [
       QibraSectionHeader(
         title: 'Collections',
@@ -395,6 +489,38 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                             color: colors.textTertiary,
                           ),
                         ),
+                        // D4: the native kitab name when the bundled
+                        // metadata carries one — never an invented
+                        // translation (the string ships or the line
+                        // doesn't render).
+                        if (book.nameArabic.isNotEmpty)
+                          Text(
+                            book.nameArabic,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.right,
+                            textDirection: TextDirection.rtl,
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                        if (covAll != null &&
+                            covAll[book.slug]?[covLang] != null &&
+                            HadithAvailability.coveragePercent(
+                                    covAll[book.slug]![covLang]!.nonEmpty,
+                                    covAll[book.slug]![covLang]!.total) <
+                                100)
+                          Text(
+                            AppStrings.of(context).hadithCoverageOfBook(
+                                HadithAvailability.coveragePercent(
+                                    covAll[book.slug]![covLang]!.nonEmpty,
+                                    covAll[book.slug]![covLang]!.total)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.labelXSmall.copyWith(
+                              color: colors.textTertiary,
+                            ),
+                          ),
                         if (cont != null) ...[
                           const SizedBox(height: 2),
                           Text(
@@ -421,7 +547,6 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
           message: 'Cached books will appear when they finish loading.',
         ),
       ),
-      const SizedBox(height: 24),
     ];
   }
 
@@ -462,7 +587,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             ),
           ),
       ],
-      const SizedBox(height: 20),
+      const SizedBox(height: 24),
       _buildRecentlyRead(ref.watch(hadithHistoryProvider)),
     ];
   }

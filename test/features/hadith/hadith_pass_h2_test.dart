@@ -425,4 +425,64 @@ void main() {
       }
     });
   });
+  group('H2-D4 — home flow order, honest continue/native/coverage lines',
+      () {
+    const home = 'lib/features/hadith/presentation/hadith_screen.dart';
+
+    test('discover pane runs hero → collections → continue → recently '
+        'read → featured, in order', () {
+      final src = File(home).readAsStringSync();
+      final i0 = src.indexOf('List<Widget> _discoverPane(');
+      final i1 = src.indexOf('/// D4: the per-book continue row', i0);
+      final seg = src.substring(i0, i1);
+      var at = -1;
+      for (final m in [
+        '_TodaysHadithCard(',
+        '..._collectionsSection(',
+        '_continueStrip(',
+        '_buildRecentlyRead(',
+        'featured.when(',
+      ]) {
+        final p = seg.indexOf(m);
+        expect(p, greaterThan(at), reason: '$m out of order');
+        at = p;
+      }
+    });
+
+    test('collection card: native name only when the data ships one; '
+        'coverage badge only under 100', () {
+      final src = File(home).readAsStringSync();
+      expect(src.contains('if (book.nameArabic.isNotEmpty)'), isTrue,
+          reason: 'D4 honesty: never an invented translation of a kitab '
+              'name — the metadata ships it or the line does not render');
+      expect(
+          src.contains('.hadithCoverageOfBook('), isTrue,
+          reason: 'the coverage line reuses the H1 helper, not a new one');
+      expect(src.contains('<
+                                100)'),
+          isTrue,
+          reason: 'full coverage must NOT badge itself');
+    });
+
+    test('continue section is history-driven and vanishes when empty', () {
+      final src = File(home).readAsStringSync();
+      expect(src.contains('if (continues.isNotEmpty) ...['), isTrue);
+      expect(src.contains("const QibraSectionHeader(title: 'Continue "
+          "reading'),"), isTrue,
+          reason: 'sections speak through QibraSectionHeader (design '
+              'rule) — never hand-rolled rows');
+      expect(src.contains('lastReadForBook(history, c[\'slug\']!)'), isTrue,
+          reason: 'one source for continue — the same LRU reader the '
+              'collection cards and the book screen use');
+    });
+
+    test('rhythm: the pre-D4 strays (14 and 20) are gone from the home '
+        'flow', () {
+      final src = File(home).readAsStringSync();
+      expect(src.contains('const SizedBox(height: 14)'), isFalse,
+          reason: '24 between sections, 12 within — 14 was neither');
+      expect(src.contains('const SizedBox(height: 20)'), isFalse,
+          reason: '20 -> 24 (section gap) as part of the same rhythm');
+    });
+  });
 }
