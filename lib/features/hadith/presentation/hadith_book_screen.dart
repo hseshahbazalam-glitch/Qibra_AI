@@ -363,9 +363,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
             onSelected: (v) => setState(() => _selectedChapterNumber =
                 v == _allChaptersKey ? null : int.parse(v)),
             itemBuilder: (ctx) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: _allChaptersKey,
-                child: Text('All Chapters'),
+                child: Text(strings.hadithAllChapters),
               ),
               for (final ch in chapters)
                 PopupMenuItem(

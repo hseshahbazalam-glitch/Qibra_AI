@@ -400,8 +400,9 @@ void main() {
           reason: 'language, showArabic and both scales in ONE sheet '
               '(already true pre-H2 — audit verdict: organize, do not '
               'reinvent; pinned so a future split fails here)');
-      expect(src.contains('_showReadingLanguageSheet(context)'), isTrue,
-          reason: 'language row stays wired INTO the sheet');
+      expect(src.contains('_showReadingLanguageSheet(sheetContext)'), isTrue,
+          reason: 'language row stays wired INTO the sheet (its own sheet '
+              'context, not the caller\'s — the pin rides reality)');
       expect(src.contains('hadithReadingPreferencesProvider'), isTrue);
     });
 

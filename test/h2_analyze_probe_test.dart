@@ -16,7 +16,7 @@ void main() {
       'test',
       '--reporter',
       'expanded',
-      'test/features/hadith/',
+      'test/',
     ]);
     final o = r.stdout.transform(Utf8Decoder()).join();
     final e = r.stderr.transform(Utf8Decoder()).join();
@@ -32,7 +32,11 @@ void main() {
     for (var i = 0; i < all.length; i++) {
       final c = all[i].trim();
       if (c.startsWith('Expected:') || c.startsWith('Actual:') ||
-          c.startsWith('Which:')) lines.add(c);
+          c.startsWith('Which:') ||
+          c.startsWith('#1 ') && c.contains('test') ||
+          c.contains('hadith_pass_h2_test.dart:') && c.contains(':')) {
+        lines.add(c);
+      }
       if (lines.length > 70) break;
     }
     for (final l in lines) {
