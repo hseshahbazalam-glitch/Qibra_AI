@@ -102,7 +102,9 @@ void main() {
       expect(home.contains("'My Library'"), isTrue);
       expect(home.contains('...switch (_pane) {'), isTrue);
       // CTA + search pill reuse the existing handlers.
-      expect(home.contains("label: 'Read Full Hadith'"), isTrue);
+      // H2-I: migrated to AppStrings (the widget-level overflow golden
+      // below still builds its own labelled replica — unaffected).
+      expect(home.contains('label: AppStrings.readFullHadith(context)'), isTrue);
       expect(home.contains('_SearchPill(onTap: () => _showSearchSheet(context))'),
           isTrue);
       // My Library renders the REAL bookmark store; See-all routes to

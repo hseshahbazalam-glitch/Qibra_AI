@@ -483,4 +483,25 @@ void main() {
           reason: '20 -> 24 (section gap) as part of the same rhythm');
     });
   });
+
+    test('I — migrated labels stay migrated (no raw literals return)', () {
+      final home =
+          File('lib/features/hadith/presentation/hadith_screen.dart')
+              .readAsStringSync();
+      final book =
+          File('lib/features/hadith/presentation/hadith_book_screen.dart')
+              .readAsStringSync();
+      // 'All Chapters' lives in AppStrings only (D3's popup); the chip
+      // rail's 'Ch N' labels go through hadithChapterShort (D6); the
+      // today-card CTA reads its label from AppStrings too (I proper).
+      expect(book.contains("'All Chapters'"), isFalse,
+          reason: 'must come from AppStrings.hadithAllChapters');
+      expect(book.contains('AppStrings.hadithAllChapters(context)'), isTrue);
+      expect(book.contains("label: 'Ch '"), isFalse);
+      expect(book.contains('hadithChapterShort(context, n)'), isTrue,
+          reason: 'chip labels must route through the l10n builder');
+      expect(home.contains("label: 'Read Full Hadith'"), isFalse);
+      expect(home.contains('label: AppStrings.readFullHadith(context)'), isTrue);
+    });
+  }
 }
