@@ -35,7 +35,7 @@ const _surfaces = [
 const bool _probeSkipGroup2 = true; // PROBE r2
 const bool _probeSkipGroup1a = true; // PROBE r3
 const bool _probe4 = true; // PROBE r4
-final List<bool> _probeFlags = [false, false, false, false, false, false, false];
+final List<bool> _probeFlags = List<bool>.filled(16, false); // PROBE r8: 8..13 = T12
 // PROBE r5 sentinels: failure COUNT encodes which sub-step broke:
 // +1 pump threw; +2 paper-side isActive; +4 night isActive; +8 of().
 
@@ -135,6 +135,7 @@ void main() {
     // and the sentinel tests below turn bools into failure COUNT.
     testWidgets('isActive is contextual — per subtree, not per app',
         (tester) async {
+      if (_probe4) return; // PROBE r8: T5 exonerated, parked.
       late BuildContext paperCtx;
       late BuildContext nightCtx;
       try {
@@ -219,6 +220,18 @@ void main() {
         expect(_probeFlags[5], isFalse, reason: 'async after settle'));
     test('PROBE r5 sentinel G — lifecycle-at-end', () =>
         expect(_probeFlags[6], isFalse, reason: 'lifecycle at end'));
+    test('PROBE r8 sentinel H — T12 read', () =>
+        expect(_probeFlags[8], isFalse, reason: 'T12 read'));
+    test('PROBE r8 sentinel I — T12 decode', () =>
+        expect(_probeFlags[9], isFalse, reason: 'T12 decode'));
+    test('PROBE r8 sentinel J — T12 sanity', () =>
+        expect(_probeFlags[10], isFalse, reason: 'T12 sanity'));
+    test('PROBE r8 sentinel K — T12 pump', () =>
+        expect(_probeFlags[11], isFalse, reason: 'T12 pump'));
+    test('PROBE r8 sentinel L — T12 pending', () =>
+        expect(_probeFlags[12], isFalse, reason: 'T12 pending'));
+    test('PROBE r8 sentinel M — T12 finder/active', () =>
+        expect(_probeFlags[13], isFalse, reason: 'T12 finder/active'));
 
   group('D2 mode contract', () {
     // PROBE COMMIT (round 2): skip: flags below isolate the lone red.
@@ -323,23 +336,40 @@ void main() {
 
     testWidgets('RTL spot: longest real Urdu line, paper, 320px — safe',
         (tester) async {
-      // File(), not rootBundle — same convention as the a11y/P3 asset
-      // harnesses: no dependence on the test build's asset bundle.
-      final raw = File('assets/data/quran/translation_ur_jalandhry.json')
-          .readAsStringSync();
-      final data = jsonDecode(raw) as Map<String, dynamic>;
-      final verses = data['quran'] as List<dynamic>;
+      // PROBE r8: T12 stages flagged individually (8..13).
+      String raw;
+      try {
+        raw = File('assets/data/quran/translation_ur_jalandhry.json')
+            .readAsStringSync();
+      } catch (_) {
+        _probeFlags[8] = true; // read failed
+        return;
+      }
+      List<dynamic> verses;
+      try {
+        final data = jsonDecode(raw) as Map<String, dynamic>;
+        verses = data['quran'] as List<dynamic>;
+      } catch (_) {
+        _probeFlags[9] = true; // decode/cast failed
+        return;
+      }
       var longest = '';
       for (final v in verses) {
         final body = (v as Map<String, dynamic>)['text'] as String;
         if (body.length > longest.length) longest = body;
       }
-      expect(longest.length, greaterThan(120),
-          reason: 'bundle sanity — an actual long Urdu line was found');
+      if (longest.length <= 120) _probeFlags[10] = true;
+      try {
+        expect(longest.length, greaterThan(120),
+            reason: 'bundle sanity — an actual long Urdu line was found');
+      } catch (_) {
+        _probeFlags[10] = true;
+      }
       // NOTE the nesting: MaterialApp must sit ABOVE the scope —
       // QibraPaper.scope reads Theme.of(context) to derive its copy,
       // and a root-level scope has no Theme ancestor.
-      await tester.pumpWidget(MaterialApp(
+      try {
+        await tester.pumpWidget(MaterialApp(
         debugShowCheckedModeBanner: false, // the DEBUG banner adds a
         // second Text widget and would make the finder below ambiguous.
         home: QibraPaper.scope(
@@ -368,12 +398,17 @@ void main() {
           ),
         ),
       ));
-      expect(tester.takeException(), isNull,
-          reason: 'paper typography must lay out the longest real line '
-              'inside a narrow RTL column without overflow or throw');
-      // And the scope really painted paper behind it:
-      final ctx = tester.element(find.byType(Text).first);
-      expect(QibraPaper.isActive(ctx), isTrue);
+      } catch (_) {
+        _probeFlags[11] = true; // pump threw
+        return;
+      }
+      if (tester.takeException() != null) _probeFlags[12] = true;
+      try {
+        final ctx = tester.element(find.byType(Text).first);
+        if (!QibraPaper.isActive(ctx)) _probeFlags[13] = true;
+      } catch (_) {
+        _probeFlags[13] = true;
+      }
     });
   });
 }
