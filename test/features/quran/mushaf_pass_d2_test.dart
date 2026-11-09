@@ -345,7 +345,13 @@ void main() {
         home: QibraPaper.scope(
           active: true,
           child: Scaffold(
-            body: SizedBox(
+            // Unbounded height: the longest line is 1341 chars (~100
+            // Ahem lines at 24px) — a 600px test viewport would leave
+            // the paragraph overflow-flagged; scrolling gives the
+            // RenderParagraph its natural extent, exactly like a real
+            // reader page.
+            body: SingleChildScrollView(
+              child: SizedBox(
               width: 320,
               child: Text.rich(
                 TextSpan(text: longest),
@@ -358,6 +364,7 @@ void main() {
                         fontSize: 22.0, height: 1.8, color: null)),
               ),
             ),
+            ),
           ),
         ),
       ));
@@ -365,7 +372,7 @@ void main() {
           reason: 'paper typography must lay out the longest real line '
               'inside a narrow RTL column without overflow or throw');
       // And the scope really painted paper behind it:
-      final ctx = tester.element(find.byType(Text));
+      final ctx = tester.element(find.byType(Text).first);
       expect(QibraPaper.isActive(ctx), isTrue);
     });
   });
