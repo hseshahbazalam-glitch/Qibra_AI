@@ -200,6 +200,8 @@ MushafReamPainter ream(
     MushafReamPainter(
         turn: turn, sheetA: a, sheetB: b, crease: c, depth: depth);
 
+
+final List<String> _res = <String>[];
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
@@ -226,8 +228,8 @@ void main() {
       expect(MushafTurnGeometry.clipSlackFor(const Size(3000, 600)),
           closeTo(3.0, 1e-12)); // height governs, not width
     
-        print('::error::PASS formula');
-      } catch (e) { print('::error::FAIL formula :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('formula OK');
+      } catch (e) { _res.add('formula !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
     test('alignment: slack lands on WHOLE device pixels, rounded UP',
@@ -262,8 +264,8 @@ void main() {
           closeTo(MushafTurnGeometry.clipSlackFor(const Size(400, 400)),
               1e-12));
     
-        print('::error::PASS alignment');
-      } catch (e) { print('::error::FAIL alignment :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('alignment OK');
+      } catch (e) { _res.add('alignment !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
     test('the fixed 1.2px const is GONE from the clipper (no legacy)',
@@ -275,8 +277,8 @@ void main() {
       expect(src, isNot(contains('static const double _slack')));
       expect(src, contains('MushafTurnGeometry.clipSlackAligned'));
     
-        print('::error::PASS the fixed 1.2px const is');
-      } catch (e) { print('::error::FAIL the fixed 1.2px const is :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('the fixed 1.2p OK');
+      } catch (e) { _res.add('the fixed 1.2p !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
   });
 
@@ -341,8 +343,8 @@ void main() {
       }
     }
   
-        print('::error::PASS C2');
-      } catch (e) { print('::error::FAIL C2 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('C2 OK');
+      } catch (e) { _res.add('C2 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   // ── C3 — CONTENT containment, widget level, per textScale ────
@@ -369,8 +371,8 @@ void main() {
       }
     }
   
-        print('::error::PASS C3');
-      } catch (e) { print('::error::FAIL C3 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('C3 OK');
+      } catch (e) { _res.add('C3 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   testWidgets('C3b: at mid-turn on a 411/1.3 device, each RichText '
@@ -415,8 +417,8 @@ void main() {
     }
     await releaseTurn(tester, g);
   
-        print('::error::PASS C3b');
-      } catch (e) { print('::error::FAIL C3b :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('C3b OK');
+      } catch (e) { _res.add('C3b !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   // ── C4 — ancestor-clip audit at EVERY width + the CPH2573 ────
@@ -448,8 +450,8 @@ void main() {
               'carrying a non-zero angle at this width');
       await releaseTurn(tester, g);
     
-        print('::error::PASS C4');
-      } catch (e) { print('::error::FAIL C4 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('C4 OK');
+      } catch (e) { _res.add('C4 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
   }
 
@@ -473,8 +475,8 @@ void main() {
             MushafTurnGeometry.clipSlackFor(clipSize)));
     await releaseTurn(tester, g);
   
-        print('::error::PASS C4b');
-      } catch (e) { print('::error::FAIL C4b :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('C4b OK');
+      } catch (e) { _res.add('C4b !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   // ── C5 — the debug clip diagnostic ships SILENT ───────────────
@@ -491,8 +493,8 @@ void main() {
     expect(kMushafDebugClip, isFalse,
         reason: 'the default build — every CI/test path — is OFF');
   
-        print('::error::PASS C5');
-      } catch (e) { print('::error::FAIL C5 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('C5 OK');
+      } catch (e) { _res.add('C5 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   testWidgets('C5b: shipping tree carries no outline painter, even '
@@ -504,8 +506,8 @@ void main() {
         findsNothing);
     await releaseTurn(tester, g);
   
-        print('::error::PASS C5b');
-      } catch (e) { print('::error::FAIL C5b :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('C5b OK');
+      } catch (e) { _res.add('C5b !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   // ── R — the ream ──────────────────────────────────────────────
@@ -527,8 +529,8 @@ void main() {
         reason: 'rest depth = the 2% floor of the 2-4% band');
     expect(MushafReamPainter.sheets, inInclusiveRange(4, 6));
   
-        print('::error::PASS R1');
-      } catch (e) { print('::error::FAIL R1 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('R1 OK');
+      } catch (e) { _res.add('R1 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   testWidgets('R2: at turn peak the outermost sheet rides swell; at '
@@ -556,8 +558,8 @@ void main() {
         reason: 'the lift ENDS exactly where it started — a ghost '
             'sheet frozen mid-fade is the bug this pin kills');
   
-        print('::error::PASS R2');
-      } catch (e) { print('::error::FAIL R2 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('R2 OK');
+      } catch (e) { _res.add('R2 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   testWidgets('R3: depth rides the spineCrease ramp (2%..4%)',
@@ -584,8 +586,8 @@ void main() {
         reason: "the ramp rides swell's exact-zero ends: the settled "
             'frame is the rest frame, bit for bit');
   
-        print('::error::PASS R3');
-      } catch (e) { print('::error::FAIL R3 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('R3 OK');
+      } catch (e) { _res.add('R3 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   test('R4: free-edge line dims while gild shares the edge — the '
@@ -612,8 +614,8 @@ void main() {
           reason: 'ream must not re-derive the gold ($g found)');
     }
   
-        print('::error::PASS R4');
-      } catch (e) { print('::error::FAIL R4 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('R4 OK');
+      } catch (e) { _res.add('R4 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   test('R5: token-only — zero Color(0x) literals in the ream file, '
@@ -636,8 +638,8 @@ void main() {
           reason: 'both palettes resolve through these three fields');
     }
   
-        print('::error::PASS R5');
-      } catch (e) { print('::error::FAIL R5 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('R5 OK');
+      } catch (e) { _res.add('R5 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   testWidgets('R6: RepaintBoundary + data-only shouldRepaint (the '
@@ -654,8 +656,8 @@ void main() {
         reason: 'ream repaints never dirty the settled page — the '
             'grain pattern wraps its painter in a boundary');
   
-        print('::error::PASS R6');
-      } catch (e) { print('::error::FAIL R6 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('R6 OK');
+      } catch (e) { _res.add('R6 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   test('R6b: shouldRepaint compares DATA only — same values no, '
@@ -674,8 +676,8 @@ void main() {
         reason: 'rest-to-rest pumps (hint fades etc) must NOT dirty '
             'the ream: turn 0 == turn 0 exactly');
   
-        print('::error::PASS R6b');
-      } catch (e) { print('::error::FAIL R6b :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('R6b OK');
+      } catch (e) { _res.add('R6b !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   // ── Z6 — physics zero-diff (scope lock, substring form) ─────
@@ -727,14 +729,14 @@ void main() {
       }
     }
   
-        print('::error::PASS Z6');
-      } catch (e) { print('::error::FAIL Z6 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('Z6 OK');
+      } catch (e) { _res.add('Z6 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 
   test('Z7: no new saveLayer, no hex literals in touched files, one '
       'controller still (M-suite invariants hold through M5)', () {
       try {
-    final turn =
+print('::error::TALLY ' + _res.join(' ~ ')); _res.add('Z7 run');     final turn =
         File('lib/features/quran/presentation/mushaf/mushaf_turn.dart')
             .readAsStringSync();
     final reamSrc = File(
@@ -749,7 +751,7 @@ void main() {
     expect(
         RegExp(r'AnimatedBuilder\(').allMatches(turn).length, 1);
   
-        print('::error::PASS Z7');
-      } catch (e) { print('::error::FAIL Z7 :: ' + e.toString().split('\n').take(4).join(' | ')); rethrow; }
+        _res.add('Z7 OK');
+      } catch (e) { _res.add('Z7 !! ' + e.toString().split('\n').first.substring(0, math.min(70, e.toString().split('\n').first.length))); rethrow; }
     });
 }
