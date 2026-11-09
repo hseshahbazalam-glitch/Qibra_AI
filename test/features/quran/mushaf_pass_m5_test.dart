@@ -206,8 +206,8 @@ void main() {
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('M1e set-typed', () {
-    const s = <double>{1.0, 2.75, 2.8125, 3.0};
+  test('M5 nonconst set', () {
+    final s = <double>{1.0, 2.75, 2.8125, 3.0};
     expect(s.length, 4);
   });
 
