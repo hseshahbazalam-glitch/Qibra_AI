@@ -206,9 +206,9 @@ void main() {
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('M1d const-double', () {
-    const k = 2.8125;
-    expect(k, 2.8125);
+  test('M1g set-name-s', () {
+    const s = {1.0, 2.75, 2.8125, 3.0};
+    expect(s.length, 4);
   });
 
   for (final profile in const [
