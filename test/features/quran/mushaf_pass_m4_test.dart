@@ -190,14 +190,6 @@ Future<void> releaseLeaf(WidgetTester tester, TestGesture g) async {
 }
 
 void main() {
-  // M6LEDGER-mushaf_pass_m4_test (transient, removed with the triage file): IN/DONE
-  // name ledgers; the final TALLY annotation prints what started but
-  // never completed — exactly the failing test(s) in this file.
-  final _m6in = <String>[];
-  final _m6done = <String>[];
-  setUp(() => _m6in.add(testCase.name));
-  tearDown(() => _m6done.add(testCase.name));
-
 
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
@@ -623,12 +615,5 @@ void main() {
       expect(turn, isNot(contains('Color(0x')));
       expect(turn, isNot(contains('saveLayer')));
     });
-  });
-
-  test('M6TALLY mushaf_pass_m4_test', () {
-    final missing = _m6in.toSet().difference(_m6done.toSet());
-    print('::error::M6T mushaf_pass_m4_test :: '
-        '${missing.isEmpty ? 'none-failed' : missing.join(' ;; ')}');
-    expect(missing, isEmpty, reason: 'file mushaf_pass_m4_test had failures');
   });
 }

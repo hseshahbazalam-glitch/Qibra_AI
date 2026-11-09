@@ -207,14 +207,6 @@ MushafReamPainter ream(
         turn: turn, sheetA: a, sheetB: b, crease: c, depth: depth);
 
 void main() {
-  // M6LEDGER-mushaf_pass_m5_test (transient, removed with the triage file): IN/DONE
-  // name ledgers; the final TALLY annotation prints what started but
-  // never completed — exactly the failing test(s) in this file.
-  final _m6in = <String>[];
-  final _m6done = <String>[];
-  setUp(() => _m6in.add(testCase.name));
-  tearDown(() => _m6done.add(testCase.name));
-
 
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
@@ -695,11 +687,4 @@ final turn =
     expect(
         RegExp(r'AnimatedBuilder\(').allMatches(turn).length, 1);
     });
-
-  test('M6TALLY mushaf_pass_m5_test', () {
-    final missing = _m6in.toSet().difference(_m6done.toSet());
-    print('::error::M6T mushaf_pass_m5_test :: '
-        '${missing.isEmpty ? 'none-failed' : missing.join(' ;; ')}');
-    expect(missing, isEmpty, reason: 'file mushaf_pass_m5_test had failures');
-  });
 }
