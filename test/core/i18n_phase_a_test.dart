@@ -61,6 +61,16 @@ void main() {
         // Proper/sacred noun by itself as a source label (not chrome copy)
         // — brief's SKIP class. Phase A decision (2026-09): stays English.
         'lib/features/tools/presentation/hajj_guide_screen.dart|Text(\'Quran\',',
+        // Pass D2 decision (2026-09): the Reading Theme segment labels.
+        // Settings is NOT one of A2's ten wired files; every tile title
+        // in it ('Dark Mode', 'Font Size', ...) is a literal passed
+        // through a variable, and Night/Paper are product-surface names
+        // (the same class as the brief's chrome). A real i18n wiring of
+        // settings would migrate this whole file, not these two labels.
+        'lib/features/settings/presentation/settings_screen.dart|value: '
+            'QibraReadingTheme.night, label: Text(\'Night\')),',
+        'lib/features/settings/presentation/settings_screen.dart|value: '
+            'QibraReadingTheme.paper, label: Text(\'Paper\')),',
       };
       final rx = RegExp(r"Text\(\s*'[A-Z]");
       final hits = <String>[];
