@@ -5,32 +5,21 @@
 // subprocesses inside a test and smuggle their reports. Deleted
 // with the fix that names the culprit.
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
 Future<String> _run(String exe, List<String> args) async {
-  final p = await Process.start(exe, args);
-  final out = p.stdout.transform(Utf8Decoder()).join();
-  final err = p.stderr.transform(Utf8Decoder()).join();
-  final joined = await Future.wait([out, err]);
-  await p.exitCode;
-  return '${joined[0]}\n${joined[1]}';
+  final r = await Process.run(exe, args);
+  return '${r.stdout}\n${r.stderr}';
 }
 
 void main() {
   test('M6META: analyze report + per-file suite triage', () async {
-    final an = await _run('flutter', ['analyze', '--no-fatal-infos']);
-    final lines = const LineSplitter()
-        .convert(an)
-        .where((l) => l.contains(' error ') || l.contains(' warning '))
-        .toList();
-    print('::error::M6ANALYZE x${lines.length} :: '
-        '${lines.take(10).join(' || ').substring(0,
-            lines.take(10).join(' || ').length < 1600
-                ? lines.take(10).join(' || ').length
-                : 1600)}');
+    final an = await _run(
+        'bash', ['-lc', 'flutter analyze --no-fatal-infos 2>&1 | tail -c 2000']);
+    print('::error::M6ANALYZE :: '
+        '${an.length > 1500 ? an.substring(an.length - 1500) : an}');
     for (final f in [
       'test/features/quran/mushaf_pass_m_test.dart',
       'test/features/quran/mushaf_pass_m4_test.dart',
@@ -39,14 +28,9 @@ void main() {
       'test/features/quran/mushaf_pass_d2_test.dart',
       'test/features/quran/quran_reading_pass_q2_test.dart',
     ]) {
-      final r = await _run('flutter', ['test', f]);
-      final fails = const LineSplitter()
-          .convert(r)
-          .where((l) =>
-              l.contains('[E]') || l.contains('Some tests failed') || l.contains('All tests passed'))
-          .toList();
-      print('::error::M6TRIAGE ${f.split('/').last} :: '
-          '${fails.join(' ;; ').length > 1500 ? fails.join(' ;; ').substring(0, 1500) : fails.join(' ;; ')}');
-    }
+      final r = await _run(
+          'bash', ['-lc', 'flutter test $f --reporter expanded 2>&1 | tail -c 2500']);
+      print('::error::M6RAW ${f.split('/').last} :: '
+          '${r.length > 1500 ? r.substring(r.length - 1500) : r}');
   }, timeout: const Timeout(Duration(minutes: 25)));
 }
