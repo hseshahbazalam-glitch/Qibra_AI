@@ -1214,15 +1214,16 @@ class _MushafPage extends StatelessWidget {
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(
-              // L4 (M2 look): one spacing refinement on the surah
-              // hairline — 8 → 10 vertical breathing; weight/height
-              // untouched (1.0 stays crisp at every DPR).
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              // L4 (M2 look): the specced spacing refinement on the
+              // surah hairline — 8 → 12 vertical breathing, side-text
+              // inset 10 → 12; weight/height untouched (1.0 stays
+              // crisp at every DPR).
+              padding: const EdgeInsets.symmetric(vertical: 12),
               child: Row(
                 children: [
                   Expanded(child: Container(height: 1, color: colors.border)),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'سُورَة ${e.surahName}',
                       style: AppArabicStyles.quranSmall.copyWith(
