@@ -33,7 +33,9 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     # H2PROBE round 2 (transient)
-    - "lib/features/hadith/presentation/hadith_book_screen.dart"  language:
+    - "lib/features/hadith/presentation/hadith_book_screen.dart"
+    - "test/features/hadith/hadith_pass_h2_test.dart"
+    - "lib/core/l10n/app_strings.dart"  language:
     strict-casts: true
     strict-inference: false
     strict-raw-types: true

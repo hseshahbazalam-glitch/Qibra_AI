@@ -8,21 +8,32 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('h2a: dart analyze verdict for the book screen (via copy)',
       () async {
-    const t = 'lib/features/hadith/presentation/hadith_book_screen.dart';
-    final c = 'lib/features/hadith/presentation/h2copy_hadith_book_screen.dart';
-    File(c).writeAsStringSync(File(t).readAsStringSync());
+    const targets = [
+      'lib/features/hadith/presentation/hadith_book_screen.dart',
+      'test/features/hadith/hadith_pass_h2_test.dart',
+      'lib/core/l10n/app_strings.dart',
+    ];
+    final cs = <String>[];
+    for (final t in targets) {
+      final i = t.lastIndexOf('/');
+      final c = '${t.substring(0, i)}/h2copy_${t.substring(i + 1)}';
+      File(c).writeAsStringSync(File(t).readAsStringSync());
+      cs.add(c);
+    }
     String out = '';
     try {
-      final r = await Process.start('dart', ['analyze', c]);
+      final r = await Process.start('dart', ['analyze', ...cs]);
       final o = r.stdout.transform(Utf8Decoder()).join();
       final e = r.stderr.transform(Utf8Decoder()).join();
       final joined = await Future.wait([o, e]);
       await r.exitCode;
       out = '${joined[0]}\n${joined[1]}';
     } finally {
-      try {
-        File(c).deleteSync();
-      } catch (_) {}
+      for (final c in cs) {
+        try {
+          File(c).deleteSync();
+        } catch (_) {}
+      }
     }
     final lines = const LineSplitter()
         .convert(out)
