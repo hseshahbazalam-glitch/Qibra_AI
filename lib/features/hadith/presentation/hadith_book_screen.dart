@@ -162,7 +162,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
               ? QibraColors.of(pageContext).background
               : QibraNavy.canvas;
           return Scaffold(
-      backgroundColor: QibraNavy.canvas,
+      backgroundColor: pageBg,
       body: SafeArea(
         child: CustomScrollView(
           controller: _scroll,
