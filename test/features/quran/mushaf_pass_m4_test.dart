@@ -30,6 +30,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // FontLoader + ByteData (M-suite pattern)
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
