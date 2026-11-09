@@ -19,7 +19,6 @@ const _screenPath =
     'lib/features/settings/presentation/profile_setup_screen.dart';
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('avatar screen wiring — real picker, no fabrication', () {

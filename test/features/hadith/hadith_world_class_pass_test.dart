@@ -24,7 +24,6 @@ import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('split reading scales (item 1)', () {

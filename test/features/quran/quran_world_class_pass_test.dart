@@ -14,7 +14,6 @@ import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
 import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('follow-along machine (item 1)', () {

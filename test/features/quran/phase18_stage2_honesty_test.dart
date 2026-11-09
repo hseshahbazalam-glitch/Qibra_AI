@@ -15,7 +15,6 @@ const _stage2Screens = [
 ];
 
 void main() {
-
   test('stage 2 screens exist', () {
     for (final p in _stage2Screens) {
       expect(File(p).existsSync(), isTrue, reason: p);

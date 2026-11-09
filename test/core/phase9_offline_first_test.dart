@@ -12,7 +12,6 @@ import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 import 'package:qibra_ai/features/prayer/data/services/prayer_schedule_cache.dart';
 
 void main() {
-
   DateTime t0 = DateTime.utc(2026, 8, 30, 12);
 
   CacheStore storeAt(DateTime Function() clock) {

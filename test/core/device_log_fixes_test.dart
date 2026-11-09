@@ -8,7 +8,6 @@ import 'package:qibra_ai/features/prayer/data/services/mosque_service.dart';
 String read(String rel) => File(rel).readAsStringSync();
 
 void main() {
-
   group('ListTile/ink surface guards (fix 1)', () {
     test('hadith detail-sheet body is a Material with the same radius', () {
       final src =

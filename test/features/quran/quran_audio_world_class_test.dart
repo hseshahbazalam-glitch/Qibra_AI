@@ -69,7 +69,6 @@ Future<void> _settle() async {
 }
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('qari catalog', () {

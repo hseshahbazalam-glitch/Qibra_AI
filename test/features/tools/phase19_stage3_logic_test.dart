@@ -19,7 +19,6 @@ NamedPrayerInstant _p(String n, int h, int m) => NamedPrayerInstant(
     );
 
 void main() {
-
   group('SearchNormalizer', () {
     test('Arabic query without tashkeel matches tashkeel text', () {
       const text = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';

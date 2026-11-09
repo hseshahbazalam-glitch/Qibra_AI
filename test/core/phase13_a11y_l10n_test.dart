@@ -6,7 +6,6 @@ import 'package:qibra_ai/core/l10n/app_locales.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 void main() {
-
   test('locales en/ar/ur and RTL', () {
     expect(AppLocales.supported.map((l) => l.languageCode).toList(),
         ['en', 'ar', 'ur']);

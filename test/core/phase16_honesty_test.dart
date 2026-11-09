@@ -8,7 +8,6 @@ import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
 
 void main() {
-
   test('word-by-word unknown is not a meaning', () {
     final glosses = WordByWordResolver.tokenize('بِسْمِ اللَّهِ');
     expect(glosses, isNotEmpty);

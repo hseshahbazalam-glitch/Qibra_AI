@@ -13,7 +13,6 @@ import '../../support/source_guards.dart';
 /// from them, the app silently breaks against the live service, so they
 /// fail loudly here instead.
 void main() {
-
   group('backend base URL — single source', () {
     // Phase B (2026-09-08): constants decomposed into parts/ — the
     // pinned literals live in the AppApi part; assertions unchanged.

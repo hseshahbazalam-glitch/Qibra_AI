@@ -40,7 +40,6 @@ bool _unjoinable(Map<String, dynamic> rec) {
 }
 
 void main() {
-
   const books = kHadithBookSlugs;
   const newLangs = {'bn': 'bengali', 'tr': 'turkish', 'id': 'indonesian', 'fr': 'french'};
 

@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-
   group('AppStrings coverage', () {
     test('every getter: en/ar/ur non-empty and ar/ur distinct from en', () {
       final src = File('lib/core/l10n/app_strings.dart').readAsStringSync();

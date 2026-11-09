@@ -181,7 +181,6 @@ Future<void> loadAppTestFonts() async {
 }
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
   // Same real-fonts-first rule as the Q2 harness: Ahem metrics
   // manufacture fake overflow in the reader's Arabic card (the

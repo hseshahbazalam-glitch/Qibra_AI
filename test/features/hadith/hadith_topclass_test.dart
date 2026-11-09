@@ -50,7 +50,6 @@ HadithModel _model(int number, {String slug = 'bukhari'}) => HadithModel(
     );
 
 void main() {
-
   group('Today card — real Hijri date line (item 1)', () {
     test('label format is exact package math on a FIXED date — no now()', () {
       // HijriCalendar.fromDate is the package's deterministic entry

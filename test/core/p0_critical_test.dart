@@ -146,7 +146,6 @@ class _FakeAuthRepository implements AuthRepository {
 }
 
 void main() {
-
   group('P0.1 Auth Anonymous-First', () {
     test('backend disabled (seam) -> guest error, no fake token, ZERO egress',
         () async {

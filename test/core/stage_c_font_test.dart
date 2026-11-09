@@ -19,7 +19,6 @@ const _interFiles = <String, int>{
 };
 
 void main() {
-
   test('bundled TTFs exist on disk and are valid TrueType', () {
     for (final p in [
       'assets/fonts/Amiri-Regular.ttf',

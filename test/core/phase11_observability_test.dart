@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/observability/observability.dart';
 
 void main() {
-
   test('consent default off and allowlist', () {
     final obs = Observability.instance;
     obs.consent = ObservabilityConsent.off;

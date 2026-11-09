@@ -162,7 +162,6 @@ Future<void> pumpE(
 }
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
 

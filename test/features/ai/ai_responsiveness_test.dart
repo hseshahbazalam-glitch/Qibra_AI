@@ -9,7 +9,6 @@ import '../../support/source_guards.dart';
 /// through refactors, and they can only be judged by the runtime battery on
 /// a real device. These guards make the intent executable here.
 void main() {
-
   group('no main-thread retrieval storm on chat send', () {
     test('retrieval runs ONCE per message', () {
       final provider =

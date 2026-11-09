@@ -29,7 +29,6 @@ Widget host(Widget child, {double width = 360}) => MaterialApp(
     );
 
 void main() {
-
   test('source guard: both paths fixed in one widget, no transparency card',
       () {
     final src = qibracardSource();

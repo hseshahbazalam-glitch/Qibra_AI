@@ -3,7 +3,6 @@ import 'package:qibra_ai/core/billing/billing_service.dart';
 import 'package:qibra_ai/core/cache/cache_store.dart';
 
 void main() {
-
   final now = DateTime.utc(2026, 8, 31, 12);
 
   test('store stays unconfigured and JSON is not trusted', () {

@@ -158,7 +158,6 @@ Future<void> pumpReader(
         contiguous: from.c, seen: from.seen, ayah: ayah);
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
 

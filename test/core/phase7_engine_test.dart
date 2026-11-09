@@ -7,7 +7,6 @@ import 'package:qibra_ai/features/prayer/data/services/prayer_schedule_cache.dar
 import 'package:qibra_ai/features/prayer/data/services/prayer_source.dart';
 
 void main() {
-
   test('location fix json roundtrip and unknown city', () {
     const fix = LocationFix(
       latitude: 10,

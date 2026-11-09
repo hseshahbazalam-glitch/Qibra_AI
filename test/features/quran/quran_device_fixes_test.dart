@@ -67,7 +67,6 @@ class _NoopDownloads extends QuranDownloadController {
 }
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);
 

@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/notifications/notification_reconcile.dart';
 
 void main() {
-
   const engine = NotificationReconcile();
   final times = {
     'Fajr': DateTime(2026, 8, 28, 5),

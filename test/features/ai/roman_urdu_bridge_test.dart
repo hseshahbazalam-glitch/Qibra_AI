@@ -8,7 +8,6 @@ import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 /// recovery behind it. These are pure-function tests — no assets or DB
 /// initialization needed; the end-to-end retrieval is the device gate.
 void main() {
-
   group('bridge map — owner vocabulary', () {
     test('every owner-named word is a key', () {
       const required = [

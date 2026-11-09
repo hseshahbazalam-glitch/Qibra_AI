@@ -13,7 +13,6 @@ String read(String rel) =>
     File('${repoRoot()}/${rel}').readAsStringSync();
 
 void main() {
-
   group('LocalErrorLog ring', () {
     test('cap 100: recording 105 evicts the oldest five', () async {
       final captured = <String>[];

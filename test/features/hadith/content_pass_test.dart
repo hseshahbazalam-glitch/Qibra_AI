@@ -18,7 +18,6 @@ const _books = [
 ];
 
 void main() {
-
   test('collections screen exposes exactly 7 books, incl. tirmidhi + nasai',
       () {
     final src =

@@ -5,7 +5,6 @@ import 'package:qibra_ai/core/content/content_validator.dart';
 import 'package:qibra_ai/core/content/edition_resolver.dart';
 
 void main() {
-
   test('canonical 114/6236', () {
     expect(ContentValidator.expectedSurahs, 114);
     expect(ContentValidator.expectedAyahs, 6236);

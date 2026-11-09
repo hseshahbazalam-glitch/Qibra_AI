@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/features/prayer/data/services/next_prayer_engine.dart';
 
 void main() {
-
   test('after Isha next is tomorrow Fajr', () {
     final now = DateTime(2026, 8, 28, 23, 10);
     final result = NextPrayerEngine.next(

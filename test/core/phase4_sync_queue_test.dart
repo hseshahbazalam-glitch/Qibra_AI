@@ -3,7 +3,6 @@ import 'package:qibra_ai/core/sync/conflict.dart';
 import 'package:qibra_ai/core/sync/sync_engine.dart';
 
 void main() {
-
   test('sync queue does not keep tokens in payload contract', () {
     final q = SyncQueue();
     q.enqueue(SyncOp(

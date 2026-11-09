@@ -128,7 +128,6 @@ Future<void> _swipe(WidgetTester tester, double dx) async {
 }
 
 void main() {
-
   setUpAll(loadAppTestFonts);
 
   setUp(() => SharedPreferences.setMockInitialValues({}));

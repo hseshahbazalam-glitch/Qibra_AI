@@ -43,7 +43,6 @@ Iterable<String> _libDartFiles() => Directory('lib')
     .map((f) => f.path);
 
 void main() {
-
   // ── Item 1 — sajdah-15 recovery ──────────────────────────────────────
   group('P3-1 sajdah recovery', () {
     test('gloss ships ALL 6236 ayahs — the 15 sajdah entries recovered', () {

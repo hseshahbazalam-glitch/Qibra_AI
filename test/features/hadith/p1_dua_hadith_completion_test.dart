@@ -17,7 +17,6 @@ import 'package:qibra_ai/features/hadith/presentation/hadith_related_section.dar
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('dua reminder policy', () {

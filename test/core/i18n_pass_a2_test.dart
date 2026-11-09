@@ -24,7 +24,6 @@ const wiredFiles = <String>[
 ];
 
 void main() {
-
   final appStrings =
       File('lib/core/l10n/app_strings.dart').readAsStringSync();
 

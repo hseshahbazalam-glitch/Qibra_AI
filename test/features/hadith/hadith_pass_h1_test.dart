@@ -111,7 +111,6 @@ Map<String, Map<String, ({int nonEmpty, int total})>> _coverageByBook() {
 }
 
 void main() {
-
   group('Pass H1 · kitab names — no invention, honest fallback', () {
     test('ledger ⇄ shipped data: the 3 unnamed refs are EXACTLY the census',
         () {

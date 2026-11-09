@@ -37,7 +37,6 @@ HadithModel _model({String en = '', String ar = ''}) => HadithModel(
     );
 
 void main() {
-
   group('HadithBookScreen.neighbourNumber — real walk, honest ends', () {
     test('neighbours follow the PUBLISHED sequence, not arithmetic', () {
       // A gap between 3 and 5 is real corpus structure: next(3) is 5.

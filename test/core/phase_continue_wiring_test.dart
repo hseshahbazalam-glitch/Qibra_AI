@@ -7,7 +7,6 @@ import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
 import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
 
 void main() {
-
   test('Hindi Quran edition is an honest miss', () {
     final miss = EditionResolver.miss('hi');
     expect(miss, isNotNull);

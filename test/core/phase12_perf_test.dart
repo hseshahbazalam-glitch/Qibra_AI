@@ -4,7 +4,6 @@ import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.d
 import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
 
 void main() {
-
   test('quran init is single-flight; hadith init is idempotent', () {
     final q = QuranRepository();
     expect(identical(q, QuranRepository()), isTrue);

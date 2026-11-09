@@ -16,7 +16,6 @@ import 'package:qibra_ai/features/quran/providers/quran_audio_provider.dart';
 import 'package:qibra_ai/features/quran/providers/quran_download_provider.dart';
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('primary URL builder (everyayah.com, SSSAAA.mp3)', () {

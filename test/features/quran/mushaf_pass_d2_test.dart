@@ -33,7 +33,6 @@ const _surfaces = [
 ];
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('D2 paper tokens', () {

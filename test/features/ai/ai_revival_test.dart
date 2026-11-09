@@ -86,7 +86,6 @@ class _CountingColdDb extends HadithDatabaseService {
 }
 
 void main() {
-
   tearDown(() {
     // Leave the singleton on a pristine COLD real service: identical to a
     // fresh app start, so no other test file can inherit fixture state.

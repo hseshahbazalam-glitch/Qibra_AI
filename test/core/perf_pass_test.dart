@@ -16,7 +16,6 @@ import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.d
 import '../support/source_guards.dart';
 
 void main() {
-
   group('item 1 — hadith boot decodes OFF the UI isolate', () {
     test('decodeHadithAsset is the pure isolate body (fixture, no spawns)',
         () {

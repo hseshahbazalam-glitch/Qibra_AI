@@ -8,7 +8,6 @@ import 'package:qibra_ai/core/observability/observability.dart';
 import 'package:qibra_ai/core/offline/reachability.dart';
 
 void main() {
-
   test('phase 7 — prayer location timezone', () {
     expect(AppA11y.minTapTarget, 48);
     expect(AppLocales.supported.length, 3);
