@@ -282,7 +282,7 @@ class _WordExplainBody extends ConsumerWidget {
         ],
       ),
     ),
-    );;
+    );
   }
 
   Widget _infoRow(BuildContext context,

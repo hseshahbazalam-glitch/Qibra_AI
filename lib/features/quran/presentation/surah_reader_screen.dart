@@ -1512,7 +1512,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
         ),
       ),
     ),
-    );;
+    );
   }
 }
 

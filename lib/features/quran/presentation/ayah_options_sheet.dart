@@ -124,7 +124,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
         ),
       ),
     ),
-    );;
+    );
   }
 
   Widget _buildHeader() {
