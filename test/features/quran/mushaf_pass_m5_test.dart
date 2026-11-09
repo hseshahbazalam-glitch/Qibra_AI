@@ -117,7 +117,7 @@ final _index = <int, List<MushafPageEntry>>{
 /// TEXT SCALE (C2's second axis).
 Future<void> pumpReaderM5(
   WidgetTester tester, {
-  Size logical = const Size(390, 844),
+  Size logical = Size(390, 844),
   double dpr = 1.0,
   double textScale = 1.0,
 }) async {
@@ -189,9 +189,9 @@ Offset projectPoint(Matrix4 m, Offset o) {
 MushafReamPainter ream(
         {double turn = 0.0,
         double depth = 0.02,
-        Color a = const Color.from(alpha: 1, red: .9, green: .9, blue: .8),
-        Color b = const Color.from(alpha: 1, red: .8, green: .8, blue: .7),
-        Color c = const Color.from(alpha: 1, red: .5, green: .5, blue: .5)}) =>
+        Color a = Color.from(alpha: 1, red: .9, green: .9, blue: .8),
+        Color b = Color.from(alpha: 1, red: .8, green: .8, blue: .7),
+        Color c = Color.from(alpha: 1, red: .5, green: .5, blue: .5)}) =>
     MushafReamPainter(
         turn: turn, sheetA: a, sheetB: b, crease: c, depth: depth);
 
@@ -228,7 +228,7 @@ void main() {
       };
       for (final dpr in matrix) {
         for (final w in [360.0, 384.0, 390.0, 411.0, 480.0]) {
-          final size = Size(w, w == 480 ? 1050 : 844);
+          final size = Size(w, w == 480.0 ? 1050.0 : 844.0);
           final base = MushafTurnGeometry.clipSlackFor(size);
           final aligned =
               MushafTurnGeometry.clipSlackAligned(size, dpr);
@@ -399,8 +399,9 @@ void main() {
         expect(
             find.ancestor(of: _leaf, matching: find.byType(t)),
             findsNothing,
-            reason: 'a $t above the leaf would clip the projected '
-                'quad in PARENT space — the exact M4 regression');
+            reason: 'a parent clip widget above the leaf would clip '
+                'the projected quad in PARENT space — the exact M4 '
+                'regression');
       }
       final clips = find
           .descendant(of: _leaf, matching: find.byType(ClipPath));
