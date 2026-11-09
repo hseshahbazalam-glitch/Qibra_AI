@@ -35,6 +35,30 @@
 //   RETARGET of the one controller; the tick/status listeners are
 //   attached once, in initState, and never again.
 //
+// PASS M4 — feel + edge fidelity (deliberate retune):
+//   E (edge-cut): the leaf's rectangular ClipRect chopped the
+//   perspective-MAGNIFIED free edge (the lifted side renders up to
+//   1/(1 − p·w·cosθ) taller than the box — a few px at 400 logical
+//   px, more on wide devices), so the gilded side visibly lost its
+//   corners mid-turn. The clip is now a CustomClipper over the leaf's
+//   EXACT projected quad with a 1.2px inflation and antiAlias — the
+//   clip hugs the paper and only clips what is not page. The cast-
+//   shadow band also no longer paints a hard alpha fringe 8px onto
+//   the far side of the fold: it feathers to transparent within its
+//   own bounds and its trailing edge stops AT the free edge.
+//   W (turn physics): the fixed 200/240 ms curve settles are replaced
+//   by a CRITICALLY-DAMPED SPRING retargeted from the release frame —
+//   finger velocity carries into the settle (momentum, then a
+//   deliberate exponential landing; no bounce, no snap). The physics
+//   is FRAME-RATE INDEPENDENT (real per-tick dt, fixed 1/120 s
+//   substeps, dt clamped at 48 ms — 60 Hz and 120 Hz land the same
+//   page). Drag start gains a 3px anticipation micro-lift and the cast
+//   shadow grows with the same envelope; the commit haptic moves from
+//   the release DECISION to the settle LANDING (lightImpact at the
+//   thump — never at drag start); the revealed base page gets a ≤8px
+//   parallax chase on the gild's sine envelope, back to zero at commit
+//   so the swap frame carries no offset.
+//
 // RTL TRUTH (measured against this repo, not against vibes):
 //   The codex is bound RIGHT, so the free edge is the LEFT edge: a
 //   forward turn lifts it and sweeps RIGHT onto the right-hand stack.
@@ -71,6 +95,10 @@ enum MushafTurnDirection { forward, backward }
 /// Pure, testable turn math — no widgets, no state. Kept in its own
 /// class so the pass test can pin every threshold without pumping.
 abstract final class MushafTurnGeometry {
+  /// The hinge perspective entry fed to the leaf matrix (M4: shared
+  /// by the render AND the quad clipper — one source, no drift).
+  static const double perspective = 0.0009;
+
   /// Drag fraction (of the viewport width) at which a released turn
   /// commits on position alone.
   static const double commitFraction = 0.42;
@@ -117,6 +145,113 @@ abstract final class MushafTurnGeometry {
     if (signed <= -commitVelocity) return false;
     return t >= commitFraction || signed >= commitVelocity;
   }
+
+  // ── Pass M4 (W3/W5): the two motion envelopes ────────────────
+  /// One shared 0→1→0 envelope: peaks mid-turn, exactly zero at the
+  /// touch-down frame AND at commit — so nothing (lift, parallax)
+  /// survives into the swap frame or rests on the settled page.
+  static double swell(double t) => math.sin(math.pi * clampT(t));
+
+  /// W3: micro-lift of the free edge while the drag lives (px).
+  static double anticipation(double t) => 3.0 * swell(t);
+
+  /// W5: the revealed page chases the leaf by ≤8px, same envelope as
+  /// the gild band's inset breathe — coordinated depth, zero at commit.
+  static double parallax(double t) => 8.0 * swell(t);
+
+  /// THE leaf matrix (M4): built in one place so the clipper and the
+  /// render can never disagree about the quad.
+  static Matrix4 leafTransform(double angle, {double lift = 0}) =>
+      Matrix4.identity()
+          // Gentle depth: at full-page width a stronger entry
+          // (0.0015+) visibly bows the far edge — 0.0009 reads as
+          // paper, not as a lens.
+          ..setEntry(3, 0, perspective)
+          ..rotateY(-angle)
+          ..translate(0.0, -lift);
+
+  /// The leaf rect's four corners as RenderTransform will project them
+  /// (alignment centerRight — the hinge). Pure, closed-form, no matrix
+  /// allocations: the SAME math RenderTransform applies (rotate about
+  /// the hinge, then divide by 1 + perspective·x) — so the clip the
+  /// painter builds and the paper actually drawn can never drift.
+  static List<Offset> projectedCorners(
+      double w, double h, double angle, double lift) {
+    final cosA = math.cos(angle);
+    Offset p(double x, double y) {
+      final xr = (x - w) * cosA;
+      final wr = 1 + perspective * xr;
+      return Offset(xr / wr + w, (y - h / 2 - lift) / wr + h / 2);
+    }
+    return [p(0, 0), p(w, 0), p(w, h), p(0, h)];
+  }
+}
+
+/// Pass M4 (W1/W2): the settle physics — a critically damped spring
+/// integrated at FIXED 1/120 s substeps from each frame's REAL dt, so
+/// 60 Hz and 120 Hz screens land identically. Pure numbers: the pass
+/// test pins the trajectory properties without pumping a widget.
+abstract final class MushafTurnPhysics {
+  /// Angular frequency (rad/s) driving a COMMIT toward the next page —
+  /// ω = 34 lands the ~230 ms commit time the old fixed easeOutCubic
+  /// settle had, but now FROM WHATEVER VELOCITY THE FINGER LEFT.
+  static const double kCommit = 34.0;
+
+  /// Slightly softer for a RETRACT — the page eases back onto the
+  /// stack instead of snapping (≈270 ms, minus the easeOutBack bounce
+  /// the spring deliberately does not do: a mushaf never pings).
+  static const double kRetract = 30.0;
+
+  /// Critical damping: velocity-continuous and monotonic — momentum
+  /// carries out of the finger, then decays exponentially.
+  static const double zeta = 1.0;
+
+  /// The sim runs on fixed substeps for frame-rate determinism.
+  static const double stepDt = 1 / 120;
+
+  /// A stalled frame (backgrounded app, GC hitch) must not teleport the
+  /// page — real dt above this is clamped.
+  static const double maxDt = 0.048;
+
+  /// Converged when inside the swap's visual epsilon, at rest.
+  static bool converged(double x, double v, double target) =>
+      (x - target).abs() < 0.004 && v.abs() < 0.05;
+
+  /// One substep of semi-implicit Euler (energy-stable at these ω).
+  static (double, double) step(
+      double x, double v, double target, double omega, double dt) {
+    final k = omega * omega;
+    final c = 2 * omega * zeta;
+    final a = -k * (x - target) - c * v;
+    final v1 = v + a * dt;
+    return (x + v1 * dt, v1);
+  }
+
+  /// Integrate one ANIMATION FRAME of real elapsed dt (seconds) —
+  /// clamped, then substepped at stepDt. 60 Hz hands 1/60 and lands
+  /// where 120 Hz hands 1/120 twice.
+  static (double, double) advanceFrame(
+      double x, double v, double target, double omega, double dt) {
+    var left = dt < 0 ? 0.0 : (dt > maxDt ? maxDt : dt);
+    var (xx, vv) = (x, v);
+    while (left > 1e-9) {
+      final h = left > stepDt ? stepDt : left;
+      (xx, vv) = step(xx, vv, target, omega, h);
+      left -= h;
+    }
+    return (xx, vv);
+  }
+
+  /// Seconds to settle from rest at an ω — the pin that keeps the
+  /// retune in the 'deliberate' band (test asserts both ω land in it).
+  static double settleTimeFromRest(double omega) {
+    var x = 0.0, v = 0.0, t = 0.0;
+    while (!converged(x, v, 1) && t < 10) {
+      (x, v) = step(x, v, 1, omega, stepDt);
+      t += stepDt;
+    }
+    return t;
+  }
 }
 
 /// Every shading value one animated frame derives from t — gathered in
@@ -125,7 +260,10 @@ abstract final class MushafTurnGeometry {
 /// mid-range: visible on both light cards and the navy dark theme.
 abstract final class MushafTurnShading {
   static double lightOnLeaf(double t) => 0.14 * math.sin(math.pi * t);
-  static double castShadowAlpha(double t) => 0.30 * (1 - 0.55 * t);
+  /// W3: the drop GROWS as the leaf lifts (the same swell envelope as
+  /// the anticipation), then retracts through the settle.
+  static double castShadowAlpha(double t) =>
+      0.30 * (1 - 0.55 * t) + 0.10 * MushafTurnGeometry.swell(t);
   static double gildAlpha(double t) => 0.85 * math.sin(math.pi * t);
   static double spineCrease(double t) => 0.10 + 0.08 * t;
 }
@@ -182,14 +320,20 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
   // settle. late final + non-nullable makes the null-aware dance that
   // leaked the disposed field (the cascade) structurally impossible.
   late final AnimationController _settle;
-  // M3 (F1/F2): the retarget state the permanent listeners read.
-  // ONE Tween math, no per-call objects: the settle is
-  // turnT = lerp(_animFrom, _animTo, curve(controller t)).
-  double _animFrom = 0;
-  double _animTo = 0;
+  // M3 (F1/F2): the retarget state the permanent listeners read —
+  // M4 (W1/W2) re-types it from lerp-params to SPRING state: the
+  // settle carries position AND release velocity and integrates at the
+  // ticker's real dt. Still ONE set of fields, still no per-call
+  // objects, still one controller driving the ticks.
+  double _springX = 0;
+  double _springV = 0;
+  double _springTo = 0;
+  double _springOmega = MushafTurnPhysics.kCommit;
+  bool _springLive = false;
+  // -1 = no tick yet (0 is a legal elapsed value — the first frame's).
+  int _lastTickUs = -1;
   bool _animCommit = false;
   MushafTurnDirection _animDir = MushafTurnDirection.forward;
-  Curve _animCurve = Curves.easeOutCubic;
   // M2 (F2): the turn's progress lives in a notifier — ticks publish
   // to the AnimatedBuilder only; nothing else rebuilds mid-drag.
   final ValueNotifier<double> _turnT = ValueNotifier<double>(0);
@@ -269,11 +413,19 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
   }
 
   void _advance(MushafTurnDirection dir, double dx) {
+    if (_dir == dir && _springLive) {
+      // M4: touching down again mid-settle in the SAME direction hands
+      // the page back to the finger — stop the clock, kill the spring,
+      // the drag continues from wherever momentum left _turnT.
+      _settle.stop();
+      _springLive = false;
+    }
     if (_dir != dir) {
       // Interrupting a live settle with a new drag: plain stop on the
       // one controller (its status handler ignores anything but
       // completed — mid-flight retargets never fire the commit).
       _settle.stop();
+      _springLive = false;
       setState(() {
         _dir = dir;
         _turnT.value = 0;
@@ -312,11 +464,18 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
       return;
     }
     final vx = d.velocity.pixelsPerSecond.dx;
+    final signed = dir == MushafTurnDirection.forward ? vx : -vx;
+    // W1: the finger's velocity becomes the spring's initial d/dt of
+    // the turn fraction (capped so a 5000 px/s fling can't launch the
+    // page faster than the eye can track it).
+    final v0 = (signed / _dragSpan).clamp(-4.0, 4.0);
     if (MushafTurnGeometry.commits(dir, _turnT.value, vx)) {
-      _animateTo(1, commit: true, dir: dir);
-      HapticFeedback.mediumImpact(); // the settle thump
+      _animateTo(1, commit: true, dir: dir, velocity: v0);
+      // W4: no haptic HERE (the old release-frame medium thump was the
+      // DECISION, not the landing). The thump now arrives when the
+      // page actually seats — see _finishSettle.
     } else {
-      _animateTo(0, commit: false, dir: dir);
+      _animateTo(0, commit: false, dir: dir, velocity: v0);
       HapticFeedback.selectionClick();
     }
   }
@@ -334,7 +493,9 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
   }
 
   void _animateTo(double target,
-      {required bool commit, required MushafTurnDirection dir}) {
+      {required bool commit,
+      required MushafTurnDirection dir,
+      double velocity = 0}) {
     // M3 (F1): NEVER create — retarget the single controller. The
     // old dispose-then-recreate is what the SingleTicker provider
     // forbids (second ticker in one State = hard assert; the device's
@@ -342,38 +503,69 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
     // disposed controller (the stop-after-dispose cascade).
     final c = _settle;
     c.stop(); // canceled=true: status listeners get dismissed, which
-              // the permanent handler below ignores — only completed
-              // ever commits. (Same net effect as the old per-call
-              // controllers stopping with their own listeners.)
-    _animFrom = _turnT.value;
-    _animTo = target;
+              // the permanent handler below ignores — only a landing
+              // ever commits.
+    // M4 (W1/W2): the settle is PHYSICS now, not a fixed-duration
+    // curve. Position starts where the finger left it, velocity
+    // carries through, the spring lands it. The controller is a pure
+    // CLOCK — the long duration is never raced; convergence stops it
+    // (see _onSettleTick), so pumpAndSettle, a 60 Hz frame, or a
+    // battery-saver hitch all behave identically.
+    _springX = _turnT.value;
+    _springV = velocity;
+    _springTo = target;
+    _springOmega =
+        commit ? MushafTurnPhysics.kCommit : MushafTurnPhysics.kRetract;
     _animCommit = commit;
     _animDir = dir;
-    // Durations/curve verbatim from the pre-M3 settle: 200 ms on
-    // commit with easeOutCubic, 240 ms retract with easeOutBack.
-    c.duration = Duration(milliseconds: commit ? 200 : 240);
-    _animCurve = commit ? Curves.easeOutCubic : Curves.easeOutBack;
-    // forward(from: 0) seeds value 0 through the listener — the lerp
-    // at t=0 is exactly _animFrom, i.e. _turnT unchanged (no
-    // first-frame pop; that is also why the capture above comes first).
+    _springLive = true;
+    _lastTickUs = -1;
+    c.duration = const Duration(seconds: 10);
     c.forward(from: 0);
   }
 
-  /// M3 (F2): the permanent tick listener — attached once in
-  /// initState, reading the retarget fields. The M2 rule holds:
-  /// settle ticks write ONLY the notifier, never setState, so the
-  /// AnimatedBuilder transforms and nothing else rebuilds.
+  /// M3 (F2) + M4 (W1/W2): the permanent tick listener — attached once
+  /// in initState. Each frame advances the spring by the REAL elapsed
+  /// dt the ticker reports, in fixed 1/120 s substeps (clamped at 48 ms
+  /// per frame), so 60/120/144 Hz integrate the same trajectory. The M2
+  /// rule holds: settle ticks write ONLY the notifier, never setState.
   void _onSettleTick() {
-    _turnT.value = _animFrom +
-        (_animTo - _animFrom) * _animCurve.transform(_settle.value);
+    if (!_springLive) return;
+    final elapsed = _settle.lastElapsedDuration ?? Duration.zero;
+    final us = elapsed.inMicroseconds;
+    final dt = _lastTickUs < 0
+        ? 1 / 60 // first tick after forward(from: 0): one nominal frame
+        : math.max(0.0, (us - _lastTickUs)) / 1e6;
+    _lastTickUs = us;
+    final (x, v) = MushafTurnPhysics.advanceFrame(
+        _springX, _springV, _springTo, _springOmega, dt);
+    _springX = x;
+    _springV = v;
+    if (MushafTurnPhysics.converged(x, v, _springTo)) {
+      _springLive = false;
+      _turnT.value = MushafTurnGeometry.clampT(_springTo);
+      _settle.stop(); // the clock ENDS with the motion — never left
+                      // ticking to a 10 s completed that would
+                      // double-fire the landing.
+      _finishSettle();
+      return;
+    }
+    _turnT.value = MushafTurnGeometry.clampT(x);
   }
 
-  /// M3 (F2): the permanent status handler — the completion contract
-  /// (silent turnT reset, content release, commit-then-rearm) exactly
-  /// as the per-call closure did, now with the commit facts latched in
-  /// the retarget fields.
+  /// M3 (F2): the permanent status handler. Physics converges on its
+  /// own; this stays as the framework-side safety net (completed only
+  /// fires if the clock ever actually runs out — it never does while
+  /// mounted, and dispose stops the controller first).
   void _onSettleStatus(AnimationStatus status) {
     if (status != AnimationStatus.completed || !mounted) return;
+    _springLive = false;
+    _finishSettle();
+  }
+
+  /// M3's completion contract (silent turnT reset, content release,
+  /// commit-then-rearm) + M4 W4: the landing thump IS the haptic.
+  void _finishSettle() {
     _turnT.value = 0;
     setState(() {
       _dir = null;
@@ -381,6 +573,7 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
       _baseContent = null;
     });
     if (_animCommit) {
+      HapticFeedback.lightImpact();
       final target = _animDir == MushafTurnDirection.forward
           ? math.min(widget.pageCount, widget.currentPage + 1)
           : math.max(1, widget.currentPage - 1);
@@ -464,24 +657,44 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                           _baseContent != null)
                         Positioned.fill(
                           key: const ValueKey('mushaf-turn-base'),
-                          child: IgnorePointer(child: _baseContent!),
+                          // W5: the revealed page chases the leaf by
+                          // ≤8px on the gild's envelope — composition
+                          // only (the latched content sits inside its
+                          // own RepaintBoundary), EXACTLY zero at the
+                          // commit frame and at rest.
+                          child: Transform.translate(
+                            offset:
+                                Offset(MushafTurnGeometry.parallax(t), 0),
+                            child: IgnorePointer(child: _baseContent!),
+                          ),
                         ),
                       if (dir != null && _leafContent != null)
                         Positioned.fill(
                           key: const ValueKey('mushaf-turn-leaf'),
                           child: RepaintBoundary(
-                            child: ClipRect(
+                            // E (M4): the clip follows the leaf's
+                            // PROJECTED quad (anti-aliased, 1.2px
+                            // slack) — a rectangular ClipRect used to
+                            // shear the magnified corners off the
+                            // lifted, gilded free edge.
+                            child: ClipPath(
+                              clipBehavior: Clip.antiAlias,
+                              clipper: MushafTurnLeafClipper(
+                                angle: MushafTurnGeometry.angleFor(
+                                    dir, t),
+                                lift:
+                                    MushafTurnGeometry.anticipation(t),
+                              ),
                               child: Transform(
                                 alignment: Alignment.centerRight,
-                                transform: Matrix4.identity()
-                                  // Gentle depth: at full-page width a
-                                  // stronger entry (0.0015+) visibly
-                                  // bows the far edge — 0.0009 reads as
-                                  // paper, not as a lens.
-                                  ..setEntry(3, 0, 0.0009)
-                                  // free (left) edge lifts toward reader
-                                  ..rotateY(-MushafTurnGeometry.angleFor(
-                                      dir, t)),
+                                // W3: the same 3px lift the clipper
+                                // models — one matrix, both users.
+                                transform:
+                                    MushafTurnGeometry.leafTransform(
+                                  MushafTurnGeometry.angleFor(dir, t),
+                                  lift: MushafTurnGeometry
+                                      .anticipation(t),
+                                ),
                                 child: Stack(
                                   fit: StackFit.expand,
                                   children: [
@@ -546,13 +759,20 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                         // fixed-size box, translate per tick, zero
                         // relayout (F4).
                         Positioned(
+                          key: const ValueKey('mushaf-turn-shadow'),
                           top: 0,
                           bottom: 0,
                           left: 0,
                           width: 64,
                           child: IgnorePointer(
                             child: Transform.translate(
-                              offset: Offset(edgeX - 56, 0),
+                              // E (M4): the band's RIGHT edge lands ON
+                              // the free edge (was edgeX − 56, which
+                              // threw its last 8px — at full alpha —
+                              // across the leaf's fore-edge as a hard
+                              // dark fringe). Contact shadow now ends
+                              // IN the fold.
+                              offset: Offset(edgeX - 64, 0),
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
@@ -571,13 +791,13 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                                         alpha: MushafTurnShading
                                             .castShadowAlpha(t),
                                       ),
-                                      Colors.black.withValues(
-                                        alpha: MushafTurnShading
-                                            .castShadowAlpha(t) *
-                                            0.85,
-                                      ),
+                                      // E: feather to ZERO at the band's
+                                      // own end — stop continuity: no
+                                      // seam left against the paper
+                                      // behind the fold.
+                                      Colors.transparent,
                                     ],
-                                    stops: const [0.0, 0.55, 0.88, 1.0],
+                                    stops: const [0.0, 0.5, 0.82, 1.0],
                                   ),
                                 ),
                               ),
@@ -593,6 +813,7 @@ class _MushafTurnOverlayState extends State<MushafTurnOverlay>
                         // mid-turn and retracts at commit — inside the
                         // existing AppGold ramp, no new tokens.
                         Positioned(
+                          key: const ValueKey('mushaf-turn-gild'),
                           top: 0,
                           bottom: 0,
                           left: 0,
@@ -805,4 +1026,50 @@ class _PaperGrainPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_PaperGrainPainter oldDelegate) => false;
+}
+
+/// E (M4): the leaf's clip, drawn as its PROJECTED QUAD + 1.2px slack,
+/// anti-aliased. The old ClipRect lived in the PARENT space (outside
+/// the transform) and sheared the perspective-magnified corners of the
+/// lifted free edge — the device's 'thora cut, nice side se'. The clip
+/// now contains exactly the paper: corners of the projected rect are
+/// INSIDE the path (pinned), while the region past the leading edge
+/// stays OUT — the shadow below remains masked by the page, never a
+/// rectangle's worth of it painted onto the stack.
+class MushafTurnLeafClipper extends CustomClipper<Path> {
+  const MushafTurnLeafClipper({required this.angle, required this.lift});
+
+  final double angle;
+  final double lift;
+
+  static const double _slack = 1.2; // sub-pixel overlap for AA seams
+
+  @override
+  Path getClip(Size size) {
+    final pts = MushafTurnGeometry.projectedCorners(
+        size.width, size.height, angle, lift);
+    final cx = (pts[0].dx + pts[2].dx) / 2;
+    final cy = (pts[0].dy + pts[2].dy) / 2;
+    final path = Path();
+    for (var i = 0; i < 4; i++) {
+      final p = pts[i];
+      final dx = p.dx - cx;
+      final dy = p.dy - cy;
+      final n = math.sqrt(dx * dx + dy * dy);
+      final q = n == 0
+          ? p
+          : Offset(p.dx + dx / n * _slack, p.dy + dy / n * _slack);
+      if (i == 0) {
+        path.moveTo(q.dx, q.dy);
+      } else {
+        path.lineTo(q.dx, q.dy);
+      }
+    }
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(MushafTurnLeafClipper oldClipper) =>
+      oldClipper.angle != angle || oldClipper.lift != lift;
 }
