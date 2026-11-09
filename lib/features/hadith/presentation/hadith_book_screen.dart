@@ -5,6 +5,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -152,14 +153,11 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
           controller: _scroll,
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // 1. APP BAR
-            _buildAppBar(context),
+            // 1. APP BAR (+ D3's one sticky controls row as its bottom)
+            _buildAppBar(context, chaptersAsync.value ?? const []),
 
-            // 2. BOOK HERO HEADER
+            // 2. BOOK HERO HEADER — stats merged into its meta line (D3)
             _buildBookHeader(),
-
-            // 3. CHAPTERS & DISPLAY CONTROLS BAR
-            _buildControlsBar(context, chaptersAsync.value ?? []),
 
             // 3b. RESUME (item 3): explicit chip only — opening a book
             // never hijacks the scroll position on its own.
@@ -216,15 +214,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
 
                 if (filtered.isEmpty) {
                   return SliverToBoxAdapter(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: Text(
-                          'No hadiths found.',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                              color: QibraNavy.textSecondary),
-                        ),
-                      ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: QibraStatus.empty(title: 'No hadiths found.'),
                     ),
                   );
                 }
@@ -262,38 +254,30 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                   ),
                 );
               },
+              // D6: the shared status widget carries loading — a real
+              // spinner, no skeleton shimmer anywhere in the feature.
               loading: () => const SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(48),
-                    child: CircularProgressIndicator(color: QibraNavy.emerald),
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.all(48),
+                  child: Center(
+                    child: QibraStatus(
+                        kind: QibraStatusKind.loading),
+                ),
                 ),
               ),
               error: (error, _) => SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.error_outline_rounded,
-                            color: QibraNavy.red, size: 48),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Failed to load hadiths',
-                          style: AppTextStyles.titleMedium.copyWith(
-                              color: QibraNavy.textPrimary,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          error.toString(),
-                          style: AppTextStyles.bodySmall.copyWith(
-                              color: QibraNavy.textSecondary),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  // D6: shared error state + a REAL retry (the old block
+                  // showed the message and left the reader stuck; the
+                  // corpus providers are cheap to re-fetch).
+                  child: QibraStatus.error(
+                    title: 'Failed to load hadiths',
+                    message: error.toString(),
+                    onRetry: () {
+                      ref.invalidate(hadithsProvider(params));
+                      ref.invalidate(hadithChaptersProvider(widget.book.slug));
+                    },
                   ),
                 ),
               ),
@@ -308,7 +292,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   // ────────────────────────────────────────────────────────
   // 1. APP BAR
   // ────────────────────────────────────────────────────────
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, List<HadithChapter> chapters) {
     return SliverAppBar(
       backgroundColor: QibraNavy.canvas,
       pinned: true,
@@ -331,14 +315,74 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
             letterSpacing: 0.5),
       ),
       centerTitle: true,
-      actions: [
-        IconButton(
-          tooltip: AppStrings.of(context).tooltipReadingSettings,
-          icon: const Icon(Icons.display_settings_rounded,
-              color: QibraNavy.gold, size: 20),
-          onPressed: () => _showQuickSettingsSheet(context),
-        ),
-      ],
+      // D3 — the book's ONE sticky row. [search | chapter filter |
+      // settings] rides the pinned bar's bottom so the controls survive
+      // scrolling; the old scroll-away controls sliver (search above a
+      // chapter chip rail) is retired. Settings left the action slot on
+      // purpose: one row, one place, per the H2 brief.
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(66),
+        child: _buildStickyControlsRow(context, chapters),
+      ),
+    );
+  }
+
+  static const String _allChaptersKey = '__all_chapters__';
+
+  Widget _buildStickyControlsRow(
+      BuildContext context, List<HadithChapter> chapters) {
+    final strings = AppStrings.of(context);
+    return Container(
+      color: QibraNavy.canvas,
+      padding: const EdgeInsets.fromLTRB(12, 0, 6, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: HadithSearchField(
+              controller: _searchCtl,
+              query: _searchQuery,
+              hint: 'Search hadith number or text in this book...',
+              onChanged: (v) => setState(() => _searchQuery = v),
+            ),
+          ),
+          // Chapter filter — the chip rail condensed into a dropdown.
+          // The GOLD icon marks an ACTIVE (narrowed) view — accent on
+          // state, never on chrome.
+          PopupMenuButton<String>(
+            tooltip: strings.tooltipFilterChapters,
+            enabled: chapters.isNotEmpty,
+            position: PopupMenuPosition.under,
+            color: QibraNavy.card,
+            icon: Icon(
+              Icons.filter_alt_rounded,
+              color: _selectedChapterNumber == null
+                  ? QibraNavy.textSecondary
+                  : QibraNavy.gold,
+              size: 22,
+            ),
+            onSelected: (v) => setState(() => _selectedChapterNumber =
+                v == _allChaptersKey ? null : int.parse(v)),
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                value: _allChaptersKey,
+                child: Text('All Chapters'),
+              ),
+              for (final ch in chapters)
+                PopupMenuItem(
+                  value: '${ch.number}',
+                  child: Text(HadithBookScreen.chapterChipLabel(
+                      ch.number, ch.name, strings.hadithKitabLabel(ch.number))),
+                ),
+            ],
+          ),
+          IconButton(
+            tooltip: strings.tooltipReadingSettings,
+            icon: const Icon(Icons.display_settings_rounded,
+                color: QibraNavy.gold, size: 20),
+            onPressed: () => _showQuickSettingsSheet(context),
+          ),
+        ],
+      ),
     );
   }
 
@@ -400,20 +444,16 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  _buildStatChip(Icons.article_rounded, 'Hadiths',
-                      '${widget.book.totalHadiths}', QibraNavy.emerald),
-                  const SizedBox(width: 8),
-                  _buildStatChip(Icons.folder_rounded, 'Chapters',
-                      '${widget.book.totalChapters}', QibraNavy.gold),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildStatChip(Icons.help_outline_rounded, 'Grade',
-                        'UNKNOWN', QibraNavy.textSecondary),
-                  ),
-                ],
+              const SizedBox(height: 10),
+              // D3: stats merge into a meta LINE. The chip trio repeated
+              // numbers the list already shows and its third chip was a
+              // 'Grade UNKNOWN' prop — an honest book header states the
+              // totals it actually has; per-hadith grades speak for
+              // themselves on every card.
+              Text(
+                '${widget.book.totalHadiths} hadiths \u00b7 ${widget.book.totalChapters} chapters',
+                style: AppTextStyles.labelXSmall.copyWith(
+                    color: QibraNavy.textTertiary),
               ),
             ],
             ),
@@ -423,93 +463,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     );
   }
 
-  Widget _buildStatChip(
-      IconData icon, String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.16)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 13),
-          const SizedBox(width: 5),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(value,
-                  style: AppTextStyles.labelMedium.copyWith(
-                      color: color, fontWeight: FontWeight.w800)),
-              Text(label,
-                  style: AppTextStyles.labelXSmall.copyWith(
-                      color: QibraNavy.textSecondary)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   // ────────────────────────────────────────────────────────
-  // 3. CONTROLS BAR (Search + Chapter selector)
-  // ────────────────────────────────────────────────────────
-  Widget _buildControlsBar(BuildContext context, List<HadithChapter> chapters) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          children: [
-            HadithSearchField(
-              controller: _searchCtl,
-              query: _searchQuery,
-              hint: 'Search hadith number or text in this book...',
-              onChanged: (v) => setState(() => _searchQuery = v),
-            ),
-            const SizedBox(height: 8),
-            if (chapters.isNotEmpty)
-              SizedBox(
-                height: 40,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: chapters.length + 1,
-                  itemBuilder: (context, index) {
-                    // H2-F: the hand-rolled pills painted their FILL with
-                    // TEXT tokens (textSecondary/textPrimary as the
-                    // decoration color — F1's twin). QibraChip is the app's
-                    // one honest pill: token fill, token selection, shared
-                    // with the hadith home rails.
-                    if (index == 0) {
-                      return QibraChip(
-                        label: 'All Chapters',
-                        selected: _selectedChapterNumber == null,
-                        onTap: () =>
-                            setState(() => _selectedChapterNumber = null),
-                      );
-                    }
-                    final ch = chapters[index - 1];
-                    return QibraChip(
-                      label: HadithBookScreen.chapterChipLabel(
-                          ch.number,
-                          ch.name,
-                          AppStrings.of(context)
-                              .hadithKitabLabel(ch.number)),
-                      selected: _selectedChapterNumber == ch.number,
-                      onTap: () =>
-                          setState(() => _selectedChapterNumber = ch.number),
-                    );
-                  },
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Reading-language picker for the quick-settings sheet. Deliberately
   /// a MIRROR of settings_screen's _showHadithLanguageSheet: identical
   /// derived option list (HadithAvailability.selectorOptions()), identical

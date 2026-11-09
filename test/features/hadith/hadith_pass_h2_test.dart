@@ -355,4 +355,76 @@ void main() {
           reason: 'collapsed DISPLAY must never shrink the copied TEXT');
     });
   });
+  group('H2-D3/D5/D6 — sticky controls row, merged meta line, honest '
+      'states', () {
+    const book =
+        'lib/features/hadith/presentation/hadith_book_screen.dart';
+
+    test('D3: the controls row is sticky, singular, and holds its trio',
+        () {
+      final src = File(book).readAsStringSync();
+      expect(src.contains('bottom: PreferredSize('), isTrue,
+          reason: 'the pinned bar must CARRY the controls row');
+      expect(src.contains('child: _buildStickyControlsRow(context, '
+          'chapters),'), isTrue);
+      expect(src.contains('Widget _buildControlsBar'), isFalse,
+          reason: 'the scroll-away controls sliver is retired — one row, '
+              'not two truths');
+      expect('query: _searchQuery,'.allMatches(src).length, 1,
+          reason: 'exactly ONE search field in the tree');
+      // [search | chapter filter | settings] — all three in the row:
+      expect(src.contains('Expanded(
+            child: HadithSearchField('),
+          isTrue, reason: 'search flexes to fill');
+      expect(src.contains('PopupMenuButton<String>('), isTrue,
+          reason: 'the chapter filter (dropdown, from the chip rail)');
+      expect(src.contains('tooltipReadingSettings'), isTrue,
+          reason: 'settings rides the row (and left the appbar action slot)');
+      expect(src.contains('tooltip: strings.tooltipFilterChapters'), isTrue,
+          reason: 'the filter button is NOT anonymous to screen readers');
+      // Meta line replaces the stat chips; the fake grade prop dies:
+      expect(src.contains('_buildStatChip'), isFalse);
+      expect(src.contains("'UNKNOWN'"), isFalse,
+          reason: 'D6: no grade claim at book level — the trio\'s third '
+              'chip asserted UNKNOWN as chrome, not as data');
+      expect(src.contains(r'hadiths ·'), isTrue,
+          reason: 'stats survive as ONE honest meta line');
+    });
+
+    test('D5: the quick-settings sheet remains the single organized place',
+        () {
+      final src = File(book).readAsStringSync();
+      expect(src.contains('void _showQuickSettingsSheet'), isTrue,
+          reason: 'language, showArabic and both scales in ONE sheet '
+              '(already true pre-H2 — audit verdict: organize, do not '
+              'reinvent; pinned so a future split fails here)');
+      expect(src.contains('_showReadingLanguageSheet(context)'), isTrue,
+          reason: 'language row stays wired INTO the sheet');
+      expect(src.contains('hadithReadingPreferencesProvider'), isTrue);
+    });
+
+    test('D6: loading/empty/error ride QibraStatus — no shimmer, and '
+        'errors carry a REAL retry', () {
+      final src = File(book).readAsStringSync();
+      expect(src.contains('QibraStatus('), isTrue,
+          reason: 'shared status widget renders loading');
+      expect(src.contains('QibraStatus.empty('), isTrue);
+      expect(src.contains('QibraStatus.error('), isTrue);
+      expect(src.contains('CircularProgressIndicator('), isFalse,
+          reason: 'the lone spinner is REPLACED by the shared widget');
+      expect(src.contains('ref.invalidate(hadithsProvider(params));'),
+          isTrue, reason: 'the retry actually refetches');
+      expect(src.contains('ref.invalidate(hadithChaptersProvider'), isTrue);
+      // Restraint lock, feature-wide: no skeleton shimmer vocabulary.
+      for (final f in [
+        book,
+        'lib/features/hadith/presentation/hadith_screen.dart',
+        'lib/features/hadith/presentation/hadith_related_section.dart',
+      ]) {
+        expect(RegExp(r'[Ss]himmer').hasMatch(File(f).readAsStringSync()),
+            isFalse,
+            reason: '$f grew shimmer — D6 forbids it');
+      }
+    });
+  });
 }
