@@ -39,7 +39,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // FontLoader + ByteData (M-suite pattern)
 import 'package:vector_math/vector_math_64.dart'; // Matrix4/Vector3 (perspective math for C3b; transitive flutter dep, info-level depend_on_referenced_packages sanctioned)
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart' hide test, testWidgets;
+import 'package:flutter_test/flutter_test.dart' as ft show test, testWidgets;
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_ream.dart';
@@ -206,17 +207,48 @@ MushafReamPainter ream(
     MushafReamPainter(
         turn: turn, sheetA: a, sheetB: b, crease: c, depth: depth);
 
+// M6SHADOW (transient, one round): file-local wrappers shadow the
+// imported test/testWidgets so EVERY body gets a named catch; the
+// failure's NAME + first error line reach the annotation channel.
+// (testCase is NOT exported by flutter_test — both ledger rounds
+// died on that assumption, recorded.)
+final _m6bad = <String>[];
+
+void testWidgets(String? d, dynamic cb,
+    {int? skip, Timeout? timeout}) {
+  ft.testWidgets(
+    d,
+    (t) async {
+      try {
+        await cb(t);
+      } catch (e) {
+        _m6bad.add('mushaf_pass_m5_test :: $d :: ${e.toString().split('\n').first}');
+        rethrow;
+      }
+    },
+    skip: skip,
+    timeout: timeout,
+  );
+}
+
+void test(String? d, dynamic cb, {int? skip, Timeout? timeout}) {
+  ft.test(d, () async {
+    try {
+      await cb();
+    } catch (e) {
+      _m6bad.add('mushaf_pass_m5_test :: $d :: ${e.toString().split('\n').first}');
+      rethrow;
+    }
+  }, skip: skip, timeout: timeout);
+}
+
 void main() {
-  // M6LEDGER-mushaf_pass_m5_test (transient, one round): IN/DONE ledgers + the
-  // TALLY in tearDownAll — starts minus completes == the failure.
-  final _m6in = <String>[];
-  final _m6done = <String>[];
-  setUp(() => _m6in.add(testCase.name));
-  tearDown(() => _m6done.add(testCase.name));
+
   tearDownAll(() {
-    final missing = _m6in.toSet().difference(_m6done.toSet());
-    print('::error::M6T mushaf_pass_m5_test :: '
-        '${missing.isEmpty ? 'none-failed' : missing.join(' ;; ')}');
+    for (final x in _m6bad) {
+      print('::error::M6BAD ${x.length > 235 ? x.substring(0, 235) : x}');
+    }
+    print('::error::M6BADEND mushaf_pass_m5_test ${_m6bad.length}');
   });
 
 
