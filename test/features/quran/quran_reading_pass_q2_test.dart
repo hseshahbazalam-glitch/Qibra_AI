@@ -10,8 +10,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart' hide test, testWidgets;
-import 'package:flutter_test/flutter_test.dart' as ft show test, testWidgets;
+import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/data/repository/quran_meta.dart';
@@ -158,51 +157,18 @@ Future<void> pumpReader(
     ReadingProgressRepository.hwApplySeen(
         contiguous: from.c, seen: from.seen, ayah: ayah);
 
-// M6SHADOW (
-  tearDownAll(() {
-    for (final x in _m6bad) {
-      print('::error::M6BAD ${x.length > 235 ? x.substring(0, 235) : x}');
-    }
-    print('::error::M6BADEND ${_m6bad.length}');
-  });
-transient, one round): file-local wrappers shadow the
-// imported test/testWidgets so EVERY body gets a named catch — the
-// failure's NAME + first error line print via the annotation
-// channel (testCase is not exported by flutter_test — the two
-// ledger rounds died on that; the wrapper is the proven shape).
-final _m6bad = <String>[];
-
-void testWidgets(String? d, WidgetTesterCallback cb,
-    {int? skip, Timeout? timeout}) {
-  ft.testWidgets(
-    d,
-    (t) async {
-      try {
-        await cb(t);
-      } catch (e) {
-        _m6bad.add('quran_reading_pass_q2_test :: '
-            '$d :: ${e.toString().split('\n').first}');
-        rethrow;
-      }
-    },
-    skip: skip,
-    timeout: timeout,
-  );
-}
-
-void test(String? d, dynamic cb, {int? skip, Timeout? timeout}) {
-  ft.test(d, () async {
-    try {
-      await cb();
-    } catch (e) {
-      _m6bad.add('quran_reading_pass_q2_test :: '
-          '$d :: ${e.toString().split('\n').first}');
-      rethrow;
-    }
-  }, skip: skip, timeout: timeout);
-}
-
 void main() {
+  // M6LEDGER-quran_reading_pass_q2_test (transient, one round): IN/DONE ledgers + the
+  // TALLY in tearDownAll — starts minus completes == the failure.
+  final _m6in = <String>[];
+  final _m6done = <String>[];
+  setUp(() => _m6in.add(testCase.name));
+  tearDown(() => _m6done.add(testCase.name));
+  tearDownAll(() {
+    final missing = _m6in.toSet().difference(_m6done.toSet());
+    print('::error::M6T quran_reading_pass_q2_test :: '
+        '${missing.isEmpty ? 'none-failed' : missing.join(' ;; ')}');
+  });
 
 
   TestWidgetsFlutterBinding.ensureInitialized();
