@@ -35,7 +35,7 @@ const _surfaces = [
 const bool _probeSkipGroup2 = true; // PROBE r2
 const bool _probeSkipGroup1a = true; // PROBE r3
 const bool _probe4 = true; // PROBE r4
-final List<bool> _probeFlags = [false, false, false, false];
+final List<bool> _probeFlags = [false, false, false, false, false, false, false];
 // PROBE r5 sentinels: failure COUNT encodes which sub-step broke:
 // +1 pump threw; +2 paper-side isActive; +4 night isActive; +8 of().
 
@@ -164,6 +164,10 @@ void main() {
         _probeFlags[0] = true;
         return;
       }
+      // Async errors surface via takeException, not the throw channel:
+      if (tester.takeException() != null) _probeFlags[4] = true;
+      await tester.pumpAndSettle();
+      if (tester.takeException() != null) _probeFlags[5] = true;
       try {
         expect(QibraPaper.isActive(paperCtx), isTrue);
       } catch (_) {
@@ -179,6 +183,10 @@ void main() {
       } catch (_) {
         _probeFlags[3] = true;
       }
+      // Anything still pending when the body ends = lifecycle error:
+      if (tester.takeException() != null) _probeFlags[6] = true;
+      await tester.pump(const Duration(seconds: 2));
+      if (tester.takeException() != null) _probeFlags[6] = true;
     });
     test('typography helpers hit the T1/T2 bands', () {
       if (_probe4) return; // PROBE r4
@@ -205,6 +213,12 @@ void main() {
         expect(_probeFlags[2], isFalse, reason: 'night isActive'));
     test('PROBE r5 sentinel D — night of()', () =>
         expect(_probeFlags[3], isFalse, reason: 'night of()'));
+    test('PROBE r5 sentinel E — async-at-pump', () =>
+        expect(_probeFlags[4], isFalse, reason: 'async at pump'));
+    test('PROBE r5 sentinel F — async-after-settle', () =>
+        expect(_probeFlags[5], isFalse, reason: 'async after settle'));
+    test('PROBE r5 sentinel G — lifecycle-at-end', () =>
+        expect(_probeFlags[6], isFalse, reason: 'lifecycle at end'));
 
   group('D2 mode contract', () {
     // PROBE COMMIT (round 2): skip: flags below isolate the lone red.
