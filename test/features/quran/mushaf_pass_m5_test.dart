@@ -39,8 +39,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // FontLoader + ByteData (M-suite pattern)
 import 'package:vector_math/vector_math_64.dart'; // Matrix4/Vector3 (perspective math for C3b; transitive flutter dep, info-level depend_on_referenced_packages sanctioned)
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart' hide test, testWidgets;
-import 'package:flutter_test/flutter_test.dart' as ft show test, testWidgets;
+import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_ream.dart';
@@ -207,62 +206,7 @@ MushafReamPainter ream(
     MushafReamPainter(
         turn: turn, sheetA: a, sheetB: b, crease: c, depth: depth);
 
-
-// M6SHADOW3 (transient, one round): file-local wrappers with the SDK's
-// EXACT test/testWidgets signatures (read from flutter 3.44.6 sources:
-// test() takes Object + dynamic skip + retry/testOn/tags/onPlatform;
-// testWidgets() takes String + bool? skip). Bodies are caught and the
-// name rides the ::error:: annotation channel. Removed with the fix.
-final _m6bad = <String>[];
-
-void testWidgets(
-  String d,
-  WidgetTesterCallback cb, {
-  bool? skip,
-  Timeout? timeout,
-}) {
-  ft.testWidgets(d, (t) async {
-    try {
-      await cb(t);
-    } catch (e) {
-      _m6bad.add('mushaf_pass_m5 :: $d :: ${e.toString().split('\n').first}');
-      rethrow;
-    }
-  }, skip: skip, timeout: timeout);
-}
-
-void test(
-  Object d,
-  dynamic Function() body, {
-  String? testOn,
-  Timeout? timeout,
-  dynamic skip,
-  dynamic tags,
-  Map<String, dynamic>? onPlatform,
-  int? retry,
-}) {
-  ft.test(d, () async {
-    try {
-      await body();
-    } catch (e) {
-      _m6bad.add('mushaf_pass_m5 :: $d :: ${e.toString().split('\n').first}');
-      rethrow;
-    }
-  },
-      testOn: testOn,
-      timeout: timeout,
-      skip: skip,
-      tags: tags,
-      onPlatform: onPlatform,
-      retry: retry);
-}
-
 void main() {
-  tearDownAll(() {
-    for (final x in _m6bad) {
-      print('::error::M6BAD ${x.length > 230 ? x.substring(0, 230) : x}');
-    }
-  });
 
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadAppTestFonts);

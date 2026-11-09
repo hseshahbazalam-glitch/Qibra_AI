@@ -15,8 +15,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart' hide test, testWidgets;
-import 'package:flutter_test/flutter_test.dart' as ft show test, testWidgets;
+import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/data/word/quran_word_data.dart';
@@ -181,61 +180,7 @@ Future<void> loadAppTestFonts() async {
   ]);
 }
 
-
-// M6SHADOW3 (transient, one round): file-local wrappers with the SDK's
-// EXACT test/testWidgets signatures (read from flutter 3.44.6 sources).
-// Bodies are caught and the name rides the ::error:: annotation channel.
-final _m6bad = <String>[];
-
-void testWidgets(
-  String d,
-  WidgetTesterCallback cb, {
-  bool? skip,
-  Timeout? timeout,
-}) {
-  ft.testWidgets(d, (t) async {
-    try {
-      await cb(t);
-    } catch (e) {
-      _m6bad.add('features_quran_quran_reading_pass_q3_test :: $d :: ${e.toString().split('\n').first}');
-      rethrow;
-    }
-  }, skip: skip, timeout: timeout);
-}
-
-void test(
-  Object d,
-  dynamic Function() body, {
-  String? testOn,
-  Timeout? timeout,
-  dynamic skip,
-  dynamic tags,
-  Map<String, dynamic>? onPlatform,
-  int? retry,
-}) {
-  ft.test(d, () async {
-    try {
-      await body();
-    } catch (e) {
-      _m6bad.add('features_quran_quran_reading_pass_q3_test :: $d :: ${e.toString().split('\n').first}');
-      rethrow;
-    }
-  },
-      testOn: testOn,
-      timeout: timeout,
-      skip: skip,
-      tags: tags,
-      onPlatform: onPlatform,
-      retry: retry);
-}
-
 void main() {
-
-  tearDownAll(() {
-    for (final x in _m6bad) {
-      print('::error::M6BAD ${x.length > 230 ? x.substring(0, 230) : x}');
-    }
-  });
 
   TestWidgetsFlutterBinding.ensureInitialized();
   // Same real-fonts-first rule as the Q2 harness: Ahem metrics
