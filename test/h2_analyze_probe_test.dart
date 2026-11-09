@@ -33,6 +33,7 @@ void main() {
           c.startsWith('A RenderFlex') ||
           c.startsWith('Test failed') ||
           c.contains('was thrown') ||
+          c.contains('hadith_pass_h2_test.dart:') && c.startsWith('#') ||
           c.startsWith('00:') && c.contains('[E]')) {
         keep.add(c.length > 220 ? '${c.substring(0, 220)}…' : c);
       }
