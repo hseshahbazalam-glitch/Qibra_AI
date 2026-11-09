@@ -206,9 +206,8 @@ void main() {
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('M1 const-set only', () {
-    const matrix = {1.0, 2.75, 2.8125, 3.0};
-    expect(matrix.length, 4);
+  test('M1b expect-only', () {
+    expect(4, 4);
   });
 
   for (final profile in const [
