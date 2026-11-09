@@ -13,11 +13,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/qibra_paper.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
+import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
 import 'package:qibra_ai/features/hadith/presentation/hadith_book_screen.dart';
 
 /// Pumps [child] under an explicit palette — the SAME extension the app
@@ -133,17 +138,17 @@ void main() {
           reason: 'the fix stays wired: the fill rides the palette token');
     });
 
-    test('F2 sweep: only the five card-zone raw TextStyles remain (D1 owns '
-        'them)', () {
+    test('F2 sweep: the WHOLE book screen is raw-text-style free', () {
       final src = File(
               'lib/features/hadith/presentation/hadith_book_screen.dart')
           .readAsStringSync();
+      // Re-pinned in the D1 commit (disclosed): F left exactly the five
+      // card-zone sites; D1 rebuilt the card and deleted the LAST raw
+      // style too — the 24-site ledger is now closed at zero.
       final raw = RegExp(r'\bTextStyle\(').allMatches(src).length;
-      // Badge, grade chip, arabic body, translation body, chapter line —
-      // every other raw site (:216–:1225) moved to AppTextStyles in F.
-      expect(raw, 5,
-          reason: 'H2-F tokenized 19 of 24; D1 rewrites the last five '
-              'with the new card anatomy — count must NOT grow here');
+      expect(raw, 0,
+          reason: 'every text style on the book screen rides '
+              'AppTextStyles/AppArabicStyles copyWith — no raw sites');
       for (final other in [
         'lib/features/hadith/presentation/hadith_screen.dart',
         'lib/features/hadith/presentation/hadith_related_section.dart',
@@ -152,6 +157,189 @@ void main() {
             .allMatches(File(other).readAsStringSync())
             .length, 0, reason: '$other was already token-clean');
       }
+    });
+  });
+
+  group('H2-D1/D2 — card anatomy in order; long bodies collapse honestly',
+      () {
+    HadithModel mkHadith({
+      required String english,
+      int number = 4,
+      int chapter = 3,
+      HadithGrade grade = HadithGrade.sahih,
+    }) =>
+        HadithModel(
+          id: 'bukhari#$number',
+          hadithNumber: number,
+          bookSlug: 'bukhari',
+          bookName: 'Sahih al-Bukhari',
+          chapterNumber: chapter,
+          chapterName: 'Revelation',
+          textArabic: '\u0639\u0628\u0627\u0631\u0627\u062a \u0642\u0635\u064a\u0631\u0629',
+          textEnglish: english,
+          textUrdu: '',
+          grade: grade,
+          narrator: const HadithNarrator(name: 'Abu Huraira'),
+        );
+
+    Widget card(WidgetTester tester, HadithModel h,
+        {required bool Function() expanded,
+        required void Function() onToggle}) {
+      return ProviderScope(
+        child: MaterialApp(
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            extensions: <ThemeExtension<dynamic>>[QibraColors.dark],
+          ),
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 360,
+                child: HadithCard(
+                  hadith: h,
+                  showArabic: true,
+                  showTranslation: true,
+                  positionLabel: HadithBookScreen.hadithPositionLabel(
+                      h.hadithNumber, 7563),
+                  expanded: expanded(),
+                  onToggleExpand: onToggle,
+                  onTap: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Future<void> pump(WidgetTester tester, HadithModel h,
+        {bool Function()? isExpanded, void Function()? onToggle}) async {
+      SharedPreferences.setMockInitialValues({});
+      var exp = false;
+      await tester.pumpWidget(card(tester, h,
+          expanded: isExpanded ?? () => exp,
+          onToggle: onToggle ?? (() => exp = !exp)));
+      await tester.pump();
+    }
+
+    Text bodyText(WidgetTester tester, String key) => tester
+        .widgetList<Text>(find.descendant(
+            of: find.byKey(ValueKey(key)), matching: find.byType(Text)))
+        .last;
+
+    test('D2 unit: the budget is MORE than 8 laid lines, no more no less',
+        () {
+      expect(HadithCard.collapseFor(8), isFalse);
+      expect(HadithCard.collapseFor(9), isTrue);
+      expect(HadithCard.kHadithCollapseLineBudget, 8);
+    });
+
+    testWidgets('D1 anatomy: badge → arabic → ornament → translation → '
+        'meta, in that vertical order', (tester) async {
+      await pump(tester, mkHadith(english: 'Short body of the hadith.'));
+      for (final k in [
+        'hadith-card-badge',
+        'hadith-card-arabic',
+        'hadith-card-ornament',
+        'hadith-card-translation',
+        'hadith-card-meta',
+      ]) {
+        expect(find.byKey(ValueKey(k)), findsOneWidget, reason: k);
+      }
+      final badge = tester.getRect(ValueKey('hadith-card-badge')).bottom;
+      final arabic = tester.getRect(ValueKey('hadith-card-arabic')).bottom;
+      final ornament = tester.getRect(ValueKey('hadith-card-ornament')).top;
+      final trans =
+          tester.getRect(ValueKey('hadith-card-translation')).top;
+      final meta = tester.getRect(ValueKey('hadith-card-meta')).top;
+      expect(badge, lessThan(arabic));
+      expect(arabic, lessThan(ornament));
+      expect(ornament, lessThan(trans));
+      expect(trans, lessThan(meta));
+    });
+
+    testWidgets('D1 typography: arabic in the 1.85-2.0 band, translation '
+        'at 1.6, both on palette tokens', (tester) async {
+      await pump(tester, mkHadith(english: 'x y z'));
+      final ar = bodyText(tester, 'hadith-card-arabic');
+      expect(ar.style!.height, inInclusiveRange(1.85, 2.0));
+      expect(ar.style!.color, QibraColors.dark.textPrimary,
+          reason: 'the matn rides the ink token — navy textPrimary now, '
+              'paper ink under R2\u0027s scope, same code');
+      expect(ar.textDirection, TextDirection.rtl);
+      final tr = bodyText(tester, 'hadith-card-translation');
+      expect(tr.style!.height, 1.6);
+      expect(tr.style!.color, QibraColors.dark.textSecondary);
+    });
+
+    testWidgets('D1 meta row: chapter pill, position, grade; tooltips on '
+        'both actions', (tester) async {
+      await pump(tester, mkHadith(english: 'short one'));
+      expect(find.text('Ch 3'), findsOneWidget);
+      expect(find.text('Hadith 4 of 7563'), findsOneWidget);
+      expect(find.text('Sahih'), findsOneWidget);
+      expect(find.text('4'), findsOneWidget,
+          reason: 'the badge number, not a second position echo');
+      final strings = AppStrings.forCode('en');
+      expect(find.byTooltip(strings.tooltipBookmark), findsOneWidget);
+      expect(find.byTooltip(strings.tooltipCopyToShare), findsOneWidget);
+    });
+
+    testWidgets('D1 honest-null: an ungraded hadith says so — no silent '
+        'Sahih default', (tester) async {
+      await pump(
+          tester, mkHadith(english: 'short one', grade: HadithGrade.unknown));
+      expect(
+          find.text(AppStrings.forCode('en').hadithGradeNotRecorded),
+          findsOneWidget);
+      expect(find.text('Sahih'), findsNothing);
+    });
+
+    testWidgets('D2: >8 lines collapses both blocks at 4 with the '
+        'localized expander; tapping expands and offers Show less',
+        (tester) async {
+      final long =
+          List.filled(60, 'patience is a habit of the heart').join(' ');
+      var exp = false;
+      await pump(tester, mkHadith(english: long),
+          isExpanded: () => exp, onToggle: () => exp = !exp);
+      final strings = AppStrings.forCode('en');
+      expect(find.text(strings.readFullHadith), findsOneWidget);
+      expect(bodyText(tester, 'hadith-card-arabic').maxLines, 4);
+      expect(bodyText(tester, 'hadith-card-translation').maxLines, 4);
+      await tester.tap(find.text(strings.readFullHadith));
+      await tester.pump();
+      expect(exp, isTrue);
+      expect(find.text(strings.showLessHadith), findsOneWidget);
+      expect(find.text(strings.readFullHadith), findsNothing);
+      expect(bodyText(tester, 'hadith-card-translation').maxLines, isNull);
+      // A SHORT body never earns the expander:
+      await pump(tester, mkHadith(english: 'tiny body', number: 5));
+      expect(find.text(strings.readFullHadith), findsNothing);
+    });
+
+    testWidgets('D2 honesty: copy carries the FULL hadith even while '
+        'collapsed', (tester) async {
+      final long =
+          List.filled(60, 'gratitude anchors the believer').join(' ');
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (m) async {
+        calls.add(m);
+        return null;
+      });
+      await pump(tester, mkHadith(english: long, number: 7));
+      final strings = AppStrings.forCode('en');
+      expect(find.text(strings.readFullHadith), findsOneWidget,
+          reason: 'precondition — the card IS collapsed');
+      await tester.tap(find.byTooltip(strings.tooltipCopyToShare));
+      await tester.pump();
+      final data = calls
+          .firstWhere((c) => c.method == 'Clipboard.setData')
+          .arguments as Map<Object?, Object?>;
+      expect(data['text'], contains(long),
+          reason: 'collapsed DISPLAY must never shrink the copied TEXT');
     });
   });
 }

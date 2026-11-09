@@ -88,6 +88,9 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   // emptied the query but the uncontrolled TextField kept showing the
   // typed text. One controller, one truth.
   final TextEditingController _searchCtl = TextEditingController();
+  // H2-D2: expansion state lives on the SCREEN (per card id) so it
+  // survives scroll-away rebuilds — a card-local bool would reset.
+  final Set<String> _expandedCards = <String>{};
   bool _showArabic = true;
   // Phase B: the old separate Urdu/English switches became ONE
   // translation switch — the reader's selected language drives which
@@ -233,10 +236,18 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final h = filtered[index];
-                        final card = _HadithCard(
+                        final card = HadithCard(
                           hadith: h,
                           showArabic: _showArabic,
                           showTranslation: _showTranslation,
+                          positionLabel: HadithBookScreen.hadithPositionLabel(
+                              h.hadithNumber, widget.book.totalHadiths),
+                          expanded: _expandedCards.contains(h.id),
+                          onToggleExpand: () => setState(() {
+                            if (!_expandedCards.add(h.id)) {
+                              _expandedCards.remove(h.id);
+                            }
+                          }),
                           onTap: () => _showHadithDetailSheet(context, h),
                         );
                         return Padding(
@@ -1308,29 +1319,96 @@ class HadithSearchField extends StatelessWidget {
 // HADITH CARD WIDGET
 // ============================================================
 
-class _HadithCard extends ConsumerWidget {
-  final HadithModel hadith;
-  final bool showArabic;
-  final bool showTranslation;
-  final VoidCallback onTap;
-
-  const _HadithCard({
+/// H2-D1 — the hadith list card with the advance anatomy, top to bottom:
+/// number badge → Arabic block → ornament divider → translation → meta
+/// row. H2-D2 — a body longer than the line budget renders collapsed
+/// behind a localized 'Read full hadith' expander; the state lives on
+/// the screen (survives scroll-away rebuilds) and copy / bookmark
+/// always act on the FULL hadith, collapsed or not.
+///
+/// Public so the pass's render pins pump the REAL card composition
+/// (HadithGhostIconButton precedent). Every color rides QibraColors
+/// under the screen scope — R2's QibraPaper will resolve textPrimary to
+/// ink and textSecondary to inkSoft WITHOUT a single change here; the
+/// card never hardcodes either family — F2 finished: this file holds
+/// zero raw text-style constructions of any shape.
+class HadithCard extends ConsumerWidget {
+  const HadithCard({
+    super.key,
     required this.hadith,
     required this.showArabic,
     required this.showTranslation,
+    required this.positionLabel,
+    required this.expanded,
+    required this.onToggleExpand,
     required this.onTap,
   });
 
+  final HadithModel hadith;
+  final bool showArabic;
+  final bool showTranslation;
+  /// 'Hadith N of M' — or the honest 'Hadith N' when M is unknown.
+  /// Built by the screen through HadithBookScreen.hadithPositionLabel
+  /// so the pure formatter stays the single source.
+  final String positionLabel;
+  final bool expanded;
+  final VoidCallback onToggleExpand;
+  final VoidCallback onTap;
+
+  /// D2's budget, as a constant so the test can name it: more than
+  /// EIGHT rendered body lines (Arabic + translation together) earns
+  /// the expander. The measure is the laid-out count, never a
+  /// character heuristic.
+  static const int kHadithCollapseLineBudget = 8;
+
+  @visibleForTesting
+  static bool collapseFor(int bodyLines) =>
+      bodyLines > kHadithCollapseLineBudget;
+
+  /// Laid-out line count of one body text at [width] with its FINAL
+  /// style (TextPainter, maxLines null — a short text is measured
+  /// honestly, not guessed). One extra layout per text per build,
+  /// inside the lazy SliverList — the D7 cost note in the pass report.
+  @visibleForTesting
+  static int laidLines(String text, TextStyle style, double width,
+      TextDirection dir) {
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: dir,
+      textWidthBasis: TextWidthBasis.longestLine,
+    );
+    tp.layout(maxWidth: width);
+    final n = tp.computeLineMetrics().length;
+    tp.dispose();
+    return n;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final isBookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
     final language = ref.watch(hadithLanguageProvider);
-    final rtl = language == 'ar' || language == 'ur';
+    final rtl = language == 'ur' || language == 'ar';
     final translation =
         language == 'ar' ? null : hadithTextForLanguage(hadith, language);
-    // World-class hadith pass (item 1): book-list cards follow the
-    // persisted split scales.
+    // The persisted split scales drive both bodies (world-class pass,
+    // item 1 — unchanged wiring).
     final prefs = ref.watch(hadithReadingPreferencesProvider);
+
+    // D1(b): the bundled Amiri family, RTL, leading inside the
+    // 1.85–2.0 anatomy band; paper=ink / navy=textPrimary resolved by
+    // the theme, not by this file.
+    final arabicStyle = AppArabicStyles.quranBold.copyWith(
+      color: colors.textPrimary,
+      height: 1.9,
+      fontSize: AppFontSize.arabicMedium * prefs.arabicScale,
+    );
+    // D1(d): translation on the soft body ink at leading 1.6.
+    final translationStyle = AppTextStyles.bodyMedium.copyWith(
+      color: colors.textSecondary,
+      fontSize: (rtl ? 14 : 12.5) * prefs.translationScale,
+      height: 1.6,
+    );
 
     return GestureDetector(
       onTap: () {
@@ -1338,169 +1416,276 @@ class _HadithCard extends ConsumerWidget {
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12), // D4 rhythm: 12 in-card
         decoration: BoxDecoration(
-          color: QibraNavy.card,
+          color: colors.card,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: QibraNavy.hairline),
+          border: Border.all(color: colors.border),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // card padding 12×2 + block padding 12×2 = 48 of chrome.
+            final textWidth = constraints.maxWidth - 48.0;
+            var bodyLines = 0;
+            final showArabicBlock = showArabic && hadith.hasArabic;
+            final showTranslationBlock =
+                language != 'ar' && showTranslation;
+            if (showArabicBlock) {
+              bodyLines += laidLines(
+                  hadith.textArabic, arabicStyle, textWidth,
+                  TextDirection.rtl);
+            }
+            if (showTranslationBlock && translation != null) {
+              bodyLines += laidLines(translation, translationStyle,
+                  textWidth, rtl ? TextDirection.rtl : TextDirection.ltr);
+            }
+            final collapse = !expanded && collapseFor(bodyLines);
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Reference feed badge: solid emerald disc + number.
+                // (a) number badge — compact rounded square, HAIRLINE
+                // BORDER, no fill: F1's bug class remembered.
                 Container(
+                  key: const ValueKey('hadith-card-badge'),
                   width: 26,
                   height: 26,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: QibraNavy.emeraldDeep,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(9),
+                    border: Border.all(color: colors.border),
                   ),
                   child: Text(
                     '${hadith.hadithNumber}',
-                    style: const TextStyle(
-                        color: QibraNavy.textPrimary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 10),
+                    style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.textSecondary,
+                        fontWeight: FontWeight.w800),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: hadith.grade.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    hadith.grade.label,
-                    style: TextStyle(
-                        color: hadith.grade.color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10),
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  tooltip: isBookmarked
-                              ? AppStrings.of(context)
-                                  .tooltipRemoveBookmark
-                              : AppStrings.of(context).tooltipBookmark,
-                  icon: Icon(
-                    isBookmarked
-                        ? Icons.bookmark_rounded
-                        : Icons.bookmark_border_rounded,
-                    color: isBookmarked
-                        ? QibraNavy.gold
-                        : QibraNavy.textSecondary,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    ref
-                        .read(hadithBookmarksProvider.notifier)
-                        .toggleBookmark(hadith);
-                  },
-                ),
-                IconButton(
-                  tooltip: AppStrings.of(context).tooltipCopyToShare,
-                  icon: const Icon(Icons.share_rounded,
-                      color: QibraNavy.textSecondary, size: 18),
-                  onPressed: () {
-                    final shareText =
-                        '${hadith.textArabic}\n\n${translation ?? hadith.textEnglish}\n\n— ${hadith.displayReference}';
-                    Clipboard.setData(ClipboardData(text: shareText));
-                    HapticFeedback.lightImpact();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(AppStrings.of(context).hadithCopiedToClipboard),
-                          backgroundColor: QibraNavy.surface,
-                          duration: Duration(seconds: 1)),
-                    );
-                  },
-                ),
-              ],
-            ),
-            if (showArabic && hadith.hasArabic) ...[
-              const SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: QibraNavy.card,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: QibraNavy.hairline),
-                ),
-                child: Text(
-                  hadith.textArabic,
-                  style: AppArabicStyles.quranBold.copyWith(
-                      color: QibraNavy.textPrimary,
-                      height: 1.7,
-                      fontSize: AppFontSize.arabicMedium * prefs.arabicScale),
-                  textAlign: TextAlign.right,
-                ),
-              ),
-            ],
-            if (language != 'ar' && showTranslation) ...[
-              const SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: QibraNavy.card,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: QibraNavy.hairline),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      language == 'ur' ? 'اردو ترجمہ' : HadithAvailability.label(language),
-                      style: const TextStyle(
-                          color: QibraNavy.emerald,
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5),
-                      textDirection: language == 'ur'
-                          ? TextDirection.rtl
-                          : TextDirection.ltr,
-                      textAlign: language == 'ur' ? TextAlign.right : TextAlign.start,
+                // (b) Arabic matn — the cream slab under paper, navy
+                // cardMuted under night; same token, no second truth.
+                if (showArabicBlock) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    key: const ValueKey('hadith-card-arabic'),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colors.cardMuted,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 4),
-                    if (translation != null)
-                      Text(
-                        translation,
-                        style: TextStyle(
-                            color: QibraNavy.textPrimary,
-                            fontSize: (rtl ? 14 : 12.5) *
-                                prefs.translationScale,
-                            height: rtl ? 1.7 : 1.5),
-                        textDirection:
-                            rtl ? TextDirection.rtl : TextDirection.ltr,
-                        textAlign: rtl ? TextAlign.right : TextAlign.start,
+                    child: Text(
+                      hadith.textArabic,
+                      style: arabicStyle,
+                      textAlign: TextAlign.right,
+                      textDirection: TextDirection.rtl,
+                      maxLines: collapse ? 4 : null,
+                      overflow:
+                          collapse ? TextOverflow.ellipsis : null,
+                    ),
+                  ),
+                ],
+                // (c) ornament divider — hairline + centered 3px
+                // diamond in the BORDER token; gold stays for active
+                // states only (design-rules lock).
+                Padding(
+                  key: const ValueKey('hadith-card-ornament'),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Container(
+                              height: 1, color: colors.border)),
+                      const SizedBox(width: 8),
+                      RotatedBox(
+                        quarterTurns: 1,
+                        child:
+                            Container(width: 3, height: 3, color: colors.border),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                          child: Container(
+                              height: 1, color: colors.border)),
+                    ],
+                  ),
+                ),
+                // (d) translation block (language-driven since Phase B —
+                // the one-block semantics the redesign pins stay).
+                if (showTranslationBlock) ...[
+                  Container(
+                    key: const ValueKey('hadith-card-translation'),
+                    width: double.infinity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          language == 'ur'
+                              ? '\u0627\u0631\u062f\u0648 \u062a\u0631\u062c\u0645\u06c1'
+                              : HadithAvailability.label(language),
+                          style: AppTextStyles.labelXSmall.copyWith(
+                              color: colors.primary,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5),
+                          textDirection: language == 'ur'
+                              ? TextDirection.rtl
+                              : TextDirection.ltr,
+                          textAlign: language == 'ur'
+                              ? TextAlign.right
+                              : TextAlign.start,
+                        ),
+                        const SizedBox(height: 4),
+                        if (translation != null)
+                          Text(
+                            translation,
+                            style: translationStyle,
+                            textDirection: rtl
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
+                            textAlign:
+                                rtl ? TextAlign.right : TextAlign.start,
+                            maxLines: collapse ? 4 : null,
+                            overflow:
+                                collapse ? TextOverflow.ellipsis : null,
+                          )
+                        else
+                          Text(
+                            'Verified translation unavailable for this language.',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: colors.textSecondary,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+                // D2 expander — while collapsed; the collapse twin only
+                // when THIS card actually has more to show.
+                if (collapse)
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton.icon(
+                      onPressed: onToggleExpand,
+                      icon: const Icon(Icons.expand_more_rounded, size: 18),
+                      label: Text(
+                        AppStrings.of(context).readFullHadith,
+                        style: AppTextStyles.labelMedium.copyWith(
+                            color: colors.primary,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  )
+                else if (expanded && collapseFor(bodyLines))
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton.icon(
+                      onPressed: onToggleExpand,
+                      icon: const Icon(Icons.expand_less_rounded, size: 18),
+                      label: Text(
+                        AppStrings.of(context).showLessHadith,
+                        style: AppTextStyles.labelMedium.copyWith(
+                            color: colors.primary,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                // (e) meta row — Wrap so 320dp folds, never overflows:
+                // chapter pill, position, grade (honest-null), then the
+                // real actions (tooltips = the a11y census contract).
+                const SizedBox(height: 8),
+                Wrap(
+                  key: const ValueKey('hadith-card-meta'),
+                  spacing: 8,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    if (hadith.chapterNumber > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: colors.border)),
+                        child: Text(
+                          AppStrings.of(context)
+                              .hadithChapterShort(hadith.chapterNumber),
+                          style: AppTextStyles.labelSmall.copyWith(
+                              color: colors.textTertiary),
+                        ),
+                      ),
+                    Text(
+                      positionLabel,
+                      style: AppTextStyles.labelSmall.copyWith(
+                          color: colors.textTertiary),
+                    ),
+                    if (hadith.grade != HadithGrade.unknown)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color:
+                              hadith.grade.color.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          hadith.grade.label,
+                          style: AppTextStyles.labelSmall.copyWith(
+                              color: hadith.grade.color,
+                              fontWeight: FontWeight.w700),
+                        ),
                       )
                     else
                       Text(
-                        'Verified translation unavailable for this language.',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: QibraNavy.textSecondary,
-                          fontStyle: FontStyle.italic,
-                        ),
+                        AppStrings.of(context).hadithGradeNotRecorded,
+                        style: AppTextStyles.labelSmall.copyWith(
+                            color: colors.textTertiary,
+                            fontStyle: FontStyle.italic),
                       ),
+                    IconButton(
+                      tooltip: isBookmarked
+                          ? AppStrings.of(context).tooltipRemoveBookmark
+                          : AppStrings.of(context).tooltipBookmark,
+                      icon: Icon(
+                        isBookmarked
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_border_rounded,
+                        color: isBookmarked
+                            ? QibraNavy.gold
+                            : colors.textSecondary,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        ref
+                            .read(hadithBookmarksProvider.notifier)
+                            .toggleBookmark(hadith);
+                      },
+                    ),
+                    IconButton(
+                      tooltip: AppStrings.of(context).tooltipCopyToShare,
+                      icon: Icon(Icons.share_rounded,
+                          color: colors.textSecondary, size: 18),
+                      onPressed: () {
+                        // D2 honesty: the CLIPBOARD carries the FULL
+                        // hadith even while the card shows four lines.
+                        final shareText =
+                            '${hadith.textArabic}\n\n${translation ?? hadith.textEnglish}\n\n\u2014 ${hadith.displayReference}';
+                        Clipboard.setData(ClipboardData(text: shareText));
+                        HapticFeedback.lightImpact();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(AppStrings.of(context)
+                                  .hadithCopiedToClipboard),
+                              backgroundColor: QibraNavy.surface,
+                              duration: const Duration(seconds: 1)),
+                        );
+                      },
+                    ),
                   ],
                 ),
-              ),
-            ],
-            if (hadith.chapterName.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Chapter: ${hadith.chapterName}',
-                style: const TextStyle(color: QibraNavy.textSecondary, fontSize: 10),
-              ),
-            ],
-          ],
+              ],
+            );
+          },
         ),
       ),
     );

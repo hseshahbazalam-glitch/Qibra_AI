@@ -149,6 +149,24 @@ class AppStrings {
   // Pass H1 — hadith depth & disclosure. Real translations in all three
   // shipped languages (no machine-literal filler; census-safe: features
   // render these through getters, never as Text('Capital…') literals).
+  /// H2-D1/D2: the card meta-row chapter pill, the collapse expander and
+  /// its collapse twin. Urdu forms are the brief's own words.
+  String hadithChapterShort(int number) => _t(
+        'Ch $number',
+        'باب $number',
+        'باب $number',
+      );
+  String get readFullHadith => _t(
+        'Read full hadith',
+        'اقرأ الحديث كاملًا',
+        'پُری حدیث پڑھیں',
+      );
+  String get showLessHadith => _t(
+        'Show less',
+        'عرض أقل',
+        'کم دکھائیں',
+      );
+
   String get hadithGradeNotRecorded => _t(
         'Grade not recorded',
         'لم تُسجَّل درجة لهذا الحديث',
