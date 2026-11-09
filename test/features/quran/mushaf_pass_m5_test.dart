@@ -206,9 +206,9 @@ void main() {
   setUpAll(loadAppTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('M7 plain const double set', () {
-    const s = <double>{1.0, 2.0};
-    expect(s.length, 2);
+  test('M8 const double list', () {
+    const l = [1.0, 2.75, 2.8125, 3.0];
+    expect(l.length, 4);
   });
 
   for (final profile in const [
