@@ -38,7 +38,7 @@ import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
-import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_turn.dart'; // ignore: unused_import
+import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_turn.dart';
 import 'package:qibra_ai/features/quran/presentation/mushaf_reader_screen.dart';
 import 'package:qibra_ai/features/quran/providers/quran_download_provider.dart';
 import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
@@ -199,6 +199,7 @@ void main() {
     testWidgets('P1: night default renders the AMBIENT canvas — the '
         'D2 machinery is provably absent from the Night path',
         (tester) async {
+      print('::notice::P1-enter');
       await pumpReader(tester);
       final ctx = tester.element(find.byType(MushafReaderScreen));
       final ambient = QibraColors.of(ctx);
@@ -207,10 +208,12 @@ void main() {
       expect(renderedPageCanvas(tester), same(ambient.background),
           reason: 'the scaffold paints the app palette\'s own instance — '
               'not a paper copy, not a lerp, THE object');
+      print('::notice::P1-ok');
     });
 
     testWidgets('P2: a persisted paper preference lands as paper IN THE '
         'TREE — the color the device would paint', (tester) async {
+      print('::notice::P2-enter');
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
           'quran_reading_preferences_v1_reading_theme', 'paper');
@@ -218,10 +221,12 @@ void main() {
       expect(renderedPageCanvas(tester), same(QibraPaper.paper));
       final ctx = tester.element(find.byType(MushafReaderScreen));
       expect(QibraColors.of(ctx).card, same(QibraPaper.paper));
+      print('::notice::P2-ok');
     });
 
     testWidgets('P3: mid-turn the LEAF itself renders paper — not just '
         'the settled page', (tester) async {
+      print('::notice::P3-enter');
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
           'quran_reading_preferences_v1_reading_theme', 'paper');
@@ -233,10 +238,12 @@ void main() {
               'viral-reader claim proven on the widget the renderer '
               'consumes, never by grep');
       await releaseLeaf(tester, g);
+      print('::notice::P3-ok');
     });
 
     testWidgets('P4: the REAL settings flow — tap Paper, tap Night; the '
         'preference persists through the real notifier', (tester) async {
+      print('::notice::P4-enter');
       await tester.pumpWidget(ProviderScope(
         overrides: [
           currentUserProvider.overrideWithValue(null),
@@ -263,10 +270,12 @@ void main() {
       await tester.pump();
       expect(prefs.getString('quran_reading_preferences_v1_reading_theme'),
           'night');
+      print('::notice::P4-ok');
     });
 
     testWidgets('P5: instant switch BOTH WAYS at the rendered level — '
         'including mid-turn, zero animation frames', (tester) async {
+      print('::notice::P5-enter');
       await pumpReader(tester);
       final night = renderedPageCanvas(tester);
       expect(night, isNot(same(QibraPaper.paper)));
@@ -291,6 +300,120 @@ void main() {
       // Night path is not 'close to' night, it IS night's own object
       // again (the scope returns the child unwrapped).
       expect(renderedPageCanvas(tester), same(night));
+      print('::notice::P5-ok');
+    });
+  });
+
+  // ── E — the edge-cut fix ─────────────────────────────────────
+  group('E edge fidelity', () {
+    test('E1: the clip is the projected quad — every leaf corner '
+        'survives the turn, the non-page region beyond does not', () {
+      print('::notice::E1-enter');
+      const w = 390.0, h = 844.0;
+      for (var i = 0; i <= 20; i++) {
+        final t = i / 20;
+        final ang =
+            MushafTurnGeometry.angleFor(MushafTurnDirection.forward, t);
+        final lift = MushafTurnGeometry.anticipation(t);
+        final path =
+            MushafTurnLeafClipper(angle: ang, lift: lift).getClip(const Size(w, h));
+        final corners =
+            MushafTurnGeometry.projectedCorners(w, h, ang, lift);
+        for (final c in corners) {
+          expect(c.isFinite, isTrue);
+          expect(path.contains(c), isTrue,
+              reason: 't=$t: a real corner of the projected paper must be '
+                  'INSIDE the clip — this is the exact cut the device saw '
+                  'on the gilded side');
+        }
+        // Tight quad: 40px above the topmost corner is NOT page, so it
+        // must stay outside the clip.
+        expect(path.contains(Offset(corners.first.dx, corners.first.dy - 40)),
+            isFalse);
+      }
+      // THE CUT, PROVEN: mid-turn, the perspective-MAGNIFIED free-edge
+      // corner of the paper renders ABOVE y=0 of the leaf box (the
+      // hinge-anchored transform divides the lifted side's y by
+      // 1 + p·x < 1). The old rectangular ClipRect stopped at exactly
+      // 0 — everything past it was the device's 'thora cut'. The new
+      // clip's bounds must OPEN where the paper actually goes:
+      final ang =
+          MushafTurnGeometry.angleFor(MushafTurnDirection.forward, 0.62);
+      final lift = MushafTurnGeometry.anticipation(0.62);
+      final corners = MushafTurnGeometry.projectedCorners(w, h, ang, lift);
+      expect(corners.first.dy, lessThan(0.0),
+          reason: 'the projected free-edge top is genuinely off-box — '
+              'if this were >= 0 the old clip never cut anything');
+      final opened = MushafTurnLeafClipper(angle: ang, lift: lift)
+          .getClip(const Size(w, h))
+          .bounds;
+      expect(opened.top, lessThan(corners.first.dy),
+          reason: 'the clip encloses that corner WITH its AA slack — the '
+              'cut region is inside now...');
+      expect(opened.top, greaterThan(corners.first.dy - 2.0),
+          reason: '...and still TIGHT (slack is 1.2px, not a free pass '
+              'to overdraw); non-page points stay out');
+      final rest = MushafTurnLeafClipper(
+              angle: MushafTurnGeometry.angleFor(
+                  MushafTurnDirection.forward, 0),
+              lift: 0)
+          .getClip(const Size(w, h))
+          .bounds;
+      expect(rest.top, inInclusiveRange(-2.0, 0.0),
+          reason: 'at touch-down the quad is THE BOX within its AA '
+              'slack only — no lift, no parallax, the settled frame is '
+              'untouched');
+      print('::notice::E1-ok');
+    });
+
+    testWidgets('E2: the leaf is wrapped in an ANTI-ALIASED ClipPath — '
+        'the ClipRect that did the cutting is gone', (tester) async {
+      await pumpReader(tester);
+      final g = await grabLeaf(tester);
+      final leaf = find.byKey(const ValueKey('mushaf-turn-leaf'));
+      final clips =
+          find.descendant(of: leaf, matching: find.byType(ClipPath));
+      expect(clips, findsOneWidget);
+      expect(tester.widget<ClipPath>(clips).clipBehavior, Clip.antiAlias,
+          reason: 'feathered, not chopped — AA kills the stair-step along '
+              'the band boundary');
+      expect(find.descendant(of: leaf, matching: find.byType(ClipRect)),
+          findsNothing);
+      await releaseLeaf(tester, g);
+    });
+
+    testWidgets('E3: shadow band — feathers to zero at its own end and '
+        'ends EXACTLY at the fold, never across it', (tester) async {
+      await pumpReader(tester);
+      final g = await grabLeaf(tester);
+      final band = find.descendant(
+          of: find.byKey(const ValueKey('mushaf-turn-shadow')),
+          matching: find.byType(DecoratedBox));
+      final deco =
+          tester.widget<DecoratedBox>(band.first).decoration as BoxDecoration;
+      final grad = deco.gradient as LinearGradient;
+      expect(grad.colors.first.a, 0.0, reason: 'lead-in alpha zero');
+      expect(grad.colors.last.a, 0.0,
+          reason: 'stop continuity: the band ENDS in nothing — no hard '
+              'edge of shadow anywhere, least of all over the paper');
+      expect(grad.stops!.first, 0.0);
+      expect(grad.stops!.last, 1.0);
+      expect(grad.colors.length, grad.stops!.length);
+      // One fold, two riders: the shadow (width 64, translate
+      // edgeX−64) and the gild (translate edgeX−1) must land on the
+      // SAME edgeX — band-seam continuity, cross-widget.
+      double tx(Key k) => tester
+          .widget<Transform>(find
+              .descendant(of: find.byKey(k), matching: find.byType(Transform))
+              .first)
+          .transform
+          .getTranslation()
+          .x;
+      final shadowX = tx(const ValueKey('mushaf-turn-shadow'));
+      final gildX = tx(const ValueKey('mushaf-turn-gild'));
+      expect(shadowX + 64, closeTo(gildX + 1, 1e-9),
+          reason: 'shadow right edge == gild center == the free edge');
+      await releaseLeaf(tester, g);
     });
   });
 }
