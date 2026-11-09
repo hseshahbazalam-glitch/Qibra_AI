@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
@@ -83,6 +84,10 @@ class HadithBookScreen extends ConsumerStatefulWidget {
 class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   int? _selectedChapterNumber;
   String _searchQuery = '';
+  // H2-F: the search field became CONTROLLED — the old clear button
+  // emptied the query but the uncontrolled TextField kept showing the
+  // typed text. One controller, one truth.
+  final TextEditingController _searchCtl = TextEditingController();
   bool _showArabic = true;
   // Phase B: the old separate Urdu/English switches became ONE
   // translation switch — the reader's selected language drives which
@@ -107,6 +112,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
 
   @override
   void dispose() {
+    _searchCtl.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -206,14 +212,14 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                 }
 
                 if (filtered.isEmpty) {
-                  return const SliverToBoxAdapter(
+                  return SliverToBoxAdapter(
                     child: Center(
                       child: Padding(
-                        padding: EdgeInsets.all(40),
+                        padding: const EdgeInsets.all(40),
                         child: Text(
                           'No hadiths found.',
-                          style:
-                              TextStyle(color: QibraNavy.textSecondary, fontSize: 14),
+                          style: AppTextStyles.bodyMedium.copyWith(
+                              color: QibraNavy.textSecondary),
                         ),
                       ),
                     ),
@@ -262,18 +268,17 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         const Icon(Icons.error_outline_rounded,
                             color: QibraNavy.red, size: 48),
                         const SizedBox(height: 12),
-                        const Text(
+                        Text(
                           'Failed to load hadiths',
-                          style: TextStyle(
+                          style: AppTextStyles.titleMedium.copyWith(
                               color: QibraNavy.textPrimary,
-                              fontSize: 16,
                               fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           error.toString(),
-                          style: const TextStyle(
-                              color: QibraNavy.textSecondary, fontSize: 12),
+                          style: AppTextStyles.bodySmall.copyWith(
+                              color: QibraNavy.textSecondary),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -309,9 +314,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       ),
       title: Text(
         widget.book.name,
-        style: const TextStyle(
+        style: AppTextStyles.titleSmall.copyWith(
             color: QibraNavy.textPrimary,
-            fontSize: 16,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.5),
       ),
@@ -370,16 +374,15 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                       children: [
                         Text(
                           widget.book.name,
-                          style: const TextStyle(
+                          style: AppTextStyles.titleSmall.copyWith(
                               color: QibraNavy.textPrimary,
-                              fontSize: 16,
                               fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           widget.book.author,
-                          style: const TextStyle(
-                              color: QibraNavy.textSecondary, fontSize: 11),
+                          style: AppTextStyles.labelSmall.copyWith(
+                              color: QibraNavy.textSecondary),
                         ),
                       ],
                     ),
@@ -427,11 +430,11 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(value,
-                  style: TextStyle(
-                      color: color, fontWeight: FontWeight.w800, fontSize: 11)),
+                  style: AppTextStyles.labelMedium.copyWith(
+                      color: color, fontWeight: FontWeight.w800)),
               Text(label,
-                  style:
-                      const TextStyle(color: QibraNavy.textSecondary, fontSize: 8)),
+                  style: AppTextStyles.labelXSmall.copyWith(
+                      color: QibraNavy.textSecondary)),
             ],
           ),
         ],
@@ -448,130 +451,44 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           children: [
-            TextField(
-              style: const TextStyle(color: QibraNavy.textPrimary, fontSize: 13),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: QibraNavy.textPrimary,
-                hintText: 'Search hadith number or text in this book...',
-                hintStyle:
-                    const TextStyle(color: QibraNavy.textSecondary, fontSize: 11.5),
-                prefixIcon: const Icon(Icons.search_rounded,
-                    color: QibraNavy.gold, size: 18),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        tooltip: AppStrings.of(context).tooltipClearSearch,
-                        icon: const Icon(Icons.clear_rounded,
-                            color: QibraNavy.textSecondary, size: 16),
-                        onPressed: () => setState(() => _searchQuery = ''),
-                      )
-                    : null,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: QibraNavy.hairline),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: QibraNavy.hairline),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: QibraNavy.emeraldDeep),
-                ),
-              ),
+            HadithSearchField(
+              controller: _searchCtl,
+              query: _searchQuery,
+              hint: 'Search hadith number or text in this book...',
               onChanged: (v) => setState(() => _searchQuery = v),
             ),
             const SizedBox(height: 8),
             if (chapters.isNotEmpty)
               SizedBox(
-                height: 32,
+                height: 40,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   itemCount: chapters.length + 1,
                   itemBuilder: (context, index) {
+                    // H2-F: the hand-rolled pills painted their FILL with
+                    // TEXT tokens (textSecondary/textPrimary as the
+                    // decoration color — F1's twin). QibraChip is the app's
+                    // one honest pill: token fill, token selection, shared
+                    // with the hadith home rails.
                     if (index == 0) {
-                      final isSelected = _selectedChapterNumber == null;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: GestureDetector(
-                          onTap: () =>
-                              setState(() => _selectedChapterNumber = null),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? QibraNavy.textSecondary
-                                  : QibraNavy.textPrimary,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: isSelected
-                                      ? QibraNavy.emerald
-                                      : QibraNavy.textMuted),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'All Chapters',
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? QibraNavy.emerald
-                                      : QibraNavy.textSecondary,
-                                  fontSize: 10,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                      return QibraChip(
+                        label: 'All Chapters',
+                        selected: _selectedChapterNumber == null,
+                        onTap: () =>
+                            setState(() => _selectedChapterNumber = null),
                       );
                     }
-
                     final ch = chapters[index - 1];
-                    final isSelected = _selectedChapterNumber == ch.number;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: GestureDetector(
-                        onTap: () =>
-                            setState(() => _selectedChapterNumber = ch.number),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? QibraNavy.textSecondary
-                                : QibraNavy.textPrimary,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: isSelected
-                                    ? QibraNavy.emerald
-                                    : QibraNavy.textMuted),
-                          ),
-                          child: Center(
-                            child: Text(
-                              HadithBookScreen.chapterChipLabel(
-                                  ch.number,
-                                  ch.name,
-                                  AppStrings.of(context)
-                                      .hadithKitabLabel(ch.number)),
-                              style: TextStyle(
-                                color: isSelected
-                                    ? QibraNavy.emerald
-                                    : QibraNavy.textSecondary,
-                                fontSize: 10,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                    return QibraChip(
+                      label: HadithBookScreen.chapterChipLabel(
+                          ch.number,
+                          ch.name,
+                          AppStrings.of(context)
+                              .hadithKitabLabel(ch.number)),
+                      selected: _selectedChapterNumber == ch.number,
+                      onTap: () =>
+                          setState(() => _selectedChapterNumber = ch.number),
                     );
                   },
                 ),
@@ -728,9 +645,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         AppSwitchListTile(
                           activeColor: QibraNavy.emerald,
                           title: Text(AppStrings.of(context).arabicTextSection,
-                              style: TextStyle(
-                                  color: QibraNavy.textPrimary,
-                                  fontSize: 14)),
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                  color: QibraNavy.textPrimary)),
                           value: _showArabic,
                           onChanged: (v) {
                             setSheetState(() => _showArabic = v);
@@ -742,9 +658,8 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             activeColor: QibraNavy.emerald,
                             title: Text(
                               'Translation (${HadithAvailability.label(ref.watch(hadithLanguageProvider))})',
-                              style: const TextStyle(
-                                  color: QibraNavy.textPrimary,
-                                  fontSize: 14),
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                  color: QibraNavy.textPrimary),
                             ),
                             value: _showTranslation,
                             onChanged: (v) {
@@ -845,6 +760,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       // The resume position refers to the whole book — clear the
       // filters first, then the pending jump lands on the next build.
       _pendingResumeNumber = number;
+      _searchCtl.clear();
       setState(() {
         _selectedChapterNumber = null;
         _searchQuery = '';
@@ -1026,18 +942,16 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             hadith.bookName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: AppTextStyles.bodyMedium.copyWith(
                                 color: QibraNavy.emerald,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13),
+                                fontWeight: FontWeight.w800),
                           ),
                           Text(
                             HadithBookScreen.hadithPositionLabel(
                                 hadith.hadithNumber,
                                 widget.book.totalHadiths),
-                            style: const TextStyle(
-                                color: QibraNavy.textSecondary,
-                                fontSize: 11),
+                            style: AppTextStyles.labelSmall.copyWith(
+                                color: QibraNavy.textSecondary),
                           ),
                         ],
                       ),
@@ -1167,7 +1081,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             textDirection: sheetRtl
                                 ? TextDirection.rtl
                                 : TextDirection.ltr,
-                            style: TextStyle(
+                            style: AppTextStyles.bodyMedium.copyWith(
                                 color: QibraNavy.textPrimary,
                                 fontSize: (sheetRtl ? 15 : 13.5) *
                                     prefs.translationScale,
@@ -1214,17 +1128,15 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                                   children: [
                                     Text(
                                       'Grade: ${hadith.grade.label}',
-                                      style: const TextStyle(
+                                      style: AppTextStyles.bodySmall.copyWith(
                                           color: QibraNavy.textPrimary,
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 12),
+                                          fontWeight: FontWeight.w800),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       'Source: ${hadith.bookName} (${hadith.hadithNumber})',
-                                      style: const TextStyle(
-                                          color: QibraNavy.textSecondary,
-                                          fontSize: 11),
+                                      style: AppTextStyles.labelSmall.copyWith(
+                                          color: QibraNavy.textSecondary),
                                     ),
                                   ],
                                 ),
@@ -1319,6 +1231,75 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+// ============================================================
+// HADITH SEARCH FIELD (H2-F — the fill-bug carrier, RENDER-pinned)
+// ============================================================
+
+/// The book's search input, extracted as a public widget so F3 can PAINT
+/// it: the bug was a fill set to a TEXT token (QibraNavy.textPrimary —
+/// a cream slab with a cream caret), exactly the class a source grep can
+/// hide forever. A painted InputDecoration cannot. Controlled by the
+/// screen so clearing resets the field itself, not just the query.
+class HadithSearchField extends StatelessWidget {
+  const HadithSearchField({
+    super.key,
+    required this.controller,
+    required this.query,
+    required this.hint,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String query;
+  final String hint;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return TextField(
+      controller: controller,
+      style: AppTextStyles.inputText.copyWith(
+          color: colors.textPrimary, fontSize: 13.5),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: colors.cardMuted,
+        hintText: hint,
+        hintStyle: AppTextStyles.inputHint.copyWith(
+            color: colors.textTertiary, fontSize: 11.5),
+        prefixIcon:
+            const Icon(Icons.search_rounded, color: QibraNavy.gold, size: 18),
+        suffixIcon: query.isNotEmpty
+            ? IconButton(
+                tooltip: AppStrings.of(context).tooltipClearSearch,
+                icon: const Icon(Icons.clear_rounded,
+                    color: QibraNavy.textSecondary, size: 16),
+                onPressed: () {
+                  controller.clear();
+                  onChanged('');
+                },
+              )
+            : null,
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: QibraNavy.hairline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: QibraNavy.hairline),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: QibraNavy.emeraldDeep),
+        ),
+      ),
+      onChanged: onChanged,
     );
   }
 }
