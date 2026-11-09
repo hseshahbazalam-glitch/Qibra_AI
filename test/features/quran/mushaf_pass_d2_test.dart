@@ -13,7 +13,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart' hide test, testWidgets;
+import 'package:flutter_test/flutter_test.dart' as ft show test, testWidgets;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qibra_ai/core/design_system/contrast.dart';
@@ -32,7 +33,63 @@ const _surfaces = [
   'lib/features/quran/presentation/mushaf/mushaf_turn.dart',
 ];
 
+
+// M6SHADOW3 (transient, one round): file-local wrappers with the SDK's
+// EXACT test/testWidgets signatures (read from flutter 3.44.6 sources:
+// test() takes Object + dynamic skip + retry/testOn/tags/onPlatform;
+// testWidgets() takes String + bool? skip). Bodies are caught and the
+// name rides the ::error:: annotation channel. Removed with the fix.
+final _m6bad = <String>[];
+
+void testWidgets(
+  String d,
+  WidgetTesterCallback cb, {
+  bool? skip,
+  Timeout? timeout,
+}) {
+  ft.testWidgets(d, (t) async {
+    try {
+      await cb(t);
+    } catch (e) {
+      _m6bad.add('mushaf_pass_d2 :: $d :: ${e.toString().split('\n').first}');
+      rethrow;
+    }
+  }, skip: skip, timeout: timeout);
+}
+
+void test(
+  Object d,
+  dynamic Function() body, {
+  String? testOn,
+  Timeout? timeout,
+  dynamic skip,
+  dynamic tags,
+  Map<String, dynamic>? onPlatform,
+  int? retry,
+}) {
+  ft.test(d, () async {
+    try {
+      await body();
+    } catch (e) {
+      _m6bad.add('mushaf_pass_d2 :: $d :: ${e.toString().split('\n').first}');
+      rethrow;
+    }
+  },
+      testOn: testOn,
+      timeout: timeout,
+      skip: skip,
+      tags: tags,
+      onPlatform: onPlatform,
+      retry: retry);
+}
+
 void main() {
+  tearDownAll(() {
+    for (final x in _m6bad) {
+      print('::error::M6BAD ${x.length > 230 ? x.substring(0, 230) : x}');
+    }
+    print('::error::M6BADEND mushaf_pass_d2_test.dart ${_m6bad.length}');
+  });
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
