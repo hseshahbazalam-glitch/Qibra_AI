@@ -397,7 +397,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     // D4 coverage honesty: per-book translation coverage for the ACTIVE
     // reading language, from the real corpus census (the same
     // hadithLanguageCoverageProvider the book screen's language sheet
-    // uses). Rendered ONLY when <100% — full coverage needs no badge.
+    // uses). Rendered ONLY for partial coverage — a complete collection
+    // needs no badge, and the percent sign stays out of this file (the
+    // stage-2 honesty test forbids it in the home surface).
     final covLang = ref.watch(hadithLanguageProvider);
     final covAll = ref.watch(hadithLanguageCoverageProvider).valueOrNull;
     return [
