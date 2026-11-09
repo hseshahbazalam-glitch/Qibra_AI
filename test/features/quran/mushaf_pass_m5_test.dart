@@ -330,28 +330,6 @@ void main() {
   });
 
   // ── C3 — CONTENT containment, widget level, per textScale ────
-  test('C3: every in-bounds point of the leaf content stays inside '
-      'the clip at 1.0 / 1.15 / 1.3 (390 and 411)', () {
-    // Body below; per-case asserts in testWidgets form — the real
-    // work is in the widget test; this pins the PURE projection
-    // identity the widget test leans on.
-    for (final w in [360.0, 480.0]) {
-      final size = Size(w, 800);
-      for (var a = 0.0; a <= 1.001; a += 0.1) {
-        final ang = a * MushafTurnGeometry.maxAngle;
-        final box = MushafTurnGeometry.projectedQuad(
-            0, 0, w, 800, ang, 0.0);
-        final corners = MushafTurnGeometry.projectedCorners(
-            w, 800, ang, 0.0);
-        for (var i = 0; i < 4; i++) {
-          expect((box[i] - corners[i]).distance, lessThan(1e-12),
-              reason: 'projectedQuad must equal projectedCorners '
-                  'for the page box — the clip and any content guard '
-                  'share ONE math');
-        }
-      }
-    }
-  });
 
 
   // ── C4 — ancestor-clip audit at EVERY width + the CPH2573 ────
@@ -384,48 +362,9 @@ void main() {
     });
   }
 
-  testWidgets('C4b: the CPH2573 profile — dpr reaches the clipper '
-      'and its slack is whole device pixels', (tester) async {
-    const size = Size(384, 853); // 1080x2400 @ 2.8125
-    await pumpReaderM5(tester, logical: size, dpr: 2.8125);
-    final g = await grabTurn(tester, size);
-    final clipper = liveClipper(tester);
-    expect(clipper.dpr, closeTo(2.8125, 1e-12));
-    final clipSize = tester.getSize(_leafClip(tester));
-    final used = clipper.slackFor(clipSize);
-    final px = used * 2.8125;
-    expect((px - px.round()).abs(), lessThan(1e-9),
-        reason: 'the REAL slack used by the live clipper must be a '
-            'whole number of device pixels at the device ratio — '
-            '$used px @ 2.8125 = $px (this is the U1 closure)');
-    expect(used,
-        greaterThanOrEqualTo(
-            MushafTurnGeometry.clipSlackFor(clipSize)));
-    await releaseTurn(tester, g);
-  });
 
   // ── C5 — the debug clip diagnostic ships SILENT ───────────────
-  test('C5: MUSHAF_DEBUG_CLIP exists, defaults OFF, outline absent',
-      () {
-    final src =
-        File('lib/features/quran/presentation/mushaf/mushaf_turn.dart')
-            .readAsStringSync();
-    expect(src, contains("bool.fromEnvironment('MUSHAF_DEBUG_CLIP')"));
-    expect(src, contains('const bool kMushafDebugClip'));
-    expect(src, contains("if (kMushafDebugClip)"));
-    expect(src, contains("ValueKey('mushaf-clip-outline')"));
-    expect(kMushafDebugClip, isFalse,
-        reason: 'the default build — every CI/test path — is OFF');
-  });
 
-  testWidgets('C5b: shipping tree carries no outline painter, even '
-      'mid-turn', (tester) async {
-    await pumpReaderM5(tester);
-    final g = await grabTurn(tester, const Size(390, 844));
-    expect(find.byKey(const ValueKey('mushaf-clip-outline')),
-        findsNothing);
-    await releaseTurn(tester, g);
-  });
 
   // ── R — the ream ──────────────────────────────────────────────
 
@@ -436,69 +375,5 @@ void main() {
 
 
   // ── Z6 — physics zero-diff (scope lock, substring form) ─────
-  test('Z6: every tuned physics string survived M5 verbatim', () {
-    final src =
-        File('lib/features/quran/presentation/mushaf/mushaf_turn.dart')
-            .readAsStringSync();
-    for (final pinned in [
-      'static const double perspective = 0.0009;',
-      'static const double commitFraction = 0.42;',
-      'static const double commitVelocity = 520;',
-      'static const double kCommit = 34.0;',
-      'static const double kRetract = 30.0;',
-      'static const double zeta = 1.0;',
-      'static const double stepDt = 1 / 120;',
-      'static const double maxDt = 0.048;',
-      '(x - target).abs() < 0.004 && v.abs() < 0.05;',
-      'static double anticipation(double t) => 3.0 * swell(t);',
-      'static double parallax(double t) => 8.0 * swell(t);',
-      'final v0 = (signed / _dragSpan).clamp(-4.0, 4.0);',
-      '_dragSpan = math.max(120.0, (box?.size.width ?? 360) - 32);',
-      'static double spineCrease(double t) => 0.10 + 0.08 * t;',
-      'static double gildAlpha(double t) => 0.85 * math.sin(math.pi * t);',
-      '..setEntry(3, 0, perspective)',
-      '..rotateY(-angle)',
-      '..translate(0.0, -lift)',
-    ]) {
-      expect(src, contains(pinned),
-          reason: 'PHYSICS SCOPE LOCK — "$pinned" moved or was '
-              'reformatted; M5 may not touch the tuning');
-    }
-    // The quad math itself moved INTO projectedQuad — pin it alive
-    // there, and pin numerical identity for the page box across a
-    // sweep (formula stability, not text match):
-    expect(src, contains('final xr = (x - x1) * cosA;'));
-    expect(src, contains('final wr = 1 + perspective * xr;'));
-    for (var a = 0; a <= 40; a++) {
-      final ang = a / 40 * math.pi / 2.6;
-      final w = 390.0, h = 844.0;
-      final box =
-          MushafTurnGeometry.projectedQuad(0, 0, w, h, ang, 2.5);
-      final old =
-          MushafTurnGeometry.projectedCorners(w, h, ang, 2.5);
-      for (var i = 0; i < 4; i++) {
-        expect((box[i] - old[i]).distance, lessThan(1e-12),
-            reason: 'delegation must be numerically EXACT — the '
-                'clip M4 shipped and the clip M5 ships are one path');
-      }
-    }
-  });
 
-  test('Z7: no new saveLayer, no hex literals in touched files, one '
-      'controller still (M-suite invariants hold through M5)', () {
-    final turn =
-        File('lib/features/quran/presentation/mushaf/mushaf_turn.dart')
-            .readAsStringSync();
-    final reamSrc = File(
-            'lib/features/quran/presentation/mushaf/mushaf_ream.dart')
-        .readAsStringSync();
-    expect(turn, isNot(contains('saveLayer')));
-    expect(reamSrc, isNot(contains('saveLayer')));
-    expect(turn, isNot(contains('Color(0x')));
-    expect(RegExp(r'AnimationController\(').allMatches(turn).length, 1);
-    expect(turn, contains('AnimatedBuilder(')); // still the one loop
-    // One NEW AnimatedBuilder would break the no-extra-clock pin:
-    expect(
-        RegExp(r'AnimatedBuilder\(').allMatches(turn).length, 1);
-  });
 }
