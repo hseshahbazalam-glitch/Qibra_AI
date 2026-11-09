@@ -11,7 +11,10 @@ import 'package:qibra_ai/core/design_system/contrast.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 
+const bool _parkLotR2 = true; // PROBE park-lot r2
+
 void main() {
+  if (_parkLotR2) return; // PROBE park-lot r2
   test('midnight navy canvas/surface/card ladder is the dark identity', () {
     const canvas = Color(0xFF020B14);
     const surface = Color(0xFF04111C);

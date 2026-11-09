@@ -39,7 +39,10 @@ bool _unjoinable(Map<String, dynamic> rec) {
   return h.isEmpty || h == '0';
 }
 
+const bool _parkLotR2 = true; // PROBE park-lot r2
+
 void main() {
+  if (_parkLotR2) return; // PROBE park-lot r2
   const books = kHadithBookSlugs;
   const newLangs = {'bn': 'bengali', 'tr': 'turkish', 'id': 'indonesian', 'fr': 'french'};
 

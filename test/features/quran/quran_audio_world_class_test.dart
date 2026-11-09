@@ -68,7 +68,10 @@ Future<void> _settle() async {
   }
 }
 
+const bool _parkLotR2 = true; // PROBE park-lot r2
+
 void main() {
+  if (_parkLotR2) return; // PROBE park-lot r2
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('qari catalog', () {

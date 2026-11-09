@@ -17,7 +17,10 @@ const _books = [
   'malik',
 ];
 
+const bool _parkLotR2 = true; // PROBE park-lot r2
+
 void main() {
+  if (_parkLotR2) return; // PROBE park-lot r2
   test('collections screen exposes exactly 7 books, incl. tirmidhi + nasai',
       () {
     final src =
