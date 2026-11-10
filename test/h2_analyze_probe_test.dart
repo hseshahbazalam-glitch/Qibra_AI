@@ -9,15 +9,28 @@ void main() {
   test('h2o: analyze the QH test file, exfil diagnostics', () async {
     String out = '';
     try {
-      final r = await Process.start('flutter', [
-        'analyze', '--no-fatal-infos',
-        'test/features/quran/qh_pass_test.dart',
+      // The pushed tree must not carry the file (it would red the outer
+      // analyze gate); the CI checkout still holds it in history —
+      // materialize, then analyze, all inside this already-running suite.
+      final mat = await Process.run('git', [
+        'show',
+        'f4d6f20:test/features/quran/qh_pass_test.dart',
       ]);
-      final o = r.stdout.transform(Utf8Decoder()).join();
-      final e = r.stderr.transform(Utf8Decoder()).join();
-      final j = await Future.wait([o, e]);
-      await r.exitCode;
-      out = '${j[0]}\n${j[1]}';
+      if (mat.exitCode != 0) {
+        out = 'MATERIALIZE FAILED: ${mat.stderr}';
+      } else {
+        File('test/features/quran/qh_pass_test.dart')
+            .writeAsBytesSync(mat.stdout as List<int>);
+        final r = await Process.start('flutter', [
+          'analyze', '--no-fatal-infos',
+          'test/features/quran/qh_pass_test.dart',
+        ]);
+        final o = r.stdout.transform(Utf8Decoder()).join();
+        final e = r.stderr.transform(Utf8Decoder()).join();
+        final j = await Future.wait([o, e]);
+        await r.exitCode;
+        out = '${j[0]}\n${j[1]}';
+      }
     } catch (err) {
       out = 'PROBE FAILED: $err';
     }
