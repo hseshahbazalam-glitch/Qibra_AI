@@ -125,7 +125,8 @@ Future<void> _open(WidgetTester tester) async {
   await tester.tap(find.byKey(const ValueKey('qrah-tab')));
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 240));
-  await tester.pumpAndSettle();
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
 }
 
 Future<void> _pumpTasbih(WidgetTester tester) async {
@@ -138,7 +139,8 @@ Future<void> _pumpTasbih(WidgetTester tester) async {
       ),
     ),
   ));
-  await tester.pumpAndSettle();
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
 }
 
 List<String> _dartFiles(String dir) {
@@ -257,10 +259,12 @@ void main() {
       expect(tester.binding.transientCallbackCount, bare,
           reason: 'mounted-but-closed handle schedules nothing extra');
       await tester.tap(find.byKey(const ValueKey('qrah-tab')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('qrah-panel')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('qrah-close')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('qrah-panel')), findsNothing);
       expect(tester.binding.transientCallbackCount, bare,
           reason: 'after close, nothing lingers');
@@ -278,17 +282,20 @@ void main() {
           reason: 'mid-flight the blocker is already under the sliding '
               'panel (220ms beat)');
       await tester.pump(const Duration(milliseconds: 120));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('qrah-panel')), findsOneWidget);
       await tester.tapAt(const Offset(340, 400)); // outside — barrier
       await tester.pump(const Duration(milliseconds: 300));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('qrah-panel')), findsNothing);
       // reopen + the explicit close control
       await _open(tester);
       await tester.tap(find.byKey(const ValueKey('qrah-close')));
       await tester.pump(const Duration(milliseconds: 300));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('qrah-panel')), findsNothing);
     });
 
@@ -299,7 +306,8 @@ void main() {
       await tester.drag(
           find.byKey(const ValueKey('qrah-panel')), const Offset(-80, 0));
       await tester.pump(const Duration(milliseconds: 300));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('qrah-panel')), findsNothing,
           reason: 'swipe-close');
       await _open(tester);
@@ -307,7 +315,8 @@ void main() {
       // panel instead — the reader stays on screen.
       await tester.binding.handlePopRoute();
       await tester.pump(const Duration(milliseconds: 300));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('qrah-panel')), findsNothing);
       expect(find.byKey(const ValueKey('qrah-tab')), findsOneWidget,
           reason: 'the reader itself survived the back press');
@@ -321,16 +330,19 @@ void main() {
       // segment (the M4-P rendered-level discipline — no private-state
       // peeking).
       await tester.tap(find.text('Paper'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       final seg = tester.widget<SegmentedButton<QibraReadingTheme>>(
           find.byKey(const ValueKey('qrah-theme')));
       expect(seg.selected, contains(QibraReadingTheme.paper));
       // Scales: two Arabic plus-steps move the readout to 1.20× and the
       // reader body repaints (no crash, no duplicated readout).
       await tester.tap(find.byKey(const ValueKey('qrah-arabic-plus')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.byKey(const ValueKey('qrah-arabic-plus')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('1.20\u00d7'), findsOneWidget);
       // Edition: pick the row that does NOT carry the check; it gains it.
       final entries = EditionResolver.pickerEntries();
@@ -350,7 +362,8 @@ void main() {
       expect(unselected, isNotNull,
           reason: 'the picker list is the loadable set — ≥1 unselected row');
       await tester.tap(find.byKey(ValueKey('qrah-edition-$unselected')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(
           find.descendant(
               of: find.byKey(ValueKey('qrah-edition-$unselected')),
@@ -385,11 +398,13 @@ void main() {
       expect(find.byKey(const ValueKey('tasbih-switch-dhikr')),
           findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('tasbih-switch-dhikr')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Select Dhikr'), findsOneWidget,
           reason: 'the SAME sheet the dhikr card opens — no new list');
       await tester.tap(find.text('Select Dhikr'), warnIfMissed: false);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
     });
   });
 }
