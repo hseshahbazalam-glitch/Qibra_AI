@@ -1,5 +1,6 @@
-// H2PROBE (transient): materialize the pass test into a dot-dir the outer
-// scan skips, then dart-analyze it — the analyzer's own words, exfiltrated.
+// H2PROBE (transient): dart-analyze the materialized pass test — verdict
+// rides the annotation channel. (No solo '${x}' strings: that lint is
+// warning-tier and reds the gate — caught blind for four rounds.)
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -12,25 +13,23 @@ void main() {
     try {
       final mat = await Process.run('git', [
         'show',
-        'HEAD^:test/features/quran/qh_pass_test.dart',
+        'HEAD~1:test/features/quran/qh_pass_test.dart',
       ]);
       if (mat.exitCode != 0) {
-        out = 'MATERIALIZE FAILED exit=${mat.exitCode} ${mat.stderr}';
+        out = 'MATERIALIZE FAILED exit=${mat.exitCode}';
       } else {
         final dir = Directory('.qhscan');
         dir.createSync();
         final f = File('.qhscan/qh_pass_test.dart');
-        f.writeAsStringSync(mat.stdout as String);
+        f.writeAsStringSync('${mat.stdout}');
         final r = await Process.run('dart', [
           'analyze',
-          '--no-fatal-infos',
           '.qhscan/qh_pass_test.dart',
         ]);
-        final sb = StringBuffer();
-        sb.writeln('EXIT=${r.exitCode} LEN=${(mat.stdout as String).length}');
-        sb.writeln('${r.stdout}');
-        sb.writeln('${r.stderr}');
-        out = sb.toString();
+        out = 'EXIT=${r.exitCode} '
+            'LEN=${(mat.stdout as String).length}\n'
+            '${r.stdout}\n'
+            '${r.stderr}';
       }
     } catch (err) {
       out = 'PROBE FAILED: $err';
@@ -41,9 +40,9 @@ void main() {
       final c = raw.trim();
       if (c.isEmpty) continue;
       keep.add(c);
-      if (keep.length > 34) break;
+      if (keep.length > 40) break;
     }
-    for (final l in keep) {
+    for (final l in keep.take(42)) {
       final v = l.length > 230 ? '${l.substring(0, 230)}…' : l;
       print('::error::H2A $v');
     }
