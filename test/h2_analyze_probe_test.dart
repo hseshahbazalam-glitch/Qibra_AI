@@ -21,7 +21,7 @@ void main() {
         final dir = Directory('.qhscan');
         dir.createSync();
         final f = File('.qhscan/qh_pass_test.dart');
-        f.writeAsStringSync('${mat.stdout}');
+        f.writeAsStringSync(mat.stdout as String);
         final r = await Process.run('dart', [
           'analyze',
           '.qhscan/qh_pass_test.dart',
