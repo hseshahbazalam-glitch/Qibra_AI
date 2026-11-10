@@ -6,9 +6,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-Future<void> _exfil(
-    ProcessResult r, List<String> keep, List<String> needles) async {}
-
 void main() {
   test('h2q: two-channel exfil', () async {
     final out = StringBuffer();
@@ -66,6 +63,7 @@ void main() {
       if (keep.length > 34) break;
     }
     if (keep.isEmpty) keep.add('BOTH CHANNELS SILENT len=${out.length}');
+    keep.add('H2Q-EOF');
     for (final l in keep) {
       final v = l.length > 230 ? '${l.substring(0, 230)}…' : l;
       print('::error::H2Q $v');
