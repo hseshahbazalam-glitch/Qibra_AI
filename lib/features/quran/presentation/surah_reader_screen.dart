@@ -352,7 +352,10 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
     // Pass D2: paper scope over the whole reading surface. NIGHT:
     // scope(active:false) returns the child UNWRAPPED — identical
     // widget identity, zero added objects on the navy path.
-    return QibraPaper.scope(
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: QibraPaper.scope(
       active:
           ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
       child: Scaffold(
@@ -455,13 +458,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
           ),
         ],
       ),
-      // QH: the quick reading handle rides above the reader surface —
-      // Stack + Positioned.fill so the reading content (and its Expanded
-      // strips) keep exactly the constraints they had before.
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: surahAsync.when(
+      body: surahAsync.when(
         data: (s) {
           if (s == null) {
             return QibraStatus.empty(
@@ -602,11 +599,18 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
               ref.invalidate(surahDetailProvider(widget.surahNumber)),
         ),
           ),
+        ),
           ),
-          const Positioned.fill(child: SurahReadingHandle()),
-        ],
-      ),
-    ),
+        ),
+        // QH: the handle rides OUTSIDE the paper scope on purpose —
+        // QibraPaper.scope returns its child UNWRAPPED on NIGHT (a
+        // widget-type swap at the same slot; the D2 physics pin blesses
+        // it), so a handle living inside that child would be REMOUNTED
+        // by its own theme button (open panel, one tap, gone). As a
+        // root-level sibling it never rides the flip; the Stack is also
+        // why the reader keeps its old constraints.
+        const Positioned.fill(child: SurahReadingHandle()),
+      ],
     );
   }
 
