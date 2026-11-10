@@ -331,6 +331,8 @@ void main() {
       // peeking).
       await tester.tap(find.text('Paper'));
       await tester.pump();
+      await pumpEventQueue();
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       final seg = tester.widget<SegmentedButton<QibraReadingTheme>>(
           find.byKey(const ValueKey('qrah-theme')));
@@ -362,6 +364,8 @@ void main() {
       expect(unselected, isNotNull,
           reason: 'the picker list is the loadable set — ≥1 unselected row');
       await tester.tap(find.byKey(ValueKey('qrah-edition-$unselected')));
+      await tester.pump();
+      await pumpEventQueue();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(
