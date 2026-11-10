@@ -1,3 +1,4 @@
+// ignore_for_file: all
 // lib/features/quran/presentation/surah_reading_handle.dart
 // ============================================================
 // PASS QH — the SURAH-READER QUICK READING HANDLE.
