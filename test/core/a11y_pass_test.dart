@@ -298,7 +298,13 @@ void main() {
       // the measured value moves 19 -> 20 (red named by the shadow
       // probe: 'label/exclude/live-region counts are the measured
       // ones :: Expected: <19>'; labels/excludes/live untouched).
-      expect(semantics, 20);
+      // Pass QH: the surah-reader handle file adds exactly four explicit
+      // Semantics call sites — the tab, the panel close, the scale step
+      // factory (one call site, instantiated twice per row) and the
+      // edition row (one call site, looped). 20 -> 24; labels/excludes/
+      // live and the IconButton census all untouched (the FAB rides the
+      // Material tooltip parameter, never a bare Tooltip( call).
+      expect(semantics, 24);
     });
 
     test('forbidden liveRegion: the home countdown never announces', () {

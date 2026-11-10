@@ -237,6 +237,22 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
 
     return Scaffold(
       backgroundColor: colors.background,
+      // QH-B: mid-count dhikr switcher — the counter view gets a direct
+      // entry to the SAME selector sheet the dhikr card opens (setDhikr
+      // semantics unchanged: switching starts a fresh count, as before).
+      floatingActionButton: FloatingActionButton.small(
+        key: const ValueKey('tasbih-switch-dhikr'),
+        heroTag: 'tasbih-switch-dhikr',
+        tooltip: 'Switch dhikr',
+        backgroundColor: colors.card,
+        foregroundColor: colors.textPrimary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(color: colors.border),
+        ),
+        onPressed: _showDhikrSelector,
+        child: const Icon(Icons.swap_vert_rounded, size: 20),
+      ),
       body: Container(
         color: colors.background,
         child: SafeArea(
