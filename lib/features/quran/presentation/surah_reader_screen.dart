@@ -50,7 +50,6 @@ import '../providers/quran_provider.dart';
 import 'package:qibra_ai/core/content/edition_resolver.dart';
 import '../data/repository/urdu_edition_catalog.dart';
 import 'ayah_options_sheet.dart';
-import 'surah_reading_handle.dart';
 import '../data/word/quran_word_data.dart';
 import '../providers/quran_word_provider.dart';
 import 'word_explain_sheet.dart';
@@ -455,13 +454,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
           ),
         ],
       ),
-      // QH: the quick reading handle rides above the reader surface —
-      // Stack + Positioned.fill so the reading content (and its Expanded
-      // strips) keep exactly the constraints they had before.
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: surahAsync.when(
+      body: surahAsync.when(
         data: (s) {
           if (s == null) {
             return QibraStatus.empty(
@@ -601,10 +594,6 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
           onRetry: () =>
               ref.invalidate(surahDetailProvider(widget.surahNumber)),
         ),
-          ),
-          ),
-          const Positioned.fill(child: SurahReadingHandle()),
-        ],
       ),
     ),
     );
