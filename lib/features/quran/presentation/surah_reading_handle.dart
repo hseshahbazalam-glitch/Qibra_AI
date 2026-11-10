@@ -1,4 +1,3 @@
-// ignore_for_file: all
 // lib/features/quran/presentation/surah_reading_handle.dart
 // ============================================================
 // PASS QH — the SURAH-READER QUICK READING HANDLE.
@@ -27,6 +26,7 @@ import 'package:qibra_ai/core/content/edition_resolver.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
 
