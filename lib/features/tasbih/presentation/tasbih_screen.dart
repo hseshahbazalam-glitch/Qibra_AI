@@ -139,13 +139,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
     );
   }
 
-  void _showDhikrSelector() {
+  void _showDhikrSelector({bool keepCount = false}) {
     HapticFeedback.selectionClick();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => const _DhikrSelectorSheet(),
+      builder: (_) => _DhikrSelectorSheet(keepCount: keepCount),
     );
   }
 
@@ -238,8 +238,9 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
     return Scaffold(
       backgroundColor: colors.background,
       // QH-B: mid-count dhikr switcher — the counter view gets a direct
-      // entry to the SAME selector sheet the dhikr card opens (setDhikr
-      // semantics unchanged: switching starts a fresh count, as before).
+      // entry to the SAME selector sheet the dhikr card opens — but on the
+      // QH keepCount path (switchDhikr): the bubble swaps the dhikr mid-run
+      // WITHOUT losing the current count; the card keeps its reset.
       floatingActionButton: FloatingActionButton.small(
         key: const ValueKey('tasbih-switch-dhikr'),
         heroTag: 'tasbih-switch-dhikr',
@@ -250,7 +251,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
           borderRadius: BorderRadius.circular(14),
           side: BorderSide(color: colors.border),
         ),
-        onPressed: _showDhikrSelector,
+        onPressed: () => _showDhikrSelector(keepCount: true),
         child: const Icon(Icons.swap_vert_rounded, size: 20),
       ),
       body: Container(
@@ -576,7 +577,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   Widget _buildDhikrCard(TasbihState state) {
     final colors = QibraColors.of(context);
     return GestureDetector(
-      onTap: _showDhikrSelector,
+      onTap: () => _showDhikrSelector(),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         padding: const EdgeInsets.all(AppSpacing.xl),
