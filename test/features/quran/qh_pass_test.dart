@@ -330,10 +330,17 @@ void main() {
       // segment (the M4-P rendered-level discipline — no private-state
       // peeking).
       await tester.tap(find.text('Paper'));
-      await tester.pump();
-      await pumpEventQueue();
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      for (var f = 0; f < 3; f++) {
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+      }
+      expect(find.byKey(const ValueKey('qrah-theme')), findsOneWidget,
+          reason: 'DBG theme=${find.byKey(const ValueKey('
+                  'qrah-theme')).evaluate().length} '
+                  'tab=${find.byKey(const ValueKey('
+                  'qrah-tab')).evaluate().length} '
+                  'panel=${find.byKey(const ValueKey('
+                  'qrah-panel')).evaluate().length}');
       final seg = tester.widget<SegmentedButton<QibraReadingTheme>>(
           find.byKey(const ValueKey('qrah-theme')));
       expect(seg.selected, contains(QibraReadingTheme.paper));
@@ -364,10 +371,10 @@ void main() {
       expect(unselected, isNotNull,
           reason: 'the picker list is the loadable set — ≥1 unselected row');
       await tester.tap(find.byKey(ValueKey('qrah-edition-$unselected')));
-      await tester.pump();
-      await pumpEventQueue();
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      for (var f = 0; f < 3; f++) {
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+      }
       expect(
           find.descendant(
               of: find.byKey(ValueKey('qrah-edition-$unselected')),
