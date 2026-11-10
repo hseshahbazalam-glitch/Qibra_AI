@@ -44,7 +44,8 @@ class _SurahReadingHandleState extends ConsumerState<SurahReadingHandle>
     with SingleTickerProviderStateMixin {
   // ~220ms + the house easing (Curves.easeOutCubic — the same curve the
   // reader's own strips animate with at 250/260ms).
-  final AnimationController _anim = AnimationController(
+  late final AnimationController _anim = AnimationController(
+    vsync: this,
     duration: const Duration(milliseconds: 220),
     reverseDuration: const Duration(milliseconds: 220),
   );
