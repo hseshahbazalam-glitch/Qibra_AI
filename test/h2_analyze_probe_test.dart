@@ -10,6 +10,18 @@ void main() {
   test('h2p: dot-dir analyze with project options in scope', () async {
     String out = '';
     try {
+      final r = await Process.run('flutter', [
+        'test',
+        '--reporter',
+        'expanded',
+        'test/features/quran/',
+        'test/features/tasbih/',
+      ]);
+      out += '== SUITE ==\n${r.stdout}\n${r.stderr}\n';
+    } catch (e) {
+      out += 'SUITE PROBE FAILED: $e\n';
+    }
+    try {
       final mat = await Process.run('git', [
         'show',
         'f4d6f20:test/features/quran/qh_pass_test.dart',
@@ -19,7 +31,7 @@ void main() {
       } else {
         final dir = Directory('.qhprobe')..createSync();
         final f = File('${dir.path}/qh_pass_test.dart')
-          ..writeAsBytesSync(mat.stdout as List<int>);
+          ..writeAsStringSync(mat.stdout as String);
         final r = await Process.start('flutter', [
           'analyze', '--no-fatal-infos', f.path,
         ]);
@@ -37,6 +49,7 @@ void main() {
     final keep = <String>[];
     for (final raw in all) {
       final c = raw.trim();
+      if (c.isEmpty) continue;
       if (c.contains('error') || c.contains('warning') ||
           c.contains('issues') || c.contains('EXIT-MARKER')) {
         keep.add(c);
