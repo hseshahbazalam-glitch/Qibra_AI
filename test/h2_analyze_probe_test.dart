@@ -1,5 +1,4 @@
-// H2PROBE (transient): mirror the suspect tree into .qhfull and let
-// dart-analyze state its own errors, exfiltrated verbatim.
+// H2PROBE (transient): outer-suite replay — names both real reds.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -7,53 +6,51 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('h2a: analyze a materialized copy of the red tree', () async {
-    const files = [
-      'lib/features/tasbih/providers/tasbih_provider.dart',
-      'lib/features/tasbih/presentation/tasbih_detail.dart',
-      'lib/features/tasbih/presentation/tasbih_screen.dart',
-      'test/core/i18n_phase_a_test.dart',
-      'test/features/quran/qh_pass_test.dart',
-      'lib/features/quran/presentation/surah_reading_handle.dart',
-    ];
+  test('h2r: replay the WHOLE suite and exfil every [E] window', () async {
     String out = '';
     try {
-      final root = Directory('.qhfull');
-      if (root.existsSync()) {
-        root.deleteSync(recursive: true);
-      }
-      for (final f in files) {
-        final mat = await Process.run('git', ['show', 'HEAD~1:$f']);
-        if (mat.exitCode != 0) {
-          out += 'MISSING-IN-HEAD $f\n';
-          continue;
+      final files = <String>[];
+      for (final e in Directory('test')
+          .listSync(recursive: true)
+          .whereType<File>()) {
+        final p = e.path;
+        if (p.endsWith('_test.dart') && !p.contains('h2_analyze_probe')) {
+          files.add(p);
         }
-        final dest = File('.qhfull/$f');
-        dest.parent.createSync(recursive: true);
-        dest.writeAsStringSync('${mat.stdout}');
       }
-      final r = await Process.run('dart', ['analyze', '.qhfull']);
-      out = 'EXIT=${r.exitCode}\n$out${r.stdout}\n${r.stderr}';
+      final r = await Process.start('flutter', [
+        'test',
+        '--reporter',
+        'expanded',
+        ...files,
+      ]);
+      final o = r.stdout.transform(Utf8Decoder()).join();
+      final e = r.stderr.transform(Utf8Decoder()).join();
+      final j = await Future.wait([o, e]);
+      await r.exitCode;
+      out = '${j[0]}\n${j[1]}';
     } catch (err) {
       out = 'PROBE FAILED: $err';
     }
     final all = const LineSplitter().convert(out);
-    final keep = <String>['H2A lines=${all.length}'];
-    for (final raw in all) {
-      final c = raw.trim();
-      if (c.isEmpty) continue;
-      if (c.startsWith('error') ||
-          c.startsWith('warning') ||
-          c.startsWith('EXIT=') ||
-          c.contains('issue') ||
-          c.contains('MISSING')) {
-        keep.add(c);
+    final keep = <String>[];
+    for (var i = 0; i < all.length; i++) {
+      final c = all[i].trim();
+      if (c.endsWith('[E]')) {
+        keep.add('=== AT $i ===');
+        for (var k = i; k < i + 18 && k < all.length; k++) {
+          keep.add(all[k].trim());
+        }
+        if (keep.length > 95) break;
       }
-      if (keep.length > 55) break;
+    }
+    if (keep.isEmpty) {
+      keep.add('NO [E] LINES len=${out.length}');
+      keep.addAll(all.take(10));
     }
     for (final l in keep) {
       final v = l.length > 230 ? '${l.substring(0, 230)}…' : l;
-      print('::error::H2A $v');
+      print('::error::H2R $v');
     }
   }, timeout: const Timeout(Duration(minutes: 19)));
 }
