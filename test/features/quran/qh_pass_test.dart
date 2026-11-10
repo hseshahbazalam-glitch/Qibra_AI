@@ -334,13 +334,14 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
       }
-      expect(find.byKey(const ValueKey('qrah-theme')), findsOneWidget,
-          reason: 'DBG theme=${find.byKey(const ValueKey('
-                  'qrah-theme')).evaluate().length} '
-                  'tab=${find.byKey(const ValueKey('
-                  'qrah-tab')).evaluate().length} '
-                  'panel=${find.byKey(const ValueKey('
-                  'qrah-panel')).evaluate().length}');
+      final dbgTheme =
+          find.byKey(const ValueKey('qrah-theme')).evaluate().length;
+      final dbgTab =
+          find.byKey(const ValueKey('qrah-tab')).evaluate().length;
+      final dbgPanel =
+          find.byKey(const ValueKey('qrah-panel')).evaluate().length;
+      expect(dbgTheme, 1,
+          reason: 'DBG theme=$dbgTheme tab=$dbgTab panel=$dbgPanel');
       final seg = tester.widget<SegmentedButton<QibraReadingTheme>>(
           find.byKey(const ValueKey('qrah-theme')));
       expect(seg.selected, contains(QibraReadingTheme.paper));
