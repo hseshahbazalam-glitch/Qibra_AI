@@ -158,10 +158,7 @@ class _ActionButton extends StatelessWidget {
 // ============================================================
 
 class _DhikrSelectorSheet extends ConsumerWidget {
-  const _DhikrSelectorSheet({this.keepCount = false});
-
-  /// QH-B: true = preserve the running count (floating bubble entry).
-  final bool keepCount;
+  const _DhikrSelectorSheet();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -203,12 +200,7 @@ class _DhikrSelectorSheet extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: InkWell(
                   onTap: () {
-                    final notifier = ref.read(tasbihProvider.notifier);
-                    if (keepCount) {
-                      notifier.switchDhikr(dhikr);
-                    } else {
-                      notifier.setDhikr(dhikr);
-                    }
+                    ref.read(tasbihProvider.notifier).setDhikr(dhikr);
                     HapticFeedback.selectionClick();
                     Navigator.pop(context);
                   },

@@ -71,10 +71,6 @@ void main() {
             'QibraReadingTheme.night, label: Text(\'Night\')),',
         'lib/features/settings/presentation/settings_screen.dart|value: '
             'QibraReadingTheme.paper, label: Text(\'Paper\')),',
-        // Pass QH (2026-09): the reader handle mirrors the settings
-        // segments exactly — same product-surface labels, same class.
-        'lib/features/quran/presentation/surah_reading_handle.dart|label: Text(\'Night\')),',
-        'lib/features/quran/presentation/surah_reading_handle.dart|label: Text(\'Paper\')),',
       };
       final rx = RegExp(r"Text\(\s*'[A-Z]");
       final hits = <String>[];

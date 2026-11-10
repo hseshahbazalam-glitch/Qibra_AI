@@ -475,16 +475,6 @@ class TasbihNotifier extends StateNotifier<TasbihState> {
     _saveHistory();
   }
 
-  /// QH-B: change the dhikr mid-run WITHOUT losing the count — same as
-  /// [setDhikr] minus the reset (the target follows the new dhikr default).
-  void switchDhikr(Dhikr dhikr) {
-    state = state.copyWith(
-      currentDhikr: dhikr,
-      target: dhikr.defaultTarget,
-    );
-    _saveDhikr(dhikr.id);
-  }
-
   /// Change current dhikr
   void setDhikr(Dhikr dhikr) {
     state = state.copyWith(
