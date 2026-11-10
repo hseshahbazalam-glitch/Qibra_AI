@@ -192,7 +192,7 @@ void main() {
           isTrue);
       expect(src.contains('_showDhikrSelector(keepCount: true)'), isTrue);
       // The bubble rides the keepCount path; the card keeps the reset.
-      expect(src.contains('onTap: () => _showDhikrSelector(),'), isTrue);
+      expect(src.contains('onTap: _showDhikrSelector,'), isTrue);
       // no second list builder was invented: the sheet class stays at the
       // single usage it had before this pass.
       expect(RegExp('_DhikrSelectorSheet')
