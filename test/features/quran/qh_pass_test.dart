@@ -15,6 +15,7 @@ import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
 import 'package:qibra_ai/features/quran/data/word/quran_word_data.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
+import 'package:qibra_ai/features/quran/presentation/surah_reading_handle.dart';
 import 'package:qibra_ai/features/quran/providers/quran_download_provider.dart';
 import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
 import 'package:qibra_ai/features/quran/providers/quran_word_provider.dart';
@@ -218,13 +219,58 @@ void main() {
   });
 
   group('QH — handle render', () {
+    testWidgets('isolated rest-quiet: the closed handle adds no ticker',
+        (tester) async {
+      // The reader screen's own machinery schedules one transient callback
+      // at rest (its async boot) — an absolute-zero assert on that harness
+      // measured the page, not the handle. Isolated + compared against a
+      // bare-harness baseline, the pin measures exactly what THIS pass
+      // mounts: a closed handle must add nothing.
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      Future<void> pumpHandle(bool withHandle) => tester.pumpWidget(
+            ProviderScope(
+              overrides: [quranDownloadProvider.overrideWith(_NoopDownloads.new)],
+              child: MaterialApp(
+                home: AppStringsScope(
+                  locale: const Locale('en'),
+                  child: Scaffold(
+                    body: withHandle
+                        ? const Stack(children: [SurahReadingHandle()])
+                        : const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            ),
+          );
+      await pumpHandle(false);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      final bare = tester.binding.transientCallbackCount;
+      await pumpHandle(true);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const ValueKey('qrah-tab')), findsOneWidget);
+      expect(find.byKey(const ValueKey('qrah-panel')), findsNothing);
+      expect(tester.binding.transientCallbackCount, bare,
+          reason: 'mounted-but-closed handle schedules nothing extra');
+      await tester.tap(find.byKey(const ValueKey('qrah-tab')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('qrah-panel')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('qrah-close')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('qrah-panel')), findsNothing);
+      expect(tester.binding.transientCallbackCount, bare,
+          reason: 'after close, nothing lingers');
+    });
+
     testWidgets('closed tab opens the panel; barrier and close dismiss',
         (tester) async {
       await _pumpReader(tester);
       expect(find.byKey(const ValueKey('qrah-tab')), findsOneWidget);
       expect(find.byKey(const ValueKey('qrah-panel')), findsNothing);
-      expect(tester.binding.transientCallbackCount, 0,
-          reason: 'rest-quiet: the closed handle runs no ticker');
       await tester.tap(find.byKey(const ValueKey('qrah-tab')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 120));
@@ -238,8 +284,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('qrah-panel')), findsNothing);
-      expect(tester.binding.transientCallbackCount, 0,
-          reason: 'closed again — no lingering ticker');
       // reopen + the explicit close control
       await _open(tester);
       await tester.tap(find.byKey(const ValueKey('qrah-close')));
