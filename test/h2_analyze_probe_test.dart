@@ -36,22 +36,21 @@ void main() {
     final keep = <String>[];
     for (var i = 0; i < all.length; i++) {
       final c = all[i].trim();
-      if (c.endsWith('[E]')) {
-        keep.add('=== AT $i ===');
-        final back = i - 20 < 0 ? 0 : i - 20;
-        for (var k = back; k < i + 3 && k < all.length; k++) {
-          keep.add(all[k].trim());
-        }
-        if (keep.length > 95) break;
+      if (c.endsWith('[E]') || c.contains('passed') ||
+          c.contains('failed') || c.startsWith('EXIT')) {
+        keep.add(c);
+        if (keep.length > 8) break;
       }
     }
     if (keep.isEmpty) {
       keep.add('NO [E] LINES len=${out.length}');
       keep.addAll(all.take(10));
     }
-    for (final l in keep) {
-      final v = l.length > 230 ? '${l.substring(0, 230)}…' : l;
-      print('::error::H2R $v');
+    if (keep.isEmpty) keep.add('SILENT-ALL-GREEN len=${all.length}');
+    for (var n = 0; n < keep.length; n++) {
+      final l = keep[n];
+      final v = l.length > 200 ? '${l.substring(0, 200)}…' : l;
+      print('::error::H2R n$n $v');
     }
   }, timeout: const Timeout(Duration(minutes: 19)));
 }
