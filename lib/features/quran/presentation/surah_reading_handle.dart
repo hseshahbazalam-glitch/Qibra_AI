@@ -62,13 +62,12 @@ class _SurahReadingHandleState extends ConsumerState<SurahReadingHandle>
   }
 
   void _onAnim() {
-    // Rebuild at BOTH ends: completed → canPop flips and the subtree
-    // settles; dismissed → the now-hidden panel/barrier leave the tree
-    // so the resting frame is literally just the tab (rest-quiet pin).
-    if (_anim.status == AnimationStatus.completed ||
-        _anim.status == AnimationStatus.dismissed) {
-      setState(() {});
-    }
+    // Rebuild EVERY tick mid-flight: the barrier/panel subtree is gated
+    // on _open (_anim.value > 0), so setting state only at the ends would
+    // POP the panel in at completion instead of sliding it. At rest the
+    // listener never fires — the rest-quiet pin (zero repaints, zero
+    // tickers) holds exactly as before.
+    setState(() {});
   }
 
   @override
