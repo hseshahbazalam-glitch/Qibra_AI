@@ -577,7 +577,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
   Widget _buildDhikrCard(TasbihState state) {
     final colors = QibraColors.of(context);
     return GestureDetector(
-      onTap: () => _showDhikrSelector(),
+      onTap: _showDhikrSelector,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         padding: const EdgeInsets.all(AppSpacing.xl),
