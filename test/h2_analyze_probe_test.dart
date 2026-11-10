@@ -1,4 +1,4 @@
-// H2PROBE (transient): name the two real reds — proven H2 exfil shape.
+// H2PROBE (transient): outer-suite replay — names both real reds.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -6,15 +6,13 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('h2r: scoped red exfil (quran+tasbih dirs)', () async {
+  test('h2r: replay the WHOLE suite and exfil every [E] window', () async {
     String out = '';
     try {
       final r = await Process.start('flutter', [
         'test',
         '--reporter',
         'expanded',
-        'test/features/quran/',
-        'test/features/tasbih/',
       ]);
       final o = r.stdout.transform(Utf8Decoder()).join();
       final e = r.stderr.transform(Utf8Decoder()).join();
@@ -28,21 +26,17 @@ void main() {
     final keep = <String>[];
     for (var i = 0; i < all.length; i++) {
       final c = all[i].trim();
-      if (c.contains('[E]')) {
+      if (c.endsWith('[E]')) {
         keep.add('=== AT $i ===');
-        for (var k = i; k < i + 16 && k < all.length; k++) {
+        for (var k = i; k < i + 18 && k < all.length; k++) {
           keep.add(all[k].trim());
         }
-      } else if (c.startsWith('Expected:') ||
-          c.startsWith('Actual:') ||
-          c.startsWith('Which:')) {
-        keep.add(c);
+        if (keep.length > 95) break;
       }
-      if (keep.length > 60) break;
     }
     if (keep.isEmpty) {
-      keep.add('RAW-DUMP len=${out.length}');
-      keep.addAll(all.take(12));
+      keep.add('NO [E] LINES len=${out.length}');
+      keep.addAll(all.take(10));
     }
     for (final l in keep) {
       final v = l.length > 230 ? '${l.substring(0, 230)}…' : l;
