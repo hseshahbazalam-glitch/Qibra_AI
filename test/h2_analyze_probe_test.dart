@@ -9,10 +9,20 @@ void main() {
   test('h2r: replay the WHOLE suite and exfil every [E] window', () async {
     String out = '';
     try {
+      final files = <String>[];
+      for (final e in Directory('test')
+          .listSync(recursive: true)
+          .whereType<File>()) {
+        final p = e.path;
+        if (p.endsWith('_test.dart') && !p.contains('h2_analyze_probe')) {
+          files.add(p);
+        }
+      }
       final r = await Process.start('flutter', [
         'test',
         '--reporter',
         'expanded',
+        ...files,
       ]);
       final o = r.stdout.transform(Utf8Decoder()).join();
       final e = r.stderr.transform(Utf8Decoder()).join();
