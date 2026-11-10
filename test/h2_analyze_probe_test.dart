@@ -26,17 +26,19 @@ void main() {
     }
     final all = const LineSplitter().convert(out);
     final keep = <String>[];
-    for (final raw in all) {
-      final c = raw.trim();
-      if (c.contains('[E]') ||
-          c.startsWith('Expected:') ||
+    for (var i = 0; i < all.length; i++) {
+      final c = all[i].trim();
+      if (c.contains('[E]')) {
+        keep.add('=== AT $i ===');
+        for (var k = i; k < i + 16 && k < all.length; k++) {
+          keep.add(all[k].trim());
+        }
+      } else if (c.startsWith('Expected:') ||
           c.startsWith('Actual:') ||
-          c.startsWith('Which:') ||
-          c.startsWith('Reason:') ||
-          c.startsWith('reason:')) {
+          c.startsWith('Which:')) {
         keep.add(c);
       }
-      if (keep.length > 30) break;
+      if (keep.length > 60) break;
     }
     if (keep.isEmpty) {
       keep.add('RAW-DUMP len=${out.length}');
