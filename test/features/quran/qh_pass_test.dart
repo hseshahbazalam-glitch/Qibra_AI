@@ -330,7 +330,7 @@ void main() {
               .getSemantics(find.byKey(const ValueKey('qrah-close')))
               .label,
           contains(strings.close));
-      handle();
+      handle.dispose();
     });
   });
 
