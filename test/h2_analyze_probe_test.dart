@@ -32,9 +32,10 @@ void main() {
       if (mat.exitCode != 0) {
         out.writeln('MATERIALIZE FAILED');
       } else {
-        final dir = Directory('.qhprobe')..createSync();
-        final f = File('${dir.path}/qh_pass_test.dart')
-          ..writeAsStringSync(mat.stdout as String);
+        final dir = Directory('.qhprobe');
+        dir.createSync();
+        final f = File('${dir.path}/qh_pass_test.dart');
+        f.writeAsStringSync(mat.stdout as String);
         final r2 = await Process.run('flutter',
             ['analyze', '--no-fatal-infos', f.path]);
         out.writeln('== TEST ANALYZE ==');
