@@ -128,9 +128,12 @@ Future<void> _open(WidgetTester tester) async {
 
 Future<void> _pumpTasbih(WidgetTester tester) async {
   SharedPreferences.setMockInitialValues({});
-  await tester.pumpWidget(const ProviderScope(
+  await tester.pumpWidget(ProviderScope(
     child: MaterialApp(
-      home: AppStringsScope(locale: Locale('en'), child: TasbihScreen()),
+      home: const AppStringsScope(
+        locale: Locale('en'),
+        child: TasbihScreen(),
+      ),
     ),
   ));
   await tester.pumpAndSettle();
