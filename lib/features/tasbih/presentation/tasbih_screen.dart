@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:qibra_ai/core/a11y/app_a11y.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import '../providers/tasbih_provider.dart';
@@ -244,7 +245,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen>
       floatingActionButton: FloatingActionButton.small(
         key: const ValueKey('tasbih-switch-dhikr'),
         heroTag: 'tasbih-switch-dhikr',
-        tooltip: 'Switch dhikr',
+        tooltip: AppStrings.of(context).tooltipSwitchDhikr,
         backgroundColor: colors.card,
         foregroundColor: colors.textPrimary,
         shape: RoundedRectangleBorder(

@@ -324,7 +324,7 @@ void main() {
       // sticky chapter-filter button (used in hadith_book_screen.dart, so
       // the 'referenced' half of this census is satisfied by the same
       // commit; drift here is exactly what this test exists to catch).
-      expect(declared, 51);
+      expect(declared, 52);
       var used = 0;
       for (final path in _dartFiles('lib')) {
         final s = File(path).readAsStringSync(encoding: utf8);
@@ -369,6 +369,7 @@ void main() {
       'tooltipClearSearch': (s) => s.tooltipClearSearch,
       'tooltipDeleteConversation': (s) => s.tooltipDeleteConversation,
       'tooltipReadingSettings': (s) => s.tooltipReadingSettings,
+      'tooltipSwitchDhikr': (s) => s.tooltipSwitchDhikr,
       'tooltipPrevHadith': (s) => s.tooltipPrevHadith,
       'tooltipNextHadith': (s) => s.tooltipNextHadith,
       'tooltipTextSizeLanguage': (s) => s.tooltipTextSizeLanguage,
@@ -403,12 +404,12 @@ void main() {
       'a11yWordMeaningHint': (s) => s.a11yWordMeaningHint,
     };
 
-    test('all 51 getters localized — ar/ur in Arabic script, never en',
+    test('all 52 getters localized — ar/ur in Arabic script, never en',
         () {
       final ar = AppStrings.forCode('ar');
       final ur = AppStrings.forCode('ur');
       final arabic = RegExp(r'[؀-ۿ]');
-      expect(getters.length, 51);
+      expect(getters.length, 52);
       getters.forEach((name, get) {
         final en = get(AppStrings.forCode('en'));
         expect(en.length, greaterThan(2), reason: name);
