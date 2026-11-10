@@ -38,7 +38,8 @@ void main() {
       final c = all[i].trim();
       if (c.endsWith('[E]')) {
         keep.add('=== AT $i ===');
-        for (var k = i; k < i + 18 && k < all.length; k++) {
+        final back = i - 20 < 0 ? 0 : i - 20;
+        for (var k = back; k < i + 3 && k < all.length; k++) {
           keep.add(all[k].trim());
         }
         if (keep.length > 95) break;
