@@ -29,14 +29,6 @@ linter:
 analyzer:
   errors:
     invalid_annotation_target: ignore
-    # ONE-ROUND DIAGNOSTIC PARK (v66, reverted with the probe): every finding
-    # the analyzer can downgrade is downgraded to info, which the gate sanctions
-    # (`--no-fatal-infos`). This is the discriminator the 25 rounds were built
-    # to reach: a GREEN gate now proves the remaining breakage is SEMANTIC (an
-    # error/warning, e.g. an undefined name) and not a syntax error, since
-    # syntax errors are the one class the analyzer refuses to downgrade.
-    error: info
-    warning: info
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
