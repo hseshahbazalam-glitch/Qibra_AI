@@ -16,20 +16,33 @@ String _clean(String l) {
 }
 
 void main() {
-  test('probe: print a channel marker from the suite step', () {
-    // v23 — decisive channel test: does a GREEN test's print in the
-    // suite step arrive anywhere in this job (annotations-wise)? If
-    // H4PMARK shows up, the prints ARE exfiltrable and the v20/v22
-    // silence meant the probe never RAN or its child analyze died.
-    // Also run the child and print its exit code + raw lengths.
-    print('H4PMARK channel-probe 0');
-    final r = Process.runSync(
+  test('probe: replicate the analyze gate exactly and print findings', () async {
+    // v24: the gate is `flutter analyze --no-fatal-infos` (exit 1 on any
+    // error OR warning; infos sanctioned). The gate step annotates only
+    // its TAIL, so this probe re-runs the same command and PRINTS the
+    // first findings — a green test's prints stream through the
+    // reporter, which the SUITE step keeps in its annotation (the
+    // Process-completed tail of a failing suite carries them).
+    final r = await Process.run(
       'flutter',
       ['analyze', '--no-fatal-infos'],
       workingDirectory: Directory.current.path,
       environment: Platform.environment,
     );
-    print('H4PMARK exit=${r.exitCode} out=${r.stdout.toString().length} err=${r.stderr.toString().length}');
+    final raw = '${r.stdout}${r.stderr}';
+    final all = raw
+        .split('\n')
+        .map((l) => l
+            .replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '')
+            .trim())
+        .where((l) => l.isNotEmpty)
+        .toList();
+    final bad =
+        all.where((l) => l.contains(' - error') || l.contains(' - warning')).toList();
+    print('H4PROBE exit=${r.exitCode} n=${bad.length}');
+    for (var i = 0; i < bad.length && i < 6; i++) {
+      print('H4PROBE f$i ${bad[i]}');
+    }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
