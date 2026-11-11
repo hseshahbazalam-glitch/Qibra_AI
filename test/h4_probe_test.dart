@@ -24,7 +24,8 @@ void main() {
       'compact',
       'test/features/hadith/hadith_h4_search_test.dart',
     ]);
-    final src = '${r.stdout}\n${r.stderr}'.split('\n');
+    final raw = '${r.stdout}\n${r.stderr}';
+    final src = raw.split('\n');
     final pick = <String>[];
     for (var i = 0; i < src.length && pick.length < 8; i++) {
       final l = src[i].trim();
@@ -48,14 +49,16 @@ void main() {
         }
       }
     }
-    for (var i = 0; i < pick.length; i++) {
-      stderr.writeln('::error::H4R n$i ${pick[i]}');
+    // QH PROBE PRECEDENCE (h2_analyze_probe, ab43613): the channel that
+    // arrives as an annotation is the harness print() — the reporter
+    // echoes test prints; raw stderr writes get captured and swallowed.
+    if (pick.isEmpty) {
+      pick.add('NO-E-LINES rawlen=${raw.length} exit=${r.exitCode}');
     }
-    stderr.writeln(
-        '::error::H4R nX keep=${pick.length} exit=${r.exitCode}');
-    // Deliberately RED so the runner echoes this captured stderr.
-    expect(pick, isEmpty,
-        reason: 'probe reports via annotations; a red here means the '
-            'replayed file had failures to exfil');
+    for (var i = 0; i < pick.length; i++) {
+      print('::error::H4R n$i ${pick[i]}');
+    }
+    print('::error::H4R nX keep=${pick.length} exit=${r.exitCode}');
+    expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
