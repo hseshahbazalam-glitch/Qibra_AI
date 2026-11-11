@@ -12,7 +12,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: verbatim analyze lines of the two suspect test files', () async {
+  test('probe: PRISTINE config measurement + root sweep', () async {
     Future<ProcessResult> run(String exe, List<String> args) =>
         Process.run(exe, args,
             workingDirectory: Directory.current.path,
@@ -30,20 +30,24 @@ void main() {
     }
 
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
-    const target = 'test/features/hadith/hadith_h4_search_test.dart';
-    final one = await run('flutter', ['analyze', '--no-fatal-infos', target]);
-    final ol = linesOf(one);
-    print('::error::P61 ONE exit=${one.exitCode} n=${ol.length}');
-    for (var i = 0; i < ol.length && i < 3; i++) {
-      print('::error::P61 o$i ${cut(ol[i], 195)}');
+    List<String> hard(List<String> ls) =>
+        ls.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
+    // (1) the whole package, NO exclusions beyond the baseline two: this is the
+    //     exact command the gate runs, and it is where the red still lives.
+    final whole = await run('flutter', ['analyze', '--no-fatal-infos']);
+    final wl = linesOf(whole);
+    final wh = hard(wl);
+    print('::error::P63 WHOLE exit=${whole.exitCode} n=${wh.length} lines=${wl.length}');
+    for (var i = 0; i < wh.length && i < 3; i++) {
+      print('::error::P63 w$i ${cut(wh[i], 195)}');
     }
-    final tst = await run('flutter', ['analyze', '--no-fatal-infos', 'test']);
-    final tl = linesOf(tst);
-    final th =
-        tl.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
-    print('::error::P61 TST exit=${tst.exitCode} n=${tl.length} hard=${th.length}');
-    for (var i = 0; i < th.length && i < 2; i++) {
-      print('::error::P61 t$i ${cut(th[i], 195)}');
+    // (2) the roots separately — names the tree that holds the finding
+    for (final root in ['lib', 'test', 'scripts', 'backend']) {
+      final r = await run('flutter', ['analyze', '--no-fatal-infos', root]);
+      final l = linesOf(r);
+      final h = hard(l);
+      print('::error::P63 $root exit=${r.exitCode} n=${h.length} '
+          '${h.isEmpty ? cut(l.isEmpty ? "-" : l.last, 120) : cut(h.first, 150)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
