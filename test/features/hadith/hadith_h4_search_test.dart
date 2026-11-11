@@ -468,18 +468,30 @@ void main() {
           findsOneWidget);
       expect(find.text('Muwatta Malik 3'), findsWidgets);
       // The rail behind the sheet shows the same book NAMES (static
-      // fallback when the fake db has no loaded books), so the chip
-      // finder is scoped to the sheet — exact-text finders on the whole
-      // tree would match two. The scope is the sheets own root Key (H4
-      // exposes one on _HadithSearchSheet): `ModalBottomSheet` is not exported
-      // by this Flutter (3.44) and a field-relative scope cannot work, because
-      // the chips are SIBLINGS of the field, not its descendants (that was the
-      // line-480 failure the v70/v72 probes named).
-      final sheetKey = GlobalKey();
-      await tester.tap(find.text('Patience'));  // no-op if already handled
-      expect(find.byKey(sheetKey), findsNothing);
+      // fallback when the fake db has no loaded books), so the chip finder is
+      // scoped to the sheet — whole-tree exact-text finders would match two,
+      // and the ambiguous one would swallow the tap under the modal barrier.
+      // Why not the obvious scopes: `ModalBottomSheet` is not exported by this
+      // Flutter (3.44) and a field-relative scope cannot work — the chips are
+      // the fields SIBLINGS, not its descendants (the v70/v72 probes named
+      // exactly that as the line-480 failure). The sheets chip strip is the
+      // unique ListView containing 'All collections', so the scope is derived
+      // from the sheet itself and asserts its own uniqueness — never from tree
+      // order, which only two ListViews happen to satisfy.
+      final chips = find.byWidgetPredicate((w) =>
+          w is ListView &&
+          find
+              .descendant(
+                  of: find.byWidget(w), matching: find.text('All collections'))
+              .evaluate()
+              .isNotEmpty);
+      expect(chips, findsOneWidget,
+          reason: 'the sheet owns exactly one chip strip');
+      await tester.tap(find.descendant(
+          of: chips, matching: find.text('Sahih Muslim')));
       await _beat(tester);
-      expect(container.read(hadithSearchBookFilterProvider), 'muslim');
+      expect(container.read(hadithSearchBookFilterProvider), 'muslim',
+          reason: 'the tap must reach the SHEETS chip, not the rail behind it');
       expect(find.text('Sahih Muslim 12'), findsOneWidget);
       expect(find.text('Sahih al-Bukhari 7'), findsNothing);
       expect(find.text('Muwatta Malik 3'), findsNothing);
