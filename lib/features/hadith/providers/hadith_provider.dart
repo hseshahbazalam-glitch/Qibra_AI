@@ -371,6 +371,11 @@ int hadithBookWeight(String slug) => switch (slug) {
 ///   4. hadith number (asc — canonical order).
 /// A hadith hit by several terms collapses to a single row carrying its
 /// BEST-scoring match channel. Capped at [maxResults].
+// (The service import stays RELATIVE like its four siblings: the static
+// batteries G2 import-graph walk resolves package-form URIs only for this
+// file, so converting the one import would DELETE 3 of its 14 pre-existing
+// "referenced but not provided" advisories — a zero-delta audit must not move
+// the numbers in either direction.)
 List<LocalSearchResult> rankHadithSearchMerge({
   required List<List<LocalSearchResult>> termResults,
   int maxResults = 50,
