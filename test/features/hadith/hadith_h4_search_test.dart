@@ -216,9 +216,9 @@ void main() {
   group('P2 — density ranking with honest tie-breaks', () {
     test('matched-token density beats a lone higher relevance', () {
       final ranked = rankHadithSearchMerge(termResults: [
-        [_hit(_bukhari7, rel: 0.95)], // 1 term, strong
-        [_hit(_muslim12), _hit(_bukhari7)],
-        [_hit(_muslim12)], // muslim: 2 terms
+        [_hit(_bukhari7, rel: 0.95)], // one term, strong
+        [_hit(_muslim12)],
+        [_hit(_muslim12, rel: 0.4)], // muslim: TWO terms, weaker each
       ]);
       expect(ranked.first.hadith.id, 'muslim_12',
           reason: 'two bridge terms hit it — that is the signal');
