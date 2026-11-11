@@ -331,11 +331,16 @@ void main() {
       final field = tester.widget<TextField>(find.byType(TextField));
       expect(field.controller!.text, 'Patience');
       expect(container.read(hadithSearchQueryProvider), 'Patience');
-      expect(find.text('Patience is light, water purifies, charity shields'),
-          findsOneWidget,
-          reason: 'the pre-run query already answered when the sheet '
-              'arrived (fake corpus holds exactly one patience row per '
-              'book; this tile is the malik one)');
+      // The pre-run query ALREADY answered when the sheet arrived —
+      // asserted on the provider state (deterministic), not on painted
+      // tile text: the sheet's tile preview is a RichText with a
+      // maxLines:2 clip, and painting is not the contract.
+      final state = container.read(hadithSearchResultsProvider);
+      expect(state.hasValue, isTrue, reason: '$state');
+      expect(state.valueOrNull!.map((r) => r.hadith.id).toSet(),
+          containsAll(<String>['bukhari_7', 'muslim_12', 'malik_3']),
+          reason: 'fake corpus holds one patience row per book — all '
+              'three ride through the sheet's provider');
     });
   });
 
@@ -439,8 +444,15 @@ void main() {
       await _beat(tester);
       expect(find.text('Sahih al-Bukhari 7'), findsOneWidget);
       expect(find.text('Muwatta Malik 3'), findsOneWidget);
-      expect(find.text('All collections'), findsOneWidget);
-      await tester.tap(find.text('Sahih Muslim'));
+      // The rail behind the sheet shows the same book NAMES (static
+      // fallback when the fake db has no loaded books), so the chip
+      // finder is scoped to the sheet — exact-text finders on the whole
+      // tree would match two.
+      final sheet = find.byType(ModalBottomSheet);
+      expect(find.descendant(of: sheet, matching: find.text('All collections')),
+          findsOneWidget);
+      await tester.tap(
+          find.descendant(of: sheet, matching: find.text('Sahih Muslim')));
       await _beat(tester);
       expect(container.read(hadithSearchBookFilterProvider), 'muslim');
       expect(find.text('Sahih Muslim 12'), findsOneWidget);
