@@ -15,7 +15,7 @@ void main() {
       'test',
       '--reporter',
       'compact',
-      'test/features/hadith/hadith_h4_search_test.dart'
+      '.'
     ], workingDirectory: Directory.current.path, environment: Platform.environment);
     final src = <String>[];
     for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
@@ -31,13 +31,19 @@ void main() {
       if (src[i].contains('[E]')) hits.add(i);
     }
     final names = src.where((l) => l.contains('The test description was:')).toList();
-    print('::error::P72 exit=${r.exitCode} lines=${src.length} hits=${hits.length} '
+    print('::error::P74 exit=${r.exitCode} lines=${src.length} hits=${hits.length} '
         'last=${cut(src.isEmpty ? '-' : src.last, 120)}');
-    print('::error::P72 names ${names.join(" | ").length} ${cut(names.join(" | "), 185)}');
+    final desc = src
+        .where((l) => l.contains('The test description was:'))
+        .map((l) => cut(l.replace('The test description was:', '').trim(), 90))
+        .take(4)
+        .toList();
+    print('::error::P74 DESC ${cut(desc.join(" | "), 190)}');
+    print('::error::P74 names ${names.join(" | ").length} ${cut(names.join(" | "), 185)}');
     for (final h in hits) {
       for (var j = -7; j < 2 && h + j < src.length; j++) {
         if (h + j < 0) continue;
-        print('::error::P72 h$h:$j ${cut(src[h + j], 195)}');
+        print('::error::P74 h$h:$j ${cut(src[h + j], 195)}');
       }
     }
     expect(1, 1);
