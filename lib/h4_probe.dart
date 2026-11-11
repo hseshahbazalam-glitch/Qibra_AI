@@ -1,22 +1,23 @@
 // ignore_for_file: type=lint
-// TRANSIENT diagnostic probe (H4 round only) — lives in lib/ so the analyzer
-// keeps it in scope (a test/ probe is skipped whenever test/ leaves the gate,
-// which killed v9..v35) and its own findings are self-ignored. It runs the
-// analyzer in MACHINE format (one line per diagnostic, severity prefix '4=' ==
-// error) and ships the packed findings in a failed test's message — the only
-// CI channel that survives both log truncation and a red gate. DELETED before
-// the pass closes.
+// test/h4_probe_test.dart relocated to lib/ — THE CHANNEL BUG that made every
+// H4 probe from v9 to v35 dead on arrival: a probe living under test/ can
+// never run in a round where the test/ tree is excluded from the analyzer (the
+// file is skipped, not analyzed), and in a round where it IS analyzed, its own
+// fail() keeps the gate red. Here the probe is in scope (self-ignores its
+// findings), the gate step stays the untouched project-wide command, and the
+// payload rides a failed test through the annotations API. TRANSIENT — deleted
+// with its own commit before the pass closes.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: machine-format analyzer findings', () async {
-    Future<List<String>> run(List<String> args) async {
-      final r = await Process.run('flutter', args,
-          workingDirectory: Directory.current.path,
-          environment: Platform.environment);
-      final out = <String>['x${r.exitCode}'];
+  test('probe: gate verdict + explicit test-file findings + suite verdict', () async {
+    Future<ProcessResult> res(List<String> args) => Process.run('flutter', args,
+        workingDirectory: Directory.current.path,
+        environment: Platform.environment);
+    List<String> linesOf(ProcessResult r) {
+      final out = <String>['exit=${r.exitCode}'];
       for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
         out.addAll(l
             .replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '\r')
@@ -27,36 +28,31 @@ void main() {
       return out;
     }
 
-    String cut(String l, int k) => l.length > k ? l.substring(0, k) : l;
-    String pack(List<String> lines) {
-      final found = <String>[];
-      var infos = 0;
-      for (final l in lines) {
-        if (!l.contains('\x02')) continue;
-        if (l.contains('4=')) {
-          found.add(l);
-        } else {
-          infos++;
-        }
-      }
-      String one(String l) {
-        final p = l.split('\x02').skip(2).toList();
-        final loc = p.length > 2 ? '${p[1]}:${p[2]}' : '?';
-        final code = p.length > 3 ? p[3] : '?';
-        final msg = p.length > 4 ? p[4] : l;
-        final file = (p.isNotEmpty ? p[0] : '')
-            .replaceFirst('/home/runner/work/Qibra_AI/Qibra_AI/', '');
-        return cut('$file|$loc|$code|$msg', 120);
-      }
-
-      return 'i$infos ' + found.take(6).map(one).join(' ;; ');
-    }
-
-    final lib = await run(['analyze', '--machine', 'lib']);
-    final tst = await run(['analyze', '--machine', 'test']);
-    var out = 'H4P37 LIB${lib.first} ' +
-        '${pack(lib)} || TEST${tst.first} ${pack(tst)}';
-    if (out.length > 980) out = '${out.substring(0, 974)}...TRUNC';
+    String trim(String l, int k) => l.length > k ? l.substring(0, k) : l;
+    final gate = linesOf(await res(['analyze', '--no-fatal-infos']));
+    final mine = linesOf(await res([
+      'analyze',
+      '--no-fatal-infos',
+      '--fatal-infos',
+      'test/features/hadith/hadith_h4_search_test.dart'
+    ]));
+    final suite = linesOf(await res([
+      'test',
+      '--reporter',
+      'compact',
+      '--ignore-errors',
+      'test/features/hadith/hadith_h4_search_test.dart'
+    ]));
+    final hard = mine
+        .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
+        .take(3)
+        .map((l) => trim(l, 150))
+        .join(' ;; ');
+    final nHard = mine.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).length;
+    var out = 'H4P36 GATE exit=${gate.first} "${trim(gate.length > 1 ? gate[1] : '-', 80)}" || '
+        'MINE exit=${mine.first} n=$nHard [$hard] || SUITE exit=${suite.first} '
+        '"${trim(suite.last, 160)}"';
+    if (out.length > 970) out = '${out.substring(0, 964)}...TRUNC';
     fail(out);
   }, timeout: const Timeout(Duration(minutes: 11)));
 }
