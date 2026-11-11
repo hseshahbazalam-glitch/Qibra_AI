@@ -1,45 +1,57 @@
 // ignore_for_file: type=lint
-// test/h4_probe_test.dart — TRANSIENT diagnostic probe (v80, deleted with its
-// own commit; v79 died because my header re-assembly ate the two imports — a
-// dead-simple mistake, disclosed). v78 named the last red test:
-// test/features/hadith/hadith_multilang_test.dart 'availability matrix ⇔ data on
-// disk'. The compact reporter had moved past it at the [E] marker, so this round
-// greps the assertion detail (Expected / Actual / Which / reason) directly.
+// test/h4_probe_test.dart — TRANSIENT diagnostic probe (v81, deleted with its
+// own commit). v80 proved the multilang file is GREEN alone (exit 0) while the
+// directory run has 1 red, so the failure is ORDER-dependent; and the full-suite
+// run names its own red test — both are read here as short indexed lines
+// (reverse order: the annotation window is the log tail, so the payload is
+// printed in its own `::error::` lines, never as one long line).
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+List<String> _clean(ProcessResult r) {
+  final out = <String>[];
+  for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
+    out.addAll(l
+        .replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '\r')
+        .split('\r')
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty));
+  }
+  return out;
+}
+
+String _cut(String s, int k) => s.length > k ? '${s.substring(0, k)}…' : s;
+
+Future<List<String>> _failures(List<String> args) async {
+  final r = await Process.run('flutter', args,
+      workingDirectory: Directory.current.path, environment: Platform.environment);
+  final src = _clean(r);
+  final ei = src.lastIndexWhere((l) => l.contains('[E]'));
+  final res = <String>['exit=${r.exitCode} n=${src.length} ei=$ei'];
+  for (var j = -6; j < 3 && ei + j < src.length; j++) {
+    if (ei + j < 0) continue;
+    res.add('${j > 0 ? '+' : ''}$j|${_cut(src[ei + j], 165)}');
+  }
+  return res;
+}
+
 void main() {
-  test('probe: the assertion behind the multilang red', () async {
-    final r = await Process.run('flutter', [
+  test('probe: the red test, in both scopes', () async {
+    final dir = await _failures([
       'test',
       '--reporter',
       'compact',
-      'test/features/hadith/hadith_multilang_test.dart'
-    ], workingDirectory: Directory.current.path, environment: Platform.environment);
-    final src = <String>[];
-    for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
-      src.addAll(l
-          .replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '\r')
-          .split('\r')
-          .map((p) => p.trim())
-          .where((p) => p.isNotEmpty));
+      'test/features/hadith',
+      '--concurrency',
+      '1'
+    ]);
+    final all = await _failures(['test', '--reporter', 'compact']);
+    for (var i = 0; i < dir.length; i++) {
+      print('::error::P81 D$i ${dir[i]}');
     }
-    String cut(String s, int k) => s.length > k ? '${s.substring(0, k)}…' : s;
-    final hits = <String>[];
-    for (final s in src) {
-      if (s.contains('Expected:') ||
-          s.contains('Actual:') ||
-          s.contains('Which:') ||
-          s.contains('matrix says') ||
-          s.contains('package:qibra_ai/')) {
-        hits.add(cut(s, 150));
-        if (hits.length == 7) break;
-      }
-    }
-    print('::error::P80 exit=${r.exitCode} n=${src.length} k=${hits.length}');
-    for (var i = 0; i < hits.length && i < 6; i++) {
-      print('::error::P80 d$i ${hits[i]}');
+    for (var i = 0; i < all.length; i++) {
+      print('::error::P81 A$i ${all[i]}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 11)));
