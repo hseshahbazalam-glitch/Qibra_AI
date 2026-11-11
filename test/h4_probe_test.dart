@@ -14,8 +14,7 @@ void main() {
     final r = await Process.run('flutter', [
       'test',
       '--reporter',
-      'compact',
-      '.'
+      'compact'
     ], workingDirectory: Directory.current.path, environment: Platform.environment);
     final src = <String>[];
     for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
@@ -38,7 +37,7 @@ void main() {
         .map((l) => cut(l.replace('The test description was:', '').trim(), 90))
         .take(4)
         .toList();
-    print('::error::P74 DESC ${cut(desc.join(" | "), 190)}');
+    print('::error::P74 DESC ${cut((desc + load).join(" | "), 190)}');
     print('::error::P74 names ${names.join(" | ").length} ${cut(names.join(" | "), 185)}');
     for (final h in hits) {
       for (var j = -7; j < 2 && h + j < src.length; j++) {
