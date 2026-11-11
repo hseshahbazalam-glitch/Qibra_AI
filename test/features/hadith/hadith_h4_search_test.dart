@@ -398,7 +398,8 @@ void main() {
       await _pumpHome(tester, db);
       await tester.tap(find.text('Patience'));
       await _beat(tester);
-      print('H4P pre-jump query=\'\${container.read(hadithSearchQueryProvider)}\' '
+      print('H4P pre-jump query='
+          '\${container.read(hadithSearchQueryProvider)} '
           'hits=\${db.calls.length}');
       // bukhari leads (density tie -> kitab weight).
       await tester.tap(find.text('Sahih al-Bukhari 7'));
