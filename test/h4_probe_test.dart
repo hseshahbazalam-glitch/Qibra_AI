@@ -16,27 +16,24 @@ String _clean(String l) {
 }
 
 void main() {
-  test('probe: run flutter analyze and exfil via exitCode gate', () async {
+  test('probe: run flutter analyze and exfil the output tail', () async {
     final r = await Process.run(
       'flutter',
       ['analyze', '--no-fatal-infos'],
       workingDirectory: Directory.current.path,
       environment: Platform.environment,
     );
-    final raw = '${r.stdout}';
-    final src = raw
-        .split('\n')
-        .map((l) => l.replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '').trim())
-        .where((l) => l.contains(' - error') || l.contains(' - warning'))
-        .take(4)
-        .toList();
-    // (1) is the count, (2) the shortest line length; (3..) the findings.
-    print('::error::H4R z0 n=${src.length} exit=${r.exitCode} '
-        'lens=${src.map((l) => l.length).join(",")}');
-    var i = 1;
-    for (final l in src) {
-      print('::error::H4R z$i $l');
-      i++;
+    final raw = '${r.stdout}\n${r.stderr}'.trim();
+    // v12: tail-chunk exfil — the finding block + 'N issues found' always
+    // END the output; chunk it verbatim across the 9 annotation slots.
+    final tail = raw.length > 1000 ? raw.substring(raw.length - 1000) : raw;
+    final one = tail.replaceAll('\n', ' | ');
+    final chunk = (one.length / 9).ceil();
+    for (var i = 0; i < 9; i++) {
+      final a = i * chunk;
+      if (a >= one.length) break;
+      final b = a + chunk > one.length ? one.length : a + chunk;
+      print('::error::H4R t$i ${one.substring(a, b)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
