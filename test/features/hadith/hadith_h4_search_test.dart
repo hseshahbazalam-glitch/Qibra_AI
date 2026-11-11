@@ -268,7 +268,7 @@ void main() {
             textEnglish: 'patience $n',
             textUrdu: '',
             bookSlug: 'nasai',
-            bookName: 'Sunan an-Nasa\'i',
+            bookName: "Sunan an-Nasa'i",
             bookNumber: 1,
             chapterHadithNumber: 1,
             chapterName: '',
@@ -456,7 +456,7 @@ void main() {
       );
     });
 
-    testWidgets('the sheet\'s book chips really narrow the merged hits',
+    testWidgets("the sheet's book chips really narrow the merged hits",
         (tester) async {
       final db = _FakeDb();
       final container = await _pumpHome(tester, db);
