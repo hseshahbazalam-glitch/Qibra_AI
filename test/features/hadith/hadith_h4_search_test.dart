@@ -340,7 +340,7 @@ void main() {
       expect(state.valueOrNull!.map((r) => r.hadith.id).toSet(),
           containsAll(<String>['bukhari_7', 'muslim_12', 'malik_3']),
           reason: 'fake corpus holds one patience row per book — all '
-              'three ride through the sheet's provider');
+              'three ride through the sheet provider');
     });
   });
 
