@@ -40,20 +40,19 @@ void main() {
     }
     final window = <String>[];
     if (first != -1) {
-      // v5: grab the LINE AFTER each marker (the widget name and the top
-      // stack frames live there, not on the marker line itself).
-      for (var j = first + 1;
-          j <= first + 60 && window.length < 4 && j < src.length - 2;
-          j++) {
-        final e = src[j];
-        if (e.contains('[E]')) break;
-        if (e.contains('error-causing widget was:')) {
-          window.add(_clean('W ${src[j + 1].trim()}'));
-        } else if (e.contains('this was the stack:')) {
-          window.add(_clean('S ${src[j + 1].trim()}'));
-          window.add(_clean('S ${src[j + 2].trim()}'));
-        } else if (e.contains('assertion was thrown')) {
-          window.add(_clean('A ${e.trim()}'));
+      // v6: contiguous 6 lines after the 'assertion was thrown' line —
+      // the assertion TEXT continues there, then the error-causing
+      // widget and the FIRST stack frames.
+      for (var j = first + 1; j < src.length - 6; j++) {
+        if (src[j].contains('assertion was thrown')) {
+          for (var k = j; k < j + 7 && window.length < 5; k++) {
+            final e = src[k].trim();
+            if (e.isEmpty || e.startsWith('═') || e.startsWith('├')) {
+              continue;
+            }
+            window.add(_clean('W $e'));
+          }
+          break;
         }
       }
     }
