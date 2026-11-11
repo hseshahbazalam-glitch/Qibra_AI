@@ -29,24 +29,27 @@ void main() {
     final wl = linesOf(whole);
     final we =
         wl.where((l) => !l.startsWith('Analyzing') && !l.contains('No issues')).toList();
-    print('::error::P49 WH exit=${whole.exitCode} n=${we.length}');
+    print('::error::P50 WH exit=${whole.exitCode} n=${we.length}');
     for (var i = 0; i < we.length && i < 4; i++) {
-      print('::error::P49 w$i ${cut(we[i], 195)}');
+      print('::error::P50 w$i ${cut(we[i], 195)}');
     }
     final h4 = await res(['analyze', '--no-fatal-infos', '--fatal-infos',
-        'test/features/hadith/hadith_h4_search_test.dart']);
+        'test/features/hadith/hadith_h4_search_test.dart',
+      'test/h4_probe_test.dart']);
     final hl = linesOf(h4);
-    final he = hl.where((l) => !l.contains(' - info - ')).toList();
-    print('::error::P49 H4 exit=${h4.exitCode} n=${he.length}');
+    final he = hl
+        .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
+        .toList();
+    print('::error::P50 H4 exit=${h4.exitCode} n=${he.length}');
     for (var i = 0; i < he.length && i < 2; i++) {
-      print('::error::P49 h$i ${cut(he[i], 195)}');
+      print('::error::P50 h$i ${cut(he[i], 195)}');
     }
     final su = await res(['test', '--reporter', 'compact', 'test/features/hadith']);
     final sl = linesOf(su);
     final ei = sl.indexWhere((l) => l.contains('[E]'));
-    print('::error::P49 SU exit=${su.exitCode} last=${cut(sl.isEmpty ? '-' : sl.last, 195)}');
+    print('::error::P50 SU exit=${su.exitCode} last=${cut(sl.isEmpty ? '-' : sl.last, 195)}');
     for (var i = 0; i < 2 && ei + i + 1 < sl.length; i++) {
-      print('::error::P49 e$i ${cut(sl[ei + 1 + i], 195)}');
+      print('::error::P50 e$i ${cut(sl[ei + 1 + i], 195)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
