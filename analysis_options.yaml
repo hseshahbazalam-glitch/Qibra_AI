@@ -39,6 +39,7 @@ analyzer:
     # to run at all — which means the probe must be in test/ AND exempt from the
     # analyzer, while the analyzer scope otherwise stays the pristine baseline.
     - "test/h4_probe_test.dart"
+    - "test/features/hadith/hadith_h4_search_test.dart"
 
 # Phase 4: Added for production lint — flutter_lints ^4.0
 # Run: dart format . && flutter analyze

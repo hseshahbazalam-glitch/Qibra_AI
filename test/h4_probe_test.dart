@@ -34,6 +34,19 @@ void main() {
     for (var i = 0; i < gh.length && i < 5; i++) {
       print('::error::H4P43 f$i ${cut(gh[i], 175)}');
     }
+    final one = await res([
+      'analyze',
+      '--no-fatal-infos',
+      '--fatal-infos',
+      'test/features/hadith/hadith_h4_search_test.dart'
+    ]);
+    final ml = linesOf(one);
+    final mh = ml.where((l) => RegExp(r' - \w+ - ').hasMatch(l)).toList();
+    print('::error::H4P44 H4FILE exit=${one.exitCode} n=${mh.length} '
+        'sum=${cut(ml.isEmpty ? "-" : ml.last, 100)}');
+    for (var i = 0; i < mh.length && i < 4; i++) {
+      print('::error::H4P44 h$i ${cut(mh[i], 175)}');
+    }
     final suite = await res([
       'test',
       '--reporter',
