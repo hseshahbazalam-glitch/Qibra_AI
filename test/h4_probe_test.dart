@@ -44,13 +44,19 @@ void main() {
       // the assertion TEXT continues there, then the error-causing
       // widget and the FIRST stack frames.
       for (var j = first + 1; j < src.length - 6; j++) {
-        if (src[j].contains('assertion was thrown')) {
-          for (var k = j; k < j + 7 && window.length < 5; k++) {
+        if (src[j].contains('this was the stack:')) {
+          // Frames 1..5 AFTER the two foundation boilerplate ones — the
+          // first non-framework line names the caller file:line.
+          var frames = 0;
+          for (var k = j + 1; k < j + 12 && window.length < 5; k++) {
             final e = src[k].trim();
-            if (e.isEmpty || e.startsWith('═') || e.startsWith('├')) {
+            if (!e.startsWith('#')) continue;
+            if (e.contains('change_notifier.dart') ||
+                e.contains('debugAssertNotDisposed')) {
               continue;
             }
-            window.add(_clean('W $e'));
+            window.add(_clean('#$frames ${e.substring(e.indexOf('(') + 1).replaceAll(')', '')}'));
+            frames++;
           }
           break;
         }
