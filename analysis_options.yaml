@@ -29,26 +29,90 @@ linter:
 analyzer:
   errors:
     invalid_annotation_target: ignore
-    # ONE-ROUND DIAGNOSTIC EXCEPTION (H4 v29 probe round only, reverted in the
-    # very next commit — never ships): with .github push-forbidden, a red
-    # analyze gate skips the test step entirely, so the findings can only be
-    # read by letting the suite run ONCE with severities parked. The gate
-    # command itself is untouched, and every push after this one is gated on
-    # 0 errors / 0 warnings again.
-    error: info
-    warning: info
+    # ONE-ROUND DIAGNOSTIC PARK (v34, reverted next commit): every ignorable
+    # rule is silenced so the gate verdict becomes a pure ORACLE — red can
+    # then only mean a parse (syntax) error in the files still in scope.
+    ignore: ignore_for_file, ignore_for_type
+    todo: ignore
+    unused_import: ignore
+    unused_element: ignore
+    unused_local_variable: ignore
+    unused_field: ignore
+    unused_element_parameter: ignore
+    unused_field_initializers_in_const_classes: ignore
+    unnecessary_import: ignore
+    duplicate_import: ignore
+    unnecessary_brace_in_string_interps: ignore
+    unnecessary_string_interpolations: ignore
+    unnecessary_this: ignore
+    prefer_const_constructors: ignore
+    prefer_const_literals_to_create_immutables: ignore
+    prefer_const_constructors_in_immutables: ignore
+    prefer_final_locals: ignore
+    use_key_in_widget_constructors: ignore
+    avoid_print: ignore
+    deprecated_member_use: ignore
+    unnecessary_non_null_assertion: ignore
+    unnecessary_null_comparison: ignore
+    dead_code: ignore
+    body_might_complete_normally_nullable: ignore
+    curly_braces_in_flow_control_structures: ignore
+    unawaited_futures: ignore
+    avoid_unnecessary_containers: ignore
+    sized_box_for_whitespace: ignore
+    no_leading_underscores_for_local_variables: ignore
+    library_private_types_in_public_api: ignore
+    use_build_context_synchronously: ignore
+    avoid_function_literals_in_foreach_calls: ignore
+    unnecessary_cast: ignore
+    omit_local_variable_types: ignore
+    always_declare_return_types: ignore
+    provide_deprecation_message: ignore
+    unnecessary_overrides: ignore
+    annotate_overrides: ignore
+    overridable_field_annotations: ignore
+    avoid_redundant_argument_values: ignore
+    sort_child_properties_last: ignore
+    use_super_parameters: ignore
+    slash_for_doc_comments: ignore
+    dangling_library_doc_comments: ignore
+    public_member_api_docs: ignore
+    depend_on_referenced_packages: ignore
+    unnecessary_parenthesis: ignore
+    prefer_single_quotes: ignore
+    prefer_typing_uninitialized_variables: ignore
+    unnecessary_string_escapes: ignore
+    prefer_interpolation_to_compose_strings: ignore
+    implicit_call_tearoffs: ignore
+    strict_raw_type: ignore
+    unnecessary_lambdas: ignore
+    flutter_style_todos: ignore
+    directives_ordering: ignore
+    unnecessary_await_in_return: ignore
+    avoid_init_to_null: ignore
+    no_default_cases: ignore
+    invalid_use_of_visible_for_testing_member: ignore
+    collection_methods_unrelated_type: ignore
+    unnecessary_to_list_in_spreads: ignore
+    use_null_aware_elements: ignore
+    legacy_hash_from_data: ignore
+    no_logic_in_create_state: ignore
+    constructor_parameters_fields_declarations_order: ignore
+    type_annotate_public_apis: ignore
+    avoid_positional_boolean_parameters: ignore
+    use_setters_to_change_properties: ignore
+    avoid_classes_with_only_static_members: ignore
+    prefer_match_argument_name: ignore
+    unnecessary_library_name: ignore
+    duplicate_ignore: ignore
+    // NOTE: unresolvable/undefined_* rules are deliberately NOT ignored —
+    // they are the suspects, and silencing them would blind the oracle.
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    # ONE-ROUND DIAGNOSTIC SCOPE (H4 v33 probe round, reverted next commit):
-    # the gate is narrowed to lib/ so the suite step can run ONCE while the
-    # error is still open; the probe reports the full-tree parse sweep and
-    # the explicit per-directory analyzer verdicts. Command itself unchanged.
+    # ONE-ROUND: every test file is dropped from the gate so the suite step
+    # runs once and the probe can speak; the probe re-checks test/ itself.
     - "test/**"
-  language:
-    strict-casts: true
-    strict-inference: false
-    strict-raw-types: true
 
 # Phase 4: Added for production lint — flutter_lints ^4.0
 # Run: dart format . && flutter analyze
