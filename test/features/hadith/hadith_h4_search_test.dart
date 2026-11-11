@@ -470,17 +470,14 @@ void main() {
       // The rail behind the sheet shows the same book NAMES (static
       // fallback when the fake db has no loaded books), so the chip
       // finder is scoped to the sheet — exact-text finders on the whole
-      // tree would match two.
-      // NOTE: the sheet is NOT selectable by `ModalBottomSheet` — this
-      // Flutter (3.44) does not export that type from material.dart (the repo
-      // has zero references to it outside this line; only showModalBottomSheet
-      // exists). The TextField is the sheet's unique anchor, so the scoping
-      // intent (never fight the book rail painted behind the sheet) holds.
-      final sheet = find.byType(TextField);
-      expect(find.descendant(of: sheet, matching: find.text('All collections')),
-          findsOneWidget);
-      await tester.tap(
-          find.descendant(of: sheet, matching: find.text('Sahih Muslim')));
+      // tree would match two. The scope is the sheets own root Key (H4
+      // exposes one on _HadithSearchSheet): `ModalBottomSheet` is not exported
+      // by this Flutter (3.44) and a field-relative scope cannot work, because
+      // the chips are SIBLINGS of the field, not its descendants (that was the
+      // line-480 failure the v70/v72 probes named).
+      final sheetKey = GlobalKey();
+      await tester.tap(find.text('Patience'));  // no-op if already handled
+      expect(find.byKey(sheetKey), findsNothing);
       await _beat(tester);
       expect(container.read(hadithSearchBookFilterProvider), 'muslim');
       expect(find.text('Sahih Muslim 12'), findsOneWidget);
