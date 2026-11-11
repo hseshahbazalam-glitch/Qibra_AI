@@ -31,26 +31,26 @@ void main() {
     final gl = linesOf(gate);
     final ge =
         gl.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
-    print('::error::P54 GATE exit=${gate.exitCode} n=${ge.length} '
+    print('::error::P56 GATE exit=${gate.exitCode} n=${ge.length} '
         'sum=${cut(gl.isEmpty ? '-' : gl.last, 90)}');
     for (var i = 0; i < ge.length && i < 3; i++) {
-      print('::error::P54 g$i ${cut(ge[i], 190)}');
+      print('::error::P56 g$i ${cut(ge[i], 190)}');
     }
     final su = await res(['test', '--reporter', 'compact', '--ignore-errors', target]);
     final sl = linesOf(su);
     final errs =
         sl.where((l) => l.contains('Error:') || l.contains('error - ')).toList();
-    print('::error::P54 SU exit=${su.exitCode} n=${sl.length} e=${errs.length}');
+    print('::error::P56 SU exit=${su.exitCode} n=${sl.length} e=${errs.length}');
     for (var i = 0; i < errs.length && i < 3; i++) {
-      print('::error::P54 s$i ${cut(errs[i], 190)}');
+      print('::error::P56 s$i ${cut(errs[i], 190)}');
     }
     final an = await res(['analyze', '--no-fatal-infos', '--fatal-infos', target]);
     final al = linesOf(an);
     final ae =
         al.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
-    print('::error::P54 AN exit=${an.exitCode} n=${ae.length}');
+    print('::error::P56 AN exit=${an.exitCode} n=${ae.length}');
     for (var i = 0; i < ae.length && i < 2; i++) {
-      print('::error::P54 a$i ${cut(ae[i], 190)}');
+      print('::error::P56 a$i ${cut(ae[i], 190)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));

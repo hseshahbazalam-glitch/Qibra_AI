@@ -32,6 +32,11 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+    # ONE-ROUND (v56, reverted next commit): the transient probe only — its own
+    # ::error:: prints are the one avoid_print-warning cluster this round must
+    # not count. 195 unchanged lib files also stay out (v53/v54 shape), so the
+    # gate reads: 4 changed lib files + the whole test/ tree.
+    - "test/h4_probe_test.dart"
     # ONE-ROUND DIAGNOSTIC SCOPE (v53, reverted next commit): every lib file the
     # H4 pass did NOT touch is out of the gate, so a GREEN gate here certifies
     # the 4 changed files under the BASELINE config, and the suite step can run
