@@ -304,7 +304,11 @@ void main() {
       // edition row (one call site, looped). 20 -> 24; labels/excludes/
       // live and the IconButton census all untouched (the FAB rides the
       // Material tooltip parameter, never a bare Tooltip( call).
-      expect(semantics, 24);
+      // Pass H4: the hadith search entry is labelled through a first-class
+      // Semantics node (this SDKs InputDecoration has no prefix-icon semantic
+      // label), 24 -> 25; labels/excludes/live and the IconButton census
+      // untouched.
+      expect(semantics, 25);
     });
 
     test('forbidden liveRegion: the home countdown never announces', () {

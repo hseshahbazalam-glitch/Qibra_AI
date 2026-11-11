@@ -1077,30 +1077,37 @@ class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: TextField(
-                    controller: _controller,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: 'Search hadiths',
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      // a11y: the search entry names itself to TalkBack
-                      // — a bare icon prefix carries no label.
-                      prefixIconSemanticLabel:
-                          AppStrings.of(context).tooltipSearch,
+                // a11y (H4): this Flutter's InputDecoration (3.44) has no
+                // `prefixIconSemanticLabel` — using it was a compile error
+                // (undefined_named_parameter, found only by the v69 explicit
+                // per-file analyze; the parameter exists in newer SDKs). The
+                // field gets a first-class Semantics label instead, and the
+                // decorative prefix icon is labelled off, so TalkBack announces
+                // the entry once, with the apps own localized string.
+                Semantics(
+                  label: AppStrings.of(context).tooltipSearch,
+                  textField: true,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: TextField(
+                      controller: _controller,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        hintText: 'Search hadiths',
+                        prefixIcon: Icon(Icons.search_rounded),
+                      ),
+                      onChanged: (value) {
+                        ref.read(hadithSearchQueryProvider.notifier).state =
+                            value;
+                      },
+                      onSubmitted: (value) {
+                        final trimmed = value.trim();
+                        if (trimmed.isEmpty) return;
+                        ref
+                            .read(hadithRecentSearchesProvider.notifier)
+                            .add(trimmed);
+                      },
                     ),
-                    onChanged: (value) {
-                      ref.read(hadithSearchQueryProvider.notifier).state =
-                          value;
-                    },
-                    onSubmitted: (value) {
-                      final trimmed = value.trim();
-                      if (trimmed.isEmpty) return;
-                      ref
-                          .read(hadithRecentSearchesProvider.notifier)
-                          .add(trimmed);
-                    },
                   ),
                 ),
                 // Pass H4 P4 — a REAL book filter over the merged hits:
