@@ -7,7 +7,7 @@
 import 'dart:io';
 
 void main() {
-  test('probe: gate oracle + suite verdict', () async {
+  test('probe: trustworthy gate + explicit test-suite verdict', () async {
     Future<ProcessResult> res(List<String> args) => Process.run('flutter', args,
         workingDirectory: Directory.current.path,
         environment: Platform.environment);
@@ -25,20 +25,18 @@ void main() {
 
     String trim(String l, int k) => l.length > k ? l.substring(0, k) : l;
     final gate = linesOf(await res(['analyze', '--no-fatal-infos']));
-    final suite = linesOf(await res(['test', '--reporter', 'compact', '--ignore-errors']));
-    final hard = gate
-        .where((l) =>
-            l.contains('Error:') || l.contains('error - ') || l.contains('expected'))
-        .take(4)
-        .map((l) => trim(l, 130))
+    final mine = linesOf(await res(
+        ['analyze', '--no-fatal-infos', 'test/features/hadith/hadith_h4_search_test.dart']));
+    final suite = linesOf(
+        await res(['test', '--reporter', 'compact', '--ignore-errors']));
+    final hard = mine
+        .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
+        .take(3)
+        .map((l) => trim(l, 145))
         .join(' ;; ');
-    final fails = suite
-        .where((l) => l.startsWith('[E]') || l.contains('Failed to load'))
-        .take(2)
-        .map((l) => trim(l, 150))
-        .toList();
-    var out = 'H4P34 GATE exit=${gate.first} ${gate.length - 1}L [$hard] || SUITE exit=${suite.first} '
-        '${suite.length - 1}L tail="${trim(suite.last, 150)}" fails=${fails.join(" ;; ")}';
+    var out = 'H4P35 GATE exit=${gate.first} "${trim(gate.length > 1 ? gate[1] : '-', 90)}" || '
+        'MINE exit=${mine.first} n=${mine.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).length} '
+        '[$hard] || SUITE exit=${suite.first} tail="${trim(suite.last, 170)}"';
     if (out.length > 970) out = '${out.substring(0, 964)}...TRUNC';
     fail(out);
   }, timeout: const Timeout(Duration(minutes: 11)));
