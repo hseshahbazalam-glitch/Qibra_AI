@@ -1068,22 +1068,27 @@ class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-        return Padding(
+    return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.88,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: TextField(
                     controller: _controller,
                     autofocus: true,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Search hadiths',
-                      prefixIcon: Icon(Icons.search_rounded),
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      // a11y: the search entry names itself to TalkBack
+                      // — a bare icon prefix carries no label.
+                      prefixIconSemanticLabel:
+                          AppStrings.of(context).tooltipSearch,
                     ),
                     onChanged: (value) {
                       ref.read(hadithSearchQueryProvider.notifier).state =

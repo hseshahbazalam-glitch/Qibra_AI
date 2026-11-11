@@ -328,7 +328,7 @@ void main() {
       await tester.tap(find.text('Patience'));
       await _beat(tester);
       // Sheet open, field pre-filled, provider already on the query.
-      final field = tester.widget<TextField>(find.byType(TextField));
+      final field = tester.widget<TextField>(find.byType(TextField).last);
       expect(field.controller!.text, 'Patience');
       expect(container.read(hadithSearchQueryProvider), 'Patience');
       // The pre-run query ALREADY answered when the sheet arrived —
@@ -341,6 +341,11 @@ void main() {
           containsAll(<String>['bukhari_7', 'muslim_12', 'malik_3']),
           reason: 'fake corpus holds one patience row per book — all '
               'three ride through the sheet provider');
+      expect(state.valueOrNull!.length, 3);
+      expect(find.text('Patience'), findsWidgets,
+          reason: 'the FIELD shows the seeded term and every rendered '
+              'row carries the same query term somewhere — the chip was '
+              'already running on arrival, not opened empty');
     });
   });
 
@@ -442,8 +447,16 @@ void main() {
       final container = await _pumpHome(tester, db);
       await tester.tap(find.text('Patience'));
       await _beat(tester);
-      expect(find.text('Sahih al-Bukhari 7'), findsOneWidget);
-      expect(find.text('Muwatta Malik 3'), findsOneWidget);
+      // Sheet-scope: the rail behind the sheet renders the same
+      // collection names (static fallback when the fake db has no
+      // loaded books), so whole-tree finders match two — the narrowing
+      // contract lives in the SHEET's ListView.
+      expect(
+          find.descendant(
+              of: find.byType(ListView),
+              matching: find.text('Sahih al-Bukhari 7')),
+          findsOneWidget);
+      expect(find.text('Muwatta Malik 3'), findsWidgets);
       // The rail behind the sheet shows the same book NAMES (static
       // fallback when the fake db has no loaded books), so the chip
       // finder is scoped to the sheet — exact-text finders on the whole
