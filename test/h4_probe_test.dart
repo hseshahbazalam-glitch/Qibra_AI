@@ -8,10 +8,11 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: real-scope findings + explicit H4-file verdict', () async {
-    Future<ProcessResult> res(List<String> args) => Process.run('flutter', args,
-        workingDirectory: Directory.current.path,
-        environment: Platform.environment);
+  test('probe: parse-oracle over the changed lib files', () async {
+    Future<ProcessResult> run(String exe, List<String> args) =>
+        Process.run(exe, args,
+            workingDirectory: Directory.current.path,
+            environment: Platform.environment);
     List<String> linesOf(ProcessResult r) {
       final out = <String>[];
       for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
@@ -25,24 +26,26 @@ void main() {
     }
 
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
-    List<String> hard(List<String> ls) =>
-        ls.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
-    final gate = await res(['analyze', '--no-fatal-infos']);
-    final gl = linesOf(gate);
-    final gh = hard(gl);
-    print('::error::P57 GATE exit=${gate.exitCode} n=${gh.length} '
-        'lines=${gl.length} sum=${cut(gl.isEmpty ? '-' : gl.last, 95)}');
-    for (var i = 0; i < gh.length && i < 3; i++) {
-      print('::error::P57 g$i ${cut(gh[i], 190)}');
-    }
-    final an = await res(['analyze', '--no-fatal-infos',
-      'test/features/hadith/hadith_h4_search_test.dart', 'test/h4_probe_test.dart']);
-    final al = linesOf(an);
-    final ah = hard(al);
-    print('::error::P57 EX exit=${an.exitCode} n=${ah.length} '
-        'sum=${cut(al.isEmpty ? '-' : al.last, 95)}');
-    for (var i = 0; i < ah.length && i < 2; i++) {
-      print('::error::P57 e$i ${cut(ah[i], 190)}');
+    const lib = [
+      'lib/core/l10n/app_strings.dart',
+      'lib/features/hadith/data/services/hadith_database_service.dart',
+      'lib/features/hadith/providers/hadith_provider.dart',
+      'lib/features/hadith/presentation/hadith_screen.dart',
+    ];
+    for (final p in lib) {
+      final fmt = await run('dart', ['format', '--output=none', p]);
+      final fl = linesOf(fmt);
+      final bad =
+          fl.where((l) => l.contains('Error') || l.contains('error')).toList();
+      print('::error::P58 FMT ${p.split('/').last} exit=${fmt.exitCode} '
+          '${bad.isEmpty ? cut(fl.join(" | "), 150) : cut(bad.join(" | "), 175)}');
+      final an = await run('flutter', ['analyze', '--no-fatal-infos', p]);
+      final al = linesOf(an);
+      final ah = al
+          .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
+          .toList();
+      print('::error::P58 ANA ${p.split('/').last} exit=${an.exitCode} n=${ah.length} '
+          '${ah.isEmpty ? cut(al.isEmpty ? "-" : al.last, 150) : cut(ah.first, 175)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
