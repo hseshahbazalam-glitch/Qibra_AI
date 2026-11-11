@@ -17,9 +17,9 @@ String _clean(String l) {
 
 void main() {
   test('probe: run flutter analyze; print every finding', () async {
-    // v20 — the ONLY proven channel: a GREEN test body whose print()
-    // lines stream through the reporter (v3 round). Findings verbatim,
-    // no trimming, no exceptions.
+    // v21 — same proven v20 channel (GREEN test body + print lines),
+    // plus the failing expect so BOTH annotations (suite step + the
+    // [E] block in the test step) carry the finding lines.
     final r = await Process.run(
       'flutter',
       ['analyze', '--no-fatal-infos'],
@@ -42,6 +42,6 @@ void main() {
     for (var i = 0; i < bad.length && i < 8; i++) {
       print('H4P f\$i \${bad[i]}');
     }
-    expect(1, 1);
+    expect(r.exitCode, 0, reason: 'H4P exit=\${r.exitCode} n=\${bad.length}');
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
