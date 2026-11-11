@@ -8,11 +8,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: compile-error text of the H4 suite', () async {
-    Future<ProcessResult> res(List<String> args, [String exe = 'flutter']) =>
-        Process.run(exe, args,
-            workingDirectory: Directory.current.path,
-            environment: Platform.environment);
+  test('probe: real-scope findings + explicit H4-file verdict', () async {
+    Future<ProcessResult> res(List<String> args) => Process.run('flutter', args,
+        workingDirectory: Directory.current.path,
+        environment: Platform.environment);
     List<String> linesOf(ProcessResult r) {
       final out = <String>[];
       for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
@@ -26,31 +25,24 @@ void main() {
     }
 
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
-    const target = 'test/features/hadith/hadith_h4_search_test.dart';
+    List<String> hard(List<String> ls) =>
+        ls.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
     final gate = await res(['analyze', '--no-fatal-infos']);
     final gl = linesOf(gate);
-    final ge =
-        gl.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
-    print('::error::P56 GATE exit=${gate.exitCode} n=${ge.length} '
-        'sum=${cut(gl.isEmpty ? '-' : gl.last, 90)}');
-    for (var i = 0; i < ge.length && i < 3; i++) {
-      print('::error::P56 g$i ${cut(ge[i], 190)}');
+    final gh = hard(gl);
+    print('::error::P57 GATE exit=${gate.exitCode} n=${gh.length} '
+        'lines=${gl.length} sum=${cut(gl.isEmpty ? '-' : gl.last, 95)}');
+    for (var i = 0; i < gh.length && i < 3; i++) {
+      print('::error::P57 g$i ${cut(gh[i], 190)}');
     }
-    final su = await res(['test', '--reporter', 'compact', '--ignore-errors', target]);
-    final sl = linesOf(su);
-    final errs =
-        sl.where((l) => l.contains('Error:') || l.contains('error - ')).toList();
-    print('::error::P56 SU exit=${su.exitCode} n=${sl.length} e=${errs.length}');
-    for (var i = 0; i < errs.length && i < 3; i++) {
-      print('::error::P56 s$i ${cut(errs[i], 190)}');
-    }
-    final an = await res(['analyze', '--no-fatal-infos', '--fatal-infos', target]);
+    final an = await res(['analyze', '--no-fatal-infos',
+      'test/features/hadith/hadith_h4_search_test.dart', 'test/h4_probe_test.dart']);
     final al = linesOf(an);
-    final ae =
-        al.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
-    print('::error::P56 AN exit=${an.exitCode} n=${ae.length}');
-    for (var i = 0; i < ae.length && i < 2; i++) {
-      print('::error::P56 a$i ${cut(ae[i], 190)}');
+    final ah = hard(al);
+    print('::error::P57 EX exit=${an.exitCode} n=${ah.length} '
+        'sum=${cut(al.isEmpty ? '-' : al.last, 95)}');
+    for (var i = 0; i < ah.length && i < 2; i++) {
+      print('::error::P57 e$i ${cut(ah[i], 190)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
