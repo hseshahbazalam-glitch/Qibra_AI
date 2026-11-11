@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: parse-error location via the formatter oracle', () async {
+  test('probe: the finding lines and the compiler message', () async {
     Future<ProcessResult> res(List<String> args, [String exe = 'flutter']) =>
         Process.run(exe, args,
             workingDirectory: Directory.current.path,
@@ -28,28 +28,30 @@ void main() {
 
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
     const target = 'test/features/hadith/hadith_h4_search_test.dart';
-    // (1) the formatter is a pure-PARSER oracle: its stderr prints
-    //     "<file>:<line>:<col>: <message>" for every syntax error.
-    final fmt = await res(['format', '--output=none', '--summary=none', target], 'dart');
-    final fl = linesOf(fmt);
-    print('::error::P46 FMT exit=${fmt.exitCode} n=${fl.length}');
-    for (var i = 0; i < fl.length && i < 5; i++) {
-      print('::error::P46 m$i ${cut(fl[i], 178)}');
+    // (1) whole-package analyze, GATE FLAGS, error/warning findings only
+    final whole = await res(['analyze', '--no-fatal-infos']);
+    final wl = linesOf(whole);
+    final we = wl
+        .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
+        .toList();
+    print('::error::P47 WH exit=${whole.exitCode} n=${wl.length} e=${we.length}');
+    for (var i = 0; i < we.length && i < 5; i++) {
+      print('::error::P47 w$i ${cut(we[i], 190)}');
     }
-    // (2) the analyzer on that one path (file-level findings incl. parse errors)
-    final an = await res(['analyze', '--no-fatal-infos', '--fatal-infos', target]);
-    final al = linesOf(an);
-    final ah = al.where((l) => !l.contains(' - info - ')).toList();
-    print('::error::P46 AN exit=${an.exitCode} n=${al.length} k=${ah.length}');
-    for (var i = 0; i < ah.length && i < 3; i++) {
-      print('::error::P46 a$i ${cut(ah[i], 178)}');
+    // (2) the explicit single-file analyze, ALL lines (n was 5 — see them all)
+    final one = await res(['analyze', '--no-fatal-infos', '--fatal-infos', target]);
+    final ol = linesOf(one);
+    print('::error::P47 ON exit=${one.exitCode} n=${ol.length}');
+    for (var i = 0; i < ol.length && i < 4; i++) {
+      print('::error::P47 o$i ${cut(ol[i], 190)}');
     }
-    // (3) the suite verdict for the same file (compile errors name file:line too)
+    // (3) the compiler message (truncation: print from the FIRST [E])
     final su = await res(['test', '--reporter', 'compact', target]);
     final sl = linesOf(su);
-    print('::error::P46 SU exit=${su.exitCode} n=${sl.length}');
-    for (var i = 0; i < sl.length && i < 3; i++) {
-      print('::error::P46 s$i ${cut(sl[i], 178)}');
+    final ei = sl.indexWhere((l) => l.contains('[E]'));
+    print('::error::P47 SU exit=${su.exitCode} n=${sl.length} eIdx=$ei');
+    for (var i = 0; i < 4 && ei + i + 1 < sl.length; i++) {
+      print('::error::P47 e$i ${cut(sl[ei + 1 + i], 190)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
