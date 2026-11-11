@@ -32,13 +32,10 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    # ONE-ROUND DIAGNOSTIC SCOPE (v60, reverted next commit). The gate looks at
-    # lib/ ONLY, minus every file the H4 pass did not touch; test/ is out so the
-    # suite step (the only readable channel) can run. The probe itself lives in
-    # lib/ and is exempted by its own `ignore_for_file: type=lint` header — NOT
-    # by a rule-name guess, which is what killed the v29-v59 probe rounds
-    # (flutter_lints v4 raises avoid_print to WARNING tier = gate-fatal;
-    # type=lint silences all lint rules, whatever their severity).
+    # ONE-ROUND DIAGNOSTIC SCOPE (v62, reverted with the probe): the gate sees
+    # ONLY the 4 lib files the H4 pass changed (all other lib files and the whole
+    # test tree are listed out — v60 proved those 4 clean under baseline rules,
+    # which is what localises the remaining gate-breaker to test/).
     - "lib/core/a11y/app_a11y.dart"
     - "lib/core/billing/billing_service.dart"
     - "lib/core/cache/cache_store.dart"
@@ -238,6 +235,7 @@ analyzer:
     - "lib/shared/widgets/qibra_stat_card.dart"
     - "lib/shared/widgets/qibra_status.dart"
     - "lib/shared/widgets/qibra_ui.dart"
+    - "test/h4_probe_test.dart"
   language:
     strict-casts: true
     strict-inference: false

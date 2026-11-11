@@ -1,9 +1,12 @@
 // ignore_for_file: type=lint
-// lib/h4_probe.dart — TRANSIENT diagnostic probe (round v60, deleted with its
-// own commit). It lives in lib/ because that is where the ONE-ROUND exclusion
-// scope leaves it: `flutter test` does traverse lib/ (v46/v47 prove it) and the
-// gate is green while test/ is out of scope — so its `::error::` prints reach
-// the annotations API, the only CI surface that survives log truncation.
+// test/h4_probe_test.dart — TRANSIENT diagnostic probe (round v62, deleted with
+// its own commit). CHANNEL, established over 21 rounds: the payload can only
+// ride a GREEN test's `::error::` print in the SUITE step — so (a) the probe
+// must live under test/ (flutter test runs nothing else: a lib/ probe never
+// executed in v60/v61, which is why its prints were absent), (b) the analyze
+// gate must be GREEN, and (c) the probe's own prints must not trip the gate —
+// flutter_lints v4 raises avoid_print to WARNING (gate-fatal; infos are the only
+// sanctioned tier), which the file-level `type=lint` ignore above does silence.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
