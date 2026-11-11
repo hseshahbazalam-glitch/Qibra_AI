@@ -1,17 +1,13 @@
 // ignore_for_file: type=lint
-// test/h4_probe_test.dart — TRANSIENT diagnostic probe (v78, deleted with its
-// own commit). v77 narrowed the last red to test/features/hadith (63 pass, 1
-// fail) while the H4 file itself is 17/17 green, so the failure belongs to an
-// OLDER hadith test and is scope-sensitive: this round replays that directory
-// and lifts the failing test NAME plus its Expected/Actual/Which lines.
-import 'dart:io';
-
-import 'package:flutter_test/flutter_test.dart';
-
+// test/h4_probe_test.dart — TRANSIENT diagnostic probe (v79, deleted with its
+// own commit). v78 named the last red test (test/features/hadith/hadith_multilang_test.dart
+// — 'availability matrix ⇔ data on disk'), but the compact reporter had already
+// moved on to the NEXT test at the [E] marker, so the window showed progress
+// lines instead of the assertion. This round greps the failure detail directly.
 void main() {
-  test('probe: name the red hadith test', () async {
+  test('probe: the assertion behind the multilang red', () async {
     final r = await Process.run('flutter',
-        ['test', '--reporter', 'compact', 'test/features/hadith'],
+        ['test', '--reporter', 'compact', 'test/features/hadith/hadith_multilang_test.dart'],
         workingDirectory: Directory.current.path,
         environment: Platform.environment);
     final src = <String>[];
@@ -23,19 +19,21 @@ void main() {
           .where((p) => p.isNotEmpty));
     }
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
-    final ei = src.indexWhere((l) => l.contains('[E]'));
-    final names = src
-        .where((l) =>
-            l.contains('The test description was:') || l.contains('Failed to load'))
-        .join(' | ');
-    print('::error::P78 exit=${r.exitCode} n=${src.length} ei=$ei '
-        'last=${cut(src.isEmpty ? "-" : src.last, 90)}');
-    print('::error::P78 NAMES ${cut(names, 195)}');
-    if (ei >= 0) {
-      for (var j = -8; j < 2 && ei + j < src.length; j++) {
-        if (ei + j < 0) continue;
-        print('::error::P78 w$j ${cut(src[ei + j], 195)}');
+    final hits = <String>[];
+    for (var i = 0; i < src.length && hits.length < 7; i++) {
+      final l = src[i];
+      if (l.contains('Expected:') ||
+          l.contains('Actual:') ||
+          l.contains('Which:') ||
+          l.contains('reason:') ||
+          l.contains('matrix says') ||
+          l.contains('package:qibra_ai/')) {
+        hits.add(cut(l, 150));
       }
+    }
+    print('::error::P79 exit=${r.exitCode} n=${src.length} k=${hits.length}');
+    for (var i = 0; i < hits.length && i < 6; i++) {
+      print('::error::P79 d$i ${hits[i]}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 11)));
