@@ -40,18 +40,20 @@ void main() {
     }
     final window = <String>[];
     if (first != -1) {
-      for (var j = first + 1; j <= first + 26 && j < src.length; j++) {
-        final e = src[j].trim();
+      // v5: grab the LINE AFTER each marker (the widget name and the top
+      // stack frames live there, not on the marker line itself).
+      for (var j = first + 1;
+          j <= first + 60 && window.length < 4 && j < src.length - 2;
+          j++) {
+        final e = src[j];
         if (e.contains('[E]')) break;
-        if (e.contains('thrown') ||
-            e.contains('overflow') ||
-            e.contains('error-causing') ||
-            e.startsWith('Expected:') ||
-            e.startsWith('Actual:') ||
-            e.startsWith('Which:') ||
-            e.contains('Bad state')) {
-          window.add(_clean(e));
-          if (window.length >= 4) break;
+        if (e.contains('error-causing widget was:')) {
+          window.add(_clean('W ${src[j + 1].trim()}'));
+        } else if (e.contains('this was the stack:')) {
+          window.add(_clean('S ${src[j + 1].trim()}'));
+          window.add(_clean('S ${src[j + 2].trim()}'));
+        } else if (e.contains('assertion was thrown')) {
+          window.add(_clean('A ${e.trim()}'));
         }
       }
     }
