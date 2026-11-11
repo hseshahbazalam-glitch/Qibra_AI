@@ -16,13 +16,13 @@ String _clean(String l) {
 }
 
 void main() {
-  test('probe: replicate the analyze gate exactly and print findings', () async {
-    // v24: the gate is `flutter analyze --no-fatal-infos` (exit 1 on any
-    // error OR warning; infos sanctioned). The gate step annotates only
-    // its TAIL, so this probe re-runs the same command and PRINTS the
-    // first findings — a green test's prints stream through the
-    // reporter, which the SUITE step keeps in its annotation (the
-    // Process-completed tail of a failing suite carries them).
+  test('probe: analyze findings AND its verdict line', () async {
+    // v25: the suite-step annotation window is ~1000 chars — spend it
+    // fully: 4 finding lines, then the analyzer's FINAL lines (which
+    // contain the '<n> issues found' / 'No issues found' verdict that
+    // the gate-step annotation always cuts off). Silence after the
+    // H4PROBE marker now means the RUNNER died (12-min self-timeout),
+    // not the channel.
     final r = await Process.run(
       'flutter',
       ['analyze', '--no-fatal-infos'],
@@ -37,12 +37,17 @@ void main() {
             .trim())
         .where((l) => l.isNotEmpty)
         .toList();
-    final bad =
-        all.where((l) => l.contains(' - error') || l.contains(' - warning')).toList();
-    print('H4PROBE exit=${r.exitCode} n=${bad.length}');
-    for (var i = 0; i < bad.length && i < 6; i++) {
-      print('H4PROBE f$i ${bad[i]}');
+    final bad = all
+        .where((l) => l.contains(' - error') || l.contains(' - warning'))
+        .toList();
+    print('H4PROBE exit=${r.exitCode} n=${bad.length} lines=${all.length}');
+    for (var i = 0; i < bad.length && i < 4; i++) {
+      final l = bad[i];
+      print('H4PROBE f$i ${l.length > 160 ? l.substring(0, 160) : l}');
+    }
+    for (final l in all.length > 3 ? all.sublist(all.length - 3) : all) {
+      print('H4PROBE tail ${l.length > 160 ? l.substring(0, 160) : l}');
     }
     expect(1, 1);
-  }, timeout: const Timeout(Duration(minutes: 12)));
+  }, timeout: const Timeout(Duration(minutes: 11)));
 }
