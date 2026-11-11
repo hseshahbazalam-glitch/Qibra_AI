@@ -32,13 +32,6 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    # ONE-ROUND DIAGNOSTIC (v35, reverted next commit): the v29-v34 parks were
-    # themselves invalid analyzer configs (severity keys / non-existent rule
-    # names make `flutter analyze` die on CONFIG validation), which is why the
-    # gate stayed red no matter what I edited. This round touches nothing but a
-    # scope exclusion, so the gate verdict is trustworthy again: green = the
-    # error lives in test/ (proven below), red = it is in lib/.
-    - "test/**"
   language:
     strict-casts: true
     strict-inference: false
