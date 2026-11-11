@@ -1,21 +1,20 @@
 // ignore_for_file: type=lint
-// test/h4_probe_test.dart — TRANSIENT diagnostic probe (v82, deleted with its
-// own commit). v81 burned 13 min replaying the whole package (the 11-min timeout
-// killed it mid-run — no payload, disclosed). The scope is now the MINIMAL pair
-// that reproduces: my new H4 file + the multilang file, in both orders, inside
-// one process (--concurrency 1), each reported as a short line around its [E].
+// test/h4_probe_test.dart — TRANSIENT diagnostic probe (v83, deleted with its
+// own commit). v82 cleared the obvious pair (H4 x multilang, both orders: green),
+// so the red comes from a THIRD hadith file — but the directory run buries the
+// [E] line far from the annotation window. The trick this round is a RELAY: the
+// expensive replay writes its findings to a file and finishes EARLY; a second
+// test at the end of the suite (the only position whose prints are inside the
+// log tail) reads that file back and prints it.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-const _h4 = 'test/features/hadith/hadith_h4_search_test.dart';
-const _ml = 'test/features/hadith/hadith_multilang_test.dart';
+final _relay = File('${Directory.systemTemp.path}/h4p83.txt');
 
-Future<List<String>> _pair(String a, String b) async {
-  final r = await Process.run(
-      'flutter', ['test', '--reporter', 'compact', '--concurrency', '1', a, b],
-      workingDirectory: Directory.current.path,
-      environment: Platform.environment);
+Future<List<String>> _fails(List<String> args) async {
+  final r = await Process.run('flutter', args,
+      workingDirectory: Directory.current.path, environment: Platform.environment);
   final src = <String>[];
   for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
     src.addAll(l
@@ -25,29 +24,36 @@ Future<List<String>> _pair(String a, String b) async {
         .where((p) => p.isNotEmpty));
   }
   String cut(String s, int k) => s.length > k ? '${s.substring(0, k)}…' : s;
-  final ei = src.indexWhere((l) => l.contains('[E]'));
-  final res = <String>['exit=${r.exitCode} n=${src.length} ei=$ei'];
-  if (ei >= 0) {
-    for (var j = -2; j < 4 && ei + j < src.length; j++) {
-      if (ei + j < 0) continue;
-      res.add('${j > 0 ? '+' : ''}$j|${cut(src[ei + j], 160)}');
-    }
-  } else {
-    res.add('last|${cut(src.isEmpty ? '-' : src.last, 160)}');
-  }
-  return res;
+  final names = src
+      .where((l) => l.contains('[E]'))
+      .map((l) => cut(l, 168))
+      .take(4)
+      .toList();
+  final sum = cut(src.isEmpty ? '-' : src.last, 60);
+  return ['exit=${r.exitCode} sum=$sum', ...names];
 }
 
 void main() {
-  test('probe: the H4 x multilang interaction, both orders', () async {
-    final forward = await _pair(_h4, _ml);
-    final backward = await _pair(_ml, _h4);
-    for (var i = 0; i < forward.length; i++) {
-      print('::error::P82 F$i ${forward[i]}');
-    }
-    for (var i = 0; i < backward.length; i++) {
-      print('::error::P82 B$i ${backward[i]}');
+  test('probe A: replay the hadith directory', () async {
+    final dir =
+        await _fails(['test', '--reporter', 'compact', 'test/features/hadith']);
+    _relay.writeAsStringSync('DIR ${dir.join("\n")}\n');
+    print('::error::P83 A ${dir.first}');
+    for (var i = 1; i < dir.length && i < 3; i++) {
+      print('::error::P83 Ad$i ${dir[i]}');
     }
     expect(1, 1);
-  }, timeout: const Timeout(Duration(minutes: 10)));
+  }, timeout: const Timeout(Duration(minutes: 5)));
+
+  test('probe B: relay (dir) + suite replay when there is no relay yet', () async {
+    if (_relay.existsSync()) {
+      print('::error::P83 RELAY ${_relay.readAsStringSync().replaceAll("\n", " // ")}');
+      return;
+    }
+    final all = await _fails(['test', '--reporter', 'compact']);
+    for (var i = 0; i < all.length && i < 5; i++) {
+      print('::error::P83 SU$i ${all[i]}');
+    }
+    expect(1, 1);
+  }, timeout: const Timeout(Duration(minutes: 9)));
 }
