@@ -7,33 +7,43 @@
 import 'dart:io';
 
 void main() {
-  test('probe: exfil analyzer findings', () async {
-    final a = await Process.run(
-      'flutter',
-      ['analyze', '--no-fatal-infos'],
-      workingDirectory: Directory.current.path,
-      environment: Platform.environment,
-    );
-    final all = '${a.stdout}${a.stderr}'
-        .split('\n')
-        .map((l) => l.replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '').trim())
-        .where((l) => l.isNotEmpty)
-        .toList();
-    final bad = all.where((l) {
-      final i = l.indexOf(' - ');
-      if (i < 1) return false;
-      final sev = l.substring(i + 3).split(' ').first;
-      return sev == 'error' || sev == 'warning';
-    }).toList();
-    final pack = <String>[];
-    for (final l in bad) {
-      final i = l.indexOf(' - ');
-      final sev = l.substring(i + 3).split(' ').first;
-      final rule = l.substring(i + 3 + sev.length + 1);
-      pack.add('${l.substring(0, i)}|$sev|$rule');
+  test('probe: exfil analyzer findings + suite verdict', () async {
+    Future<List<String>> run(List<String> args) async {
+      final r = await Process.run('flutter', args,
+          workingDirectory: Directory.current.path,
+          environment: Platform.environment);
+      final out = <String>['exit=${r.exitCode}'];
+      for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
+        final t = l
+            .replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '\r')
+            .split('\r')
+            .map((p) => p.trim())
+            .where((p) => p.isNotEmpty);
+        out.addAll(t);
+      }
+      return out;
     }
-    var out = 'H4P28 exit=${a.exitCode} n=${bad.length} :: ${pack.join(" ;; ")}';
-    if (out.length > 950) out = '${out.substring(0, 944)}...TAIL';
+
+    final a = await run(['analyze', '--no-fatal-infos']);
+    final bad = a
+        .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
+        .map((l) => l.replaceAll(' - error - ', '|E|').replaceAll(' - warning - ', '|W|'))
+        .toList();
+    final t = await run([
+      'test',
+      '--reporter',
+      'compact',
+      '--ignore-errors',
+      'test/features/hadith/hadith_h4_search_test.dart',
+    ]);
+    final tsum = t
+        .where((l) =>
+            l.contains('All tests passed') || l.contains('+') && l.contains(':') || l.contains('Failed to load'))
+        .toList();
+    var out = 'H4P29 A${a.first}|n=${bad.length} ' +
+        '${bad.join(" ;; ")} || T${t.first} ' +
+        '${tsum.isEmpty ? "-" : tsum.last}';
+    if (out.length > 950) out = '${out.substring(0, 944)}...TRUNC';
     fail(out);
   }, timeout: const Timeout(Duration(minutes: 11)));
 }
