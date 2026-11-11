@@ -1,3 +1,4 @@
+// ignore_for_file: type=lint
 // ignore_for_file: avoid_print, unused_local_variable, unused_element
 // test/h4_probe_test.dart — TRANSIENT diagnostic probe (round v49, deleted
 // with its own commit). The channel that works, proven at v46/v47: a GREEN test
@@ -37,14 +38,14 @@ void main() {
       final fl = linesOf(fmt);
       final bad =
           fl.where((l) => l.contains('Error') || l.contains('error')).toList();
-      print('::error::P58 FMT ${p.split('/').last} exit=${fmt.exitCode} '
+      print('::error::P59 FMT ${p.split('/').last} exit=${fmt.exitCode} '
           '${bad.isEmpty ? cut(fl.join(" | "), 150) : cut(bad.join(" | "), 175)}');
       final an = await run('flutter', ['analyze', '--no-fatal-infos', p]);
       final al = linesOf(an);
       final ah = al
           .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
           .toList();
-      print('::error::P58 ANA ${p.split('/').last} exit=${an.exitCode} n=${ah.length} '
+      print('::error::P59 ANA ${p.split('/').last} exit=${an.exitCode} n=${ah.length} '
           '${ah.isEmpty ? cut(al.isEmpty ? "-" : al.last, 150) : cut(ah.first, 175)}');
     }
     expect(1, 1);

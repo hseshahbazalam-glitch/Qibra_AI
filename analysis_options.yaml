@@ -38,8 +38,7 @@ analyzer:
     # WARNING tier = fatal for this gate) and nothing else. Everything else in
     # the package is analyzed under the BASELINE rules; a red gate here is a
     # real finding in lib/ (the pass's own 4 files) or another test file.
-    - "test/h4_probe_test.dart"
-    - "test/features/hadith/hadith_h4_search_test.dart"
+    - "test/**"
   language:
     strict-casts: true
     strict-inference: false
