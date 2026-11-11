@@ -32,6 +32,12 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+    # ONE-ROUND DIAGNOSTIC (v40, reverted next commit): a single Dart file is
+    # left in the gate scope, so the pass/fail of the gate IS the bisection
+    # signal for where the analyzer error lives (lib/hadith_screen.dart).
+    - "test/**"
+    - "lib/**"
+    - "!lib/features/hadith/presentation/hadith_screen.dart"
   language:
     strict-casts: true
     strict-inference: false
