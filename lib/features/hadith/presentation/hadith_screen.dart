@@ -921,15 +921,21 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   }
 
   /// Pass H4 P3: [initialQuery] lets a sticky home quick-pick PRE-RUN a
-  /// real query — the field arrives filled and the provider already holds
-  /// the term before the sheet's first frame, so results are loading on
-  /// arrival. A plain open (null) behaves exactly as before.
+  /// real query — the provider gets the term BEFORE the sheet's first
+  /// frame (results compute while it animates in); the field itself is
+  /// seeded by the sheet state.
+  ///
+  /// H4 lifetime fix: the TextEditingController used to be owned here and
+  /// disposed from this call's whenComplete — which fires AT POP, while
+  /// the modal's exit transition is STILL REBUILDING the field (debug
+  /// assert: 'A TextEditingController was used after being disposed').
+  /// It stayed latent while only back-swipes closed the sheet; the
+  /// result-to-book jump made self-close a primary flow, so controller
+  /// ownership moved to _HadithSearchSheet's State — created in
+  /// initState, disposed exactly when the route is gone. The resets
+  /// below only touch GLOBAL riverpod notifiers, which is safe at pop
+  /// time — they stay here.
   void _showSearchSheet(BuildContext context, {String? initialQuery}) {
-    final colors = QibraColors.of(context);
-    // World-class hadith pass (item 2): a sheet-local controller makes
-    // the recents chips REAL — tapping one writes the query back into
-    // the same field the user types in, then re-runs it.
-    final controller = TextEditingController(text: initialQuery ?? '');
     if (initialQuery != null && initialQuery.trim().isNotEmpty) {
       ref.read(hadithSearchQueryProvider.notifier).state =
           initialQuery.trim();
@@ -937,23 +943,143 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: QibraColors.of(context).card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) => _HadithSearchSheet(
+        initialQuery: initialQuery ?? '',
+        onOpenInBook: (hadith) => _openHadithInBook(context, hadith),
+      ),
+    ).whenComplete(() {
+      ref.read(hadithSearchQueryProvider.notifier).state = '';
+      // Pass H4: the book filter belongs to THIS sheet session — leaving
+      // it set would silently narrow the next open.
+      ref.read(hadithSearchBookFilterProvider.notifier).state = null;
+    });
+  }
+
+  void _showCollectionsSheet(BuildContext context) {
+    final colors = QibraColors.of(context);
+    showModalBottomSheet<void>(
+      context: context,
       backgroundColor: colors.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
+        return PatternBackdrop(
+          child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(8, 16, 8, 24),
+            shrinkWrap: true,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  'Collections',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                ),
+              ),
+              for (final collection in _collections)
+                ListTile(
+                  title: Text(collection['name']!),
+                  subtitle: Text(collection['author']!),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _openBook(context, collection['slug']!);
+                  },
+                ),
+            ],
+          ),
+        ),
+        );
+      },
+    );
+  }
+}
+
+/// Top-class elevation (item 1): formats the REAL Hijri today label from
+/// the bundled `hijri` package's value object — the exact pattern of
+/// home_hero.dart / prayer_times_screen.dart (offline, deterministic,
+/// never an invented date). Extracted pure so the FORMAT is unit-testable
+/// against a fixed date via HijriCalendar.fromDate (no DateTime.now in
+/// tests); the widget supplies HijriCalendar.now().
+String hijriTodayLabel(HijriCalendar hijri) =>
+    '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH';
+
+/// Top-class elevation (item 3): newest recorded position for [slug] in
+/// the real view-history LRU. Entries are newest-first BY CONTRACT, so
+/// the first match IS the continue position (same selection rule
+/// hadith_world_class_pass_test pins for the book-screen resume). No
+/// entry -> null -> no chip, ever.
+HadithModel? lastReadForBook(List<HadithModel> history, String slug) {
+  for (final h in history) {
+    if (h.bookSlug == slug) return h;
+  }
+  return null;
+}
+
+/// Pass H4 — the search sheet as a ConsumerStatefulWidget that OWNS its
+/// TextEditingController: seeded in initState with the PRE-RUN query (P3)
+/// and disposed WITH THE STATE — which happens when the modal route is
+/// finally removed, AFTER the exit animation. (The pre-H4 shape disposed
+/// from the showModalBottomSheet future's whenComplete — at POP, mid
+/// transition; see the ledger comment on _showSearchSheet.) The screen's
+/// static collection config stays the single source for the kitab chips.
+class _HadithSearchSheet extends ConsumerStatefulWidget {
+  const _HadithSearchSheet({
+    required this.initialQuery,
+    required this.onOpenInBook,
+  });
+
+  final String initialQuery;
+
+  /// The screen supplies the one action that needs its Navigator
+  /// position: pushing the book reader UNDER the closing sheet (P4).
+  final void Function(HadithModel hadith) onOpenInBook;
+
+  @override
+  ConsumerState<_HadithSearchSheet> createState() =>
+      _HadithSearchSheetState();
+}
+
+class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    // World-class hadith pass (item 2): a sheet-local controller makes
+    // the recents chips REAL — tapping one writes the query back into
+    // the same field the user types in, then re-runs it.
+    _controller = TextEditingController(text: widget.initialQuery);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: SizedBox(
-            height: MediaQuery.of(sheetContext).size.height * 0.88,
+            height: MediaQuery.of(context).size.height * 0.88,
             child: Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: TextField(
-                    controller: controller,
+                    controller: _controller,
                     autofocus: true,
                     decoration: const InputDecoration(
                       hintText: 'Search hadiths',
@@ -997,7 +1123,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                                     .state =
                                 null,
                           ),
-                          for (final collection in _collections)
+                          for (final collection in _HadithScreenState._collections)
                             QibraChip(
                               label: collection['name']!,
                               selected: active == collection['slug'],
@@ -1071,7 +1197,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                                         label: entry,
                                         selected: false,
                                         onTap: () {
-                                          controller.text = entry;
+                                          _controller.text = entry;
                                           ref
                                               .read(hadithSearchQueryProvider
                                                   .notifier)
@@ -1130,8 +1256,8 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                                 // exactly this parameter). The detail
                                 // sheet stays for the browse surfaces.
                                 onTap: () {
-                                  Navigator.pop(sheetContext);
-                                  _openHadithInBook(context, hadith);
+                                  Navigator.of(context).pop();
+                                  widget.onOpenInBook(hadith);
                                 },
                               );
                             },
@@ -1149,79 +1275,10 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             ),
           ),
         );
-      },
-    ).whenComplete(() {
-      ref.read(hadithSearchQueryProvider.notifier).state = '';
-      // Pass H4: the book filter belongs to THIS sheet session — leaving
-      // it set would silently narrow the next open.
-      ref.read(hadithSearchBookFilterProvider.notifier).state = null;
-      controller.dispose();
-    });
-  }
-
-  void _showCollectionsSheet(BuildContext context) {
-    final colors = QibraColors.of(context);
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: colors.card,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) {
-        return PatternBackdrop(
-          child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(8, 16, 8, 24),
-            shrinkWrap: true,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  'Collections',
-                  style: AppTextStyles.titleMedium.copyWith(
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ),
-              for (final collection in _collections)
-                ListTile(
-                  title: Text(collection['name']!),
-                  subtitle: Text(collection['author']!),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _openBook(context, collection['slug']!);
-                  },
-                ),
-            ],
-          ),
-        ),
-        );
-      },
-    );
   }
 }
 
-/// Top-class elevation (item 1): formats the REAL Hijri today label from
-/// the bundled `hijri` package's value object — the exact pattern of
-/// home_hero.dart / prayer_times_screen.dart (offline, deterministic,
-/// never an invented date). Extracted pure so the FORMAT is unit-testable
-/// against a fixed date via HijriCalendar.fromDate (no DateTime.now in
-/// tests); the widget supplies HijriCalendar.now().
-String hijriTodayLabel(HijriCalendar hijri) =>
-    '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH';
 
-/// Top-class elevation (item 3): newest recorded position for [slug] in
-/// the real view-history LRU. Entries are newest-first BY CONTRACT, so
-/// the first match IS the continue position (same selection rule
-/// hadith_world_class_pass_test pins for the book-screen resume). No
-/// entry -> null -> no chip, ever.
-HadithModel? lastReadForBook(List<HadithModel> history, String slug) {
-  for (final h in history) {
-    if (h.bookSlug == slug) return h;
-  }
-  return null;
-}
 
 class _TodaysHadithCard extends ConsumerWidget {
   const _TodaysHadithCard({
