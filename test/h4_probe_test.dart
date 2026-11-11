@@ -37,15 +37,15 @@ void main() {
     const suspect = 'lib/features/hadith/presentation/hadith_screen.dart';
     final fmt = await run('dart', ['format', '--output=none', suspect]);
     final fl = linesOf(fmt);
-    print('P68 FMT exit=${fmt.exitCode} n=${fl.length}');
+    print('::error::P69 FMT exit=${fmt.exitCode} n=${fl.length}');
     for (var i = 0; i < fl.length && i < 4; i++) {
-      print('P68 m$i ${cut(fl[i], 190)}');
+      print('::error::P69 m$i ${cut(fl[i], 190)}');
     }
     final an = await run('flutter', ['analyze', '--no-fatal-infos', suspect]);
     final al = linesOf(an);
-    print('P68 ANA exit=${an.exitCode} n=${al.length}');
+    print('::error::P69 ANA exit=${an.exitCode} n=${al.length}');
     for (var i = 0; i < al.length && i < 4; i++) {
-      print('P68 a$i ${cut(al[i], 190)}');
+      print('::error::P69 a$i ${cut(al[i], 190)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
