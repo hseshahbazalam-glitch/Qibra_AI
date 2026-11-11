@@ -398,14 +398,9 @@ void main() {
       await _pumpHome(tester, db);
       await tester.tap(find.text('Patience'));
       await _beat(tester);
-      print('H4P pre-jump query='
-          '\${container.read(hadithSearchQueryProvider)} '
-          'hits=\${db.calls.length}');
       // bukhari leads (density tie -> kitab weight).
       await tester.tap(find.text('Sahih al-Bukhari 7'));
       await _beat(tester, 10);
-      print('H4P post-jump hits=\${db.calls.length} '
-          'reader=\${find.byType(HadithBookScreen).evaluate().length}');
       final screen =
           tester.widget<HadithBookScreen>(find.byType(HadithBookScreen));
       expect(screen.focusHadithNumber, 7);
@@ -476,7 +471,12 @@ void main() {
       // fallback when the fake db has no loaded books), so the chip
       // finder is scoped to the sheet — exact-text finders on the whole
       // tree would match two.
-      final sheet = find.byType(ModalBottomSheet);
+      // NOTE: the sheet is NOT selectable by `ModalBottomSheet` — this
+      // Flutter (3.44) does not export that type from material.dart (the repo
+      // has zero references to it outside this line; only showModalBottomSheet
+      // exists). The TextField is the sheet's unique anchor, so the scoping
+      // intent (never fight the book rail painted behind the sheet) holds.
+      final sheet = find.byType(TextField);
       expect(find.descendant(of: sheet, matching: find.text('All collections')),
           findsOneWidget);
       await tester.tap(
