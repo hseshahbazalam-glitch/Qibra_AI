@@ -8,6 +8,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/hadith_availability.dart';
@@ -333,26 +334,124 @@ final hadithsProvider = FutureProvider.family<List<HadithModel>, HadithsParams>(
 // ============================================================
 // SECTION 7: SEARCH PROVIDER
 // ============================================================
+// World-class hadith pass H4 (2026-09-01): the query is BRIDGE-EXPANDED
+// through the ONE RomanUrduBridge (RagService.expandQuery — this file owns
+// no lexicon of its own) and the per-term hits are merged into a matched-
+// token DENSITY ranking. Both halves are pure so they unit-test without
+// the corpus: hadithSearchTerms (P1), rankHadithSearchMerge (P2).
 
 final hadithSearchQueryProvider = StateProvider<String>((ref) => '');
 final hadithSearchBookFilterProvider = StateProvider<String?>((ref) => null);
+
+/// P1 · Terms a hadith query is searched under: the RAW trimmed query
+/// FIRST (the additive rule — the raw search itself is untouched, the
+/// bridge only ADDS candidate pools), then the RomanUrduBridge variants
+/// verbatim ('namaz' → prayer / salah / salat / صلاة via
+/// [RagService.expandQuery]).
+List<String> hadithSearchTerms(String query) {
+  final raw = query.trim();
+  if (raw.isEmpty) return const [];
+  return [raw, ...RagService.expandQuery(raw)];
+}
+
+/// P2 · Kitab weight for the ranking tie-break: the two universally
+/// Sahih-graded books lead, everything else shares one rank — no
+/// fabricated tiering beyond that single, documented fact.
+int hadithBookWeight(String slug) => switch (slug) {
+      'bukhari' => 0,
+      'muslim' => 1,
+      _ => 2,
+    };
+
+/// P2 · Merge per-term hit lists (index-aligned with [hadithSearchTerms]
+/// output) into ONE ranked list. Order:
+///   1. density — how many DISTINCT terms hit the hadith (desc);
+///   2. best relevance across those terms (desc);
+///   3. kitab weight (asc);
+///   4. hadith number (asc — canonical order).
+/// A hadith hit by several terms collapses to a single row carrying its
+/// BEST-scoring match channel. Capped at [maxResults].
+List<LocalSearchResult> rankHadithSearchMerge({
+  required List<List<LocalSearchResult>> termResults,
+  int maxResults = 50,
+}) {
+  final agg = <String, _HadithHitAgg>{};
+  for (final termHits in termResults) {
+    for (final hit in termHits) {
+      final entry = agg.putIfAbsent(hit.hadith.id, () => _HadithHitAgg(hit));
+      if (!identical(entry.best, hit)) entry.absorb(hit);
+    }
+  }
+  final rows = agg.values.toList();
+  rows.sort((a, b) {
+    final byDensity = b.terms.compareTo(a.terms);
+    if (byDensity != 0) return byDensity;
+    final byRelevance = b.bestRelevance.compareTo(a.bestRelevance);
+    if (byRelevance != 0) return byRelevance;
+    final byBook =
+        hadithBookWeight(a.slug).compareTo(hadithBookWeight(b.slug));
+    if (byBook != 0) return byBook;
+    return a.hadithNumber.compareTo(b.hadithNumber);
+  });
+  return [for (final entry in rows.take(maxResults)) entry.best];
+}
+
+class _HadithHitAgg {
+  _HadithHitAgg(this.best)
+      : terms = 1,
+        bestRelevance = best.relevance,
+        slug = best.hadith.bookSlug,
+        hadithNumber = best.hadith.hadithNumber;
+
+  /// The row kept for display: best relevance wins, so its match-channel
+  /// pill states the strongest language the hit came through.
+  LocalSearchResult best;
+
+  /// DISTINCT terms that hit this hadith (the merge key is the hadith id,
+  /// and each term list carries a hadith at most once — density == count).
+  int terms;
+  double bestRelevance;
+  final String slug;
+  final int hadithNumber;
+
+  void absorb(LocalSearchResult other) {
+    terms += 1;
+    if (other.relevance > bestRelevance) {
+      bestRelevance = other.relevance;
+      best = other;
+    }
+  }
+}
 
 final hadithSearchResultsProvider =
     FutureProvider<List<HadithSearchResult>>((ref) async {
   final query = ref.watch(hadithSearchQueryProvider);
   final bookFilter = ref.watch(hadithSearchBookFilterProvider);
-
-  if (query.trim().isEmpty) return [];
+  final terms = hadithSearchTerms(query);
+  if (terms.isEmpty) return [];
 
   await ref.watch(hadithDatabaseInitProvider.future);
   final db = ref.watch(hadithDatabaseProvider);
-  final results = db.search(query, bookSlug: bookFilter, maxResults: 50);
+  // ONE batched off-main scan over the whole bridge plan (the ANR-safe
+  // entry the AI retrieve path already uses) instead of a synchronous
+  // per-term scan storm. The book filter narrows the MERGED hits, so a
+  // selected kitab can never make the scan miss bridge candidates.
+  final batches = await db.searchBatchOffMain(terms, maxPerQuery: 50);
+  final ranked = rankHadithSearchMerge(
+    termResults: [
+      for (final batch in batches)
+        if (bookFilter == null)
+          batch
+        else
+          batch.where((r) => r.hadith.bookSlug == bookFilter).toList(),
+    ],
+  );
 
-  return results.map((r) {
+  return ranked.map((r) {
     return HadithSearchResult(
       hadith: localToHadithModel(r.hadith),
       matchType: _matchTypeFromString(r.matchedIn),
-      matchedText: query,
+      matchedText: query.trim(),
       relevanceScore: r.relevance,
     );
   }).toList();

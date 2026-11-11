@@ -97,8 +97,41 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
           onTap: () => context.go(AppRoutes.bookmarks),
         ),
       ],
-      child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      // Pass H4 P5 — the search entry is STICKY screen chrome above the
+      // scroll view, NOT pane content: switching panes (and any future
+      // strip removal in H3) can never take it away. The curated quick-
+      // picks (P3) sit directly under the entry; every label doubles as
+      // its query and opens the sheet PRE-RUN on a real corpus word.
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            child: Column(
+              children: [
+                _SearchPill(onTap: () => _showSearchSheet(context)),
+                const SizedBox(height: 10),
+                Wrap(
+                  children: [
+                    for (final label in [
+                      AppStrings.of(context).hadithQuickPrayer,
+                      AppStrings.of(context).hadithQuickPatience,
+                      AppStrings.of(context).hadithQuickCharity,
+                      AppStrings.of(context).hadithQuickWater,
+                    ])
+                      QibraChip(
+                        label: label,
+                        selected: false,
+                        onTap: () => _showSearchSheet(context,
+                            initialQuery: label),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
           children: [
             _buildHero(context, colors, daily),
             const SizedBox(height: 12), // D4 rhythm: 12 within a block
@@ -134,6 +167,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             },
           ],
         ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -202,12 +238,14 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
               );
             },
           ),
-          const SizedBox(height: 12),
-          _SearchPill(onTap: () => _showSearchSheet(context)),
         ],
       ),
     );
   }
+
+  // Pass H4 P5: the search entry that used to end this hero (and so died
+  // with any hero/pane edit) now lives OUTSIDE the scroll view as sticky
+  // screen chrome — see build()'s Column.
 
   List<Widget> _discoverPane(
     BuildContext context,
@@ -605,29 +643,47 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   }
 
   void _openBook(BuildContext context, String slug) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HadithBookScreen(book: _hadithBookFor(context, slug)),
+      ),
+    );
+  }
+
+  /// Pass H4: the reader-book construction _openBook used to inline,
+  /// extracted so a search result can push the SAME real reader focused
+  /// on a hadith number. Names still come from the loaded db info,
+  /// falling back to the shipped collection config — no invented titles.
+  HadithBook _hadithBookFor(BuildContext context, String slug) {
     final db = HadithDatabaseService();
     final info = db.getBookInfo(slug);
     final config = _collections.firstWhere(
       (c) => c['slug'] == slug,
       orElse: () => {'name': 'Hadith Collection', 'author': '—'},
     );
+    return HadithBook(
+      id: slug,
+      slug: slug,
+      name: info?.name ?? config['name']!,
+      nameArabic: '',
+      author: (config['author'] == null || config['author']!.isEmpty)
+          ? '—'
+          : config['author']!,
+      authorArabic: '',
+      totalHadiths: info?.totalHadiths ?? 0,
+      totalChapters: info?.sections.length ?? 0,
+      description: '',
+      color: QibraColors.of(context).primary,
+    );
+  }
+
+  /// Pass H4 P4 — open a search hit inside its book at the exact number.
+  void _openHadithInBook(BuildContext context, HadithModel hadith) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => HadithBookScreen(
-          book: HadithBook(
-            id: slug,
-            slug: slug,
-            name: info?.name ?? config['name']!,
-            nameArabic: '',
-            author: (config['author'] == null || config['author']!.isEmpty)
-                ? '—'
-                : config['author']!,
-            authorArabic: '',
-            totalHadiths: info?.totalHadiths ?? 0,
-            totalChapters: info?.sections.length ?? 0,
-            description: '',
-            color: QibraColors.of(context).primary,
-          ),
+          book: _hadithBookFor(context, hadith.bookSlug),
+          focusHadithNumber: hadith.hadithNumber,
         ),
       ),
     );
@@ -864,12 +920,20 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     );
   }
 
-  void _showSearchSheet(BuildContext context) {
+  /// Pass H4 P3: [initialQuery] lets a sticky home quick-pick PRE-RUN a
+  /// real query — the field arrives filled and the provider already holds
+  /// the term before the sheet's first frame, so results are loading on
+  /// arrival. A plain open (null) behaves exactly as before.
+  void _showSearchSheet(BuildContext context, {String? initialQuery}) {
     final colors = QibraColors.of(context);
     // World-class hadith pass (item 2): a sheet-local controller makes
     // the recents chips REAL — tapping one writes the query back into
     // the same field the user types in, then re-runs it.
-    final controller = TextEditingController();
+    final controller = TextEditingController(text: initialQuery ?? '');
+    if (initialQuery != null && initialQuery.trim().isNotEmpty) {
+      ref.read(hadithSearchQueryProvider.notifier).state =
+          initialQuery.trim();
+    }
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -908,6 +972,47 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                     },
                   ),
                 ),
+                // Pass H4 P4 — a REAL book filter over the merged hits:
+                // hadithSearchResultsProvider already watches
+                // hadithSearchBookFilterProvider, so tapping narrows to
+                // that kitab live (and 'All collections' clears). Every
+                // chip here is one of the seven shipped collections —
+                // nothing decorative.
+                Consumer(
+                  builder: (context, filterRef, _) {
+                    final active =
+                        filterRef.watch(hadithSearchBookFilterProvider);
+                    return SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: [
+                          QibraChip(
+                            label: 'All collections',
+                            selected: active == null,
+                            onTap: () => filterRef
+                                    .read(hadithSearchBookFilterProvider
+                                        .notifier)
+                                    .state =
+                                null,
+                          ),
+                          for (final collection in _collections)
+                            QibraChip(
+                              label: collection['name']!,
+                              selected: active == collection['slug'],
+                              onTap: () => filterRef
+                                      .read(hadithSearchBookFilterProvider
+                                          .notifier)
+                                      .state =
+                                  collection['slug'],
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 4),
                 Expanded(
                   child: Consumer(
                     builder: (context, ref, _) {
@@ -1018,7 +1123,16 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                                 hadith: hadith,
                                 highlightQuery: query.trim(),
                                 matchLabel: items[index].matchType.label,
-                                onTap: () => _showDetail(context, hadith),
+                                // Pass H4 P4: a search result opens the
+                                // hadith IN ITS BOOK — the real reader,
+                                // focused on this number (the bookmark
+                                // jump is the shipped precedent for
+                                // exactly this parameter). The detail
+                                // sheet stays for the browse surfaces.
+                                onTap: () {
+                                  Navigator.pop(sheetContext);
+                                  _openHadithInBook(context, hadith);
+                                },
                               );
                             },
                           );
@@ -1038,6 +1152,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
       },
     ).whenComplete(() {
       ref.read(hadithSearchQueryProvider.notifier).state = '';
+      // Pass H4: the book filter belongs to THIS sheet session — leaving
+      // it set would silently narrow the next open.
+      ref.read(hadithSearchBookFilterProvider.notifier).state = null;
       controller.dispose();
     });
   }
@@ -1533,6 +1650,12 @@ class _HadithTile extends ConsumerWidget {
 }
 
 /// Pure span builder behind the search previews (unit-tested, item 2):
+/// Pass H4 P4 — TOKEN-LEVEL emphasis: the query is split on whitespace
+/// and each term is highlighted at its own matches (never the whole
+/// phrase — a two-word query whose words sit apart still lights both,
+/// exactly the case the bridge-expanded merged search now surfaces).
+/// Single-term queries behave EXACTLY as before. Matches of different
+/// terms that overlap merge, so no word is ever painted twice.
 /// [SearchNormalizer.allMatches] folds diacritics/hamza (Arabic/Urdu)
 /// and case (latin) but answers in ORIGINAL-text coordinates, so the
 /// substrings emitted here are verbatim corpus text — emphasis never
@@ -1544,8 +1667,35 @@ List<TextSpan> hadithHighlightSpans(
   TextStyle style,
   Color accent,
 ) {
-  final matches = SearchNormalizer.allMatches(text, query);
+  final terms = query
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((t) => SearchNormalizer.foldQuery(t).isNotEmpty)
+      .toList();
+  final matches = <({int start, int end})>[];
+  for (final term in terms) {
+    matches.addAll(SearchNormalizer.allMatches(text, term));
+  }
   if (matches.isEmpty) return [TextSpan(text: text, style: style)];
+  if (matches.length > 1) {
+    matches.sort((a, b) => a.start != b.start
+        ? a.start.compareTo(b.start)
+        : a.end.compareTo(b.end));
+    final merged = <({int start, int end})>[matches.first];
+    for (final m in matches.skip(1)) {
+      final prev = merged.last;
+      if (m.start <= prev.end) {
+        if (m.end > prev.end) {
+          merged[merged.length - 1] = (start: prev.start, end: m.end);
+        }
+        continue; // fully inside the previous span — one emphasis wins
+      }
+      merged.add(m);
+    }
+    matches
+      ..clear()
+      ..addAll(merged);
+  }
   final out = <TextSpan>[];
   var last = 0;
   for (final m in matches) {

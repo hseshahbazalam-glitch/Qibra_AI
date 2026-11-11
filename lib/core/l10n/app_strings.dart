@@ -129,6 +129,17 @@ class AppStrings {
         'تم نسخ الحديث إلى الحافظة',
         'حدیث کلپ بورڈ پر کاپی کر دی گئی',
       );
+  // Pass H4 (2026-09-01) — the sticky home quick-picks under the hadith
+  // search entry. Each label DOUBLEs as its query, so every one is a real
+  // corpus word in its own language (folded hit counts on the shipped data
+  // re-verified 2026-09-01 — and pinned by test/features/hadith/
+  // hadith_h4_search_test.dart against the JSON assets themselves). Non-
+  // tooltip getters: the a11y tooltip census is untouched; the source-parsed
+  // i18n coverage census (test/core/i18n_phase_a_test.dart) covers these.
+  String get hadithQuickPrayer => _t('Prayer', '\u0635\u0644\u0627\u0629', '\u0646\u0645\u0627\u0632');
+  String get hadithQuickPatience => _t('Patience', '\u0635\u0628\u0631', '\u0635\u0628\u0631');
+  String get hadithQuickCharity => _t('Charity', '\u0632\u0643\u0627\u0629', '\u0635\u062f\u0642\u06c1');
+  String get hadithQuickWater => _t('Water', '\u0645\u0627\u0621', '\u067e\u0627\u0646\u06cc');
   String openBook(String name) => _t('Open $name', 'افتح $name', '$name کھولیں');
   String get readingHistoryCleared => _t(
         'Reading history cleared',

@@ -707,6 +707,28 @@ class HadithDatabaseService {
               relevance = 0.5;
               matchedIn = 'chapter';
             }
+            // Pass H4: the Phase-B languages join the OFF-MAIN scan with
+            // the EXACT rule the main-isolate search() already uses —
+            // scored position-aware, upgrade-only, empty text skipped.
+            // Before this the batch path searched en/ar/ur only, so
+            // routing hadith search here would have DROPPED
+            // bengali/turkish/indonesian/french hits the old search had.
+            for (final candidate in [
+              (hadith.textBengali, 'bengali'),
+              (hadith.textTurkish, 'turkish'),
+              (hadith.textIndonesian, 'indonesian'),
+              (hadith.textFrench, 'french'),
+            ]) {
+              if (candidate.$1.trim().isEmpty) continue;
+              if (SearchNormalizer.contains(candidate.$1, q)) {
+                final candidateRelevance =
+                    hadithRelevanceFor(candidate.$1, lq);
+                if (candidateRelevance > relevance) {
+                  relevance = candidateRelevance;
+                  matchedIn = candidate.$2;
+                }
+              }
+            }
             if (relevance > 0) {
               hits[qi].add(LocalSearchResult(
                 hadith: hadith,
