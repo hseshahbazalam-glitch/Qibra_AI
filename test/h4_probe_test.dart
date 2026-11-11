@@ -16,29 +16,29 @@ String _clean(String l) {
 }
 
 void main() {
-  test('probe: run flutter analyze; FAIL with the findings', () async {
+  test('probe: analyze findings IN the exception message', () async {
+    // v17: green test prints never reach any CI surface; the ONE string
+    // this job echoes verbatim into an annotation is the LAST 100 chars
+    // of a failing step's stdout tail (the 'Process completed' line).
+    // So: FAIL the probe with the findings as its uncaughtError tail.
     final r = await Process.run(
       'flutter',
       ['analyze', '--no-fatal-infos'],
       workingDirectory: Directory.current.path,
       environment: Platform.environment,
     );
-    final raw = '${r.stdout}' '${r.stderr}';
-    final all = raw
+    final raw = '${r.stdout}${r.stderr}';
+    final bad = raw
         .split('\n')
-        .map((l) => l.replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '').trim())
+        .map((l) => l
+            .replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '')
+            .replaceAll('\r', '')
+            .trim())
         .where((l) => l.contains('error -') || l.contains('warning -'))
+        .take(4)
         .toList();
-    final kept = all.take(3).toList();
-    final joined = kept.join(' ||| ') +
-        (' | MORE=' + (all.length - 3).toString());
-    // Keep the reason SHORT and free of interpolation hazards: the
-    // auto-annotator renders the Expected/Actual block verbatim.
-    expect(
-      joined.isEmpty ? 'CLEAN n0' : joined,
-      'CLEAN n0',
-      reason: 'n=' + all.length.toString() + ' exit=' +
-          r.exitCode.toString(),
-    );
+    final msg = 'EXIT=${r.exitCode} n=${bad.length}'
+        '${bad.isEmpty ? ' ANALYZE-CLEAN-TAIL:${raw.trim().isEmpty ? 'EMPTY' : raw.trim().substring(raw.trim().length > 60 ? raw.trim().length - 60 : 0)}' : bad.join(' || ')}';
+    throw StateError('H4PROBE $msg');
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
