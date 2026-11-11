@@ -10,11 +10,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-String _clean(String l) {
-  final s = l.replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '').trim();
-  return s.length > 120 ? '${s.substring(0, 120)}…' : s;
-}
-
 void main() {
   test('probe: analyze findings AND its verdict line', () async {
     // v25: the suite-step annotation window is ~1000 chars — spend it
@@ -40,13 +35,13 @@ void main() {
     final bad = all
         .where((l) => l.contains(' - error') || l.contains(' - warning'))
         .toList();
-    print('H4PROBE exit=${r.exitCode} n=${bad.length} lines=${all.length}');
+    print('::error::H4P exit=${r.exitCode} n=${bad.length} lines=${all.length}');
     for (var i = 0; i < bad.length && i < 4; i++) {
       final l = bad[i];
-      print('H4PROBE f$i ${l.length > 160 ? l.substring(0, 160) : l}');
+      print('::error::H4P f$i ${l.length > 160 ? l.substring(0, 160) : l}');
     }
     for (final l in all.length > 3 ? all.sublist(all.length - 3) : all) {
-      print('H4PROBE tail ${l.length > 160 ? l.substring(0, 160) : l}');
+      print('::error::H4P tail ${l.length > 160 ? l.substring(0, 160) : l}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 11)));
