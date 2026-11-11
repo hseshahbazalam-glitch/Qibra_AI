@@ -16,38 +16,27 @@ String _clean(String l) {
 }
 
 void main() {
-  test('probe: run flutter analyze and exfil the finding lines', () async {
+  test('probe: run flutter analyze and exfil via exitCode gate', () async {
     final r = await Process.run(
       'flutter',
       ['analyze', '--no-fatal-infos'],
       workingDirectory: Directory.current.path,
       environment: Platform.environment,
     );
-    final raw = '${r.stdout}\n${r.stderr}';
+    final raw = '${r.stdout}';
     final src = raw
         .split('\n')
         .map((l) => l.replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '').trim())
-        .where((l) => l.isNotEmpty)
+        .where((l) => l.contains(' - error') || l.contains(' - warning'))
+        .take(4)
         .toList();
-    final findings = <String>[];
-    for (var i = 0; i < src.length && findings.length < 6; i++) {
-      final l = src[i];
-      if (l.contains('error -') ||
-          l.contains('warning -') ||
-          l.contains(' - error') ||
-          l.contains('- error -') ||
-          RegExp(r':\d+:\d+  ').hasMatch(l)) {
-        findings.add(l.length > 200 ? '${l.substring(0, 200)}…' : l);
-      }
-    }
-    if (findings.isEmpty) {
-      // Nothing matched the heuristics — exfil the first lines raw.
-      findings.addAll(
-          src.take(5).map((l) => l.length > 200 ? '${l.substring(0, 200)}…' : l));
-    }
-    print('::error::H4R z0 exit=${r.exitCode} n=${findings.length}');
-    for (var i = 0; i < findings.length && i < 6; i++) {
-      print('::error::H4R a$i ${findings[i]}');
+    // (1) is the count, (2) the shortest line length; (3..) the findings.
+    print('::error::H4R z0 n=${src.length} exit=${r.exitCode} '
+        'lens=${src.map((l) => l.length).join(",")}');
+    var i = 1;
+    for (final l in src) {
+      print('::error::H4R z$i $l');
+      i++;
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
