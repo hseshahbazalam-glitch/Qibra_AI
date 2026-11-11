@@ -16,7 +16,7 @@ String _clean(String l) {
 }
 
 void main() {
-  test('probe: run flutter analyze and exfil the output tail', () async {
+  test('probe: run flutter analyze; FAIL with the finding count', () async {
     final r = await Process.run(
       'flutter',
       ['analyze', '--no-fatal-infos'],
@@ -24,17 +24,26 @@ void main() {
       environment: Platform.environment,
     );
     final raw = '${r.stdout}\n${r.stderr}'.trim();
-    // v12: tail-chunk exfil — the finding block + 'N issues found' always
-    // END the output; chunk it verbatim across the 9 annotation slots.
-    final tail = raw.length > 1000 ? raw.substring(raw.length - 1000) : raw;
-    final one = tail.replaceAll('\n', ' | ');
-    final chunk = (one.length / 9).ceil();
-    for (var i = 0; i < 9; i++) {
-      final a = i * chunk;
-      if (a >= one.length) break;
-      final b = a + chunk > one.length ? one.length : a + chunk;
-      print('::error::H4R t$i ${one.substring(a, b)}');
-    }
-    expect(1, 1);
+    final bad = raw
+        .split('\n')
+        .map((l) => l
+            .replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '')
+            .trim()
+            .replaceAll('\n', ''))
+        .where((l) => l.contains('error') || l.contains('warning'))
+        .where((l) => !l.contains('issues found'))
+        .toList();
+    // The ANNOTATION itself carries the truth: red test => 'probe: run
+    // flutter analyze; FAIL with the finding count' line with
+    // 'Expected/Actual' below shows exit + how many lines mention
+    // error/warning. If the gate still fails with bad=0, the step
+    // failure is NOT from a printed finding (e.g. crash -> read raw tail
+    // in the test-step annotation: it holds the full failure block).
+    expect(
+      '${r.exitCode}',
+      '0',
+      reason: 'exit=${r.exitCode} bad=${bad.length} '
+          'head1=${bad.isEmpty ? "-" : bad.first}',
+    );
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
