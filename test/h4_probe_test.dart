@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: whole-package analyze findings + H4 suite verdict', () async {
+  test('probe: raw analyze stderr for the parse error', () async {
     Future<ProcessResult> res(List<String> args) => Process.run('flutter', args,
         workingDirectory: Directory.current.path,
         environment: Platform.environment);
@@ -26,41 +26,42 @@ void main() {
     }
 
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
-    final gate = await res(['analyze', '--no-fatal-infos']);
-    final gl = linesOf(gate);
-    final gh = gl.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
-    print('::error::H4P43 ANALYZE exit=${gate.exitCode} n=${gh.length} '
-        'sum=${cut(gl.isEmpty ? '-' : gl.last, 110)}');
-    for (var i = 0; i < gh.length && i < 5; i++) {
-      print('::error::H4P43 f$i ${cut(gh[i], 175)}');
+    // (1) analyzer over test/ — its raw output names the file for a parse error
+    final a = await res(['analyze', '--no-fatal-infos', '--fatal-infos', 'test']);
+    final al = linesOf(a);
+    final ah = al
+        .where((l) =>
+            !l.contains(' - info - ') &&
+            (l.contains(' - error - ') ||
+                l.contains(' - warning - ') ||
+                l.contains('Error') ||
+                l.contains('error:') ||
+                l.contains('expected') ||
+                l.contains('issues')))
+        .toList();
+    print('::error::P45 A exit=${a.exitCode} n=${al.length} k=${ah.length}');
+    for (var i = 0; i < ah.length && i < 4; i++) {
+      print('::error::P45 a$i ${cut(ah[i], 178)}');
     }
-    final one = await res([
-      'analyze',
-      '--no-fatal-infos',
-      '--fatal-infos',
-      'test/features/hadith/hadith_h4_search_test.dart'
-    ]);
-    final ml = linesOf(one);
-    final mh = ml.where((l) => RegExp(r' - \w+ - ').hasMatch(l)).toList();
-    print('::error::H4P44 H4FILE exit=${one.exitCode} n=${mh.length} '
-        'sum=${cut(ml.isEmpty ? "-" : ml.last, 100)}');
-    for (var i = 0; i < mh.length && i < 4; i++) {
-      print('::error::H4P44 h$i ${cut(mh[i], 175)}');
+    // (2) dart format = a PARSE-ONLY oracle over every test file (needs no
+    // package resolution); it prints the exact file + line of each parse error.
+    final b = await Process.run('dart', ['format', '--output=none', 'test'],
+        workingDirectory: Directory.current.path,
+        environment: Platform.environment);
+    final bl = linesOf(b);
+    final bh = bl.where((l) => l.contains('Error') || l.contains('error')).toList();
+    print('::error::P45 F exit=${b.exitCode} n=${bl.length} k=${bh.length}');
+    for (var i = 0; i < bh.length && i < 4; i++) {
+      print('::error::P45 f$i ${cut(bh[i], 178)}');
     }
-    final suite = await res([
-      'test',
-      '--reporter',
-      'compact',
-      '--ignore-errors',
-      'test/features/hadith/hadith_h4_search_test.dart'
-    ]);
-    final sl = linesOf(suite);
-    print('::error::H4P43 SUITE exit=${suite.exitCode} '
-        'last=${cut(sl.isEmpty ? '-' : sl.last, 175)}');
-    final ev = sl.where((l) => l.startsWith('[E]')).take(3).toList();
-    for (var i = 0; i < ev.length; i++) {
-      print('::error::H4P43 e$i ${cut(ev[i], 175)}');
-    }
+    // (3) same oracle over lib/ (cheap, settles the lib question for good)
+    final c = await Process.run('dart', ['format', '--output=none', 'lib'],
+        workingDirectory: Directory.current.path,
+        environment: Platform.environment);
+    final cl = linesOf(c);
+    final ch = cl.where((l) => l.contains('Error') || l.contains('error')).toList();
+    print('::error::P45 L exit=${c.exitCode} n=${cl.length} k=${ch.length} '
+        '${ch.isEmpty ? cut(cl.isEmpty ? '-' : cl.last, 120) : cut(ch.first, 120)}');
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
