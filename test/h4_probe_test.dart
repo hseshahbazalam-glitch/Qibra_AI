@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: whole-package findings + suite verdict', () async {
+  test('probe: compile-error text of the H4 suite', () async {
     Future<ProcessResult> res(List<String> args, [String exe = 'flutter']) =>
         Process.run(exe, args,
             workingDirectory: Directory.current.path,
@@ -26,37 +26,31 @@ void main() {
     }
 
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
-    final whole = await res(['analyze', '--no-fatal-infos']);
-    final wl = linesOf(whole);
-    final we = wl
-        .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
-        .toList();
-    print('::error::P53 WH exit=${whole.exitCode} n=${we.length} '
-        'sum=${cut(wl.isEmpty ? "-" : wl.last, 90)}');
-    for (var i = 0; i < we.length && i < 4; i++) {
-      print('::error::P53 w$i ${cut(we[i], 195)}');
+    const target = 'test/features/hadith/hadith_h4_search_test.dart';
+    final gate = await res(['analyze', '--no-fatal-infos']);
+    final gl = linesOf(gate);
+    final ge =
+        gl.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
+    print('::error::P54 GATE exit=${gate.exitCode} n=${ge.length} '
+        'sum=${cut(gl.isEmpty ? '-' : gl.last, 90)}');
+    for (var i = 0; i < ge.length && i < 3; i++) {
+      print('::error::P54 g$i ${cut(ge[i], 190)}');
     }
-    final h4 = await res(['analyze', '--no-fatal-infos', '--fatal-infos',
-        'test/features/hadith/hadith_h4_search_test.dart',
-    ]);
-    final hl = linesOf(h4);
-    final he = hl
-        .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
-        .toList();
-    print('::error::P53 H4 exit=${h4.exitCode} n=${he.length}');
-    for (var i = 0; i < he.length && i < 2; i++) {
-      print('::error::P53 h$i ${cut(he[i], 195)}');
-    }
-    final su = await res(['test', '--reporter', 'compact', '--ignore-errors',
-        'test/features/hadith/hadith_h4_search_test.dart']);
+    final su = await res(['test', '--reporter', 'compact', '--ignore-errors', target]);
     final sl = linesOf(su);
-    final ei = sl.indexWhere((l) => l.contains('[E]'));
-    print('::error::P53 SU exit=${su.exitCode} last=${cut(sl.isEmpty ? '-' : sl.last, 195)}');
-    for (var i = 0; i < 2 && i < sl.length; i++) {
-      print('::error::P53 s$i ${cut(sl[i], 195)}');
+    final errs =
+        sl.where((l) => l.contains('Error:') || l.contains('error - ')).toList();
+    print('::error::P54 SU exit=${su.exitCode} n=${sl.length} e=${errs.length}');
+    for (var i = 0; i < errs.length && i < 3; i++) {
+      print('::error::P54 s$i ${cut(errs[i], 190)}');
     }
-    for (var i = 0; i < 2 && ei + i + 1 < sl.length; i++) {
-      print('::error::P53 e$i ${cut(sl[ei + 1 + i], 195)}');
+    final an = await res(['analyze', '--no-fatal-infos', '--fatal-infos', target]);
+    final al = linesOf(an);
+    final ae =
+        al.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
+    print('::error::P54 AN exit=${an.exitCode} n=${ae.length}');
+    for (var i = 0; i < ae.length && i < 2; i++) {
+      print('::error::P54 a$i ${cut(ae[i], 190)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
