@@ -16,34 +16,29 @@ String _clean(String l) {
 }
 
 void main() {
-  test('probe: run flutter analyze; FAIL with the finding count', () async {
+  test('probe: run flutter analyze; FAIL with the findings', () async {
     final r = await Process.run(
       'flutter',
       ['analyze', '--no-fatal-infos'],
       workingDirectory: Directory.current.path,
       environment: Platform.environment,
     );
-    final raw = '${r.stdout}\n${r.stderr}'.trim();
-    final bad = raw
+    final raw = '${r.stdout}' '${r.stderr}';
+    final all = raw
         .split('\n')
-        .map((l) => l
-            .replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '')
-            .trim()
-            .replaceAll('\n', ''))
-        .where((l) => l.contains('error') || l.contains('warning'))
-        .where((l) => !l.contains('issues found'))
+        .map((l) => l.replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '').trim())
+        .where((l) => l.contains('error -') || l.contains('warning -'))
         .toList();
-    // The ANNOTATION itself carries the truth: red test => 'probe: run
-    // flutter analyze; FAIL with the finding count' line with
-    // 'Expected/Actual' below shows exit + how many lines mention
-    // error/warning. If the gate still fails with bad=0, the step
-    // failure is NOT from a printed finding (e.g. crash -> read raw tail
-    // in the test-step annotation: it holds the full failure block).
+    final kept = all.take(3).toList();
+    final joined = kept.join(' ||| ') +
+        (' | MORE=' + (all.length - 3).toString());
+    // Keep the reason SHORT and free of interpolation hazards: the
+    // auto-annotator renders the Expected/Actual block verbatim.
     expect(
-      '${r.exitCode}',
-      '0',
-      reason: 'exit=${r.exitCode} bad=${bad.length} '
-          'head1=${bad.isEmpty ? "-" : bad.first}',
+      joined.isEmpty ? 'CLEAN n0' : joined,
+      'CLEAN n0',
+      reason: 'n=' + all.length.toString() + ' exit=' +
+          r.exitCode.toString(),
     );
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
