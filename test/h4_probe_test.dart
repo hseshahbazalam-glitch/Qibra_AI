@@ -27,14 +27,17 @@ void main() {
     }
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
     final hits = <int>[];
-    for (var i = 0; i < src.length && hits.length < 3; i++) {
+    for (var i = 0; i < src.length && hits.length < 2; i++) {
       if (src[i].contains('[E]')) hits.add(i);
     }
-    print('::error::P71 exit=${r.exitCode} lines=${src.length} hits=${hits.length} '
+    final names = src.where((l) => l.contains('The test description was:')).toList();
+    print('::error::P72 exit=${r.exitCode} lines=${src.length} hits=${hits.length} '
         'last=${cut(src.isEmpty ? '-' : src.last, 120)}');
+    print('::error::P72 names ${names.join(" | ").length} ${cut(names.join(" | "), 185)}');
     for (final h in hits) {
-      for (var j = 0; j < 4 && h + j < src.length; j++) {
-        print('::error::P71 h$h:$j ${cut(src[h + j], 195)}');
+      for (var j = -7; j < 2 && h + j < src.length; j++) {
+        if (h + j < 0) continue;
+        print('::error::P72 h$h:$j ${cut(src[h + j], 195)}');
       }
     }
     expect(1, 1);
