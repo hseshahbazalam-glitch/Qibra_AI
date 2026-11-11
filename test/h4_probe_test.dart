@@ -16,40 +16,39 @@ String _clean(String l) {
 }
 
 void main() {
-  test('probe: run flutter analyze and exfil the error lines', () async {
+  test('probe: run flutter analyze and exfil the finding lines', () async {
     final r = await Process.run(
       'flutter',
-      ['test', '--reporter', 'compact', 'test/features/hadith/hadith_h4_search_test.dart'],
+      ['analyze', '--no-fatal-infos'],
+      workingDirectory: Directory.current.path,
+      environment: Platform.environment,
     );
     final raw = '${r.stdout}\n${r.stderr}';
-    final src = raw.split('\n');
-    final heads = <String>[];
-    int first = -1;
-    for (var i = 0; i < src.length; i++) {
-      if (src[i].trim().contains('[E]')) {
-        heads.add(src[i].trim());
-        if (first == -1) first = i;
+    final src = raw
+        .split('\n')
+        .map((l) => l.replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '').trim())
+        .where((l) => l.isNotEmpty)
+        .toList();
+    final findings = <String>[];
+    for (var i = 0; i < src.length && findings.length < 6; i++) {
+      final l = src[i];
+      if (l.contains('error -') ||
+          l.contains('warning -') ||
+          l.contains(' - error') ||
+          l.contains('- error -') ||
+          RegExp(r':\d+:\d+  ').hasMatch(l)) {
+        findings.add(l.length > 200 ? '${l.substring(0, 200)}…' : l);
       }
     }
-    final window = <String>[];
-    if (first != -1) {
-      for (var k = first + 1; k < first + 16 && window.length < 5; k++) {
-        final e = src[k].trim();
-        if (e.isEmpty) continue;
-        window.add(e.length > 118 ? '${e.substring(0, 118)}…' : e);
-      }
+    if (findings.isEmpty) {
+      // Nothing matched the heuristics — exfil the first lines raw.
+      findings.addAll(
+          src.take(5).map((l) => l.length > 200 ? '${l.substring(0, 200)}…' : l));
     }
-    final pick = <String>[
-      for (final h in heads.take(9 - window.length)) h,
-      ...window,
-    ];
-    if (pick.isEmpty) {
-      pick.add('NO-E-LINES rawlen=${raw.length} exit=${r.exitCode}');
+    print('::error::H4R z0 exit=${r.exitCode} n=${findings.length}');
+    for (var i = 0; i < findings.length && i < 6; i++) {
+      print('::error::H4R a$i ${findings[i]}');
     }
-    for (var i = 0; i < pick.length; i++) {
-      print('::error::H4R n$i ${pick[i]}');
-    }
-    print('::error::H4R nX keep=${pick.length} exit=${r.exitCode}');
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
