@@ -1,21 +1,21 @@
 // ignore_for_file: type=lint
-// test/h4_probe_test.dart — TRANSIENT diagnostic probe (v71, deleted with its
-// own commit). Shape proven over 30 rounds: a GREEN test under test/, printing
-// `::error::`-prefixed lines (the only CI surface that reaches me), and an
-// analyze gate that stays GREEN (in-file type=lint kills the avoid_print
-// warnings, which flutter_lints v4 raises to the fatal tier). The H4 pass is
-// now gate-green with 652 tests running and 2 failing — this probe names them.
+// test/h4_probe_test.dart — TRANSIENT diagnostic probe (v76, deleted with its
+// own commit). Channel, settled over 30 rounds: a GREEN test under test/ whose
+// `::error::`-prefixed prints become runner annotations — the only CI surface
+// that reaches me. Requirements: the analyze gate must stay green (this file is
+// the only addition, and in-file type=lint silences its avoid_print warnings),
+// and the replay must use NO positional argument (`flutter test .` walks backend
+// too; and never edit this file with blind string replacements — the v75 red was
+// my duplicate `final names` declaration, i.e. an error ignore cannot silence).
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: the two failing H4 tests, in full', () async {
-    final r = await Process.run('flutter', [
-      'test',
-      '--reporter',
-      'compact'
-    ], workingDirectory: Directory.current.path, environment: Platform.environment);
+  test('probe: name the one failing test in the package', () async {
+    final r = await Process.run('flutter', ['test', '--reporter', 'compact'],
+        workingDirectory: Directory.current.path,
+        environment: Platform.environment);
     final src = <String>[];
     for (final l in '${r.stdout}\n${r.stderr}'.split('\n')) {
       src.addAll(l
@@ -25,25 +25,19 @@ void main() {
           .where((p) => p.isNotEmpty));
     }
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
-    final hits = <int>[];
-    for (var i = 0; i < src.length && hits.length < 2; i++) {
-      if (src[i].contains('[E]')) hits.add(i);
-    }
-    final names = src.where((l) => l.contains('The test description was:')).toList();
-    print('::error::P74 exit=${r.exitCode} lines=${src.length} hits=${hits.length} '
-        'last=${cut(src.isEmpty ? '-' : src.last, 120)}');
     final desc = src
-        .where((l) => l.contains('The test description was:'))
-        .map((l) => cut(l.replace('The test description was:', '').trim(), 90))
-        .take(4)
-        .toList();
-    print('::error::P74 DESC ${cut((desc + load).join(" | "), 190)}');
-    print('::error::P74 names ${names.join(" | ").length} ${cut(names.join(" | "), 185)}');
-    for (final h in hits) {
-      for (var j = -7; j < 2 && h + j < src.length; j++) {
-        if (h + j < 0) continue;
-        print('::error::P74 h$h:$j ${cut(src[h + j], 195)}');
-      }
+        .where((l) =>
+            l.contains('The test description was:') || l.contains('Failed to load'))
+        .map((l) => cut(l, 120))
+        .take(3)
+        .join(' | ');
+    print('::error::P76 exit=${r.exitCode} lines=${src.length} '
+        'last=${cut(src.isEmpty ? '-' : src.last, 110)}');
+    print('::error::P76 DESC ${cut(desc, 190)}');
+    final ei = src.indexWhere((l) => l.contains('[E]'));
+    for (var j = -7; j < 1 && ei + j < src.length; j++) {
+      if (ei + j < 0) continue;
+      print('::error::P76 e$j ${cut(src[ei + j], 190)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
