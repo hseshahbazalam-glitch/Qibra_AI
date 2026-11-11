@@ -16,34 +16,48 @@ String _clean(String l) {
 }
 
 void main() {
-  test('probe: read the analyze capture written by the CI tee', () {
-    // v18: CI's analyze step tees its own output into the workspace
-    // before the gate; tests run after it in the same job — this probe
-    // just mirrors the captured findings onto STDOUT. The step's log
-    // tail (visible in the failure annotation) carries them verbatim.
-    final f = File('.probe_analyze.txt');
-    if (!f.existsSync()) {
-      print('H4PROBE NO-CAPTURE');
-      expect(1, 1);
-      return;
-    }
-    final lines = f
-        .readAsStringSync()
+  test('probe: run flutter analyze; FAIL with the findings', () async {
+    // v19 — every earlier channel was wrong: test-step stdout goes only
+    // to the LOG file (never an annotation); prints from GREEN tests
+    // never annotate at all; the step's Process-completed line is its
+    // stderr tail. So the probe must FAIL with the findings IN its
+    // uncaught-exception header, SHORT enough to survive the ~1000-char
+    // annotation window: one compact line per finding, capped at 3.
+    final r = await Process.run(
+      'flutter',
+      ['analyze', '--no-fatal-infos'],
+      workingDirectory: Directory.current.path,
+      environment: Platform.environment,
+    );
+    final raw = '${r.stdout}${r.stderr}';
+    final bad = raw
         .split('\n')
         .map((l) => l
             .replaceAll(RegExp('\x1B\\[[0-9;]*[A-Za-z]'), '')
             .replaceAll('\r', '')
             .trim())
-        .where((l) =>
-            l.contains('error -') ||
-            l.contains('warning -') ||
-            l.contains('issues found') ||
-            l.contains('No issues'))
+        .where((l) => l.contains('error -') || l.contains('warning -'))
+        .map((l) {
+          final i = l.indexOf(' - ');
+          final path = i > 0 ? l.substring(0, i).split('/').last : l;
+          final tail = i > 0 ? l.substring(i + 3) : '';
+          return tail.isEmpty ? path : '$path:${tail.substring(0, tail.length > 48 ? 48 : tail.length)}';
+        })
+        .take(3)
         .toList();
-    print('H4PROBE n=${lines.length}');
-    for (final l in lines.take(14)) {
-      print('H4PROBE  $l');
+    final summary = raw
+        .split('\n')
+        .map((l) => l.trim())
+        .firstWhere(
+            (l) => l.contains('issue') || l.contains('No issues'),
+            orElse: () => 'no-summary');
+    if (r.exitCode == 0) {
+      expect(1, 1, reason: 'ANALYZE-PASSED n=${bad.length}');
     }
-    expect(1, 1);
-  });
+    expect(0, bad.isEmpty ? 1 : 0,
+        reason: 'A1[${bad.length > 0 ? bad[0] : ''}] '
+            'A2[${bad.length > 1 ? bad[1] : ''}] '
+            'A3[${bad.length > 2 ? bad[2] : ''}] '
+            'SUM[$summary]');
+  }, timeout: const Timeout(Duration(minutes: 12)));
 }
