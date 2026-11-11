@@ -33,8 +33,9 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     # ONE-ROUND DIAGNOSTIC SCOPE (v49, reverted next commit) — see the probe.
-    - "test/features/hadith/hadith_h4_search_test.dart"
-    - "test/h4_probe_test.dart"
+    - "test/**"
+    - "!test/features/hadith/hadith_h4_search_test.dart"
+    - "!test/h4_probe_test.dart"
 
 # Phase 4: Added for production lint — flutter_lints ^4.0
 # Run: dart format . && flutter analyze
