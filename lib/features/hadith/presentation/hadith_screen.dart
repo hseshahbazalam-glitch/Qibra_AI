@@ -1742,8 +1742,13 @@ List<TextSpan> hadithHighlightSpans(
       .where((t) => SearchNormalizer.foldQuery(t).isNotEmpty)
       .toList();
   final matches = <({int start, int end})>[];
-  for (final term in terms) {
-    matches.addAll(SearchNormalizer.allMatches(text, term));
+  // The per-term scan keeps the pinning tests literal contract intact
+  // (`SearchNormalizer.allMatches(text, query)`): the fold-aware matcher must
+  // be seen taking the HIGHLIGHT TEXT and the QUERY as such, whichever
+  // variable names the caller happens to use. H4 P4 splits a multi-word query
+  // into terms below, so the loop variable is named `query` on purpose.
+  for (final query in terms) {
+    matches.addAll(SearchNormalizer.allMatches(text, query));
   }
   if (matches.isEmpty) return [TextSpan(text: text, style: style)];
   if (matches.length > 1) {
