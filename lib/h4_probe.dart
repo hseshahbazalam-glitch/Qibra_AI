@@ -12,7 +12,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: bisect round 2', () async {
+  test('probe: explicit findings via ::error:: prints', () async {
     Future<ProcessResult> res(List<String> args) => Process.run('flutter', args,
         workingDirectory: Directory.current.path,
         environment: Platform.environment);
@@ -28,25 +28,33 @@ void main() {
       return out;
     }
 
-    String cut(String l, int k) => l.length > k ? l.substring(0, k) : l;
-    String pack(List<String> lines, int cap) {
-      final hits = lines.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
-      final infos = lines.where((l) => l.contains(' - info - ')).length;
-      return 'exit=${lines.first} n=${hits.length} i=$infos ' +
-          hits.take(cap).map((l) => cut(l, 150)).join(' ;; ');
+    String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
+    final tst = linesOf(await res(['analyze', '--no-fatal-infos', '--fatal-infos', 'test']));
+    final h4 = linesOf(await res(['analyze', '--no-fatal-infos', '--fatal-infos',
+        'test/features/hadith/hadith_h4_search_test.dart']));
+    final suite = linesOf(await res(['test', '--reporter', 'compact', '--ignore-errors',
+        'test/features/hadith/hadith_h4_search_test.dart']));
+    void emit(String tag, List<String> lines, int cap) {
+      final hits =
+          lines.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
+      print('::error::${tag} exit=${lines.first} n=${hits.length} sum=${cut(lines.last, 110)}');
+      for (var i = 0; i < hits.length && i < cap; i++) {
+        print('::error::${tag} f$i ${cut(hits[i], 165)}');
+      }
+      if (hits.isEmpty) {
+        for (var i = 0; i < lines.length && i < 2; i++) {
+          print('::error::${tag} r$i ${cut(lines[i], 165)}');
+        }
+      }
     }
 
-    final three = linesOf(await res([
-      'analyze',
-      '--no-fatal-infos',
-      '--fatal-infos',
-      'lib/core/l10n/app_strings.dart',
-      'lib/features/hadith/data/services/hadith_database_service.dart',
-      'lib/features/hadith/providers/hadith_provider.dart',
-    ]));
-    final tst = linesOf(await res(['analyze', '--no-fatal-infos', '--fatal-infos', 'test']));
-    var out = 'H4P41 THREE ${pack(three, 2)} || TEST ${pack(tst, 3)}';
-    if (out.length > 980) out = '${out.substring(0, 974)}...TRUNC';
-    fail(out);
+    emit('TST', tst, 2);
+    emit('H4F', h4, 2);
+    print('::error::SUI exit=${suite.first} last=${cut(suite.last, 150)}');
+    final fails = suite.where((l) => l.startsWith('[E]')).take(2);
+    for (final l in fails) {
+      print('::error::SUI e ${cut(l, 160)}');
+    }
+    expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 11)));
 }
