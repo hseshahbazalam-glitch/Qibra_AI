@@ -26,29 +26,39 @@ void main() {
     ]);
     final raw = '${r.stdout}\n${r.stderr}';
     final src = raw.split('\n');
-    final pick = <String>[];
-    for (var i = 0; i < src.length && pick.length < 8; i++) {
-      final l = src[i].trim();
-      if (l.contains('[E]')) {
-        pick.add(_clean(l));
-        for (var j = i + 1;
-            j < src.length && pick.length < 8 && pick.length > 0; j++) {
-          final e = src[j].trim();
-          if (e.contains('[E]')) break;
-          if (e.startsWith('Expected:') ||
-              e.startsWith('Actual:') ||
-              e.startsWith('Which:')) {
-            pick.add(_clean(e));
-          }
-          if (e.startsWith('00:') ||
-              e.startsWith('To run') ||
-              e.isEmpty) {
-            continue;
-          }
-          if (pick.length >= 8) break;
+    // Two views, capped together at 9 lines: (a) EVERY [E] header — the
+    // names of the reds; (b) a 10-line WINDOW after the FIRST [E] with
+    // the interesting lines (exception kind / overflow / error-causing
+    // widget / Expected / Which) — the WHY.
+    final heads = <String>[];
+    int first = -1;
+    for (var i = 0; i < src.length; i++) {
+      if (src[i].trim().contains('[E]')) {
+        heads.add(_clean(src[i].trim()));
+        if (first == -1) first = i;
+      }
+    }
+    final window = <String>[];
+    if (first != -1) {
+      for (var j = first + 1; j <= first + 26 && j < src.length; j++) {
+        final e = src[j].trim();
+        if (e.contains('[E]')) break;
+        if (e.contains('thrown') ||
+            e.contains('overflow') ||
+            e.contains('error-causing') ||
+            e.startsWith('Expected:') ||
+            e.startsWith('Actual:') ||
+            e.startsWith('Which:') ||
+            e.contains('Bad state')) {
+          window.add(_clean(e));
+          if (window.length >= 4) break;
         }
       }
     }
+    final pick = <String>[
+      for (final h in heads.take(9 - window.length)) h,
+      ...window,
+    ];
     // QH PROBE PRECEDENCE (h2_analyze_probe, ab43613): the channel that
     // arrives as an annotation is the harness print() — the reporter
     // echoes test prints; raw stderr writes get captured and swallowed.
