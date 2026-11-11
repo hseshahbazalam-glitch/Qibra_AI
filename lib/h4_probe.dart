@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('probe: the lib/ error, named', () async {
+  test('probe: verbatim analyze lines of the two suspect test files', () async {
     Future<ProcessResult> run(String exe, List<String> args) =>
         Process.run(exe, args,
             workingDirectory: Directory.current.path,
@@ -27,37 +27,21 @@ void main() {
     }
 
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
-    List<String> hard(List<String> ls) =>
-        ls.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
-    const lib = [
-      'lib/core/l10n/app_strings.dart',
-      'lib/features/hadith/data/services/hadith_database_service.dart',
-      'lib/features/hadith/providers/hadith_provider.dart',
-      'lib/features/hadith/presentation/hadith_screen.dart',
-    ];
-    for (final p in lib) {
-      final fmt = await run('dart', ['format', '--output=none', p]);
-      final an = await run('flutter', ['analyze', '--no-fatal-infos', p]);
-      final al = linesOf(an);
-      final ah = hard(al);
-      print('::error::P60 ${p.substring(4, 40)} fmt=${fmt.exitCode} '
-          'ana=${an.exitCode} n=${ah.length} '
-          '${ah.isEmpty ? cut(al.isEmpty ? "-" : al.last, 105) : cut(ah.first, 165)}');
+    const target = 'test/features/hadith/hadith_h4_search_test.dart';
+    final one = await run('flutter', ['analyze', '--no-fatal-infos', target]);
+    final ol = linesOf(one);
+    print('::error::P61 ONE exit=${one.exitCode} n=${ol.length}');
+    for (var i = 0; i < ol.length && i < 3; i++) {
+      print('::error::P61 o$i ${cut(ol[i], 195)}');
     }
-    final whole = await run('flutter', ['analyze', '--no-fatal-infos']);
-    final wl = linesOf(whole);
-    final wh = hard(wl);
-    print('::error::P60 LIBWHOLE exit=${whole.exitCode} n=${wh.length} '
-        'lines=${wl.length}');
-    for (var i = 0; i < wh.length && i < 3; i++) {
-      print('::error::P60 w$i ${cut(wh[i], 170)}');
+    final tst = await run('flutter', ['analyze', '--no-fatal-infos', 'test']);
+    final tl = linesOf(tst);
+    final th =
+        tl.where((l) => RegExp(r' - (error|warning) - ').hasMatch(l)).toList();
+    print('::error::P61 TST exit=${tst.exitCode} n=${tl.length} hard=${th.length}');
+    for (var i = 0; i < th.length && i < 2; i++) {
+      print('::error::P61 t$i ${cut(th[i], 195)}');
     }
-    final h4 = await run('flutter',
-        ['analyze', '--no-fatal-infos', 'test/features/hadith/hadith_h4_search_test.dart']);
-    final hl = linesOf(h4);
-    final hh = hard(hl);
-    print('::error::P60 H4 exit=${h4.exitCode} n=${hh.length} '
-        '${hh.isEmpty ? cut(hl.isEmpty ? "-" : hl.last, 150) : cut(hh.first, 165)}');
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
