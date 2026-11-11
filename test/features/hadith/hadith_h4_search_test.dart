@@ -251,6 +251,13 @@ void main() {
           reason: 'no fabricated tiering beyond the two Sahih books');
     });
 
+    test('DIAGNOSTIC fake-call census after pure tests', () {
+      final db = _FakeDb();
+      expect(db.calls, isEmpty,
+          reason: 'pure ranking tests must not touch the fake '
+              '(they build results by hand)');
+    });
+
     test('the result list is capped at 50 by default', () {
       final many = [
         for (var n = 1; n <= 60; n++)
@@ -330,7 +337,10 @@ void main() {
       // Sheet open, field pre-filled, provider already on the query.
       final field = tester.widget<TextField>(find.byType(TextField).last);
       expect(field.controller!.text, 'Patience');
-      expect(container.read(hadithSearchQueryProvider), 'Patience');
+      expect(container.read(hadithSearchQueryProvider), 'Patience',
+          reason: 'if this reads empty, the sticky chip tap did NOT reach '
+              'the screen pre-runner (dual TextField: which field got the '
+              'tap?)');
       // The pre-run query ALREADY answered when the sheet arrived —
       // asserted on the provider state (deterministic), not on painted
       // tile text: the sheet's tile preview is a RichText with a
@@ -388,9 +398,13 @@ void main() {
       await _pumpHome(tester, db);
       await tester.tap(find.text('Patience'));
       await _beat(tester);
+      print('H4P pre-jump query=\'\${container.read(hadithSearchQueryProvider)}\' '
+          'hits=\${db.calls.length}');
       // bukhari leads (density tie -> kitab weight).
       await tester.tap(find.text('Sahih al-Bukhari 7'));
       await _beat(tester, 10);
+      print('H4P post-jump hits=\${db.calls.length} '
+          'reader=\${find.byType(HadithBookScreen).evaluate().length}');
       final screen =
           tester.widget<HadithBookScreen>(find.byType(HadithBookScreen));
       expect(screen.focusHadithNumber, 7);
