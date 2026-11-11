@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print, unused_local_variable, unused_element
 // test/h4_probe_test.dart — TRANSIENT diagnostic probe (round v49, deleted
 // with its own commit). The channel that works, proven at v46/v47: a GREEN test
 // in the suite step printing `::error::` lines; it needs the gate to be green,
@@ -27,11 +28,13 @@ void main() {
     String cut(String l, int k) => l.length > k ? '${l.substring(0, k)}…' : l;
     final whole = await res(['analyze', '--no-fatal-infos']);
     final wl = linesOf(whole);
-    final we =
-        wl.where((l) => !l.startsWith('Analyzing') && !l.contains('No issues')).toList();
-    print('::error::P51 WH exit=${whole.exitCode} n=${we.length}');
+    final we = wl
+        .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
+        .toList();
+    print('::error::P52 WH exit=${whole.exitCode} n=${we.length} '
+        'sum=${cut(wl.isEmpty ? "-" : wl.last, 90)}');
     for (var i = 0; i < we.length && i < 4; i++) {
-      print('::error::P51 w$i ${cut(we[i], 195)}');
+      print('::error::P52 w$i ${cut(we[i], 195)}');
     }
     final h4 = await res(['analyze', '--no-fatal-infos', '--fatal-infos',
         'test/features/hadith/hadith_h4_search_test.dart',
@@ -40,16 +43,16 @@ void main() {
     final he = hl
         .where((l) => RegExp(r' - (error|warning) - ').hasMatch(l))
         .toList();
-    print('::error::P51 H4 exit=${h4.exitCode} n=${he.length}');
+    print('::error::P52 H4 exit=${h4.exitCode} n=${he.length}');
     for (var i = 0; i < he.length && i < 2; i++) {
-      print('::error::P51 h$i ${cut(he[i], 195)}');
+      print('::error::P52 h$i ${cut(he[i], 195)}');
     }
     final su = await res(['test', '--reporter', 'compact', 'test/features/hadith']);
     final sl = linesOf(su);
     final ei = sl.indexWhere((l) => l.contains('[E]'));
-    print('::error::P51 SU exit=${su.exitCode} last=${cut(sl.isEmpty ? '-' : sl.last, 195)}');
+    print('::error::P52 SU exit=${su.exitCode} last=${cut(sl.isEmpty ? '-' : sl.last, 195)}');
     for (var i = 0; i < 2 && ei + i + 1 < sl.length; i++) {
-      print('::error::P51 e$i ${cut(sl[ei + 1 + i], 195)}');
+      print('::error::P52 e$i ${cut(sl[ei + 1 + i], 195)}');
     }
     expect(1, 1);
   }, timeout: const Timeout(Duration(minutes: 12)));

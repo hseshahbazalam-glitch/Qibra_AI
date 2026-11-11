@@ -32,10 +32,10 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    # ONE-ROUND DIAGNOSTIC SCOPE (v49, reverted next commit) — see the probe.
-    - "test/**"
-    - "!test/features/hadith/hadith_h4_search_test.dart"
-    - "!test/h4_probe_test.dart"
+  language:
+    strict-casts: true
+    strict-inference: false
+    strict-raw-types: true
 
 # Phase 4: Added for production lint — flutter_lints ^4.0
 # Run: dart format . && flutter analyze
