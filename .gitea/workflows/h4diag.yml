@@ -1,0 +1,22 @@
+name: H4DIAG
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  diag:
+    name: h4 diagnostics (transient)
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.6
+          cache: true
+      - name: Dependencies
+        run: flutter pub get
+      - name: Analyze (machine)
+        run: flutter analyze --no-fatal-infos
+      - name: Test suite
+        run: flutter test --reporter compact --ignore-errors
