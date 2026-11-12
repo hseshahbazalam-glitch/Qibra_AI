@@ -112,12 +112,17 @@ class _CountdownRingPainter extends CustomPainter {
       center.dx + radius * math.cos(angle),
       center.dy + radius * math.sin(angle),
     );
+    // PASS X4 (blur audit): this halo was a live `MaskFilter.blur`, and THIS
+    // painter repaints on every `progress` tick (shouldRepaint below) while the
+    // ring sits in a ticking hero — so the device paid a Gaussian blur + an
+    // offscreen pass per frame for a 3px glow. Flat token-wash instead: one
+    // translucent circle, same visual weight class, zero offscreen work. Blur
+    // is kept only where it is static (see safe_image.dart's painter, which
+    // repaints on `accent` alone).
     canvas.drawCircle(
       dot,
-      strokeWidth * 0.8,
-      Paint()
-        ..color = activeColor.withValues(alpha: 0.55)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 3),
+      strokeWidth * 1.15,
+      Paint()..color = activeColor.withValues(alpha: 0.16),
     );
     canvas.drawCircle(dot, strokeWidth * 0.42, Paint()..color = activeColor);
   }
