@@ -31,14 +31,14 @@ const List<String> _colls = [
   'ibnmajah',
   'malik',
 ];
+// PASS X5: the four Phase B editions are unbundled, so this is exactly the
+// files that ship. `_coverageByBook`'s pair-key branch reads
+// HadithAvailability.newLanguageFiles instead of a hardcoded list, so a
+// re-bundled edition is measured here again with no test edit.
 const Map<String, String> _stems = {
   'en': 'english',
   'ar': 'arabic',
   'ur': 'urdu',
-  'bn': 'bengali',
-  'tr': 'turkish',
-  'id': 'indonesian',
-  'fr': 'french',
 };
 
 Map<String, dynamic> _book(String coll, String stem) => jsonDecode(
@@ -61,8 +61,8 @@ int _appNum(dynamic v) {
 /// The joined coverage counts EXACTLY the way HadithDatabaseService
 /// computes them before exposing `languageCoverage` (en counted on
 /// itself; ar/ur via hadithnumber int-map, last wins, blanks included;
-/// bn/tr/id/fr via the public runtime pairTextIndex — empty skipped,
-/// first wins; absent file → 0).
+/// every pair-key edition — `newLanguageFiles`, empty since X5 — via the
+/// public runtime pairTextIndex: empty skipped, first wins; absent → 0).
 Map<String, Map<String, ({int nonEmpty, int total})>> _coverageByBook() {
   final out = <String, Map<String, ({int nonEmpty, int total})>>{};
   for (final coll in _colls) {
@@ -89,8 +89,9 @@ Map<String, Map<String, ({int nonEmpty, int total})>> _coverageByBook() {
         total: en.length,
       );
     }
-    for (final lc in ['bn', 'tr', 'id', 'fr']) {
-      final f = File('assets/data/hadith/$coll/${_stems[lc]}.json');
+    for (final lc in HadithAvailability.newLanguageFiles.keys) {
+      final file = HadithAvailability.newLanguageFiles[lc]!;
+      final f = File('assets/data/hadith/$coll/$file.json');
       if (!f.existsSync()) {
         counts[lc] = (nonEmpty: 0, total: en.length);
         continue;
@@ -314,25 +315,24 @@ void main() {
       expect(HadithAvailability.coveragePercent(12, 0), 0);
     });
 
-    test('thinCoverage: <90 disclosed, ==90 silent, absent always, no '
-        'counts → no rows beyond the matrix-derived absent ones', () {
-      Map<String, ({int nonEmpty, int total})> m(
-              int ne, int tot) =>
-          {
+    test('thinCoverage: <90 disclosed, ==90 silent, no counts → no rows', () {
+      Map<String, ({int nonEmpty, int total})> m(int ne, int tot) => {
             for (final lc in HadithAvailability.languageCodes)
-              lc: (nonEmpty: lc == 'fr' ? 0 : ne, total: tot)
+              lc: (nonEmpty: lc == 'ur' ? 0 : ne, total: tot)
           };
       final rows = HadithAvailability.thinCoverage({
-        'bukhari': m(7000, 7589), // 92% present langs → silent; fr forced 0
-        'nasai': m(500, 5765), // ~9% → every present lang disclosed
-        'tirmidhi': const {}, // unresolved counts → only 'fr' absent row
+        'bukhari': m(7000, 7589), // 92% en/ar → silent; ur forced to 0%
+        'nasai': m(500, 5765), // ~9% → every language disclosed
+        'tirmidhi': const {}, // no counts → NO rows (never a guess)
       });
       final keys = {for (final r in rows) '${r.language}/${r.book}'}.toList();
-      expect(keys, contains('fr/tirmidhi'));
-      expect(rows.firstWhere((r) => r.language == 'fr' && r.book == 'tirmidhi').absent,
-          isTrue);
-      expect(rows.any((r) => r.book == 'bukhari' && r.language != 'fr'),
-          isFalse); // 92% ≥ 90 → silent (fr/bukhari shows: counted 0%)
+      expect(keys, contains('ur/bukhari'));
+      expect(rows.any((r) => r.book == 'tirmidhi'), isFalse,
+          reason: 'every advertised edition covers all seven books since X5, '
+              'so there is no matrix-derived absent row left; an empty counts '
+              'map must produce nothing at all');
+      expect(rows.any((r) => r.book == 'bukhari' && r.language != 'ur'),
+          isFalse); // 92% ≥ 90 → silent (ur/bukhari shows: counted 0%)
       expect(rows.every((r) => r.percent < 90 || r.absent), isTrue);
       for (var i = 1; i < rows.length; i++) {
         expect(rows[i].percent >= rows[i - 1].percent, isTrue);
@@ -340,63 +340,60 @@ void main() {
       // Threshold is strict (< 90): 90 exactly stays silent.
       final edge = HadithAvailability.thinCoverage({
         'muslim': {
-          'tr': (nonEmpty: 6807, total: 7563), // 90.01→90 → silent
-          'id': (nonEmpty: 6805, total: 7563), // 90% → silent
-          'fr': (nonEmpty: 6730, total: 7563), // 89% → disclosed
+          'ar': (nonEmpty: 6807, total: 7563), // 90.01→90 → silent
+          'ur': (nonEmpty: 6805, total: 7563), // 90% → silent
+          'en': (nonEmpty: 6730, total: 7563), // 89% → disclosed
         },
       });
-      expect(edge.map((r) => r.language).toSet(), {'fr'});
+      expect(edge.map((r) => r.language).toSet(), {'en'});
     });
 
-    test('real corpus → EXACTLY ten disclosure rows (98→silent honesty)',
+    test('real corpus → EXACTLY two disclosure rows (post-X5 honesty)',
         () {
+      // Three bundled editions x seven books, thresholds applied: the only
+      // books below 90% text coverage are Urdu in Nasai (3,875 of 5,765)
+      // and in Malik (1,590 of 1,858). Everything else is >= 90 and stays
+      // silent -- including Tirmidhi Urdu at 98%, the 67 blank rows that
+      // used to be the reason 'fr' carried a note at all. Re-measured from
+      // the shipped files by this test's own mirror, not copied from a tool.
       final rows = HadithAvailability.thinCoverage(_coverageByBook());
       final set = {
         for (final r in rows)
-          (language: r.language, book: r.book, percent: r.percent, absent: r.absent),
+          (
+            language: r.language,
+            book: r.book,
+            percent: r.percent,
+            absent: r.absent
+          ),
       };
       expect(set, {
-        (language: 'fr', book: 'tirmidhi', percent: 0, absent: true),
-        (language: 'tr', book: 'nasai', percent: 11, absent: false),
-        (language: 'id', book: 'muslim', percent: 65, absent: false),
         (language: 'ur', book: 'nasai', percent: 67, absent: false),
-        (language: 'fr', book: 'malik', percent: 81, absent: false),
-        (language: 'id', book: 'abudawud', percent: 84, absent: false),
-        (language: 'id', book: 'malik', percent: 84, absent: false),
-        (language: 'tr', book: 'malik', percent: 84, absent: false),
         (language: 'ur', book: 'malik', percent: 86, absent: false),
-        (language: 'id', book: 'tirmidhi', percent: 89, absent: false),
       });
-      expect(rows.first.absent, isTrue); // 0% sorts first
+      expect(rows.every((r) => !r.absent), isTrue,
+          reason: 'no advertised edition is missing a book any more — an '
+              'absent row here would mean the matrix and the bundle disagree');
+      expect(rows.first.percent <= rows.last.percent, isTrue);
     });
 
-    test('selector matrix + selectorOptions: FROZEN byte-for-byte (the '
-        '"6 of 7" multilang pin and the settings sheet both keep seeing '
-        'exactly the pre-H1 rows)', () {
-      expect(HadithAvailability.languageCodes,
-          ['en', 'ar', 'ur', 'bn', 'tr', 'id', 'fr']);
+    test('selector matrix + selectorOptions: FROZEN to what the bundle ships '
+        '(X5 re-pin — the four Phase B rows are gone from BOTH sides)', () {
+      expect(HadithAvailability.languageCodes, ['en', 'ar', 'ur']);
       expect(HadithAvailability.labelFor, {
         'en': 'English',
         'ar': 'العربية',
         'ur': 'اردو',
-        'bn': 'বাংলা',
-        'tr': 'Türkçe',
-        'id': 'Bahasa Indonesia',
-        'fr': 'Français',
       });
       expect(HadithAvailability.fileForLanguage, {
         'ar': 'arabic',
         'ur': 'urdu',
-        'bn': 'bengali',
-        'tr': 'turkish',
-        'id': 'indonesian',
-        'fr': 'french',
       });
-      expect(HadithAvailability.newLanguageFiles,
-          {'bn': 'bengali', 'tr': 'turkish', 'id': 'indonesian', 'fr': 'french'});
+      expect(HadithAvailability.newLanguageFiles, isEmpty,
+          reason: 'the pair-key fold seam stays wired, but nothing is on the '
+              'other side of it until a re-bundle adds a row here');
       for (final coll in _colls) {
         for (final lc in HadithAvailability.languageCodes) {
-          expect(HadithAvailability.hasBook(lc, coll), lc != 'fr' || coll != 'tirmidhi',
+          expect(HadithAvailability.hasBook(lc, coll), isTrue,
               reason: '$lc/$coll matrix drift');
         }
       }
@@ -404,10 +401,6 @@ void main() {
         (code: 'en', label: 'English', note: null),
         (code: 'ar', label: 'العربية', note: null),
         (code: 'ur', label: 'اردو', note: null),
-        (code: 'bn', label: 'বাংলা', note: null),
-        (code: 'tr', label: 'Türkçe', note: null),
-        (code: 'id', label: 'Bahasa Indonesia', note: null),
-        (code: 'fr', label: 'Français', note: '6 of 7 collections'),
       ]);
     });
 

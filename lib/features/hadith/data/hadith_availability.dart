@@ -12,13 +12,19 @@
 // test/features/hadith/hadith_multilang_test.dart (matrix ⇔ data on disk). If a file is
 // added/removed here and on disk, that test fails by construction.
 //
-// French honesty note: the dataset (fawazahmed0/hadith-api) ships no
-// fra-tirmidhi edition, so French covers SIX of seven books. The chosen
-// mechanism is per-hadith fallback rather than a selector lock: in
-// Tirmidhi every French text is simply absent, and each card shows the
-// existing "Verified translation unavailable for this language." line —
-// the same fallback that already serves the 67 empty tirmidhi/urdu texts.
-// The selector itself discloses the coverage count.
+// PASS X5 (bundle diet, 2026-11-12): the four Phase B editions (bengali,
+// turkish, indonesian, french) are UNBUNDLED — 27 JSON files, 119.7 MB of
+// `assets/data/hadith/` (the shipped bundle carried 48 files where the boot
+// path reads 21). They are removed from THIS map, which is the single source
+// of truth: the Settings selector, the book quick-settings sheet and
+// [HadithLanguageNotifier]'s supported set all derive from here, so the
+// selector now offers exactly the three editions whose files ship, and a
+// stale `bn`/`tr`/`id`/`fr` value in SharedPreferences falls back to English
+// (`_load` already filters through `supported`) instead of opening a screen
+// with no file behind it. The pair-key FOLD SEAM stays wired on purpose —
+// [newLanguageFiles] is empty, so `warmLanguage` answers false for every
+// code, `_loadBook`'s wanted-batch stays the base trio, and a future
+// re-bundle is a data drop plus one map row, not a refactor.
 
 /// The seven bundled collections, in app order.
 const List<String> kHadithBookSlugs = [
@@ -37,29 +43,20 @@ class HadithAvailability {
   /// UI codes in selector order: ISO-639-1 (state codes — the app's
   /// language-code convention; the dataset's 3-letter edition prefixes
   /// ben/tur/ind/fra live only in the extraction tooling).
-  static const List<String> languageCodes = ['en', 'ar', 'ur', 'bn', 'tr', 'id', 'fr'];
+  static const List<String> languageCodes = ['en', 'ar', 'ur'];
 
   /// Native names — what a reader of that language expects to see.
   static const Map<String, String> labelFor = {
     'en': 'English',
     'ar': 'العربية',
     'ur': 'اردو',
-    'bn': 'বাংলা',
-    'tr': 'Türkçe',
-    'id': 'Bahasa Indonesia',
-    'fr': 'Français',
   };
 
-  /// Which books each language covers. 'fr' is six of seven by data
-  /// absence (see header). Every entry is the full list for the rest.
+  /// Which books each language covers — every bundled edition is 7/7.
   static const Map<String, List<String>> booksForLanguage = {
     'en': kHadithBookSlugs,
     'ar': kHadithBookSlugs,
     'ur': kHadithBookSlugs,
-    'bn': kHadithBookSlugs,
-    'tr': kHadithBookSlugs,
-    'id': kHadithBookSlugs,
-    'fr': ['bukhari', 'muslim', 'abudawud', 'nasai', 'ibnmajah', 'malik'],
   };
 
   /// Asset file stem per non-English language inside each book directory
@@ -67,20 +64,15 @@ class HadithAvailability {
   static const Map<String, String> fileForLanguage = {
     'ar': 'arabic',
     'ur': 'urdu',
-    'bn': 'bengali',
-    'tr': 'turkish',
-    'id': 'indonesian',
-    'fr': 'french',
   };
 
-  /// Phase B additions loaded by pair-key join (arabic/urdu keep their
-  /// historical hadithnumber-only join in the loader — untouched).
-  static const Map<String, String> newLanguageFiles = {
-    'bn': 'bengali',
-    'tr': 'turkish',
-    'id': 'indonesian',
-    'fr': 'french',
-  };
+  /// The pair-key joined editions (Phase B mechanism) that ship in this
+  /// bundle. EMPTY since X5: the four files were unbundled, and this map is
+  /// what [warmLanguage] consults — so every warm request is a no-op and the
+  /// boot batch is exactly `english + fileForLanguage.values` per book.
+  /// Re-bundling a language = put its JSON back + add one row here (the
+  /// loader, the coverage math and the selector all follow automatically).
+  static const Map<String, String> newLanguageFiles = {};
 
   static int bookCount(String languageCode) =>
       booksForLanguage[languageCode]?.length ?? 0;

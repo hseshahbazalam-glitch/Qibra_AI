@@ -198,6 +198,42 @@ above. Record of what shipped:
   no accent/turkish-specific case folding — queries must match diacritics
   verbatim (pinned as a limitation, not fixed silently).
 
+### Phase B unbundled — PASS X5 (2026-11-12)
+
+The owner's app-size pass removed the four Phase B translations from the
+**shipped bundle**. Everything above stays as the record of what was bundled,
+how it was extracted and how it was joined; what changed is the file list, not
+the provenance:
+
+| | before X5 | after X5 |
+| --- | --- | --- |
+| hadith JSON files | **49** = 48 editions (7 books x 7 − the absent fr-tirmidhi) + kitab_names.json | **22** = 21 editions (7 x 3) + kitab_names.json |
+| raw size (sum of file bytes) | 228.0 MB | **108.3 MB** (hadith); all of `assets/`: 106 files / 301.3 MB -> 79 files / **181.7 MB** |
+| deflated per file, zlib-9 (what an APK entry actually costs) | 40.6 MB (hadith); 55.6 MB (all of `assets/`) | **16.9 MB** / **31.9 MB** — a **23.7 MB** expected APK asset delta, NOT ~120 MB (device build is the authority, as ever) |
+| selector | 7 codes ('fr' carrying the '6 of 7 collections' note) | **3 codes** — `en`, `ar`, `ur`, all 7 books, no note |
+
+* **What was removed:** `assets/data/hadith/<book>/{bengali,turkish,indonesian,french}.json`
+  — 27 files, 119.7 MB raw / 23.7 MB deflated (french-tirmidhi never existed).
+* **What was NOT:** the pair-key join (`pairKey`/`pairTextIndex`), the per-language
+  coverage math, the model's `textBengali`-family fields and
+  `scripts/extract_hadith_languages.py`. `HadithAvailability` remains the single
+  source of truth and `newLanguageFiles` is now empty — so re-bundling an
+  edition is *data + one map row*, and `warmLanguage` correctly answers "nothing
+  to fold" for every code in the meantime. X1's lazy fold therefore costs zero
+  at boot and stays available.
+* **Licence stance:** unchanged. The rows stayed `UNKNOWN` while these files
+  shipped and there is nothing to downgrade or upgrade now that they do not.
+  The `content_manifest.json` hadith rows were re-scoped to
+  `(ar/en/ur JSON)` and its `notes` line records the removal, so the sidecar
+  cannot claim bytes the bundle no longer carries — that claim is a test
+  (`sidecar records the THREE-edition layout and the X5 removal`).
+* **Reader impact:** a device that had Bengali/Turkish/Indonesian/French selected
+  now falls back to English through the notifier's existing
+  `supported.contains(saved)` filter; no screen can open an edition with no file
+  behind it. The disclosure rows shrink with the data: two remain (Urdu in
+  Nasai at 67%, Urdu in Malik at 86%) and both are pinned against the shipped
+  files.
+
 ## Visual identity assets (2026-08-31)
 
 Original raster art generated for Qibra (no third-party stock download). **No letters/Arabic in image files.** Arabic in the app is Amiri text, not baked into PNGs.

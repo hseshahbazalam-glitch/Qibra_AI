@@ -41,7 +41,11 @@ bool _unjoinable(Map<String, dynamic> rec) {
 
 void main() {
   const books = kHadithBookSlugs;
-  const newLangs = {'bn': 'bengali', 'tr': 'turkish', 'id': 'indonesian', 'fr': 'french'};
+  // DERIVED, not listed: PASS X5 unbundled the four Phase B editions, so this
+  // is now empty and the file-reading loops below are no-ops. Re-bundle an
+  // edition (add it to HadithAvailability.newLanguageFiles) and every join
+  // contract in this group switches back on with no test edit.
+  final newLangs = HadithAvailability.newLanguageFiles;
 
   group('availability matrix ⇔ data on disk', () {
     test('every advertised (language, book) file exists and parses', () {
@@ -62,21 +66,48 @@ void main() {
       }
     });
 
-    test('French is six-of-seven: fra-tirmidhi absent by data, no placeholder', () {
-      expect(File('assets/data/hadith/tirmidhi/french.json').existsSync(), isFalse,
-          reason: 'the dataset has no fra-tirmidhi edition — the matrix must '
-              'NOT claim it, and no empty placeholder may be shipped');
-      expect(HadithAvailability.hasBook('fr', 'tirmidhi'), isFalse);
-      expect(HadithAvailability.bookCount('fr'), 6);
+    test('X5 — the four unbundled editions are gone from BOTH sides', () {
+      // PASS X5 cut the bundle, not just the UI: an edition may be absent
+      // from the matrix only if its files are absent too (the reverse is the
+      // same rule seen from the other side — no orphan data on disk).
+      const unbundled = {
+        'bn': 'bengali', 'tr': 'turkish', 'id': 'indonesian', 'fr': 'french',
+      };
+      for (final entry in unbundled.entries) {
+        expect(HadithAvailability.languageCodes, isNot(contains(entry.key)),
+            reason: 'the selector must not offer ${entry.value}');
+        expect(HadithAvailability.fileForLanguage, isNot(contains(entry.key)));
+        expect(HadithAvailability.newLanguageFiles, isNot(contains(entry.key)),
+            reason: 'an advertised fold target with no file would make '
+                'warmLanguage await a 404');
+        for (final slug in books) {
+          final f = File('assets/data/hadith/$slug/${entry.value}.json');
+          expect(f.existsSync(), isFalse,
+              reason: '${f.path} ships un-advertised bytes — the bundle is '
+                  'the point of this pass');
+        }
+      }
+      // The whole hadith tree is now exactly 7 books x 3 editions + the
+      // names sidecar (content_manifest.json lives one level up, in
+      // assets/data/, and is not part of this count).
+      final files = Directory('assets/data/hadith')
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((e) => e.path.endsWith('.json'))
+          .map((e) => e.path)
+          .toList();
+      expect(files.length, 22,
+          reason: '21 edition files + kitab_names.json; anything else is '
+              'un-advertised data in the bundle');
     });
 
-    test('selector options are the seven language codes, labels native', () {
+    test('selector options are the THREE bundled codes, labels native', () {
+      // X5: three codes, seven books each -> no coverage note anywhere (a
+      // note now means the matrix and the bundle disagree, which is a bug).
       final options = HadithAvailability.selectorOptions();
-      expect(options.map((o) => o.code), ['en', 'ar', 'ur', 'bn', 'tr', 'id', 'fr']);
-      expect(options.firstWhere((o) => o.code == 'fr').note, contains('6 of 7'));
-      expect(options.firstWhere((o) => o.code == 'bn').label, 'বাংলা');
-      expect(options.firstWhere((o) => o.code == 'tr').label, 'Türkçe');
-      expect(options.firstWhere((o) => o.code == 'id').label, 'Bahasa Indonesia');
+      expect(options.map((o) => o.code), ['en', 'ar', 'ur']);
+      expect(options.map((o) => o.label), ['English', 'العربية', 'اردو']);
+      expect(options.every((o) => o.note == null), isTrue);
     });
 
     test('the language notifier DERIVES from the matrix (no hardcoded set)', () {
@@ -144,45 +175,15 @@ void main() {
       }
     });
 
-    test('REV. 2 — fractional records are SEPARATE hadiths (the 402 case)', () {
-      // bengali bukhari 402.2 is a chapter citation whose dataset text
-      // is EMPTY -> it must be absent (fallback), and the parent 402 must
-      // carry ONLY its own text. The Rev. 1 floor-join shipped the parent
-      // text to BOTH; this pin makes that regression impossible.
-      final bn = _hadithsOf('assets/data/hadith/bukhari/bengali.json');
-      expect(
-          bn.where((r) =>
-              HadithDatabaseService.numberKey(r['hadithnumber']) == '402.2'),
-          isEmpty,
-          reason: 'ben has no text for 402.2 — shipping one would fabricate');
-      final bnParent = bn.where((r) => _pairOf(r) == '402|402').toList();
-      expect(bnParent.length, 1);
-      expect(bnParent.single['reference'], {'book': 8, 'hadith': 53});
-
-      // french 402.2 DOES have its own text in the dataset (the citation
-      // sentence) — Rev. 1 dropped it as a 'duplicate'; Rev. 2 ships it.
-      final fr = _hadithsOf('assets/data/hadith/bukhari/french.json');
-      final frFrac = fr.where((r) =>
-          HadithDatabaseService.numberKey(r['hadithnumber']) == '402.2').toList();
-      expect(frFrac.length, 1);
-      expect((frFrac.single['text'] as String).startsWith('Rapporté par Anas'),
-          isTrue);
-      expect(frFrac.single['text'] != bnParent.single['text'], isTrue,
-          reason: 'the citation text must not be the parent hadith text');
-
-      // tirmidhi's ten-record 3604.x bundle: dataset texts are ALL empty
-      // in bengali -> no 3604-series record may ship for that language.
-      final tirmBn = _hadithsOf('assets/data/hadith/tirmidhi/bengali.json');
-      for (var n = 0; n <= 9; n++) {
-        final key =
-            n == 0 ? '3604' : '3604.${n.toString().padLeft(2, '0')}';
-        expect(
-            tirmBn.where((r) =>
-                HadithDatabaseService.numberKey(r['hadithnumber']) == key),
-            isEmpty,
-            reason: 'empty dataset text must not be padded into a match');
-      }
-    });
+    // REV. 2 — the fractional 402.2 pins lived here. PASS X5 unbundled the
+    // four Phase B editions, so the files that carried the 402.2 case
+    // (`bukhari/bengali.json`, `bukhari/french.json`,
+    // `tirmidhi/bengali.json`) are gone, and a test cannot pin a dataset that
+    // is no longer shipped. The RULE they guarded is not lost: it is pinned
+    // mechanism-first in this file ('pairKey: arabic 0 -> hadith num;
+    // fractions NEVER collapse onto the parent' and 'pairTextIndex: blanks
+    // skipped, arabicnumber-0 fallback, first wins'), which is what the
+    // loader runs for any future re-bundled edition.
 
     test('spot hadiths carry identical numbers+reference across all languages', () {
       // of the book (text differs; keys cannot).
@@ -488,34 +489,48 @@ void main() {
       expect(src.contains('pairTextIndex'), isTrue);
     });
 
-    test('sidecar records the seven-language layout', () {
+    test('sidecar records the THREE-edition layout and the X5 removal', () {
       final manifest =
           File('assets/data/content_manifest.json').readAsStringSync();
-      expect(manifest.contains('ar/en/ur/bn/tr/id/fr JSON'), isTrue);
-      expect(manifest.contains('extract_hadith_languages.py'), isTrue);
+      expect(manifest.contains('ar/en/ur JSON'), isTrue);
+      expect(manifest.contains('ar/en/ur/bn/tr/id/fr JSON'), isFalse,
+          reason: 'the sidecar must not keep claiming editions it no longer '
+                  'ships');
+      expect(manifest.contains('extract_hadith_languages.py'), isTrue,
+          reason: 'the extractor stays as the documented re-bundle path');
     });
   });
 
-  group('honest coverage floors (real bundled data, Rev. 2)', () {
-    test('per-language text counts match the Rev. 2 extraction report', () {
-      // Numbers produced by scripts/extract_hadith_languages.py on
-      // 2026-09-05 after the fractional-key fix; a future data pass must
-      // consciously re-pin them.
-      expect(_hadithsOf('assets/data/hadith/bukhari/bengali.json').length, 7529);
-      expect(_hadithsOf('assets/data/hadith/bukhari/turkish.json').length, 7521);
-      expect(_hadithsOf('assets/data/hadith/bukhari/indonesian.json').length, 6858);
-      expect(_hadithsOf('assets/data/hadith/bukhari/french.json').length, 7589);
-      // French Bukhari is COMPLETE (every base record, citations included
-      // — the dataset carries text for all of them).
-      expect(_hadithsOf('assets/data/hadith/bukhari/french.json').length,
-          _hadithsOf('assets/data/hadith/bukhari/english.json').length);
-      // Turkish Nasai is the dataset's big gap (5,136 of 5,765 texts empty)
-      // — shipped as the 629 real translations it has, no padding.
-      expect(_hadithsOf('assets/data/hadith/nasai/turkish.json').length, 629);
-      // Malik's French file matched 1,505 of 1,858 — and 41 dataset
-      // records exist that our base does not have at all (reported, not
-      // silently dropped, by the extractor's mismatch table).
-      expect(_hadithsOf('assets/data/hadith/malik/french.json').length, 1505);
+  group('honest coverage floors (real bundled data, post-X5)', () {
+    test('per-edition record + empty-text counts are the shipped census', () {
+      // X5 re-pinned these against the THREE editions that ship. Every
+      // number is `len(hadiths)` and the count of records whose text is
+      // blank after trim() — the exact input of the loader's coverage math,
+      // so a future data pass must consciously re-pin it (same rule as the
+      // Rev. 2 report this replaces).
+      const floors = {
+        'bukhari':  {'english': [7589, 9],   'arabic': [7589, 9],   'urdu': [7589, 570]},
+        'muslim':   {'english': [7563, 203], 'arabic': [7563, 203], 'urdu': [7564, 105]},
+        'abudawud': {'english': [5274, 2],   'arabic': [5274, 2],   'urdu': [5274, 1]},
+        'nasai':    {'english': [5765, 86],  'arabic': [5765, 86],  'urdu': [5765, 1891]},
+        'tirmidhi': {'english': [3998, 72],  'arabic': [3998, 74],  'urdu': [3998, 67]},
+        'ibnmajah': {'english': [4343, 3],   'arabic': [4343, 5],   'urdu': [4343, 14]},
+        'malik':    {'english': [1858, 40],  'arabic': [1858, 29],  'urdu': [1889, 275]},
+      };
+      expect(floors.keys.toList(), books, reason: 'one row per collection');
+      for (final entry in floors.entries) {
+        for (final ed in entry.value.entries) {
+          final recs = _hadithsOf('assets/data/hadith/${entry.key}/${ed.key}.json');
+          expect(recs.length, ed.value[0], reason: '${entry.key}/${ed.key} count');
+          final empty = recs
+              .where((r) => '${r['text'] ?? ''}'.trim().isEmpty)
+              .length;
+          expect(empty, ed.value[1],
+              reason: '${entry.key}/${ed.key} blank texts — the loader ships '
+                  'these as the existing "translation unavailable" fallback, '
+                  'never as a fabricated line');
+        }
+      }
     });
   });
 }
