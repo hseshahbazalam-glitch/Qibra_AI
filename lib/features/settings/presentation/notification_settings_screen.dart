@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qibra_ai/core/services/notification_service.dart';
-import 'package:qibra_ai/core/observability/qibra_log.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -114,14 +113,14 @@ class _NotificationSettingsScreenState
     final player = AudioPlayer();
     try {
       await player.setAsset('audio/azan_makkah.mp3');
-      QibraLog.log(() => 'Azan test playing');
+      debugPrint('Azan test playing');
       unawaited(player.play()
           .whenComplete(player.dispose)
           .catchError((Object e) {
-        QibraLog.log(() => 'Azan preview end error: $e');
+        debugPrint('Azan preview end error: $e');
       }));
     } catch (e) {
-      QibraLog.log(() => 'Azan test error: $e');
+      debugPrint('Azan test error: $e');
       unawaited(player.dispose());
     }
 

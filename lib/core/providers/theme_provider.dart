@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/providers/app_providers.dart';
-import 'package:qibra_ai/core/observability/qibra_log.dart';
 
 // ============================================================
 // SECTION 1: THEME MODE ENUM
@@ -99,7 +98,7 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
       _prefs = prefs;
       await prefs.setString(AppStorageKeys.appTheme, mode.toStorageString());
     } catch (e) {
-      QibraLog.log(() => 'Theme save failed: $e');
+      debugPrint('Theme save failed: $e');
     }
   }
 
@@ -140,7 +139,7 @@ class LocaleNotifier extends StateNotifier<Locale> {
 
   Future<void> setLocale(String languageCode) async {
     if (!AppLanguages.supported.contains(languageCode)) {
-      QibraLog.log(() => 'Unsupported language: $languageCode');
+      debugPrint('Unsupported language: $languageCode');
       return;
     }
     if (state.languageCode == languageCode) return;
@@ -151,7 +150,7 @@ class LocaleNotifier extends StateNotifier<Locale> {
       _prefs = prefs;
       await prefs.setString(AppStorageKeys.appLanguage, languageCode);
     } catch (e) {
-      QibraLog.log(() => 'Locale save failed: $e');
+      debugPrint('Locale save failed: $e');
     }
   }
 
@@ -200,7 +199,7 @@ class OnboardingNotifier extends StateNotifier<bool> {
       await prefs.setString(
           AppStorageKeys.onboardingDate, DateTime.now().toIso8601String());
     } catch (e) {
-      QibraLog.log(() => 'Onboarding save failed: $e');
+      debugPrint('Onboarding save failed: $e');
     }
   }
 
@@ -213,7 +212,7 @@ class OnboardingNotifier extends StateNotifier<bool> {
       await prefs.remove(AppStorageKeys.hasSeenOnboarding);
       await prefs.remove(AppStorageKeys.onboardingDate);
     } catch (e) {
-      QibraLog.log(() => 'Onboarding reset failed: $e');
+      debugPrint('Onboarding reset failed: $e');
     }
   }
 }

@@ -17,7 +17,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
-import 'package:qibra_ai/core/observability/qibra_log.dart';
 
 /// Possible fallback variants for [SafeImage].
 enum SafeImageFallback { quran, mosque, pattern, logo }
@@ -98,7 +97,7 @@ class SafeImage extends StatelessWidget {
       cacheWidth: cacheWidth,
       alignment: alignment,
       errorBuilder: (context, error, stackTrace) {
-        QibraLog.log(() => '[SafeImage] Asset missing/failed: $assetPath — $error');
+        debugPrint('[SafeImage] Asset missing/failed: $assetPath — $error');
         return placeholder;
       },
       frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {

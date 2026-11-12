@@ -24,7 +24,6 @@ import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 import 'package:qibra_ai/features/ai/domain/rag_service.dart';
 import 'package:qibra_ai/features/quran/data/audio/quran_audio_service.dart';
-import 'package:qibra_ai/core/observability/qibra_log.dart';
 
 // ============================================================
 // GLOBAL HADITH DATABASE INSTANCE
@@ -52,9 +51,9 @@ void main() {
   // ─── Timezone DB (Phase 2: IANA for exact prayer timezone) ─────
   try {
     tz_data.initializeTimeZones();
-    QibraLog.log(() => '✅ Timezone DB initialized');
+    debugPrint('✅ Timezone DB initialized');
   } catch (e) {
-    QibraLog.log(() => '⚠️ Timezone DB failed: $e');
+    debugPrint('⚠️ Timezone DB failed: $e');
   }
 
   // ─── Load .env (debug only, not bundled in release) ────────────
@@ -62,9 +61,9 @@ void main() {
   try {
     await dotenv.load(fileName: '.env');
     envLoaded = true;
-    QibraLog.log(() => '✅ .env loaded successfully');
+    debugPrint('✅ .env loaded successfully');
   } catch (e) {
-    QibraLog.log(() => '⚠️ .env not loaded: $e');
+    debugPrint('⚠️ .env not loaded: $e');
   }
 
   // ─── System UI Setup ─────────────────────────
@@ -136,16 +135,16 @@ void main() {
 
 Future<void> _loadHadithInBackground() async {
   try {
-    QibraLog.log(() => '📚 Loading Hadith database...');
+    debugPrint('📚 Loading Hadith database...');
     final hadithDb = HadithDatabaseService();
     await hadithDb.initialize();
-    QibraLog.log(() => '✅ Hadith database loaded!');
+    debugPrint('✅ Hadith database loaded!');
     _globalHadithDb = hadithDb;
     try {
       RagService.instance.attachHadithDb(hadithDb);
     } catch (_) {}
   } catch (e) {
-    QibraLog.log(() => '⚠️ Hadith database loading failed: $e');
+    debugPrint('⚠️ Hadith database loading failed: $e');
   }
 }
 
@@ -192,11 +191,11 @@ class QibraApp extends ConsumerWidget {
 // ============================================================
 
 void _printBootInfo(bool envLoaded) {
-  QibraLog.log(() => '╔═══════════════════════════════════════╗');
-  QibraLog.log(() => '║       QIBRA AI — System Boot          ║');
-  QibraLog.log(() => '╠═══════════════════════════════════════╣');
-  QibraLog.log(() => '║  Name    : ${AppInfo.appName}');
-  QibraLog.log(() => '║  Version : ${AppInfo.version}');
+  debugPrint('╔═══════════════════════════════════════╗');
+  debugPrint('║       QIBRA AI — System Boot          ║');
+  debugPrint('╠═══════════════════════════════════════╣');
+  debugPrint('║  Name    : ${AppInfo.appName}');
+  debugPrint('║  Version : ${AppInfo.version}');
   // device-log fix 2 (honesty audit of every static ✅ line):
   //  .env — real outcome captured from the try/catch above.
   //  Riverpod / Router — true BY CONSTRUCTION at print time: the very
@@ -206,11 +205,11 @@ void _printBootInfo(bool envLoaded) {
   //  so the line states that. Hadith line already told the truth.
   //  AI Engine — local RAG only until the background hadith attach
   //  completes and every AI flag stays backend-off (AppFeatureFlags).
-  QibraLog.log(() => '║  ${envLoaded ? '✅ .env loaded' : '⚠️ .env not present'}');
-  QibraLog.log(() => '║  ✅ Riverpod initialized');
-  QibraLog.log(() => '║  ✅ Router ready');
-  QibraLog.log(() => '║  📖 Quran data queued (loads after first frame)');
-  QibraLog.log(() => '║  📚 Hadith DB loading after first frame');
-  QibraLog.log(() => '║  🤖 AI Engine: local RAG (backend off)');
-  QibraLog.log(() => '╚═══════════════════════════════════════╝');
+  debugPrint('║  ${envLoaded ? '✅ .env loaded' : '⚠️ .env not present'}');
+  debugPrint('║  ✅ Riverpod initialized');
+  debugPrint('║  ✅ Router ready');
+  debugPrint('║  📖 Quran data queued (loads after first frame)');
+  debugPrint('║  📚 Hadith DB loading after first frame');
+  debugPrint('║  🤖 AI Engine: local RAG (backend off)');
+  debugPrint('╚═══════════════════════════════════════╝');
 }
