@@ -66,7 +66,7 @@ out center;
           .timeout(const Duration(seconds: 8));
 
       if (response.statusCode != 200) {
-        if (kDebugMode) debugPrint('[MOSQUE_SERVICE] Overpass HTTP ${response.statusCode}');
+        debugPrint('[MOSQUE_SERVICE] Overpass HTTP ${response.statusCode}');
         return const [];
       }
 
@@ -111,7 +111,7 @@ out center;
       liveList.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
       return liveList;
     } catch (e) {
-      if (kDebugMode) debugPrint('[MOSQUE_SERVICE] Overpass error: $e');
+      debugPrint('[MOSQUE_SERVICE] Overpass error: $e');
       return const [];
     }
   }

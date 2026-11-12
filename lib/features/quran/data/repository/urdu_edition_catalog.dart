@@ -128,7 +128,7 @@ class UrduEditionCatalog {
       _evictOverflow();
       return map;
     } catch (e) {
-      if (kDebugMode) debugPrint('[EDITION] load failed ($id): $e');
+      debugPrint('[EDITION] load failed ($id): $e');
       return null;
     }
   }
@@ -148,7 +148,7 @@ class UrduEditionCatalog {
     while (_loaded.length > maxCachedEditions) {
       final oldest = _loaded.keys.first;
       _loaded.remove(oldest);
-      if (kDebugMode) debugPrint('[EDITION] LRU evicted $oldest');
+      debugPrint('[EDITION] LRU evicted $oldest');
     }
   }
 

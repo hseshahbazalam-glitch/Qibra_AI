@@ -119,7 +119,7 @@ class TilawatDownloader {
       f.deleteSync(); // 0-byte = failure; clean it up
       return null;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ tilawat size check failed for $path: $e');
+      debugPrint('⚠️ tilawat size check failed for $path: $e');
       return null;
     }
   }
@@ -219,7 +219,7 @@ class TilawatDownloader {
       if (await part.exists()) await part.delete();
       return false;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ tilawat download failed ($ayah): $e');
+      debugPrint('⚠️ tilawat download failed ($ayah): $e');
       try {
         if (await File(partPath).exists()) await File(partPath).delete();
       } catch (_) {
@@ -298,7 +298,7 @@ class TilawatDownloader {
           f.deleteSync();
           removed++;
         } catch (err) {
-          if (kDebugMode) debugPrint('⚠️ tilawat delete failed (${f.path}): $err');
+          debugPrint('⚠️ tilawat delete failed (${f.path}): $err');
         }
       }
     }
@@ -316,7 +316,7 @@ class TilawatDownloader {
         try {
           if (await f.exists()) await f.delete();
         } catch (e) {
-          if (kDebugMode) debugPrint('⚠️ tilawat delete failed ($n$suffix): $e');
+          debugPrint('⚠️ tilawat delete failed ($n$suffix): $e');
         }
       }
     }

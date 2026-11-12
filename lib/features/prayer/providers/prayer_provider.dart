@@ -110,7 +110,7 @@ class LocationNotifier extends StateNotifier<LocationState> {
         );
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('[LOCATION] Cache load error: $e');
+      debugPrint('[LOCATION] Cache load error: $e');
     }
   }
 
@@ -128,7 +128,7 @@ class LocationNotifier extends StateNotifier<LocationState> {
       });
       await prefs.setString(_cacheKey, json);
     } catch (e) {
-      if (kDebugMode) debugPrint('[LOCATION] Cache save error: $e');
+      debugPrint('[LOCATION] Cache save error: $e');
     }
   }
 
@@ -289,7 +289,7 @@ class PrayerSettingsNotifier extends StateNotifier<PrayerSettings> {
         use24HourFormat: json['24hr'] as bool? ?? false,
       );
     } catch (e) {
-      if (kDebugMode) debugPrint('[SETTINGS] Load error: $e');
+      debugPrint('[SETTINGS] Load error: $e');
     }
   }
 
@@ -321,7 +321,7 @@ class PrayerSettingsNotifier extends StateNotifier<PrayerSettings> {
 
       await prefs.setString(_key, json);
     } catch (e) {
-      if (kDebugMode) debugPrint('[SETTINGS] Save error: $e');
+      debugPrint('[SETTINGS] Save error: $e');
     }
   }
 
@@ -425,7 +425,7 @@ final dailyPrayerTimesProvider = Provider<DailyPrayerTimes?>((ref) {
       adjustments: settings.adjustments,
     );
   } catch (e) {
-    if (kDebugMode) debugPrint('[PRAYER] Calculation error: $e');
+    debugPrint('[PRAYER] Calculation error: $e');
     return null;
   }
 });
@@ -623,7 +623,7 @@ class PrayerRecordsNotifier extends StateNotifier<List<PrayerRecord>> {
         );
       }).toList();
     } catch (e) {
-      if (kDebugMode) debugPrint('[RECORDS] Load error: $e');
+      debugPrint('[RECORDS] Load error: $e');
     }
   }
 
@@ -641,7 +641,7 @@ class PrayerRecordsNotifier extends StateNotifier<List<PrayerRecord>> {
           .toList();
       await prefs.setString(_key, jsonEncode(list));
     } catch (e) {
-      if (kDebugMode) debugPrint('[RECORDS] Save error: $e');
+      debugPrint('[RECORDS] Save error: $e');
     }
   }
 
@@ -825,7 +825,7 @@ Future<void> _scheduleAllAzanNotifications(
   await notifService.cancelPrayerNotifications();
 
   if (!settings.enableNotifications) {
-    if (kDebugMode) debugPrint('🔕 Notifications disabled - not scheduling');
+    debugPrint('🔕 Notifications disabled - not scheduling');
     return;
   }
 
@@ -842,11 +842,12 @@ Future<void> _scheduleAllAzanNotifications(
       locationKey: (times.location.city.isEmpty) ? 'UNKNOWN' : times.location.city,
     );
 
-    if (kDebugMode) debugPrint('✅ All prayer notifications scheduled');
-    if (kDebugMode) debugPrint('   Azan: ${settings.enableAdhan}');
-    if (kDebugMode) debugPrint('   Pre-reminder: ${settings.enablePreReminder} (${settings.preReminderMinutes} min)');
+    debugPrint('✅ All prayer notifications scheduled');
+    debugPrint('   Azan: ${settings.enableAdhan}');
+    debugPrint(
+        '   Pre-reminder: ${settings.enablePreReminder} (${settings.preReminderMinutes} min)');
   } catch (e) {
-    if (kDebugMode) debugPrint('❌ Azan schedule error: $e');
+    debugPrint('❌ Azan schedule error: $e');
   }
 }
 

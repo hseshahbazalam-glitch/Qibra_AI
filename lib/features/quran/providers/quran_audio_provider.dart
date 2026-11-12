@@ -454,7 +454,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
     try {
       await _player.seek(Duration(milliseconds: ms));
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ tilawat seek failed: $e');
+      debugPrint('⚠️ tilawat seek failed: $e');
     }
     _syncService();
   }
@@ -559,7 +559,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
     try {
       await _player.setSpeed(s);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ tilawat speed set failed: $e');
+      debugPrint('⚠️ tilawat speed set failed: $e');
     }
     _syncService();
   }
@@ -703,7 +703,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
         speed: state.speed,
       ));
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ tilawat notification sync failed: $e');
+      debugPrint('⚠️ tilawat notification sync failed: $e');
     }
   }
 
@@ -814,7 +814,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
           loaded = true;
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ tilawat local load failed: $e');
+        debugPrint('⚠️ tilawat local load failed: $e');
       }
       if (!loaded) {
         loaded = await _trySetUrl(Tilawat.primaryUrl(a.surah, a.ayah, qari: _qari));
@@ -836,7 +836,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
       try {
         await _player.setSpeed(state.speed);
       } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ tilawat speed re-apply failed: $e');
+        debugPrint('⚠️ tilawat speed re-apply failed: $e');
       }
       // Word play: seek BEFORE play() so the first sample heard IS the
       // word start. A failed seek is silent — the ayah plays whole, and
@@ -848,7 +848,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
         try {
           await _player.seek(Duration(milliseconds: seekMs));
         } catch (e) {
-          if (kDebugMode) debugPrint('⚠️ tilawat word seek failed: $e');
+          debugPrint('⚠️ tilawat word seek failed: $e');
         }
       }
       state = state.copyWith(clearError: true, buffering: true);
@@ -861,7 +861,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
         try {
           await _player.play();
         } catch (e) {
-          if (kDebugMode) debugPrint('⚠️ tilawat playback error: $e');
+          debugPrint('⚠️ tilawat playback error: $e');
           state = state.copyWith(
             phase: QuranAudioPhase.failed,
             buffering: false,
@@ -871,7 +871,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
         }
       }());
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ tilawat play failed: $e');
+      debugPrint('⚠️ tilawat play failed: $e');
       state = state.copyWith(
         phase: QuranAudioPhase.failed,
         buffering: false,
@@ -892,7 +892,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
       await _player.setUrl(url);
       return true;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ tilawat source failed: $e');
+      debugPrint('⚠️ tilawat source failed: $e');
       return false;
     }
   }

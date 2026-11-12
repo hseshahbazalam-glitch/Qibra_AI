@@ -58,7 +58,7 @@ class TilawatAudioHandler extends BaseAudioHandler {
     } catch (e) {
       // No platform support / init failure: audio keeps working
       // in-app, background notification is simply absent.
-      if (kDebugMode) debugPrint('⚠️ audio_service unavailable: $e');
+      debugPrint('⚠️ audio_service unavailable: $e');
       instance = null;
     }
   }
@@ -70,7 +70,7 @@ class TilawatAudioHandler extends BaseAudioHandler {
     try {
       await action?.call();
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ tilawat service command failed: $e');
+      debugPrint('⚠️ tilawat service command failed: $e');
     }
   }
 
