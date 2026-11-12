@@ -36,6 +36,8 @@ HadithDatabaseService? get globalHadithDb => _globalHadithDb;
 // MAIN ENTRY POINT
 // ============================================================
 
+// PASS X probe: one comment line, no code change (null-diff experiment).
+
 void main() {
   // Error Shield (install FIRST — synchronous, zero IO — then the whole
   // boot runs inside the guarded zone; semantics inside are preserved
@@ -51,9 +53,9 @@ void main() {
   // ─── Timezone DB (Phase 2: IANA for exact prayer timezone) ─────
   try {
     tz_data.initializeTimeZones();
-    if (kDebugMode) debugPrint('✅ Timezone DB initialized');
+    debugPrint('✅ Timezone DB initialized');
   } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ Timezone DB failed: $e');
+    debugPrint('⚠️ Timezone DB failed: $e');
   }
 
   // ─── Load .env (debug only, not bundled in release) ────────────
@@ -61,9 +63,9 @@ void main() {
   try {
     await dotenv.load(fileName: '.env');
     envLoaded = true;
-    if (kDebugMode) debugPrint('✅ .env loaded successfully');
+    debugPrint('✅ .env loaded successfully');
   } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ .env not loaded: $e');
+    debugPrint('⚠️ .env not loaded: $e');
   }
 
   // ─── System UI Setup ─────────────────────────
@@ -135,16 +137,16 @@ void main() {
 
 Future<void> _loadHadithInBackground() async {
   try {
-    if (kDebugMode) debugPrint('📚 Loading Hadith database...');
+    debugPrint('📚 Loading Hadith database...');
     final hadithDb = HadithDatabaseService();
     await hadithDb.initialize();
-    if (kDebugMode) debugPrint('✅ Hadith database loaded!');
+    debugPrint('✅ Hadith database loaded!');
     _globalHadithDb = hadithDb;
     try {
       RagService.instance.attachHadithDb(hadithDb);
     } catch (_) {}
   } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ Hadith database loading failed: $e');
+    debugPrint('⚠️ Hadith database loading failed: $e');
   }
 }
 
@@ -191,11 +193,11 @@ class QibraApp extends ConsumerWidget {
 // ============================================================
 
 void _printBootInfo(bool envLoaded) {
-  if (kDebugMode) debugPrint('╔═══════════════════════════════════════╗');
-  if (kDebugMode) debugPrint('║       QIBRA AI — System Boot          ║');
-  if (kDebugMode) debugPrint('╠═══════════════════════════════════════╣');
-  if (kDebugMode) debugPrint('║  Name    : ${AppInfo.appName}');
-  if (kDebugMode) debugPrint('║  Version : ${AppInfo.version}');
+  debugPrint('╔═══════════════════════════════════════╗');
+  debugPrint('║       QIBRA AI — System Boot          ║');
+  debugPrint('╠═══════════════════════════════════════╣');
+  debugPrint('║  Name    : ${AppInfo.appName}');
+  debugPrint('║  Version : ${AppInfo.version}');
   // device-log fix 2 (honesty audit of every static ✅ line):
   //  .env — real outcome captured from the try/catch above.
   //  Riverpod / Router — true BY CONSTRUCTION at print time: the very
@@ -205,11 +207,11 @@ void _printBootInfo(bool envLoaded) {
   //  so the line states that. Hadith line already told the truth.
   //  AI Engine — local RAG only until the background hadith attach
   //  completes and every AI flag stays backend-off (AppFeatureFlags).
-  if (kDebugMode) debugPrint('║  ${envLoaded ? '✅ .env loaded' : '⚠️ .env not present'}');
-  if (kDebugMode) debugPrint('║  ✅ Riverpod initialized');
-  if (kDebugMode) debugPrint('║  ✅ Router ready');
-  if (kDebugMode) debugPrint('║  📖 Quran data queued (loads after first frame)');
-  if (kDebugMode) debugPrint('║  📚 Hadith DB loading after first frame');
-  if (kDebugMode) debugPrint('║  🤖 AI Engine: local RAG (backend off)');
-  if (kDebugMode) debugPrint('╚═══════════════════════════════════════╝');
+  debugPrint('║  ${envLoaded ? '✅ .env loaded' : '⚠️ .env not present'}');
+  debugPrint('║  ✅ Riverpod initialized');
+  debugPrint('║  ✅ Router ready');
+  debugPrint('║  📖 Quran data queued (loads after first frame)');
+  debugPrint('║  📚 Hadith DB loading after first frame');
+  debugPrint('║  🤖 AI Engine: local RAG (backend off)');
+  debugPrint('╚═══════════════════════════════════════╝');
 }
