@@ -5,11 +5,9 @@ import 'package:qibra_ai/core/notifications/notification_reconcile.dart';
 import 'package:qibra_ai/core/offline/data_status.dart';
 import 'package:qibra_ai/core/offline/reachability.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
-import 'package:qibra_ai/core/sync/conflict.dart';
 import 'package:qibra_ai/core/sync/retry_policy.dart';
 import 'package:qibra_ai/core/sync/sync_engine.dart';
 import 'package:qibra_ai/features/ai/domain/rag_service.dart';
-import 'package:qibra_ai/features/prayer/data/services/prayer_schedule_cache.dart';
 
 void main() {
   DateTime t0 = DateTime.utc(2026, 8, 30, 12);
@@ -110,37 +108,15 @@ void main() {
     expect(RetryPolicy.shouldRetry(httpStatus: 422), isFalse);
   });
 
-  test('conflict preservation and restart recovery', () {
-    final merged = BookmarkMerge.setUnion(
-      localIds: const ['a', 'b'],
-      remoteIds: const ['b', 'c'],
-      deletedIds: const ['c'],
-    );
-    expect(merged, ['a', 'b']);
-    final won = ProgressMerge.latestWins(
-      local: const {'surah': 1},
-      localUpdated: t0,
-      remote: const {'surah': 18},
-      remoteUpdated: t0.add(const Duration(days: 1)),
-    );
-    expect(won['surah'], 18);
-  });
-
-  test('offline prayer cache key and notification planning', () {
+  test('offline notification planning', () {
     // The backend flag no longer changes this surface's behavior; the
     // stale isFalse pin (pre-abee22e) tracked the flag, so it now pins
     // the CURRENT truth instead of deleting coverage.
+    //
+    // PASS X3 note: this test used to ALSO pin `PrayerScheduleCache.keyFor`,
+    // one of the ten unwired modules the pass deleted — that half went with
+    // the module, the notification-planning half is untouched.
     expect(AppApi.isBackendEnabled, isTrue);
-    final key = PrayerScheduleCache.keyFor(
-      latitude: 21.4225,
-      longitude: 39.8262,
-      date: DateTime(2026, 8, 30),
-      timezone: 'Asia/Riyadh',
-      method: 'MWL',
-      asr: 'standard',
-      provider: 'local',
-    );
-    expect(key.contains('2026-08-30'), isTrue);
     const engine = NotificationReconcile();
     expect(engine.requestsExactAlarm, isFalse);
     final planned = engine.desired(

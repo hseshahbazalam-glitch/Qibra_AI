@@ -15,7 +15,6 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  intl: 0.20.2
 
   # --- STATE MANAGEMENT ---
   flutter_riverpod: ^2.5.1
@@ -78,8 +77,6 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^4.0.0
-  build_runner: ^2.4.9
-  json_serializable: ^6.7.1
   flutter_native_splash: ^2.4.8
   flutter_launcher_icons: ^0.14.4
 
