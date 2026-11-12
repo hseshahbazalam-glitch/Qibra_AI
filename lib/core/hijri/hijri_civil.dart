@@ -10,11 +10,7 @@ class HijriCivil {
   static const authoritativeMoonSighting = false;
 
   /// Local civil calendar date for [utc] in [offset].
-  ///
-  /// This only applies a KNOWN offset — the IANA conversion that used to be
-  /// documented here as living in `TimezoneEngine` is not part of this class
-  /// (and PASS X3 deleted that unwired engine: the app calls
-  /// `initializeTimeZones()` + `tz.TZDateTime` directly).
+  /// IANA conversion lives in TimezoneEngine; this only applies a known offset.
   static DateTime civilDate({
     required DateTime utc,
     required Duration offset,

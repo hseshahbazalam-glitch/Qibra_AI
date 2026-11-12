@@ -251,6 +251,13 @@ void main() {
           reason: 'no fabricated tiering beyond the two Sahih books');
     });
 
+    test('DIAGNOSTIC fake-call census after pure tests', () {
+      final db = _FakeDb();
+      expect(db.calls, isEmpty,
+          reason: 'pure ranking tests must not touch the fake '
+              '(they build results by hand)');
+    });
+
     test('the result list is capped at 50 by default', () {
       final many = [
         for (var n = 1; n <= 60; n++)
