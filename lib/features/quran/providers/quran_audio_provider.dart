@@ -30,6 +30,8 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart'; // @immutable (X2 left this in:
+// the seam replaced debugPrint only — the annotation is the file's own need)
 import 'package:qibra_ai/core/observability/qibra_log.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
