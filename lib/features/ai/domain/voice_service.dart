@@ -5,7 +5,7 @@
 // Speech-to-Text + Text-to-Speech
 // ============================================================
 
-import 'package:qibra_ai/core/observability/qibra_log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -53,7 +53,7 @@ class VoiceService {
       // Mic permission
       final micStatus = await Permission.microphone.request();
       if (!micStatus.isGranted) {
-        QibraLog.log(() => 'Microphone permission denied');
+        debugPrint('Microphone permission denied');
         onError?.call('Microphone permission required');
         return false;
       }
@@ -61,12 +61,12 @@ class VoiceService {
       // Speech-to-Text init
       _isInitialized = await _speech.initialize(
         onError: (error) {
-          QibraLog.log(() => 'Speech error');
+          debugPrint('Speech error');
           _isListening = false;
           onError?.call(error.errorMsg);
         },
         onStatus: (status) {
-          QibraLog.log(() => 'Speech status: $status');
+          debugPrint('Speech status: $status');
           if (status == 'done' || status == 'notListening') {
             _isListening = false;
             onListeningStop?.call();
@@ -77,10 +77,10 @@ class VoiceService {
       // Text-to-Speech setup
       await _setupTTS();
 
-      QibraLog.log(() => 'Voice Service initialized: $_isInitialized');
+      debugPrint('Voice Service initialized: $_isInitialized');
       return _isInitialized;
     } catch (e) {
-      QibraLog.log(() => 'Voice init error: $e');
+      debugPrint('Voice init error: $e');
       onError?.call('Voice service failed to initialize');
       return false;
     }
@@ -107,12 +107,12 @@ class VoiceService {
       });
 
       _tts.setErrorHandler((msg) {
-        QibraLog.log(() => 'TTS Error');
+        debugPrint('TTS Error');
         _isSpeaking = false;
         onSpeakingStop?.call();
       });
     } catch (e) {
-      QibraLog.log(() => 'TTS setup error: $e');
+      debugPrint('TTS setup error: $e');
     }
   }
 
@@ -162,7 +162,7 @@ class VoiceService {
         ),
       );
     } catch (e) {
-      QibraLog.log(() => 'Listen error: $e');
+      debugPrint('Listen error: $e');
       _isListening = false;
       onListeningStop?.call();
       onError?.call('Voice recognition failed');
@@ -210,7 +210,7 @@ class VoiceService {
 
       await _tts.speak(cleanText);
     } catch (e) {
-      QibraLog.log(() => 'Speak error: $e');
+      debugPrint('Speak error: $e');
     }
   }
 

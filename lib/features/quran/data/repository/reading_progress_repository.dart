@@ -7,7 +7,7 @@
 // ============================================================
 
 import 'dart:convert';
-import 'package:qibra_ai/core/observability/qibra_log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/quran_models.dart';
@@ -206,7 +206,7 @@ class ReadingProgressRepository {
   // ── Initialize ─────────────────────────────────────────────
   Future<void> initialize() async {
     _prefs ??= await SharedPreferences.getInstance();
-    QibraLog.log(() => '[READING_PROGRESS] repository initialized');
+    debugPrint('[READING_PROGRESS] repository initialized');
   }
 
   Future<SharedPreferences> get _p async {
@@ -233,9 +233,9 @@ class ReadingProgressRepository {
       // Update today's pages
       await _updateTodayPages();
 
-      QibraLog.log(() => '[READING_PROGRESS] saved page ${page.pageNumber}');
+      debugPrint('[READING_PROGRESS] saved page ${page.pageNumber}');
     } catch (e) {
-      QibraLog.log(() => '[READING_PROGRESS] save error: $e');
+      debugPrint('[READING_PROGRESS] save error: $e');
     }
   }
 
@@ -250,7 +250,7 @@ class ReadingProgressRepository {
       if (json == null) return null;
       return MushafPageModel.fromJson(jsonDecode(json) as Map<String, dynamic>);
     } catch (e) {
-      QibraLog.log(() => '[READING_PROGRESS] get page error: $e');
+      debugPrint('[READING_PROGRESS] get page error: $e');
       return null;
     }
   }
@@ -263,9 +263,9 @@ class ReadingProgressRepository {
     try {
       final prefs = await _p;
       await prefs.setString(_keyLastRead, jsonEncode(lastRead.toJson()));
-      QibraLog.log(() => '[READING_PROGRESS] LastRead saved');
+      debugPrint('[READING_PROGRESS] LastRead saved');
     } catch (e) {
-      QibraLog.log(() => '[READING_PROGRESS] last-read save error: $e');
+      debugPrint('[READING_PROGRESS] last-read save error: $e');
     }
   }
 
@@ -274,7 +274,7 @@ class ReadingProgressRepository {
       final prefs = await _p;
       await prefs.remove(_keyLastRead);
     } catch (e) {
-      QibraLog.log(() => '[READING_PROGRESS] last-read clear error: $e');
+      debugPrint('[READING_PROGRESS] last-read clear error: $e');
     }
   }
 
@@ -360,7 +360,7 @@ class ReadingProgressRepository {
 
       await prefs.setString(_keyStreak, jsonEncode(updated.toJson()));
     } catch (e) {
-      QibraLog.log(() => '[READING_PROGRESS] streak update error: $e');
+      debugPrint('[READING_PROGRESS] streak update error: $e');
     }
   }
 
@@ -397,7 +397,7 @@ class ReadingProgressRepository {
       await prefs.setString(_keyReadingHistory,
           jsonEncode(trimmed.map((e) => e.toJson()).toList()));
     } catch (e) {
-      QibraLog.log(() => '[READING_PROGRESS] history update error: $e');
+      debugPrint('[READING_PROGRESS] history update error: $e');
     }
   }
 
@@ -450,7 +450,7 @@ class ReadingProgressRepository {
         await prefs.setInt(_keyTodayPages, current + 1);
       }
     } catch (e) {
-      QibraLog.log(() => '[READING_PROGRESS] today pages error: $e');
+      debugPrint('[READING_PROGRESS] today pages error: $e');
     }
   }
 
@@ -548,7 +548,7 @@ class ReadingProgressRepository {
       final prefs = await _p;
       raw = prefs.getString(_keyAyahHighWater);
     } catch (e) {
-      QibraLog.log(() => '[READING_PROGRESS] high-water load error: $e');
+      debugPrint('[READING_PROGRESS] high-water load error: $e');
     }
     return _hwCache = parseHighWater(raw);
   }
@@ -576,7 +576,7 @@ class ReadingProgressRepository {
           },
       }));
     } catch (e) {
-      QibraLog.log(() => '[READING_PROGRESS] high-water mark error: $e');
+      debugPrint('[READING_PROGRESS] high-water mark error: $e');
     }
   }
 
@@ -613,6 +613,6 @@ class ReadingProgressRepository {
     await prefs.remove(_keyTodayDate);
     await prefs.remove(_keyAyahHighWater);
     _hwCache = null;
-    QibraLog.log(() => '[READING_PROGRESS] all data cleared');
+    debugPrint('[READING_PROGRESS] all data cleared');
   }
 }

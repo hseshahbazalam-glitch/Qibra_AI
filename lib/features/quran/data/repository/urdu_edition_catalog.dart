@@ -30,7 +30,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:qibra_ai/core/observability/qibra_log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:qibra_ai/core/content/edition_resolver.dart';
@@ -128,7 +128,7 @@ class UrduEditionCatalog {
       _evictOverflow();
       return map;
     } catch (e) {
-      QibraLog.log(() => '[EDITION] load failed ($id): $e');
+      debugPrint('[EDITION] load failed ($id): $e');
       return null;
     }
   }
@@ -148,7 +148,7 @@ class UrduEditionCatalog {
     while (_loaded.length > maxCachedEditions) {
       final oldest = _loaded.keys.first;
       _loaded.remove(oldest);
-      QibraLog.log(() => '[EDITION] LRU evicted $oldest');
+      debugPrint('[EDITION] LRU evicted $oldest');
     }
   }
 

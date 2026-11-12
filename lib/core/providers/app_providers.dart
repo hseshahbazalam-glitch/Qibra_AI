@@ -10,7 +10,7 @@
 // ============================================================
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:qibra_ai/core/observability/qibra_log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -141,17 +141,17 @@ final dataBootstrapProvider = FutureProvider<void>((ref) async {
     () async {
       try {
         await NotificationService().initialize();
-        QibraLog.log(() => '✅ Notification Service ready');
+        debugPrint('✅ Notification Service ready');
       } catch (e) {
-        QibraLog.log(() => '⚠️ Notification Service failed: $e');
+        debugPrint('⚠️ Notification Service failed: $e');
       }
     }(),
     () async {
       try {
         await QuranRepository().initialize();
-        QibraLog.log(() => '✅ Quran data loaded successfully!');
+        debugPrint('✅ Quran data loaded successfully!');
       } catch (e) {
-        QibraLog.log(() => '⚠️ Quran data loading failed: $e');
+        debugPrint('⚠️ Quran data loading failed: $e');
       }
     }(),
   ]);
