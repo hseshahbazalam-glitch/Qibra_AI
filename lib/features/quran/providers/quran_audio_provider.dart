@@ -30,7 +30,9 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'; // @immutable (X2 left this in:
+// the seam replaced debugPrint only — the annotation is the file's own need)
+import 'package:qibra_ai/core/observability/qibra_log.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -454,7 +456,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
     try {
       await _player.seek(Duration(milliseconds: ms));
     } catch (e) {
-      debugPrint('⚠️ tilawat seek failed: $e');
+      QibraLog.log(() => '⚠️ tilawat seek failed: $e');
     }
     _syncService();
   }
@@ -559,7 +561,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
     try {
       await _player.setSpeed(s);
     } catch (e) {
-      debugPrint('⚠️ tilawat speed set failed: $e');
+      QibraLog.log(() => '⚠️ tilawat speed set failed: $e');
     }
     _syncService();
   }
@@ -703,7 +705,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
         speed: state.speed,
       ));
     } catch (e) {
-      debugPrint('⚠️ tilawat notification sync failed: $e');
+      QibraLog.log(() => '⚠️ tilawat notification sync failed: $e');
     }
   }
 
@@ -814,7 +816,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
           loaded = true;
         }
       } catch (e) {
-        debugPrint('⚠️ tilawat local load failed: $e');
+        QibraLog.log(() => '⚠️ tilawat local load failed: $e');
       }
       if (!loaded) {
         loaded = await _trySetUrl(Tilawat.primaryUrl(a.surah, a.ayah, qari: _qari));
@@ -836,7 +838,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
       try {
         await _player.setSpeed(state.speed);
       } catch (e) {
-        debugPrint('⚠️ tilawat speed re-apply failed: $e');
+        QibraLog.log(() => '⚠️ tilawat speed re-apply failed: $e');
       }
       // Word play: seek BEFORE play() so the first sample heard IS the
       // word start. A failed seek is silent — the ayah plays whole, and
@@ -848,7 +850,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
         try {
           await _player.seek(Duration(milliseconds: seekMs));
         } catch (e) {
-          debugPrint('⚠️ tilawat word seek failed: $e');
+          QibraLog.log(() => '⚠️ tilawat word seek failed: $e');
         }
       }
       state = state.copyWith(clearError: true, buffering: true);
@@ -861,7 +863,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
         try {
           await _player.play();
         } catch (e) {
-          debugPrint('⚠️ tilawat playback error: $e');
+          QibraLog.log(() => '⚠️ tilawat playback error: $e');
           state = state.copyWith(
             phase: QuranAudioPhase.failed,
             buffering: false,
@@ -871,7 +873,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
         }
       }());
     } catch (e) {
-      debugPrint('⚠️ tilawat play failed: $e');
+      QibraLog.log(() => '⚠️ tilawat play failed: $e');
       state = state.copyWith(
         phase: QuranAudioPhase.failed,
         buffering: false,
@@ -892,7 +894,7 @@ class QuranAudioController extends Notifier<QuranAudioState>
       await _player.setUrl(url);
       return true;
     } catch (e) {
-      debugPrint('⚠️ tilawat source failed: $e');
+      QibraLog.log(() => '⚠️ tilawat source failed: $e');
       return false;
     }
   }

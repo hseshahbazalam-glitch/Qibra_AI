@@ -17,7 +17,7 @@
 // null and every integration point is a checked no-op.
 
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:qibra_ai/core/observability/qibra_log.dart';
 
 /// The playback surface the handler may drive. Implemented by
 /// QuranAudioController — method set exists, semantics identical to the
@@ -58,7 +58,7 @@ class TilawatAudioHandler extends BaseAudioHandler {
     } catch (e) {
       // No platform support / init failure: audio keeps working
       // in-app, background notification is simply absent.
-      debugPrint('⚠️ audio_service unavailable: $e');
+      QibraLog.log(() => '⚠️ audio_service unavailable: $e');
       instance = null;
     }
   }
@@ -70,7 +70,7 @@ class TilawatAudioHandler extends BaseAudioHandler {
     try {
       await action?.call();
     } catch (e) {
-      debugPrint('⚠️ tilawat service command failed: $e');
+      QibraLog.log(() => '⚠️ tilawat service command failed: $e');
     }
   }
 
