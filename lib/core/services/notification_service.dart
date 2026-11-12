@@ -6,6 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'package:qibra_ai/core/notifications/dua_reminder_policy.dart';
 import 'package:qibra_ai/core/notifications/notification_reconcile.dart';
+import 'package:qibra_ai/core/observability/qibra_log.dart';
 
 /// Local notifications only. Scheduling uses inexact alarms.
 /// Do not claim reboot-proof or exact-alarm delivery; those are not device-tested.
@@ -603,7 +604,7 @@ class NotificationService {
         );
       }
     } catch (e) {
-      debugPrint('Notification error: $e');
+      QibraLog.log(() => 'Notification error: $e');
     }
   }
 }

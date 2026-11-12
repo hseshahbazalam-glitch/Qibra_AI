@@ -9,6 +9,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'package:qibra_ai/core/observability/qibra_log.dart';
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import '../hadith_availability.dart';
 
@@ -252,7 +253,7 @@ class HadithDatabaseService {
     }
 
     _isLoading = true;
-    debugPrint('[HADITH_DB] Initializing database...');
+    QibraLog.log(() => '[HADITH_DB] Initializing database...');
     final stopwatch = Stopwatch()..start();
 
     try {
@@ -272,12 +273,12 @@ class HadithDatabaseService {
 
       _isInitialized = true;
       stopwatch.stop();
-      debugPrint(
-        '[HADITH_DB] Initialized in ${stopwatch.elapsedMilliseconds}ms '
-        '- $totalHadiths hadiths loaded across ${_bookData.length} collections',
-      );
+      QibraLog.log(() =>
+          '[HADITH_DB] Initialized in ${stopwatch.elapsedMilliseconds}ms '
+          '- $totalHadiths hadiths loaded across ${_bookData.length} '
+          'collections');
     } catch (e) {
-      debugPrint('[HADITH_DB] Initialization error: $e');
+      QibraLog.log(() => '[HADITH_DB] Initialization error: $e');
     } finally {
       _isLoading = false;
     }
@@ -570,9 +571,9 @@ class HadithDatabaseService {
           ),
       };
 
-      debugPrint('[HADITH_DB] Loaded $name: ${hadiths.length} hadiths');
+      QibraLog.log(() => '[HADITH_DB] Loaded $name: ${hadiths.length} hadiths');
     } catch (e) {
-      debugPrint('[HADITH_DB] Error loading $slug: $e');
+      QibraLog.log(() => '[HADITH_DB] Error loading $slug: $e');
     }
   }
 
@@ -611,7 +612,7 @@ class HadithDatabaseService {
   static void _logDecodeTiming(String path, Stopwatch? sw) {
     if (sw == null) return;
     sw.stop();
-    debugPrint('[HADITH_DB] decoded '
+    QibraLog.log(() => '[HADITH_DB] decoded '
         '${path.substring(path.lastIndexOf('/') + 1)} in '
         '${sw.elapsedMilliseconds}ms (off-main)');
   }
@@ -619,7 +620,8 @@ class HadithDatabaseService {
   /// Per-file decode stopwatches for the owner's boot profiling (perf
   /// pass item 1): on in debug + profile, silent in release. Flip to
   /// force either state. The aggregate '[HADITH_DB] Initialized' line is
-  /// unchanged and always logs via debugPrint.
+  /// unchanged and rides the same QibraLog seam as every other diagnostic in
+  /// this file (PASS X2), so neither line exists in a release build.
   static bool debugLogLoadTiming = !kReleaseMode;
 
   /// Pure, isolate-safe decode entry (perf pass item 1). jsonDecode plus

@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qibra_ai/core/observability/qibra_log.dart';
 
 class TafsirPassage {
   const TafsirPassage({
@@ -70,7 +71,7 @@ class TafsirBundle {
       return TafsirBundle._(meta['credit'] as String, bySurah);
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('tafsir bundle unavailable: $e');
+        QibraLog.log(() => 'tafsir bundle unavailable: $e');
       }
       return null;
     }

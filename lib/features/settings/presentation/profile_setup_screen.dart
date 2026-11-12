@@ -22,6 +22,7 @@ import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
+import 'package:qibra_ai/core/observability/qibra_log.dart';
 
 part 'profile_setup_form.dart';
 
@@ -178,7 +179,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         setState(() => _avatarPath = path);
       }
     } catch (e) {
-      debugPrint('\u26a0\ufe0f profile avatar load failed: $e');
+      QibraLog.log(() => '\u26a0\ufe0f profile avatar load failed: $e');
     }
   }
 
@@ -428,7 +429,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       );
     } catch (e) {
       // Honest failure copy; the existing avatar state is untouched.
-      debugPrint('\u26a0\ufe0f profile avatar pick failed: $e');
+      QibraLog.log(() => '\u26a0\ufe0f profile avatar pick failed: $e');
       if (!mounted) return;
       final colors = QibraColors.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -453,7 +454,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       final f = File(path);
       if (await f.exists()) await f.delete();
     } catch (e) {
-      debugPrint('\u26a0\ufe0f profile avatar delete failed: $e');
+      QibraLog.log(() => '\u26a0\ufe0f profile avatar delete failed: $e');
       if (!mounted) return;
       final colors = QibraColors.of(context);
       ScaffoldMessenger.of(context).showSnackBar(

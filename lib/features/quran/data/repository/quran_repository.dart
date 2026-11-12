@@ -10,7 +10,7 @@
 
 import 'dart:convert';
 import 'dart:isolate';
-import 'package:flutter/foundation.dart';
+import 'package:qibra_ai/core/observability/qibra_log.dart';
 import 'package:flutter/services.dart';
 
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
@@ -69,7 +69,7 @@ class QuranRepository {
   Future<void> _initializeInternal() async {
     if (_isInitialized) return;
     try {
-      debugPrint('[QURAN] Initializing...');
+      QibraLog.log(() => '[QURAN] Initializing...');
       final stopwatch = Stopwatch()..start();
 
       await Future.wait([
@@ -83,13 +83,10 @@ class QuranRepository {
       _isInitialized = true;
       stopwatch.stop();
 
-      debugPrint('[QURAN] Initialized in ${stopwatch.elapsedMilliseconds}ms');
-      debugPrint(
-          '   English translations: ${_cachedTranslationsEn?.length ?? 0}');
-      debugPrint(
-          '   Urdu translations: ${_cachedTranslationsUrdu?.length ?? 0}');
-      debugPrint(
-          '   Roman translations: ${_cachedTranslationsRoman?.length ?? 0}');
+      QibraLog.log(() => '[QURAN] Initialized in ${stopwatch.elapsedMilliseconds}ms');
+      QibraLog.log(() => '   English translations: ${_cachedTranslationsEn?.length ?? 0}');
+      QibraLog.log(() => '   Urdu translations: ${_cachedTranslationsUrdu?.length ?? 0}');
+      QibraLog.log(() => '   Roman translations: ${_cachedTranslationsRoman?.length ?? 0}');
     } catch (e, stackTrace) {
       throw QuranRepositoryException(
         'Failed to initialize Quran data: $e',
@@ -172,7 +169,7 @@ class QuranRepository {
         }
       }
     } catch (e) {
-      debugPrint('[QURAN] English translations failed: $e');
+      QibraLog.log(() => '[QURAN] English translations failed: $e');
       _cachedTranslationsEn = {};
     }
   }
@@ -198,7 +195,7 @@ class QuranRepository {
         _cachedTranslationsUrdu![key] = text;
       }
     } catch (e) {
-      debugPrint('[QURAN] Urdu translations failed: $e');
+      QibraLog.log(() => '[QURAN] Urdu translations failed: $e');
       _cachedTranslationsUrdu = {};
     }
   }
@@ -223,7 +220,7 @@ class QuranRepository {
         _cachedTranslationsRoman![key] = text;
       }
     } catch (e) {
-      debugPrint('[QURAN] Roman translations failed: $e');
+      QibraLog.log(() => '[QURAN] Roman translations failed: $e');
       _cachedTranslationsRoman = {};
     }
   }

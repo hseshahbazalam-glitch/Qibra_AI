@@ -12,7 +12,7 @@
 // downloading(done/total · fraction) / failed(n). A 0-byte file is
 // failure, cleaned up by the downloader — never shown as "downloaded".
 
-import 'package:flutter/foundation.dart';
+import 'package:qibra_ai/core/observability/qibra_log.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/audio/tilawat.dart';
@@ -145,7 +145,7 @@ class QuranDownloadController extends Notifier<Map<int, SurahAudioStatus>> {
         ),
       };
     } catch (e) {
-      debugPrint('⚠️ tilawat download crashed: $e');
+      QibraLog.log(() => '⚠️ tilawat download crashed: $e');
       state = {
         ...state,
         surah: SurahAudioStatus(
@@ -173,7 +173,7 @@ class QuranDownloadController extends Notifier<Map<int, SurahAudioStatus>> {
         out[q.id] = (present: t.present, total: t.total);
       }
     } catch (e) {
-      debugPrint('⚠️ tilawat presence scan failed: $e');
+      QibraLog.log(() => '⚠️ tilawat presence scan failed: $e');
     }
     return out;
   }
@@ -320,7 +320,7 @@ class QuranStorageController extends Notifier<TilawatStorageReport?> {
     try {
       state = await _dl.storageReport();
     } catch (e) {
-      debugPrint('⚠️ tilawat storage scan failed: $e');
+      QibraLog.log(() => '⚠️ tilawat storage scan failed: $e');
       state = null; // unreadable disk = nothing claimed, never 0-as-fact
     }
   }
@@ -330,9 +330,9 @@ class QuranStorageController extends Notifier<TilawatStorageReport?> {
   Future<void> deleteEverything() async {
     try {
       final removed = await _dl.deleteEverything();
-      debugPrint('tilawat: removed $removed files (all qaris)');
+      QibraLog.log(() => 'tilawat: removed $removed files (all qaris)');
     } catch (e) {
-      debugPrint('⚠️ tilawat delete-all failed: $e');
+      QibraLog.log(() => '⚠️ tilawat delete-all failed: $e');
     }
     await refresh();
   }
