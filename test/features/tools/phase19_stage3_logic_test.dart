@@ -1,22 +1,22 @@
 // Stage 3 — logic tests: extracted pure calculators (zakat, inheritance
-// pre-check), the shared SearchNormalizer, the real prayer engine +
-// astronomical service sanity checks, and structural guards for the
-// part-file splits. All of these run on the Dart VM; no widget harness.
+// pre-check), the shared SearchNormalizer, the astronomical service sanity
+// checks, and structural guards for the part-file splits. All of these run on
+// the Dart VM; no widget harness.
+//
+// PASS X3 (2026-09-02) removed this file's `NextPrayerEngine` group: the
+// header used to call that module "the real prayer engine", and the import
+// graph is what disproved it — no screen or provider imported it (the reader
+// path runs on PrayerCalculationService + prayer_provider), so the engine,
+// its helper here and its pins went together.
 
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import 'package:qibra_ai/features/prayer/data/models/prayer_models.dart';
-import 'package:qibra_ai/features/prayer/data/services/next_prayer_engine.dart';
 import 'package:qibra_ai/features/prayer/data/services/prayer_calculation_service.dart';
 import 'package:qibra_ai/features/tools/logic/inheritance_estimator.dart';
 import 'package:qibra_ai/features/tools/logic/zakat_calculator.dart';
-
-NamedPrayerInstant _p(String n, int h, int m) => NamedPrayerInstant(
-      name: n,
-      time: DateTime(2026, 1, 15, h, m),
-    );
 
 void main() {
   group('SearchNormalizer', () {
@@ -266,64 +266,6 @@ void main() {
       );
       expect((r as InheritancePrecheckFailure).message,
           'Debts exceed estate — no inheritance to distribute');
-    });
-  });
-
-  group('NextPrayerEngine', () {
-    final today = [
-      _p('Fajr', 5, 10),
-      _p('Sunrise', 6, 40),
-      _p('Dhuhr', 12, 20),
-      _p('Asr', 15, 40),
-      _p('Maghrib', 18, 10),
-      _p('Isha', 19, 40),
-    ];
-    final tomorrowFajr = _p('Fajr', 5, 12).time.add(const Duration(days: 1));
-
-    test('next() skips non-obligatory (Sunrise never wins)', () {
-      final now = DateTime(2026, 1, 15, 5, 30);
-      final r = NextPrayerEngine.next(now: now, today: today)!;
-      expect(r.name, 'Dhuhr');
-      expect(r.isTomorrow, isFalse);
-    });
-
-    test('after Isha wraps to tomorrow Fajr with positive countdown', () {
-      final now = DateTime(2026, 1, 15, 22, 0);
-      final r = NextPrayerEngine.next(
-        now: now,
-        today: today,
-        tomorrowFajr: NamedPrayerInstant(name: 'Fajr', time: tomorrowFajr),
-      )!;
-      expect(r.name, 'Fajr');
-      expect(r.isTomorrow, isTrue);
-      expect(r.countdown, const Duration(hours: 7, minutes: 12));
-    });
-
-    test('current() is null before Fajr; late night is still Isha', () {
-      expect(
-          NextPrayerEngine.current(
-              now: DateTime(2026, 1, 15, 3, 0), today: today),
-          isNull);
-      expect(
-          NextPrayerEngine.current(
-                  now: DateTime(2026, 1, 15, 23, 30), today: today)!
-              .name,
-          'Isha');
-    });
-
-    test(
-        'current() during a window returns that prayer; Sunrise is not current',
-        () {
-      expect(
-          NextPrayerEngine.current(
-                  now: DateTime(2026, 1, 15, 13, 0), today: today)!
-              .name,
-          'Dhuhr');
-      expect(
-          NextPrayerEngine.current(
-                  now: DateTime(2026, 1, 15, 6, 0), today: today)!
-              .name,
-          'Fajr'); // between Fajr and Sunrise
     });
   });
 
