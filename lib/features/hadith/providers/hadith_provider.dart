@@ -20,9 +20,13 @@ import '../data/services/hadith_view_history.dart';
 /// Hadith display language is independent of UI locale.
 /// Only bundled languages: en, ar, ur. Hindi and others stay unresolved.
 class HadithLanguageNotifier extends StateNotifier<String> {
-  HadithLanguageNotifier() : super('en') {
+  // PASS X1: the ref is needed for ONE thing — refreshing the surfaces whose
+  // models snapshot a translation's text, after that language folds in.
+  HadithLanguageNotifier(this._ref) : super('en') {
     _load();
   }
+
+  final Ref _ref;
 
   static const _key = 'hadith_display_language_v1';
   // Phase B: DERIVED from the availability matrix (single source of
@@ -41,12 +45,29 @@ class HadithLanguageNotifier extends StateNotifier<String> {
     state = code;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key, code);
+    // PASS X1: the boot batch carries english/arabic/urdu only, so the
+    // selected translation is folded on the way in. Single-flight, and a
+    // no-op for the three eager languages and for anything already in
+    // memory — the two language sheets stay instant. Read through the
+    // factory rather than the provider: `hadithDatabaseProvider` hands out
+    // that same singleton, and a test double overriding it simply has nothing
+    // folded (empty cache → warmLanguage false → no invalidation).
+    if (await HadithDatabaseService().warmLanguage(code)) {
+      // hadithsProvider maps LocalHadith → HadithModel ONCE at build, so the
+      // rows it published still carry '' for the freshly folded language.
+      // `mounted` because the fold is awaited: a sheet closed while it ran
+      // must not invalidate a container that is already gone.
+      if (mounted) {
+        _ref.invalidate(hadithsProvider);
+        _ref.invalidate(hadithLanguageCoverageProvider);
+      }
+    }
   }
 }
 
 final hadithLanguageProvider =
     StateNotifierProvider<HadithLanguageNotifier, String>(
-  (ref) => HadithLanguageNotifier(),
+  (ref) => HadithLanguageNotifier(ref),
 );
 
 String? hadithTextForLanguage(HadithModel hadith, String language) {
@@ -110,6 +131,18 @@ final hadithDatabaseInitProvider = FutureProvider<bool>((ref) async {
   final db = ref.watch(hadithDatabaseProvider);
   if (!db.isInitialized) {
     await db.initialize();
+    // PASS X1 — the reader's PERSISTED language rides the tail of the boot
+    // sequence (the corpus itself now loads only the base trio). Awaiting it
+    // here is what keeps the first painted hadith honest: a bn/tr/id/fr
+    // reader gets its translation on the first frame instead of the
+    // 'unavailable' fallback for a second (en/ar/ur need no fold at all, so
+    // warmLanguage returns false and touches no asset). Reads (not watches)
+    // the language:
+    // a later switch is handled by setLanguage, and re-running this
+    // provider would drop every hadith list back to its loader.
+    if (db.isInitialized) {
+      await db.warmLanguage(ref.read(hadithLanguageProvider));
+    }
   }
   return db.isInitialized;
 });
