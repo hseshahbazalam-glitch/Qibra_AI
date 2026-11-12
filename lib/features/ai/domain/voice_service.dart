@@ -53,7 +53,7 @@ class VoiceService {
       // Mic permission
       final micStatus = await Permission.microphone.request();
       if (!micStatus.isGranted) {
-        debugPrint('Microphone permission denied');
+        if (kDebugMode) debugPrint('Microphone permission denied');
         onError?.call('Microphone permission required');
         return false;
       }
@@ -61,12 +61,12 @@ class VoiceService {
       // Speech-to-Text init
       _isInitialized = await _speech.initialize(
         onError: (error) {
-          debugPrint('Speech error');
+          if (kDebugMode) debugPrint('Speech error');
           _isListening = false;
           onError?.call(error.errorMsg);
         },
         onStatus: (status) {
-          debugPrint('Speech status: $status');
+          if (kDebugMode) debugPrint('Speech status: $status');
           if (status == 'done' || status == 'notListening') {
             _isListening = false;
             onListeningStop?.call();
@@ -77,10 +77,10 @@ class VoiceService {
       // Text-to-Speech setup
       await _setupTTS();
 
-      debugPrint('Voice Service initialized: $_isInitialized');
+      if (kDebugMode) debugPrint('Voice Service initialized: $_isInitialized');
       return _isInitialized;
     } catch (e) {
-      debugPrint('Voice init error: $e');
+      if (kDebugMode) debugPrint('Voice init error: $e');
       onError?.call('Voice service failed to initialize');
       return false;
     }
@@ -107,12 +107,12 @@ class VoiceService {
       });
 
       _tts.setErrorHandler((msg) {
-        debugPrint('TTS Error');
+        if (kDebugMode) debugPrint('TTS Error');
         _isSpeaking = false;
         onSpeakingStop?.call();
       });
     } catch (e) {
-      debugPrint('TTS setup error: $e');
+      if (kDebugMode) debugPrint('TTS setup error: $e');
     }
   }
 
@@ -162,7 +162,7 @@ class VoiceService {
         ),
       );
     } catch (e) {
-      debugPrint('Listen error: $e');
+      if (kDebugMode) debugPrint('Listen error: $e');
       _isListening = false;
       onListeningStop?.call();
       onError?.call('Voice recognition failed');
@@ -210,7 +210,7 @@ class VoiceService {
 
       await _tts.speak(cleanText);
     } catch (e) {
-      debugPrint('Speak error: $e');
+      if (kDebugMode) debugPrint('Speak error: $e');
     }
   }
 

@@ -69,7 +69,7 @@ class QuranRepository {
   Future<void> _initializeInternal() async {
     if (_isInitialized) return;
     try {
-      debugPrint('[QURAN] Initializing...');
+      if (kDebugMode) debugPrint('[QURAN] Initializing...');
       final stopwatch = Stopwatch()..start();
 
       await Future.wait([
@@ -83,12 +83,12 @@ class QuranRepository {
       _isInitialized = true;
       stopwatch.stop();
 
-      debugPrint('[QURAN] Initialized in ${stopwatch.elapsedMilliseconds}ms');
-      debugPrint(
+      if (kDebugMode) debugPrint('[QURAN] Initialized in ${stopwatch.elapsedMilliseconds}ms');
+      if (kDebugMode) debugPrint(
           '   English translations: ${_cachedTranslationsEn?.length ?? 0}');
-      debugPrint(
+      if (kDebugMode) debugPrint(
           '   Urdu translations: ${_cachedTranslationsUrdu?.length ?? 0}');
-      debugPrint(
+      if (kDebugMode) debugPrint(
           '   Roman translations: ${_cachedTranslationsRoman?.length ?? 0}');
     } catch (e, stackTrace) {
       throw QuranRepositoryException(
@@ -172,7 +172,7 @@ class QuranRepository {
         }
       }
     } catch (e) {
-      debugPrint('[QURAN] English translations failed: $e');
+      if (kDebugMode) debugPrint('[QURAN] English translations failed: $e');
       _cachedTranslationsEn = {};
     }
   }
@@ -198,7 +198,7 @@ class QuranRepository {
         _cachedTranslationsUrdu![key] = text;
       }
     } catch (e) {
-      debugPrint('[QURAN] Urdu translations failed: $e');
+      if (kDebugMode) debugPrint('[QURAN] Urdu translations failed: $e');
       _cachedTranslationsUrdu = {};
     }
   }
@@ -223,7 +223,7 @@ class QuranRepository {
         _cachedTranslationsRoman![key] = text;
       }
     } catch (e) {
-      debugPrint('[QURAN] Roman translations failed: $e');
+      if (kDebugMode) debugPrint('[QURAN] Roman translations failed: $e');
       _cachedTranslationsRoman = {};
     }
   }

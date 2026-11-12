@@ -141,17 +141,17 @@ final dataBootstrapProvider = FutureProvider<void>((ref) async {
     () async {
       try {
         await NotificationService().initialize();
-        debugPrint('✅ Notification Service ready');
+        if (kDebugMode) debugPrint('✅ Notification Service ready');
       } catch (e) {
-        debugPrint('⚠️ Notification Service failed: $e');
+        if (kDebugMode) debugPrint('⚠️ Notification Service failed: $e');
       }
     }(),
     () async {
       try {
         await QuranRepository().initialize();
-        debugPrint('✅ Quran data loaded successfully!');
+        if (kDebugMode) debugPrint('✅ Quran data loaded successfully!');
       } catch (e) {
-        debugPrint('⚠️ Quran data loading failed: $e');
+        if (kDebugMode) debugPrint('⚠️ Quran data loading failed: $e');
       }
     }(),
   ]);

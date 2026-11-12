@@ -13,6 +13,7 @@
 //   Otherwise                   → Decorative Islamic pattern vector
 // ===========================================================
 
+import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
@@ -97,7 +98,7 @@ class SafeImage extends StatelessWidget {
       cacheWidth: cacheWidth,
       alignment: alignment,
       errorBuilder: (context, error, stackTrace) {
-        debugPrint('[SafeImage] Asset missing/failed: $assetPath — $error');
+        if (kDebugMode) debugPrint('[SafeImage] Asset missing/failed: $assetPath — $error');
         return placeholder;
       },
       frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {

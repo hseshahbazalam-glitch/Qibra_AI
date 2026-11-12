@@ -4,6 +4,7 @@
 // Version: 6.0.0 — Clean (No Audio, New AI System)
 // ============================================================
 
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -135,16 +136,16 @@ void main() {
 
 Future<void> _loadHadithInBackground() async {
   try {
-    debugPrint('📚 Loading Hadith database...');
+    if (kDebugMode) debugPrint('📚 Loading Hadith database...');
     final hadithDb = HadithDatabaseService();
     await hadithDb.initialize();
-    debugPrint('✅ Hadith database loaded!');
+    if (kDebugMode) debugPrint('✅ Hadith database loaded!');
     _globalHadithDb = hadithDb;
     try {
       RagService.instance.attachHadithDb(hadithDb);
     } catch (_) {}
   } catch (e) {
-    debugPrint('⚠️ Hadith database loading failed: $e');
+    if (kDebugMode) debugPrint('⚠️ Hadith database loading failed: $e');
   }
 }
 
@@ -191,11 +192,11 @@ class QibraApp extends ConsumerWidget {
 // ============================================================
 
 void _printBootInfo(bool envLoaded) {
-  debugPrint('╔═══════════════════════════════════════╗');
-  debugPrint('║       QIBRA AI — System Boot          ║');
-  debugPrint('╠═══════════════════════════════════════╣');
-  debugPrint('║  Name    : ${AppInfo.appName}');
-  debugPrint('║  Version : ${AppInfo.version}');
+  if (kDebugMode) debugPrint('╔═══════════════════════════════════════╗');
+  if (kDebugMode) debugPrint('║       QIBRA AI — System Boot          ║');
+  if (kDebugMode) debugPrint('╠═══════════════════════════════════════╣');
+  if (kDebugMode) debugPrint('║  Name    : ${AppInfo.appName}');
+  if (kDebugMode) debugPrint('║  Version : ${AppInfo.version}');
   // device-log fix 2 (honesty audit of every static ✅ line):
   //  .env — real outcome captured from the try/catch above.
   //  Riverpod / Router — true BY CONSTRUCTION at print time: the very
@@ -205,11 +206,11 @@ void _printBootInfo(bool envLoaded) {
   //  so the line states that. Hadith line already told the truth.
   //  AI Engine — local RAG only until the background hadith attach
   //  completes and every AI flag stays backend-off (AppFeatureFlags).
-  debugPrint('║  ${envLoaded ? '✅ .env loaded' : '⚠️ .env not present'}');
-  debugPrint('║  ✅ Riverpod initialized');
-  debugPrint('║  ✅ Router ready');
-  debugPrint('║  📖 Quran data queued (loads after first frame)');
-  debugPrint('║  📚 Hadith DB loading after first frame');
-  debugPrint('║  🤖 AI Engine: local RAG (backend off)');
-  debugPrint('╚═══════════════════════════════════════╝');
+  if (kDebugMode) debugPrint('║  ${envLoaded ? '✅ .env loaded' : '⚠️ .env not present'}');
+  if (kDebugMode) debugPrint('║  ✅ Riverpod initialized');
+  if (kDebugMode) debugPrint('║  ✅ Router ready');
+  if (kDebugMode) debugPrint('║  📖 Quran data queued (loads after first frame)');
+  if (kDebugMode) debugPrint('║  📚 Hadith DB loading after first frame');
+  if (kDebugMode) debugPrint('║  🤖 AI Engine: local RAG (backend off)');
+  if (kDebugMode) debugPrint('╚═══════════════════════════════════════╝');
 }
