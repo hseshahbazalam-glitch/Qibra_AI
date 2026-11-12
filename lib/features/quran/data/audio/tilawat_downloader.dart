@@ -18,7 +18,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:qibra_ai/core/observability/qibra_log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'tilawat.dart';
@@ -119,7 +119,7 @@ class TilawatDownloader {
       f.deleteSync(); // 0-byte = failure; clean it up
       return null;
     } catch (e) {
-      QibraLog.log(() => '⚠️ tilawat size check failed for $path: $e');
+      if (kDebugMode) debugPrint('⚠️ tilawat size check failed for $path: $e');
       return null;
     }
   }
@@ -219,7 +219,7 @@ class TilawatDownloader {
       if (await part.exists()) await part.delete();
       return false;
     } catch (e) {
-      QibraLog.log(() => '⚠️ tilawat download failed ($ayah): $e');
+      if (kDebugMode) debugPrint('⚠️ tilawat download failed ($ayah): $e');
       try {
         if (await File(partPath).exists()) await File(partPath).delete();
       } catch (_) {
@@ -298,7 +298,7 @@ class TilawatDownloader {
           f.deleteSync();
           removed++;
         } catch (err) {
-          QibraLog.log(() => '⚠️ tilawat delete failed (${f.path}): $err');
+          if (kDebugMode) debugPrint('⚠️ tilawat delete failed (${f.path}): $err');
         }
       }
     }
@@ -316,7 +316,7 @@ class TilawatDownloader {
         try {
           if (await f.exists()) await f.delete();
         } catch (e) {
-          QibraLog.log(() => '⚠️ tilawat delete failed ($n$suffix): $e');
+          if (kDebugMode) debugPrint('⚠️ tilawat delete failed ($n$suffix): $e');
         }
       }
     }

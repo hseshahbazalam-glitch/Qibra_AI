@@ -26,9 +26,9 @@ abstract final class AppAssetsCheck {
   ];
 
   static Future<void> verifyAllAssets() async {
-    debugPrint('╔══════════════════════════════════════╗');
-    debugPrint('║   QIBRA AI — Assets Verification     ║');
-    debugPrint('╠══════════════════════════════════════╣');
+    if (kDebugMode) debugPrint('╔══════════════════════════════════════╗');
+    if (kDebugMode) debugPrint('║   QIBRA AI — Assets Verification     ║');
+    if (kDebugMode) debugPrint('╠══════════════════════════════════════╣');
 
     int found = 0;
     int missing = 0;
@@ -37,17 +37,20 @@ abstract final class AppAssetsCheck {
       try {
         await rootBundle.load(asset);
         found++;
-        debugPrint('║  OK $asset');
+        // PASS X2 (print diet, guard form): the per-asset '║  OK …' row used to
+        // print one line per registered asset INSIDE this boot loop — 16 asset
+        // reads, 16 rows, and a table nobody acts on while everything is fine.
+        // Success is the summary count below; only a MISSING asset gets a row.
       } catch (e) {
         missing++;
-        debugPrint('║  MISSING: $asset');
+        if (kDebugMode) debugPrint('║  MISSING: $asset');
       }
     }
 
-    debugPrint('╠══════════════════════════════════════╣');
-    debugPrint('║  Found  : $found/${registeredAssets.length}');
-    debugPrint('║  Missing: $missing/${registeredAssets.length}');
-    debugPrint('╚══════════════════════════════════════╝');
+    if (kDebugMode) debugPrint('╠══════════════════════════════════════╣');
+    if (kDebugMode) debugPrint('║  Found  : $found/${registeredAssets.length}');
+    if (kDebugMode) debugPrint('║  Missing: $missing/${registeredAssets.length}');
+    if (kDebugMode) debugPrint('╚══════════════════════════════════════╝');
   }
 
   static Future<bool> assetExists(String path) async {

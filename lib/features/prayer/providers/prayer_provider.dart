@@ -2,7 +2,7 @@
 // ============================================================
 // QIBRA AI — PRAYER PROVIDER (v1.3 — Fixed)
 // ============================================================
-import 'package:qibra_ai/core/observability/qibra_log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:qibra_ai/core/services/notification_service.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -110,7 +110,7 @@ class LocationNotifier extends StateNotifier<LocationState> {
         );
       }
     } catch (e) {
-      QibraLog.log(() => '[LOCATION] Cache load error: $e');
+      if (kDebugMode) debugPrint('[LOCATION] Cache load error: $e');
     }
   }
 
@@ -128,7 +128,7 @@ class LocationNotifier extends StateNotifier<LocationState> {
       });
       await prefs.setString(_cacheKey, json);
     } catch (e) {
-      QibraLog.log(() => '[LOCATION] Cache save error: $e');
+      if (kDebugMode) debugPrint('[LOCATION] Cache save error: $e');
     }
   }
 
@@ -289,7 +289,7 @@ class PrayerSettingsNotifier extends StateNotifier<PrayerSettings> {
         use24HourFormat: json['24hr'] as bool? ?? false,
       );
     } catch (e) {
-      QibraLog.log(() => '[SETTINGS] Load error: $e');
+      if (kDebugMode) debugPrint('[SETTINGS] Load error: $e');
     }
   }
 
@@ -321,7 +321,7 @@ class PrayerSettingsNotifier extends StateNotifier<PrayerSettings> {
 
       await prefs.setString(_key, json);
     } catch (e) {
-      QibraLog.log(() => '[SETTINGS] Save error: $e');
+      if (kDebugMode) debugPrint('[SETTINGS] Save error: $e');
     }
   }
 
@@ -425,7 +425,7 @@ final dailyPrayerTimesProvider = Provider<DailyPrayerTimes?>((ref) {
       adjustments: settings.adjustments,
     );
   } catch (e) {
-    QibraLog.log(() => '[PRAYER] Calculation error: $e');
+    if (kDebugMode) debugPrint('[PRAYER] Calculation error: $e');
     return null;
   }
 });
@@ -623,7 +623,7 @@ class PrayerRecordsNotifier extends StateNotifier<List<PrayerRecord>> {
         );
       }).toList();
     } catch (e) {
-      QibraLog.log(() => '[RECORDS] Load error: $e');
+      if (kDebugMode) debugPrint('[RECORDS] Load error: $e');
     }
   }
 
@@ -641,7 +641,7 @@ class PrayerRecordsNotifier extends StateNotifier<List<PrayerRecord>> {
           .toList();
       await prefs.setString(_key, jsonEncode(list));
     } catch (e) {
-      QibraLog.log(() => '[RECORDS] Save error: $e');
+      if (kDebugMode) debugPrint('[RECORDS] Save error: $e');
     }
   }
 
@@ -825,7 +825,7 @@ Future<void> _scheduleAllAzanNotifications(
   await notifService.cancelPrayerNotifications();
 
   if (!settings.enableNotifications) {
-    QibraLog.log(() => '🔕 Notifications disabled - not scheduling');
+    if (kDebugMode) debugPrint('🔕 Notifications disabled - not scheduling');
     return;
   }
 
@@ -842,11 +842,11 @@ Future<void> _scheduleAllAzanNotifications(
       locationKey: (times.location.city.isEmpty) ? 'UNKNOWN' : times.location.city,
     );
 
-    QibraLog.log(() => '✅ All prayer notifications scheduled');
-    QibraLog.log(() => '   Azan: ${settings.enableAdhan}');
-    QibraLog.log(() => '   Pre-reminder: ${settings.enablePreReminder} (${settings.preReminderMinutes} min)');
+    if (kDebugMode) debugPrint('✅ All prayer notifications scheduled');
+    if (kDebugMode) debugPrint('   Azan: ${settings.enableAdhan}');
+    if (kDebugMode) debugPrint('   Pre-reminder: ${settings.enablePreReminder} (${settings.preReminderMinutes} min)');
   } catch (e) {
-    QibraLog.log(() => '❌ Azan schedule error: $e');
+    if (kDebugMode) debugPrint('❌ Azan schedule error: $e');
   }
 }
 

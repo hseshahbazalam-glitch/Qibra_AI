@@ -603,7 +603,7 @@ class NotificationService {
         );
       }
     } catch (e) {
-      debugPrint('Notification error: $e');
+      if (kDebugMode) debugPrint('Notification error: $e');
     }
   }
 }

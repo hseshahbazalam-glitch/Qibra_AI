@@ -98,7 +98,7 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
       _prefs = prefs;
       await prefs.setString(AppStorageKeys.appTheme, mode.toStorageString());
     } catch (e) {
-      debugPrint('Theme save failed: $e');
+      if (kDebugMode) debugPrint('Theme save failed: $e');
     }
   }
 
@@ -139,7 +139,7 @@ class LocaleNotifier extends StateNotifier<Locale> {
 
   Future<void> setLocale(String languageCode) async {
     if (!AppLanguages.supported.contains(languageCode)) {
-      debugPrint('Unsupported language: $languageCode');
+      if (kDebugMode) debugPrint('Unsupported language: $languageCode');
       return;
     }
     if (state.languageCode == languageCode) return;
@@ -150,7 +150,7 @@ class LocaleNotifier extends StateNotifier<Locale> {
       _prefs = prefs;
       await prefs.setString(AppStorageKeys.appLanguage, languageCode);
     } catch (e) {
-      debugPrint('Locale save failed: $e');
+      if (kDebugMode) debugPrint('Locale save failed: $e');
     }
   }
 
@@ -199,7 +199,7 @@ class OnboardingNotifier extends StateNotifier<bool> {
       await prefs.setString(
           AppStorageKeys.onboardingDate, DateTime.now().toIso8601String());
     } catch (e) {
-      debugPrint('Onboarding save failed: $e');
+      if (kDebugMode) debugPrint('Onboarding save failed: $e');
     }
   }
 
@@ -212,7 +212,7 @@ class OnboardingNotifier extends StateNotifier<bool> {
       await prefs.remove(AppStorageKeys.hasSeenOnboarding);
       await prefs.remove(AppStorageKeys.onboardingDate);
     } catch (e) {
-      debugPrint('Onboarding reset failed: $e');
+      if (kDebugMode) debugPrint('Onboarding reset failed: $e');
     }
   }
 }

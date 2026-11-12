@@ -1,6 +1,6 @@
 // lib/features/prayer/data/services/mosque_service.dart
 import 'dart:convert';
-import 'package:qibra_ai/core/observability/qibra_log.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/mosque_model.dart';
 
@@ -66,7 +66,7 @@ out center;
           .timeout(const Duration(seconds: 8));
 
       if (response.statusCode != 200) {
-        QibraLog.log(() => '[MOSQUE_SERVICE] Overpass HTTP ${response.statusCode}');
+        if (kDebugMode) debugPrint('[MOSQUE_SERVICE] Overpass HTTP ${response.statusCode}');
         return const [];
       }
 
@@ -111,7 +111,7 @@ out center;
       liveList.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
       return liveList;
     } catch (e) {
-      QibraLog.log(() => '[MOSQUE_SERVICE] Overpass error: $e');
+      if (kDebugMode) debugPrint('[MOSQUE_SERVICE] Overpass error: $e');
       return const [];
     }
   }
