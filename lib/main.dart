@@ -36,8 +36,6 @@ HadithDatabaseService? get globalHadithDb => _globalHadithDb;
 // MAIN ENTRY POINT
 // ============================================================
 
-// PASS X probe: one comment line, no code change (null-diff experiment).
-
 void main() {
   // Error Shield (install FIRST — synchronous, zero IO — then the whole
   // boot runs inside the guarded zone; semantics inside are preserved
@@ -53,9 +51,9 @@ void main() {
   // ─── Timezone DB (Phase 2: IANA for exact prayer timezone) ─────
   try {
     tz_data.initializeTimeZones();
-    debugPrint('✅ Timezone DB initialized');
+    if (kDebugMode) debugPrint('✅ Timezone DB initialized');
   } catch (e) {
-    debugPrint('⚠️ Timezone DB failed: $e');
+    if (kDebugMode) debugPrint('⚠️ Timezone DB failed: $e');
   }
 
   // ─── Load .env (debug only, not bundled in release) ────────────
@@ -63,9 +61,9 @@ void main() {
   try {
     await dotenv.load(fileName: '.env');
     envLoaded = true;
-    debugPrint('✅ .env loaded successfully');
+    if (kDebugMode) debugPrint('✅ .env loaded successfully');
   } catch (e) {
-    debugPrint('⚠️ .env not loaded: $e');
+    if (kDebugMode) debugPrint('⚠️ .env not loaded: $e');
   }
 
   // ─── System UI Setup ─────────────────────────
