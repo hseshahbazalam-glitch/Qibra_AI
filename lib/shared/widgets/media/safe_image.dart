@@ -97,7 +97,7 @@ class SafeImage extends StatelessWidget {
       cacheWidth: cacheWidth,
       alignment: alignment,
       errorBuilder: (context, error, stackTrace) {
-        if (kDebugMode) debugPrint('[SafeImage] Asset missing/failed: $assetPath — $error');
+        debugPrint('[SafeImage] Asset missing/failed: $assetPath — $error');
         return placeholder;
       },
       frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {

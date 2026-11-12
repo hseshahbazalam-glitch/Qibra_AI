@@ -252,7 +252,7 @@ class HadithDatabaseService {
     }
 
     _isLoading = true;
-    if (kDebugMode) debugPrint('[HADITH_DB] Initializing database...');
+    debugPrint('[HADITH_DB] Initializing database...');
     final stopwatch = Stopwatch()..start();
 
     try {
@@ -272,12 +272,12 @@ class HadithDatabaseService {
 
       _isInitialized = true;
       stopwatch.stop();
-      if (kDebugMode) debugPrint(
+      debugPrint(
         '[HADITH_DB] Initialized in ${stopwatch.elapsedMilliseconds}ms '
         '- $totalHadiths hadiths loaded across ${_bookData.length} collections',
       );
     } catch (e) {
-      if (kDebugMode) debugPrint('[HADITH_DB] Initialization error: $e');
+      debugPrint('[HADITH_DB] Initialization error: $e');
     } finally {
       _isLoading = false;
     }
@@ -570,9 +570,9 @@ class HadithDatabaseService {
           ),
       };
 
-      if (kDebugMode) debugPrint('[HADITH_DB] Loaded $name: ${hadiths.length} hadiths');
+      debugPrint('[HADITH_DB] Loaded $name: ${hadiths.length} hadiths');
     } catch (e) {
-      if (kDebugMode) debugPrint('[HADITH_DB] Error loading $slug: $e');
+      debugPrint('[HADITH_DB] Error loading $slug: $e');
     }
   }
 
@@ -611,7 +611,7 @@ class HadithDatabaseService {
   static void _logDecodeTiming(String path, Stopwatch? sw) {
     if (sw == null) return;
     sw.stop();
-    if (kDebugMode) debugPrint('[HADITH_DB] decoded '
+    debugPrint('[HADITH_DB] decoded '
         '${path.substring(path.lastIndexOf('/') + 1)} in '
         '${sw.elapsedMilliseconds}ms (off-main)');
   }

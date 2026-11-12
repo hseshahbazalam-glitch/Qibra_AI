@@ -113,14 +113,14 @@ class _NotificationSettingsScreenState
     final player = AudioPlayer();
     try {
       await player.setAsset('audio/azan_makkah.mp3');
-      if (kDebugMode) debugPrint('Azan test playing');
+      debugPrint('Azan test playing');
       unawaited(player.play()
           .whenComplete(player.dispose)
           .catchError((Object e) {
-        if (kDebugMode) debugPrint('Azan preview end error: $e');
+        debugPrint('Azan preview end error: $e');
       }));
     } catch (e) {
-      if (kDebugMode) debugPrint('Azan test error: $e');
+      debugPrint('Azan test error: $e');
       unawaited(player.dispose());
     }
 
