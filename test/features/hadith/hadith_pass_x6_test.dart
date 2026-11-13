@@ -382,7 +382,10 @@ void main() {
 
     test('the two new keys carry all three languages (i18n census, same '
         'commit)', () {
-      const en = AppStrings.forCode('en');
+      // Not `const`: forCode() is a static method, so the analyzer rejects a
+      // const initializer here (this was red round 1 — CI caught what no local
+      // SDK could).
+      final en = AppStrings.forCode('en');
       for (final code in ['ar', 'ur']) {
         final s = AppStrings.forCode(code);
         expect(s.translationNotInThisLanguage.trim().isNotEmpty, isTrue);
