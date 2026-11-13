@@ -63,6 +63,25 @@ class AppStrings {
         'لا تتوفر ترجمة موثّقة لهذه اللغة.',
         'اس زبان کا تصدیق شدہ ترجمہ دستیاب نہیں۔',
       );
+  /// PASS X6 (H2a, device report R2): the hadith reader's own
+  /// missing-translation state. [translationUnavailable] above is the generic
+  /// chrome line (Quran surfaces keep it); this one names the hadith and the
+  /// reader's language, and its Urdu is what an Urdu reader can actually
+  /// read — nasai/urdu carries no text for 1,890 of 5,765 rows upstream, so
+  /// an English sentence in an Urdu book IS the blank the owner reported.
+  String get translationNotInThisLanguage => _t(
+        'No bundled translation of this hadith in your language.',
+        'لا توجد ترجمة موثّقة لهذا الحديث بلغتك.',
+        'اس حدیث کا ترجمہ آپ کی زبان میں موجود نہیں ہے۔',
+      );
+  /// PASS X6 (H2a): the way OUT of that state — a chip on the fallback line
+  /// that reveals the English translation of the SAME hadith, on this card,
+  /// without touching the reader's chosen language.
+  String get viewEnglishInstead => _t(
+        'View the English translation',
+        'عرض الترجمة الإنجليزية',
+        'انگریزی ترجمہ دیکھیں',
+      );
   String get romanUrduUnavailable => _t(
         'Roman Urdu text is not bundled for this ayah.',
         'النص الأوردوي اللاتيني غير مضمّن لهذه الآية.',

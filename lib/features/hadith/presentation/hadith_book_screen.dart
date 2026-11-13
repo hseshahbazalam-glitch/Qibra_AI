@@ -33,11 +33,22 @@ class HadithBookScreen extends ConsumerStatefulWidget {
   /// EXPLICIT user action, so opening that hadith's detail on arrival
   /// is the honest jump. 0 = nothing requested (normal book open).
   final int focusHadithNumber;
+  /// PASS X6 (H1c): the exact (hadithnumber, arabicnumber) pair of the row to
+  /// focus. The int above cannot distinguish bukhari 402 from 402.2 (25 such
+  /// collisions per book), and opening the parent while labelling it with the
+  /// hit's text is a WRONG hadith, not a near miss. Search hits carry the key;
+  /// int-only entry points (bookmarks) leave it empty and keep the int path.
+  final String focusHadithKey;
+  /// PASS X6 (H1d): the hit's chapter, so a number that resolves to nothing
+  /// still lands the reader in the right chapter instead of at a dead end.
+  final int focusChapterNumber;
 
   const HadithBookScreen({
     super.key,
     required this.book,
     this.focusHadithNumber = 0,
+    this.focusHadithKey = '',
+    this.focusChapterNumber = 0,
   });
 
   /// Reference prev/next: pure walk over the book's published, ascending
@@ -94,6 +105,11 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   // H2-D2: expansion state lives on the SCREEN (per card id) so it
   // survives scroll-away rebuilds — a card-local bool would reset.
   final Set<String> _expandedCards = <String>{};
+  /// PASS X6 (H2a): cards whose reading-language text the bundle does not
+  /// carry, after the reader asked for English on that card. Screen-level for
+  /// the same reason as _expandedCards — a card-local bool resets on every
+  /// scroll-away rebuild, and the reader would lose what they just tapped.
+  final Set<String> _englishRevealed = <String>{};
   bool _showArabic = true;
   // Phase B: the old separate Urdu/English switches became ONE
   // translation switch — the reader's selected language drives which
@@ -250,6 +266,12 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           positionLabel: HadithBookScreen.hadithPositionLabel(
                               h.hadithNumber, widget.book.totalHadiths),
                           expanded: _expandedCards.contains(h.id),
+                          englishRevealed: _englishRevealed.contains(h.id),
+                          onToggleEnglish: () => setState(() {
+                            if (!_englishRevealed.add(h.id)) {
+                              _englishRevealed.remove(h.id);
+                            }
+                          }),
                           onToggleExpand: () => setState(() {
                             if (!_expandedCards.add(h.id)) {
                               _expandedCards.remove(h.id);
@@ -809,17 +831,43 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
       // fall through to the honest not-found path below
     }
     if (!mounted) return;
-    final local =
-        HadithDatabaseService().getHadith(widget.book.slug, widget.focusHadithNumber);
+    // PASS X6 (H1c): key first when there is one. An int-only request (a
+    // saved bookmark) is a deliberate reference to the parent number, so the
+    // int lookup stays correct for it — but a keyed request that misses must
+    // NOT silently fall back to a neighbour row.
+    final local = widget.focusHadithKey.isNotEmpty
+        ? HadithDatabaseService()
+            .getHadithByKey(widget.book.slug, widget.focusHadithKey)
+        : HadithDatabaseService()
+            .getHadith(widget.book.slug, widget.focusHadithNumber);
     if (local == null) {
+      _landOnFocusTarget();
+      return;
+    }
+    if (!mounted) return;
+    _showHadithDetailSheet(context, localToHadithModel(local));
+  }
+
+  /// PASS X6 (H1d): the row is not in the bundle (an edition gap, a stale
+  /// bookmark, a number that predates this data drop). Zero dead ends: the
+  /// book stays open and, when the hit carried a chapter, the list is
+  /// filtered to THAT chapter — the reader is standing where the hadith
+  /// belongs — with the existing honest note as a footnote. Before this, a
+  /// miss from a search hit returned to the collection with a toast and
+  /// nothing else.
+  void _landOnFocusTarget() {
+    final chapter = widget.focusChapterNumber;
+    if (chapter > 0) {
+      setState(() => _selectedChapterNumber = chapter);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text(AppStrings.of(context).thatBookmarkNotBundled)),
+        SnackBar(content: Text(AppStrings.of(context).thatHadithNotBundled)),
       );
       return;
     }
-    _showHadithDetailSheet(context, localToHadithModel(local));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text(AppStrings.of(context).thatBookmarkNotBundled)),
+    );
   }
 
   void _showHadithDetailSheet(BuildContext context, HadithModel hadith) {
@@ -1072,11 +1120,17 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           ),
                         ),
                       ] else ...[
-                        // Key-join found no text in this language for
-                        // THIS hadith (e.g. French x Tirmidhi): say so,
-                        // never substitute another translation silently.
-                        Text(
-                          'Verified translation unavailable for this language.',
+                        // Key-join found no text in this language for THIS
+                        // hadith (e.g. an Urdu reader in Nasai, where the
+                        // upstream edition carries nothing for 1,890 of
+                        // 5,765 hadiths). X6 (H2a): say so IN THE READER'S
+                        // LANGUAGE — an English apology inside an Urdu book is
+                        // what they reported as "blank" — and give the way
+                        // out on the same card. The Arabic above is always
+                        // rendered: the fallback line never replaces text.
+                        HadithTranslationFallback(
+                          englishText:
+                              hadith.hasEnglish ? hadith.textEnglish : null,
                           style: AppTextStyles.bodySmall.copyWith(
                             color: QibraNavy.textSecondary,
                             fontStyle: FontStyle.italic,
@@ -1117,7 +1171,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Source: ${hadith.bookName} (${hadith.hadithNumber})',
+                                      'Source: ${hadith.bookName} (${hadith.numberLabel})',
                                       style: AppTextStyles.labelSmall.copyWith(
                                           color: QibraNavy.textSecondary),
                                     ),
@@ -1291,6 +1345,128 @@ class HadithSearchField extends StatelessWidget {
 // HADITH CARD WIDGET
 // ============================================================
 
+/// PASS X6 (H2a, device report R2: "bahut sare hadith blank").
+///
+/// The one widget a hadith body uses when the reader's language has no text
+/// for THIS hadith in the bundle. It replaces two bad behaviours at once: (i)
+/// rendering nothing at all, which is what a reader calls a blank, and (ii)
+/// substituting another language silently, which tells the reader the wrong
+/// thing about their own book. It states the honest state in the reader's
+/// language and offers the English of the SAME hadith on tap — the Arabic body
+/// is rendered by the caller either way, so this never replaces text.
+///
+/// State: when the caller owns the toggle ([onReveal] != null) the reveal
+/// lives there, so it survives scroll-away rebuilds of a list card; a caller
+/// that cannot (a modal sheet route is not rebuilt by the screen's setState)
+/// gets a self-contained one instead of a second, subtly different code path.
+class HadithTranslationFallback extends StatefulWidget {
+  const HadithTranslationFallback({
+    super.key,
+    this.englishText,
+    this.style,
+    this.revealed = false,
+    this.onReveal,
+  });
+
+  /// The English body to reveal, or null when the bundle has none — no
+  /// bundle text, no chip, just the honest line.
+  final String? englishText;
+  final TextStyle? style;
+  final bool revealed;
+  final VoidCallback? onReveal;
+
+  @override
+  State<HadithTranslationFallback> createState() =>
+      _HadithTranslationFallbackState();
+}
+
+class _HadithTranslationFallbackState extends State<HadithTranslationFallback> {
+  bool _ownRevealed = false;
+
+  bool get _revealed =>
+      widget.onReveal != null ? widget.revealed : _ownRevealed;
+
+  void _toggle() {
+    if (widget.onReveal != null) {
+      widget.onReveal!();
+    } else {
+      setState(() => _ownRevealed = !_ownRevealed);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final canReveal = (widget.englishText ?? '').trim().isNotEmpty;
+    final shown = _revealed && canReveal;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppStrings.of(context).translationNotInThisLanguage,
+          style: widget.style,
+        ),
+        if (canReveal && !shown) ...[
+          const SizedBox(height: 8),
+          ActionChip(
+            // ActionChip already carries the button role + its label text, so
+            // no extra Semantics wrapper (one accessible name, not two).
+            avatar:
+                Icon(Icons.translate_rounded, size: 16, color: colors.primary),
+            label: Text(AppStrings.of(context).viewEnglishInstead,
+                style:
+                    AppTextStyles.labelSmall.copyWith(color: colors.primary)),
+            backgroundColor: colors.cardMuted,
+            side: BorderSide(color: colors.border),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            onPressed: _toggle,
+          ),
+        ],
+        if (shown) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colors.cardMuted,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colors.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // The label is the LANGUAGE name from the matrix, never a
+                // hardcoded string here (i18n census) — and the reader can
+                // put it away again, because this is a detour, not a
+                // language change.
+                Text(
+                  HadithAvailability.label('en'),
+                  style: AppTextStyles.labelXSmall.copyWith(
+                      color: colors.primary, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                SelectableText(
+                  widget.englishText!,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: colors.textPrimary),
+                ),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: TextButton(
+                    onPressed: _toggle,
+                    child: Text(AppStrings.of(context).close),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 /// H2-D1 — the hadith list card with the advance anatomy, top to bottom:
 /// number badge → Arabic block → ornament divider → translation → meta
 /// row. H2-D2 — a body longer than the line budget renders collapsed
@@ -1314,6 +1490,8 @@ class HadithCard extends ConsumerWidget {
     required this.expanded,
     required this.onToggleExpand,
     required this.onTap,
+    this.englishRevealed = false,
+    this.onToggleEnglish,
   });
 
   final HadithModel hadith;
@@ -1324,6 +1502,10 @@ class HadithCard extends ConsumerWidget {
   /// so the pure formatter stays the single source.
   final String positionLabel;
   final bool expanded;
+  /// PASS X6 (H2a): whether THIS card shows the revealed English text, and
+  /// the toggle for it. Null when the card has no English to reveal.
+  final bool englishRevealed;
+  final VoidCallback? onToggleEnglish;
   final VoidCallback onToggleExpand;
   final VoidCallback onTap;
 
@@ -1412,6 +1594,12 @@ class HadithCard extends ConsumerWidget {
                   textWidth, rtl ? TextDirection.rtl : TextDirection.ltr);
             }
             final collapse = !expanded && collapseFor(bodyLines);
+            // X6 (H1c): a fractional edition number ('1433.3') is longer than
+            // the 26px square the design settled on. The box grows for THAT
+            // case only — every ordinary number keeps the exact 26x26 it has
+            // always painted (the anatomy pins measure this badge's bottom
+            // against the Arabic block, so the height never moves).
+            final badgeWide = hadith.numberLabel.length > 4;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1420,7 +1608,13 @@ class HadithCard extends ConsumerWidget {
                 // BORDER, no fill: F1's bug class remembered.
                 Container(
                   key: const ValueKey('hadith-card-badge'),
-                  width: 26,
+                  width: badgeWide ? null : 26.0,
+                  constraints: badgeWide
+                      ? const BoxConstraints(minWidth: 26)
+                      : null,
+                  padding: badgeWide
+                      ? const EdgeInsets.symmetric(horizontal: 4)
+                      : null,
                   height: 26,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
@@ -1428,7 +1622,9 @@ class HadithCard extends ConsumerWidget {
                     border: Border.all(color: colors.border),
                   ),
                   child: Text(
-                    '${hadith.hadithNumber}',
+                    // X6 (H1c): the edition's own number string — 402.2 reads
+                    // 402.2, not its parent's 402.
+                    '${hadith.numberLabel}',
                     style: AppTextStyles.labelSmall.copyWith(
                         color: colors.textSecondary,
                         fontWeight: FontWeight.w800),
@@ -1520,8 +1716,16 @@ class HadithCard extends ConsumerWidget {
                                 collapse ? TextOverflow.ellipsis : null,
                           )
                         else
-                          Text(
-                            'Verified translation unavailable for this language.',
+                          // X6 (H2a): the honest state, in the reader's own
+                          // language, plus the chip that reveals the English
+                          // of the SAME hadith — no silent substitution, no
+                          // blank card, and the Arabic above stays either way.
+                          HadithTranslationFallback(
+                            englishText: hadith.hasEnglish
+                                ? hadith.textEnglish
+                                : null,
+                            onReveal: onToggleEnglish,
+                            revealed: englishRevealed,
                             style: AppTextStyles.bodySmall.copyWith(
                               color: colors.textSecondary,
                               fontStyle: FontStyle.italic,

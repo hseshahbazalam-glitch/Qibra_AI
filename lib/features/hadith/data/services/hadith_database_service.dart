@@ -98,7 +98,14 @@ class LocalHadith {
       );
 
   String get id => '${bookSlug}_$hadithNumber';
-  String get displayReference => '$bookName $hadithNumber';
+  /// PASS X6 (H1c): the edition's own number string, from the exact pair key
+  /// ([hadithNumber] is an int by contract and truncates 402.2 onto 402).
+  String get numberLabel {
+    final exact = pairKey.split('|').first.trim();
+    return exact.isEmpty ? '$hadithNumber' : exact;
+  }
+
+  String get displayReference => '$bookName $numberLabel';
 
   String get shortText {
     if (textEnglish.isNotEmpty) {
@@ -655,6 +662,22 @@ class HadithDatabaseService {
     final hadiths = _bookData[bookSlug] ?? [];
     for (final h in hadiths) {
       if (h.hadithNumber == hadithNumber) return h;
+    }
+    return null;
+  }
+
+  /// PASS X6 (H1c): the exact-key twin of [getHadith]. The int lookup cannot
+  /// tell a fractional row from its parent — 52 rows across bukhari and
+  /// tirmidhi collide on it — so it returns whichever was loaded first, i.e.
+  /// a DIFFERENT hadith presented as the hit. Anything that knows the pair
+  /// key (a search hit, a focused open) resolves through here instead; an
+  /// empty key is not a lookup, it is a miss, and the caller says so.
+  LocalHadith? getHadithByKey(String bookSlug, String pairKey) {
+    if (pairKey.isEmpty) return null;
+    // getHadiths is `_bookData[slug] ?? []` — going through it (not the map)
+    // keeps the one corpus view a test fixture can drive.
+    for (final h in getHadiths(bookSlug)) {
+      if (h.pairKey == pairKey) return h;
     }
     return null;
   }

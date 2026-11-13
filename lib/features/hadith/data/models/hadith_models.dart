@@ -341,6 +341,7 @@ class HadithModel extends Equatable {
     this.textTurkish = '',
     this.textIndonesian = '',
     this.textFrench = '',
+    this.hadithKey = '',
     required this.grade,
     required this.narrator,
     this.reference,
@@ -366,6 +367,12 @@ class HadithModel extends Equatable {
   final String textTurkish;
   final String textIndonesian;
   final String textFrench;
+  // PASS X6 (H1c): the loader's exact (hadithnumber, arabicnumber) join key
+  // for THIS row, '' for models that did not come from the bundle. The int
+  // [hadithNumber] cannot hold the dataset's fractional rows (tirmidhi 391.2,
+  // bukhari 402.2 — 42 and 26 rows), which truncate onto their parent; the
+  // key is what lets a search hit open the row it actually matched.
+  final String hadithKey;
   final HadithGrade grade;
   final HadithNarrator narrator;
   final String? reference; // e.g., "Sahih al-Bukhari 1"
@@ -471,6 +478,7 @@ class HadithModel extends Equatable {
   HadithModel copyWith({
     String? id,
     int? hadithNumber,
+    String? hadithKey,
     String? bookSlug,
     String? bookName,
     int? chapterNumber,
@@ -494,6 +502,7 @@ class HadithModel extends Equatable {
     return HadithModel(
       id: id ?? this.id,
       hadithNumber: hadithNumber ?? this.hadithNumber,
+      hadithKey: hadithKey ?? this.hadithKey,
       bookSlug: bookSlug ?? this.bookSlug,
       bookName: bookName ?? this.bookName,
       chapterNumber: chapterNumber ?? this.chapterNumber,
@@ -516,9 +525,19 @@ class HadithModel extends Equatable {
     );
   }
 
+  /// PASS X6 (H1c): the number as the printed edition has it. `id`,
+  /// bookmarks and the jump plumbing stay on the int (changing an id would
+  /// orphan the bookmarks already on a device); everything the READER reads
+  /// goes through here, so a fractional row is never labelled with its
+  /// parent's number.
+  String get numberLabel {
+    final exact = hadithKey.split('|').first.trim();
+    return exact.isEmpty ? '$hadithNumber' : exact;
+  }
+
   String get displayReference {
     if (reference != null && reference!.isNotEmpty) return reference!;
-    return '$bookName $hadithNumber';
+    return '$bookName $numberLabel';
   }
 
   String get shortText {

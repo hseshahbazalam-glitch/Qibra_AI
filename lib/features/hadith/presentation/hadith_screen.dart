@@ -678,12 +678,19 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   }
 
   /// Pass H4 P4 — open a search hit inside its book at the exact number.
+  /// PASS X6: mount-guarded (the sheet's pop and this push share a frame, and
+  /// a fast back-swipe can retire the screen under it), and it hands the book
+  /// the hit's EXACT pair key + chapter so a fractional hadith opens its own
+  /// row and an unresolvable number still lands somewhere honest.
   void _openHadithInBook(BuildContext context, HadithModel hadith) {
+    if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => HadithBookScreen(
           book: _hadithBookFor(context, hadith.bookSlug),
           focusHadithNumber: hadith.hadithNumber,
+          focusHadithKey: hadith.hadithKey,
+          focusChapterNumber: hadith.chapterNumber,
         ),
       ),
     );
@@ -891,7 +898,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                     ] else if (sheetLang != 'ar') ...[
                       const SizedBox(height: 16),
                       Text(
-                        'Verified translation unavailable for this language.',
+                        // X6 (H2a): localized — an English apology inside an
+                        // Urdu book is the "blank" the owner reported (R2).
+                        AppStrings.of(context).translationNotInThisLanguage,
                         style: AppTextStyles.bodySmall.copyWith(
                           color: colors.textSecondary,
                           fontStyle: FontStyle.italic,
@@ -1063,6 +1072,26 @@ class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  /// PASS X6 (H1, device report R1: "a search result does nothing, the sheet
+  /// stays"). The row used to pop through the BuildContext of its OWN
+  /// ListView item. A tap fires on touch-UP — by then the debounced search has
+  /// already rebuilt the list, and a recycled item element throws on any
+  /// Navigator lookup ('Looking up a deactivated widget's ancestor is
+  /// unsafe'), which in profile mode is exactly the silent no-op the owner
+  /// saw: the throw happens BEFORE the pop, so the sheet never closes and the
+  /// book never opens. CI could not see it because widget tests run with
+  /// asserts ON and the tap lands on a settled tree.
+  ///
+  /// The pop therefore runs on the sheet's own element (it lives precisely as
+  /// long as the sheet does, and it is what the modal route was built with);
+  /// the push stays the screen's job — it owns the Navigator position and
+  /// guards its own mount in [_openHadithInBook].
+  void _openHadith(HadithModel hadith) {
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    widget.onOpenInBook(hadith);
   }
 
   @override
@@ -1267,10 +1296,9 @@ class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
                                 // jump is the shipped precedent for
                                 // exactly this parameter). The detail
                                 // sheet stays for the browse surfaces.
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  widget.onOpenInBook(hadith);
-                                },
+                                // X6: no Navigator.of() on the item context —
+                                // see _openHadith above for why that was R1.
+                                onTap: () => _openHadith(hadith),
                               );
                             },
                           );
@@ -1378,7 +1406,7 @@ class _TodaysHadithCard extends ConsumerWidget {
             const SizedBox(height: 10),
             Text(
               translation ??
-                  'Verified translation unavailable for this language.',
+                  AppStrings.of(context).translationNotInThisLanguage,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
               textAlign: lang == 'ur' ? TextAlign.right : TextAlign.start,

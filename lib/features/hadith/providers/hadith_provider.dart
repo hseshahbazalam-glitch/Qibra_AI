@@ -224,6 +224,9 @@ HadithModel localToHadithModel(LocalHadith local) {
     textTurkish: local.textTurkish,
     textIndonesian: local.textIndonesian,
     textFrench: local.textFrench,
+    // PASS X6 (H1c): the row's exact join key rides along, so any surface
+    // that opens this hadith again can resolve the SAME row.
+    hadithKey: local.pairKey,
     grade: gradeForLocalHadith(local),
     narrator: const HadithNarrator(name: ''),
     reference: local.displayReference,

@@ -170,9 +170,13 @@ void main() {
       expect(book.contains('if (hadith.grade != HadithGrade.unknown) ...['),
           isTrue);
       expect(book.contains("'Grade: \${hadith.grade.label}'"), isTrue);
+      // X6 (H1c) re-pin: the source line prints the EDITION's number through
+      // numberLabel ('402' for an ordinary row, '402.2' for the dataset's
+      // fractional ones, which the int truncates onto the parent). Same shape,
+      // same pin, honest number — hadith_pass_x6_test proves both cases.
       expect(
           book.contains(
-              "'Source: \${hadith.bookName} (\${hadith.hadithNumber})'"),
+              "'Source: \${hadith.bookName} (\${hadith.numberLabel})'"),
           isTrue);
       // No fake affordances copied from the reference right screen.
       // Comment-blindness fix (CI 34260248625): the raw scan tripped on
@@ -190,10 +194,9 @@ void main() {
       expect(book.contains('showTranslation: _showTranslation'), isTrue);
       expect(book.contains('showUrdu'), isFalse);
       expect(book.contains('showEnglish'), isFalse);
-      expect(
-          book.contains(
-              "'Verified translation unavailable for this language.'"),
-          isTrue);
+      // X6 (H2a): the honest state survives — it just moved into the shared
+      // HadithTranslationFallback widget, localized instead of English-only.
+      expect(book.contains('HadithTranslationFallback('), isTrue);
       expect(book.contains('KeyedSubtree(key: _resumeKey, child: card)'),
           isTrue);
       expect(book.contains('HadithAvailability.selectorOptions()'), isTrue);

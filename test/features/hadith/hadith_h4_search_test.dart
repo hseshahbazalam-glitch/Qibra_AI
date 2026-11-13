@@ -398,6 +398,18 @@ void main() {
           tester.widget<HadithBookScreen>(find.byType(HadithBookScreen));
       expect(screen.focusHadithNumber, 7);
       expect(screen.book.slug, 'bukhari');
+      // PASS X6 (H1a) — the pin that was MISSING, and the reason device
+      // report R1 reached a device: this test asserted the push and never
+      // the close. The sheet's own field ('Search hadiths') is unique to the
+      // modal — the sticky pill is 'Search hadith…', a different string — so
+      // "exactly one search field left, and it is the pill's" is the honest
+      // way to say the sheet actually went away.
+      expect(find.text('Search hadiths'), findsNothing,
+          reason: 'a result tap that pushes WITHOUT closing the sheet is the '
+              'R1 failure; the pop and the push are one gesture, not two');
+      expect(find.text('Search hadith…'), findsOneWidget,
+          reason: 'and the tab under it is still there (this is a pop, not a '
+              'tear-down)');
       // The cold singleton behind HadithBookScreen's focus-lookup answers
       // honestly-empty (a snackbar, no fabricated detail) — let its
       // auto-dismiss timer COMPLETE so the test ends with zero pending

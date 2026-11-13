@@ -468,7 +468,15 @@ void main() {
       expect(src.contains('showUrdu'), isFalse);
       expect(src.contains('showEnglish'), isFalse);
       expect(src.contains('hadithTextForLanguage'), isTrue);
-      expect(src.contains("'Verified translation unavailable for this language.'"), isTrue);
+      // PASS X6 (H2a) re-pin: the English-only apology left the reader
+      // surfaces (device report R2 — an English sentence inside an Urdu book
+      // IS what the owner called blank). The honest state is now ONE widget
+      // with the reader's own language and a per-card way to English.
+      expect(src.contains('HadithTranslationFallback('), isTrue);
+      expect(src.contains("'Verified translation unavailable for this language.'"), isFalse,
+          reason: 'the hardcoded English fallback line must not come back on a '
+              'reader surface; AppStrings.translationNotInThisLanguage is '
+              'the localized one (pinned by hadith_pass_x6_test)');
     });
 
     test('home tab previews route through hadithTextForLanguage', () {
