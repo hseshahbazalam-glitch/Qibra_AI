@@ -477,6 +477,36 @@ void main() {
         'namaz ka t', 'namaz ka ta', 'namaz ka tar', 'namaz ka tari',
         'namaz ka tarik', 'namaz ka tarika',
       ];
+
+      // THE PATH UNDER TEST IS THE DEBOUNCED ONE — the brief's wording is
+      // "continuous typing through the debounce", so the burst is issued through
+      // the app's own window first: 14 keystrokes must produce ONE commit and
+      // ONE scan, and that commit's answer must be the final text's.
+      final window = HadithSearchDebounce();
+      addTearDown(window.dispose);
+      final debouncedCommits = <String>[];
+      Future<List<List<LocalSearchResult>>?>? debouncedAnswer;
+      for (final q in queries) {
+        window.note(q, (committed) {
+          debouncedCommits.add(committed);
+          debouncedAnswer = worker.search([committed], maxPerQuery: 50);
+        });
+      }
+      expect(debouncedCommits, isEmpty,
+          reason: 'the window must hold the burst — every commit here used to be '
+              'a corpus copy on the UI thread');
+      // 250 ms is the shipped window; wait past it, with margin for a loaded CI.
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      expect(debouncedCommits, ['namaz ka tarika'],
+          reason: '14 keystrokes in, 1 query out — this is the half of the fix '
+              'the isolate alone could not give');
+      final debatched = await debouncedAnswer;
+      expect(debatched, isNotNull,
+          reason: 'the single committed query must still be ANSWERED; an empty '
+              'here would make the timing bounds below theater');
+      expect(debatched!.first, isNotEmpty,
+          reason: '"namaz ka tarika" must match the synthetic corpus');
+
       final block = <int>[];
       final total = <int>[];
       var lastHits = 0;

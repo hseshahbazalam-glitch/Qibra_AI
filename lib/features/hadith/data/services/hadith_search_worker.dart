@@ -172,13 +172,16 @@ class HadithSearchWorker {
         inbox.sendPort,
         debugName: 'hadith-search-worker',
       );
-      final port = await inbox.first
+      // Typed `Object?` on purpose: `ReceivePort` delivers `dynamic`, and under
+      // this repo's `strict-casts: true` handing that straight to a `SendPort`
+      // field is an error, not a lint.
+      final Object? announced = await inbox.first
           .timeout(handshakeTimeout, onTimeout: () => null);
-      if (port is! SendPort) {
+      if (announced is! SendPort) {
         isolate.kill(priority: Isolate.immediate);
         throw StateError('worker never announced its port');
       }
-      _toWorker = port;
+      _toWorker = announced;
       _isolate = isolate;
       _inbox = inbox;
       if (kDebugMode) {
@@ -277,6 +280,7 @@ class HadithSearchWorker {
           _dead = true;
           if (kDebugMode) debugPrint('[HADITH_SEARCH] no fold ack ($e)');
         } finally {
+          ack.close();
           if (!done.isCompleted) done.complete();
         }
       }());
@@ -322,11 +326,11 @@ class HadithSearchWorker {
     }
     var portClosed = false;
     try {
-      final reply = await replyPort.first.timeout(
+      final Object? received = await replyPort.first.timeout(
         replyTimeout,
         onTimeout: () => null,
       );
-      if (reply is! _HadithSearchReply) {
+      if (received is! _HadithSearchReply) {
         // Timeout or a message we do not understand: the worker is no longer
         // trustworthy for this session. Kill it, stay dead, answer empty — a
         // respawn per keystroke would be its own jank.
@@ -336,7 +340,7 @@ class HadithSearchWorker {
             'retired for this session');
         return null;
       }
-      return reply.superseded ? null : reply.batches;
+      return received.superseded ? null : received.batches;
     } catch (e) {
       if (!portClosed) {
         portClosed = true;
@@ -378,7 +382,11 @@ void _hadithSearchWorkerEntry(SendPort mainPort) {
   final books = <String, List<LocalHadith>>{};
   var newestRequestId = 0;
 
-  inbox.listen((message) {
+  // `Object?`, NOT the inferred `dynamic`: with `strict-casts: true`
+  // (analysis_options.yaml) an implicit downcast from dynamic is an ERROR, and
+  // the field accesses below are exactly that. Declaring the parameter as
+  // Object? makes each `is` test a real promotion instead.
+  inbox.listen((Object? message) {
     if (message is _HadithBookPayload) {
       final assembled = assembleHadithBook(
         englishData: message.rawEnglish == null
