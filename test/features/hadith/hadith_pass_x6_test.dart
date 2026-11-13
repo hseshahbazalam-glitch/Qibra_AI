@@ -216,12 +216,17 @@ void main() {
               .readAsStringSync();
       // The result row's whole handler is now one call on the sheet's State.
       expect(src.contains('onTap: () => _openHadith(hadith)'), isTrue);
+      // The negative has to be about the HANDLER, not about that text pair:
+      // `pop();` followed by `widget.onOpenInBook` is exactly what _openHadith
+      // now contains (asserted two lines below), so a bare substring scan fails
+      // on the fix itself — that was red round 2, CI-only. What R1 forbids is a
+      // pop issued FROM THE ROW, on an element that can already be recycled when
+      // the tap fires on touch-up. `[^;]*` cannot cross the end of an
+      // `onTap: () => …;` line, so this matches only a row popping itself.
       expect(
-          RegExp(r"Navigator\.of\(context\)\.pop\(\);\s*\n\s*widget\.onOpenInBook")
-              .hasMatch(src),
+          RegExp(r"onTap:[^;]*Navigator\.of\(context\)\.pop").hasMatch(src),
           isFalse,
-          reason: 'popping from the itemBuilder context is R1: that element '
-              'can already be recycled when the tap fires on touch-up');
+          reason: 'R1: no search-result row may pop on its own itemBuilder context');
       final start = src.indexOf('void _openHadith(HadithModel hadith)');
       expect(start, greaterThan(0));
       final body = src.substring(start, src.indexOf('\n  }', start));
@@ -254,7 +259,9 @@ void main() {
       final book =
           File('lib/features/hadith/presentation/hadith_book_screen.dart')
               .readAsStringSync();
-      expect(book.contains('final focusHadithKey;'), isTrue);
+      expect(book.contains('final String focusHadithKey;'), isTrue,
+          reason: 'typed field with a non-null String type — the shape that '
+              'leaves every pre-X6 (int-only) entry point compiling unchanged');
       expect(book.contains("this.focusHadithKey = '',"), isTrue,
           reason: 'int-only entry points (bookmarks) keep working untouched');
       expect(book.contains('focusChapterNumber = 0,'), isTrue);
