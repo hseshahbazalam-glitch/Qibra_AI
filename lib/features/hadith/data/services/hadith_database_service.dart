@@ -821,7 +821,14 @@ class HadithDatabaseService {
   /// the exact shape check the loader expects — no Flutter APIs, so
   /// test/core/perf_pass_test.dart can pin decode+join semantics on a
   /// fixture WITHOUT spawning isolates in the test.
-  @visibleForTesting
+  ///
+  /// NOT `@visibleForTesting` any more, and that is a fact about the code rather
+  /// than a relaxation of a rule: PASS HR-1 gave the persistent search worker
+  /// the SAME decoder (it decodes the raw asset strings inside the worker), so
+  /// this member is production API called from a second library. Leaving the
+  /// annotation on would be a warning the analyzer is right to raise — a
+  /// production path must not be built on a member that claims to exist only
+  /// for tests.
   static Map<String, dynamic>? decodeHadithAsset(String raw) {
     try {
       final decoded = jsonDecode(raw);
