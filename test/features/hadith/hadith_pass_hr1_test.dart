@@ -461,15 +461,32 @@ void main() {
           reason: 'Enter, the pop-reset, the quick-pick pre-runner and the '
               'recent-search chip all commit through the window (so they cancel '
               'it) instead of writing past it');
-      expect(
-          RegExp(r'read\(hadithSearchQueryProvider\.notifier\)\.state =')
-              .allMatches(code)
-              .length,
-          0,
-          reason: 'no surface may bypass the window and write the committed '
-              'query directly any more — that is how 14 keystrokes became 14 '
-              'scans, and it must stay impossible');
+      // WHAT THIS PIN ACTUALLY MEANS, after CI corrected it once: the first
+      // draft asserted "zero `.state =` writes in the screen", which was wrong —
+      // the window's commit closures ARE writes, five of them, and that is the
+      // design. The thing that must stay at zero is a write of LIVE text. So the
+      // pair below counts every write of the committed query and every write
+      // whose target is `committed`, and demands they be the same number.
+      // Whitespace is flattened first: a source pin that depends on where
+      // `dart format` happened to break a line is a coin flip, not a guard.
+      final flat = code.replaceAll(RegExp(r'\s+'), ' ');
+      final queryWrites = RegExp(
+              r'read\(\s*hadithSearchQueryProvider\s*\.\s*notifier\s*\)\s*\.\s*state\s*=')
+          .allMatches(flat)
+          .length;
+      final throughWindow = RegExp(
+              r'read\(\s*hadithSearchQueryProvider\s*\.\s*notifier\s*\)\s*\.\s*state\s*=\s*committed\b')
+          .allMatches(flat)
+          .length;
+      expect(queryWrites, 5,
+          reason: 'field keystroke, Enter, the pop-reset, the quick-pick '
+              'pre-runner and the recent-search chip — five writers, no more');
+      expect(throughWindow, queryWrites,
+          reason: 'and every one of them writes what the window committed, never '
+              'live text: that is how 14 keystrokes became 14 scans, and it must '
+              'stay impossible');
     });
+
     test('the provider layer keeps the committed query as its only input', () {
       final code = stripCommentsForGuard(_read(_providerPath));
       expect(code.contains('final query = ref.watch(hadithSearchQueryProvider);'),

@@ -358,7 +358,13 @@ class HadithSearchWorker {
     _isolate = null;
     try {
       _inbox?.close();
-    } catch (_) {}
+    } catch (_) {
+      // Already closed, or never opened: `_kill` runs on paths where the inbox
+      // may not exist yet, and a failure while retiring a dead worker must not
+      // replace a search miss with a crash. Deliberately silent, deliberately
+      // here — `test/core/pass_p3_polish_test.dart` (P3-7) requires every empty
+      // catch in lib to say why, and this is the saying.
+    }
     _inbox = null;
   }
 
