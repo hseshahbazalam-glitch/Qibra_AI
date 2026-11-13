@@ -218,6 +218,30 @@ void main() {
               'smaller than the hadith corpus by ~6x, so it did not freeze the '
               'owner, and it is disclosed here rather than quietly ignored');
     });
+    test('the worker keeps its corpus as a LOCAL of the entry, and never '
+        'spawns per call', () {
+      final code = stripCommentsForGuard(_read(_workerPath));
+      expect(code.contains('void _hadithSearchWorkerEntry(SendPort mainPort) {'),
+          isTrue,
+          reason: 'top-level and port-only: no rootBundle, no providers, no '
+              'this. An entry that could read assets would put the boot back on '
+              'the critical path and stop being isolate-safe');
+      expect(code.contains('final books = <String, List<LocalHadith>>{};'),
+          isTrue,
+          reason: 'the corpus is a LOCAL of the entry, captured by its own '
+              'listener — the only shape in which main genuinely cannot reach it');
+      expect(code.contains('Map<String, List<LocalHadith>> _'), isFalse,
+          reason: 'a FIELD corpus would be a handle reachable through the '
+              'singleton, which is the capture this pass bans');
+      expect(code.contains('Isolate.spawn('), isTrue);
+      expect(code.contains('Isolate.run'), isFalse,
+          reason: 'Isolate.run IS a per-call spawn, the shape that copied the '
+              'corpus per keystroke: one spawn per app, never one per query');
+      expect(code.contains('rootBundle'), isFalse,
+          reason: 'the worker is FED bytes and never reads assets itself, so '
+              'the 21 boot reads stay exactly one per file per session');
+    });
+
   });
 
   // ───────────────── 2. one assembler, one scan, two isolates ───────────────
@@ -446,6 +470,33 @@ void main() {
               'query directly any more — that is how 14 keystrokes became 14 '
               'scans, and it must stay impossible');
     });
+    test('the provider layer keeps the committed query as its only input', () {
+      final code = stripCommentsForGuard(_read(_providerPath));
+      expect(code.contains('final query = ref.watch(hadithSearchQueryProvider);'),
+          isTrue,
+          reason: 'the results provider watches the COMMITTED query — if it '
+              'watched live field text, the debounce would decorate a path that '
+              'still scans per character');
+      expect(code.contains('this.delay = const Duration(milliseconds: 250)'),
+          isTrue,
+          reason: '250 ms is the window the brief set, kept as a default a '
+              'reader can find and change in one place');
+      expect(
+          code.contains(
+              'final hadithSearchDebounceProvider = Provider<HadithSearchDebounce>'),
+          isTrue,
+          reason: 'one window per app: field, pill, chips and pop-reset supersede '
+              'each other instead of keeping private timers that can commit an '
+              'older text after a newer one');
+      expect(
+          RegExp(r'read\(hadithSearchQueryProvider\.notifier\)\s*\.state\s*=')
+              .allMatches(code)
+              .length,
+          0,
+          reason: 'no writer in the provider layer bypasses the window — the '
+              'screen commits through it and nothing else writes it');
+    });
+
   });
 
   // ─────────────────────────── 5. the benchmark gate ───────────────────────
