@@ -193,9 +193,6 @@ List<List<LocalSearchResult>> scanHadithCorpus(
   final hits = <List<LocalSearchResult>>[
     for (final _ in queries) <LocalSearchResult>[],
   ];
-  final hits = <List<LocalSearchResult>>[
-    for (final _ in queries) <LocalSearchResult>[],
-  ];
   for (final entry in booksSnapshot.entries) {
     for (final hadith in entry.value) {
       for (var qi = 0; qi < queries.length; qi++) {
