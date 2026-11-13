@@ -4,6 +4,7 @@
 // Singleton instance to prevent multiple re-decoding passes.
 // ============================================================
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/services.dart';
 
 import 'package:qibra_ai/core/utils/search_normalizer.dart';
 import '../hadith_availability.dart';
+import 'hadith_search_worker.dart';
 
 
 // Top-level so Isolate.run closures can capture it (owner ANR fix 2026-09-02).
@@ -26,6 +28,260 @@ double hadithRelevanceFor(String text, String query) {
 }
 
 
+
+// ============================================================
+// PASS HR-1 — THE PER-BOOK DERIVATION, PURE AND SHARED
+// ============================================================
+
+/// A book, assembled: the rows plus the section names they were labeled from.
+typedef HadithAssembledBook =
+    ({List<LocalHadith> hadiths, Map<String, String> sections});
+
+/// Everything a book's texts mean, as ONE pure function of the three decoded
+/// assets plus the folded language indices. Extracted VERBATIM out of
+/// `_loadBook` by PASS HR-1 so the main isolate (which renders) and the
+/// persistent search worker (which scans) assemble byte-identical rows from
+/// byte-identical raw text — two implementations of the join is exactly how a
+/// fractional 402.2 once landed on its parent 402, and a worker whose input
+/// differed from the rendered text would be a search that lies.
+///
+/// Isolate-safe by construction: no rootBundle, no providers, no `this`, no
+/// Flutter API. The only cross-references are the class's own pure static key
+/// helpers.
+HadithAssembledBook? assembleHadithBook({
+  required Map<String, dynamic>? englishData,
+  required Map<String, dynamic>? arabicData,
+  required Map<String, dynamic>? urduData,
+  required Map<String, Map<String, String>> langIndices,
+  required String slug,
+  required String name,
+}) {
+    final baseData = englishData ?? arabicData ?? urduData;
+    if (baseData == null) return null;
+
+    final metadata = baseData['metadata'] as Map<String, dynamic>?;
+    final sections = <String, String>{};
+    if (metadata != null) {
+      final sectionsData = metadata['sections'] as Map<String, dynamic>?;
+      sectionsData?.forEach((key, value) {
+        sections[key] = value.toString();
+      });
+    }
+
+    final englishHadiths = englishData?['hadiths'] as List<dynamic>? ?? [];
+    final arabicHadiths = arabicData?['hadiths'] as List<dynamic>? ?? [];
+    final urduHadiths = urduData?['hadiths'] as List<dynamic>? ?? [];
+
+    // Build lookup maps
+    final arabicMap = <int, String>{};
+    for (final h in arabicHadiths) {
+      try {
+        final map = h as Map<String, dynamic>;
+        final hNum = HadithDatabaseService._parseHadithNumber(map['hadithnumber']);
+        arabicMap[hNum] = map['text']?.toString() ?? '';
+      } catch (_) {
+        continue;
+      }
+    }
+
+    final urduMap = <int, String>{};
+    for (final h in urduHadiths) {
+      try {
+        final map = h as Map<String, dynamic>;
+        final hNum = HadithDatabaseService._parseHadithNumber(map['hadithnumber']);
+        urduMap[hNum] = map['text']?.toString() ?? '';
+      } catch (_) {
+        continue;
+      }
+    }
+
+    // Phase B language joins: keyed by the (hadithnumber,
+    // arabicnumber) PAIR — never by array index — because our shipped
+    // record sets differ from the dataset's (bukhari 7,589 raw vs
+    // 7,563 keyed; tirmidhi 3,998 vs 3,956; muslim's fractional
+    // arabicnumbers). A missing pair means the language has nothing
+    // for that hadith -> '' -> hasX false.
+    final primaryHadiths = englishHadiths.isNotEmpty
+        ? englishHadiths
+        : (arabicHadiths.isNotEmpty ? arabicHadiths : urduHadiths);
+
+    final hadiths = <LocalHadith>[];
+    for (final h in primaryHadiths) {
+      try {
+        final map = h as Map<String, dynamic>;
+        final hadithNum = HadithDatabaseService._parseHadithNumber(map['hadithnumber']);
+        final ref = map['reference'] as Map<String, dynamic>?;
+        final bookNum = HadithDatabaseService._parseHadithNumber(ref?['book']);
+        final chapterHadithNum = HadithDatabaseService._parseHadithNumber(ref?['hadith']);
+
+        final grades = map['grades'] as List<dynamic>? ?? [];
+        String gradeStr = '';
+        if (grades.isNotEmpty) {
+          final firstGrade = grades.first;
+          if (firstGrade is Map<String, dynamic>) {
+            gradeStr = firstGrade['grade']?.toString() ?? '';
+          }
+        }
+
+        final chapterName = sections[bookNum.toString()] ?? '';
+        final arabicNum = HadithDatabaseService._parseHadithNumber(map['arabicnumber']);
+        // Exact, fractional-aware join key from the RAW record values
+        // (Rev. 2: 402.2 must never merge onto 402).
+        final pair = HadithDatabaseService.pairKey(map['hadithnumber'], map['arabicnumber']);
+
+        hadiths.add(LocalHadith(
+          hadithNumber: hadithNum,
+          arabicNumber: arabicNum == 0 ? hadithNum : arabicNum,
+          textEnglish: map['text']?.toString() ?? '',
+          textArabic: arabicMap[hadithNum] ?? '',
+          textUrdu: urduMap[hadithNum] ?? '',
+          textBengali: langIndices['bn']?[pair] ?? '',
+          textTurkish: langIndices['tr']?[pair] ?? '',
+          textIndonesian: langIndices['id']?[pair] ?? '',
+          textFrench: langIndices['fr']?[pair] ?? '',
+          bookSlug: slug,
+          bookName: name,
+          bookNumber: bookNum,
+          chapterHadithNumber: chapterHadithNum,
+          chapterName: chapterName,
+          grade: gradeStr,
+          pairKey: pair,
+        ));
+      } catch (_) {
+        continue;
+      }
+    }
+  return (hadiths: hadiths, sections: sections);
+}
+
+/// One hadith asset as the loader saw it: the raw text AND the off-main decode.
+///
+/// PASS HR-1 added `raw` — the persistent search worker assembles its OWN copy
+/// of the corpus from the same bytes the main isolate decoded, so an asset is
+/// read from the bundle exactly once per session per file, and the only thing
+/// that crosses the isolate boundary is that one memcpy.
+class _HadithAsset {
+  const _HadithAsset({required this.raw, required this.data});
+
+  final String raw;
+  final Map<String, dynamic> data;
+}
+
+
+// ============================================================
+// PASS HR-1 — THE BATCH SCAN, AS A PURE FUNCTION OF (corpus, queries)
+// ============================================================
+
+/// The relevance-ranked batch scan that used to be the BODY of an
+/// `Isolate.run` closure capturing a snapshot of the corpus. Same rules, one
+/// fewer copy: it now runs inside the persistent worker (which owns its rows)
+/// and takes the corpus as a parameter.
+///
+/// Unchanged semantics, pinned by test/features/hadith/hadith_h4_search_test.dart
+/// and test/features/ai/*: the RAW query text is matched verbatim (folded by
+/// [SearchNormalizer], which is the only normalization the hadith path allows),
+/// english scores through [hadithRelevanceFor], arabic upgrades to 0.9, urdu to
+/// 0.85, the chapter name only ever scores 0.5 when nothing else matched, the
+/// four Phase B candidates are upgrade-only and skip empty text, each term list
+/// is capped, then sorted by relevance descending.
+List<List<LocalSearchResult>> scanHadithCorpus(
+  Map<String, List<LocalHadith>> booksSnapshot,
+  List<String> queries, {
+  int maxPerQuery = 3,
+}) {
+  final terms = queries.map((q) => q.toLowerCase().trim()).toList();
+  final hits = <List<LocalSearchResult>>[
+    for (final _ in queries) <LocalSearchResult>[],
+  ];
+  final hits = <List<LocalSearchResult>>[
+    for (final _ in queries) <LocalSearchResult>[],
+  ];
+  for (final entry in booksSnapshot.entries) {
+    for (final hadith in entry.value) {
+      for (var qi = 0; qi < queries.length; qi++) {
+        if (hits[qi].length >= maxPerQuery * 4) continue;
+        final q = queries[qi];
+        final lq = terms[qi];
+        double relevance = 0;
+        String matchedIn = '';
+        if (SearchNormalizer.contains(hadith.textEnglish, q)) {
+          relevance = hadithRelevanceFor(hadith.textEnglish, lq);
+          matchedIn = 'english';
+        }
+        if (SearchNormalizer.contains(hadith.textArabic, q) &&
+            0.9 > relevance) {
+          relevance = 0.9;
+          matchedIn = 'arabic';
+        }
+        if (SearchNormalizer.contains(hadith.textUrdu, q) &&
+            0.85 > relevance) {
+          relevance = 0.85;
+          matchedIn = 'urdu';
+        }
+        if (SearchNormalizer.contains(hadith.chapterName, q) &&
+            relevance == 0) {
+          relevance = 0.5;
+          matchedIn = 'chapter';
+        }
+        // Pass H4: the Phase-B languages join the OFF-MAIN scan with
+        // the EXACT rule the main-isolate search() already uses —
+        // scored position-aware, upgrade-only, empty text skipped.
+        // Before this the batch path searched en/ar/ur only, so
+        // routing hadith search here would have DROPPED
+        // bengali/turkish/indonesian/french hits the old search had.
+        for (final candidate in [
+          (hadith.textBengali, 'bengali'),
+          (hadith.textTurkish, 'turkish'),
+          (hadith.textIndonesian, 'indonesian'),
+          (hadith.textFrench, 'french'),
+        ]) {
+          if (candidate.$1.trim().isEmpty) continue;
+          if (SearchNormalizer.contains(candidate.$1, q)) {
+            final candidateRelevance =
+                hadithRelevanceFor(candidate.$1, lq);
+            if (candidateRelevance > relevance) {
+              relevance = candidateRelevance;
+              matchedIn = candidate.$2;
+            }
+          }
+        }
+        if (relevance > 0) {
+          hits[qi].add(LocalSearchResult(
+            hadith: hadith,
+            relevance: relevance,
+            matchedIn: matchedIn,
+          ));
+        }
+      }
+    }
+  }
+  for (var qi = 0; qi < queries.length; qi++) {
+    hits[qi].sort((a, b) => b.relevance.compareTo(a.relevance));
+    if (hits[qi].length > maxPerQuery) {
+      hits[qi] = hits[qi].sublist(0, maxPerQuery);
+    }
+  }
+  return hits;
+}
+/// Pass X1's late-language fold, as a pure function (PASS HR-1): a NEW
+/// immutable row per hadith, joined on the exact pair key the row already
+/// carries, plus the count of rows that ended up with non-empty text — the
+/// coverage marker. Both the main isolate and the search worker call THIS, so
+/// the two copies of the corpus can never disagree about a warmed language.
+({List<LocalHadith> rows, int nonEmpty}) foldLanguageIntoRows({
+  required List<LocalHadith> rows,
+  required String code,
+  required Map<String, String> index,
+}) {
+  final updated = List<LocalHadith>.filled(rows.length, rows.first);
+  var nonEmpty = 0;
+  for (var i = 0; i < rows.length; i++) {
+    final text = index[rows[i].pairKey] ?? '';
+    if (text.trim().isNotEmpty) nonEmpty++;
+    updated[i] = rows[i].withLanguageText(code, text);
+  }
+  return (rows: updated, nonEmpty: nonEmpty);
+}
 // ============================================================
 // LOCAL HADITH MODEL
 // ============================================================
@@ -336,18 +592,19 @@ class HadithDatabaseService {
       if (index == null) continue;
       final rows = _bookData[slug]!;
       if (rows.isEmpty) continue;
-      final updated = List<LocalHadith>.filled(rows.length, rows.first);
-      var nonEmpty = 0;
-      for (var i = 0; i < rows.length; i++) {
-        final text = index[rows[i].pairKey] ?? '';
-        if (text.trim().isNotEmpty) nonEmpty++;
-        updated[i] = rows[i].withLanguageText(code, text);
-      }
-      _bookData[slug] = updated;
+      final foldedRows = foldLanguageIntoRows(rows: rows, code: code, index: index);
+      _bookData[slug] = foldedRows.rows;
+      // PASS HR-1: the worker's copy folds the SAME way, from the SAME pure
+      // function — a language selected after boot cannot leave the searchable
+      // text behind the rendered text. (The FOLD SEAM is closed today:
+      // `newLanguageFiles` is empty, so this line is unreachable until an
+      // edition is bundled — which is exactly why it is wired now.)
+      unawaited(HadithSearchWorker.instance
+          .noteFold(slug: slug, code: code, index: index));
       // The coverage entry doubles as the "this book has this language"
       // marker — the index map itself is dropped right here, so a warmed
       // session never holds the translation file a second time.
-      cov[code] = (nonEmpty: nonEmpty, total: rows.length);
+      cov[code] = (nonEmpty: foldedRows.nonEmpty, total: rows.length);
       folded = true;
     }
     return folded;
@@ -404,59 +661,17 @@ class HadithDatabaseService {
           _loadLanguageIndex('assets/data/hadith/$slug/${lang.value}.json'),
       ]);
 
-      final englishData = results[0] as Map<String, dynamic>?;
-      final arabicData = results[1] as Map<String, dynamic>?;
-      final urduData = results[2] as Map<String, dynamic>?;
+      final englishAsset = results[0] as _HadithAsset?;
+      final arabicAsset = results[1] as _HadithAsset?;
+      final urduAsset = results[2] as _HadithAsset?;
+      final englishData = englishAsset?.data;
+      final arabicData = arabicAsset?.data;
+      final urduData = urduAsset?.data;
 
       if (englishData == null && arabicData == null && urduData == null) {
         return;
       }
 
-      final baseData = englishData ?? arabicData ?? urduData;
-      if (baseData == null) return;
-
-      final metadata = baseData['metadata'] as Map<String, dynamic>?;
-      final sections = <String, String>{};
-      if (metadata != null) {
-        final sectionsData = metadata['sections'] as Map<String, dynamic>?;
-        sectionsData?.forEach((key, value) {
-          sections[key] = value.toString();
-        });
-      }
-
-      final englishHadiths = englishData?['hadiths'] as List<dynamic>? ?? [];
-      final arabicHadiths = arabicData?['hadiths'] as List<dynamic>? ?? [];
-      final urduHadiths = urduData?['hadiths'] as List<dynamic>? ?? [];
-
-      // Build lookup maps
-      final arabicMap = <int, String>{};
-      for (final h in arabicHadiths) {
-        try {
-          final map = h as Map<String, dynamic>;
-          final hNum = _parseHadithNumber(map['hadithnumber']);
-          arabicMap[hNum] = map['text']?.toString() ?? '';
-        } catch (_) {
-          continue;
-        }
-      }
-
-      final urduMap = <int, String>{};
-      for (final h in urduHadiths) {
-        try {
-          final map = h as Map<String, dynamic>;
-          final hNum = _parseHadithNumber(map['hadithnumber']);
-          urduMap[hNum] = map['text']?.toString() ?? '';
-        } catch (_) {
-          continue;
-        }
-      }
-
-      // Phase B language joins: keyed by the (hadithnumber,
-      // arabicnumber) PAIR — never by array index — because our shipped
-      // record sets differ from the dataset's (bukhari 7,589 raw vs
-      // 7,563 keyed; tirmidhi 3,998 vs 3,956; muslim's fractional
-      // arabicnumbers). A missing pair means the language has nothing
-      // for that hadith -> '' -> hasX false.
       // PASS X1: an edition nobody asked for is simply ABSENT from this map,
       // which is what makes its texts '' and its coverage entry unwritten
       // below — never a silently-empty hadith: the reader's existing
@@ -467,59 +682,31 @@ class HadithDatabaseService {
           if (results[3 + i] != null)
             wanted[i].key: results[3 + i]! as Map<String, String>,
       };
-
-      final primaryHadiths = englishHadiths.isNotEmpty
-          ? englishHadiths
-          : (arabicHadiths.isNotEmpty ? arabicHadiths : urduHadiths);
-
-      final hadiths = <LocalHadith>[];
-      for (final h in primaryHadiths) {
-        try {
-          final map = h as Map<String, dynamic>;
-          final hadithNum = _parseHadithNumber(map['hadithnumber']);
-          final ref = map['reference'] as Map<String, dynamic>?;
-          final bookNum = _parseHadithNumber(ref?['book']);
-          final chapterHadithNum = _parseHadithNumber(ref?['hadith']);
-
-          final grades = map['grades'] as List<dynamic>? ?? [];
-          String gradeStr = '';
-          if (grades.isNotEmpty) {
-            final firstGrade = grades.first;
-            if (firstGrade is Map<String, dynamic>) {
-              gradeStr = firstGrade['grade']?.toString() ?? '';
-            }
-          }
-
-          final chapterName = sections[bookNum.toString()] ?? '';
-          final arabicNum = _parseHadithNumber(map['arabicnumber']);
-          // Exact, fractional-aware join key from the RAW record values
-          // (Rev. 2: 402.2 must never merge onto 402).
-          final pair = pairKey(map['hadithnumber'], map['arabicnumber']);
-
-          hadiths.add(LocalHadith(
-            hadithNumber: hadithNum,
-            arabicNumber: arabicNum == 0 ? hadithNum : arabicNum,
-            textEnglish: map['text']?.toString() ?? '',
-            textArabic: arabicMap[hadithNum] ?? '',
-            textUrdu: urduMap[hadithNum] ?? '',
-            textBengali: langIndices['bn']?[pair] ?? '',
-            textTurkish: langIndices['tr']?[pair] ?? '',
-            textIndonesian: langIndices['id']?[pair] ?? '',
-            textFrench: langIndices['fr']?[pair] ?? '',
-            bookSlug: slug,
-            bookName: name,
-            bookNumber: bookNum,
-            chapterHadithNumber: chapterHadithNum,
-            chapterName: chapterName,
-            grade: gradeStr,
-            pairKey: pair,
-          ));
-        } catch (_) {
-          continue;
-        }
-      }
-
+      final assembled = assembleHadithBook(
+        englishData: englishData,
+        arabicData: arabicData,
+        urduData: urduData,
+        langIndices: langIndices,
+        slug: slug,
+        name: name,
+      );
+      if (assembled == null) return;
+      final hadiths = assembled.hadiths;
+      final sections = assembled.sections;
       _bookData[slug] = hadiths;
+      // PASS HR-1 — the search worker assembles its own copy of THIS book from
+      // the same raw trio. Deliberately NOT awaited: the worker decodes on its
+      // own core while main carries on loading the next book, so the first
+      // painted hadith screen never waits on it. The payload is 3 strings per
+      // book, once — never a capture of `_bookData`.
+      unawaited(HadithSearchWorker.instance.noteBook(
+        slug: slug,
+        name: name,
+        rawEnglish: englishAsset?.raw,
+        rawArabic: arabicAsset?.raw,
+        rawUrdu: urduAsset?.raw,
+        langIndices: langIndices,
+      ));
       _bookInfo[slug] = LocalBookInfo(
         slug: slug,
         name: name,
@@ -583,13 +770,14 @@ class HadithDatabaseService {
     }
   }
 
-  Future<Map<String, dynamic>?> _loadJsonAsset(String path) async {
+  Future<_HadithAsset?> _loadJsonAsset(String path) async {
     try {
       final raw = await rootBundle.loadString(path);
       final sw = debugLogLoadTiming ? (Stopwatch()..start()) : null;
       final decoded = await Isolate.run(() => decodeHadithAsset(raw));
       _logDecodeTiming(path, sw);
-      return decoded;
+      if (decoded == null) return null;
+      return _HadithAsset(raw: raw, data: decoded);
     } catch (_) {
       return null;
     }
@@ -833,85 +1021,51 @@ class HadithDatabaseService {
   /// 2026-09-02): all terms in ONE background scan of the 36k-hadith
   /// index; per-term hits, relevance-ranked, capped at [maxPerQuery].
   /// The synchronous per-term scan was the ANR source in chat send.
+  /// Batch search, answered by the persistent worker (PASS HR-1).
+  ///
+  /// The SIGNATURE is unchanged on purpose: `ai_responsiveness_test` pins this
+  /// declaration and both call sites (the chat RAG retrieve path and the hadith
+  /// tab's `hadithSearchResultsProvider`), and the AI/hadith fakes override it.
+  ///
+  /// BEFORE: `Map<String, List<LocalHadith>>.of(_bookData)` was captured by an
+  /// `Isolate.run` closure, so EVERY call deep-copied all 36,390 rows out of the
+  /// main isolate — 14 keystrokes, 14 corpus copies. That is the freeze the
+  /// owner measured on a CPH2573 typing "namaz ka tarika", and no CI test could
+  /// see it because every hadith search test drives a fake that overrides this
+  /// method.
+  /// NOW: query strings in, ranked batches out, corpus never crosses.
+  ///
+  /// When the worker cannot answer — spawn refused, wedged, or the query was
+  /// superseded by a newer one — the answer is EMPTY, never a main-isolate
+  /// rescan: an empty result is honest and recoverable, a per-keystroke copy of
+  /// the corpus is the bug this pass exists to remove. `hadith_pass_hr1_test`
+  /// pins that no isolate closure in this feature captures the corpus map.
   Future<List<List<LocalSearchResult>>> searchBatchOffMain(
     List<String> queries, {
     int maxPerQuery = 3,
   }) async {
     if (queries.isEmpty) return [for (final _ in queries) <LocalSearchResult>[]];
     if (!_isInitialized) return [for (final _ in queries) <LocalSearchResult>[]];
-    final booksSnapshot = Map<String, List<LocalHadith>>.of(_bookData);
-    final terms = queries.map((q) => q.toLowerCase().trim()).toList();
-    return Isolate.run(() {
-      final hits = <List<LocalSearchResult>>[
-        for (final _ in queries) <LocalSearchResult>[],
-      ];
-      for (final entry in booksSnapshot.entries) {
-        for (final hadith in entry.value) {
-          for (var qi = 0; qi < queries.length; qi++) {
-            if (hits[qi].length >= maxPerQuery * 4) continue;
-            final q = queries[qi];
-            final lq = terms[qi];
-            double relevance = 0;
-            String matchedIn = '';
-            if (SearchNormalizer.contains(hadith.textEnglish, q)) {
-              relevance = hadithRelevanceFor(hadith.textEnglish, lq);
-              matchedIn = 'english';
-            }
-            if (SearchNormalizer.contains(hadith.textArabic, q) &&
-                0.9 > relevance) {
-              relevance = 0.9;
-              matchedIn = 'arabic';
-            }
-            if (SearchNormalizer.contains(hadith.textUrdu, q) &&
-                0.85 > relevance) {
-              relevance = 0.85;
-              matchedIn = 'urdu';
-            }
-            if (SearchNormalizer.contains(hadith.chapterName, q) &&
-                relevance == 0) {
-              relevance = 0.5;
-              matchedIn = 'chapter';
-            }
-            // Pass H4: the Phase-B languages join the OFF-MAIN scan with
-            // the EXACT rule the main-isolate search() already uses —
-            // scored position-aware, upgrade-only, empty text skipped.
-            // Before this the batch path searched en/ar/ur only, so
-            // routing hadith search here would have DROPPED
-            // bengali/turkish/indonesian/french hits the old search had.
-            for (final candidate in [
-              (hadith.textBengali, 'bengali'),
-              (hadith.textTurkish, 'turkish'),
-              (hadith.textIndonesian, 'indonesian'),
-              (hadith.textFrench, 'french'),
-            ]) {
-              if (candidate.$1.trim().isEmpty) continue;
-              if (SearchNormalizer.contains(candidate.$1, q)) {
-                final candidateRelevance =
-                    hadithRelevanceFor(candidate.$1, lq);
-                if (candidateRelevance > relevance) {
-                  relevance = candidateRelevance;
-                  matchedIn = candidate.$2;
-                }
-              }
-            }
-            if (relevance > 0) {
-              hits[qi].add(LocalSearchResult(
-                hadith: hadith,
-                relevance: relevance,
-                matchedIn: matchedIn,
-              ));
-            }
-          }
-        }
+    final worker = HadithSearchWorker.instance;
+    await worker.start();
+    // The boot hands books over without being awaited (first-frame priority),
+    // so a query that arrives mid-boot waits for the worker to catch up rather
+    // than scanning a half-loaded corpus and calling it a result. Bounded: a
+    // worker that cannot settle must not stall the caller either.
+    await worker.whenSettled().timeout(
+          const Duration(seconds: 8),
+          onTimeout: () => null,
+        );
+    final batches = await worker
+        .search(queries, maxPerQuery: maxPerQuery);
+    if (batches == null) {
+      if (kDebugMode) {
+        debugPrint('[HADITH_DB] search batch empty — worker unavailable; the '
+            'corpus is never copied for a keystroke');
       }
-      for (var qi = 0; qi < queries.length; qi++) {
-        hits[qi].sort((a, b) => b.relevance.compareTo(a.relevance));
-        if (hits[qi].length > maxPerQuery) {
-          hits[qi] = hits[qi].sublist(0, maxPerQuery);
-        }
-      }
-      return hits;
-    });
+      return [for (final _ in queries) <LocalSearchResult>[]];
+    }
+    return batches;
   }
 
   /// Canonical string key for a JSON number that may be an int, a double,

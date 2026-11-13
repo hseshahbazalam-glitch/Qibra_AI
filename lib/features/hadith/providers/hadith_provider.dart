@@ -4,6 +4,7 @@
 // Version: 2.1.0 — Singleton Database Integration with Instant Load
 // ============================================================
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -376,6 +377,94 @@ final hadithsProvider = FutureProvider.family<List<HadithModel>, HadithsParams>(
 // token DENSITY ranking. Both halves are pure so they unit-test without
 // the corpus: hadithSearchTerms (P1), rankHadithSearchMerge (P2).
 
+/// PASS HR-1 — the typing window in front of the scan.
+///
+/// A `TextField` fires on EVERY keystroke and a hadith scan walks 36,390 rows:
+/// before this pass each keystroke committed a query AND each commit copied the
+/// whole corpus into a fresh isolate (owner device finding — typing "namaz ka
+/// tarika" froze the app for seconds per character). The corpus half is fixed by
+/// [HadithSearchWorker]; this is the other half: a burst of typing commits ONCE,
+/// with the final text, [delay] after the last keystroke.
+///
+/// [commitNow] exists because a TAP is not typing: the home quick-pick chips,
+/// the recent-search chips and the sheet's pre-runner all commit immediately —
+/// `hadith_h4_search_test` pins that a chip tap has already answered by the
+/// time the sheet arrives, and a debounce there would be a behavior regression
+/// dressed up as a performance fix.
+///
+/// [generation] is the supersession counter: it moves with every keystroke, so
+/// anything holding a result can tell "this is the answer to the text I have"
+/// from "this is the answer to what I typed four characters ago". A discarded
+/// pending commit also bumps it, which is what makes the counter a real
+/// staleness signal rather than a commit counter.
+class HadithSearchDebounce {
+  HadithSearchDebounce({this.delay = const Duration(milliseconds: 250)});
+
+  /// The window. 250 ms is the brief's number, and it is deliberately the only
+  /// latency the reader pays: below it a two-word query still issues two scans.
+  final Duration delay;
+
+  Timer? _timer;
+  String _pending = '';
+  int _generation = 0;
+
+  int get generation => _generation;
+  String get pending => _pending;
+  bool get isScheduled => _timer != null;
+
+  /// A keystroke: remember the text, restart the window, drop whatever commit
+  /// was still pending — that discard IS the supersession.
+  void note(String text, void Function(String committed) commit) {
+    _generation++;
+    _pending = text;
+    _timer?.cancel();
+    _timer = null;
+    if (delay == Duration.zero) {
+      _emit(commit);
+      return;
+    }
+    _timer = Timer(delay, () {
+      _timer = null;
+      _emit(commit);
+    });
+  }
+
+  /// A tap, an Enter, or a clear: commit this text now and cancel any window.
+  void commitNow(String text, void Function(String committed) commit) {
+    _generation++;
+    _timer?.cancel();
+    _timer = null;
+    _pending = text;
+    _emit(commit);
+  }
+
+  /// Drop a pending commit without emitting one (sheet disposal).
+  void cancel() {
+    _timer?.cancel();
+    _timer = null;
+    _pending = '';
+  }
+
+  void dispose() => cancel();
+
+  void _emit(void Function(String committed) commit) {
+    final text = _pending;
+    _pending = '';
+    commit(text);
+  }
+}
+
+/// One window per app, so the field, the pill, the chips and the pop-reset all
+/// supersede EACH OTHER rather than each keeping a private timer that can commit
+/// an older text after a newer one.
+final hadithSearchDebounceProvider = Provider<HadithSearchDebounce>((ref) {
+  final debounce = HadithSearchDebounce();
+  ref.onDispose(debounce.dispose);
+  return debounce;
+});
+
+/// The COMMITTED query — what `hadithSearchResultsProvider` scans for. It is
+/// intentionally not the field's live text while a window is open.
 final hadithSearchQueryProvider = StateProvider<String>((ref) => '');
 final hadithSearchBookFilterProvider = StateProvider<String?>((ref) => null);
 

@@ -946,8 +946,14 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   /// time — they stay here.
   void _showSearchSheet(BuildContext context, {String? initialQuery}) {
     if (initialQuery != null && initialQuery.trim().isNotEmpty) {
-      ref.read(hadithSearchQueryProvider.notifier).state =
-          initialQuery.trim();
+      // PASS HR-1: a CHIP TAP is not typing — commit through the debounce
+      // window instead of restarting it, so the query is already answered when
+      // the sheet arrives (hadith_h4_search_test pins exactly that).
+      ref.read(hadithSearchDebounceProvider).commitNow(
+            initialQuery.trim(),
+            (committed) =>
+                ref.read(hadithSearchQueryProvider.notifier).state = committed,
+          );
     }
     showModalBottomSheet<void>(
       context: context,
@@ -961,7 +967,13 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
         onOpenInBook: (hadith) => _openHadithInBook(context, hadith),
       ),
     ).whenComplete(() {
-      ref.read(hadithSearchQueryProvider.notifier).state = '';
+      // A closed sheet must not leave a window armed: commitNow('') cancels the
+      // pending commit AND clears, so the next open starts from nothing.
+      ref.read(hadithSearchDebounceProvider).commitNow(
+            '',
+            (committed) =>
+                ref.read(hadithSearchQueryProvider.notifier).state = committed,
+          );
       // Pass H4: the book filter belongs to THIS sheet session — leaving
       // it set would silently narrow the next open.
       ref.read(hadithSearchBookFilterProvider.notifier).state = null;
@@ -1059,9 +1071,14 @@ class _HadithSearchSheet extends ConsumerStatefulWidget {
 class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
   late final TextEditingController _controller;
 
+  /// PASS HR-1 — the app-wide typing window, held here ONLY so disposal can
+  /// cancel a commit that would otherwise fire after this state is gone.
+  HadithSearchDebounce? _debounce;
+
   @override
   void initState() {
     super.initState();
+    _debounce = ref.read(hadithSearchDebounceProvider);
     // World-class hadith pass (item 2): a sheet-local controller makes
     // the recents chips REAL — tapping one writes the query back into
     // the same field the user types in, then re-runs it.
@@ -1070,6 +1087,10 @@ class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
 
   @override
   void dispose() {
+    // PASS HR-1: the debounce window is app-wide, so a sheet torn down by any
+    // route other than its own pop must retire its pending commit — left
+    // armed, that timer fires into a disposed ref.
+    _debounce?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -1126,10 +1147,28 @@ class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
                         prefixIcon: Icon(Icons.search_rounded),
                       ),
                       onChanged: (value) {
-                        ref.read(hadithSearchQueryProvider.notifier).state =
-                            value;
+                        // PASS HR-1 — the keystroke path. 250 ms of quiet is
+                        // what has to pass before a scan is issued, and a
+                        // keystroke inside the window cancels the pending one,
+                        // so "namaz ka tarika" typed continuously is ONE scan
+                        // instead of fourteen corpus walks.
+                        ref.read(hadithSearchDebounceProvider).note(
+                              value,
+                              (committed) => ref
+                                      .read(hadithSearchQueryProvider.notifier)
+                                      .state =
+                                  committed,
+                            );
                       },
                       onSubmitted: (value) {
+                        // Enter means "now": drop the window, commit this text.
+                        ref.read(hadithSearchDebounceProvider).commitNow(
+                              value,
+                              (committed) => ref
+                                      .read(hadithSearchQueryProvider.notifier)
+                                      .state =
+                                  committed,
+                            );
                         final trimmed = value.trim();
                         if (trimmed.isEmpty) return;
                         ref
@@ -1240,9 +1279,15 @@ class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
                                         onTap: () {
                                           _controller.text = entry;
                                           ref
-                                              .read(hadithSearchQueryProvider
-                                                  .notifier)
-                                              .state = entry;
+                                              .read(hadithSearchDebounceProvider)
+                                              .commitNow(
+                                            entry,
+                                            (committed) => ref
+                                                    .read(hadithSearchQueryProvider
+                                                        .notifier)
+                                                    .state =
+                                                committed,
+                                          );
                                           ref
                                               .read(
                                                   hadithRecentSearchesProvider

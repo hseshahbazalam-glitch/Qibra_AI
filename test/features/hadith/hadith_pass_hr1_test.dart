@@ -1,0 +1,563 @@
+// test/features/hadith/hadith_pass_hr1_test.dart
+// ============================================================
+// PASS HR-1 — the search path may NEVER capture the corpus.
+//
+// OWNER FINDING this file exists to make impossible: typing "namaz ka tarika"
+// into the hadith search froze the whole app on a CPH2573 in profile mode. The
+// hadith tab committed a query on every keystroke, and every commit ran
+//     final booksSnapshot = Map<String, List<LocalHadith>>.of(_bookData);
+//     return Isolate.run(() { ...scan booksSnapshot... });
+// — `Isolate.run` sends the closure to a NEW isolate, and sending is a DEEP
+// copy of everything it captures: all 36,390 rows, copied on the main isolate,
+// per keystroke.
+//
+// NO CI TEST COULD SEE IT: every hadith/AI search test drives a fake that
+// OVERRIDES `searchBatchOffMain`, so the capture never executed there. That is
+// the whole reason this file is mostly source pins — a forbidden pattern in the
+// text is the one instrument that cannot be stubbed out. The two behavioural
+// groups below (worker parity, the benchmark) run the REAL isolate, so the
+// design is not merely documented, it is exercised.
+// ============================================================
+
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
+import 'package:qibra_ai/features/hadith/data/services/hadith_search_worker.dart';
+import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
+
+import '../../support/source_guards.dart';
+
+const _servicePath =
+    'lib/features/hadith/data/services/hadith_database_service.dart';
+const _workerPath =
+    'lib/features/hadith/data/services/hadith_search_worker.dart';
+const _providerPath = 'lib/features/hadith/providers/hadith_provider.dart';
+const _screenPath = 'lib/features/hadith/presentation/hadith_screen.dart';
+
+String _read(String path) => File(path).readAsStringSync();
+
+/// Every `Isolate.run(...)` / `Isolate.spawn(...)` call site in [code], as its
+/// own balanced-paren span — i.e. the closure AND its argument list, which is
+/// exactly the region a capture lives in. Comment-blind by contract: the worker
+/// file QUOTES the frozen shape in its header, and a naive scan would read the
+/// documentation as the bug (the same trap `hadith_redesign_test` hit and fixed).
+List<String> isolateSpans(String code) {
+  final out = <String>[];
+  for (final m in RegExp(r'Isolate\.(?:run|spawn)\w*\(').allMatches(code)) {
+    var depth = 0;
+    var i = m.end - 1;
+    while (i < code.length) {
+      final c = code[i];
+      if (c == '(') depth++;
+      if (c == ')') {
+        depth--;
+        if (depth == 0) {
+          out.add(code.substring(m.start, i + 1));
+          break;
+        }
+      }
+      i++;
+    }
+  }
+  return out;
+}
+
+/// The method from its signature to its closing brace.
+///
+/// Anchored on the OPENING brace on purpose: `searchBatchOffMain` wraps its
+/// parameter list, so the `  })` that closes that list is itself a
+/// newline-plus-two-spaces-plus-brace sequence. Scanning for that from the
+/// signature returns the signature and nothing else — which is how this
+/// file's first draft ended up asserting against an empty body and reading
+/// the pin as missing. The open-brace anchor cannot be confused.
+String methodBody(String code, String signatureStart) {
+  final start = code.indexOf(signatureStart);
+  if (start < 0) return '';
+  final params = code.indexOf(')', start);
+  final open = code.indexOf('{', params);
+  if (params < 0 || open < 0) return '';
+  final end = code.indexOf('\n  }', open);
+  return end < 0 ? '' : code.substring(start, end);
+}
+
+// ───────────────────────── synthetic corpus ─────────────────────────────────
+
+/// One book of [rows] hadiths in EXACTLY the shipped shape (metadata.sections +
+/// hadiths[] with hadithnumber / arabicnumber / reference / grades / text), so
+/// the assembler, the join and the scan all run their production code paths on
+/// it. Row [firstNumber] + i is the number; every 97th row is FRACTIONAL,
+/// because the truncation onto its parent is the failure X6 proved is real and
+/// a worker that forgot it would search a different corpus than the one painted.
+String _syntheticBook(int firstNumber, int rows, {String bookSlug = 'bukhari'}) {
+  final hadiths = <Map<String, dynamic>>[];
+  for (var i = 0; i < rows; i++) {
+    final n = firstNumber + i;
+    final fractional = i % 97 == 96;
+    final number = fractional ? '$n.2' : '$n';
+    final arabic = fractional ? '$n.2' : '$n';
+    final topic = i % 7 == 0 ? 'namaz ka tarika' : 'patience in hardship';
+    hadiths.add({
+      'hadithnumber': num.parse(number),
+      'arabicnumber': num.parse(arabic),
+      'reference': {
+        'book': (i % 3) + 1,
+        'hadith': n,
+      },
+      'grades': [
+        {'grade': 'Sahih', 'name': 'Yahya'}
+      ],
+      'text': 'Volume 1, Book 1, Hadith $n: $topic — the Prophet (peace be '
+          'upon him) said, and the chain is complete for row $i of $bookSlug.',
+    });
+  }
+  return jsonEncode({
+    'metadata': {
+      'name': 'Sahih al-Bukhari',
+      'sections': {
+        '1': 'The Book of Knowledge',
+        '2': 'The Book of Faith',
+        '3': 'The Book of Prayer',
+      },
+    },
+    'hadiths': hadiths,
+  });
+}
+
+Map<String, dynamic>? _decode(String raw) =>
+    HadithDatabaseService.decodeHadithAsset(raw);
+
+void main() {
+  // ─────────────────────────── 1. the capture ban ───────────────────────────
+  group('HR-1 capture ban — no isolate closure may hold the corpus', () {
+    test('no Isolate.run / Isolate.spawn span in lib/features/hadith reads '
+        'the corpus map (the frozen shape, forbidden in source)', () {
+      final offenders = <String>[];
+      final scanned = <String>[];
+      for (final entity in Directory('lib/features/hadith')
+          .listSync(recursive: true)) {
+        if (entity is! File || !entity.path.endsWith('.dart')) continue;
+        final code = stripCommentsForGuard(_read(entity.path));
+        scanned.add(entity.path);
+        for (final span in isolateSpans(code)) {
+          for (final banned in [
+            '_bookData',
+            'booksSnapshot',
+            'Map<String, List<LocalHadith>>.of',
+          ]) {
+            if (span.contains(banned)) {
+              offenders.add('${entity.path} — captures `$banned` in: '
+                  '${span.substring(0, span.length.clamp(0, 90))}');
+            }
+          }
+        }
+      }
+      expect(offenders, isEmpty,
+          reason: 'a corpus graph inside an isolate closure is copied PER CALL '
+              'on the main isolate — that single line is what froze the app for '
+              'the owner. Offenders: $offenders');
+      expect(scanned.length, greaterThan(10),
+          reason: 'the sweep must cover the feature, not one file — hadith is '
+              '11 dart files today, and a floor (not an exact count) is what a '
+              'split file should not be able to break');
+    });
+
+    test('the old snapshot line is gone from the service, not renamed', () {
+      final code = stripCommentsForGuard(_read(_servicePath));
+      expect(code.contains('Map<String, List<LocalHadith>>.of(_bookData)'),
+          isFalse,
+          reason: 'the shallow `.of()` looked free and was not: the copy '
+              'happened when Isolate.run serialized the capture');
+      expect(code.contains('booksSnapshot = Map<'), isFalse);
+    });
+
+    test('searchBatchOffMain keeps its signature and delegates — it does not '
+        'scan, does not spawn, and does not copy', () {
+      final code = stripCommentsForGuard(_read(_servicePath));
+      final body =
+          methodBody(code, 'Future<List<List<LocalSearchResult>>> '
+              'searchBatchOffMain(');
+      expect(body, isNotEmpty, reason: 'the method must stay findable — the '
+          'AI pins reference it by name');
+      expect(body.contains('Isolate.'), isFalse,
+          reason: 'no per-call isolate at all: the worker is long-lived');
+      expect(body.contains('HadithSearchWorker.instance'), isTrue);
+      expect(body.contains('if (!_isInitialized) return'), isTrue,
+          reason: 'a COLD service still answers honestly empty — '
+              'ai_revival_test pins that shape and it must stay');
+    });
+
+    test('a worker that cannot answer yields EMPTY, never a main-isolate rescan',
+        () {
+      final body = methodBody(
+          stripCommentsForGuard(_read(_servicePath)),
+          'Future<List<List<LocalSearchResult>>> searchBatchOffMain(');
+      expect(body.contains('scanHadithCorpus(_bookData'), isFalse,
+          reason: 'the emergency path must not be "do the old thing on main"; '
+              'that is the freeze, re-labelled');
+      expect(body.contains('return [for (final _ in queries) <LocalSearchResult>[]];'),
+          isTrue,
+          reason: 'empty is the honest degraded answer, and it is what the '
+              'existing cold-start contract already does');
+    });
+
+    test('KNOWN DEBT, LEDGERED: the Quran repo still snapshots per call', () {
+      // Pinned at its CURRENT count on purpose: the fix is real work on a
+      // different corpus (114 surahs / 6,236 ayahs) and HR-1 is scoped to
+      // hadith. If this number moves, the ledger moves with it — either
+      // someone fixed it (update this test, celebrate) or someone grew it
+      // (stop).
+      final code = stripCommentsForGuard(
+          _read('lib/features/quran/data/repository/quran_repository.dart'));
+      final spans = isolateSpans(code)
+          .where((s) => s.contains('surahsSnapshot') || s.contains('_cachedSurahsMap'))
+          .length;
+      expect(spans, 2,
+          reason: 'quran search captures its corpus in 2 isolate spans today — '
+              'smaller than the hadith corpus by ~6x, so it did not freeze the '
+              'owner, and it is disclosed here rather than quietly ignored');
+    });
+  });
+
+  // ───────────────── 2. one assembler, one scan, two isolates ───────────────
+  group('HR-1 the worker scans exactly what main renders', () {
+    test('the assembler and the scan each exist ONCE in lib (no second '
+        'implementation to drift)', () {
+      var decls = 0;
+      var scanSites = 0;
+      var assemblerCalls = 0;
+      for (final entity in Directory('lib/features/hadith')
+          .listSync(recursive: true)) {
+        if (entity is! File || !entity.path.endsWith('.dart')) continue;
+        final code = stripCommentsForGuard(_read(entity.path));
+        decls += RegExp(r'HadithAssembledBook\? assembleHadithBook\(')
+            .allMatches(code)
+            .length;
+        scanSites +=
+            RegExp(r'List<List<LocalSearchResult>> scanHadithCorpus\(')
+                .allMatches(code)
+                .length;
+        assemblerCalls += RegExp(r'assembleHadithBook\(').allMatches(code).length;
+      }
+      expect(decls, 1);
+      expect(scanSites, 1,
+          reason: 'one ranking implementation for the app; the worker calls it, '
+              'nothing re-implements relevance rules in a closure');
+      expect(assemblerCalls, 3,
+          reason: 'one declaration, two call sites (main + the worker entry) — '
+              'a fourth match means a third place that assembles rows, which '
+              'is exactly where a join rule forks');
+    });
+
+    test('the worker assembles identical rows and returns identical hits',
+        () async {
+      final raw = _syntheticBook(1, 40);
+      final worker = HadithSearchWorker();
+      addTearDown(worker.shutdownForTest);
+      await worker.noteBook(
+          slug: 'bukhari', name: 'Sahih al-Bukhari', rawEnglish: raw);
+      await worker.whenSettled();
+      expect(worker.isLive, isTrue,
+          reason: 'the spawn was refused in this environment — every other '
+              'assertion here would be vacuous');
+
+      final mainCopy = assembleHadithBook(
+        englishData: _decode(raw),
+        arabicData: null,
+        urduData: null,
+        langIndices: const {},
+        slug: 'bukhari',
+        name: 'Sahih al-Bukhari',
+      )!;
+      expect(mainCopy.hadiths.length, 40);
+      expect(mainCopy.sections['3'], 'The Book of Prayer',
+          reason: 'sections come back on main (LocalBookInfo needs them) and '
+              'the worker never sees them as a separate object');
+
+      final expected =
+          scanHadithCorpus({'bukhari': mainCopy.hadiths}, ['namaz ka tarika'],
+              maxPerQuery: 5);
+      final got = await worker.search(['namaz ka tarika'], maxPerQuery: 5);
+      expect(got, isNotNull);
+      expect(
+          got![0].map((r) => '${r.hadith.id}|${r.relevance}|${r.matchedIn}'),
+          expected[0]
+              .map((r) => '${r.hadith.id}|${r.relevance}|${r.matchedIn}'),
+          reason: 'the answer a reader sees must be the answer the rendered '
+              'text would have produced — identical rows, identical rules');
+      expect(got[0], isNotEmpty);
+    });
+
+    test('X6 fractional identity survives the isolate trip (402.2 is not 402)',
+        () async {
+      final raw = _syntheticBook(400, 200);
+      final rows = assembleHadithBook(
+        englishData: _decode(raw),
+        arabicData: null,
+        urduData: null,
+        langIndices: const {},
+        slug: 'bukhari',
+        name: 'Sahih al-Bukhari',
+      )!;
+      final labels = rows.hadiths.map((h) => h.numberLabel).toSet();
+      expect(labels.contains('496.2'), isTrue,
+          reason: 'row 96 of the synthetic corpus is the fractional one; the '
+              'assembler must keep the edition number, not floor it');
+      expect(rows.hadiths.firstWhere((h) => h.numberLabel == '496.2').id,
+          'bukhari_496',
+          reason: 'the int id still points at the parent BY DESIGN (bookmarks '
+              'store ints — X6 pinned it), while the LABEL is honest');
+      final worker = HadithSearchWorker();
+      addTearDown(worker.shutdownForTest);
+      await worker.noteBook(slug: 'bukhari', name: 'Sahih al-Bukhari', rawEnglish: raw);
+      await worker.whenSettled();
+      final hits = await worker.search(['row 96 of bukhari'], maxPerQuery: 5);
+      expect(hits, isNotNull);
+      expect(hits![0].map((r) => r.hadith.numberLabel), contains('496.2'),
+          reason: 'the row that crossed the isolate boundary kept its pairKey '
+              '— a lost key here is X6 re-broken in the new architecture');
+    });
+  });
+
+  // ─────────────────────── 3. boot diet, unchanged ─────────────────────────
+  group('HR-1 the boot still reads once and never waits on the worker', () {
+    test('three asset reads per book — the worker rides the SAME strings', () {
+      final code = stripCommentsForGuard(_read(_servicePath));
+      final load = methodBody(code, 'Future<void> _loadBook(String slug, String name)');
+      expect(RegExp(r'_loadJsonAsset\(').allMatches(load).length, 3,
+          reason: 'english/arabic/urdu, once each — HR-1 must not add a fourth '
+              'read to feed the worker (the raw trio is handed from what was '
+              'already read)');
+      expect(load.contains('Future.wait<Object?>(['), isTrue,
+          reason: 'the per-book batch shape perf_pass_test pins stays the batch');
+    });
+
+    test('the handoff is unawaited and lands AFTER main has its rows', () {
+      final code = stripCommentsForGuard(_read(_servicePath));
+      final load =
+          methodBody(code, 'Future<void> _loadBook(String slug, String name)');
+      expect(load.contains('unawaited(HadithSearchWorker.instance.noteBook('),
+          isTrue,
+          reason: 'the first painted hadith must never wait on the worker decode');
+      expect(
+          load.indexOf('_bookData[slug] = hadiths;') <
+              load.indexOf('unawaited(HadithSearchWorker.instance.noteBook('),
+          isTrue,
+          reason: 'main installs its copy first — the worker is a follower, '
+              'so no UI path can observe a corpus that only exists there');
+      expect(load.contains('rawEnglish: englishAsset?.raw'), isTrue);
+    });
+
+    test('the decode stays off-main, in one place, and the language fold is '
+        'shared too', () {
+      final code = stripCommentsForGuard(_read(_servicePath));
+      expect(RegExp(r'jsonDecode').allMatches(code).length, 1,
+          reason: 'perf_pass_test pins ONE decode site app-side; HR-1 must not '
+              'add a second main-thread decode to feed the worker');
+      expect(code.contains('Isolate.run(() => decodeHadithAsset(raw))'), isTrue,
+          reason: 'main\'s own per-file decode is untouched — first-frame '
+              'parity with X1/X5 is a binding contract, not an accident');
+      expect(code.contains('foldLanguageIntoRows('), isTrue);
+      final fold = methodBody(code, 'Future<bool> _foldLanguage(String code)');
+      expect(fold.contains('noteFold('), isTrue,
+          reason: 'a language selected AFTER boot folds both copies or neither');
+    });
+  });
+
+  // ──────────────────────── 4. the 250 ms window ───────────────────────────
+  group('HR-1 the debounce window supersedes, a tap does not wait', () {
+    test('a burst of keystrokes commits ONCE, with the final text', () async {
+      final d = HadithSearchDebounce(delay: const Duration(milliseconds: 30));
+      addTearDown(d.dispose);
+      final committed = <String>[];
+      for (final q in [
+        'n', 'na', 'nam', 'nama', 'namaz', 'namaz ', 'namaz k', 'namaz ka',
+        'namaz ka t', 'namaz ka ta', 'namaz ka tar', 'namaz ka tari',
+        'namaz ka tarika',
+      ]) {
+        d.note(q, committed.add);
+      }
+      expect(committed, isEmpty,
+          reason: 'nothing may be issued while the window is open — every '
+              'commit here used to cost a corpus copy');
+      expect(d.pending, 'namaz ka tarika');
+      expect(d.isScheduled, isTrue);
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(committed, ['namaz ka tarika'],
+          reason: '13 keystrokes, 1 scan: the number this pass exists to make '
+              'true on the owner\'s device');
+      expect(d.isScheduled, isFalse);
+    });
+
+    test('every keystroke bumps the generation, so a stale result is knowable',
+        () async {
+      final d = HadithSearchDebounce(delay: const Duration(milliseconds: 20));
+      addTearDown(d.dispose);
+      final before = d.generation;
+      d.note('a', (_) {});
+      d.note('ab', (_) {});
+      expect(d.generation, before + 2);
+      d.cancel();
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      expect(d.generation, before + 2,
+          reason: 'cancel does not invent a generation — the counter moves on '
+              'what the reader typed, not on what got committed');
+    });
+
+    test('commitNow is for taps: it emits at once and cancels the open window',
+        () async {
+      final d = HadithSearchDebounce(delay: const Duration(milliseconds: 40));
+      addTearDown(d.dispose);
+      final committed = <String>[];
+      d.note('stale-typing', committed.add);
+      d.commitNow('Patience', committed.add);
+      expect(committed, ['Patience'],
+          reason: 'the quick-pick chip pre-runs the sheet on its query — '
+              'hadith_h4_search_test reads the provider one frame after the tap, '
+              'and a debounce there would break a shipped behavior');
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(committed, ['Patience'], reason: 'the discarded window stayed discarded');
+    });
+
+    test('the field and the pop-reset are wired through the window', () {
+      final code = stripCommentsForGuard(_read(_screenPath));
+      expect(
+          RegExp(r'hadithSearchDebounceProvider\)\s*\.note\(')
+              .allMatches(code)
+              .length,
+          1,
+          reason: 'exactly ONE writer buffers — the field. Every other path is '
+              'a tap or a lifecycle event and must not wait 250 ms');
+      expect(
+          RegExp(r'hadithSearchDebounceProvider\)\s*\.commitNow\(')
+              .allMatches(code)
+              .length,
+          4,
+          reason: 'Enter, the pop-reset, the quick-pick pre-runner and the '
+              'recent-search chip all commit through the window (so they cancel '
+              'it) instead of writing past it');
+      expect(
+          RegExp(r'read\(hadithSearchQueryProvider\.notifier\)\.state =')
+              .allMatches(code)
+              .length,
+          0,
+          reason: 'no surface may bypass the window and write the committed '
+              'query directly any more — that is how 14 keystrokes became 14 '
+              'scans, and it must stay impossible');
+    });
+  });
+
+  // ─────────────────────────── 5. the benchmark gate ───────────────────────
+  group('HR-1 benchmark gate — the owner\'s query, on a synthetic corpus', () {
+    test('20,020 hadiths, 14 continuous keystrokes: p95 main block < 16 ms '
+        'and p95 end-to-end < 500 ms', () async {
+      const books = 7;
+      const rowsPerBook = 2860; // 7 x 2860 = 20,020 ≥ the brief's 20,000 floor
+      final slugs = [
+        'bukhari', 'muslim', 'nasai', 'abudawud',
+        'tirmidhi', 'ibnmajah', 'malik',
+      ];
+      final worker = HadithSearchWorker();
+      addTearDown(worker.shutdownForTest);
+      for (var b = 0; b < books; b++) {
+        await worker.noteBook(
+          slug: slugs[b],
+          name: slugs[b],
+          rawEnglish: _syntheticBook(b * rowsPerBook + 1, rowsPerBook,
+              bookSlug: slugs[b]),
+        );
+      }
+      await worker.whenSettled();
+      expect(worker.isLive, isTrue, reason: 'no isolate in this environment');
+      expect(worker.handedBooks.length, books);
+
+      final queries = [
+        'n', 'na', 'nam', 'nama', 'namaz', 'namaz ', 'namaz k', 'namaz ka',
+        'namaz ka t', 'namaz ka ta', 'namaz ka tar', 'namaz ka tari',
+        'namaz ka tarik', 'namaz ka tarika',
+      ];
+      final block = <int>[];
+      final total = <int>[];
+      var lastHits = 0;
+      for (final q in queries) {
+        final blockSw = Stopwatch()..start();
+        final pending = worker.search([q], maxPerQuery: 50);
+        blockSw.stop();
+        final totalSw = Stopwatch()..start();
+        final batches = await pending;
+        totalSw.stop();
+        block.add(blockSw.elapsedMicroseconds);
+        total.add(blockSw.elapsedMicroseconds + totalSw.elapsedMicroseconds);
+        expect(batches, isNotNull, reason: 'query "$q" got no answer at all');
+        lastHits = batches!.first.length;
+      }
+      expect(lastHits, greaterThan(0),
+          reason: 'the corpus is genuinely resident in the worker — an empty '
+              'answer would make both timing bounds meaningless');
+
+      int p95(List<int> xs) {
+        final sorted = [...xs]..sort();
+        final i = (sorted.length * 0.95).ceil() - 1;
+        return sorted[i < 0 ? 0 : (i >= sorted.length ? sorted.length - 1 : i)];
+      }
+
+      // THE GATE, in ms, on the main isolate: what a keystroke may cost before
+      // the reader feels it. Bound from the brief (one frame at 60 Hz).
+      expect(p95(block) / 1000.0, lessThan(16.0),
+          reason: 'p95 main-isolate block was ${p95(block)} us over '
+              '${queries.length} keystrokes — the freeze signature');
+      expect(p95(total) / 1000.0, lessThan(500.0),
+          reason: 'p95 end-to-end was ${p95(total)} us');
+
+      // Zero tolerance for per-call corpus copies, measured the only way a test
+      // can: a query must not hand the worker any more books.
+      expect(worker.handedBooks.length, books,
+          reason: '14 queries re-handed the corpus — the per-call copy is back');
+
+      // And for the ledger: what the removed shape cost on THIS corpus. One
+      // scan of the same 20,020 rows, run synchronously on the main isolate,
+      // is what the per-keystroke closure body used to do — before it paid the
+      // deep copy of the capture on top.
+      final corpus = <String, List<LocalHadith>>{};
+      for (var b = 0; b < books; b++) {
+        final assembled = assembleHadithBook(
+          englishData: _decode(_syntheticBook(b * rowsPerBook + 1, rowsPerBook,
+              bookSlug: slugs[b])),
+          arabicData: null,
+          urduData: null,
+          langIndices: const {},
+          slug: slugs[b],
+          name: slugs[b],
+        )!;
+        corpus[slugs[b]] = assembled.hadiths;
+      }
+      final onMain = Stopwatch()..start();
+      scanHadithCorpus(corpus, ['namaz ka tarika'], maxPerQuery: 50);
+      onMain.stop();
+      expect(onMain.elapsedMicroseconds, greaterThan(1000),
+          reason: 'the scan of 20,020 rows is real work — that is precisely why '
+              'it must not sit on the keystroke path any more. Its cost here (in '
+              'microseconds, on main, WITHOUT the corpus copy the old shape paid '
+              'on top) is the number this pass moved off the UI thread.');
+    });
+
+    test('the worker survives 20 back-to-back queries without a respawn',
+        () async {
+      final worker = HadithSearchWorker();
+      addTearDown(worker.shutdownForTest);
+      await worker.noteBook(
+          slug: 'bukhari', name: 'Sahih al-Bukhari', rawEnglish: _syntheticBook(1, 300));
+      await worker.whenSettled();
+      for (var i = 0; i < 20; i++) {
+        final r = await worker.search(['patience'], maxPerQuery: 10);
+        expect(r, isNotNull, reason: 'query $i lost the worker — a wedged '
+            'isolate is the failure mode a per-app worker has to earn');
+      }
+      expect(worker.isLive, isTrue);
+      expect(worker.handedBooks.length, 1,
+          reason: 'one book, handed once — the worker is persistent, not a '
+              'fresh isolate per query like Isolate.run was');
+    });
+  });
+}
