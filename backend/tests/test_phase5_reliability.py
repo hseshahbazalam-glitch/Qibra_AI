@@ -6,8 +6,13 @@ from sqlalchemy import select
 
 from helpers import bearer, fresh_client, login, register
 
+from app.config import get_settings
 
-def test_refresh_reuse_invalidates_family():
+
+def test_refresh_reuse_invalidates_family(monkeypatch):
+    # Same QB-016 edit as test_phase4_sessions: family revocation on reuse is still the
+    # rule OUTSIDE the grace window, so the window is pinned at zero for this test.
+    monkeypatch.setattr(get_settings(), "refresh_reuse_grace_seconds", 0)
     with fresh_client() as client:
         register(client)
         first = login(client).json()

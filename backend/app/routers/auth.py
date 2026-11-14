@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy.orm import Session
 
@@ -77,6 +78,11 @@ def register_user(body: RegisterIn, db: Session = Depends(get_db)):
         user = register(db, body.email, body.password, body.name)
     except AuthError as exc:
         raise _auth_error(exc) from exc
+    except IntegrityError:
+        # QB-002, at the boundary: the service already converts its own UNIQUE loss,
+        # and any other write that races the index still cannot surface as a 500.
+        db.rollback()
+        raise HTTPException(status_code=409, detail="email_taken") from None
     return {"id": user.id, "email": user.email, "name": user.name}
 
 

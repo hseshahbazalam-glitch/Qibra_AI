@@ -4,8 +4,8 @@ Base: FastAPI `backend/app/main.py`. Paths are unversioned (not `/v1`) to match 
 
 | Method | Path | Auth | Notes |
 | --- | --- | --- | --- |
-| GET | `/health` | no | flags stay false |
-| POST | `/auth/register` | no | hashed password |
+| GET | `/health` | no | flags stay false; `database: {type, in_memory}` — never the URL |
+| POST | `/auth/register` | no | `EmailStr` (trim + lowercase, ≤255), name ≤120, password 8–1024; hashed password |
 | POST | `/auth/login` | no | access JWT + refresh (raw once) |
 | POST | `/auth/refresh` | no | body `{refresh_token}`; rotates |
 | POST | `/auth/logout` | no | optional `{refresh_token}` revoke; empty body still 200 |
@@ -15,7 +15,7 @@ Base: FastAPI `backend/app/main.py`. Paths are unversioned (not `/v1`) to match 
 | DELETE | `/auth/sessions/{id}` | yes | IDOR filtered |
 | GET | `/users/me` | yes | `is_premium` always false |
 | PATCH | `/users/me` | yes | name / locale en\|ar\|ur / timezone |
-| DELETE | `/users/me` | yes | soft delete |
+| DELETE | `/users/me` | yes | **hard delete** — user + bookmarks/sync/settings/progress/sessions/refresh tokens, one transaction, zero retention |
 | GET/POST/DELETE | `/bookmarks` | yes | refs only |
 | POST | `/sync` | yes | last-write-wins; max 500 items |
 | POST | `/ai/ask` | no | retrieval-only |

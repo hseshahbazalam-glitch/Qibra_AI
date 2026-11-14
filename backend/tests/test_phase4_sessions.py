@@ -1,6 +1,7 @@
 """Phase 4 continuation — refresh rotation, sessions, profile patch."""
 
 from helpers import bearer, fresh_client, login, register
+from app.config import get_settings
 from app.security import hash_refresh_token
 from app.services.merge import bookmark_set_merge, last_write_wins
 from datetime import datetime, timezone
@@ -17,7 +18,12 @@ def test_login_issues_refresh_and_not_raw_hash():
         assert hash_refresh_token(refresh) != refresh
 
 
-def test_refresh_rotates_and_old_token_is_reuse():
+def test_refresh_rotates_and_old_token_is_reuse(monkeypatch):
+    # QB-016 changed the rule this pin describes: a replay INSIDE the grace window now
+    # returns the same successor (see tests/test_qb016_refresh_grace.py). The scenario
+    # here is out-of-window reuse, so it pins the window at zero instead of inheriting
+    # "there is no window" from the implementation. Assertion text unchanged.
+    monkeypatch.setattr(get_settings(), "refresh_reuse_grace_seconds", 0)
     with fresh_client() as client:
         register(client)
         first = login(client).json()

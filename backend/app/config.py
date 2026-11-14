@@ -129,6 +129,10 @@ class Settings:
     version: str = "0.6.0"
     jwt_algorithm: str = "HS256"
     access_token_minutes: int = 15
+    # QB-016: how long a rotated refresh token keeps answering with the SAME successor.
+    # A lost response on a weak mobile link must not cost the session; past this window
+    # the family revoke below still fires exactly as it used to.
+    refresh_reuse_grace_seconds: int = 30
     auth_production_ready: bool = False
     content_production_ready: bool = False
     billing_production_ready: bool = False
@@ -142,6 +146,10 @@ class Settings:
         self.jwt_secret = jwt_secret_or_raise(env)
         self.database_url = database_url_or_raise(env)
         self.refresh_token_days = int(_lookup(env, "REFRESH_TOKEN_DAYS") or "30")
+        self.refresh_reuse_grace_seconds = int(
+            _lookup(env, "REFRESH_REUSE_GRACE_SECONDS")
+            or Settings.refresh_reuse_grace_seconds
+        )
         # Groq (LLM) — the API key lives ONLY in the environment (Render env var
         # GROQ_API_KEY). Never a default, never a file, never logged.
         self.groq_api_key = _lookup(env, "GROQ_API_KEY")

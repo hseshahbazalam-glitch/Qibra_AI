@@ -52,9 +52,13 @@ def patch_me(body: ProfilePatch, user: User = Depends(current_user), db: Session
 
 @router.delete("/me")
 def delete_me(user: User = Depends(current_user), db: Session = Depends(get_db)):
-    from ..services.auth_service import logout_all
+    """QB-003: this deletes. Every dependent row goes in the same transaction, so the
+    retention window after a 200 is zero — see docs/PRIVACY_DATA_MAP.md.
 
-    logout_all(db, user.id)
-    user.deleted_at = datetime.now(timezone.utc)
-    db.commit()
+    The response shape is unchanged on purpose: the client awaits the call and reads the
+    status, and a new body would be a UI change dressed up as a security fix.
+    """
+    from ..services.auth_service import delete_account
+
+    delete_account(db, user)
     return {"ok": True, "deleted": True}
