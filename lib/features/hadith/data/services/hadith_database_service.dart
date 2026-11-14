@@ -1052,6 +1052,22 @@ class HadithDatabaseService {
     if (!_isInitialized) return [for (final _ in queries) <LocalSearchResult>[]];
     final worker = HadithSearchWorker.instance;
     await worker.start();
+    // HR-1.1: a worker that revived after a retirement owns NOTHING while the
+    // boot hand-offs are still remembered, so an answered-but-empty search
+    // would be the reader's second disappointment. One re-hand, reusing the
+    // boot's own `_loadBook` (21 asset reads, off-main decodes, and the SAME
+    // unawaited `noteBook` hand-off shape): the corpus is rebuilt where it was
+    // built the first time, never copied out of main. The worker's revive
+    // cooldown rate-limits this too — a re-hand can only follow a revival, so
+    // it cannot fire per keystroke by construction.
+    if (worker.corpusStale) {
+      if (kDebugMode) {
+        debugPrint('[HADITH_DB] worker revived — re-handing '
+            '${worker.handedBooks.length} book(s) through the boot loader');
+      }
+      await rebuildSearchCorpus();
+      worker.markCorpusFresh();
+    }
     // The boot hands books over without being awaited (first-frame priority),
     // so a query that arrives mid-boot waits for the worker to catch up rather
     // than scanning a half-loaded corpus and calling it a result. Bounded: a
@@ -1070,6 +1086,19 @@ class HadithDatabaseService {
       return [for (final _ in queries) <LocalSearchResult>[]];
     }
     return batches;
+  }
+
+  /// HR-1.1: re-feed the search worker after it came back from a retirement.
+  /// Deliberately NOT a new loading path: every book goes back through
+  /// [_loadBook], which reads the trio once, decodes off-main and hands the raw
+  /// strings to the worker exactly as boot did. No corpus map is built, copied
+  /// or captured here — that is the HR-1 ban, and it holds by reuse rather than
+  /// by comment.
+  Future<void> rebuildSearchCorpus() async {
+    for (final entry in _bookNames.entries) {
+      if (!_bookData.containsKey(entry.key)) continue;
+      await _loadBook(entry.key, entry.value);
+    }
   }
 
   /// Canonical string key for a JSON number that may be an int, a double,
