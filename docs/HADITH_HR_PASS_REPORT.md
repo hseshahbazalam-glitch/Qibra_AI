@@ -270,12 +270,45 @@ the rule, not a plausible-looking number, had to be replayed.
 ---
 ---
 
-# HOTFIX HR-1.1 (device re-run after HR-1 landed)
+# HOTFIX HR-1.1 + HR-1.2 (device re-run after HR-1 landed)
 
 Two surgical fixes, both scoped to the search path HR-1 introduced. HR-1 removed
 the per-keystroke corpus copy; the device came back and said the search now
 never answers, and that its entry field is clipped. Neither is a redesign, and
 neither re-introduces the thing HR-1 removed.
+
+## Result: both hotfixes PASS, ten rounds later
+
+Tip `e37b685`, CI run **43573937087** (job 132383970157), three steps in one job,
+all green — the exact numbers, not a summary:
+
+| step | CI-measured result |
+| --- | --- |
+| `Analyze` (gate: 0 errors, 0 warnings — infos sanctioned) | ✅ in 16 s, and the findings in my files are **infos only**, read off this run's log: `hadith_search_worker.dart:326:11` + `:333:17` `unnecessary_getters_setters` (the two documented test-seam getters, `timeouts` and `lastReviveAttemptAt` — an app-never-writes, test-must-write field has no other shape that is honest about being a seam) and the **pre-existing** `hadith_database_service.dart:535:23` + `:806:21` `curly_braces_in_flow_control_structures`. **Zero findings in `hadith_screen.dart` (HR-1.2's only lib file) and zero in either new test file** |
+| `Full test suite` | ✅ **`🎉 694 tests passed.`** — 0 failed, 1 m 22 s |
+| `Static battery` | ✅ `hard findings: 0 · G2 advisories: 318 · L2 alpha advisories: 83` and `ALL GATES PASS (static; device compile remains the authority)`, 21 s — the first time this step EXECUTED in CI during this pass (it had been `skipped` behind analyze reds for seven rounds) |
+
+**694 = the 674 baseline (proven at `9aedc87`) + 13 HR-1.1 tests + 7 HR-1.2 tests**: every
+test these hotfixes added executed and passed, and no pre-existing test moved —
+`hadith_pass_hr1_test.dart`, `hadith_h4_search_test.dart` and `hadith_pass_x6_test.dart`
+are byte-identical to `1097d27` (sha-verified), `assets/` is untouched, and `main`
+remains under MERGE HOLD. Same-run telemetry: `scan 1 answered in 58.3ms over 20020
+corpus rows (budget 90s)`, then 8.4–50.7 ms warm across the 14-keystroke burst — the
+round-10 cooldown stamp did not touch the hot path, as it must not.
+
+**What the ten rounds cost, in one line each:** rounds 1–3 were Dart naming/shape
+rules in my lib edit (`conflicting_static_and_instance` ×3, a nonexistent
+`ReceivePort.errors`, `final_not_initialized_constructor`), round 4 was a test
+harness that ate the job (`FlutterError.onError`), round 6 first ran the suite
+(684/10), round 7 was my `const` reply message with a mutable field
+(`const_constructor_with_non_final_field` + `unused_element_parameter`), round 8 an
+`unused_element` constant that a previous fix had orphaned, round 9 a
+`const` initialised from a runtime loop variable, and round 10 five test expectations
+whose one genuine lib finding was **requirement 2's cooldown not being measured from
+the death** — fixed, and now pinned by `lastReviveAttemptAt` assertions so the retire
+line's promise cannot rot back into a comment. No STOP-AND-REPORT trigger fired: the
+respawn-vs-debounce fight the timebox warned about never materialised, and the
+additive-CI rule never forced an edit to an existing step.
 
 ## HR-1.1 — the worker was alive, then it was dead forever
 
@@ -455,7 +488,7 @@ the fixture hit through HR-1's debounce), and the source pins — `SafeArea(` +
 | REAL BEHAVIOUR BUG found by CI round 10 (requirement 2, fixed in `hadith_search_worker.dart`) | The retire log line promised "search answers empty until the next commit after 60s", and the code did not keep it: `_lastReviveAttemptAt` was stamped only by a revive ATTEMPT, so a worker that died with no attempt on record revived on the very next commit (log verbatim: `worker retired (death evidence)` → `worker live (revived)` on the same keystroke). `_retire()` now stamps the clock **at the death**, so the cooldown is measured from the retirement — one bounded pause per death, "at most once per ~60 s" made literal. Disclosed consequence: the reader can now see an empty result list for up to one cooldown after a retirement (previously the first retry was free); searches never go dead for the session, and both tests now pin the stamp so the promise cannot rot back into a comment. The two revive tests also stopped sleeping `40 ms / 80 ms` against a `20 ms` window (machine-load-dependent pass) — they move the stamp back explicitly |
 | **CI round 11 — run 43573937087, job 132383970157 (commit `e37b685`)** | **PASS — the gate this pass has been chasing since round 1: `flutter analyze` 0 errors / 0 warnings ✅, `🎉 694 tests passed.` with **0 failed** ✅, and the static battery step actually executed in CI for the first time in this pass: `hard findings: 0 · G2 advisories: 318 · L2 alpha advisories: 83` then `ALL GATES PASS (static; device compile remains the authority)` ✅. 694 = the 674 baseline proven at `9aedc87` + 13 HR-1.1 liveness tests + 7 HR-1.2 fit tests, so **every test both hotfixes added ran and passed**, and no pre-existing test moved. Job wall-clock 2 m 33 s (Analyze 16 s, full suite 1 m 22 s, battery 21 s) |
 | MEASURED BY CI round 11 (verbatim telemetry) | HR-1 benchmark gate on the 20,020-hadith synthetic corpus: `scan 1 answered in 58.3ms over 20020 corpus rows (budget 90s)`, then `8.4 / 44.3 / 36.4 / 35.8 / 44.4 / 50.7 / 43.9 / 45.3 ms … (budget 45s)` for queries 2-9 — i.e. **the round-10 retirement-stamp change did not touch the hot path** (it only affects the pause after a death), and the warm scan stays tens of milliseconds on 20k rows in JIT. The 14-keystroke burst and the `survives 20 back-to-back queries without a respawn` pin are both in the 694 |
-| STILL OPEN after round 5 | (updated after round 10: `flutter test` HAS now produced two final counts on this branch — 684/10 and 689/5, each in ~75 s, so the 20-min cap did not bite again; the sentence below stands as history.) `flutter test` has never produced a final count on this branch, and the job budget (20 min, pre-existing) was tight for a suite that needed >13 min before the hang. **Closed as a live risk in round 11: at `e37b685` the full suite takes 1 m 22 s and the job 2 m 33 s, so 20 min is no longer binding** — the option below stays the owner's call for headroom, not a blocker. **Two options, owner's call:** (A) raise `timeout-minutes` on the existing `quality` job — a budget bump, not a gate weakening, but it is an edit to a line I was told to leave alone; (B) keep 20 min and shrink the hotfix tests' cost (fewer real-isolate spawns). I did neither unilaterally. |
+| STILL OPEN after round 5 | (updated after round 10: `flutter test` HAS now produced final counts on this branch — 684/10, 689/5, and 694/0 at `e37b685`, each in ~75 s, so the 20-min cap did not bite again; the sentence below stands as history.) `flutter test` has never produced a final count on this branch, and the job budget (20 min, pre-existing) was tight for a suite that needed >13 min before the hang. **Closed as a live risk in round 11: at `e37b685` the full suite takes 1 m 22 s and the job 2 m 33 s, so 20 min is no longer binding** — the option below stays the owner's call for headroom, not a blocker. **Two options, owner's call:** (A) raise `timeout-minutes` on the existing `quality` job — a budget bump, not a gate weakening, but it is an edit to a line I was told to leave alone; (B) keep 20 min and shrink the hotfix tests' cost (fewer real-isolate spawns). I did neither unilaterally. |
 | CI, HR-1.1/1.2 round 3 — run **43568750999**, job 132368330312 | **RED**, 2 errors, both self-inflicted by the previous two rounds: (a) `final_not_initialized_constructor` — round 2 removed the `_shared()` **parameters** without initialising the three `final` override fields; (b) `undefined_identifier` at `hadith_hotfix_hr11_worker_liveness_test.dart:450` — a `\'`-escaped single-quoted string silently interpolated `$id`, i.e. **my own test file had a compile error of the kind I was writing the fix to prevent**. (a) is fixed by explicit `= null` initialisers on `_shared()`; (b) by a raw string plus a whitespace-flattened pin, so the assertion no longer depends on where the formatter broke the line |
 | fix for round 1 | the instance seams are now `effectiveReplyTimeout` / `effectiveReviveCooldown` (the distinction is the point: the CONSTANT is what ships, the getter is what this worker enforces); isolate-death is heard from `Isolate.spawn(onExit: …)` — the supported channel on this SDK — with a generation counter so the exit of a worker that was already replaced cannot retire the new one |
 | main-isolate corpus copy | **0 new**, and the two hotfixes add none: `searchBatchOffMain` still has no `Isolate.run` / `Map<String, List<LocalHadith>>.of(_bookData)`, and the revive re-hand goes through `_loadBook` |
