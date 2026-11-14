@@ -8,14 +8,16 @@ import json
 import pytest
 
 from app import groq_client
-from helpers import fresh_client
+from helpers import ai_headers, fresh_client
 
 CORPUS = [{"text": "Allah is most merciful", "source": "Quran 1:1"}]
 
 
 def _ask(client, **kw):
+    """QB-011: /ai/ask needs an access token now, so the local helper that every test in
+    this file goes through attaches one. No assertion in this file changed."""
     body = {"query": "merciful", "corpus": CORPUS, **kw}
-    return client.post("/ai/ask", json=body)
+    return client.post("/ai/ask", json=body, headers=ai_headers(client))
 
 
 def test_no_key_means_extractive_passthrough(monkeypatch):
@@ -76,7 +78,7 @@ def test_history_trimmed_to_last_10_turns(monkeypatch):
     monkeypatch.setattr(groq_client, "chat", fake_chat)
     hist = [{"role": "user", "content": f"q{i}"} for i in range(40)]
     with fresh_client() as client:
-        r = client.post("/ai/ask", json={"query": "merciful", "corpus": CORPUS, "history": hist})
+        r = _ask(client, history=hist)
     assert r.status_code == 200
     # 1 system + 20 history + 1 prompt <= 22
     assert seen["n"] <= 22
@@ -90,7 +92,10 @@ def test_stream_yields_sse_deltas_and_done(monkeypatch):
     monkeypatch.setattr(groq_client, "enabled", lambda: True)
     monkeypatch.setattr(groq_client, "stream_chat", fake_stream)
     with fresh_client() as client:
-        with client.stream("POST", "/ai/ask", json={"query": "merciful", "corpus": CORPUS, "stream": True}) as r:
+        with client.stream(
+            "POST", "/ai/ask", json={"query": "merciful", "corpus": CORPUS, "stream": True},
+            headers=ai_headers(client),
+        ) as r:
             assert r.status_code == 200
             assert r.headers["content-type"].startswith("text/event-stream")
             events = []
@@ -113,7 +118,10 @@ def test_stream_groq_down_emits_fallback_event(monkeypatch):
     monkeypatch.setattr(groq_client, "enabled", lambda: True)
     monkeypatch.setattr(groq_client, "stream_chat", dead_stream)
     with fresh_client() as client:
-        with client.stream("POST", "/ai/ask", json={"query": "merciful", "corpus": CORPUS, "stream": True}) as r:
+        with client.stream(
+            "POST", "/ai/ask", json={"query": "merciful", "corpus": CORPUS, "stream": True},
+            headers=ai_headers(client),
+        ) as r:
             events = [json.loads(l[6:]) for l in r.iter_lines() if l.startswith("data: ")]
     fb = [e for e in events if e["type"] == "fallback"]
     assert fb and fb[0]["answer"] == "Allah is most merciful"
@@ -128,7 +136,7 @@ def test_empty_corpus_with_model_down_still_refuses(monkeypatch):
     monkeypatch.setattr(groq_client, "enabled", lambda: True)
     monkeypatch.setattr(groq_client, "chat", boom)
     with fresh_client() as client:
-        body = client.post("/ai/ask", json={"query": "anything", "corpus": []}).json()
+        body = _ask(client, query="anything", corpus=[]).json()
     assert body["refused"] is True and body["answer"] is None
     assert body.get("grounded_model") is False
 

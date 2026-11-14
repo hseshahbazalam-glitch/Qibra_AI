@@ -133,6 +133,10 @@ class Settings:
     # A lost response on a weak mobile link must not cost the session; past this window
     # the family revoke below still fires exactly as it used to.
     refresh_reuse_grace_seconds: int = 30
+    # QB-011: /ai/ask costs real Groq money, so it gets a per-user budget. The numbers
+    # live here (env-overridable) and ai_quota reads them — one source of truth.
+    ai_ask_limit: int = 20
+    ai_ask_window_seconds: int = 60
     auth_production_ready: bool = False
     content_production_ready: bool = False
     billing_production_ready: bool = False
@@ -146,6 +150,10 @@ class Settings:
         self.jwt_secret = jwt_secret_or_raise(env)
         self.database_url = database_url_or_raise(env)
         self.refresh_token_days = int(_lookup(env, "REFRESH_TOKEN_DAYS") or "30")
+        self.ai_ask_limit = int(_lookup(env, "AI_ASK_LIMIT") or Settings.ai_ask_limit)
+        self.ai_ask_window_seconds = int(
+            _lookup(env, "AI_ASK_WINDOW_SECONDS") or Settings.ai_ask_window_seconds
+        )
         self.refresh_reuse_grace_seconds = int(
             _lookup(env, "REFRESH_REUSE_GRACE_SECONDS")
             or Settings.refresh_reuse_grace_seconds

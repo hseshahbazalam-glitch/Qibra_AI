@@ -21,7 +21,13 @@ os.environ.setdefault("JWT_SECRET", "qibra-test-only-signing-secret-32b+")  # 38
 @pytest.fixture(autouse=True)
 def _reset_rate_limit_between_tests():
     from app.middleware.rate_limit import reset_rate_limit_store
+    from app.services.ai_quota import reset_ai_quota_store
+    from app.services.login_guard import reset_login_guard_store
 
     reset_rate_limit_store()
+    reset_ai_quota_store()
+    reset_login_guard_store()
     yield
     reset_rate_limit_store()
+    reset_ai_quota_store()
+    reset_login_guard_store()

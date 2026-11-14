@@ -8,7 +8,7 @@ hard refusal in the query's language. Groq is mocked — never called.
 import json
 
 from app import groq_client
-from helpers import fresh_client
+from helpers import ai_headers, fresh_client
 
 LABEL = (
     "General knowledge answer — no specific passage was retrieved. "
@@ -18,14 +18,17 @@ DISCLAIMER = "Disclaimer: AI cannot give fatwa. Please consult a qualified schol
 
 
 def _sse_events(client, payload):
-    with client.stream("POST", "/ai/ask", json={**payload, "stream": True}) as r:
+    # QB-011: the stream endpoint is the same endpoint — it needs the token too.
+    with client.stream(
+        "POST", "/ai/ask", json={**payload, "stream": True}, headers=ai_headers(client)
+    ) as r:
         return [json.loads(line[6:]) for line in r.iter_lines() if line.startswith("data: ")]
 
 
 def test_no_key_empty_corpus_keeps_legacy_refusal():
     # no GROQ_API_KEY in the test env -> enabled() is False: level-0 shape
     with fresh_client() as client:
-        body = client.post("/ai/ask", json={"query": "namaz kya hai", "corpus": []}).json()
+        body = client.post("/ai/ask", headers=ai_headers(client), json={"query": "namaz kya hai", "corpus": []}).json()
     assert body["refused"] is True and body["answer"] is None
 
 
@@ -37,7 +40,7 @@ def test_general_answer_is_labelled(monkeypatch):
     monkeypatch.setattr(groq_client, "enabled", lambda: True)
     monkeypatch.setattr(groq_client, "chat", fake_chat)
     with fresh_client() as client:
-        body = client.post("/ai/ask", json={"query": "namaz kya hai", "corpus": []}).json()
+        body = client.post("/ai/ask", headers=ai_headers(client), json={"query": "namaz kya hai", "corpus": []}).json()
     assert body["refused"] is False
     assert body["answer"].startswith(LABEL)
     assert "Namaz is the second pillar" in body["answer"]
@@ -56,6 +59,7 @@ def test_corpus_with_zero_hits_also_goes_general(monkeypatch):
     with fresh_client() as client:
         body = client.post(
             "/ai/ask",
+            headers=ai_headers(client),
             json={"query": "tawakkul", "corpus": [{"text": "unrelated passage", "source": "Quran 2:2"}]},
         ).json()
     assert body["answer"].startswith(LABEL)
@@ -72,7 +76,7 @@ def test_fatwa_hard_refuses_without_model_call(monkeypatch):
     monkeypatch.setattr(groq_client, "enabled", lambda: True)
     monkeypatch.setattr(groq_client, "chat", spy_chat)
     with fresh_client() as client:
-        body = client.post("/ai/ask", json={"query": "is bitcoin halal?", "corpus": []}).json()
+        body = client.post("/ai/ask", headers=ai_headers(client), json={"query": "is bitcoin halal?", "corpus": []}).json()
     assert called["n"] == 0  # deterministic gate — the model never sees it
     assert body["refused"] is True
     assert body["reason"] == "fatwa_requires_scholar"
@@ -83,8 +87,8 @@ def test_fatwa_hard_refuses_without_model_call(monkeypatch):
 def test_fatwa_refusal_mirrors_roman_urdu(monkeypatch):
     monkeypatch.setattr(groq_client, "enabled", lambda: True)
     with fresh_client() as client:
-        en = client.post("/ai/ask", json={"query": "is music haram", "corpus": []}).json()
-        ur = client.post("/ai/ask", json={"query": "musiqi kya haram hai", "corpus": []}).json()
+        en = client.post("/ai/ask", headers=ai_headers(client), json={"query": "is music haram", "corpus": []}).json()
+        ur = client.post("/ai/ask", headers=ai_headers(client), json={"query": "musiqi kya haram hai", "corpus": []}).json()
     assert "qualified scholar" in en["answer"]
     assert "sawal" in ur["answer"] and "scholar" in ur["answer"]
     assert DISCLAIMER in ur["answer"]  # the disclaimer itself stays exact-English
@@ -97,7 +101,7 @@ def test_model_side_fatwa_refusal_never_gets_the_label(monkeypatch):
     monkeypatch.setattr(groq_client, "enabled", lambda: True)
     monkeypatch.setattr(groq_client, "chat", fake_chat)
     with fresh_client() as client:
-        body = client.post("/ai/ask", json={"query": "muta marriage ka hukm kya hai bhai", "corpus": []}).json()
+        body = client.post("/ai/ask", headers=ai_headers(client), json={"query": "muta marriage ka hukm kya hai bhai", "corpus": []}).json()
     assert body["refused"] is True
     assert not body["answer"].startswith(LABEL)
     assert DISCLAIMER in body["answer"]
@@ -110,7 +114,7 @@ def test_action_json_passthrough_skips_the_label(monkeypatch):
     monkeypatch.setattr(groq_client, "enabled", lambda: True)
     monkeypatch.setattr(groq_client, "chat", fake_chat)
     with fresh_client() as client:
-        body = client.post("/ai/ask", json={"query": "quran kholo", "corpus": []}).json()
+        body = client.post("/ai/ask", headers=ai_headers(client), json={"query": "quran kholo", "corpus": []}).json()
     assert body["answer"].startswith("```json")  # client JSON-parses; label would break it
 
 
@@ -161,6 +165,7 @@ def test_grounded_path_stays_unlabelled(monkeypatch):
     with fresh_client() as client:
         body = client.post(
             "/ai/ask",
+            headers=ai_headers(client),
             json={"query": "merciful", "corpus": [{"text": "Allah is most merciful", "source": "Quran 1:1"}]},
         ).json()
     assert not body["answer"].startswith(LABEL)

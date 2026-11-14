@@ -16,7 +16,9 @@ Server:
 - Sessions: device_id / platform / app_version (optional, no GPS)
 - `DELETE /users/me` hard-deletes the user and every dependent row in one transaction;
   a soft-deleted row left by the old behaviour is purged on re-registration
-- Rate limit 60/60 global
+- Rate limit 60/60 global, plus a login throttle on failed attempts only — 10/IP/60 s
+  and 5/account/60 s (`app/services/login_guard.py`), 429 with `scope` + `Retry-After`.
+  All budgets are per process; there is no shared store (no Redis) and they reset on boot
 - Boot refuses to start on a missing/short `JWT_SECRET` (< 32 bytes) or a missing
   `DATABASE_URL`, in **every** `QIBRA_ENV`; SQLite needs `QIBRA_ENV=dev` explicitly
 

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy.orm import Session
@@ -7,6 +8,11 @@ from ..db.models import User
 from ..db.session import get_db
 from ..deps import current_user
 from ..security import MAX_PASSWORD_CHARS
+from ..services.login_guard import (
+    check_login_attempt,
+    note_login_failure,
+    note_login_success,
+)
 from ..services.auth_service import (
     AuthError,
     list_sessions,
@@ -87,7 +93,18 @@ def register_user(body: RegisterIn, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login_user(body: LoginIn, db: Session = Depends(get_db)):
+def login_user(request: Request, body: LoginIn, db: Session = Depends(get_db)):
+    """QB-013: a login-specific throttle on top of the global 60/60 limiter, per IP and
+    per account, counting failed attempts only.
+
+    The refusal is returned as a response rather than raised, because it has to carry
+    `Retry-After` — and it travels back out through RequestId + SecurityHeaders, so a
+    429 here is a fully-formed response like any other on this API.
+    """
+    ip = request.client.host if request.client else "unknown"
+    blocked = check_login_attempt(ip=ip, email=body.email)
+    if blocked is not None:
+        return JSONResponse(blocked, status_code=429, headers={"Retry-After": str(blocked["retry_after_seconds"])})
     try:
         user, access, refresh = login(
             db,
@@ -98,7 +115,10 @@ def login_user(body: LoginIn, db: Session = Depends(get_db)):
             app_version=body.app_version,
         )
     except AuthError as exc:
+        if exc.status == 401:
+            note_login_failure(ip=ip, email=body.email)
         raise _auth_error(exc) from exc
+    note_login_success(ip=ip, email=body.email)
     return {
         "access_token": access,
         "refresh_token": refresh,

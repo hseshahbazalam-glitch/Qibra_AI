@@ -12,8 +12,27 @@ Live since 2026-09-02. This is the single reproducible description of the produc
 | Root directory | `backend` |
 | Runtime | Python **3.12.7** |
 | Install command | `pip install -r requirements.txt` |
-| Start command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Start command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"` |
 | Health check path | `/health` |
+
+## Forwarded headers: why the start command has `--proxy-headers`
+
+Render terminates TLS and proxies to the app, so `request.client.host` is the proxy's
+address unless uvicorn is told to trust it. That address is what the **login throttle**
+and the **global rate limiter** count per. `--proxy-headers` makes uvicorn rewrite the
+client from `X-Forwarded-For`; `--forwarded-allow-ips="*"` is required alongside it on
+Render because the proxy address is not in uvicorn's default trusted list.
+
+The app deliberately does **not** read `X-Forwarded-For` itself: doing so would let any
+client pick the IP it is rate-limited under. `--forwarded-allow-ips` can be narrowed to
+Render's published ranges once those are pinned in the dashboard; until then the trust
+boundary is "whatever socket connected to us on the container network is the proxy",
+which is what a single-service Render instance actually has.
+
+Consequences, stated: the per-IP budget is shared by everyone behind Render's proxy if
+the flag is missing (one pool of 10 failed attempts a minute for the whole app), and the
+counters are **per instance** — there is no Redis, so more than one instance means more
+than one budget. Autoscaling is off on this service.
 
 ## Environment variables (set in the Render dashboard — never in git)
 

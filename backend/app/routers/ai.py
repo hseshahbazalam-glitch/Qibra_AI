@@ -7,8 +7,15 @@ Contract:
     general-knowledge answer (GENERAL_LABEL prefix, never a fabricated
     citation). Hard refusal is kept only for fatwa-class questions, and
     its message mirrors the query language;
-  • never requires auth, never caches (no-store via SecurityHeaders);
+  • requires a valid access token (QB-011, 2026-11-14 — it used to be public, and
+    test_ask_does_not_require_auth pinned that; the pin is inverted, not deleted),
+    bounded per field and rate-limited per user; never caches (no-store via
+    SecurityHeaders);
   • no query/corpus/prompt/Quran/hadith text is ever logged.
+
+Caps (QB-011): query <=500 chars, <=32 corpus items with a per-field cap each, <=20
+history messages bounded too, and a per-user budget of AI_ASK_LIMIT calls per
+AI_ASK_WINDOW_SECONDS (in-process, per instance — disclosed wall, no shared store).
 
 Level 1 (owner 2026-09-02): when GROQ_API_KEY is configured, grounded
 answers come from llama-3.3-70b-versatile constrained by the system
@@ -22,22 +29,77 @@ from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
 from .. import groq_client
+from ..deps import bearer_subject
 from ..observability.metrics import inc
 from ..rag import answer, retrieve
+from ..services.ai_quota import (
+    AI_ASK_LIMIT,
+    AI_ASK_WINDOW_SECONDS,
+    take_ai_slot,
+)
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 _MAX_CORPUS_ITEMS = 32
 _MAX_HISTORY_MESSAGES = 20  # last 10 turns
 
+# QB-011: bound EVERY field, not just the number of items. The caps are byte-ish
+# (character counts) because the only thing these fields can become is text in a prompt,
+# and the value is measured after str() so a nested structure cannot smuggle a payload
+# past a cap it does not appear to have.
+MAX_QUERY_CHARS = 500
+MAX_CORPUS_TEXT_CHARS = 8000
+MAX_HISTORY_CONTENT_CHARS = 4000
+MAX_ITEM_KEYS = 16
+_MAX_UNKNOWN_FIELD_CHARS = 200
+_CORPUS_FIELD_CAPS = {
+    "text": MAX_CORPUS_TEXT_CHARS,
+    "source": 200,
+    "source_id": 200,
+    "source_name": 200,
+    "reference": 200,
+    "collection": 32,
+    "edition": 200,
+    "translator": 200,
+    "license": 200,
+    "license_url": 512,
+    "copyright_status": 64,
+    "attribution_required": 8,
+    "verified_at": 64,
+    "verification_status": 32,
+    "status": 32,
+}
+_HISTORY_FIELD_CAPS = {"role": 32, "content": MAX_HISTORY_CONTENT_CHARS}
+
+
+def _bounded_items(value: list, *, caps: dict, label: str, count_code: str) -> list:
+    """Validate one list-of-dicts field: size, then shape, then every value."""
+    if not isinstance(value, list):
+        raise ValueError(f"{label}_shape")
+    if len(value) > caps["__max_items__"]:
+        raise ValueError(count_code)
+    out = []
+    for item in value:
+        if not isinstance(item, dict):
+            raise ValueError(f"{label}_shape")
+        if len(item) > MAX_ITEM_KEYS:
+            raise ValueError(f"{label}_too_many_fields")
+        for key, raw in item.items():
+            cap = caps.get(str(key), _MAX_UNKNOWN_FIELD_CHARS)
+            text = raw if isinstance(raw, str) else json.dumps(raw, default=str)
+            if len(text) > cap:
+                raise ValueError(f"{label}_{key}_too_long")
+        out.append(item)
+    return out
+
 
 class AskIn(BaseModel):
-    query: str
+    query: str = Field(min_length=1, max_length=MAX_QUERY_CHARS)
     corpus: list[dict] = Field(default_factory=list)
     history: list[dict] = Field(default_factory=list)
     stream: bool = False
@@ -45,14 +107,67 @@ class AskIn(BaseModel):
     @field_validator("corpus")
     @classmethod
     def _cap_corpus(cls, value: list[dict]) -> list[dict]:
-        if len(value) > _MAX_CORPUS_ITEMS:
-            raise ValueError("corpus_too_large")
-        return value
+        return _bounded_items(
+            value,
+            caps=dict(_CORPUS_FIELD_CAPS, __max_items__=_MAX_CORPUS_ITEMS),
+            label="corpus",
+            count_code="corpus_too_large",
+        )
 
     @field_validator("history")
     @classmethod
     def _cap_history(cls, value: list[dict]) -> list[dict]:
-        return value[-_MAX_HISTORY_MESSAGES:]
+        # the last N turns are kept (a longer tail is truncated, not refused — the
+        # client owns that UI and a hard error would break it for no security gain),
+        # but every message that survives is bounded before it reaches the prompt
+        return _bounded_items(
+            value[-_MAX_HISTORY_MESSAGES:],
+            caps=dict(_HISTORY_FIELD_CAPS, __max_items__=_MAX_HISTORY_MESSAGES),
+            label="history",
+            count_code="history_too_large",
+        )
+
+
+def ask_user_id(authorization: str | None = Header(default=None)) -> int:
+    """QB-011: /ai/ask is no longer a public endpoint.
+
+    The wording is endpoint-specific on purpose ("sign in"), because the caller here is a
+    person in the AI pane, not a retry loop. The generic codes in deps.py stay what they
+    are for every other route, and the header parsing itself is shared with them.
+    """
+    sub, error = bearer_subject(authorization)
+    if error or not sub:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "detail": "auth_required",
+                "reason": error or "invalid_token",
+                "hint": "Sign in to ask — the AI pane answers through this endpoint on "
+                "your behalf, and it costs real inference per call.",
+            },
+        )
+    try:
+        return int(sub)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=401, detail={"detail": "invalid_token"}) from None
+
+
+def _quota_denied(retry_after_seconds: float) -> JSONResponse:
+    """A 429 that says what it is, how long to wait, and that the limit is per account —
+    and that reaches the client through the same middleware chain as everything else, so
+    it carries the security headers and x-request-id like any other response."""
+    seconds = max(1, int(round(retry_after_seconds)))
+    return JSONResponse(
+        {
+            "detail": "ai_quota_exceeded",
+            "limit": AI_ASK_LIMIT,
+            "window_seconds": AI_ASK_WINDOW_SECONDS,
+            "retry_after_seconds": seconds,
+            "scope": "per signed-in user",
+        },
+        status_code=429,
+        headers={"Retry-After": str(seconds)},
+    )
 
 
 def _citations(passages: list[dict]) -> list[str]:
@@ -175,9 +290,13 @@ def _sse(body: str) -> StreamingResponse:
 
 
 @router.post("/ask")
-async def ask(body: AskIn):
-    # Unauthenticated on purpose (test_ask_does_not_require_auth).
+async def ask(body: AskIn, user_id: int = Depends(ask_user_id)):
     # Do not log query, corpus, prompts, Quran, or Hadith text.
+    # Auth + per-user quota first: the expensive call is what needs bounding.
+    wait = take_ai_slot(user_id)
+    if wait is not None:
+        inc("ai_quota_denied")
+        return _quota_denied(wait)
     if not groq_client.enabled():
         return answer(body.query, body.corpus)
 
