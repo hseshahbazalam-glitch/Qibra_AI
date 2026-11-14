@@ -73,7 +73,9 @@ class _FakeDb extends HadithDatabaseService {
   static const LocalHadith _prayer = LocalHadith(
     hadithNumber: 7,
     arabicNumber: 7,
-    textArabic: '',
+    // HR-2.1: `textArabic` no longer exists on LocalHadith — this fixture is
+    // a warm stand-in for the sheet, so dropping the field is the whole
+    // change; the fit arithmetic this file pins is untouched.
     textEnglish: 'The prayer of the congregation is superior to the prayer '
         'of the lone one',
     textUrdu: '',

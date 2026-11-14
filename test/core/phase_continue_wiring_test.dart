@@ -37,7 +37,6 @@ void main() {
       bookName: 'Sahih al-Bukhari',
       chapterNumber: 1,
       chapterName: 'x',
-      textArabic: 'arabic',
       textEnglish: 'english',
       textUrdu: 'urdu',
       grade: HadithGrade.sahih,
@@ -46,7 +45,12 @@ void main() {
     );
     expect(hadithTextForLanguage(hadith, 'en'), 'english');
     expect(hadithTextForLanguage(hadith, 'ur'), 'urdu');
-    expect(hadithTextForLanguage(hadith, 'ar'), 'arabic');
+    // HR-2.1 re-pin: 'ar' used to be a displayable hadith language and this
+    // line proved the helper quoted the Arabic for it. The edition is
+    // unbundled, the case is gone from the switch, and an unknown code —
+    // Arabic included — answers null, which is exactly the answer a stale
+    // `ar` in SharedPreferences now gets all the way down the stack.
+    expect(hadithTextForLanguage(hadith, 'ar'), isNull);
     expect(hadithTextForLanguage(hadith, 'hi'), isNull);
   });
 }

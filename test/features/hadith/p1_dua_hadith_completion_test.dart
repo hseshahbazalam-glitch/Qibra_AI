@@ -135,7 +135,6 @@ void main() {
     LocalHadith h(int n) => LocalHadith(
           hadithNumber: n,
           arabicNumber: n,
-          textArabic: '',
           textEnglish: 'english $n',
           textUrdu: '',
           bookSlug: 'bukhari',

@@ -42,7 +42,6 @@ HadithModel _model(int number, {String slug = 'bukhari'}) => HadithModel(
       bookName: 'Sahih al-Bukhari',
       chapterNumber: 1,
       chapterName: '',
-      textArabic: '',
       textEnglish: 'Actions are but by intentions.',
       textUrdu: '',
       grade: HadithGrade.unknown,
@@ -134,14 +133,28 @@ void main() {
               'the helper — one source for the line');
     });
 
-    test('Arabic line-heights VERIFIED, not restacked (item 4a)', () {
-      // The reader sheet already shipped the elevation target; the tab
-      // sheet uses the relaxed token. Both must STAY (flattening 2.2 to
-      // 1.8 would be a regression — verify-and-keep, honestly reported).
-      expect(File(_book).readAsStringSync().contains('height: 1.8'), isTrue);
-      expect(
-          File(_screen).readAsStringSync().contains('AppArabicStyles.hadithArabic'),
-          isTrue);
+    test('item 4a re-pin: no Arabic body in either hadith surface (HR-2.1)',
+        () {
+      // Item 4a used to VERIFY the two Arabic leading tokens (1.8 in the
+      // reader sheet, AppArabicStyles.hadithArabic in the tab sheet) and keep
+      // them. HR-2.1 unbundled the Arabic edition, so both tokens left with
+      // the blocks that used them — the guard now runs the other way: the
+      // hadith reader must not render an Arabic body at all, in either
+      // surface, and no `textArabic`/`hasArabic` reference may survive to
+      // tempt someone back. (The style itself is untouched:
+      // AppArabicStyles.hadithArabic still serves the AI explain screen,
+      // which quotes Quran/hadith text it composes, not the bundled corpus.)
+      final book = File(_book).readAsStringSync();
+      final screen = File(_screen).readAsStringSync();
+      for (final src in [book, screen]) {
+        expect(src.contains('textArabic'), isFalse,
+            reason: 'the Arabic field is gone from the hadith corpus');
+        expect(src.contains('hasArabic'), isFalse);
+        expect(src.contains('AppArabicStyles'), isFalse,
+            reason: 'no Arabic body, so no Arabic style import either');
+      }
+      expect(book.contains('height: 1.8'), isFalse,
+          reason: 'the 1.8 leading belonged to the removed matn block');
     });
   });
 

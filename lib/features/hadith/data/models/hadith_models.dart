@@ -9,7 +9,8 @@
 // Models:
 //   ✅ HadithBook       — Book metadata (Bukhari, Muslim, etc.)
 //   ✅ HadithChapter    — Chapter within a book
-//   ✅ HadithModel      — Single hadith with Arabic + Translation
+//   ✅ HadithModel      — Single hadith with its translations (HR-2.1
+//                        unbundled the Arabic edition, so: Urdu + English)
 //   ✅ HadithGrade      — Authenticity grade (Sahih, Hasan, Da'if)
 //   ✅ HadithNarrator   — Narrator info
 //   ✅ HadithBookmark   — User bookmarks
@@ -334,7 +335,6 @@ class HadithModel extends Equatable {
     required this.bookName,
     required this.chapterNumber,
     required this.chapterName,
-    required this.textArabic,
     required this.textEnglish,
     required this.textUrdu,
     this.textBengali = '',
@@ -358,7 +358,10 @@ class HadithModel extends Equatable {
   final String bookName;
   final int chapterNumber;
   final String chapterName;
-  final String textArabic;
+  // HR-2.1: `textArabic` is gone with the unbundled Arabic edition. This
+  // model has exactly ONE producer in the app — `localToHadithModel`, off the
+  // bundled corpus — so a permanently-empty Arabic field would be a field
+  // that lies about what ships.
   final String textEnglish;
   final String textUrdu;
   // Phase B languages (hadith-api editions, key-joined per book; empty
@@ -401,10 +404,6 @@ class HadithModel extends Equatable {
           0,
       chapterName: chapterData?['chapterEnglish'] as String? ??
           json['chapterName'] as String? ??
-          '',
-      textArabic: json['hadithArabic'] as String? ??
-          json['arabic'] as String? ??
-          json['textArabic'] as String? ??
           '',
       textEnglish: json['hadithEnglish'] as String? ??
           json['english'] as String? ??
@@ -457,7 +456,6 @@ class HadithModel extends Equatable {
       'bookName': bookName,
       'chapterNumber': chapterNumber,
       'chapterName': chapterName,
-      'textArabic': textArabic,
       'textEnglish': textEnglish,
       'textUrdu': textUrdu,
       'textBengali': textBengali,
@@ -483,7 +481,6 @@ class HadithModel extends Equatable {
     String? bookName,
     int? chapterNumber,
     String? chapterName,
-    String? textArabic,
     String? textEnglish,
     String? textUrdu,
     String? textBengali,
@@ -507,7 +504,6 @@ class HadithModel extends Equatable {
       bookName: bookName ?? this.bookName,
       chapterNumber: chapterNumber ?? this.chapterNumber,
       chapterName: chapterName ?? this.chapterName,
-      textArabic: textArabic ?? this.textArabic,
       textEnglish: textEnglish ?? this.textEnglish,
       textUrdu: textUrdu ?? this.textUrdu,
       textBengali: textBengali ?? this.textBengali,
@@ -545,7 +541,6 @@ class HadithModel extends Equatable {
     return '${textEnglish.substring(0, 100)}...';
   }
 
-  bool get hasArabic => textArabic.isNotEmpty;
   bool get hasEnglish => textEnglish.isNotEmpty;
   bool get hasUrdu => textUrdu.isNotEmpty;
   bool get hasBengali => textBengali.trim().isNotEmpty;
@@ -572,7 +567,6 @@ class HadithModel extends Equatable {
         hadithNumber,
         bookSlug,
         chapterNumber,
-        textArabic,
         textEnglish,
         grade,
         isBookmarked,
@@ -697,6 +691,13 @@ class HadithSearchResult extends Equatable {
       [hadith.id, matchType, matchedText, relevanceScore];
 }
 
+/// Which channel of a hadith row a search hit came from — a LABEL
+/// vocabulary, not a data contract. `arabic` (and the four Phase-B names)
+/// stay after HR-2.1/X5 unbundled those editions for the same reason:
+/// `_matchTypeFromString` is shared with the Quran path's labels and with
+/// anything a future re-bundle folds in, and an unreachable enum value is
+/// inert. What is NOT inert — a `textArabic` field, an Arabic scan arm, an
+/// Arabic block in the reader — was deleted with the files.
 enum HadithMatchType {
   arabic('Arabic'),
   english('English'),

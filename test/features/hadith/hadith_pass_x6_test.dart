@@ -45,7 +45,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _parent = LocalHadith(
   hadithNumber: 402,
   arabicNumber: 402,
-  textArabic: 'النص',
   textEnglish: 'parent text',
   textUrdu: '',
   bookSlug: 'bukhari',
@@ -61,7 +60,6 @@ const _parent = LocalHadith(
 const _fraction = LocalHadith(
   hadithNumber: 402,
   arabicNumber: 402,
-  textArabic: 'النص',
   textEnglish: 'fraction text',
   textUrdu: '',
   bookSlug: 'bukhari',
@@ -103,7 +101,6 @@ HadithModel _model({
       bookName: 'Sahih al-Bukhari',
       chapterNumber: 4,
       chapterName: 'Knowledge',
-      textArabic: 'النص',
       textEnglish: english,
       textUrdu: urdu,
       hadithKey: hadithKey,
@@ -133,7 +130,6 @@ Future<void> _pumpCard(
                 width: 360,
                 child: HadithCard(
                   hadith: hadith,
-                  showArabic: true,
                   showTranslation: true,
                   positionLabel:
                       HadithBookScreen.hadithPositionLabel(hadith.hadithNumber, 7589),
@@ -297,8 +293,8 @@ void main() {
 
   // ────────────────────── R2 / H2a — blank becomes a state ────────────────
   group('X6 H2a — a missing translation renders an honest state', () {
-    testWidgets('no English-to-reveal: the state shows, no chip, and the '
-        'Arabic body stays', (tester) async {
+    testWidgets('no English-to-reveal: the state shows and no chip promises '
+        'it', (tester) async {
       // Reader language 'en' + textEnglish '' is the reachable shape of
       // "the bundle has nothing for this hadith in your language" without a
       // provider override — and it is exactly the muslim/abudawud blank-text
@@ -310,8 +306,14 @@ void main() {
           reason: 'a hadith card must never render an empty translation area');
       expect(find.byType(ActionChip), findsNothing,
           reason: 'no bundled English, so no promise of it either');
-      expect(find.byKey(const ValueKey('hadith-card-arabic')), findsOneWidget,
-          reason: 'the fallback line never replaces the Arabic body');
+      // HR-2.1 re-pin. This test used to end by proving the Arabic body was
+      // still painted above the fallback line ("the fallback never replaces
+      // text"). The Arabic edition is unbundled, so there is no body above —
+      // and the two assertions that matter to X6 are unchanged: the honest
+      // state still renders, and it now renders as the card's whole body,
+      // which is exactly the case the chip exists for.
+      expect(find.byType(HadithTranslationFallback), findsOneWidget,
+          reason: 'the honest state is a real widget, not a comment');
     });
 
     testWidgets('the state follows the APP locale — an Urdu reader reads Urdu',

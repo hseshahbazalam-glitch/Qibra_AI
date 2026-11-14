@@ -1,7 +1,9 @@
 // lib/features/hadith/presentation/hadith_book_screen.dart
 // ============================================================
 // QIBRA AI — HADITH BOOK DETAIL SCREEN (Flagship Luxury Reader)
-// Complete Arabic + Urdu + English translations with chapter selector & search
+// Urdu + English translations with chapter selector & search (HOTFIX
+// HR-2.1 unbundled the Arabic edition by owner order: no arabic.json in the
+// bundle, no Arabic matn block in this file, two options in the selector.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -110,7 +112,6 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
   /// the same reason as _expandedCards — a card-local bool resets on every
   /// scroll-away rebuild, and the reader would lose what they just tapped.
   final Set<String> _englishRevealed = <String>{};
-  bool _showArabic = true;
   // Phase B: the old separate Urdu/English switches became ONE
   // translation switch — the reader's selected language drives which
   // translation is shown (hadithTextForLanguage), everywhere.
@@ -215,12 +216,14 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                     ? hadiths
                     : hadiths.where((h) {
                         final q = _searchQuery.toLowerCase();
-                        // Stage 3: diacritic/hamza-folded Arabic + Urdu,
-                        // case-insensitive English.
+                        // Stage 3: diacritic/hamza-folded Urdu,
+                        // case-insensitive English. (HR-2.1: the Arabic arm
+                        // left with the edition — this local filter is the
+                        // UI-side mirror of the corpus scan, so it loses the
+                        // same field, in the same order.)
                         return h.hadithNumber.toString().contains(q) ||
                             SearchNormalizer.contains(h.textEnglish, _searchQuery) ||
                             SearchNormalizer.contains(h.textUrdu, _searchQuery) ||
-                            SearchNormalizer.contains(h.textArabic, _searchQuery) ||
                             SearchNormalizer.contains(h.textBengali, _searchQuery) ||
                             SearchNormalizer.contains(h.textTurkish, _searchQuery) ||
                             SearchNormalizer.contains(h.textIndonesian, _searchQuery) ||
@@ -261,7 +264,6 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         final h = filtered[index];
                         final card = HadithCard(
                           hadith: h,
-                          showArabic: _showArabic,
                           showTranslation: _showTranslation,
                           positionLabel: HadithBookScreen.hadithPositionLabel(
                               h.hadithNumber, widget.book.totalHadiths),
@@ -699,32 +701,25 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                           ),
                           onTap: () => _showReadingLanguageSheet(sheetContext),
                         ),
+                        // HR-2.1: the 'Arabic Text' switch went with the
+                        // Arabic edition — it had nothing left to show. The
+                        // translation switch is therefore unconditional now
+                        // (it used to hide itself when Arabic was the reading
+                        // language, which is no longer a language at all).
                         const Divider(height: 20),
                         AppSwitchListTile(
                           activeColor: QibraNavy.emerald,
-                          title: Text(AppStrings.of(context).arabicTextSection,
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                  color: QibraNavy.textPrimary)),
-                          value: _showArabic,
+                          title: Text(
+                            'Translation (${HadithAvailability.label(ref.watch(hadithLanguageProvider))})',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                                color: QibraNavy.textPrimary),
+                          ),
+                          value: _showTranslation,
                           onChanged: (v) {
-                            setSheetState(() => _showArabic = v);
-                            setState(() => _showArabic = v);
+                            setSheetState(() => _showTranslation = v);
+                            setState(() => _showTranslation = v);
                           },
                         ),
-                        if (ref.watch(hadithLanguageProvider) != 'ar')
-                          AppSwitchListTile(
-                            activeColor: QibraNavy.emerald,
-                            title: Text(
-                              'Translation (${HadithAvailability.label(ref.watch(hadithLanguageProvider))})',
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                  color: QibraNavy.textPrimary),
-                            ),
-                            value: _showTranslation,
-                            onChanged: (v) {
-                              setSheetState(() => _showTranslation = v);
-                              setState(() => _showTranslation = v);
-                            },
-                          ),
                         const SizedBox(height: 8),
                         // HR-3: ONE scale for the whole reader. The split
                         // pair asked the reader to make a single decision
@@ -926,10 +921,10 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
     // Phase B: snapshot the reading language at open (same discipline
     // as the scales — language can change later only from Settings).
     final sheetLang = ref.read(hadithLanguageProvider);
-    final sheetRtl = sheetLang == 'ar' || sheetLang == 'ur';
-    final sheetTranslation = sheetLang == 'ar'
-        ? null
-        : hadithTextForLanguage(hadith, sheetLang);
+    // HR-2.1: 'ar' is not a reading language any more, so the two
+    // Arabic-aware expressions here collapse to their non-Arabic arms.
+    final sheetRtl = sheetLang == 'ur';
+    final sheetTranslation = hadithTextForLanguage(hadith, sheetLang);
     // Reference prev/next: walk the REAL neighbours in this book's
     // published sequence (corpus order, ascending). The pure helper
     // returns null at the ends — the buttons disable there.
@@ -1093,7 +1088,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                                 ref.read(hadithLanguageProvider)) ??
                             hadith.textEnglish;
                         final text =
-                            '${hadith.textArabic}\n\n$shareTranslation\n\n— ${hadith.displayReference}';
+                            '$shareTranslation\n\n— ${hadith.displayReference}';
                         Clipboard.setData(ClipboardData(text: text));
                         HapticFeedback.lightImpact();
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1120,30 +1115,12 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (hadith.hasArabic) ...[
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: QibraNavy.card,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: QibraNavy.hairline),
-                          ),
-                          child: SelectableText(
-                            hadith.textArabic,
-                            textAlign: TextAlign.right,
-                            style: AppArabicStyles.quranBold
-                                .copyWith(
-                                    color: QibraNavy.textPrimary,
-                                    height: 1.8,
-                                    fontSize: AppFontSize.arabicMedium *
-                                        prefs.hadithTextScale),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                      ],
-                      if (sheetLang == 'ar')
-                        const SizedBox.shrink()
-                      else if (sheetTranslation != null) ...[
+                      // HR-2.1: the Arabic matn slab at the head of this
+                      // sheet went with the edition. The sheet opens on the
+                      // reader's translation, exactly as it did under the
+                      // Arabic when Arabic was not available — the X6 fallback
+                      // below is the same honest shape one level down.
+                      if (sheetTranslation != null) ...[
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
@@ -1172,8 +1149,10 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                         // 5,765 hadiths). X6 (H2a): say so IN THE READER'S
                         // LANGUAGE — an English apology inside an Urdu book is
                         // what they reported as "blank" — and give the way
-                        // out on the same card. The Arabic above is always
-                        // rendered: the fallback line never replaces text.
+                        // out on the same card. Since HR-2.1 there is no
+                        // matn above this branch any more — the fallback line
+                        // IS the body of such a row, which is why its honest
+                        // sentence and its English reveal are load-bearing.
                         HadithTranslationFallback(
                           englishText:
                               hadith.hasEnglish ? hadith.textEnglish : null,
@@ -1398,8 +1377,11 @@ class HadithSearchField extends StatelessWidget {
 /// rendering nothing at all, which is what a reader calls a blank, and (ii)
 /// substituting another language silently, which tells the reader the wrong
 /// thing about their own book. It states the honest state in the reader's
-/// language and offers the English of the SAME hadith on tap — the Arabic body
-/// is rendered by the caller either way, so this never replaces text.
+/// language and offers the English of the SAME hadith on tap. Before
+/// HR-2.1 this widget always sat UNDER the Arabic matn, so it could never
+/// replace text; the Arabic edition is unbundled now, so for a row whose
+/// selected-language text is missing this widget is the body, and the reveal
+/// is what keeps that row from reading as blank.
 ///
 /// State: when the caller owns the toggle ([onReveal] != null) the reveal
 /// lives there, so it survives scroll-away rebuilds of a list card; a caller
@@ -1514,8 +1496,9 @@ class _HadithTranslationFallbackState extends State<HadithTranslationFallback> {
 }
 
 /// H2-D1 — the hadith list card with the advance anatomy, top to bottom:
-/// number badge → Arabic block → ornament divider → translation → meta
-/// row. H2-D2 — a body longer than the line budget renders collapsed
+/// number badge → ornament divider → translation → meta row (HR-2.1
+/// removed the Arabic block that used to sit after the badge).
+/// H2-D2 — a body longer than the line budget renders collapsed
 /// behind a localized 'Read full hadith' expander; the state lives on
 /// the screen (survives scroll-away rebuilds) and copy / bookmark
 /// always act on the FULL hadith, collapsed or not.
@@ -1530,7 +1513,6 @@ class HadithCard extends ConsumerWidget {
   const HadithCard({
     super.key,
     required this.hadith,
-    required this.showArabic,
     required this.showTranslation,
     required this.positionLabel,
     required this.expanded,
@@ -1541,7 +1523,6 @@ class HadithCard extends ConsumerWidget {
   });
 
   final HadithModel hadith;
-  final bool showArabic;
   final bool showTranslation;
   /// 'Hadith N of M' — or the honest 'Hadith N' when M is unknown.
   /// Built by the screen through HadithBookScreen.hadithPositionLabel
@@ -1556,9 +1537,12 @@ class HadithCard extends ConsumerWidget {
   final VoidCallback onTap;
 
   /// D2's budget, as a constant so the test can name it: more than
-  /// EIGHT rendered body lines (Arabic + translation together) earns
-  /// the expander. The measure is the laid-out count, never a
-  /// character heuristic.
+  /// EIGHT rendered body lines earns the expander. Until HR-2.1 that count
+  /// was Arabic + translation together; the Arabic block is gone, so the
+  /// budget now measures the translation body alone — the SAME constant,
+  /// because the rule is 'more than eight lines of what is actually on the
+  /// card', not 'eight lines of a layout that no longer exists'.
+  /// The measure is the laid-out count, never a character heuristic.
   static const int kHadithCollapseLineBudget = 8;
 
   @visibleForTesting
@@ -1587,21 +1571,16 @@ class HadithCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final language = ref.watch(hadithLanguageProvider);
-    final rtl = language == 'ur' || language == 'ar';
-    final translation =
-        language == 'ar' ? null : hadithTextForLanguage(hadith, language);
+    // HR-2.1: 'ar' left the matrix, so RTL is Urdu and the translation is
+    // whatever the reader selected — no Arabic body beside it any more.
+    final rtl = language == 'ur';
+    final translation = hadithTextForLanguage(hadith, language);
     // The persisted split scales drive both bodies (world-class pass,
     // item 1 — unchanged wiring).
     final prefs = ref.watch(hadithReadingPreferencesProvider);
 
-    // D1(b): the bundled Amiri family, RTL, leading inside the
-    // 1.85–2.0 anatomy band; paper=ink / navy=textPrimary resolved by
-    // the theme, not by this file.
-    final arabicStyle = AppArabicStyles.quranBold.copyWith(
-      color: colors.textPrimary,
-      height: 1.9,
-      fontSize: AppFontSize.arabicMedium * prefs.hadithTextScale,
-    );
+    // D1(b) was the Arabic matn's Amiri style — it left with the edition
+    // (HR-2.1). The Urdu body keeps its own RTL leading below, unchanged.
     // D1(d): translation on the soft body ink at leading 1.6.
     final translationStyle = AppTextStyles.bodyMedium.copyWith(
       color: colors.textSecondary,
@@ -1626,14 +1605,7 @@ class HadithCard extends ConsumerWidget {
             // card padding 12×2 + block padding 12×2 = 48 of chrome.
             final textWidth = constraints.maxWidth - 48.0;
             var bodyLines = 0;
-            final showArabicBlock = showArabic && hadith.hasArabic;
-            final showTranslationBlock =
-                language != 'ar' && showTranslation;
-            if (showArabicBlock) {
-              bodyLines += laidLines(
-                  hadith.textArabic, arabicStyle, textWidth,
-                  TextDirection.rtl);
-            }
+            final showTranslationBlock = showTranslation;
             if (showTranslationBlock && translation != null) {
               bodyLines += laidLines(translation, translationStyle,
                   textWidth, rtl ? TextDirection.rtl : TextDirection.ltr);
@@ -1643,7 +1615,8 @@ class HadithCard extends ConsumerWidget {
             // the 26px square the design settled on. The box grows for THAT
             // case only — every ordinary number keeps the exact 26x26 it has
             // always painted (the anatomy pins measure this badge's bottom
-            // against the Arabic block, so the height never moves).
+            // against the ornament divider under it, so the height never
+            // moves — HR-2.1 re-pinned that pair after the Arabic block left).
             final badgeWide = hadith.numberLabel.length > 4;
 
             return Column(
@@ -1675,29 +1648,11 @@ class HadithCard extends ConsumerWidget {
                         fontWeight: FontWeight.w800),
                   ),
                 ),
-                // (b) Arabic matn — the cream slab under paper, navy
-                // cardMuted under night; same token, no second truth.
-                if (showArabicBlock) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    key: const ValueKey('hadith-card-arabic'),
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: colors.cardMuted,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      hadith.textArabic,
-                      style: arabicStyle,
-                      textAlign: TextAlign.right,
-                      textDirection: TextDirection.rtl,
-                      maxLines: collapse ? 4 : null,
-                      overflow:
-                          collapse ? TextOverflow.ellipsis : null,
-                    ),
-                  ),
-                ],
+                // (b) — the Arabic matn slab that used to sit here is GONE
+                // (HR-2.1, owner order: Urdu + English only). The letter (b)
+                // stays out of the sequence below so (c)/(d) keep naming the
+                // same elements the design review named; nothing else about
+                // the card's anatomy moved.
                 // (c) ornament divider — hairline + centered 3px
                 // diamond in the BORDER token; gold stays for active
                 // states only (design-rules lock).
@@ -1764,7 +1719,7 @@ class HadithCard extends ConsumerWidget {
                           // X6 (H2a): the honest state, in the reader's own
                           // language, plus the chip that reveals the English
                           // of the SAME hadith — no silent substitution, no
-                          // blank card, and the Arabic above stays either way.
+                          // blank card.
                           HadithTranslationFallback(
                             englishText: hadith.hasEnglish
                                 ? hadith.textEnglish
@@ -1856,7 +1811,7 @@ class HadithCard extends ConsumerWidget {
                         // D2 honesty: the CLIPBOARD carries the FULL
                         // hadith even while the card shows four lines.
                         final shareText =
-                            '${hadith.textArabic}\n\n${translation ?? hadith.textEnglish}\n\n\u2014 ${hadith.displayReference}';
+                            '${translation ?? hadith.textEnglish}\n\n\u2014 ${hadith.displayReference}';
                         Clipboard.setData(ClipboardData(text: shareText));
                         HapticFeedback.lightImpact();
                         ScaffoldMessenger.of(context).showSnackBar(

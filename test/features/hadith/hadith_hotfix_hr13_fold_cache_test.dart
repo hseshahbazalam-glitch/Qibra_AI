@@ -116,8 +116,11 @@ const _foldSmallChars = 20000;
 const _foldBigChars = 160000;
 
 /// The real rows, assembled by the app's own assembler from the real bytes, so
-/// `LocalHadith` here has exactly the fields the scan reads (english + arabic +
-/// urdu joined on the pair key, chapter names from the shipped section table).
+/// `LocalHadith` here has exactly the fields the scan reads (english + urdu
+/// joined on the pair key, chapter names from the shipped section table).
+/// HR-2.1: the arabic.json this fixture used to join is unbundled, and the
+/// assembler lost the parameter — so the corpus under test is now the three
+/// field families the shipped app actually searches.
 Map<String, List<LocalHadith>> _realCorpus({int rows = _rowsUnderGate}) {
   Map<String, dynamic> read(String name) =>
       jsonDecode(File('$_realBookDir/$name.json').readAsStringSync())
@@ -126,7 +129,6 @@ Map<String, List<LocalHadith>> _realCorpus({int rows = _rowsUnderGate}) {
       File('$_realBookDir/english.json').readAsStringSync());
   final assembled = assembleHadithBook(
     englishData: english,
-    arabicData: read('arabic'),
     urduData: read('urdu'),
     langIndices: const {},
     slug: _realBookSlug,
@@ -151,17 +153,20 @@ Map<String, List<LocalHadith>> _realCorpus({int rows = _rowsUnderGate}) {
   for (final list in corpus.values) {
     for (final h in list) {
       rows++;
-      chars += h.textEnglish.length + h.textArabic.length + h.textUrdu.length +
+      chars += h.textEnglish.length + h.textUrdu.length +
           h.chapterName.length;
     }
   }
-  return (fields: 4, chars: chars, rows: rows);
+  // HR-2.1 re-pin: 4 fields → 3 (the arabic field left with the edition).
+  // `fields` is the multiplier the benchmark's arithmetic runs on, so it is
+  // part of the measurement, not a label.
+  return (fields: 3, chars: chars, rows: rows);
 }
 
 Map<String, List<LocalHadith>>? _allRealCorpusCache;
 
 /// All 7 shipped books, english only, assembled once for the whole file: the
-/// corpus the phone walks. (arabic/urdu are the same order of magnitude, and
+/// corpus the phone walks. (urdu is the same order of magnitude, and
 /// the fold-cost finding is per char, so english carries the gate.)
 Map<String, List<LocalHadith>> _allRealCorpus() {
   final cached = _allRealCorpusCache;
@@ -173,7 +178,6 @@ Map<String, List<LocalHadith>> _allRealCorpus() {
     final assembled = assembleHadithBook(
       englishData: HadithDatabaseService.decodeHadithAsset(
           File('assets/data/hadith/$slug/english.json').readAsStringSync()),
-      arabicData: null,
       urduData: null,
       langIndices: const {},
       slug: slug,
@@ -684,8 +688,9 @@ void main() {
           reason: 'a parity test on a corpus nothing matched is a tautology');
       debugPrint('[HR13_PARITY] $checked hits compared across '
           '${queries.length} single queries + 1 burst, over '
-          '${withPhaseB.values.first.length} real rows (english + arabic + '
-          'urdu + chapter + a populated Phase-B field); $missed queries hit '
+          '${withPhaseB.values.first.length} real rows (english + urdu + '
+          'chapter + a populated Phase-B field; HR-2.1 removed the arabic '
+          'field from both sides); $missed queries hit '
           'nothing on BOTH sides, which is the empty-pattern case');
     });
 
@@ -696,7 +701,7 @@ void main() {
       for (final list in corpus.values) {
         for (final h in list) {
           rows++;
-          rawChars += h.textEnglish.length + h.textArabic.length +
+          rawChars += h.textEnglish.length +
               h.textUrdu.length + h.chapterName.length;
         }
       }

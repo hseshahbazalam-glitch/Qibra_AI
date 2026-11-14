@@ -21,7 +21,6 @@ import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.d
 const _fixtureHadith = LocalHadith(
   hadithNumber: 1,
   arabicNumber: 1,
-  textArabic: '',
   textEnglish: 'Actions are but by intentions',
   textUrdu: '',
   bookSlug: 'bukhari',

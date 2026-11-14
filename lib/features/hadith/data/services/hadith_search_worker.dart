@@ -88,7 +88,6 @@ class _HadithBookPayload {
     required this.slug,
     required this.name,
     required this.rawEnglish,
-    required this.rawArabic,
     required this.rawUrdu,
     required this.langIndices,
   });
@@ -96,8 +95,9 @@ class _HadithBookPayload {
   final String slug;
   final String name;
   final String? rawEnglish;
-  final String? rawArabic;
   final String? rawUrdu;
+  // HR-2.1: `rawArabic` went with the unbundled Arabic edition — the payload
+  // is now the two strings the loader holds (english + urdu).
 
   /// Pass H1/X1 pair-keyed indices for editions folded in late (the FOLD SEAM:
   /// empty while `HadithAvailability.newLanguageFiles` is empty, exactly like
@@ -216,7 +216,8 @@ class HadithSearchWorker {
   /// The budget for the FIRST reply a fresh worker answers. Boot hands books
   /// over WITHOUT awaiting them (first-frame priority, pinned by
   /// `hadith_pass_hr1_test`), so a query typed the moment the tab paints is
-  /// queued behind up to 21 asset decodes. Generous on purpose: the alternative
+  /// queued behind up to 14 asset decodes (21 before HR-2.1 unbundled
+  /// Arabic). Generous on purpose: the alternative
   /// is answering empty while the worker is about to be fine.
   static const Duration firstReplyTimeout = Duration(seconds: 90);
 
@@ -552,11 +553,10 @@ class HadithSearchWorker {
     required String slug,
     required String name,
     required String? rawEnglish,
-    String? rawArabic,
     String? rawUrdu,
     Map<String, Map<String, String>> langIndices = const {},
   }) async {
-    if (rawEnglish == null && rawArabic == null && rawUrdu == null) return;
+    if (rawEnglish == null && rawUrdu == null) return;
     await start();
     if (_retired) return;
     final port = _toWorker;
@@ -569,7 +569,6 @@ class HadithSearchWorker {
         slug: slug,
         name: name,
         rawEnglish: rawEnglish,
-        rawArabic: rawArabic,
         rawUrdu: rawUrdu,
         langIndices: langIndices,
       ));
@@ -999,9 +998,6 @@ void _hadithSearchWorkerEntry(SendPort mainPort) {
         englishData: message.rawEnglish == null
             ? null
             : HadithDatabaseService.decodeHadithAsset(message.rawEnglish!),
-        arabicData: message.rawArabic == null
-            ? null
-            : HadithDatabaseService.decodeHadithAsset(message.rawArabic!),
         urduData: message.rawUrdu == null
             ? null
             : HadithDatabaseService.decodeHadithAsset(message.rawUrdu!),

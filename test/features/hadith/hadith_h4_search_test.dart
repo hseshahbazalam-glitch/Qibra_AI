@@ -49,7 +49,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _bukhari7 = LocalHadith(
   hadithNumber: 7,
   arabicNumber: 7,
-  textArabic: '',
   textEnglish:
       'The prayer of the congregation is superior to the prayer of the '
       'lone one, and patience guards it',
@@ -64,7 +63,6 @@ const _bukhari7 = LocalHadith(
 const _muslim12 = LocalHadith(
   hadithNumber: 12,
   arabicNumber: 12,
-  textArabic: '',
   textEnglish: 'A believer who thanks and has patience',
   textUrdu: '',
   bookSlug: 'muslim',
@@ -77,7 +75,6 @@ const _muslim12 = LocalHadith(
 const _malik3 = LocalHadith(
   hadithNumber: 3,
   arabicNumber: 3,
-  textArabic: '',
   textEnglish: 'Patience is light, water purifies, charity shields',
   textUrdu: '',
   bookSlug: 'malik',
@@ -121,8 +118,9 @@ class _FakeDb extends HadithDatabaseService {
       for (final q in queries)
         corpus
             .where((h) =>
+                // HR-2.1: this fake mirrors the production off-main scan;
+                // the Arabic arm left both sides together.
                 SearchNormalizer.contains(h.textEnglish, q) ||
-                SearchNormalizer.contains(h.textArabic, q) ||
                 SearchNormalizer.contains(h.textUrdu, q))
             .map((h) => _hit(h))
             .take(maxPerQuery)
@@ -228,11 +226,14 @@ void main() {
         'best-scoring channel', () {
       final ranked = rankHadithSearchMerge(termResults: [
         [_hit(_bukhari7, rel: 0.5)],
-        [_hit(_bukhari7, rel: 0.9, channel: 'arabic')],
+        [_hit(_bukhari7, rel: 0.9, channel: 'urdu')],
       ]);
       expect(ranked, hasLength(1));
       expect(ranked.single.relevance, 0.9);
-      expect(ranked.single.matchedIn, 'arabic');
+      expect(ranked.single.matchedIn, 'urdu',
+          reason: 'HR-2.1 re-pin: this merge rule never depended on which '
+              "channel it was, and the Arabic channel no longer exists to "
+              'be named here');
     });
 
     test('ties fall to relevance, then bukhari/muslim first, then number',
@@ -257,7 +258,6 @@ void main() {
           _hit(LocalHadith(
             hadithNumber: n,
             arabicNumber: n,
-            textArabic: '',
             textEnglish: 'patience $n',
             textUrdu: '',
             bookSlug: 'nasai',
@@ -286,12 +286,6 @@ void main() {
           AppStrings.forCode('en').hadithQuickPatience,
           AppStrings.forCode('en').hadithQuickCharity,
           AppStrings.forCode('en').hadithQuickWater,
-        },
-        'arabic': {
-          AppStrings.forCode('ar').hadithQuickPrayer,
-          AppStrings.forCode('ar').hadithQuickPatience,
-          AppStrings.forCode('ar').hadithQuickCharity,
-          AppStrings.forCode('ar').hadithQuickWater,
         },
         'urdu': {
           AppStrings.forCode('ur').hadithQuickPrayer,

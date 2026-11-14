@@ -290,7 +290,6 @@ void main() {
       const bare = LocalHadith(
         hadithNumber: 5,
         arabicNumber: 5,
-        textArabic: 'ع',
         textEnglish: 'e',
         textUrdu: 'ا',
         bookSlug: 'bukhari',
@@ -316,7 +315,6 @@ void main() {
           bookName: 'Sahih al Bukhari',
           chapterNumber: 1,
           chapterName: 'c',
-          textArabic: 'ar',
           textEnglish: 'en',
           textUrdu: '',
           textBengali: bn,
@@ -344,7 +342,6 @@ void main() {
       const local = LocalHadith(
         hadithNumber: 1,
         arabicNumber: 1,
-        textArabic: 'ar',
         textEnglish: 'en',
         textUrdu: '',
         textBengali: 'bn',

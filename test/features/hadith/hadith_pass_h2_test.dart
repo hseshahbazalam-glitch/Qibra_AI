@@ -175,7 +175,6 @@ void main() {
           bookName: 'Sahih al-Bukhari',
           chapterNumber: chapter,
           chapterName: 'Revelation',
-          textArabic: '\u0639\u0628\u0627\u0631\u0627\u062a \u0642\u0635\u064a\u0631\u0629',
           textEnglish: english,
           textUrdu: '',
           grade: grade,
@@ -207,7 +206,6 @@ void main() {
                     width: 360,
                     child: HadithCard(
                       hadith: h,
-                      showArabic: true,
                       showTranslation: true,
                       positionLabel: HadithBookScreen.hadithPositionLabel(
                           h.hadithNumber, 7563),
@@ -241,23 +239,30 @@ void main() {
       expect(HadithCard.kHadithCollapseLineBudget, 8);
     });
 
-    testWidgets('D1 anatomy: badge → arabic → ornament → translation → '
-        'meta, in that vertical order', (tester) async {
+    testWidgets('D1 anatomy: badge → ornament → translation → meta, in that '
+        'vertical order', (tester) async {
+      // HR-2.1 re-pin: the sequence used to be badge → ARABIC → ornament →
+      // translation → meta. The Arabic block left with the edition, so the
+      // anatomy pin runs on the four elements that remain — same strictness,
+      // one fewer neighbour, and `hadith-card-arabic` is now asserted ABSENT
+      // because a matn block in the hadith reader is the regression this
+      // pass is guarding against.
       await pump(tester, mkHadith(english: 'Short body of the hadith.'));
       for (final k in [
         'hadith-card-badge',
-        'hadith-card-arabic',
         'hadith-card-ornament',
         'hadith-card-translation',
         'hadith-card-meta',
       ]) {
         expect(find.byKey(ValueKey(k)), findsOneWidget, reason: k);
       }
+      expect(find.byKey(const ValueKey('hadith-card-arabic')), findsNothing,
+          reason: 'the Arabic edition is unbundled; the block must not come '
+              'back on its own');
       final badge = tester.getRect(find.byKey(const ValueKey('hadith-card-badge'))).bottom;
-      final arabic = tester.getRect(find.byKey(const ValueKey('hadith-card-arabic'))).bottom;
       // The divider's breathing room lives INSIDE its vertical Padding, so
       // the padding box abuts BOTH neighbours exactly (282 == 282). The
-      // honest strict pins therefore straddle the ornament: Arabic bottom
+      // honest strict pins therefore straddle the ornament: the badge bottom
       // under its BOTTOM edge, translation top over its TOP edge — every
       // comparison keeps zero-tolerance strictness with zero flake.
       final ornament =
@@ -265,21 +270,20 @@ void main() {
       final trans =
           tester.getRect(find.byKey(const ValueKey('hadith-card-translation'))).top;
       final meta = tester.getRect(find.byKey(const ValueKey('hadith-card-meta'))).top;
-      expect(badge, lessThan(arabic));
-      expect(arabic, lessThan(ornament.bottom));
+      expect(badge, lessThan(ornament.bottom));
       expect(ornament.top, lessThan(trans));
       expect(trans, lessThan(meta));
     });
 
-    testWidgets('D1 typography: arabic in the 1.85-2.0 band, translation '
-        'at 1.6, both on palette tokens', (tester) async {
+    testWidgets('D1 typography: translation at 1.6 on a palette token; the '
+        'arabic band is gone by design', (tester) async {
+      // HR-2.1 re-pin: this test measured TWO bodies. The Arabic one is
+      // unbundled, so the 1.85-2.0 leading band it was checked against has
+      // nothing to check — and the pin flips to "no such block", which is the
+      // durable half of the original intent (the card's anatomy is fixed, not
+      // re-stacked by whoever edits it next).
       await pump(tester, mkHadith(english: 'x y z'));
-      final ar = bodyText(tester, 'hadith-card-arabic');
-      expect(ar.style!.height, inInclusiveRange(1.85, 2.0));
-      expect(ar.style!.color, QibraColors.dark.textPrimary,
-          reason: 'the matn rides the ink token — navy textPrimary now, '
-              'paper ink under R2\u0027s scope, same code');
-      expect(ar.textDirection, TextDirection.rtl);
+      expect(find.byKey(const ValueKey('hadith-card-arabic')), findsNothing);
       final tr = bodyText(tester, 'hadith-card-translation');
       expect(tr.style!.height, 1.6);
       expect(tr.style!.color, QibraColors.dark.textSecondary);
@@ -324,7 +328,9 @@ void main() {
       await pump(tester, mkHadith(english: long));
       final strings = AppStrings.forCode('en');
       expect(find.text(strings.readFullHadith), findsOneWidget);
-      expect(bodyText(tester, 'hadith-card-arabic').maxLines, 4);
+      // HR-2.1: "both blocks collapse at 4" is now "the body collapses at 4"
+      // — there is one body. The number the expander is judged on (8 laid
+      // lines) and the 4-line clip are unchanged.
       expect(bodyText(tester, 'hadith-card-translation').maxLines, 4);
       await tester.tap(find.text(strings.readFullHadith));
       await tester.pump();
@@ -400,7 +406,8 @@ void main() {
         () {
       final src = File(book).readAsStringSync();
       expect(src.contains('void _showQuickSettingsSheet'), isTrue,
-          reason: 'language, showArabic and both scales in ONE sheet '
+          reason: 'language, the translation switch and both scales in ONE '
+              'sheet (HR-2.1: the Arabic switch left with the edition) — '
               '(already true pre-H2 — audit verdict: organize, do not '
               'reinvent; pinned so a future split fails here)');
       expect(src.contains('_showReadingLanguageSheet(sheetContext)'), isTrue,

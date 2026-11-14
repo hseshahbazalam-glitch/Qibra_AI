@@ -399,9 +399,13 @@ void main() {
               reason: '$lc/$coll matrix drift');
         }
       }
+      // HR-2.1 re-pin: three rows → two. This is the assertion that makes
+      // "the selector offers exactly English and اردو" a fact rather than a
+      // screenshot, and it is derived-side honest: selectorOptions() reads
+      // languageCodes, so a hardcoded third option anywhere would not be
+      // able to hide from this line.
       expect(HadithAvailability.selectorOptions(), [
         (code: 'en', label: 'English', note: null),
-        (code: 'ar', label: 'العربية', note: null),
         (code: 'ur', label: 'اردو', note: null),
       ]);
     });

@@ -22,16 +22,15 @@ import 'package:qibra_ai/shared/widgets/buttons/app_button.dart';
 
 import '../../support/source_guards.dart';
 
-HadithModel _model({String en = '', String ar = ''}) => HadithModel(
+HadithModel _model({String en = '', String ur = ''}) => HadithModel(
       id: 'bukhari-1',
       hadithNumber: 1,
       bookSlug: 'bukhari',
       bookName: 'Sahih al-Bukhari',
       chapterNumber: 1,
       chapterName: 'Revelation',
-      textArabic: ar,
       textEnglish: en,
-      textUrdu: '',
+      textUrdu: ur,
       grade: HadithGrade.sahih,
       narrator: const HadithNarrator(name: '—'),
     );
@@ -78,12 +77,19 @@ void main() {
       expect(hadithQuotePreview(hadith), hadith.displayReference);
     });
 
-    test('Arabic mode quotes the Arabic text, not an English default', () {
+    test('a selected translation is quoted, not the English default', () {
+      // HR-2.1 re-pin: this test named Arabic as the language it quoted,
+      // because Arabic was one of the selectable editions. The RULE it guards
+      // is language-independent — the preview shows the reader's own text and
+      // never silently substitutes English — and that rule is what is pinned
+      // now, with Urdu (the edition that stays).
       final out = hadithQuotePreview(
-        _model(en: 'English only', ar: 'العربية'),
-        translation: 'العربية',
+        _model(en: 'English only', ur: 'صرف عملوں کا دارومدار ارادوں پر ہے'),
+        translation: 'صرف عملوں کا دارومدار ارادوں پر ہے',
       );
-      expect(out, 'العربية');
+      expect(out, 'صرف عملوں کا دارومدار ارادوں پر ہے');
+      expect(out.contains('English only'), isFalse,
+          reason: 'no substitution when the reader has their own text');
     });
   });
 

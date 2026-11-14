@@ -520,17 +520,9 @@ class HomeHadithCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          if (h.hasArabic) ...[
-            Text(
-              h.textArabic,
-              textAlign: TextAlign.right,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppArabicStyles.quranSmall
-                  .copyWith(color: colors.textPrimary),
-            ),
-            const SizedBox(height: 10),
-          ],
+          // HR-2.1: the hadith-of-the-day card used to open with the Arabic
+          // matn; the edition is unbundled, so the card opens on the
+          // translation. (Quran surfaces keep their Arabic — out of scope.)
           Text(
             // Phase B: the home preview honours the reading language.
             hadithTextForLanguage(h, ref.watch(hadithLanguageProvider)) ??

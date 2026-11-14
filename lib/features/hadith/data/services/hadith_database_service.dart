@@ -48,13 +48,16 @@ typedef HadithAssembledBook =
 /// helpers.
 HadithAssembledBook? assembleHadithBook({
   required Map<String, dynamic>? englishData,
-  required Map<String, dynamic>? arabicData,
   required Map<String, dynamic>? urduData,
   required Map<String, Map<String, String>> langIndices,
   required String slug,
   required String name,
 }) {
-    final baseData = englishData ?? arabicData ?? urduData;
+    // HR-2.1: the spine used to be english ?? arabic ?? urdu; the Arabic
+    // edition is unbundled, so it is english ?? urdu. Every book ships
+    // english.json, so the row set is the English list exactly, before and
+    // after this pass — that is the no-row-lost proof.
+    final baseData = englishData ?? urduData;
     if (baseData == null) return null;
 
     final metadata = baseData['metadata'] as Map<String, dynamic>?;
@@ -67,21 +70,11 @@ HadithAssembledBook? assembleHadithBook({
     }
 
     final englishHadiths = englishData?['hadiths'] as List<dynamic>? ?? [];
-    final arabicHadiths = arabicData?['hadiths'] as List<dynamic>? ?? [];
     final urduHadiths = urduData?['hadiths'] as List<dynamic>? ?? [];
 
-    // Build lookup maps
-    final arabicMap = <int, String>{};
-    for (final h in arabicHadiths) {
-      try {
-        final map = h as Map<String, dynamic>;
-        final hNum = HadithDatabaseService._parseHadithNumber(map['hadithnumber']);
-        arabicMap[hNum] = map['text']?.toString() ?? '';
-      } catch (_) {
-        continue;
-      }
-    }
-
+    // Build lookup maps. HR-2.1 deleted the Arabic map with its file; the
+    // Urdu map is UNTOUCHED — same hadithnumber key, same last-write wins,
+    // same `?? ''` for an unmatched row — which is why no joined text moves.
     final urduMap = <int, String>{};
     for (final h in urduHadiths) {
       try {
@@ -99,9 +92,8 @@ HadithAssembledBook? assembleHadithBook({
     // 7,563 keyed; tirmidhi 3,998 vs 3,956; muslim's fractional
     // arabicnumbers). A missing pair means the language has nothing
     // for that hadith -> '' -> hasX false.
-    final primaryHadiths = englishHadiths.isNotEmpty
-        ? englishHadiths
-        : (arabicHadiths.isNotEmpty ? arabicHadiths : urduHadiths);
+    final primaryHadiths =
+        englishHadiths.isNotEmpty ? englishHadiths : urduHadiths;
 
     final hadiths = <LocalHadith>[];
     for (final h in primaryHadiths) {
@@ -131,7 +123,6 @@ HadithAssembledBook? assembleHadithBook({
           hadithNumber: hadithNum,
           arabicNumber: arabicNum == 0 ? hadithNum : arabicNum,
           textEnglish: map['text']?.toString() ?? '',
-          textArabic: arabicMap[hadithNum] ?? '',
           textUrdu: urduMap[hadithNum] ?? '',
           textBengali: langIndices['bn']?[pair] ?? '',
           textTurkish: langIndices['tr']?[pair] ?? '',
@@ -192,8 +183,9 @@ class _HadithAsset {
 /// test/features/hadith/hadith_h4_search_test.dart and test/features/ai/*: the
 /// RAW query text is matched verbatim (folded by [SearchNormalizer], which is
 /// the only normalization the hadith path allows), english scores through
-/// [hadithRelevanceFor], arabic upgrades to 0.9, urdu to 0.85, the chapter name
-/// only ever scores 0.5 when nothing else matched, the four Phase B candidates
+/// [hadithRelevanceFor], urdu upgrades to 0.85, the chapter name
+/// only ever scores 0.5 when nothing else matched (HR-2.1: the arabic 0.9
+/// arm left with the edition), the four Phase B candidates
 /// are upgrade-only and skip empty text, each term list is capped, then sorted
 /// by relevance descending.
 
@@ -208,7 +200,6 @@ class _HadithAsset {
 class FoldedHadith {
   const FoldedHadith({
     required this.english,
-    required this.arabic,
     required this.urdu,
     required this.chapter,
     required this.bengali,
@@ -218,7 +209,6 @@ class FoldedHadith {
   });
 
   final String english;
-  final String arabic;
   final String urdu;
   final String chapter;
 
@@ -234,7 +224,6 @@ class FoldedHadith {
   /// Retained chars, for the RAM disclosure in the pass report: this is what
   /// the mirror costs on top of the rows, measured rather than estimated.
   int get foldedChars => english.length +
-      arabic.length +
       urdu.length +
       chapter.length +
       bengali.length +
@@ -251,7 +240,6 @@ FoldedHadith foldHadithRow(LocalHadith hadith) {
       text.isEmpty ? '' : SearchNormalizer.foldText(text);
   return FoldedHadith(
     english: fold(hadith.textEnglish),
-    arabic: fold(hadith.textArabic),
     urdu: fold(hadith.textUrdu),
     chapter: fold(hadith.chapterName),
     bengali: fold(hadith.textBengali),
@@ -279,7 +267,7 @@ Map<String, List<FoldedHadith>> foldHadithCorpus(
 /// The batch scan, HOTFIX HR-1.3 shape: (rows, folded mirror, queries) in,
 /// relevance-ranked top-N out. Every rule is [scanHadithCorpus]'s and lives
 /// nowhere else: english scores through [hadithRelevanceFor] on the RAW text,
-/// arabic upgrades to 0.9, urdu to 0.85, the chapter name only ever scores 0.5
+/// urdu upgrades to 0.85, the chapter name only ever scores 0.5
 /// when nothing else matched, the four Phase-B candidates are upgrade-only and
 /// skip empty text, each term list is capped at maxPerQuery * 4, then sorted by
 /// relevance descending and truncated. What changed is only WHERE the folding
@@ -332,10 +320,6 @@ List<List<LocalSearchResult>> scanFoldedHadithCorpus(
         if (text.english.indexOf(q) >= 0) {
           relevance = hadithRelevanceFor(hadith.textEnglish, lq);
           matchedIn = 'english';
-        }
-        if (text.arabic.indexOf(q) >= 0 && 0.9 > relevance) {
-          relevance = 0.9;
-          matchedIn = 'arabic';
         }
         if (text.urdu.indexOf(q) >= 0 && 0.85 > relevance) {
           relevance = 0.85;
@@ -433,7 +417,9 @@ List<List<LocalSearchResult>> scanHadithCorpus(
 class LocalHadith {
   final int hadithNumber;
   final int arabicNumber;
-  final String textArabic;
+  // HR-2.1: `textArabic` is GONE with the unbundled edition. `arabicNumber`
+  // above stays — it is the reference NUMBER of the hadith (a join key), not
+  // Arabic text, and `pairKey`/`LocalHadith.numberLabel` still ride it.
   final String textEnglish;
   final String textUrdu;
   // Phase B (2026-09-05): texts joined by the (hadithnumber,
@@ -460,7 +446,6 @@ class LocalHadith {
   const LocalHadith({
     required this.hadithNumber,
     required this.arabicNumber,
-    required this.textArabic,
     required this.textEnglish,
     required this.textUrdu,
     this.textBengali = '',
@@ -481,7 +466,6 @@ class LocalHadith {
   LocalHadith withLanguageText(String code, String text) => LocalHadith(
         hadithNumber: hadithNumber,
         arabicNumber: arabicNumber,
-        textArabic: textArabic,
         textEnglish: textEnglish,
         textUrdu: textUrdu,
         textBengali: code == 'bn' ? text : textBengali,
@@ -522,11 +506,14 @@ class LocalHadith {
         return '${extra.substring(0, 120)}...';
       }
     }
-    if (textArabic.length <= 120) return textArabic;
-    return '${textArabic.substring(0, 120)}...';
+    // HR-2.1: the Arabic tail that used to end this chain answered `''` for
+    // every row of the shipped bundle anyway (a row only exists when its
+    // spine text is there, and the Arabic field was the same emptiness), so
+    // the empty string IS the preserved behaviour — never a fabricated
+    // preview. An empty preview is what the reader's fallback line renders.
+    return '';
   }
 
-  bool get hasArabic => textArabic.trim().isNotEmpty;
   bool get hasEnglish => textEnglish.trim().isNotEmpty;
   bool get hasUrdu => textUrdu.trim().isNotEmpty;
   bool get hasBengali => textBengali.trim().isNotEmpty;
@@ -669,7 +656,7 @@ class HadithDatabaseService {
       // isolate decodes before the FIRST hadith was ever looked at, with
       // ~175 MB of transient JSON held across the awaits and ~7× the corpus
       // resident afterwards (228 MB of files). The loop now loads only the
-      // base trio, which is what every join and every display rule needs to
+      // base pair, which is what every join and every display rule needs to
       // be non-empty; [warmLanguage] folds a translation when that language
       // is actually selected. The four extra languages are still one asset
       // each per book — same join, same isolate, just not at boot.
@@ -701,8 +688,8 @@ class HadithDatabaseService {
   ///
   /// Called by `HadithLanguageNotifier.setLanguage` (which then refreshes the
   /// reading lists) and at the tail of `hadithDatabaseInitProvider` for the
-  /// reader's persisted language. A no-op for the base trio — `english`,
-  /// `arabic` and `urdu` always ride the boot batch — and for a language every
+  /// reader's persisted language. A no-op for the base pair — `english` and
+  /// `urdu` always ride the boot batch — and for a language every
   /// loaded book already carries. Single-flight per code, and the request is
   /// remembered so a book opened LATER includes it in its own [Future.wait]
   /// batch instead of needing a second pass.
@@ -785,7 +772,8 @@ class HadithDatabaseService {
       // PASS X1 (2026-09-02): the batch no longer carries all FOUR Phase B
       // editions for all seven books unconditionally — that was 49 asset
       // strings + 49 isolate decodes at boot on a device that displays one
-      // of them. The base trio (english/arabic/urdu, the only editions with
+      // of them. The base pair (english + urdu; HR-2.1 unbundled arabic,
+      // which used to be the third member of the trio — the only editions with
       // a `grades` block and the ones `primaryHadiths` falls back through)
       // stays eager; a translation joins the batch only after [warmLanguage]
       // has been asked for it, and the per-book coverage entry is the marker
@@ -799,20 +787,19 @@ class HadithDatabaseService {
           .toList(growable: false);
       final results = await Future.wait<Object?>([
         _loadJsonAsset('assets/data/hadith/$slug/english.json'),
-        _loadJsonAsset('assets/data/hadith/$slug/arabic.json'),
         _loadJsonAsset('assets/data/hadith/$slug/urdu.json'),
         for (final lang in wanted)
           _loadLanguageIndex('assets/data/hadith/$slug/${lang.value}.json'),
       ]);
 
+      // HR-2.1: the batch is 2 files per book, not 3 — `results[1]` used to
+      // be arabic.json. The Phase-B tail therefore starts at index 2 now.
       final englishAsset = results[0] as _HadithAsset?;
-      final arabicAsset = results[1] as _HadithAsset?;
-      final urduAsset = results[2] as _HadithAsset?;
+      final urduAsset = results[1] as _HadithAsset?;
       final englishData = englishAsset?.data;
-      final arabicData = arabicAsset?.data;
       final urduData = urduAsset?.data;
 
-      if (englishData == null && arabicData == null && urduData == null) {
+      if (englishData == null && urduData == null) {
         return;
       }
 
@@ -823,12 +810,11 @@ class HadithDatabaseService {
       // exactly as a genuinely missing edition has always rendered.
       final langIndices = <String, Map<String, String>>{
         for (var i = 0; i < wanted.length; i++)
-          if (results[3 + i] != null)
-            wanted[i].key: results[3 + i]! as Map<String, String>,
+          if (results[2 + i] != null)
+            wanted[i].key: results[2 + i]! as Map<String, String>,
       };
       final assembled = assembleHadithBook(
         englishData: englishData,
-        arabicData: arabicData,
         urduData: urduData,
         langIndices: langIndices,
         slug: slug,
@@ -839,7 +825,7 @@ class HadithDatabaseService {
       final sections = assembled.sections;
       _bookData[slug] = hadiths;
       // PASS HR-1 — the search worker assembles its own copy of THIS book from
-      // the same raw trio. Deliberately NOT awaited: the worker decodes on its
+      // the same raw pair. Deliberately NOT awaited: the worker decodes on its
       // own core while main carries on loading the next book, so the first
       // painted hadith screen never waits on it. The payload is 3 strings per
       // book, once — never a capture of `_bookData`.
@@ -847,7 +833,6 @@ class HadithDatabaseService {
         slug: slug,
         name: name,
         rawEnglish: englishAsset?.raw,
-        rawArabic: arabicAsset?.raw,
         rawUrdu: urduAsset?.raw,
         langIndices: langIndices,
       ));
@@ -870,10 +855,6 @@ class HadithDatabaseService {
       _languageCoverage[slug] = {
         'en': (
           nonEmpty: nonEmpty((h) => h.textEnglish),
-          total: hadiths.length
-        ),
-        'ar': (
-          nonEmpty: nonEmpty((h) => h.textArabic),
           total: hadiths.length
         ),
         'ur': (
@@ -1098,14 +1079,6 @@ class HadithDatabaseService {
           matchedIn = 'english';
         }
 
-        if (SearchNormalizer.contains(hadith.textArabic, query)) {
-          const arabicRelevance = 0.9;
-          if (arabicRelevance > relevance) {
-            relevance = arabicRelevance;
-            matchedIn = 'arabic';
-          }
-        }
-
         if (SearchNormalizer.contains(hadith.textUrdu, query)) {
           const urduRelevance = 0.85;
           if (urduRelevance > relevance) {
@@ -1116,7 +1089,7 @@ class HadithDatabaseService {
 
         // Phase B languages: scored like english (position-aware
         // _calculateRelevance) but only ever UPGRADE an existing hit —
-        // Arabic/Urdu fixed-relevance precedence is untouched.
+        // the Urdu fixed-relevance precedence is untouched.
         for (final candidate in [
           (hadith.textBengali, 'bengali'),
           (hadith.textTurkish, 'turkish'),

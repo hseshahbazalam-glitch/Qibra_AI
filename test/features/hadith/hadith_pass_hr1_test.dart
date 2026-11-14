@@ -102,17 +102,21 @@ String methodBody(String code, String signatureStart) {
 /// COSMETIC CHANGE. Every row used to carry ONE 145-char sentence. The real
 /// bundle (measured over `assets/data/hadith/*/english.json`, 36,390 rows) is
 /// mean 423 chars, p95 1,134, max 24,676 for english and mean 549 / 464 for
-/// arabic / urdu. `fold` cost scales with text length, so a benchmark of
+/// arabic / urdu (the 549 is the unbundled edition, kept here as history).
+/// `fold` cost scales with text length, so a benchmark of
 /// 145-char rows measured the scan at ~1/10th of its real weight per field and
 /// ~1/50th over all searched fields — and the report then concluded from it
 /// that no pre-normalisation pass was indicated. The phone disagreed: six
 /// `scan request N, budget 90s (first after a spawn)`, zero `answered`.
-/// [lang] picks the script so the arabic/urdu fields are real too.
+/// [lang] picks the script so the urdu field is real too. (HR-2.1: the
+/// 'arabic' script this generator used to hand the benchmark is gone with the
+/// edition — the corpus under test is the corpus that ships, which is the
+/// whole point of the file.)
 String _syntheticBook(int firstNumber, int rows,
     {String bookSlug = 'bukhari', String lang = 'english'}) {
-  // One clause per script (english 127 chars, arabic 139, urdu 110), repeated
-  // 2 + (i % 6) times: mean ~570 english / ~625 arabic / ~495 urdu chars per row
-  // against the shipped bundle's measured 423 / 549 / 464 — i.e. 10-15% HEAVIER
+  // One clause per script (english 127 chars, urdu 110), repeated
+  // 2 + (i % 6) times: mean ~570 english / ~495 urdu chars per row
+  // against the shipped bundle's measured 423 / 464 — i.e. 10-15% HEAVIER
   // than reality, which is the only direction a fixture may err in when it is
   // standing in for the device. Every 900th row adds 7 clauses, for the tail
   // (real max is 24,676). Placeholders are spelled `@x@` because a `$` inside a
@@ -121,16 +125,6 @@ String _syntheticBook(int firstNumber, int rows,
   const clause = {
     'english': 'Volume 1, Book 1, Hadith @NO@: @TOPIC@ — the Prophet (peace '
         'be upon him) said, and the chain is complete for row @I@ of @SLUG@.',
-    'arabic': '\u062d\u062f\u0651\u064e\u062b\u064e\u0646\u0627 '
-        '\u0642\u064f\u062a\u064e\u064a\u0652\u0628\u064e\u0629\u064f '
-        '\u0639\u064e\u0646\u0652 \u0644\u064e\u064a\u0652\u062b\u064d '
-        '\u0639\u064e\u0646\u0652 \u0639\u064e\u0628\u0652\u062f\u0650 '
-        '\u0627\u0644\u0631\u0651\u064e\u062d\u0652\u0645\u064e\u0646\u0650 '
-        '\u0639\u064e\u0646\u0652 \u0646\u064f\u0645\u0652\u0631\u064e\u0629 '
-        '@NO@: \u0627\u0644\u0635\u0651\u064e\u0644\u064e\u0627\u0629\u064f '
-        '\u0648\u0653\u0625\u0650\u0646\u0651\u064e \u0627\u0644\u0652\u0625\u0650\u0633\u0652\u0646\u064e\u0627'
-        '\u062f\u064e \u062a\u064e\u0627\u0645\u0651\u064f \u0644\u0650\u0633\u064e\u0637\u0650'
-        '\u0631\u0652 @I@ \u0645\u0650\u0646\u0652 @SLUG@.',
     'urdu': '\u062c\u0644\u062f 1\u060c \u06a9\u062a\u0627\u0628 1\u060c '
         '\u062d\u062f\u06cc\u062b @NO@: @TOPIC@ \u2014 \u0646\u0628\u06cc '
         '\u06a9\u0631\u06cc\u0645 \u0635\u0644\u06cc \u0627\u0644\u0644\u06c1 '
@@ -141,7 +135,6 @@ String _syntheticBook(int firstNumber, int rows,
   };
   const topics = {
     'english': 'namaz ka tarika',
-    'arabic': '\u0637\u0631\u06cc\u0642\u0629 \u0627\u0644\u0635\u0644\u0627\u0629',
     'urdu': '\u0646\u0645\u0627\u0632 \u06a9\u0627 \u062a\u0631\u06cc\u06a9\u06c1',
   };
   final hadiths = <Map<String, dynamic>>[];
@@ -347,7 +340,6 @@ void main() {
 
       final mainCopy = assembleHadithBook(
         englishData: _decode(raw),
-        arabicData: null,
         urduData: null,
         langIndices: const {},
         slug: 'bukhari',
@@ -377,7 +369,6 @@ void main() {
       final raw = _syntheticBook(400, 200);
       final rows = assembleHadithBook(
         englishData: _decode(raw),
-        arabicData: null,
         urduData: null,
         langIndices: const {},
         slug: 'bukhari',
@@ -405,12 +396,18 @@ void main() {
 
   // ─────────────────────── 3. boot diet, unchanged ─────────────────────────
   group('HR-1 the boot still reads once and never waits on the worker', () {
-    test('three asset reads per book — the worker rides the SAME strings', () {
+    test('two asset reads per book — the worker rides the SAME strings', () {
+      // HR-2.1 re-pin: 3 → 2 per book (21 → 14 boot decodes), because
+      // arabic.json left the bundle and the batch is built from
+      // HadithAvailability.fileForLanguage. The RULE is unchanged and still
+      // worth pinning: one read per shipped file, and the worker gets the
+      // SAME strings, so the diet could not have been paid for by adding a
+      // second read or a main-isolate copy.
       final code = stripCommentsForGuard(_read(_servicePath));
       final load = methodBody(code, 'Future<void> _loadBook(String slug, String name)');
-      expect(RegExp(r'_loadJsonAsset\(').allMatches(load).length, 3,
-          reason: 'english/arabic/urdu, once each — HR-1 must not add a fourth '
-              'read to feed the worker (the raw trio is handed from what was '
+      expect(RegExp(r'_loadJsonAsset\(').allMatches(load).length, 2,
+          reason: 'english/urdu, once each — HR-1 must not add another read '
+              'to feed the worker (the raw pair is handed from what was '
               'already read)');
       expect(load.contains('Future.wait<Object?>(['), isTrue,
           reason: 'the per-book batch shape perf_pass_test pins stays the batch');
@@ -587,17 +584,17 @@ void main() {
       ];
       final worker = HadithSearchWorker();
       addTearDown(worker.shutdownForTest);
-      // HR-1.3: all THREE searched languages are handed, because the shipped
-      // corpus has all three and the scan reads en + ar + ur + chapter. A
-      // benchmark that hands english only has measured a third of the work.
+      // HR-1.3 handed all THREE editions the shipped corpus then had, so the
+      // benchmark measured the whole searched width instead of a third of it.
+      // HR-2.1 re-pins that to the two the corpus now has: en + ur + chapter.
+      // The rule survives the diet — hand every searched field, or the number
+      // is a fraction of the work.
       for (var b = 0; b < books; b++) {
         await worker.noteBook(
           slug: slugs[b],
           name: slugs[b],
           rawEnglish: _syntheticBook(b * rowsPerBook + 1, rowsPerBook,
               bookSlug: slugs[b]),
-          rawArabic: _syntheticBook(b * rowsPerBook + 1, rowsPerBook,
-              bookSlug: slugs[b], lang: 'arabic'),
           rawUrdu: _syntheticBook(b * rowsPerBook + 1, rowsPerBook,
               bookSlug: slugs[b], lang: 'urdu'),
         );
@@ -701,7 +698,6 @@ void main() {
         final assembled = assembleHadithBook(
           englishData: _decode(_syntheticBook(b * rowsPerBook + 1, rowsPerBook,
               bookSlug: slugs[b])),
-          arabicData: null,
           urduData: null,
           langIndices: const {},
           slug: slugs[b],
@@ -712,7 +708,7 @@ void main() {
       var searchedChars = 0;
       for (final list in corpus.values) {
         for (final h in list) {
-          searchedChars += h.textEnglish.length + h.textArabic.length +
+          searchedChars += h.textEnglish.length +
               h.textUrdu.length + h.chapterName.length;
         }
       }

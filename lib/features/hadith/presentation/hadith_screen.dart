@@ -210,11 +210,12 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
+                    // HR-2.1: the hero card used to quote the Arabic matn
+                    // when Arabic was the reading language; the preview is
+                    // the selected translation (English when it is absent).
                     hadithQuotePreview(
                       hadith,
-                      translation: lang == 'ar'
-                          ? hadith.textArabic
-                          : hadithTextForLanguage(hadith, lang),
+                      translation: hadithTextForLanguage(hadith, lang),
                     ),
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: colors.textPrimary,
@@ -623,7 +624,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     final copyTranslation = hadithTextForLanguage(
         hadith, ref.read(hadithLanguageProvider));
     final text =
-        '${hadith.textArabic}\n\n${copyTranslation ?? hadith.textEnglish}\n\n— ${hadith.displayReference}';
+        '${copyTranslation ?? hadith.textEnglish}\n\n— ${hadith.displayReference}';
     Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.lightImpact(); // elevation item 5: success feedback
     ScaffoldMessenger.of(context).showSnackBar(
@@ -640,9 +641,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     // fixed Urdu+English stack (snapshot at open, like the scales).
     final sheetLang = ref.read(hadithLanguageProvider);
     final sheetRtl = sheetLang == 'ur';
-    final sheetTranslation = sheetLang == 'ar'
-        ? null
-        : hadithTextForLanguage(hadith, sheetLang);
+    // HR-2.1: 'ar' is not a reading language any more, so the sheet shows
+    // the selected translation and nothing else.
+    final sheetTranslation = hadithTextForLanguage(hadith, sheetLang);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -753,19 +754,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         ),
                       ),
                     ],
-                    if (hadith.hasArabic) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        hadith.textArabic,
-                        textAlign: TextAlign.right,
-                        style: AppArabicStyles.hadithArabic.copyWith(
-                          color: colors.textPrimary,
-                          fontSize: AppFontSize.arabicMedium *
-                              prefs.hadithTextScale,
-                        ),
-                      ),
-                    ],
-                    if (sheetLang != 'ar' && sheetTranslation != null) ...[
+                    // HR-2.1 removed the Arabic matn block that used to sit
+                    // between the chapter line and the translation.
+                    if (sheetTranslation != null) ...[
                       const SizedBox(height: 16),
                       Text(
                         sheetTranslation,
@@ -780,7 +771,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                               AppFontSize.bodyLarge * prefs.hadithTextScale,
                         ),
                       ),
-                    ] else if (sheetLang != 'ar') ...[
+                    ] else ...[
                       const SizedBox(height: 16),
                       Text(
                         // X6 (H2a): localized — an English apology inside an
@@ -1361,35 +1352,24 @@ class _TodaysHadithCard extends ConsumerWidget {
               ),
             ],
           ),
-          if (hadith!.hasArabic) ...[
-            const SizedBox(height: 12),
-            Text(
-              hadith!.textArabic,
-              textAlign: TextAlign.right,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-              style: AppArabicStyles.hadithArabic.copyWith(
-                color: colors.textPrimary,
-                fontSize: AppFontSize.arabicMedium * prefs.hadithTextScale,
-              ),
+          // HR-2.1: the of-the-day card's Arabic block is gone with the
+          // edition; the card is reference + translation, which is what the
+          // translation-not-available line below already handled as a
+          // second-best case and now handles as the only one.
+          const SizedBox(height: 10),
+          Text(
+            translation ??
+                AppStrings.of(context).translationNotInThisLanguage,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            textAlign: lang == 'ur' ? TextAlign.right : TextAlign.start,
+            textDirection:
+                lang == 'ur' ? TextDirection.rtl : TextDirection.ltr,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: colors.textSecondary,
+              fontSize: AppFontSize.bodyMedium * prefs.hadithTextScale,
             ),
-          ],
-          if (lang != 'ar') ...[
-            const SizedBox(height: 10),
-            Text(
-              translation ??
-                  AppStrings.of(context).translationNotInThisLanguage,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-              textAlign: lang == 'ur' ? TextAlign.right : TextAlign.start,
-              textDirection:
-                  lang == 'ur' ? TextDirection.rtl : TextDirection.ltr,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textSecondary,
-                fontSize: AppFontSize.bodyMedium * prefs.hadithTextScale,
-              ),
-            ),
-          ],
+          ),
           const SizedBox(height: 12),
           // Reference chip row: real reference + real grade. The grade
           // chip renders ONLY when the corpus actually knows it —
@@ -1562,20 +1542,15 @@ class _HadithTile extends ConsumerWidget {
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
     // World-class hadith pass (item 1): list-card text follows the
     // persisted split scales. Phase B: the preview follows the READING
-    // LANGUAGE (was always English); the Arabic viewing keeps the
-    // English preview because the Arabic block above already shows the
-    // selected text itself.
+    // LANGUAGE (was always English). HR-2.1 removed the special case that
+    // kept an English preview beside the Arabic block — there is no Arabic
+    // block any more, so the preview is simply the selected text.
     final prefs = ref.watch(hadithReadingPreferencesProvider);
     final lang = ref.watch(hadithLanguageProvider);
-    final translation =
-        lang == 'ar' ? null : hadithTextForLanguage(hadith, lang);
+    final translation = hadithTextForLanguage(hadith, lang);
     final previewText = translation ?? hadith.textEnglish;
     final previewRtl = lang == 'ur' && translation != null;
     final q = highlightQuery.trim();
-    final arabicStyle = AppArabicStyles.quranSmall.copyWith(
-      color: colors.textPrimary,
-      fontSize: AppFontSize.arabicSmall * prefs.hadithTextScale,
-    );
     final translationStyle = AppTextStyles.bodySmall.copyWith(
       color: colors.textSecondary,
       fontSize: AppFontSize.bodySmall * prefs.hadithTextScale,
@@ -1661,28 +1636,9 @@ class _HadithTile extends ConsumerWidget {
               ),
             ],
           ),
-          if (hadith.hasArabic)
-            q.isEmpty
-                ? Text(
-                    hadith.textArabic,
-                    textAlign: TextAlign.right,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: arabicStyle,
-                  )
-                : RichText(
-                    textAlign: TextAlign.right,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    text: TextSpan(
-                      children: hadithHighlightSpans(
-                        hadith.textArabic,
-                        q,
-                        arabicStyle,
-                        colors.primary,
-                      ),
-                    ),
-                  ),
+          // HR-2.1: the list card's Arabic line (plain and highlighted)
+          // went with the edition. The translation line below keeps its own
+          // highlight path, unchanged.
           if (previewText.trim().isNotEmpty) ...[
             const SizedBox(height: 6),
             q.isEmpty

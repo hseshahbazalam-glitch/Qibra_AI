@@ -46,9 +46,9 @@ class HadithLanguageNotifier extends StateNotifier<String> {
     state = code;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key, code);
-    // PASS X1: the boot batch carries english/arabic/urdu only, so the
-    // selected translation is folded on the way in. Single-flight, and a
-    // no-op for the three eager languages and for anything already in
+    // PASS X1: the boot batch carries english/urdu only (HR-2.1 unbundled
+    // arabic), so the selected translation is folded on the way in.
+    // Single-flight, and a no-op for the two eager languages and for anything already in
     // memory — the two language sheets stay instant. Read through the
     // factory rather than the provider: `hadithDatabaseProvider` hands out
     // that same singleton, and a test double overriding it simply has nothing
@@ -73,8 +73,6 @@ final hadithLanguageProvider =
 
 String? hadithTextForLanguage(HadithModel hadith, String language) {
   switch (language) {
-    case 'ar':
-      return hadith.hasArabic ? hadith.textArabic : null;
     case 'ur':
       return hadith.hasUrdu ? hadith.textUrdu : null;
     case 'en':
@@ -97,8 +95,6 @@ String? hadithTextForLanguage(HadithModel hadith, String language) {
 /// a translation is only ever shown when its key-matched text exists).
 String? localHadithTextForLanguage(LocalHadith local, String language) {
   switch (language) {
-    case 'ar':
-      return local.hasArabic ? local.textArabic : null;
     case 'ur':
       return local.hasUrdu ? local.textUrdu : null;
     case 'en':
@@ -218,7 +214,6 @@ HadithModel localToHadithModel(LocalHadith local) {
     bookName: local.bookName,
     chapterNumber: local.bookNumber,
     chapterName: local.chapterName,
-    textArabic: local.textArabic,
     textEnglish: local.textEnglish,
     textUrdu: local.textUrdu,
     textBengali: local.textBengali,
