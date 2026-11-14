@@ -35,8 +35,9 @@ double hadithRelevanceFor(String text, String query) {
 typedef HadithAssembledBook =
     ({List<LocalHadith> hadiths, Map<String, String> sections});
 
-/// Everything a book's texts mean, as ONE pure function of the three decoded
-/// assets plus the folded language indices. Extracted VERBATIM out of
+/// Everything a book's texts mean, as ONE pure function of the decoded
+/// editions (HR-2.1: two per book — English and Urdu; three until the Arabic
+/// edition was unbundled) plus the folded language indices. Extracted VERBATIM out of
 /// `_loadBook` by PASS HR-1 so the main isolate (which renders) and the
 /// persistent search worker (which scans) assemble byte-identical rows from
 /// byte-identical raw text — two implementations of the join is exactly how a

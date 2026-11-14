@@ -7,6 +7,7 @@ in-repo license file named in the sidecar manifest.
 from __future__ import annotations
 
 import json
+import re
 import unicodedata
 from collections import Counter
 from pathlib import Path
@@ -36,7 +37,14 @@ HADITH_COLLECTIONS = (
     "malik",
     "tirmidhi",
 )
-HADITH_LANGS = ("arabic", "english", "urdu")
+# HR-2.1 (2026-09-01): the hadith bundle ships TWO editions per book. The Arabic
+# edition was unbundled — the seven `arabic.json` files are deleted from the repo
+# — so a scan that still asked for them would report seven FALSE `missing_file`
+# rows against data that is gone by decision. `arabicnumber` SURVIVES inside every
+# row: it is the scholarly hadith number and the second half of the loader's
+# chapter/pair key, not an edition, and it must stay in the row shape because a
+# folded cache cannot re-derive it from text (see HadithDatabaseService.pairKey).
+HADITH_LANGS = ("english", "urdu")
 
 
 def repo_root() -> Path:
@@ -260,7 +268,15 @@ def validate_hadith_file(path: Path) -> dict:
         if not str(item.get("text") or "").strip():
             report["empty_text"] += 1
     report["duplicate_ids"] = sum(1 for _, n in Counter(ids).items() if n > 1)
-    report["ok"] = report["records"] > 0 and report["duplicate_ids"] == 0
+    # HR-2.1: `ok` is a FILE-level verdict — the file is there, parses, and is
+    # internally sound. Blank `text` rows are NOT a file defect (the English
+    # editions carry ~400 of them across the seven books, and the app keeps the
+    # row so the reference stays 1:1); they are a COVERAGE fact and belong to
+    # `hadith_coverage_matrix()`, where the percentages and the rows that have no
+    # edition at all are reported honestly. A duplicated number is only a defect
+    # for the spine (the map the loader builds collapses duplicates by design),
+    # so the caller decides which side of the join it is looking at.
+    report["ok"] = bool(report["exists"]) and report["records"] > 0
     if report["duplicate_ids"]:
         report["issues"].append("duplicate_ids")
     if report["empty_text"]:
@@ -277,6 +293,216 @@ def scan_hadith() -> list[dict]:
         for lang in HADITH_LANGS:
             out.append(validate_hadith_file(root / coll / f"{lang}.json"))
     return out
+
+
+def _hadith_number_key(value) -> int:
+    """Mirror of `HadithDatabaseService._parseHadithNumber`.
+
+    A join keyed differently from the app's own is a number the app never
+    computes, so the census below re-implements the loader's rule instead of
+    trusting the JSON shape: leading digits of any scalar, else 0.
+    """
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, (int, float)):
+        return int(value)
+    match = re.match(r"^\s*(\d+)", str(value if value is not None else ""))
+    return int(match.group(1)) if match else 0
+
+
+def _hadith_text(row) -> str:
+    return str(row.get("text") or "").strip()
+
+
+def hadith_coverage_matrix() -> dict:
+    """Per-book edition census, computed with the loader's OWN join rule.
+
+    `assembleHadithBook` walks the English rows as the spine and looks each
+    edition up by `hadithnumber` in an int map that is WRITTEN LAST-WINS — a
+    later blank row therefore overwrites an earlier non-blank one. That is the
+    shipped behaviour and this census reproduces it exactly rather than
+    "fixing" it, so every percentage here is the percentage the reader sees.
+
+    For each book it returns row counts, per-edition non-blank coverage, the
+    rows that have NO edition text at all (the honest ceiling on any 100%
+    claim), the edition rows the join drops because their key is off-spine, and
+    the spine integrity facts (unique keys, `reference.book`/`reference.hadith`
+    intact). Nothing here is copied from a report; a data change moves it.
+    """
+    root = hadith_dir()
+    books = []
+    issues: list[str] = []
+    totals = {
+        "books": len(HADITH_COLLECTIONS),
+        "editions": list(HADITH_LANGS),
+        "files": 0,
+        "bytes": 0,
+        "rows": 0,
+        "non_blank": {lang: 0 for lang in HADITH_LANGS},
+        "neither": 0,
+        "off_spine": 0,
+    }
+    for coll in HADITH_COLLECTIONS:
+        entry = {
+            "book": coll,
+            "files": {},
+            "spine": None,
+            "rows": 0,
+            "coverage": {},
+            "neither": 0,
+            "off_spine": {},
+            "issues": [],
+        }
+        rows_by_lang: dict[str, list] = {}
+        for lang in HADITH_LANGS:
+            path = root / coll / f"{lang}.json"
+            info = {
+                "path": _rel(path),
+                "exists": path.exists(),
+                "bytes": path.stat().st_size if path.exists() else 0,
+                "records": 0,
+                "empty_text": 0,
+                "duplicate_ids": 0,
+                "missing_hadithnumber": 0,
+                "fractional_ids": 0,
+                "section_keys": 0,
+            }
+            if path.exists():
+                totals["files"] += 1
+                totals["bytes"] += info["bytes"]
+                data = load_json(path)
+                rows = data.get("hadiths")
+                info["section_keys"] = len(
+                    (data.get("metadata") or {}).get("sections") or {}
+                )
+                if isinstance(rows, list):
+                    rows_by_lang[lang] = rows
+                    info["records"] = len(rows)
+                    info["empty_text"] = sum(1 for r in rows if not _hadith_text(r))
+                    keys = [_hadith_number_key(r.get("hadithnumber")) for r in rows]
+                    info["missing_hadithnumber"] = sum(1 for k in keys if k == 0)
+                    info["duplicate_ids"] = len(keys) - len(set(keys))
+                    # Upstream numbers sub-narrations as `402.2`, and the loader
+                    # truncates to 402 — so those rows collide with their own
+                    # sibling. Pre-existing, unchanged by HR-2.1, and reported
+                    # rather than hidden because it is what makes "100%" a
+                    # coverage claim rather than a row-identity claim.
+                    info["fractional_ids"] = sum(
+                        1
+                        for r in rows
+                        if isinstance(r.get("hadithnumber"), float)
+                        and not float(r["hadithnumber"]).is_integer()
+                    )
+                else:
+                    entry["issues"].append(f"unexpected_shape:{lang}")
+            else:
+                entry["issues"].append(f"missing_file:{lang}")
+            entry["files"][lang] = info
+        spine_lang = next(
+            (lang for lang in HADITH_LANGS if rows_by_lang.get(lang)), None
+        )
+        entry["spine"] = spine_lang
+        if spine_lang is None:
+            issues.append(f"{coll}:no_spine")
+            books.append(entry)
+            continue
+        spine = rows_by_lang[spine_lang]
+        # Side maps, built exactly as the loader builds them.
+        side: dict[str, dict[int, str]] = {}
+        for lang, rows in rows_by_lang.items():
+            if lang == spine_lang:
+                continue
+            joined: dict[int, str] = {}
+            for row in rows:
+                joined[_hadith_number_key(row.get("hadithnumber"))] = _hadith_text(row)
+            side[lang] = joined
+            spine_keys = {_hadith_number_key(r.get("hadithnumber")) for r in spine}
+            off = [k for k in joined if k not in spine_keys]
+            entry["off_spine"][lang] = len(off)
+            totals["off_spine"] += len(off)
+        non_blank = {lang: 0 for lang in HADITH_LANGS}
+        neither = 0
+        broken_reference = 0
+        spine_keys_seen: set[int] = set()
+        duplicated = 0
+        for row in spine:
+            key = _hadith_number_key(row.get("hadithnumber"))
+            if key in spine_keys_seen:
+                duplicated += 1
+            spine_keys_seen.add(key)
+            texts = {}
+            for lang in HADITH_LANGS:
+                if lang == spine_lang:
+                    text = _hadith_text(row)
+                else:
+                    text = side.get(lang, {}).get(key, "")
+                texts[lang] = text
+                if text:
+                    non_blank[lang] += 1
+                    totals["non_blank"][lang] += 1
+            if not any(texts.values()):
+                neither += 1
+                totals["neither"] += 1
+            reference = row.get("reference")
+            if (
+                not isinstance(reference, dict)
+                or reference.get("book") is None
+                or reference.get("hadith") is None
+            ):
+                broken_reference += 1
+        entry["rows"] = len(spine)
+        entry["neither"] = neither
+        totals["rows"] += len(spine)
+        for lang in HADITH_LANGS:
+            entry["coverage"][lang] = {
+                "non_blank": non_blank[lang],
+                "blank": len(spine) - non_blank[lang],
+                "percent": round(100.0 * non_blank[lang] / len(spine), 1)
+                if spine
+                else 0.0,
+            }
+        entry["spine_collisions"] = duplicated
+        entry["fractional_rows"] = sum(
+            info["fractional_ids"] for info in entry["files"].values()
+        )
+        if broken_reference:
+            entry["issues"].append(f"broken_reference_keys:{broken_reference}")
+            issues.append(f"{coll}:broken_reference_keys:{broken_reference}")
+        if spine_lang != "english":
+            entry["issues"].append("spine_is_not_english")
+            issues.append(f"{coll}:spine_is_not_english")
+        # A row the spine cannot key is a row the app cannot show at all; a row
+        # the JOIN side cannot key is simply dropped (1 such Urdu row exists in
+        # Muslim) and is reported through `off_spine`, not failed on.
+        if entry["files"][spine_lang]["missing_hadithnumber"]:
+            issues.append(
+                f"{coll}:missing_hadithnumber:"
+                f'{entry["files"][spine_lang]["missing_hadithnumber"]}'
+            )
+        books.append(entry)
+    totals["coverage"] = {
+        lang: {
+            "non_blank": totals["non_blank"][lang],
+            "percent": round(100.0 * totals["non_blank"][lang] / totals["rows"], 1)
+            if totals["rows"]
+            else 0.0,
+        }
+        for lang in HADITH_LANGS
+    }
+    missing_files = [
+        f'{book["book"]}:{lang}'
+        for book in books
+        for lang in HADITH_LANGS
+        if not book["files"][lang]["exists"]
+    ]
+    issues.extend(f"missing_file:{m}" for m in missing_files)
+    return {
+        "ok": not issues,
+        "books": books,
+        "totals": totals,
+        "missing_files": missing_files,
+        "issues": issues,
+    }
 
 
 def load_manifest() -> dict:

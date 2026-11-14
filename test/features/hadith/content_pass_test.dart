@@ -1,5 +1,6 @@
 // Content pass guards (owner, 2026-09-02): 7 hadith collections with
-// ar/en/ur, tafsir coverage + range integrity, visible source credit.
+// en/ur (ar/en/ur until HR-2.1 unbundled Arabic), tafsir coverage + range
+// integrity, visible source credit.
 // Dataset-level assertions — run in plain `flutter test`, no harness.
 
 import 'dart:convert';

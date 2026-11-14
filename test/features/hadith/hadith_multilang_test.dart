@@ -451,11 +451,11 @@ void main() {
       // source order, not a vibe.
       final sheet = book.indexOf('void _showQuickSettingsSheet');
       expect(sheet, greaterThan(0));
-      // i18n Phase A: literal moved into AppStrings.arabicTextSection (owner+verifier
-      // authorized). HR-2.1 re-pin: that toggle was DELETED with the Arabic
-      // edition, so the ordering is pinned against the switch that is still
-      // there — the same rule (Language row above the toggles), a different
-      // lower neighbour.
+      // i18n Phase A moved the Arabic-section header literal into AppStrings;
+      // HR-2.1 deleted both the toggle and that key, because the section itself
+      // went with the Arabic edition. The ordering rule is therefore pinned
+      // against the switch that still exists — same rule (Language row above the
+      // toggles), different lower neighbour.
       expect(book.indexOf('Icons.translate_rounded', sheet),
           lessThan(book.indexOf('value: _showTranslation', sheet)),
           reason: 'Language row must sit above the toggles in the sheet');

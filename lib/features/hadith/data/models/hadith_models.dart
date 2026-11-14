@@ -33,16 +33,18 @@ import 'package:qibra_ai/core/design_system/app_colors.dart';
 // ============================================================
 
 enum HadithGrade {
-  sahih('Sahih', 'صحيح', 'Sahih (collection grade, not independently verified)', AppEmerald.s500),
-  hasan('Hasan', 'حسن', 'Good', AppEmerald.s400),
-  daif('Daif', 'ضعيف', 'Weak', AppGold.s500),
-  mawdu('Mawdu', 'موضوع', 'Fabricated', AppSemanticColors.error),
-  unknown('Unknown', 'غير معروف', 'Unknown grade', AppNeutral.s500);
+  sahih('Sahih', 'Sahih (collection grade, not independently verified)', AppEmerald.s500),
+  hasan('Hasan', 'Good', AppEmerald.s400),
+  daif('Daif', 'Weak', AppGold.s500),
+  mawdu('Mawdu', 'Fabricated', AppSemanticColors.error),
+  unknown('Unknown', 'Unknown grade', AppNeutral.s500);
 
-  const HadithGrade(this.label, this.arabicLabel, this.description, this.color);
+  const HadithGrade(this.label, this.description, this.color);
 
   final String label;
-  final String arabicLabel;
+  /// HR-2.1: the enum used to carry an `arabicLabel` for the Arabic edition of
+  /// the hadith text. Nothing ever rendered it and no test read it, so it went
+  /// with that edition — the grade is named by `label`, in the reader's language.
   final String description;
   final Color color;
 

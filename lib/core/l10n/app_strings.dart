@@ -136,7 +136,9 @@ class AppStrings {
       );
 
   // ── Hadith ──
-  String get arabicTextSection => _t('Arabic Text (عربي)', 'النص العربي', 'عربی متن');
+  // HR-2.1: the Arabic matn block (the last consumer of an `arabicTextSection`
+  // label) was unbundled with the seven `arabic.json` files, so the key is gone
+  // rather than left as a string no widget can ask for.
   String get collectionStillLoading => _t(
         'This collection is still loading — try again in a moment.',
         'هذه المجموعة ما زالت قيد التحميل — أعد المحاولة بعد قليل.',

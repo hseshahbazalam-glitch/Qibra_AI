@@ -16,8 +16,10 @@
 //     from the shipped files below, and the bytes are base-identical), but the
 //     UI answered that emptiness with an English sentence, i.e. with nothing
 //     a reader of that book can use. The fix is a state, not a blank: the
-//     honest line in the reader's language, the Arabic body always, and a chip
-//     that reveals the English of the SAME hadith.
+//     honest line in the reader's language and a chip that reveals the English
+//     of the SAME hadith. (HR-2.1: this sentence listed "the Arabic body
+//     always" as part of the state; that body left the bundle, so the chip is
+//     now the whole answer and hadith_pass_x6_test asserts its absence.)
 //
 // Conventions match hadith_pass_h2_test / hadith_multilang_test: render-pins
 // where a painted pixel is the truth, source pins where the bug class is

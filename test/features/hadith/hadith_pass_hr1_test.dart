@@ -738,7 +738,8 @@ void main() {
       debugPrint('[HR1_BENCH] ledger corpus weight: $ledgerRows rows, '
           '$searchedChars searched chars, '
           '${(searchedChars / ledgerRows).round()} per row (the shipped '
-          'bundle measures 1,436)');
+          'bundle measures 887 — 423 english + 464 urdu chars/row; the '
+          'unbundled Arabic edition measured 549 more)');
       final onMain = Stopwatch()..start();
       scanHadithCorpus(corpus, ['namaz ka tarika'], maxPerQuery: 50);
       onMain.stop();
