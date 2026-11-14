@@ -266,3 +266,109 @@ the rule, not a plausible-looking number, had to be replayed.
 5. **Home**: three strips, no Continue, no Featured, no orphan filter chips.
 6. **X6 confirmations still owed** (unchanged by this pass): tap a hit → exact number;
    nasai Urdu blank → fallback chip → English reveal; English chip path.
+
+---
+---
+
+# HOTFIX HR-1.1 + HR-1.2 (device re-run after HR-1 landed)
+
+Two surgical fixes, both scoped to the search path HR-1 introduced. HR-1 removed
+the per-keystroke corpus copy; the device came back and said the search now
+never answers, and that its entry field is clipped. Neither is a redesign, and
+neither re-introduces the thing HR-1 removed.
+
+## HR-1.1 — the worker was alive, then it was dead forever
+
+### Device red, verbatim
+
+```
+[HADITH_SEARCH] worker unresponsive — retired for this session
+[HADITH_DB] search batch empty — worker unavailable; the corpus is never copied for a keystroke
+```
+
+…then `[HADITH_DB] search batch empty …` on **every** keystroke after that, for the
+rest of the session. Typing `namaz ka tarika` produced no results at all. The
+freeze is gone; so is search.
+
+### Root cause (four lines, read off `hadith_search_worker.dart` at `1097d27`)
+
+| # | the line | what it did on the phone |
+| --- | --- | --- |
+| 1 | `static const Duration replyTimeout = Duration(seconds: 20);` | sized from a desktop guess. The first query after boot does not only scan — it waits behind SEVEN books of unawaited hand-off decoding (the unawaited shape is pinned by `hadith_pass_hr1_test`), on a CPH2573 running debug/JIT. 20 s is reachable while perfectly healthy. |
+| 2 | `if (received is! _HadithSearchReply) { _kill(); _dead = true; }` | ONE late reply and a genuinely dead isolate share one branch, and the branch's verdict is a kill. |
+| 3 | `Future<void> start() async { if (_dead) return; … }` | retirement was terminal by construction. There was no code path back. |
+| 4 | `noteBook` / `noteFold` set `_dead = true` on a missing ack, and every in-flight query kept its own armed `await` | the boot's slowest operation could kill the worker, and a burst left N stale timeout bookkeeping alive (the ×6 pattern in the log for one typed phrase). |
+
+### The fix (all of it in the search-availability path of `lib/features/hadith`)
+
+* **SLOW ≠ DEAD.** A missed budget is a *counted miss*. Retirement requires
+  **death evidence** — a `send` that threw, a reply port that closed without ever
+  answering, the isolate exiting (heard from `inbox.errors`, drained so a crash
+  cannot become an unhandled async error), or a refused spawn — **or
+  `retireAfterTimeouts` = 2 consecutive misses**. A reply that lands clears the
+  counter.
+* **Rate-limited revival.** `_dead` is now `_retired`, and `start()` leaves that
+  state at most once per `reviveCooldown` = **60 s**, on the next search COMMIT.
+  A wedged worker therefore costs one commit and one minute, never a session,
+  and a spawn-refusing platform (some CI sandboxes) records the attempt in the
+  same `catch` so it cannot pay a failed spawn per keystroke either.
+* **A revival is not allowed to be silently empty.** A fresh isolate owns nothing
+  while `handedBooks` still names the boot hand-offs, so it sets `corpusStale`;
+  `searchBatchOffMain` answers that with **one** `rebuildSearchCorpus()`, which
+  re-hands each book through the boot's own `_loadBook` (21 asset reads,
+  off-main decodes, the same unawaited `noteBook`). No corpus map is built,
+  copied or captured — the ban holds by *reuse*, not by comment.
+* **Device-realistic budgets, and more for the first one.** `replyTimeout`
+  20 s → **45 s**; `firstReplyTimeout` **90 s** applies while nothing has been
+  answered yet (cold after spawn or after a revive); the boot ack gets a separate
+  `handoffGrace` **120 s** whose expiry no longer kills anything, it only
+  releases `whenSettled()`.
+* **Supersession cleans the ledger.** Every request gets a `_HadithSearchHandoff`
+  (an id, nothing else) registered in `_pendingReplies`; the entry closes on
+  reply, on budget and in `finally`, and a miss is counted **only if that
+  request was still the newest** (`return handoff.id >= _newestSentId`). Stale
+  timeouts are discarded, which is what the ×6 pile was.
+* **Measurement instead of another guess.** The worker times its own scan and
+  counts its rows incrementally; `search()` logs, in `kDebugMode`:
+  `[HADITH_SEARCH] scan 7 answered in 412.6ms over 36390 corpus rows (budget 45s)`
+  plus `reply 1/2 missed its budget — SLOW is not DEAD …` and the retire line,
+  which now states the reason and when revival is allowed.
+
+### Disclosed, not hidden
+
+* In a **debug** build an answer may legitimately take **longer than the old
+  20 s**: that is now honest slowness with the UI still responding and the worker
+  still alive, not a hang and not a dead session. The 45 s/90 s numbers are still
+  *estimates* — the log lines above exist so the next device run replaces them
+  with a measurement. Nothing in this fix makes a slow scan fast.
+* The corpus remains resident twice (HR-1's pre-authorised fallback). A revival
+  additionally costs one re-hand (21 asset reads + isolate decodes) per revive,
+  i.e. at most once per minute per process, never per keystroke.
+* The timeout/revive counters are **per-process in-memory**; they do not survive
+  a restart and are not shared between the app's isolates. No new subsystem, no
+  persistence, no new dependency.
+* **Follow-up this fix deliberately does not attempt:** if the PROFILE-mode scan
+  measurement comes back too high, the next step is an indexed
+  pre-normalisation pass over the corpus inside the worker (build-once, search-
+  often), not a bigger timeout. That decision needs the device number below.
+
+### Tests (`test/features/hadith/hadith_hotfix_hr11_worker_liveness_test.dart`, 13)
+
+Red first: every behavioural test drives a **real isolate** (no fake worker — HR-1
+forbids the seam that would need one) with injected patience, and the two
+budget/ledger rules are additionally pinned in source the way `hadith_pass_hr1_test`
+does. They cover: the constants and their ordering; cold-vs-warm budget including
+after `forceCold()`; one miss ≠ retirement with the port still open; two misses →
+retirement with an empty ledger; death evidence retiring immediately; the cooldown
+refusing a second attempt *and then* the next commit reviving and **answering**;
+`corpusStale` + `markCorpusFresh()`; the re-hand's source shape (no `_bookData`,
+no corpus map, no `Isolate.run`); the refused-spawn cooldown; the burst ledger
+(≤2 counted misses, `inFlight` back to 0, not retired); `noteBook`/`noteFold`
+having stopped treating a late ack as death; the debug telemetry lines.
+
+`hadith_pass_hr1_test.dart` is **untouched**: the capture ban, the worker-assembler
+identity (incl. the X6 `496.2` check), the boot-reads-once pins, the debounce
+supersedes groups and the **20,020-hadith benchmark gate** all still hold against
+the new code by construction — the benchmark uses the default 45 s budget, so its
+14 sequential queries are answered rather than timed out.
+
