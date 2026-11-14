@@ -447,7 +447,12 @@ void main() {
       expect(code.contains('return handoff.id >= _newestSentId;'), isTrue,
           reason: 'the predicate, pinned: anything overtaken by a newer commit '
               'is not evidence about the worker');
-      expect(code.contains('_noteMissedBudget(\'query $id\', newest: wasNewest)'),
+      // Whitespace-flattened, because a source pin that breaks when the
+      // formatter wraps one argument list is a coin flip, not a guard (the
+      // lesson hadith_pass_hr1_test learned and wrote down).
+      final flat = code.replaceAll(RegExp(r'\s+'), ' ');
+      expect(
+          flat.contains(r"_noteMissedBudget('query $id', newest: wasNewest)"),
           isTrue,
           reason: 'and the timeout path is the one that uses it');
       expect(code.contains('_noteMissedBudget'), isTrue);

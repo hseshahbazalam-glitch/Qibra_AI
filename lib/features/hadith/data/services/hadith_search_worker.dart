@@ -187,9 +187,14 @@ class HadithSearchWorker {
   static final HadithSearchWorker instance = HadithSearchWorker._shared();
 
   // The shared singleton takes no overrides: it MUST run the shipped numbers,
-  // and giving it optional knobs is how a test seam leaks into production
-  // (the analyzer flags an optional parameter nobody on this path can pass).
-  HadithSearchWorker._shared();
+  // and an optional parameter nobody on this path can pass is a test seam
+  // leaking into production (CI's `unused_element_parameter` warning, twice
+  // over — the fields still need their initializers, which is what the
+  // `final_not_initialized_constructor` error said after the first cut).
+  HadithSearchWorker._shared()
+      : replyTimeoutOverride = null,
+        retireAfterTimeoutsOverride = null,
+        reviveCooldownOverride = null;
 
   /// The budget for ONE reply before the worker is treated as possibly-wedged
   /// (HR-1.1: 45 s, not HR-1's 20 s).
