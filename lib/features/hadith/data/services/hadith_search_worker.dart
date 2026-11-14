@@ -268,6 +268,12 @@ class HadithSearchWorker {
 
   DateTime? _lastReviveAttemptAt;
 
+  /// Bumped on every successful spawn. The `onExit` listener carries the
+  /// generation it was armed for, so the exit of a worker we already replaced
+  /// cannot retire the NEW one — without this, `shutdownForTest()` between two
+  /// tests would let a stale exit message poison the next spawn.
+  int _generation = 0;
+
   /// HR-1.1 test seams (see the constructor). Null = the shipped value.
   final Duration? replyTimeoutOverride;
   final int? retireAfterTimeoutsOverride;
@@ -279,7 +285,11 @@ class HadithSearchWorker {
   final Set<String> _handed = <String>{};
 
   /// The budget in force for THIS worker, injected override or shipped default.
-  Duration get replyTimeout =>
+  /// Named `effective…` because a static and an instance member may not share
+  /// a name in Dart (CI caught `conflicting_static_and_instance` the first time
+  /// this was `replyTimeout`) — and because the distinction is the whole point:
+  /// the CONSTANT is what the app ships, this is what this worker enforces.
+  Duration get effectiveReplyTimeout =>
       replyTimeoutOverride ?? HadithSearchWorker.replyTimeout;
 
   /// The budget for the wait about to be made: the long one while the boot
@@ -287,22 +297,33 @@ class HadithSearchWorker {
   /// because "the first query after boot gets a bigger budget" is a claim a
   /// test must be able to read, not just a comment that says it.
   Duration get currentReplyBudget =>
-      _everAnswered ? replyTimeout : HadithSearchWorker.firstReplyTimeout;
+      _everAnswered
+          ? effectiveReplyTimeout
+          : HadithSearchWorker.firstReplyTimeout;
 
   int get retireAfterTimeouts =>
       retireAfterTimeoutsOverride ?? HadithSearchWorker.retireAfterTimeouts;
 
-  Duration get reviveCooldown =>
+  Duration get effectiveReviveCooldown =>
       reviveCooldownOverride ?? HadithSearchWorker.reviveCooldown;
 
   bool get isLive => _toWorker != null && !_retired;
 
-  /// Public so the patience state machine is testable (and so a debug log line
-  /// can say what it is doing). App code never sets these.
+  /// Consecutive missed budgets, and the moment the last revival was tried.
+  /// Plain fields (a getter/setter pair over one field is noise the analyzer
+  /// flags) because the patience state machine has to be readable from a test
+  /// — and settable, so the state machine can be tested without waiting 45 s
+  /// per timeout. App code never writes either.
   int get timeouts => _timeouts;
+
+  /// See [timeouts]: a test seam, documented as one.
   set timeouts(int value) => _timeouts = value;
+
   bool get retired => _retired;
+
   DateTime? get lastReviveAttemptAt => _lastReviveAttemptAt;
+
+  /// See [lastReviveAttemptAt]: a test seam, documented as one.
   set lastReviveAttemptAt(DateTime? value) => _lastReviveAttemptAt = value;
 
   /// Request ids main is still holding a wait open for.
@@ -354,11 +375,16 @@ class HadithSearchWorker {
     final completer = Completer<void>();
     _starting = completer.future;
     final inbox = ReceivePort();
+    final exitSignal = ReceivePort();
     try {
       final isolate = await Isolate.spawn(
         _hadithSearchWorkerEntry,
         inbox.sendPort,
         debugName: 'hadith-search-worker',
+        // `onExit` fires for a clean exit AND for a crash, which is precisely
+        // the difference HR-1.1 had to learn the hard way: the only signal that
+        // may retire a worker without a budget is the VM saying it is gone.
+        onExit: exitSignal.sendPort,
       );
       // Typed `Object?` on purpose: `ReceivePort` delivers `dynamic`, and under
       // this repo's `strict-casts: true` handing that straight to a `SendPort`
@@ -371,19 +397,23 @@ class HadithSearchWorker {
         // undelivered when the handshake fails would surface as an unhandled
         // async error on main, replacing a clean retirement with a crash.
         unawaited(inbox.drain<void>());
+        unawaited(exitSignal.drain<void>());
         isolate.kill(priority: Isolate.immediate);
         throw StateError('worker never announced its port');
       }
       _toWorker = announced;
       _isolate = isolate;
       _inbox = inbox;
+      _generation++;
       // HR-1.1: an isolate that exits or dies is DEATH, told to us by the VM —
       // the one signal that retires without waiting for the budget twice. The
-      // stream must be drained when nobody is listening, or a crash in the
-      // worker becomes an uncaught async error on main instead of a retirement.
-      unawaited(inbox.errors
-          .catchError((Object _) {})
-          .whenComplete(() => _retireOnIsolateExit()));
+      // channel is the `onExit` port handed to `Isolate.spawn` (a ReceivePort
+      // has NO `.errors` getter on this SDK — CI's `undefined_getter` taught me
+      // that), drained exactly once below so an exit never becomes an unhandled
+      // async error on main.
+      final armedFor = _generation;
+      unawaited(
+          exitSignal.first.whenComplete(() => _retireOnIsolateExit(armedFor)));
       if (reviving) {
         // The new isolate owns NOTHING while `handedBooks` still names the
         // boot hand-offs, so the service has one re-hand to make. Forgetting
@@ -410,6 +440,7 @@ class HadithSearchWorker {
       _corpusStale = false;
       _retired = true;
       try {
+        exitSignal.close();
         inbox.close();
       } catch (_) {
         // The inbox may already be closed on the path that got us here, and a
@@ -420,7 +451,8 @@ class HadithSearchWorker {
       if (kDebugMode) {
         debugPrint('[HADITH_SEARCH] spawn refused ($e) — hadith search '
             'answers empty rather than copying the corpus on the main isolate; '
-            'revive allowed again after ${reviveCooldown.inSeconds}s');
+            'revive allowed again after '
+            '${effectiveReviveCooldown.inSeconds}s');
       }
     } finally {
       _starting = null;
@@ -434,7 +466,7 @@ class HadithSearchWorker {
   bool _reviveWindowOpen() {
     final last = _lastReviveAttemptAt;
     if (last == null) return true;
-    return DateTime.now().difference(last) >= reviveCooldown;
+    return DateTime.now().difference(last) >= effectiveReviveCooldown;
   }
 
   /// The ONE place retirement is decided. Callers hand it evidence: a
@@ -462,7 +494,7 @@ class HadithSearchWorker {
           ? '$_timeouts consecutive missed budgets'
           : 'death evidence';
       debugPrint('[HADITH_SEARCH] worker retired ($evidence) — search answers '
-          'empty until the next commit after ${reviveCooldown.inSeconds}s, and '
+          'empty until the next commit after ${effectiveReviveCooldown.inSeconds}s, and '
           'the corpus is never scanned on main meanwhile');
     }
   }
@@ -471,8 +503,9 @@ class HadithSearchWorker {
   /// main itself retired it a moment ago. Only the first two are news: the
   /// guard keeps `_kill`'s own inbox close from re-entering retirement (which
   /// would double-count and, worse, reset a revive clock that just started).
-  void _retireOnIsolateExit() {
+  void _retireOnIsolateExit(int armedFor) {
     if (_retired || _isolate == null) return;
+    if (armedFor != _generation) return;
     _retire(lateReply: false);
   }
 

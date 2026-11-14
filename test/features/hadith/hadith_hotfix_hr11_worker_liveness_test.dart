@@ -160,7 +160,7 @@ void main() {
       final warm = await worker.search(['patience'], maxPerQuery: 3);
       expect(warm, isNotNull, reason: 'no isolate in this environment — the two '
           'budget assertions below would otherwise be vacuous');
-      expect(worker.currentReplyBudget, worker.replyTimeout,
+      expect(worker.currentReplyBudget, worker.effectiveReplyTimeout,
           reason: 'after the first answer the budget drops back to normal — '
               'the generosity is for the boot, not a licence to hang forever');
       worker.forceCold();
@@ -329,13 +329,23 @@ void main() {
       expect(worker.retired, isTrue);
       await Future<void>.delayed(const Duration(milliseconds: 80));
       await worker.start();
-      expect(worker.retired, isFalse);
+      expect(worker.retired, isFalse,
+          reason: 'the next commit after the cooldown got a worker back');
       expect(worker.corpusStale, isTrue,
           reason: 'the fresh isolate owns NOTHING while `handedBooks` still '
               'names a book — without this flag a "successful" revival would '
               'answer empty forever and look healthy');
+      worker.forceCold();
       expect(worker.currentReplyBudget, HadithSearchWorker.firstReplyTimeout,
           reason: 'and it is COLD: the re-hand queue is in front of the query');
+      // The service half, done by hand here: re-hand, then clear the flag — the
+      // order matters, and this is exactly what `rebuildSearchCorpus()` +
+      // `markCorpusFresh()` do in production.
+      await worker.noteBook(
+          slug: 'bukhari',
+          name: 'Sahih al-Bukhari',
+          rawEnglish: _syntheticBook(1, 60));
+      await worker.whenSettled();
       worker.markCorpusFresh();
       expect(worker.corpusStale, isFalse);
       expect(await worker.search(['patience'], maxPerQuery: 3), isNotNull,
