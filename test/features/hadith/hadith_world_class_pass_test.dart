@@ -72,9 +72,19 @@ void main() {
 
       test('a missing legacy axis defaults to 1.0 before the max', () {
         expect(HadithReadingPreferences.migrate(legacyTranslation: 1.1), 1.1);
-        expect(HadithReadingPreferences.migrate(legacyArabic: 0.8), 0.85,
-            reason: '0.8 was legal for one axis only; the single axis floors '
-                'higher, so the folded value clamps up — disclosed old→new');
+        // CI (a1780ee) measured 1.0 here while the first pin said 0.85 — the
+        // pin contradicted this test's own name. The rule is the documented
+        // one: a MISSING v1 axis is read as the 1.0 default BEFORE the max, so
+        // a half-written v1 store folds to the default size and never to a
+        // shrink the reader did not ask for. Disclosed old→new: 0.85 -> 1.0.
+        expect(HadithReadingPreferences.migrate(legacyArabic: 0.8), 1.0);
+        // The floor still has a migrate() path, and it stays pinned: BOTH axes
+        // at 0.8 was legal under v1's 0.8–1.6 and is illegal under HR-3, so the
+        // fold clamps UP to 0.85.
+        expect(
+            HadithReadingPreferences.migrate(
+                legacyArabic: 0.8, legacyTranslation: 0.8),
+            0.85);
       });
     });
   });

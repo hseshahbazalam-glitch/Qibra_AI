@@ -268,7 +268,15 @@ void main() {
           if (!body.contains('tooltip:')) bare.add('$path:$line');
         }
       }
-      expect(total, 64,
+      // Ledger (HR-3, 2026-11): 64 -> 63. The hadith card meta-diet deleted
+      // exactly one IconButton call site — the per-card bookmark button in
+      // hadith_book_screen.dart (the detail sheet already owns bookmarking) —
+      // and this census counts `\bIconButton(` across ALL of lib, so the diet
+      // moved it by one. Re-measured with this test's own scan (comments
+      // stripped, strings blanked): 63, and `bare` is still empty — no
+      // tooltip-less button was added, only one was removed. Disclosed old→new
+      // rather than pinned blind.
+      expect(total, 63,
           reason: 'IconButton census moved — re-measure before re-pinning');
       expect(bare, isEmpty, reason: 'tooltips missing at ${bare.join(', ')}');
     });
