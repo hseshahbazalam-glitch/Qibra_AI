@@ -34,7 +34,6 @@ class HadithScreen extends ConsumerStatefulWidget {
 }
 
 class _HadithScreenState extends ConsumerState<HadithScreen> {
-  String _filterSlug = '';
 
   /// Reference segment rail: 0 Discover, 1 Collections, 2 My Library.
   /// Every pane renders EXISTING providers — there is deliberately no
@@ -77,9 +76,6 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
     final daily = ref.watch(dailyHadithProvider);
-    final featured = ref.watch(
-      featuredHadithsProvider(_filterSlug.isEmpty ? null : _filterSlug),
-    );
     final books = ref.watch(hadithBooksProvider);
 
     return QibraPage(
@@ -163,7 +159,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
             ...switch (_pane) {
               1 => _collectionsPane(context, colors, books),
               2 => _libraryPane(context),
-              _ => _discoverPane(context, colors, daily, featured, books),
+              _ => _discoverPane(context, colors, daily, books),
             },
           ],
         ),
@@ -251,22 +247,21 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     BuildContext context,
     QibraColors colors,
     AsyncValue<HadithModel?> daily,
-    AsyncValue<List<HadithModel>> featured,
     AsyncValue<List<HadithBook>> books,
   ) {
-    // H2-D4 — the home flow in the brief's order: TODAY hero → the
-    // COLLECTIONS rail → CONTINUE reading → RECENTLY READ (compact),
-    // then the featured browse strip keeps its slot last. Rhythm lock:
-    // 24 between sections, 12 within. Every section through
-    // QibraSectionHeader (design rule); continue and recently-read
-    // render NOTHING while history is empty — never a ghost card.
-    final history = ref.watch(hadithHistoryProvider).valueOrNull ??
-        const <HadithModel>[];
-    final continues = <String, HadithModel>{};
-    for (final c in _collections) {
-      final cont = lastReadForBook(history, c['slug']!);
-      if (cont != null) continues[c['slug']!] = cont;
-    }
+    // H2-D4 order, HR-3 diet: TODAY hero → COLLECTIONS rail → RECENTLY READ.
+    // The pass brief used to continue with a per-book CONTINUE row and a
+    // FEATURED browse list; the owner's HR-3 revision cut both — five strips
+    // on a first screen is a directory, not a start reading. Continue dies
+    // because the collection cards already carry their own last-read hadith
+    // (same lastReadForBook, one source) and the reader resumes inside the
+    // book; Featured dies because a list built from the first two rows of
+    // each book was a sample, not a curation. The filter chip row that
+    // narrowed Featured goes with it — a selected filter that filters
+    // nothing is worse than no filter.
+    // Rhythm lock unchanged: 24 between sections, 12 within, every section
+    // header through QibraSectionHeader, and never a ghost card when a strip
+    // has nothing honest to show.
     return [
       daily.when(
         data: (hadith) => _TodaysHadithCard(
@@ -291,119 +286,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
       ),
       const SizedBox(height: 24),
       ..._collectionsSection(context, colors, books),
-      if (continues.isNotEmpty) ...[
-        const SizedBox(height: 24),
-        const QibraSectionHeader(title: 'Continue reading'),
-        _continueStrip(context, continues),
-      ],
       _buildRecentlyRead(ref.watch(hadithHistoryProvider)),
       const SizedBox(height: 12),
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            QibraChip(
-              label: 'All',
-              selected: _filterSlug.isEmpty,
-              onTap: () => setState(() => _filterSlug = ''),
-            ),
-            for (final collection in _collections)
-              QibraChip(
-                label: collection['name']!.split(' ').last,
-                selected: _filterSlug == collection['slug'],
-                onTap: () =>
-                    setState(() => _filterSlug = collection['slug']!),
-              ),
-          ],
-        ),
-      ),
-      const SizedBox(height: 12),
-      featured.when(
-        data: (hadiths) {
-          if (hadiths.isEmpty) {
-            return const QibraEmptyState(
-              icon: Icons.library_books_outlined,
-              title: 'No hadiths to show',
-              message: 'Open a collection to start reading.',
-            );
-          }
-          return Column(
-            children: [
-              for (final hadith in hadiths)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _HadithTile(
-                    hadith: hadith,
-                    onTap: () => _showDetail(context, hadith),
-                  ),
-                ),
-            ],
-          );
-        },
-        loading: () => const Padding(
-          padding: EdgeInsets.all(24),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (_, __) => const QibraEmptyState(
-          icon: Icons.library_books_outlined,
-          title: 'Could not load hadiths',
-        ),
-      ),
-      const SizedBox(height: 24),
     ];
-  }
-
-  /// D4: the per-book continue row over the REAL view history (the same
-  /// lastReadForBook the collection cards use — one source). Empty
-  /// history renders nothing at all; a tap opens the book screen, whose
-  /// resume chip (derived from the same LRU) carries the reader home.
-  Widget _continueStrip(
-      BuildContext context, Map<String, HadithModel> continues) {
-    final slugs = continues.keys.toList();
-    final colors = QibraColors.of(context);
-    return SizedBox(
-      height: 92,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: slugs.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, i) {
-          final slug = slugs[i];
-          final hadith = continues[slug]!;
-          final name = _collections
-              .firstWhere((c) => c['slug'] == slug,
-                  orElse: () => {'name': slug})['name']!;
-          return SizedBox(
-            width: 168,
-            child: QibraCard(
-              padding: const EdgeInsets.all(12),
-              onTap: () => _openBook(context, slug),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.labelMedium.copyWith(
-                          color: colors.textPrimary,
-                          fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Continue \u00b7 Hadith ${hadith.hadithNumber}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.labelSmall.copyWith(
-                        color: colors.primary,
-                        fontWeight: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
   }
 
   // Collections pane (reference 'Collections / See all'): a horizontal
@@ -770,8 +655,8 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
           builder: (context, ref, _) {
             final bookmarked =
                 ref.watch(isHadithBookmarkedProvider(hadith.id));
-            // World-class hadith pass (item 1): detail-sheet text
-            // follows the persisted split scales.
+            // World-class hadith pass (item 1), HR-3: detail-sheet text
+            // follows the one persisted hadith scale.
             final prefs = ref.watch(hadithReadingPreferencesProvider);
             return DraggableScrollableSheet(
               expand: false,
@@ -876,7 +761,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         style: AppArabicStyles.hadithArabic.copyWith(
                           color: colors.textPrimary,
                           fontSize: AppFontSize.arabicMedium *
-                              prefs.arabicScale,
+                              prefs.hadithTextScale,
                         ),
                       ),
                     ],
@@ -892,7 +777,7 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         style: AppTextStyles.bodyLarge.copyWith(
                           color: colors.textPrimary,
                           fontSize:
-                              AppFontSize.bodyLarge * prefs.translationScale,
+                              AppFontSize.bodyLarge * prefs.hadithTextScale,
                         ),
                       ),
                     ] else if (sheetLang != 'ar') ...[
@@ -1390,8 +1275,8 @@ class _TodaysHadithCard extends ConsumerWidget {
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith!.id));
     final lang = ref.watch(hadithLanguageProvider);
     final translation = hadithTextForLanguage(hadith!, lang);
-    // World-class hadith pass (item 1): today's card text follows the
-    // persisted split scales like every other hadith body surface.
+    // World-class hadith pass (item 1), HR-3: today's card text follows the
+    // one persisted hadith scale like every other hadith body surface.
     final prefs = ref.watch(hadithReadingPreferencesProvider);
     return QibraCard(
       child: Column(
@@ -1443,7 +1328,7 @@ class _TodaysHadithCard extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
               style: AppArabicStyles.hadithArabic.copyWith(
                 color: colors.textPrimary,
-                fontSize: AppFontSize.arabicMedium * prefs.arabicScale,
+                fontSize: AppFontSize.arabicMedium * prefs.hadithTextScale,
               ),
             ),
           ],
@@ -1459,7 +1344,7 @@ class _TodaysHadithCard extends ConsumerWidget {
                   lang == 'ur' ? TextDirection.rtl : TextDirection.ltr,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: colors.textSecondary,
-                fontSize: AppFontSize.bodyMedium * prefs.translationScale,
+                fontSize: AppFontSize.bodyMedium * prefs.hadithTextScale,
               ),
             ),
           ],
@@ -1626,7 +1511,7 @@ class _HadithTile extends ConsumerWidget {
   /// World-class hadith pass (item 2): when non-empty (search results
   /// only), query terms are emphasised inside the previews — folded
   /// matching on ORIGINAL coordinates, restrained primary wash. The
-  /// featured list leaves it empty and renders plain Text.
+  /// search sheet leaves it empty when the caller has no channel to name.
   final String highlightQuery;
 
   @override
@@ -1647,11 +1532,11 @@ class _HadithTile extends ConsumerWidget {
     final q = highlightQuery.trim();
     final arabicStyle = AppArabicStyles.quranSmall.copyWith(
       color: colors.textPrimary,
-      fontSize: AppFontSize.arabicSmall * prefs.arabicScale,
+      fontSize: AppFontSize.arabicSmall * prefs.hadithTextScale,
     );
     final translationStyle = AppTextStyles.bodySmall.copyWith(
       color: colors.textSecondary,
-      fontSize: AppFontSize.bodySmall * prefs.translationScale,
+      fontSize: AppFontSize.bodySmall * prefs.hadithTextScale,
     );
     return QibraCard(
       padding: const EdgeInsets.all(16),

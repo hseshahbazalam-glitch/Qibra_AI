@@ -285,17 +285,25 @@ void main() {
       expect(tr.style!.color, QibraColors.dark.textSecondary);
     });
 
-    testWidgets('D1 meta row: chapter pill, position, grade; tooltips on '
-        'both actions', (tester) async {
+    testWidgets('D1 meta row after the HR-3 diet: grade and position stay, '
+        'chapter pill and per-card bookmark go', (tester) async {
       await pump(tester, mkHadith(english: 'short one'));
-      expect(find.text('Ch 3'), findsOneWidget);
-      expect(find.text('Hadith 4 of 7563'), findsOneWidget);
+      expect(find.text('Ch 3'), findsNothing,
+          reason: 'HR-3: the chapter rides the reader chip, and a card that '
+              'repeats it is chrome, not content');
+      expect(find.text('Hadith 4 of 7563'), findsOneWidget,
+          reason: 'the position line stays — it is the ONE number the reader '
+              'is looking at, and the badge above is the edition label');
       expect(find.text('Sahih'), findsOneWidget);
       expect(find.text('4'), findsOneWidget,
           reason: 'the badge number, not a second position echo');
       final strings = AppStrings.forCode('en');
-      expect(find.byTooltip(strings.tooltipBookmark), findsOneWidget);
-      expect(find.byTooltip(strings.tooltipCopyToShare), findsOneWidget);
+      expect(find.byTooltip(strings.tooltipBookmark), findsNothing,
+          reason: 'bookmarking moved to the detail sheet (the sheet action is '
+              'pinned above); two entry points on every card was the noise');
+      expect(find.byTooltip(strings.tooltipCopyToShare), findsOneWidget,
+          reason: 'copy-full survives the diet — a collapsed card that '
+              'copies the FULL hadith is the point of the collapse');
     });
 
     testWidgets('D1 honest-null: an ungraded hadith says so — no silent '
@@ -429,23 +437,31 @@ void main() {
       () {
     const home = 'lib/features/hadith/presentation/hadith_screen.dart';
 
-    test('discover pane runs hero → collections → continue → recently '
-        'read → featured, in order', () {
+    test('discover pane runs hero → collections → recently read, and holds '
+        'nothing else (HR-3: 5 strips → 3)', () {
       final src = File(home).readAsStringSync();
       final i0 = src.indexOf('List<Widget> _discoverPane(');
-      final i1 = src.indexOf('/// D4: the per-book continue row', i0);
+      final i1 = src.indexOf('// Collections pane (reference', i0);
       final seg = src.substring(i0, i1);
       var at = -1;
       for (final m in [
         '_TodaysHadithCard(',
         '..._collectionsSection(',
-        '_continueStrip(',
         '_buildRecentlyRead(',
-        'featured.when(',
       ]) {
         final p = seg.indexOf(m);
         expect(p, greaterThan(at), reason: '$m out of order');
         at = p;
+      }
+      // Not merely "out of order" — OUT. A resurrected strip, or the filter
+      // chips that only ever narrowed Featured, fails here.
+      for (final gone in [
+        '_continueStrip(',
+        'featured.when(',
+        '_filterSlug',
+      ]) {
+        expect(seg.contains(gone), isFalse,
+            reason: '$gone returned — HR-3 cut it with the Featured strip');
       }
     });
 
@@ -462,16 +478,17 @@ void main() {
           reason: 'full coverage must NOT badge itself');
     });
 
-    test('continue section is history-driven and vanishes when empty', () {
+    test('HR-3: the continue strip left the home, and the collections card '
+        'keeps the one-source last read', () {
       final src = File(home).readAsStringSync();
-      expect(src.contains('if (continues.isNotEmpty) ...['), isTrue);
-      expect(src.contains("const QibraSectionHeader(title: 'Continue "
-          "reading'),"), isTrue,
-          reason: 'sections speak through QibraSectionHeader (design '
-              'rule) — never hand-rolled rows');
-      expect(src.contains('lastReadForBook(history, c[\'slug\']!)'), isTrue,
-          reason: 'one source for continue — the same LRU reader the '
-              'collection cards and the book screen use');
+      expect(src.contains('if (continues.isNotEmpty) ...['), isFalse,
+          reason: 'a CONTINUE row beside a rail whose cards already say '
+              '"Continue · Hadith N" is the same strip twice');
+      expect(src.contains("const QibraSectionHeader(title: 'Continue "), isFalse);
+      expect(src.contains('lastReadForBook(history, book.slug)'), isTrue,
+          reason: 'the helper did not die with the strip — the collection '
+              'card is now the ONE place resume is offered, through the same '
+              'LRU source');
     });
 
     test('rhythm: the pre-D4 strays (14 and 20) are gone from the home '
@@ -498,8 +515,19 @@ void main() {
           reason: 'must come from AppStrings.hadithAllChapters');
       expect(book.contains('strings.hadithAllChapters'), isTrue);
       expect(book.contains("label: 'Ch '"), isFalse);
-      expect(book.contains('.hadithChapterShort(hadith.chapterNumber)'), isTrue,
-          reason: 'chip labels must route through the l10n builder');
+      // HR-3 moved the chapter OUT of the card meta row into the reader's
+      // sticky chip, so `hadithChapterShort` has no card to label any more;
+      // what must not regress is that whatever the chip prints still comes
+      // from the l10n builders, never a hand-pasted 'Ch '.
+      expect(book.contains(".hadithChapterShort(hadith.chapterNumber)"), isFalse,
+          reason: 'the per-card chapter pill is HR-3 diet territory — if it is '
+              'back, the chip and the card are saying the chapter twice');
+      expect(
+          book.contains(
+              'HadithBookScreen.chapterChipLabel(active.number, active.name,'),
+          isTrue,
+          reason: 'the sticky chip labels the ACTIVE chapter through the same '
+              'pure formatter the menu items use — one source');
       expect(home.contains("label: 'Read Full Hadith'"), isFalse);
       expect(home.contains('label: AppStrings.of(context).readFullHadith'),
           isTrue);
@@ -546,18 +574,28 @@ void main() {
       expect(RegExp(r'QibraPaperColors|QibraPaper\.palette')
           .hasMatch(home), isFalse,
           reason: 'home must not hard-wire paper — navy by construction');
-      // the split scales are the ONLY scales: the legacy single
-      // hadithTextScale is gone from the whole feature, and the store
-      // round-trips both values through SharedPreferences.
+      // HR-3 REVERSES this pin on purpose. The pre-HR-3 rule was "the split
+      // scales are the only scales"; the owner's revision is that a reader
+      // dragging "text size" means ONE decision, so `hadithTextScale` is now
+      // the only scale and the split pair is the legacy. What stays pinned is
+      // the discipline that made the split safe: the store is round-tripped
+      // through SharedPreferences and every value is clamped on load.
       final store = File(
               'lib/features/hadith/providers/hadith_preferences_provider.dart')
           .readAsStringSync();
-      expect(store.contains('hadithTextScale'), isFalse);
+      expect(store.contains('hadithTextScale'), isTrue,
+          reason: 'HR-3: one axis, named for what it scales');
+      expect(store.contains('Future<void> setArabicScale('), isFalse);
+      expect(store.contains('Future<void> setTranslationScale('), isFalse,
+          reason: 'no hidden second axis may come back beside the one slider');
       expect(RegExp('SharedPreferences\\.getInstance\\(\\)')
           .allMatches(store)
           .length, 2,
-          reason: 'one load + one save for the split scales');
-      expect(store.contains('arabicScale'), isTrue);
-      expect(store.contains('translationScale'), isTrue);
+          reason: 'one load + one save still — the v1 fold rides the load '
+              'instance, so migration costs no extra open');
+      expect(store.contains('_keyScale'), isTrue);
+      expect(store.contains("'hadith_reading_scale_v1_arabic'"), isTrue,
+          reason: 'the legacy keys stay named: the migration must be able to '
+              'read what an old install wrote');
     });
   }

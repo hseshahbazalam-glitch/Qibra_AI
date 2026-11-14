@@ -1,48 +1,65 @@
 // lib/features/hadith/providers/hadith_preferences_provider.dart
 // ============================================================
-// QIBRA AI — HADITH READING PREFERENCES (world-class hadith pass, item 1)
+// QIBRA AI — HADITH READING PREFERENCES
 // ============================================================
-// Mirrors the Quran pass's split-scale pattern (arabicScale for the
-// Arabic matn, translationScale for the translation bodies). Mirrored,
-// NOT shared: quran's ReadingPreferences also owns translation ids,
-// transliteration and reading-mode fields that a hadith surface must
-// neither persist nor be invalidated by. The clamp range, the load-time
-// clamp discipline, and the honest best-effort storage handling are the
-// same pattern, deliberately so.
+// HR-3 (owner revision 2): ONE scale for the hadith reader. The world-class
+// pass mirrored the Quran reader's SPLIT scales (arabicScale + translationScale)
+// and that mirror cost the reader two sliders for one decision — a hadith card
+// could show its matn two steps larger than its own translation, which is never
+// what a person means when they drag "text size". Hadith keeps a single
+// `hadithTextScale` now; the Quran feature keeps its split pair (its Arabic and
+// its latin body are genuinely different typefaces with different budgets) and
+// is NOT touched here.
 //
-// No legacy single-scale key exists for hadith (hadith text sizes were
-// hardcoded before this pass), so the only migration rule here is
-// "missing key -> default 1.0"; the clamp bounds make any foreign value
-// unreadable-as-is land inside [scaleMin, scaleMax].
+// Migration rule (max-migration, in the reader's favor): a store that holds the
+// two v1 keys folds into `max(arabic, translation)`, so nobody coming from the
+// split scales loses size on either axis — shrinking a hadith the user had
+// enlarged is the one outcome worse than a stale-looking slider. The fold is
+// pure and static so the unit test pins the arithmetic without storage.
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Persisted hadith reading scales. Plain immutable value type — the
-/// clamps are static and pure so the unit test can pin them without
+/// Persisted hadith reading scale. Plain immutable value type — the clamps and
+/// the migration are static and pure so the unit test can pin them without
 /// touching SharedPreferences.
 class HadithReadingPreferences {
-  const HadithReadingPreferences({
-    this.arabicScale = 1.0,
-    this.translationScale = 1.0,
-  });
+  const HadithReadingPreferences({this.hadithTextScale = 1.0});
 
-  static const double scaleMin = 0.8;
-  static const double scaleMax = 1.6;
+  /// The HR-3 band: 0.85–1.4. The split scales allowed 0.8–1.6 per axis; a
+  /// single axis only has to survive one body type at a time, so the range
+  /// tightens to what fits the reader card at 320dp without a horizontal
+  /// overflow (1.4 is the measured ceiling for the Arabic matn block).
+  static const double scaleMin = 0.85;
+  static const double scaleMax = 1.4;
 
-  final double arabicScale;
-  final double translationScale;
+  /// Slider discipline: 11 divisions over 0.55 = a clean 0.05 per step, so the
+  /// `×` readout never shows 1.2300000000000002-style noise.
+  static const int scaleDivisions = 11;
 
-  /// Clamp rule (same range and semantics as the Quran split scales).
+  final double hadithTextScale;
+
+  /// Clamp rule (same SHAPE as the Quran split scales, different bounds).
   static double clampScale(double v) => v.clamp(scaleMin, scaleMax);
 
-  HadithReadingPreferences copyWith({
-    double? arabicScale,
-    double? translationScale,
+  /// Max-migration from the v1 split store. `merged` wins when it exists; two
+  /// missing legacies mean a first run (1.0); otherwise the LARGER legacy axis
+  /// becomes the single scale. Never reads storage — see the file header.
+  static double migrate({
+    double? merged,
+    double? legacyArabic,
+    double? legacyTranslation,
   }) {
+    if (merged != null) return clampScale(merged);
+    if (legacyArabic == null && legacyTranslation == null) return 1.0;
+    final a = legacyArabic ?? 1.0;
+    final t = legacyTranslation ?? 1.0;
+    return clampScale(a > t ? a : t);
+  }
+
+  HadithReadingPreferences copyWith({double? hadithTextScale}) {
     return HadithReadingPreferences(
-      arabicScale: arabicScale ?? this.arabicScale,
-      translationScale: translationScale ?? this.translationScale,
+      hadithTextScale: hadithTextScale ?? this.hadithTextScale,
     );
   }
 }
@@ -53,19 +70,33 @@ class HadithReadingPreferencesNotifier
     _load();
   }
 
-  static const _keyArabic = 'hadith_reading_scale_v1_arabic';
-  static const _keyTranslation = 'hadith_reading_scale_v1_translation';
+  static const _keyScale = 'hadith_reading_scale_v2_text';
+  static const _keyLegacyArabic = 'hadith_reading_scale_v1_arabic';
+  static const _keyLegacyTranslation = 'hadith_reading_scale_v1_translation';
 
   Future<void> _load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final arabic = prefs.getDouble(_keyArabic);
-      final translation = prefs.getDouble(_keyTranslation);
+      final merged = prefs.getDouble(_keyScale);
+      final legacyArabic = prefs.getDouble(_keyLegacyArabic);
+      final legacyTranslation = prefs.getDouble(_keyLegacyTranslation);
       state = HadithReadingPreferences(
-        arabicScale: HadithReadingPreferences.clampScale(arabic ?? 1.0),
-        translationScale:
-            HadithReadingPreferences.clampScale(translation ?? 1.0),
+        hadithTextScale: HadithReadingPreferences.migrate(
+          merged: merged,
+          legacyArabic: legacyArabic,
+          legacyTranslation: legacyTranslation,
+        ),
       );
+      if (merged == null &&
+          (legacyArabic != null || legacyTranslation != null)) {
+        // Fold once, write v2, retire both v1 keys in the same session — a
+        // half-migrated store would re-run `migrate` on every launch and an
+        // install downgrade would find a v1 key that no longer describes the
+        // reader's real state.
+        await _write(prefs, state);
+        await prefs.remove(_keyLegacyArabic);
+        await prefs.remove(_keyLegacyTranslation);
+      }
     } catch (_) {
       // Unreadable storage: defaults are the honest state, not a lie.
     }
@@ -74,23 +105,21 @@ class HadithReadingPreferencesNotifier
   Future<void> _save() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble(_keyArabic, state.arabicScale);
-      await prefs.setDouble(_keyTranslation, state.translationScale);
+      await _write(prefs, state);
     } catch (_) {
       // Persisting is best-effort; the in-session scale stays truthful.
     }
   }
 
-  Future<void> setArabicScale(double value) async {
-    state = state.copyWith(
-      arabicScale: HadithReadingPreferences.clampScale(value),
-    );
-    await _save();
-  }
+  static Future<void> _write(
+    SharedPreferences prefs,
+    HadithReadingPreferences value,
+  ) =>
+      prefs.setDouble(_keyScale, value.hadithTextScale);
 
-  Future<void> setTranslationScale(double value) async {
+  Future<void> setHadithTextScale(double value) async {
     state = state.copyWith(
-      translationScale: HadithReadingPreferences.clampScale(value),
+      hadithTextScale: HadithReadingPreferences.clampScale(value),
     );
     await _save();
   }

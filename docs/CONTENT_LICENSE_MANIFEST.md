@@ -234,6 +234,115 @@ the provenance:
   Nasai at 67%, Urdu in Malik at 86%) and both are pinned against the shipped
   files.
 
+## Hadith data freshness — HR-2 verification (2026-11-14, result: no rewrite)
+
+Owner instruction for this pass, verbatim: *"redesign karo, hadith me jo 3 language h
+avi wahi rahe, data restore NAHI krna h — bus fresh data dalna h"*. The three shipped
+languages (en / ar / ur) therefore stay exactly as they are, and "fresh" was measured
+against **upstream**, not against git history. Upstream is `fawazahmed0/hadith-api` @
+branch `1` (repo last pushed 2026-06-03), file set `editions/{ara,eng,urd}-{book}.json`
+for the same seven books. The answer came back: **the app is already on the current
+upstream bytes — there is nothing to restore and nothing to refresh.**
+
+Method, chosen so that no normalization, no diff tool and no judgment sits between the
+two sides: compare **git blob SHAs**. `git hash-object` of the shipped file against the
+`sha` the GitHub contents API reports for the same path upstream. An equal blob SHA is
+byte-identity, full stop.
+
+| book | eng | ara | urd |
+| --- | --- | --- | --- |
+| bukhari | `993e35a5` · 5,181,725 · = | `72a64ea2` · 9,770,083 · = | `69a1fa4a` · 9,945,297 · = |
+| muslim | `344d1f3e` · 4,296,152 · = | `a94ab4a0` · 8,685,140 · = | `9c656e01` · 7,657,637 · = |
+| abudawud | `99434b22` · 4,311,308 · = | `3a9fd5a3` · 7,345,422 · = | `80176612` · 6,068,981 · ≠ |
+| tirmidhi | `d7ffdab2` · 3,124,797 · = | `80d8ed3d` · 7,120,806 · = | `fbd50f84` · 5,751,781 · = |
+| nasai | `2842bd08` · 4,033,923 · = | `e383bdb2` · 7,152,291 · = | `43959fcb` · 4,672,980 · ≠ |
+| ibnmajah | `911b1d01` · 3,241,088 · = | `ee6c03a4` · 5,583,102 · ≠ | `46645c67` · 4,342,459 · = |
+| malik | `373cfbaa` · 1,614,960 · = | `cbdd5570` · 2,150,337 · = | `1ea618bf` · 1,498,465 · = |
+
+`=` upstream blob SHA == shipped blob SHA (byte-identical) · `≠` differs. Upstream
+truncated SHA-1 and upstream byte size per cell.
+
+### What the 3 differing files actually contain
+
+**1,760 bytes. That is the entire difference across all 21 files** (113,548,734 upstream
+vs 113,546,974 shipped), and every byte of it is accounted for:
+
+| file | records differing | the whole difference |
+| --- | --- | --- |
+| `urd-nasai.json` | 702 | 1,725 U+00A0 (NO-BREAK SPACE) upstream where the shipped copy has a plain space |
+| `urd-abudawud.json` | 3 | 3 U+00A0 |
+| `ara-ibnmajah.json` | 8 | **upstream carries 16 U+FFFD replacement characters** — a broken ligature in *its* encoder — where the shipped copy holds the clean Arabic |
+
+1,728 × 1 B (NBSP is 2 bytes in UTF-8, space is 1) + 16 × 2 B = **1,760 B, exactly**.
+So: 713 records differ, **zero** of them in a way a reader can see, and in 8 of them
+upstream is the *worse* copy.
+
+### The four honesty walls, answered with measured numbers
+
+1. **Upstream blanks stay blank** — blanks per file are identical on both sides:
+   `ara-ibnmajah` 5 = 5 · `urd-abudawud` 1 = 1 · **`urd-nasai` 1,891 = 1,891**.
+   Refreshing could not have filled one blank, which is why the X6 "no Urdu text here"
+   line and its English-reveal chip remain the actual fix and stay wired.
+2. **diff ≈ 0 is a valid result** — it is the result. Reported, not hidden.
+3. **Coverage pins do not move** — `nasai/urdu` stays 3,875 / 5,765 = 67 %,
+   `malik/urdu` 1,590 / 1,859 = 86 %, `bukhari/urdu` 6,994 / 7,589 = 92 %. No
+   old→new transition exists because no text changed.
+4. **License re-verified** — see the next sub-section.
+
+Structural drift: **none observed.** In all three compared files the record count, the
+`(hadithnumber, arabicnumber)` spine order, the `reference` values, the per-record key
+set (`arabicnumber, grades, hadithnumber, reference, text`) and the whole `metadata`
+object *including `sections`* are identical. Had any of those differed, this pass would
+have stopped and reported instead of writing files.
+
+**Decision: zero data churn, and the 21 JSONs stay byte-for-byte as they are.** Adopting
+the "fresh" copies would import 1,728 non-breaking spaces and 16 corruption characters
+to make 713 records strictly worse. The owner's rule — refresh only text fields, only
+where the fresh edition carries text, spine untouched — is satisfied by this null
+result, and it is the only outcome the data supports. If those 8 Ibn Majah rows are ever
+wanted verbatim, the thing to fix is upstream's encoder, not our bundle.
+
+**Size before / after: identical.** 22 files under `assets/data/hadith/` = 113,553,406 B
+= 108.29 MiB (the 21 edition files above + `kitab_names.json`, 6,432 B). No edition was
+added or dropped by this pass, so nothing is re-bundled and the packaged-size estimate
+from the X5 measurement stands unchanged: **the APK/AAB delta of HR-2 is 0 bytes.**
+
+**Re-verify any time** (scratch dir only; the downloads are never committed):
+
+```bash
+curl -s "https://api.github.com/repos/fawazahmed0/hadith-api/contents/editions?ref=1" \
+  | python3 -c "import json,re,sys; want = re.compile(r'^(ara|eng|urd)-(bukhari|muslim|'
+      r'abudawud|tirmidhi|nasai|ibnmajah|malik)\\.json$'); [print(e['name'], e['sha'], e['size'])
+      for e in json.load(sys.stdin) if want.match(e['name'])]"
+
+# the other side of every row, from this repo:
+git hash-object assets/data/hadith/BUKHARI/ENGLISH.json    # …21 files
+```
+
+Equal sha ⇒ that file is current. This pass measured 18 equal, 3 unequal, and wrote the
+3 off in the table above rather than shipping them.
+
+### Upstream license re-verification (same pass)
+
+`fawazahmed0/hadith-api` @ branch `1` carries a `LICENSE` file = **The Unlicense**
+(public-domain dedication), read from the repository itself on 2026-11-14 and vendored
+verbatim at `docs/hadith-upstream-unlicense.txt` (1,211 B). GitHub's SPDX detection for
+the repo agrees: `Unlicense`. Stated narrowly, because the distinction matters:
+
+- **What the dedication covers:** the edition JSON files *as that project publishes
+  them* — its encodings, its joins, its metadata. Copying, modifying, selling and
+  redistributing those bytes carries no condition from upstream, which is what makes
+  bundling them in this repo permissible *as far as that source is concerned*.
+- **What it cannot cover:** the copyright of the translators whose words the bytes carry
+  (`eng-bukhari` is Muhsin Khan's translation; the Urdu editions have their own
+  translators). A redistributor's public-domain dedication does not donate rights it
+  does not hold.
+- **So the seven hadith rows in the table at the top keep `UNKNOWN` for translation
+  rights and stay `REQUIRES_PERMISSION` for any store build that treats those
+  translations as cleared.** What changed is narrower and is the whole claim: the
+  *source's own* terms are no longer unknown, and an in-repo license file now exists for
+  them.
+
 ## Visual identity assets (2026-08-31)
 
 Original raster art generated for Qibra (no third-party stock download). **No letters/Arabic in image files.** Arabic in the app is Amiri text, not baked into PNGs.

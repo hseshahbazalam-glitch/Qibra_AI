@@ -369,9 +369,25 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
 
   static const String _allChaptersKey = '__all_chapters__';
 
+  /// HR-3: the chapter picker is a STICKY CHIP in the reader's one controls
+  /// row — it shows WHICH chapter is active (the old icon gave no label, so
+  /// the state could only be read by opening the menu). The menu itself is
+  /// unchanged: same keys, same l10n labels, same tooltip (the a11y census
+  /// pins `tooltipFilterChapters`, and it stays pinned).
   Widget _buildStickyControlsRow(
       BuildContext context, List<HadithChapter> chapters) {
     final strings = AppStrings.of(context);
+    HadithChapter? active;
+    for (final ch in chapters) {
+      if (ch.number == _selectedChapterNumber) {
+        active = ch;
+        break;
+      }
+    }
+    final activeLabel = active == null
+        ? strings.hadithAllChapters
+        : HadithBookScreen.chapterChipLabel(active.number, active.name,
+            strings.hadithKitabLabel(active.number));
     return Container(
       color: QibraNavy.canvas,
       padding: const EdgeInsets.fromLTRB(12, 0, 6, 8),
@@ -385,21 +401,58 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
               onChanged: (v) => setState(() => _searchQuery = v),
             ),
           ),
-          // Chapter filter — the chip rail condensed into a dropdown.
-          // The GOLD icon marks an ACTIVE (narrowed) view — accent on
-          // state, never on chrome.
+          // The chip's gold ring means ACTIVE (narrowed) — accent on state,
+          // never on chrome; the ✕ is the same clear the popup used to need.
           PopupMenuButton<String>(
             tooltip: strings.tooltipFilterChapters,
             enabled: chapters.isNotEmpty,
             position: PopupMenuPosition.under,
             color: QibraNavy.card,
-            icon: Icon(
-              Icons.filter_alt_rounded,
-              color: _selectedChapterNumber == null
-                  ? QibraNavy.textSecondary
-                  : QibraNavy.gold,
-              size: 22,
-            ),
+            // No extra padding here on purpose: PopupMenuButton already
+            // wraps its child in the material tap-target padding, and every
+            // pixel this chip takes is a pixel the search field loses.
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: active == null
+                        ? QibraNavy.hairline
+                        : QibraNavy.gold,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.filter_alt_rounded,
+                      size: 15,
+                      color: active == null
+                          ? QibraNavy.textSecondary
+                          : QibraNavy.gold,
+                    ),
+                    const SizedBox(width: 5),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 84),
+                      child: Text(
+                        activeLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: QibraNavy.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (active != null) ...[
+                      const SizedBox(width: 4),
+                      const Icon(Icons.close_rounded,
+                          size: 13, color: QibraNavy.gold),
+                    ],
+                  ],
+                ),
+              ),
             onSelected: (v) => setState(() => _selectedChapterNumber =
                 v == _allChaptersKey ? null : int.parse(v)),
             itemBuilder: (ctx) => [
@@ -673,60 +726,53 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             },
                           ),
                         const SizedBox(height: 8),
-                        // Split font controls — same clamped range and
-                        // label discipline as the Quran reader sheet.
-                        for (final entry in const [
-                          ('Arabic text', 'arabic'),
-                          ('Translation text', 'translation'),
-                        ]) ...[
-                          Text(
-                            entry.$1,
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: QibraNavy.textSecondary,
-                              fontWeight: FontWeight.w700,
+                        // HR-3: ONE scale for the whole reader. The split
+                        // pair asked the reader to make a single decision
+                        // twice, and let the matn and its own translation
+                        // drift to different sizes on the same card.
+                        Text(
+                          'Hadith text size',
+                          style: AppTextStyles.labelMedium.copyWith(
+                            color: QibraNavy.textSecondary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Slider(
+                                value: prefs.hadithTextScale,
+                                min: HadithReadingPreferences.scaleMin,
+                                max: HadithReadingPreferences.scaleMax,
+                                divisions:
+                                    HadithReadingPreferences.scaleDivisions,
+                                activeColor: QibraNavy.emerald,
+                                label:
+                                    '${((prefs.hadithTextScale - 1) * 100).round()}%',
+                                onChanged: (v) => ref
+                                    .read(hadithReadingPreferencesProvider
+                                        .notifier)
+                                    .setHadithTextScale(v),
+                              ),
                             ),
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Slider(
-                                  value: entry.$2 == 'arabic'
-                                      ? prefs.arabicScale
-                                      : prefs.translationScale,
-                                  min: HadithReadingPreferences.scaleMin,
-                                  max: HadithReadingPreferences.scaleMax,
-                                  divisions: 8,
-                                  activeColor: QibraNavy.emerald,
-                                  label:
-                                      '${(((entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale) - 1) * 100).round()}%',
-                                  onChanged: (v) => entry.$2 == 'arabic'
-                                      ? ref
-                                          .read(
-                                              hadithReadingPreferencesProvider
-                                                  .notifier)
-                                          .setArabicScale(v)
-                                      : ref
-                                          .read(
-                                              hadithReadingPreferencesProvider
-                                                  .notifier)
-                                          .setTranslationScale(v),
+                            SizedBox(
+                              width: 52,
+                              child: Text(
+                                // Two decimals because the step is 0.05:
+                                // at one decimal 0.85, 0.90 and 0.95 would all
+                                // read 0.9 and the readout would lie about the
+                                // position it is showing.
+                                '${prefs.hadithTextScale.toStringAsFixed(2)}'
+                                '\u00d7',
+                                textAlign: TextAlign.end,
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: QibraNavy.textSecondary,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              SizedBox(
-                                width: 52,
-                                child: Text(
-                                  '${(entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale).toStringAsFixed(2)}\u00d7',
-                                  textAlign: TextAlign.end,
-                                  style: AppTextStyles.labelSmall.copyWith(
-                                    color: QibraNavy.textSecondary,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                        ],
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -1090,7 +1136,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                                     color: QibraNavy.textPrimary,
                                     height: 1.8,
                                     fontSize: AppFontSize.arabicMedium *
-                                        prefs.arabicScale),
+                                        prefs.hadithTextScale),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -1115,7 +1161,7 @@ class _HadithBookScreenState extends ConsumerState<HadithBookScreen> {
                             style: AppTextStyles.bodyMedium.copyWith(
                                 color: QibraNavy.textPrimary,
                                 fontSize: (sheetRtl ? 15 : 13.5) *
-                                    prefs.translationScale,
+                                    prefs.hadithTextScale,
                                 height: sheetRtl ? 1.8 : 1.6),
                           ),
                         ),
@@ -1540,7 +1586,6 @@ class HadithCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final isBookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
     final language = ref.watch(hadithLanguageProvider);
     final rtl = language == 'ur' || language == 'ar';
     final translation =
@@ -1555,12 +1600,12 @@ class HadithCard extends ConsumerWidget {
     final arabicStyle = AppArabicStyles.quranBold.copyWith(
       color: colors.textPrimary,
       height: 1.9,
-      fontSize: AppFontSize.arabicMedium * prefs.arabicScale,
+      fontSize: AppFontSize.arabicMedium * prefs.hadithTextScale,
     );
     // D1(d): translation on the soft body ink at leading 1.6.
     final translationStyle = AppTextStyles.bodyMedium.copyWith(
       color: colors.textSecondary,
-      fontSize: (rtl ? 14 : 12.5) * prefs.translationScale,
+      fontSize: (rtl ? 14 : 12.5) * prefs.hadithTextScale,
       height: 1.6,
     );
 
@@ -1775,20 +1820,6 @@ class HadithCard extends ConsumerWidget {
                   runSpacing: 6,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    if (hadith.chapterNumber > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: colors.border)),
-                        child: Text(
-                          AppStrings.of(context)
-                              .hadithChapterShort(hadith.chapterNumber),
-                          style: AppTextStyles.labelSmall.copyWith(
-                              color: colors.textTertiary),
-                        ),
-                      ),
                     Text(
                       positionLabel,
                       style: AppTextStyles.labelSmall.copyWith(
@@ -1817,26 +1848,6 @@ class HadithCard extends ConsumerWidget {
                             color: colors.textTertiary,
                             fontStyle: FontStyle.italic),
                       ),
-                    IconButton(
-                      tooltip: isBookmarked
-                          ? AppStrings.of(context).tooltipRemoveBookmark
-                          : AppStrings.of(context).tooltipBookmark,
-                      icon: Icon(
-                        isBookmarked
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_border_rounded,
-                        color: isBookmarked
-                            ? QibraNavy.gold
-                            : colors.textSecondary,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        ref
-                            .read(hadithBookmarksProvider.notifier)
-                            .toggleBookmark(hadith);
-                      },
-                    ),
                     IconButton(
                       tooltip: AppStrings.of(context).tooltipCopyToShare,
                       icon: Icon(Icons.share_rounded,

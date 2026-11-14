@@ -26,23 +26,56 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('split reading scales (item 1)', () {
-    test('defaults are 1.0/1.0 — nothing is pre-scaled', () {
+  group('one reading scale (world-class item 1, HR-3 revision)', () {
+    test('the default is 1.0 — nothing is pre-scaled', () {
       const prefs = HadithReadingPreferences();
-      expect(prefs.arabicScale, 1.0);
-      expect(prefs.translationScale, 1.0);
+      expect(prefs.hadithTextScale, 1.0);
     });
 
-    test('clamp matches the Quran split-scale range 0.8–1.6', () {
-      // No legacy single-scale key ever existed for hadith (text sizes
-      // were hardcoded before this pass), so the only migration rule
-      // is: whatever a foreign store holds lands inside the clamped
-      // range on load.
-      expect(HadithReadingPreferences.clampScale(0.5), 0.8);
-      expect(HadithReadingPreferences.clampScale(3.0), 1.6);
-      expect(HadithReadingPreferences.clampScale(0.8), 0.8);
-      expect(HadithReadingPreferences.clampScale(1.6), 1.6);
-      expect(HadithReadingPreferences.clampScale(1.35), 1.35);
+    test('clamp matches the HR-3 band 0.85–1.4', () {
+      // The split pair ran 0.8–1.6 because each axis could only move its own
+      // body; one axis governing Arabic matn AND translation has to stop where
+      // the WIDEST body still fits a 320dp card, which is 1.4.
+      expect(HadithReadingPreferences.clampScale(0.5), 0.85);
+      expect(HadithReadingPreferences.clampScale(3.0), 1.4);
+      expect(HadithReadingPreferences.clampScale(0.85), 0.85);
+      expect(HadithReadingPreferences.clampScale(1.4), 1.4);
+      expect(HadithReadingPreferences.clampScale(1.15), 1.15);
+      expect(HadithReadingPreferences.scaleDivisions, 11,
+          reason: '0.55 over 11 = a clean 0.05 step, so the readout never '
+              'shows a third decimal');
+    });
+
+    group('max-migration from the v1 split store', () {
+      test('no keys at all -> 1.0 (a first run is not a migrated one)', () {
+        expect(HadithReadingPreferences.migrate(), 1.0);
+      });
+
+      test('the merged key wins, even when legacies disagree', () {
+        expect(
+            HadithReadingPreferences.migrate(
+                merged: 0.9, legacyArabic: 1.5, legacyTranslation: 1.6),
+            0.9);
+      });
+
+      test('the LARGER legacy axis becomes the single scale', () {
+        // A reader who had the matn at 1.6 and the translation at 1.0 must
+        // not come back to a SMALLER Quran-text-after-editing state: shrinking
+        // text the user enlarged is the one outcome worse than a slider that
+        // looks slightly off.
+        expect(HadithReadingPreferences.migrate(legacyArabic: 1.6), 1.4);
+        expect(HadithReadingPreferences.migrate(legacyArabic: 1.6,
+            legacyTranslation: 1.0), 1.4);
+        expect(HadithReadingPreferences.migrate(legacyArabic: 0.9,
+            legacyTranslation: 1.25), 1.25);
+      });
+
+      test('a missing legacy axis defaults to 1.0 before the max', () {
+        expect(HadithReadingPreferences.migrate(legacyTranslation: 1.1), 1.1);
+        expect(HadithReadingPreferences.migrate(legacyArabic: 0.8), 0.85,
+            reason: '0.8 was legal for one axis only; the single axis floors '
+                'higher, so the folded value clamps up — disclosed old→new');
+      });
     });
   });
 
