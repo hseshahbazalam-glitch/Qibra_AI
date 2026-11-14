@@ -48,7 +48,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qibra_ai/features/hadith/data/hadith_availability.dart';
-import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 
 import '../../support/source_guards.dart';
@@ -355,7 +354,13 @@ void main() {
           name: HadithAvailability.bookDisplayNames[slug] ?? slug,
         );
         expect(assembled, isNotNull);
-        final List<LocalHadith> hadiths = assembled!.hadiths;
+        // `LocalHadith` is declared in the SERVICE library
+        // (hadith_database_service.dart:418), not in hadith_models.dart — the
+        // first draft imported the models file for it and CI's `unused_import`
+        // warning (run 43598073037) is the proof. No explicit annotation here:
+        // the type is what `assembleHadithBook` returns, and this test asserts
+        // on its fields.
+        final hadiths = assembled!.hadiths;
         expect(hadiths.length, spine.length,
             reason: '$slug: the diet may not lose or invent one row');
         final urdu = _urduMap(slug);

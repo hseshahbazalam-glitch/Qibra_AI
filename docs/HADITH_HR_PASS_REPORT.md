@@ -900,3 +900,366 @@ Nothing else in the matrix moved: `bookDisplayNames`, `coveragePercent`,
 `thinCoverage` real-data rows are unchanged by the diet (they were already
 `ur/nasai` 67 % and `ur/malik` 86 %; the Arabic column was 97–100 % everywhere, so
 removing it removes no disclosure row and adds none).
+
+## B — the code diet (checkpoint B; A and B ship as one tree)
+
+**Why the two checkpoints are one CI-passable tree.** Checkpoint A on its own is
+red, and that is measured, not theorised: run **43594746910** (`24297a3`) —
+*Dependencies* ✓, *Analyze* ✓ (0 errors / 0 warnings), *Full test suite* ✗
+**`698 tests passed, 6 failed`**, the battery step skipped. Four of the six were
+`hadith_hotfix_hr13_fold_cache_test`'s real-corpus tests opening
+`assets/data/hadith/<book>/arabic.json`, which A had just deleted; the rest were
+fixtures still handing `arabicData:` to `assembleHadithBook`. A removed a
+`fileForLanguage` entry that the `865c3f8` service indexes *positionally*, and the
+re-pins that follow that removal live in B. That is the price of splitting a data
+diet from the code that reads it — and the honest answer was not to re-pin around
+the red but to land the other half: run **43596310124** (`13f9f55`, the full A+B
+tree) is **`🎉 704 tests passed.`** — the exact HR-1.3 count, so B lost no test
+and added none — with *Analyze* ✓ and the battery at **hard 0 | G2 319 |
+L2 83, ALL GATES PASS**.
+
+### What went, per file (`13f9f55`: 20 files, +294 / −398)
+
+| file | + | − | the deletion |
+|---|---|---|---|
+| `data/services/hadith_database_service.dart` | 36 | 63 | `assembleHadithBook` loses its `arabicData` parameter, the Arabic map and `textArabic:`; the spine becomes `english ?? urdu`; `FoldedHadith` loses `arabic`; `foldHadithRow` loses its fold; both scans lose the Arabic arm; `LocalHadith` loses `textArabic`/`hasArabic`/`arabicPreview`; the boot batch goes 3 files → 2 per book and its Phase-B tail re-indexes to `results[2+i]` |
+| `presentation/hadith_book_screen.dart` | 66 | 111 | the Arabic matn block (`ValueKey('hadith-card-arabic')`, :1683 pre-diet), the `_showArabic` quick-settings switch and its sheet row, the `AppStrings.arabicTextSection` title, and the `SearchNormalizer.contains(h.textArabic, _searchQuery)` arm of the in-book filter |
+| `presentation/hadith_screen.dart` | 36 | 80 | the tab sheet's Arabic block (`if (hadith.hasArabic) …` with `AppArabicStyles.hadithArabic`), the `hadith.textArabic` share/copy prefix, and the `? hadith.textArabic` branch |
+| `data/models/hadith_models.dart` | 13 | 12 | `textArabic` out of `HadithModel` (field, ctor, `fromJson`, `copyWith`, aliases) and the `showArabic` reader flag |
+| `data/services/hadith_search_worker.dart` | 5 | 9 | `rawArabic` out of `_HadithBookNote`/`noteBook`/assemble/debug print; the note guard becomes `if (rawEnglish == null && rawUrdu == null) return;`; `firstReplyTimeout`'s doc now says 14 decodes |
+| `providers/hadith_provider.dart` | 3 | 8 | `return hadith.hasArabic ? hadith.textArabic : null;` (×2), `textArabic: local.textArabic`, and the stale "boot batch carries english/arabic/urdu" comment |
+| `home/presentation/widgets/home_sections.dart` | 3 | 11 | the hadith-of-the-day card's Arabic block (`if (h.hasArabic) …` with `AppArabicStyles.quranSmall`) |
+
+Everything else in the commit is a test file (13 of them, in the re-pin ledger
+below). `git show 13f9f55 --numstat` has **no `assets/` entry**: the data diet was
+A's, and B touches only code. Post-B consistency, all by grep rather than by
+belief: `assembleHadithBook(` has 8 callers and **0** pass `arabicData`;
+`noteBook(` has 15 callers and **0** mention `rawArabic`; `FoldedHadith(` appears
+only at its constructor and its factory; `showArabic` appears **0** times in
+`lib/` and `test/`.
+
+### The three judgement calls, disclosed
+
+1. **`FoldedHadith` went 8 fields → 7, not 8 → 3.** The brief said the mirror
+   should hold "en + ur + chapter ONLY". Four of those eight
+   (`textBengali`/`Turkish`/`Indonesian`/`French`) are still *filled* by
+   `foldLanguageIntoRows` whenever a Phase-B language file exists, and dropping
+   them would have deleted a working feature to satisfy a sentence. So the fold
+   lost exactly the Arabic field — and § C's RAM numbers are measured on that
+   reality instead of on the brief's assumption.
+2. **`FoldedHadith.shortText` now ends in an explicit `return '';`.** Its last
+   branch used to fall through to an Arabic preview. After the diet there is
+   nothing to fall back to, and inventing an Arabic-looking preview for a row that
+   has no Arabic would be a fabrication in the reader's face; empty string means
+   the reader's fallback line answers instead. (That tail returned `''` for every
+   shipped row anyway — the Arabic field was gone from the assembler, so this is
+   a semantic hole closed, not a behaviour changed.)
+3. **`hadithRelevanceFor` lost its `hadithArabic` parameter and kept its shape**
+   (`1.0 / 0.9 / 0.85 / (0.5 + 0.1·occ).clamp(0, 0.8)`): the 0.9 arm *was* the
+   Arabic arm. `ai_responsiveness_test.dart:48`'s pin on `double hadithRelevanceFor(`
+   still passes; HR-1.3's standing rule was respected — no perf budget was moved
+   and no µs stopwatch test was re-armed.
+
+`scanHadithCorpus` (the parity reference) and `scanFoldedHadithCorpus` (the cached
+mirror) lost their Arabic arms **identically**, which is what keeps HR-1.3's
+"one rule in two declarations" pin and the parity test true: 243 hits over 12
+queries on 1,400 real rows still agree on both sides, with the log line now
+naming the fields it compares.
+
+### The reader's fallback: verified, not assumed (the brief asked for this)
+
+`HadithTranslationFallback` fires from two places and neither consults the
+availability matrix. The book's detail sheet takes the `] else …[` branch of "the
+key-join found no text in this language for THIS hadith"
+(`hadith_book_screen.dart:1156`); the collapsed card takes the `else` of
+`if (translation != null)` (`:1723`), where `translation` is
+`localHadithTextForLanguage(...)` — null exactly when the selected language has
+nothing for that row. Deleting the `'ar'` entry from `fileForLanguage` therefore
+can neither switch the chip off nor need it re-armed: the trigger is per-row
+emptiness, not per-language availability. What did change is its weight — before
+the diet it always sat *under* the Arabic matn and could never replace text; now
+it **is** the body of such a row, which is why its honest sentence and its
+English reveal are load-bearing rather than cosmetic. Proved, not argued:
+`hadith_pass_x6_test` pumps the real card and finds `HadithTranslationFallback`
+(`findsOneWidget`, and `findsNothing` again after the reveal), while
+`hadith_pass_h2_test` asserts `hadith-card-arabic` `findsNothing`. One consequence
+is stated for § C: on a row with *no* English either, `englishText` is null and
+the widget's own rule is "no bundle text, no chip" — the reader gets the honest
+line with nothing to reveal. That is the truth of 206 rows, and it is small only
+because the English edition is nearly complete.
+
+### Selector
+
+Two options, derived: `selectorOptions()` over `languageCodes = ['en','ur']` →
+`English` and `اردو`. Nothing downstream hardcodes a third, which was HR-2.1 A's
+"single source of truth" rule; B only consumed it.
+
+### B's re-pin ledger (old → new, every one)
+
+| test | was | now |
+|---|---|---|
+| `hadith_hotfix_hr13_fold_cache_test` | fixture assembler opened `arabic.json` and passed `arabicData:`/`arabicData: null`; `_measureCorpus` reported `fields: 4`; the char sums and the `[HR13_PARITY]` line counted an Arabic field | no Arabic read or parameter; **`fields: 3`**; parity reads "english + urdu + chapter + a populated Phase-B field"; both char sums drop Arabic |
+| `hadith_pass_hr1_test` | boot-diet pin "three asset reads per book" + `allMatches(load) 3`; `_syntheticBook` carried a 139-char Arabic clause + an Arabic topic and "625 arabic" prose; the benchmark handed three raw maps; ledger char sum + `arabicData: null` ×3 + an Arabic term in `searchedChars` | **"two" (3 → 2 `_loadJsonAsset`)**, en+ur only (HR-1.3's rule comment kept verbatim), Arabic clause/topic table deleted, `[HR1_BENCH] fixture weight > 350` byte-identical |
+| `hadith_pass_h2_test` | `mkHadith` set `textArabic`; the D1 anatomy sequence expected the Arabic block; the typography band and the D2 collapse included it | Arabic gone from all four pins; anatomy re-sequenced and **asserts `hadith-card-arabic` findsNothing**; D2 collapses one body; the typography test retitled |
+| `hadith_pass_x6_test` | fixtures set `textArabic: 'النص'`; `_pumpCard(showArabic: true)`; "the Arabic body stays" | fields and `showArabic:` gone; the no-English-to-reveal case now pins **`HadithTranslationFallback` findsOneWidget** |
+| `hadith_h4_search_test` | 4 fixtures with `textArabic: ''`; `_FakeDb` mirrored the raw scan including Arabic; the merge test pinned `channel: 'arabic'`; a quick-pick `'arabic'` case | fields gone; the fake DB ORs english+urdu; **channel re-pinned `'arabic' → 'urdu'`** (with its expectation); quick-pick Arabic case deleted |
+| `hadith_topclass_test` | asserted an Arabic section existed | **negative guard**: no `textArabic`/`arabicData`/`rawArabic` (`:143/150/152`) |
+| `hadith_redesign_test` | expected the Arabic block | expects Urdu |
+| `hadith_hotfix_hr12_search_sheet_fit_test` | `_prayer` fixture set `textArabic: ''` | gone; the fit arithmetic untouched |
+| `hadith_multilang_test`, `ai_revival_test`, `p1_dua_hadith_completion_test`, `phase_continue_wiring_test` | fixture lines for a constructor parameter that no longer exists (the `localHadithTextForLanguage` `'bn'`/`'fr'` pins were left alone) | gone; every `test(`/`testWidgets(` count identical to `865c3f8` |
+
+Audit, because "no test silently dropped" is a gate: all 20 diffed dart files
+were compared line-by-line with `git show 865c3f8:<path>` for brace/paren/bracket
+balance (delta **(0,0,0)** in every file) and for `test(`/`testWidgets(` counts
+(identical in every file).
+
+### Arabic-script characters still in `lib/features/hadith` (measured after C, so the removal is not taken on faith)
+
+Scanned by codepoint over every file: four hits, none of them hadith text — the
+`'ur': 'اردو'` label (`hadith_availability.dart:61`); the `ﷺ` ligature inside the
+English subtitle `'The sayings of the Prophet ﷺ'` (`hadith_screen.dart:83, 192`);
+the `fromString` Arabic alternates (`'صحيح'`, `'حسن'`, `'ضعيف'`, `'موضوع'`,
+`'غير معروف'`) in `hadith_models.dart`, which **parse upstream grade strings** —
+deleting those would silently downgrade hadiths, so they stay; and one comment in
+`hadith_provider.dart:469` about query expansion. `AppArabicStyles` itself stays
+(the Quran and AI surfaces use it), as do `HadithMatchType.arabic`,
+`arabicnumber`/`arabicNumber`/`pairKey`, `textBengali/Turkish/Indonesian/French`
+and their selector cases, the `legacyArabic` preferences migration, the
+phase6-13 `'ar'` app-locale lists (app language, not hadith edition), and
+`rag_service.dart`'s `'حديث'` query-expansion term.
+
+## C — "100 verified": the table, the tool, the ceiling
+
+### The matrix, as the tool prints it today
+
+`python3 scripts/validate_content.py` (post-`8ba57fa`) prints, from the shipped
+files, using `assembleHadithBook`'s own join rule:
+
+```
+hadith_matrix {"books": 7, "editions": ["english", "urdu"], "files": "14/14",
+  "bytes": 65739825, "mb": 62.69, "rows": 36390, "boot_decodes": 14,
+  "coverage": {"english": {"non_blank": 35975, "percent": 98.9},
+               "urdu":    {"non_blank": 33424, "percent": 91.8}},
+  "rows_with_neither_edition": 206, "urdu_rows_off_spine": 1}
+
+book         rows  english non-blank     urdu non-blank  NEITHER  keys collide   frac N.2
+bukhari      7589     7580 ( 99.9%)     6994 ( 92.2%)        6            26         52
+muslim       7563     7360 ( 97.3%)     7458 ( 98.6%)       82             0          0
+abudawud     5274     5272 (100.0%)     5273 (100.0%)        0             0          0
+nasai        5765     5679 ( 98.5%)     3875 ( 67.2%)       82             7         14
+ibnmajah     4343     4340 ( 99.9%)     4327 ( 99.6%)        1             2          4
+malik        1858     1818 ( 97.8%)     1590 ( 85.6%)       23             0         31
+tirmidhi     3998     3926 ( 98.2%)     3907 ( 97.7%)       12            42         84
+hadith_matrix_issues []
+```
+
+Two changes made that the tool's job rather than a report's prose.
+`HADITH_LANGS` went `("arabic", "english", "urdu")` → **`("english", "urdu")`**:
+while it still listed arabic, every run reported **7 false `missing_file` rows**
+against data that is gone by decision. And `validate_hadith_file.ok` became a
+**file** verdict (present, parses, has rows): a blank `text` row is not a broken
+file — the English editions carry hundreds of them and the app keeps the row so
+the reference stays 1:1 — so emptiness moved into the matrix, where it becomes a
+percentage the reader is actually told. (`hadith_empty_sum 3338` above is
+exactly the count of blank `text` rows in the 14 files — 415 english of 36,390,
+plus 2,923 urdu of 36,422 — and it is NOT the same thing as the joined Urdu gap of
+2,966. Measured decomposition of that gap: **0** spine rows are missing from the
+Urdu file by key (every English hadithnumber exists there) and **2,966** spine
+rows land on a key whose surviving text is blank. Inside the Urdu files,
+**52** non-blank texts were themselves discarded, overwritten by a later blank row
+carrying the same truncated int number — the last-write-wins rule in action, and
+the concrete size of what a `pairKey` re-join could recover.)
+
+The matrix fails on four things only: an edition file that is gone, a spine that
+is not English, a spine row the loader cannot key, and a row with no
+`reference.book`/`reference.hadith`. It deliberately does **not** fail on the
+collision/fractional columns, because "fixing" those means re-joining every book
+and changing which text a reader is shown — an owner decision, not a side effect
+of a diet.
+
+### The same numbers, executable
+
+New file, 8 tests: `test/features/hadith/hadith_hotfix_hr21_coverage_census_test.dart`.
+Every number is computed in the file from the shipped JSON — nothing copied from
+this report — and then the census is checked **against the app itself**: for
+`bukhari`, `malik` and `muslim` it runs the real `assembleHadithBook` over the
+real decoded maps and asserts that the row count equals the spine length and that
+each row's `textEnglish`/`textUrdu` equals what the census computed. It pins:
+
+* **15 files** and the byte sum **65,741,265 B**, no `arabic.json` anywhere under
+  the hadith root, `languageCodes == ['en','ur']`, `fileForLanguage == {'ur':
+  'urdu'}`;
+* the **36,390**-row English spine, **1:1** under the fractional-aware
+  `HadithDatabaseService.numberKey`, zero rows with an unusable key, zero broken
+  `reference` objects — the "the diet lost no row" proof;
+* per-book rows / english / urdu / **NEITHER**, the corpus totals
+  **35,975 · 33,424 · 206**, the gaps **2,966 rows without Urdu** and **415
+  without English**, and `urdu < english` (the fallback copy points the right way
+  only while that holds);
+* `coveragePercent` on the real files = nasai **67**, malik **86**, bukhari
+  **92**, and `thinCoverage` over the real files == exactly
+  `{ur/nasai, ur/malik}` and nothing else;
+* the collision arithmetic (77 rows: bukhari 26, tirmidhi 42, nasai 7, ibnmajah 2)
+  and the one off-spine Urdu row in Muslim — disclosed, not smoothed;
+* that the Arabic edition cannot come back halfway: `textArabic`, `arabicData`,
+  `rawArabic`, `showArabic`, `hasArabic`, `arabicPreview` are absent from every
+  file in `lib/features/hadith` (comments stripped with the shared
+  `stripCommentsForGuard`, so a note *about* the removal cannot fail the pin),
+  while `map['arabicnumber']`, `pairKey`, `arabicNumber`, `enum HadithMatchType`
+  + `arabic`, and the empty `newLanguageFiles` re-bundle seam are asserted
+  **present** — so a later cleanup cannot "finish the job" by deleting the keys
+  and vocabulary that are still load-bearing.
+
+Red evidence, stated instead of dressed up. This file was written in a sandbox with
+no Dart SDK, so CI is its only compiler and its first compile is a run of the
+push it landed on — and it took two red rounds to get there:
+run **43597766185** (`8ba57fa`) failed *Analyze* with 12 `error •` lines, every
+one of them cascading from `package:qibra/...` where `pubspec.yaml:1` names the
+package **`qibra_ai`** (`uri_does_not_exist` ×3, then `undefined_identifier` for
+`HadithAvailability`/`HadithDatabaseService`/`assembleHadithBook`/`LocalHadith`
+and one `unchecked_use_of_nullable_value` on `numberKey`'s non-nullable `String`);
+fixed in `6af5f9f` by copying the import form from
+`hadith_pass_x6_test.dart:35-39` instead of typing it from memory. Run
+**43598073037** (`6af5f9f`) then failed *Analyze* on a single
+`warning • Unused import: …/data/models/hadith_models.dart • unused_import` — and
+the analyzer was right in a way no local check could have been: **`LocalHadith` is
+declared in the SERVICE library** (`hadith_database_service.dart:418`), not in
+`hadith_models.dart`, so the models import provided nothing this test references
+(it appears in only one other place here, as a *path string*). Both rounds are in
+this commit; the remaining ~248 issues in both runs are the repo's sanctioned
+`info` baseline in quran/tools files this pass never touched.
+Against `865c3f8` the new file is red by construction, which is its other half of
+evidence: 22 asset files instead of 15, 7 `arabic.json` blobs, +47,807,149 B, and
+`FoldedHadith` with 8 fields instead of 7.
+
+### What "100" can mean here, and what it cannot
+
+**100 % Urdu is not achievable from this source** — nasai ~67 %, malik ~86 %,
+bukhari ~92 %, and **2,966 rows have no Urdu anywhere upstream** (HR-2 proved the
+bundled files byte-identical to `fawazahmed0/hadith-api`, so this is not a
+truncation a re-fetch could fix). The honest 100 % is:
+
+> **every hadith shows Urdu OR English, with the existing X6 fallback chip where
+> Urdu is missing.**
+
+…with its ceiling attached, because the sentence is only honest next to the
+number: **206 of 36,390 rows (0.57 %) have neither**, and on those rows the
+fallback line renders with no chip (there is no English to reveal). And "100 %"
+must never be printed from a rounded percent alone: `abudawud` and `ibnmajah`
+reach 100 % Urdu *by the app's rounding* while holding 1 and 16 blank rows
+respectively — which is why the new test pins counts **and** percentages, and why
+this table shows both.
+
+### Size math, re-measured on file bytes (not on `du`)
+
+| | files | edition-file bytes | MiB |
+|---|---|---|---|
+| pre-diet, at `865c3f8` | 22 | 113,548,414 | **108.29** |
+| post-diet, shipped | 15 | 65,741,265 | **62.69** |
+| removed (7 × `arabic.json`) | 7 | 47,807,149 | 45.59 (−42.1 %) |
+
+Correction of a § A number, printed because § A's figure was wrong in a way that
+matters to a reader who re-measures: § A quoted **62.70 MB / "15 files ·
+65,746,257 B"**, which is what `du -sb assets/data/hadith` reports — and `du`
+counts the directory entries' own sizes on top of the files (and even that number
+moves with the filesystem: the same tree re-checked out reports 65,745,781). The
+**file bytes are stable and are what the arithmetic uses**: 14 edition files
+65,739,825 B + `kitab_names.json` 1,440 B = **65,741,265 B = 62.69 MiB**. The
+pre-diet total is that plus the deleted 47,807,149 B = 113,548,414 B =
+108.29 MiB, so the headline −42.1 % stands unchanged. The census test pins the
+file-length sum.
+
+**Boot and memory, from the app's own prints.** Decodes at boot went 21 → **14**
+(two editions per book) — derived, not asserted by a constant: the boot batch is
+`english` + `fileForLanguage.values`, and `hadith_pass_hr1_test`'s source pin
+moved from "three asset reads per book" to two (`allMatches` 3 → 2). The fold
+mirror's measured cost, post-diet, from run 43596310124:
+
+| what | pre-diet (HR-1.3 runs) | post-diet (`13f9f55`) |
+|---|---|---|
+| mirror build, real rows | 101.6 – 169.9 µs/row | **54.4 µs/row** (1,200 rows, 65 ms) and **42.2 µs/row** (1,400 rows, 59,053 µs) |
+| mirror content, real rows | 4 fields/row | **3 fields, 1,047–1,060 chars/row** (`[HR13_MEASURE] rows=1200 searchedChars=1256131 meanCharsPerRow=1047 fields=3`; `[HR13_RAM] mirror = 1,484,061 chars` for 1,400 rows) |
+| RSS for 1,400 real rows | not printed then | **+3,600 KB**, of which the mirror's own chars are 2,898 KB |
+| cached-scan p95 (1,200 real rows) | 10.6 – 11.3 ms | **5.6 ms** against a 500 ms bound; fold-per-scan 63.7 ms — the same ~11× ratio on two-thirds the text; extrapolated to all 36,390 rows: cached ~170 ms vs folding ~1,931 ms per keystroke |
+| whole-corpus english fold | 423 – 519 ms | **319 ms** (36,390 rows, 15,400,840 chars, 20.7 ns/char) |
+| what the worker holds at settle, HR-1's 20,020-row ledger | **32,662,575 folded chars ≈ 62.3 MB** | **24,403,886 folded chars ≈ 46.5 MB** = −8,258,689 chars, **−25.3 %**, ≈ **−15.8 MB** |
+
+The last row is the headline, because it is the **same fixture** in both runs: the
+identical ledger minus the Arabic text it used to be handed. The character
+arithmetic behind it, measured from the deleted blobs in git rather than
+estimated: the seven `arabic.json` held **19,976,745 raw chars** (549.0/row),
+which the fold reduces to **12,594,187** (346.1/row) — so over a full-corpus
+settle the diet stops the worker building and retaining **≈ 24.0 MB of UTF-16**,
+and drops the mirror from ≈1,261.5 to **915.4 chars/row** (english 423.2 + urdu
+464.0 + chapter 28.2, measured over the shipped files: 15,400,840 + 16,886,577 +
+1,025,552 = 33,312,969 chars = 63.5 MB as UTF-16). The ratio to quote is
+**−27.4 % of retained mirror text**, with the caveat § B already states: the
+Phase-B fields stay folded, so the drop is smaller than "one field of three" would
+suggest, and that is measured, not argued. Run-to-run noise on this suite is
+±40 % (the fold alone has printed 319 / 423 / 519 ms on identical code), so the
+char counts, not the milliseconds, are the durable numbers.
+
+### APK delta: what can honestly be said without a build
+
+`ci.yml` runs Dependencies → Analyze → Full test suite → Static battery and **no
+build job**, so there is **no measured APK number for this pass and none is
+claimed.** What can be measured here is the compressed payload, because Flutter
+stores `.json` assets deflated: the seven removed blobs are 47,807,149 B raw and
+**6,429,801 B (6.13 MiB) at deflate level 9**; the 15 files that remain compress
+to 11,324,954 B. So pre-diet, Arabic occupied **36.2 %** (6,429,801 / 17,754,755)
+of the hadith bundle's compressed footprint. The honest release-note sentence is
+*"≈ 6.1 MB of compressed asset payload removed; the installed-size number needs a
+build, which this pipeline does not run."*
+
+### Two claims in my own working record that turned out to be false
+
+Recorded because this report is the pass's audit trail and both were
+load-bearing in the plan. (1) *"X5's spine test `hadith_pass_x5_test:305-312`
+pins the manifest layout string — keep it green"*: **there is no such file**, and
+no test in this repository has ever contained the word "spine" (`git grep` across
+history returns nothing). The census above is therefore the **first** executable
+spine pin, not a re-pin. (2) *"the service carries a wrong 'first match wins /
+`putIfAbsent`' comment about the Urdu join"*: it does not — `assembleHadithBook`'s
+comment already says last-write-wins, and my B pass kept it. What is real, and
+what that note was groping at, is that the same file holds **two joins with
+deliberately different rules**, which is why the two coverage families are not
+comparable: `urduMap` (int `hadithnumber` key, last write wins, blanks overwrite →
+the 77 collision rows) versus `pairTextIndex` (fractional-aware `pairKey`, blanks
+*skipped*, `putIfAbsent` → first wins, for the Phase-B languages). Now documented
+at the join instead of in a memory.
+
+### C's re-pin ledger (old → new)
+
+| thing | was | now |
+|---|---|---|
+| `backend/app/content/integrity.py` `HADITH_LANGS` | `("arabic","english","urdu")` | **`("english","urdu")`**, plus `hadith_coverage_matrix()` and a `_hadith_number_key` mirror of the loader's parse |
+| `validate_hadith_file.ok` | `records > 0 && duplicate_ids == 0` (one duplicate number or one blank row failed a whole file) | **file verdict: exists, parses, has rows**; blanks and duplicates are reported as coverage, not as breakage |
+| `scripts/validate_content.py` | two lines of hadith output (file count, empty sum) | **the 7-book matrix + `boot_decodes`, and a FAIL on spine / reference / edition integrity** |
+| `assets/data/content_manifest.json` | 7 rows `"language": "ar/en/ur"`; sidecar `"meta (en/ar/ur render labels live)"` | **`"en/ur"`** ×7 and **`"meta (en/ur render labels live)"`** — the ledger no longer claims an edition its own `source` path does not hold |
+| `lib/core/l10n/app_strings.dart` | `String get arabicTextSection => _t('Arabic Text (عربي)', …)`, **zero consumers** | **deleted**, with a note naming the block it labelled |
+| `data/models/hadith_models.dart` | `HadithGrade.arabicLabel` (five Arabic strings), **zero consumers** | **deleted**; the `fromString` Arabic alternates stay because they parse upstream data |
+| `hadith_pass_hr1_test` comparator prose | "the shipped bundle measures 1,436" | **"887 — 423 english + 464 urdu chars/row; the unbundled Arabic edition measured 549 more"**, all three measured (and 423.2 confirmed independently by the app's own `15,400,840 / 36,390`) |
+| `hadith_pass_x6_test` header, `content_pass_test` header, `hadith_multilang_test` ordering note, `assembleHadithBook` doc | "the Arabic body always", "ar/en/ur", "AppStrings.arabicTextSection", "three decoded assets" | each rewritten to the two-edition truth |
+
+### Gates, at the end of HR-2.1
+
+`flutter analyze` **0 errors / 0 warnings** (248 sanctioned `info`s, all
+pre-existing and untouched) · suite green at the count the ledger requires: **704**
+before C's new file, **712** with its 8 tests · static battery **hard 0 | G2 319 |
+L2 83 — ALL GATES PASS**, re-run on the clean worktree after every C edit ·
+forbidden patterns 0 · `assets/` diff across the whole HR-2.1 chain = the **7
+`arabic.json` deletions + `content_manifest.json` prose**, and
+`git diff --name-only 865c3f8 HEAD -- assets/data/quran` → **empty** ·
+capture-ban intact · the boot diet intact and now half its size · no new
+dependency · `main` still on merge hold.
+
+**Open for the owner, not decided here.** (i) The 206 rows with neither edition:
+0.57 % of the corpus, unfixable from this source, so the choice is "accept the
+honest line" (current behaviour) or "source a different Urdu edition". (ii) The Urdu join's key:
+77 english spine rows share a truncated int key with a fractional sibling
+(`402.2` onto `402`), and 52 non-blank Urdu texts are discarded by last-write-wins
+blanks. Re-joining the Urdu on `pairKey` — the fractional-aware key the Phase-B
+languages already use — would stop a sub-narration inheriting its sibling's text
+and recover those 52 rows (a measured +0.16 % Urdu coverage on four books), but it
+changes which text a reader is shown, so it waits for a word rather than riding in
+on a diet.
