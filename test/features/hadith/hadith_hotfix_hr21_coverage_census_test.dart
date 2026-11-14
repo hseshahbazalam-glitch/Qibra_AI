@@ -47,9 +47,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qibra/features/hadith/data/hadith_availability.dart';
-import 'package:qibra/features/hadith/data/models/hadith_models.dart';
-import 'package:qibra/features/hadith/data/services/hadith_database_service.dart';
+import 'package:qibra_ai/features/hadith/data/hadith_availability.dart';
+import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
+import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 
 import '../../support/source_guards.dart';
 
