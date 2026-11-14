@@ -1345,7 +1345,10 @@ Four facts the log gave that § C had not claimed, added rather than swapped in:
   already resident, not re-paid**: 2,860 rows/217 ms/76 µs-per-row, then 167, 99,
   110, 102, 150, 120 ms as the mirror grows to 20,020 rows — µs/row 76 → 5, because
   rows after the first book are `mirrored`, not folded. That is `boot-reads-once`
-  working, on the shipped tree, printed by CI rather than argued.
+  working, on the shipped tree, printed by CI rather than argued. The same line
+  pre-diet (line 634 above) printed `198ms (9us/row), 32662575 folded chars
+  ~62.3MB` at the identical 20,020 rows, so the settle-fold census itself went
+  **198 → 120 ms** and **9 → 5 µs/row** on the dieted tree.
 * **the mirror is now 99.9 % of the searched text** (1,484,061 / 1,485,061) where
   pre-diet it was 87.3 % (1,973,863 / 2,261,934): Arabic was the one searched field
   the mirror did *not* cache, so the diet closed that gap and cut the cache anyway —
