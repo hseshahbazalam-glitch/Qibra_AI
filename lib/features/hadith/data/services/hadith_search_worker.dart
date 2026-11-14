@@ -159,18 +159,9 @@ class _HadithSearchReply {
     this.batches, {
     this.elapsedUs = 0,
     this.corpusRows = 0,
-    this.lateReply = false,
   });
 
   final bool superseded;
-
-  /// HR-1.1: set by MAIN on the copy it hands around, when this reply arrived
-  /// after its own budget had already expired. It changes nothing about the
-  /// answer (the reader still gets it) and everything about the bookkeeping: a
-  /// reply that landed is proof of life, so the counted miss is refunded. This
-  /// is the field that makes "answered after its budget" a NAME in the code and
-  /// not just a sentence in a report.
-  bool lateReply;
   final List<List<LocalSearchResult>> batches;
 
   /// Whole time the worker spent inside this scan, microseconds.
@@ -786,15 +777,12 @@ class HadithSearchWorker {
         return null;
       }
       // SLOW ≠ DEAD, the last mile: if our own budget had already expired and
-      // this answer arrived anyway, the reply is LATE, not absent. Mark it on the
-      // reply (the name the disclosure and the test share), refund the miss it
-      // cost, and let the reader have the result — a reader who is shown the
-      // answer 46 s in is not a reader whose search is dead.
-      final late = handoff.done;
-      if (late) {
-        received.lateReply = true;
-        _refundLateReply();
-      }
+      // this answer arrived anyway, the reply is LATE, not ABSENT — that fact
+      // belongs to the hand-off (which is what timed out), not to the immutable
+      // message the isolate sent us (CI: `const_constructor_with_non_final_field`
+      // the moment I tried to stamp it there). Refund the miss it cost and let the
+      // reader have the result: shown an answer 46 s in is not a dead search.
+      if (handoff.done) _refundLateReply();
       handoff.markSuccess();
       _endSearchHandoff(handoff);
       // Any answered query pays off every timeout before it: the counter exists

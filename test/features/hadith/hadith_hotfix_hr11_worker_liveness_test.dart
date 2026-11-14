@@ -528,8 +528,13 @@ void main() {
       expect(code.contains('void _refundLateReply()'), isTrue,
           reason: 'the refund is a METHOD, so a later reader finds the '
               'bookkeeping half of "late" without reading the report');
-      expect(code.contains('lateReply = true'), isTrue,
-          reason: 'and the reply itself carries the fact, not just the log');
+      expect(code.contains('if (handoff.done) _refundLateReply();'), isTrue,
+          reason: 'and the refund is driven off the HAND-OFF (the thing that '
+              'timed out), not off a stamp on the immutable reply — CI run '
+              '43572090378 made me learn that difference the hard way: a '
+              '`const` isolate message cannot carry a mutable field '
+              '(`const_constructor_with_non_final_field`), and an optional '
+              'parameter nobody passes is a warning (`unused_element_parameter`)');
       // HONESTY NOTE, stated where a reader will find it: the REFUND is exercised
       // by these pins and by the isolate-side supersession path, but the exact
       // moment "the budget fired and the answer arrived 3 ms later" is NOT
