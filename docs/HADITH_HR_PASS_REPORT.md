@@ -1276,7 +1276,8 @@ above that said "CI to confirm" now has a number:
 | **Full test suite** | **`🎉 712 tests passed.`** = 704 (the HR-1.3 baseline) **+ 8** (the new `hadith_hotfix_hr21_coverage_census_test`), so HR-2.1 removed a 45.6 % data slice, rewrote 20 files and added a census **without losing one test** |
 | **Static battery** | `static battery: 185 dart files under lib` · `hard findings: 0 | G2 advisories: 319 | L2 alpha advisories: 83` · **ALL GATES PASS** |
 
-The pass is five commits, each pushed and CI-read:
+The pass is seven commits, each pushed and CI-read; the first five carry the
+change and the last two are this addendum and its own correction (docs only):
 `24297a3` (A, the data diet) → `13f9f55` (B, the code diet) → `8ba57fa`
 (C, the tool + the census + the ledger) → `6af5f9f` (the `qibra` → `qibra_ai`
 import fix) → `82c5c90` (drop the `unused_import` the analyzer caught, and this
