@@ -109,8 +109,13 @@ String _syntheticBook(int firstNumber, int rows, {String bookSlug = 'bukhari'}) 
 /// in the shipped 45 s, and it will revive on a injected clock instead of a
 /// minute. Everything else — the isolate, the ports, the scan, the ledger — is
 /// the real thing.
+///
+/// `budget` is OPTIONAL because a test ABOUT the shipped numbers must run on
+/// them: an injected override replaces BOTH budgets, cold and warm (see
+/// `firstReplyBudget`), so a worker built with 30 s can never show the 45 s /
+/// 90 s pair. Omit it and you get exactly what the app ships.
 HadithSearchWorker _worker({
-  required Duration budget,
+  Duration? budget,
   int retireAfter = HadithSearchWorker.retireAfterTimeouts,
   Duration revive = const Duration(milliseconds: 30),
 }) =>
@@ -151,7 +156,13 @@ void main() {
 
     test('the cold budget is the big one, the warm budget is the shipped one',
         () async {
-      final worker = _worker(budget: const Duration(seconds: 30));
+      // No injected budget: this test is ABOUT the shipped pair, so it has to
+      // run on them. CI run 43573107259 made it red for exactly the opposite
+      // reason — it demanded `firstReplyTimeout` (90 s) from a worker built with
+      // a 30 s override, and round 7 deliberately made an override REPLACE both
+      // budgets, because a test that asks for a deterministic 1 ms miss must get
+      // it on query 1 too. Two different rules; now two different witnesses.
+      final worker = _worker();
       addTearDown(worker.shutdownForTest);
       expect(worker.currentReplyBudget, HadithSearchWorker.firstReplyTimeout,
           reason: 'nothing has been answered yet, so the wait in front of the '
@@ -167,11 +178,22 @@ void main() {
       expect(worker.currentReplyBudget, worker.effectiveReplyTimeout,
           reason: 'after the first answer the budget drops back to normal — '
               'the generosity is for the boot, not a licence to hang forever');
+      expect(worker.effectiveReplyTimeout, HadithSearchWorker.replyTimeout,
+          reason: 'and "normal" IS the shipped 45 s once nothing was injected — '
+              'the override getter may not quietly disagree with the constant');
       worker.forceCold();
       expect(worker.currentReplyBudget, HadithSearchWorker.firstReplyTimeout,
           reason: 'and a REVIVE is a new boot: the new isolate owns no corpus '
               'until the service re-hands it (test 4), so the second '
               'chance gets the same patience the first one did');
+      // The other rule, asserted where it belongs: an injected budget replaces
+      // BOTH, cold and warm.
+      final injected = _worker(budget: const Duration(seconds: 30));
+      addTearDown(injected.shutdownForTest);
+      expect(injected.currentReplyBudget, const Duration(seconds: 30),
+          reason: 'run 43571400962 asked for a 1 ms miss and silently got the '
+              '90 s cold patience instead — an injected patience must win on '
+              'every path, or the state machine is untestable');
     });
   });
 
@@ -222,8 +244,16 @@ void main() {
           reason: 'retirement leaves NO armed wait behind — a stale entry '
               'surviving here is the ×6 pile in a different hat');
       expect(worker.inFlight, 0);
+      expect(worker.lastReviveAttemptAt, isNotNull,
+          reason: 'the cooldown clock starts AT the retirement. Run 43573107259 '
+              'printed `worker retired (death evidence)` and then, on the very '
+              'next commit, `worker live (revived)` — an instant respawn the '
+              'rate limit was written to forbid and that the retire log line '
+              'promises will not happen');
       expect(await worker.search(['patience'], maxPerQuery: 3), isNull,
-          reason: 'and during the cooldown the answer stays honestly empty');
+          reason: 'and during the cooldown the answer stays honestly empty — '
+              'NULL from the worker, which is what the service turns into one '
+              'empty row per query (pinned by hadith_pass_hr1_test)');
       expect(worker.handedBooks, isNotEmpty,
           reason: 'the hand-off list survives, because the re-hand after revival '
               'is driven off it (test group 3)');
@@ -283,7 +313,11 @@ void main() {
         'next commit after it revives and answers', () async {
       final worker = _worker(
         budget: const Duration(seconds: 30),
-        revive: const Duration(milliseconds: 40),
+        // A window the test can never accidentally outstep: the two
+        // "inside the cooldown" searches below would turn into a real revival
+        // if CI were 40 ms slow, and the pass would depend on machine load. The
+        // window is opened ON PURPOSE by moving the stamp back, once.
+        revive: const Duration(seconds: 5),
       );
       addTearDown(worker.shutdownForTest);
       await worker.noteBook(
@@ -299,6 +333,10 @@ void main() {
       // worker would be polled for two whole budgets before anyone reacted.
       worker.noteDeathForTest('died mid-request');
       expect(worker.retired, isTrue);
+      expect(worker.lastReviveAttemptAt, isNotNull,
+          reason: 'death starts the cooldown: the revive window is measured from '
+              'here, so a dying worker cannot be respawned per keystroke just '
+              'because no revive had been attempted yet (run 43573107259)');
       expect(worker.isLive, isFalse, reason: 'the port is gone, not just distrusted');
 
       // During the cooldown: dead to searches, and NO respawn.
@@ -316,7 +354,8 @@ void main() {
       // re-hand is the service's half (test 3, `rebuildSearchCorpus`) — so the
       // honest expectation here is "a real reply, not a null from a dead flag",
       // which is exactly what `isNotNull` means for this method.
-      await Future<void>.delayed(const Duration(milliseconds: 140));
+      worker.lastReviveAttemptAt =
+          DateTime.now().subtract(const Duration(seconds: 6));
       expect(await worker.search(['patience'], maxPerQuery: 3), isNotNull,
           reason: 'THE POINT OF THE HOTFIX: search is never dead for a session. '
               'HR-1\'s `if (_dead) return;` failed exactly this assertion.');
@@ -330,7 +369,7 @@ void main() {
         () async {
       final worker = _worker(
         budget: const Duration(seconds: 30),
-        revive: const Duration(milliseconds: 20),
+        revive: const Duration(seconds: 5),
       );
       addTearDown(worker.shutdownForTest);
       await worker.noteBook(
@@ -341,7 +380,8 @@ void main() {
       expect(await worker.search(['patience'], maxPerQuery: 3), isNotNull);
       worker.noteDeathForTest('exited');
       expect(worker.retired, isTrue);
-      await Future<void>.delayed(const Duration(milliseconds: 80));
+      worker.lastReviveAttemptAt =
+          DateTime.now().subtract(const Duration(seconds: 6));
       await worker.start();
       expect(worker.retired, isFalse,
           reason: 'the next commit after the cooldown got a worker back');
@@ -350,8 +390,12 @@ void main() {
               'names a book — without this flag a "successful" revival would '
               'answer empty forever and look healthy');
       worker.forceCold();
-      expect(worker.currentReplyBudget, HadithSearchWorker.firstReplyTimeout,
-          reason: 'and it is COLD: the re-hand queue is in front of the query');
+      expect(worker.currentReplyBudget, worker.effectiveReplyTimeout,
+          reason: 'and it is COLD — which, for a worker built with an injected '
+              'budget, is exactly the point: the injected patience still answers '
+              'on the cold path (run 43571400962). The cold FACT itself is '
+              '`corpusStale` above, not a number; the shipped 90 s vs 45 s pair '
+              'is group 1\'s, where nothing is injected');
       // The service half, done by hand here: re-hand, then clear the flag — the
       // order matters, and this is exactly what `rebuildSearchCorpus()` +
       // `markCorpusFresh()` do in production.
@@ -523,8 +567,13 @@ void main() {
       // late-reply path is greppable in code and not only in a report.
       expect(code.contains('reply answered after its budget'), isTrue,
           reason: 'the log says, in the app, that the answer DID arrive');
-      expect(code.contains('late is not dead'), isTrue,
-          reason: 'and names the rule next to it');
+      expect(code.contains('not dead: the miss is refunded'), isTrue,
+          reason: 'and names the rule next to it — pinned inside the SECOND '
+              'literal, because the sentence is written as two adjacent string '
+              'literals and Dart joins them only at compile time: the source text '
+              'has a quote pair and a newline where the sentence has a space, so '
+              'a contiguous pin may reach inside one literal and not across the '
+              'seam (same lesson as the round-3 whitespace-flattened pin)');
       expect(code.contains('void _refundLateReply()'), isTrue,
           reason: 'the refund is a METHOD, so a later reader finds the '
               'bookkeeping half of "late" without reading the report');

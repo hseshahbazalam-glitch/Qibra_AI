@@ -496,6 +496,13 @@ class HadithSearchWorker {
     }
     _kill();
     _retired = true;
+    // The cooldown is measured from the DEATH, not from the last spawn attempt
+    // before it. Without this stamp the first commit after a retirement revived
+    // instantly (CI run 43573107259: `worker retired (death evidence)` followed
+    // immediately by `worker live (revived)`), which made the debug line below a
+    // promise the code did not keep and turned "at most once per
+    // `reviveCooldown`" into "once per death, plus one free go".
+    _lastReviveAttemptAt = DateTime.now();
     _pendingReplies.clear();
     _handoffs.clear();
     if (kDebugMode) {
