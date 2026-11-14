@@ -105,7 +105,8 @@ void main() {
   group('HR-1.3 the fold must be paid once per row, not once per query per scan', () {
     /// THE COST GATE. Reads no synthetic text at all: the corpus is the shipped
     /// bundle, the queries are the owner's, and the bound is the brief's.
-    test('one scan of $rowsUnderGate REAL rows is bounded, not "minutes"', () {
+    test('one scan of ${_rowsUnderGate} REAL rows is bounded, not "minutes"',
+        () {
       final corpus = _realCorpus();
       final size = _measureCorpus(corpus);
       final perRow = (size.chars / size.rows).round();
@@ -152,7 +153,7 @@ void main() {
       // private, so the shape is restated here rather than edited there): one
       // 20-word topic sentence per row.
       const topic = 'namaz ka tarika';
-      final fixtureText = 'Volume 1, Book 1, Hadith 1: $topic — the Prophet '
+      const fixtureText = 'Volume 1, Book 1, Hadith 1: $topic — the Prophet '
           '(peace be upon him) said, and the chain is complete for row 1 of '
           'bukhari.';
       final syntheticPerRow = fixtureText.length; // english only, as generated
