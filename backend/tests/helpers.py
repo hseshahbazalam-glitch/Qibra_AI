@@ -10,8 +10,12 @@ from fastapi.testclient import TestClient
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+# Same declaration as conftest.py — helpers.py is also importable as a first module
+# (a test that imports only helpers must still boot the app), so it cannot depend on
+# conftest having run first. Both must stay in sync with tests/test_qb001_boot_guards.py.
+os.environ.setdefault("QIBRA_ENV", "dev")
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
-os.environ.setdefault("JWT_SECRET", "test-secret")
+os.environ.setdefault("JWT_SECRET", "qibra-test-only-signing-secret-32b+")
 
 from app.db.session import reset_engine  # noqa: E402
 from app.main import app  # noqa: E402
