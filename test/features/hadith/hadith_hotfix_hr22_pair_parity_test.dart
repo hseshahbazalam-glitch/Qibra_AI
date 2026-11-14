@@ -32,13 +32,22 @@
 //      main and the worker alike, and the English arm is byte-identical to the
 //      line HR-2.1 shipped.
 //
-// Red evidence (written in a sandbox with no Dart SDK — CI is the only compiler).
-// Against `4c1ac80` (the § (a) commit: script + report, zero code) this file is red
-// on tests 1, 2 and 6: the assembler still joins by the floored int key only, so
-// `textUrdu` disagrees on exactly the 52 rescue rows, the count is 33,424 not
-// 33,476, and `urduJoinText` does not exist yet for the source pin to find. Run IDs
-// and the actual analyzer list is recorded in
-// docs/HADITH_HR_PASS_REPORT.md § HR-2.2 (b).
+// Red evidence (written in a sandbox with no Dart SDK — CI is the only compiler),
+// with the runs it actually took:
+//   * `079c1f3` / run 43633065196 — this file, committed alone against `4c1ac80`
+//     (the § (a) script + report, zero code). It never reached an assertion: the
+//     analyzer ate it with 4 x `argument_type_not_assignable`, because `timeout:` on
+//     `test()` takes a `Timeout`, not a `Duration`.
+//   * `31a02ae` / run 43633471592 — same file, same tree, after that one-word fix:
+//     `##[error]714 tests passed, 5 failed.` Exactly the assertions that need the
+//     rescue (tests 1, 2, 3, 6 and the source pin) — and 712 + 7 new = 719, so
+//     nothing else moved.
+//   * `bbd6d81` / run 43634165892 — the FIX commit, red on one analyzer error of
+//     the re-pin's making (`Undefined name 'urdu'` in the HR-2.1 census test: a local
+//     deleted as "unused" that the off-spine count still read).
+//   * `7bd0086` / run 43634767116 — GREEN: analyze 0 errors / 0 warnings,
+//     `🎉 719 tests passed.`, battery `hard 0 | G2 319 | L2 83` -> ALL GATES PASS.
+// The prose version of all four rounds is docs/HADITH_HR_PASS_REPORT.md § HR-2.2 (b).
 //
 // Conventions match hadith_hotfix_hr21_coverage_census_test / hadith_pass_x6_test:
 // public runtime helpers where a rule is testable, source pins where the bug class

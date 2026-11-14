@@ -1565,7 +1565,7 @@ recovered 52 go from blank to real, and nothing goes from real to anything else.
    the repo's own doc line for `assembleHadithBook` says two implementations of the
    join is how a fractional `402.2` once landed on its parent `402`.
 2. The worker needs **no separate edit, and that is verified, not assumed**: its book
-   hand-off calls the same `assembleHadithBook` (hadith_search_worker.dart:1000) and
+   hand-off calls the same `assembleHadithBook` (hadith_search_worker.dart:997) and
    its mirror folds `LocalHadith.textUrdu` (foldHadithRow), so the rescue reaches the
    search index through the one assembler. (b) will pin that census rather than trust it.
 3. English join untouched: 35,975 rows, 415 blank texts, `en` counts in every mirror.
@@ -1578,3 +1578,149 @@ recovered 52 go from blank to real, and nothing goes from real to anything else.
    the rule in (1) is wrong, not the pin).
 6. `assets/` untouched: HR-2.2 changes no data file, so the corpus the table above was
    measured on is the corpus that ships.
+
+---
+
+## § HR-2.2 (b) + (c) — the change, the re-pins, and the four CI rounds
+
+### (b) what shipped, in the assembler's own words
+
+`lib/features/hadith/data/services/hadith_database_service.dart`, inside
+`assembleHadithBook` (now 1,337 lines, braces and parens balanced to zero):
+
+```dart
+    final urduPairIndex = HadithDatabaseService.pairTextIndex(urduHadiths);
+    …
+          textUrdu: HadithDatabaseService.urduJoinText(
+            byNumber: urduMap[hadithNum] ?? '',
+            byPair: urduPairIndex[pair] ?? '',
+          ),
+```
+
+```dart
+  /// The number-key text wins whenever it has content. The pair index rescues a blank
+  /// or a missing hit and nothing else — recovering text may not cost text, so this is
+  /// deliberately NOT "pair first"…
+  @visibleForTesting
+  static String urduJoinText({
+    required String byNumber,
+    required String byPair,
+  }) =>
+      byNumber.trim().isEmpty && byPair.isNotEmpty ? byPair : byNumber;
+```
+
+Both inputs are the loop's own locals — `hadithNum` is `_parseHadithNumber(map['hadithnumber'])`
+and `pair` is `pairKey(map['hadithnumber'], map['arabicnumber'])` — so the rescue consumes
+exactly the two keys the § (a) census keyed on, and no third parse of the row exists anywhere.
+The `byPair` argument can only ever be a non-blank text, because `pairTextIndex` skips blanks,
+which is why this can never light up `hasUrdu` (=`textUrdu.isNotEmpty`) on empty content.
+Two negative controls in the census: **0** whitespace-only Urdu texts corpus-wide and **0**
+spine rows whose number-hit is whitespace-only.
+
+**The worker got no edit, on purpose, and that is now pinned rather than promised.**
+`hadith_search_worker.dart` contains `textUrdu` zero times and `<int, String>` zero times:
+its `_HadithBookPayload` carries the RAW english/urdu maps and hands them to the shared
+assembler (:997), so the rescue reaches the search index through the one join. The new test
+asserts `worker.count('urduJoinText') == 0` and `worker.count('<int, String>') == 0` —
+if a second join is ever copied in there, the pin goes red instead of the census drifting.
+A consequence worth stating: those 52 Urdu texts are now also in the fold the search mirror
+indexes, because the mirror folds `LocalHadith.textUrdu`. Nothing about the fold changed —
+`[HR13_FOLD] 2125 inputs fold identically` is still green — so this is reach, not behaviour.
+
+*(erratum, disclosed: § (a)'s checklist item 2 cited `hadith_search_worker.dart:1000`. The
+call statement opens at `:997` and its argument list runs to `:1017`; the line above now says
+`:997`.)*
+
+### the four CI rounds, in order, with the line that decided each
+
+| sha | run | outcome | the line |
+|---|---|---|---|
+| `079c1f3` | 43633065196 | **red — wrong red** | 4 x `error • The argument type 'Duration' can't be assigned to the parameter type 'Timeout?'. • test/…hr22_pair_parity_test.dart:188/228/279/310` — the test-first commit never reached `flutter test` |
+| `31a02ae` | 43633471592 | **red — the intended red** | `##[error]714 tests passed, 5 failed.` |
+| `bbd6d81` | 43634165892 | **red — my re-pin's fault** | `error • Undefined name 'urdu'. • test/…hr21_coverage_census_test.dart:183:19 • undefined_identifier` |
+| `7bd0086` | **43634767116** | **GREEN** | `🎉 719 tests passed.` + `hard findings: 0 \| G2 advisories: 319 \| L2 alpha advisories: 83` + `ALL GATES PASS (static; device compile remains the authority)` |
+
+The middle red is the arithmetic that makes the second red honest: the suite was 712 before
+HR-2.2, this pass adds 7 tests, and `712 + 7 = 719` — so exactly five assertions were red and
+they were the five that cannot be true before the change (the app-side join equality, the
++52/0/0 count, the 33,476 coverage line, the per-book parity loop, the `urduJoinText` source
+pin). The two tests written to be true in both trees — malik/muslim non-alignment and the
+rejected-alternative prices — passed on `31a02ae`, which is the control that says the file
+measures something rather than merely failing on demand. The analyze step on the green run
+passed its gate (0 errors / 0 warnings; infos sanctioned by the step's own name); its
+info-level count is not transcribed here because I did not read it off that run.
+
+Both Dart-only losses are recorded as lessons, not smoothed: `test()`'s `timeout:` takes a
+`Timeout`, not a `Duration`, and the sibling census test already showed the shape to copy; and
+a re-pin that makes a local look unused must be checked for its SECOND use before deletion
+(`urdu` fed `urduOffSpine` after the join stopped needing it). A sandbox without a Dart SDK
+turns both into CI round-trips; CI earned the role again.
+
+### (c) the re-pins, old → new, every one of them
+
+| pinned thing | HR-2.1 (old) | HR-2.2 (new) | where |
+|---|---|---|---|
+| urdu rows with text | 33,424 | **33,476** | `hadith_hotfix_hr21_coverage_census_test.dart`, `hr22_pair_parity_test.dart` |
+| urdu coverage of the 36,390-row spine | 91.85 % | **91.99 %** | both |
+| rows with NEITHER edition | 206 | **203 (0.56 %)** | both |
+| spine rows with no Urdu at all | 2,966 | **2,914** | census test |
+| bukhari / muslim / abudawud / nasai / ibnmajah / malik / tirmidhi urdu | 6,994 · 7,458 · 5,273 · 3,875 · 4,327 · 1,590 · 3,907 | **7,019** · 7,458 · 5,273 · **3,876** · **4,329** · 1,590 · **3,931** | census test per-book table |
+| reader-facing `coveragePercent` | 92 · 99 · 100 · 67 · 100 · 86 · 98 | **unchanged**, all seven | verified through `HadithAvailability.coveragePercent`, not by arithmetic |
+| `thinCoverage` (the fallback-chip census) | `ur/nasai 67`, `ur/malik 86` | **unchanged** | `hadith_pass_x6_test.dart`, `hadith_pass_h1_test.dart` |
+| spine collisions / off-spine muslim record | 77 / 1 | **unchanged** (HR-2.2 re-joins nothing it can rescue; it does not re-key the collision rows) | census test |
+| 15 files, 65,741,265 B, manifest 7 × {en, ur} | — | **unchanged** | census test |
+| the three join mirrors | restated the rule in Dart | **call** `pairTextIndex` + `urduJoinText` | `hr21_coverage_census`, `pass_h1`, `pass_x6` |
+
+The three mirrors are the part of (c) that outlives this pass. Two of them exist to catch
+coverage drift in the reader's chrome; while they re-implemented the join, a change to the
+app's join would have left them measuring their own re-implementation — green, and about
+nothing. They now ask the service, so the pinned 67 / 86 / > 90 are the app's numbers.
+
+Untouched because the order said untouched, and each is pinned so "untouched" is checkable:
+the English join (`final baseData = englishData ?? urduData;` and the `textEnglish:` line are
+byte-identical, asserted as strings in the new test), the spine (36,390 rows, 1:1 under
+`numberKey`), and `assets/` — `git diff --stat -- assets/` is empty in both code commits, and
+`assets/data/quran` is untouched in the whole of HR-2.2.
+
+### the 52 rows the rescue earns, for the device spot-check
+
+All 52 are tabulated row by row in § (a) (spine index, `hadithnumber`, `arabicnumber`,
+`pairKey`, `reference`, old chars → pair chars → new chars, and whether the Urdu record's
+`reference` agrees). The split, and the range of what appears:
+
+| book | rows recovered | new Urdu text length |
+|---|---|---|
+| bukhari | 25 | 219 – 3,034 chars |
+| tirmidhi | 24 | 175 – 3,321 chars |
+| ibnmajah | 2 | 898 – 2,551 |
+| nasai | 1 | 226 |
+| muslim, abudawud, malik | 0 | — |
+
+52/52 land on a record whose own `reference` matches the spine row's, so none of them is an
+inference from a neighbouring row. To spot-check, open the book, go to the `hadithnumber`
+listed — the first is **Bukhari 402** (`reference` 8:53, spine index 401), which shows 0
+characters of Urdu before this change and 1,043 after; the shortest is a tirmidhi row at
+175 characters. Where the reader is honest about Urdu being absent it should now be absent
+203 times in the whole corpus rather than 206, and the X6 fallback chip is expected on those
+three fewer rows — the chip's own census (`thinCoverage`) did not move, because a 52-row
+change cannot cross a rounding boundary in a 36,390-row denominator.
+
+### the line that stays true, in exactly the owner's words
+
+**every hadith shows Urdu OR English, with the existing X6 fallback chip where Urdu is missing**
+
+— and the honest remainder is now 203 rows (0.56 %), not 206 (0.57 %). Those 203 are
+**accepted as shipped** and parked as the **v1.0.2 research item** (a second Urdu edition
+source for bukhari 6 / muslim 82 / nasai 82 / ibnmajah 1 / tirmidhi 9 — measured, listed, and
+not chased by this pass). The parity census is re-runnable in one command —
+`python3 scripts/hr22_pairkey_parity.py` — and `python3 scripts/validate_content.py` reproduces
+the same table from the python side (`urdu 33476 (92.0)`, `rows_with_neither_edition 203`,
+per-book `{7019, 7458, 5273, 3876, 4329, 1590, 3931}`, `hadith_matrix_issues: []`), which is
+how the shipped Dart and the validator's mirror were shown to agree to the row.
+
+### HR-2.2 status
+
+**LANDED on `arena/01a05b41-qibra-ai` at `7bd0086`, CI GREEN** (run 43634767116: analyze gate
+passed, `🎉 719 tests passed.`, battery `hard 0 | G2 319 | L2 83`). Merge hold on `main`
+continues: the owner's next step is G2-D's workflows-free push (Option 3), and only then the
+PR and the merge as the `v1.0.0-rc` checkpoint.
