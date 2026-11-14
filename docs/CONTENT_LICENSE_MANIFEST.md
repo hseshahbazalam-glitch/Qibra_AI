@@ -284,9 +284,17 @@ upstream is the *worse* copy.
    Refreshing could not have filled one blank, which is why the X6 "no Urdu text here"
    line and its English-reveal chip remain the actual fix and stay wired.
 2. **diff ≈ 0 is a valid result** — it is the result. Reported, not hidden.
-3. **Coverage pins do not move** — `nasai/urdu` stays 3,875 / 5,765 = 67 %,
-   `malik/urdu` 1,590 / 1,859 = 86 %, `bukhari/urdu` 6,994 / 7,589 = 92 %. No
-   old→new transition exists because no text changed.
+3. **Coverage pins do not move** — re-measured 2026-11-14 by replaying the app's own
+   join (`assembleHadithBook`'s `int`-keyed `arabicMap`/`urduMap` + the
+   `_languageCoverage` non-blank count) against the shipped 21 JSONs, not copied from
+   the earlier claim: `bukhari/ur` 6,994 / 7,589 = 92 %, `muslim/ur` 7,458 / 7,563 =
+   99 %, `malik/ur` 1,590 / 1,858 = 86 %, `abudawud/ur` 5,273 / 5,274 = 100 %,
+   `tirmidhi/ur` 3,907 / 3,998 = 98 %, `nasai/ur` 3,875 / 5,765 = 67 %,
+   `ibnmajah/ur` 4,327 / 4,343 = 100 % (base spine across the seven books = 36,390
+   rows, matching the pinned total). The earlier draft of this line carried
+   `malik/urdu 1,859` as the denominator: that was a typo for the loaded row count
+   (1,858) and is corrected here. No old→new transition exists because no text
+   changed.
 4. **License re-verified** — see the next sub-section.
 
 Structural drift: **none observed.** In all three compared files the record count, the
