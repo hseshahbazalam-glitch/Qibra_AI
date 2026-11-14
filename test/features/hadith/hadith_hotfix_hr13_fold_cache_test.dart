@@ -258,35 +258,79 @@ void main() {
       // matches.
       const queries = ['namaz ka tarika', 'patience', 'prayer', 'masjid'];
 
-      final scans = <int>[];
-      for (var i = 0; i < queries.length; i++) {
-        final sw = Stopwatch()..start();
-        final batches =
-            scanHadithCorpus(corpus, [queries[i]], maxPerQuery: 50);
-        sw.stop();
-        scans.add(sw.elapsedMicroseconds);
-        debugPrint('[HR13_MEASURE] scan ${i + 1} "${queries[i]}" cost '
-            '${(sw.elapsedMicroseconds / 1000).toStringAsFixed(1)}ms and '
-            'returned ${batches.single.length} hits over ${size.rows} rows');
-      }
-      final p95 = _p95Us(scans) / 1000.0;
-      debugPrint('[HR13_MEASURE] p95 scan over ${scans.length} queries = '
-          '${p95.toStringAsFixed(1)}ms (bound ${_scanBoundMs}ms)');
+      // THE ONE-TIME COST, printed beside the per-keystroke one. The bound
+      // below is on the SHAPE THE APP ACTUALLY RUNS (mirror built, then
+      // `indexOf`); `scanHadithCorpus` — the pre-fix fold-per-scan entry point
+      // HR-1 pins — is measured too, because "the fix made it faster" is a
+      // claim that needs both numbers to mean anything.
+      final buildSw = Stopwatch()..start();
+      final mirror = foldHadithCorpus(corpus);
+      buildSw.stop();
+      debugPrint('[HR13_MEASURE] mirror built for ${size.rows} real rows in '
+          '${buildSw.elapsedMilliseconds}ms '
+          '(${(buildSw.elapsedMicroseconds / size.rows).toStringAsFixed(1)}'
+          'us/row) — one time, at settle, off-main');
 
-      expect(p95, lessThan(_scanBoundMs),
-          reason: 'a real corpus scan of ${size.rows} rows (mean $perRow chars '
-              'of searched text per row) took ${p95.toStringAsFixed(0)} ms at '
-              'p95. The device paid this on EVERY keystroke while the UI '
-              'waited '
-              '90 s for a reply that never came. The bound only holds once the '
-              'fold is cached per row at hand-off (the fix); the fold-per-scan '
-              'shape cannot meet it at any row count that matters.');
+      final rawScans = <int>[];
+      final cachedScans = <int>[];
+      for (var i = 0; i < queries.length; i++) {
+        var sw = Stopwatch()..start();
+        final rawBatches = scanHadithCorpus(corpus, [queries[i]],
+            maxPerQuery: 50);
+        sw.stop();
+        rawScans.add(sw.elapsedMicroseconds);
+        sw = Stopwatch()..start();
+        final cachedBatches = scanFoldedHadithCorpus(
+            corpus, mirror, [queries[i]],
+            maxPerQuery: 50);
+        sw.stop();
+        cachedScans.add(sw.elapsedMicroseconds);
+        expect(_signature(cachedBatches.single),
+            equals(_signature(rawBatches.single)),
+            reason: 'the two shapes must not disagree on query "${queries[i]}"');
+        debugPrint('[HR13_MEASURE] "${queries[i]}" over ${size.rows} real '
+            'rows: fold-per-scan '
+            '${(rawScans.last / 1000).toStringAsFixed(1)}ms vs cached '
+            '${(cachedScans.last / 1000).toStringAsFixed(1)}ms, '
+            '${rawBatches.single.length} hits (mirror build '
+            '${buildSw.elapsedMilliseconds}ms, one time)');
+      }
+      final rawP95 = _p95Us(rawScans) / 1000.0;
+      final cachedP95 = _p95Us(cachedScans) / 1000.0;
+      final fullCorpusFactor = 36390 / size.rows;
+      debugPrint('[HR13_MEASURE] p95 cached = ${cachedP95.toStringAsFixed(1)}ms'
+          ' (bound ${_scanBoundMs}ms); p95 folding = '
+          '${rawP95.toStringAsFixed(1)}ms; extrapolated to all 36,390 shipped '
+          'rows: cached ~${(cachedP95 * fullCorpusFactor).toStringAsFixed(0)}ms '
+          'vs folding '
+          '~${(rawP95 * fullCorpusFactor).toStringAsFixed(0)}ms per keystroke');
+
+      expect(cachedP95, lessThan(_scanBoundMs),
+          reason: 'the keystroke path on real text of ${size.rows} rows (mean '
+              '$perRow searched chars per row) must stay under the brief\'s '
+              'bound: ${cachedP95.toStringAsFixed(0)} ms measured. The '
+              'fold-per-scan shape measured ${rawP95.toStringAsFixed(0)} ms for '
+              'the SAME rows and the SAME queries in the same test run, and '
+              'extrapolates to ~${(rawP95 * fullCorpusFactor).toStringAsFixed(0)} '
+              'ms per keystroke on the shipped corpus — the device waited 90 s '
+              'for a reply that never came because there was nothing to wait on '
+              'instead: that number is the bug, and the cache is what removes '
+              'it (the one-time ${buildSw.elapsedMilliseconds} ms build is paid '
+              'per book per boot, not per character typed).');
+      expect(rawP95, greaterThan(cachedP95 * 3),
+          reason: 'the ratio is the finding, and it must stay visible: if '
+              'folding and caching cost the same here, this file has stopped '
+              'measuring anything (a fixture that folds nothing, most likely).');
     });
 
-    /// The arithmetic of why the shipped benchmark could not see this, kept as
-    /// a witness so nobody re-derives the conclusion from short synthetic text.
-    test('the HR-1 synthetic fixture is lighter per row than reality — '
-        'measured', () {
+    /// THE HISTORY OF THE LIE, MEASURED. `hadith_pass_hr1_test`'s fixture HAS
+    /// BEEN REBUILT on real-length text by this pass, so the 131-char row below
+    /// is the shape the OLD generator produced, restated here because that is
+    /// the number the report quotes when it explains why CI said 58 ms. The
+    /// guard that the fixture stays realistic lives in
+    /// `hadith_pass_hr1_test.dart` itself (it owns the generator).
+    test('the fixture HR-1 shipped with was 13x lighter per row than reality',
+        () {
       final real = _measureCorpus(_realCorpus(rows: 400));
       final realPerRow = real.chars / real.rows;
       // The exact generator `hadith_pass_hr1_test` uses (that file's own copy
@@ -304,7 +348,7 @@ void main() {
       expect(realPerRow / syntheticPerRow, greaterThan(3.0),
           reason: 'the benchmark that concluded "no indexed pre-normalisation '
               'pass is indicated" scanned rows $realPerRow / $syntheticPerRow '
-              'times shorter than this. Fold cost scales with text length, so '
+              'times shorter than reality. Fold cost scales with text length, so '
               'its timing was off by the same factor and more (the fold is '
               'also quadratic in length inside SearchNormalizer.append). If '
               'this ratio ever drops, the benchmark has gone short-text again '
@@ -348,6 +392,88 @@ void main() {
               'settle-time cache is not a fix, it is a delay, and the phone '
               'pays the same $ms ms before the first result can exist. This '
               'bound is a stopwatch, so its red is a measurement.');
+    });
+
+    /// THE DIFFERENTIAL: the rewritten `_foldChar` (rune-keyed table, range
+    /// test instead of a RegExp, ASCII arithmetic) must produce the SAME bytes
+    /// the pre-HR-1.3 one produced, because it is also what Quran search and the
+    /// highlight mapping run through. The legacy implementation is restated
+    /// HERE — a copy of the old rule, string-keyed and regex-checked — and
+    /// compared against real corpus text plus every adversarial shape the
+    /// guard has to keep: leading, trailing and doubled spaces, tab, newline,
+    /// carriage return, form feed, tashkeel runs, tatweel, hamza carriers, the
+    /// dotted capital I (whose lowercase is TWO units), and a lone surrogate.
+    test('the faster fold is the SAME fold — byte-for-byte, legacy rule vs new',
+        () {
+      const legacyTable = <String, String>{
+        '\u0623': '\u0627',
+        '\u0625': '\u0627',
+        '\u0622': '\u0627',
+        '\u0671': '\u0627',
+        '\u0649': '\u064a',
+        '\u0626': '\u064a',
+        '\u0624': '\u0648',
+        '\u0629': '\u0647',
+        '\u06a9': '\u0643',
+      };
+      final legacyInert = RegExp(
+          '[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]');
+      String legacyFold(String source) {
+        final buf = StringBuffer();
+        void append(String ch) {
+          if (ch == ' ') {
+            if (buf.isEmpty) return;
+            final asString = buf.toString();
+            final last = asString.codeUnitAt(asString.length - 1);
+            if (last == 0x20 || last == 0x09 || last == 0x0A) return;
+          }
+          buf.write(ch);
+        }
+
+        for (var i = 0; i < source.length; i++) {
+          final rune = source.codeUnitAt(i);
+          if (rune == 0x09 || rune == 0x0A || rune == 0x0D || rune == 0x20) {
+            append(' ');
+            continue;
+          }
+          final ch = String.fromCharCode(rune);
+          if (legacyInert.hasMatch(ch)) continue;
+          append((legacyTable[ch] ?? ch).toLowerCase());
+        }
+        var out = buf.toString();
+        if (out.endsWith(' ')) out = out.substring(0, out.length - 1);
+        return out;
+      }
+
+      const adversarial = [
+        '', ' ', '  ', ' a ', 'A  B', '\t', '\n', '\r\n', 'a\tb',
+        'form\u000Cfeed', '\u064E', '\u064E\u0651\u0652',
+        '\u0627\u0640\u0640\u0628', '\u0623\u064E\u062E',
+        '\u0629\u0645\u0631\u0628\u0648\u0637',
+        '\u06a9\u0644', ' \u0644 \u0671 ', 'Istanbul \u0627\u064a',
+        'AL\u0130ME', '\u0130', '\u0131', '\u00C9\u00E9', 'a\uD83D',
+        '\uD83D\uDE00', 'QIBRA\u0627 AI \u0644\u0644\u0647',
+      ];
+      final real = [
+        for (final list in _allRealCorpus().values)
+          for (final h in list.take(300)) h.textEnglish,
+      ];
+      for (final text in [...adversarial, ...real]) {
+        expect(SearchNormalizer.foldText(text), equals(legacyFold(text)),
+            reason: 'the rewritten fold disagrees with the rule it replaced on '
+                '${text.length > 60 ? '${text.substring(0, 60)}\u2026' : text} '
+                '— the fold is shared with Quran search and with highlight '
+                'mapping, so a byte of drift is a user-visible change');
+        // And the two entry points must still agree with each other, because
+        // the mirror caches `foldText` while highlights come from `fold`.
+        expect(SearchNormalizer.fold(text).folded,
+            equals(SearchNormalizer.foldText(text)),
+            reason: 'fold(source).folded != foldText(source): the cached mirror '
+                'and the highlight map would be describing different strings');
+      }
+      debugPrint('[HR13_FOLD] differential: ${adversarial.length + real.length} '
+          'inputs (26 adversarial shapes + ${real.length} real rows) fold '
+          'identically under the legacy rule and the rune-keyed one');
     });
 
     test('fold time grows with the text, not with its square', () {

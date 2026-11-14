@@ -716,6 +716,27 @@ void main() {
               h.textUrdu.length + h.chapterName.length;
         }
       }
+      // HR-1.3's anti-blindness pin, and it lives HERE because this file owns
+      // the generator: the fixture must stay as heavy as the corpus it stands
+      // in for. The shipped bundle measures 423 chars of english text per row
+      // (measured over all 36,390), so a generator whose mean drops under 350
+      // has gone back to being a toy — and every timing in this file becomes
+      // fiction again. That is exactly how HR-1 came to conclude "no indexed
+      // pre-normalisation pass is indicated" from 58 ms scans of 145-char rows.
+      final probe =
+          (_decode(_syntheticBook(1, 60))!['hadiths'] as List)
+              .cast<Map<String, dynamic>>();
+      final probeMean = probe.fold<int>(
+              0, (a, h) => a + (h['text'] as String).length) /
+          probe.length;
+      debugPrint('[HR1_BENCH] fixture weight: $probeMean english chars/row '
+          '(the shipped bundle measures 423) — the timings below are only '
+          'evidence while the two are the same order of magnitude');
+      expect(probeMean, greaterThan(350.0),
+          reason: 'the benchmark corpus went light again ($probeMean chars of '
+              'english per row). Fold cost scales with text length, so a '
+              'short-text benchmark is the gate that lied once already.');
+
       final ledgerRows =
           corpus.values.fold<int>(0, (a, b) => a + b.length);
       debugPrint('[HR1_BENCH] ledger corpus weight: $ledgerRows rows, '

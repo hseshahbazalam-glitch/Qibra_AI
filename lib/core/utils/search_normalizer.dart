@@ -16,30 +16,54 @@
 /// Folding table applied after diacritics removal. Maps orthographic
 /// variants onto a single canonical letter (standard Arabic search
 /// folding — conservative, no meaning changes).
-const Map<String, String> _arabicFold = {
-  'أ': 'ا',
-  'إ': 'ا',
-  'آ': 'ا',
-  'ٱ': 'ا',
-  'ى': 'ي',
-  'ئ': 'ي',
-  'ؤ': 'و',
-  'ة': 'ه',
-  'ک': 'ك',
+///
+/// KEYED BY UTF-16 UNIT, not by `String`, and every key is one BMP code unit
+/// (the keys and their values are pinned against the pre-HR-1.3 rule by the
+/// differential test in
+/// test/features/hadith/hadith_hotfix_hr13_fold_cache_test.dart):
+/// the fold loop runs per code unit, and building a `String` in order to hash a
+/// 9-entry table is a large share of what a fold costs. HOTFIX HR-1.3 measured
+/// the per-char version at 128.5 ns/char on a CI runner, x 15.4 M english chars
+/// of shipped corpus = 1,979 ms for ONE pre-pass over one field — and the
+/// pre-pass is now paid at every boot, so its constant is a shipping number.
+const Map<int, String> _arabicFoldByRune = {
+  0x0623: '\u0627', // أ -> ا
+  0x0625: '\u0627', // إ -> ا
+  0x0622: '\u0627', // آ -> ا
+  0x0671: '\u0627', // ٱ -> ا
+  0x0649: '\u064a', // ى -> ي
+  0x0626: '\u064a', // ئ -> ي
+  0x0624: '\u0648', // ؤ -> و
+  0x0629: '\u0647', // ة -> ه
+  0x06a9: '\u0643', // ک -> ك
 };
 
 // Tashkeel, maddah signs, small stop marks and tatweel removed wholesale.
-final RegExp _arabicInert = RegExp(
-  '[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]',
-);
+// Written as the ranges the old `RegExp('[\u0610-\u061A\u064B-\u065F'
+// '\u0670\u06D6-\u06ED\u0640]')` matched, in the same order: a range test
+// on the code unit is the same predicate, without the regex engine per
+// character (see the note on [_arabicFoldByRune]).
+bool _isInertRune(int rune) =>
+    (rune >= 0x0610 && rune <= 0x061A) ||
+    (rune >= 0x064B && rune <= 0x065F) ||
+    rune == 0x0670 ||
+    (rune >= 0x06D6 && rune <= 0x06ED) ||
+    rune == 0x0640;
 
 /// Normalizes a single character: folds a known variant, or drops an inert
 /// diacritic (returns empty string for drops).
 String _foldChar(int rune) {
-  final ch = String.fromCharCode(rune);
-  if (_arabicInert.hasMatch(ch)) return '';
-  return _arabicFold[ch] ?? ch;
+  if (_isInertRune(rune)) return '';
+  return _arabicFoldByRune[rune] ?? String.fromCharCode(rune);
 }
+
+/// The ASCII case of the fold, decided without a map, a `String.fromCharCode`
+/// or a `toLowerCase()` call: an ASCII letter folds to its lowercase and every
+/// other ASCII unit folds to itself (the table above has no ASCII keys and the
+/// inert ranges are all >= 0x0610). That is most of the western half of the
+/// corpus — 15.4 M of the shipped 52.3 M searched chars — and it is the reason
+/// the settle-time pre-pass is a boot cost instead of a boot freeze.
+bool _isAsciiUpper(int rune) => rune >= 0x41 && rune <= 0x5A;
 
 /// Result of folding a source string: the folded text plus a per-position
 /// map back into the ORIGINAL string (folded position i was produced by
@@ -107,6 +131,14 @@ abstract final class SearchNormalizer {
         append(' ', i);
         continue;
       }
+      if (rune < 0x0080) {
+        // See [_isAsciiUpper]: the ASCII answer is arithmetic, not a lookup.
+        final unit = _isAsciiUpper(rune) ? rune + 32 : rune;
+        foldedBuf.writeCharCode(unit);
+        lastUnit = unit;
+        starts.add(i);
+        continue;
+      }
       final f = _foldChar(rune);
       if (f.isEmpty) continue;
       append(f.toLowerCase(), i);
@@ -154,6 +186,13 @@ abstract final class SearchNormalizer {
       final rune = source.codeUnitAt(i);
       if (rune == 0x20 || rune == 0x09 || rune == 0x0A || rune == 0x0D) {
         append(' ');
+        continue;
+      }
+      if (rune < 0x0080) {
+        // Same ASCII answer as `fold`, same reason (see [_isAsciiUpper]).
+        final unit = _isAsciiUpper(rune) ? rune + 32 : rune;
+        buf.writeCharCode(unit);
+        lastUnit = unit;
         continue;
       }
       final f = _foldChar(rune);
