@@ -533,7 +533,7 @@ the conclusion those numbers were used to draw.
 
 | | |
 |---|---|
-| State | **LANDED on `arena/01a05b41-qibra-ai` at `0118c25`; CI GREEN**: `flutter analyze` 0 errors / 0 warnings (infos sanctioned), **`🎉 704 tests passed.`** with 0 failed, static battery `hard findings: 0 · G2 advisories: 319 · L2 alpha advisories: 83` → `ALL GATES PASS (static; device compile remains the authority)`. Job wall-clock 2 m 46 s |
+| State | **LANDED on `arena/01a05b41-qibra-ai` at `0b3ec65`; CI GREEN** (run 43591484158): `flutter analyze` 0 errors / 0 warnings (infos sanctioned), **`🎉 704 tests passed.`** with 0 failed, static battery `hard findings: 0 · G2 advisories: 319 · L2 alpha advisories: 83` → `ALL GATES PASS (static; device compile remains the authority)`. Job wall-clock 2 m 29 s. The green run before it was `0118c25`, also `704 tests passed.` — the two rounds between them repaired **gates of this family**, not the fix (see the last table) |
 | `main` | still under **MERGE HOLD** (the owner's standing instruction) |
 | Files in `lib/` | 3, all in the search path: `core/utils/search_normalizer.dart` (the fold's constant + a `foldText` that needs no index map), `features/hadith/data/services/hadith_database_service.dart` (the mirror + the mirrored scan + the retained delegate), `features/hadith/data/services/hadith_search_worker.dart` (build the mirror at settle, scan through it, plus one new *counter* seam `supersededMisses` — no behaviour change). **No new lib file, no new subsystem, no dependency, `assets/` untouched** |
 | Tests | new file `test/features/hadith/hadith_hotfix_hr13_fold_cache_test.dart` (10). Two existing files changed, by name and with justification below: `hadith_pass_hr1_test.dart` (its benchmark's fixture only — no assertion weakened) and `hadith_hotfix_hr11_worker_liveness_test.dart` (one assertion of **mine** from HR-1.1 that was unsound) |
@@ -612,56 +612,64 @@ along; the device is the authority, and CI's fixture was not.
    is two UTF-16 units, a lone surrogate) plus 2,100 real corpus rows —
    `[HR13_FOLD] differential: 2125 inputs … fold identically`.
 
-## Measured, verbatim (CI run 43590301660, job 132433424400, at `0118c25`)
+## Measured, verbatim (CI run 43591484158, job 132436954380, at the landed tip `0b3ec65`)
 
 ```
 [HR13_MEASURE] rows=1200 searchedChars=1908207 meanCharsPerRow=1590 fields=4
-[HR13_MEASURE] mirror built for 1200 real rows in 203ms (169.9us/row) — one time, at settle, off-main
-[HR13_MEASURE] "namaz ka tarika" over 1200 real rows: fold-per-scan 184.5ms vs cached 10.6ms, 0 hits (mirror build 203ms, one time)
-[HR13_MEASURE] "patience"  … fold-per-scan 177.2ms vs cached 11.3ms, 1 hits
-[HR13_MEASURE] "prayer"    … fold-per-scan 161.4ms vs cached  3.8ms, 50 hits
-[HR13_MEASURE] "masjid"    … fold-per-scan 144.5ms vs cached  9.8ms, 9 hits
-[HR13_MEASURE] p95 cached = 11.3ms (bound 500.0ms); p95 folding = 184.5ms; extrapolated to all 36,390 shipped rows: cached ~343ms vs folding ~5595ms per keystroke
+[HR13_MEASURE] mirror built for 1200 real rows in 121ms (101.6us/row) — one time, at settle, off-main
+[HR13_MEASURE] "namaz ka tarika" over 1200 real rows: fold-per-scan 111.3ms vs cached 10.6ms, 0 hits (mirror build 121ms, one time)
+[HR13_MEASURE] "patience"  … fold-per-scan 110.5ms vs cached  7.5ms,  1 hit
+[HR13_MEASURE] "prayer"    … fold-per-scan 120.4ms vs cached  4.9ms, 50 hits
+[HR13_MEASURE] "masjid"    … fold-per-scan 163.4ms vs cached  8.5ms,  9 hits
+[HR13_MEASURE] p95 cached = 10.6ms (bound 500.0ms); p95 folding = 163.4ms; extrapolated to all 36,390 shipped rows: cached ~320ms vs folding ~4956ms per keystroke
 [HR13_MEASURE] real mean searched chars/row = 1716; HR-1 synthetic english/row = 131; ratio = 13.1x
-[HR13_FOLD] one-time fold pass, english field of all 7 books: rows=36390 chars=15400840 foldedChars=15400840 cost=519ms (33.7ns/char)
-[HR13_FOLD] fold(20159 chars)=0.64ms fold(160302 chars)=5.14ms growth=8.0x for 8.0x more text
+[HR13_FOLD] one-time fold pass, english field of all 7 books: rows=36390 chars=15400840 foldedChars=15400840 cost=423ms (27.5ns/char)
+[HR13_FOLD] fold(20159 chars)=0.70ms fold(160302 chars)=4.26ms growth=6.1x for 8.0x more text
 [HR13_FOLD] differential: 2125 inputs (26 adversarial shapes + 2100 real rows) fold identically under the legacy rule and the rune-keyed one
 [HR13_PARITY] 243 hits compared across 12 single queries + 1 burst, over 1400 real rows (english + arabic + urdu + chapter + a populated Phase-B field); 4 queries hit nothing on BOTH sides, which is the empty-pattern case
-[HR13_RAM] 1400 real rows / 2261934 searched chars = 4.31MB of text; mirror = 1973863 chars = 87.3% of that, plus 1400 row objects; build 148183us = 105.8us/row; RSS +15188KB (the mirror's own chars are 3855KB)
+[HR13_RAM] (run 43590301660, the run that first executed it) 1400 real rows / 2261934 searched chars = 4.31MB of text; mirror = 1973863 chars = 87.3% of that, plus 1400 row objects; build 148183us = 105.8us/row; RSS +15188KB (the mirror's own chars are 3855KB)
 [HR1_BENCH] fixture weight: 620.2166666666667 english chars/row (the shipped bundle measures 423) — the timings below are only evidence while the two are the same order of magnitude
 [HR1_BENCH] ledger corpus weight: 20020 rows, 13168496 searched chars, 658 per row (the shipped bundle measures 1,436)
-[HR1_BENCH] settle (assemble + fold) over 20020 real-length rows took 1995ms — one time, off-main
-[HR1_BENCH] fixture weight pinned in the benchmark's own file: [HR1_BENCH] fixture weight … > 350 english chars/row
-[HADITH_SEARCH] corpus folded at settle: 1 books new / 7 mirrored, 20020 rows, 240ms (12us/row), 32662575 folded chars ~62.3MB held
-[HADITH_SEARCH] scan 1 answered in 24.5ms over 20020 corpus rows (budget 90s)   ← then 9.6 / 21.1 / 11.6 / 13.6 / 10.5 / 10.2 / 16.9 / 16.4 / 11.3 / 10.3 / 10.4 / 10.1 / 10.2 / 9.6 ms (budget 45s)
+[HR1_BENCH] settle (assemble + fold) over 20020 real-length rows took 1465ms — one time, off-main
+[HADITH_SEARCH] corpus folded at settle: 1 books new / 7 mirrored, 20020 rows, 198ms (9us/row), 32662575 folded chars ~62.3MB held
+[HADITH_SEARCH] scan 1 answered in 19.4ms over 20020 corpus rows (budget 90s)   ← then 10.0 / 25.8 / 18.8 / 10.8 / 9.6 / 9.6 / 10.0 / 9.4 / 9.9 / 9.7 / 9.9 / 9.6 / 9.5 / 8.8 ms (budget 45s)
+[HADITH_SEARCH] scan N answered in 0.3-0.4ms over 300 corpus rows   ← the HR-1 fixture, i.e. the shape the old gate was happy with: 0.4-0.7ms per keystroke, BEFORE the fix (this is the number that hid the bug)
 ```
 
 Per-keystroke, on the same runner and the same code path the app runs:
 
 | shape | before HR-1.3 | after HR-1.3 |
 |---|---|---|
-| one query, 1,200 **real** rows, p95 | 728.3 ms (run 43588097068, `e1b87f4`) | **11.3 ms** |
-| the worker's own scan line, 20,020 real-length rows | 31.2 – 115.6 ms (run 43572389970-era fixture, `folding` per query) | **9.6 – 24.5 ms** |
-| one-time fold of the shipped english corpus | 1,979 ms @ 128.5 ns/char (`e1b87f4`, after the guard fix) | **519 ms @ 33.7 ns/char** |
-| settle (assemble + fold), 20,020 real-length rows | 6,304 ms (`e1b87f4`) | **1,995 ms** |
+| one query, 1,200 **real** rows, p95 of the CACHED scan | n/a — the cached scan did not exist; the same 1,200 rows on the folding path measured 728.3 ms (run 43588097068) against the brief's 500 ms | **10.6 ms** (bound 500 ms) |
+| one query, 1,200 real rows, p95 of the FOLDING path, same run | **163.4 ms** | 163.4 ms (deliberately unchanged: it is the parity reference, and the gate now demands it stay >3× worse) |
+| the worker's own scan line, 20,020 real-length rows | 31.2 – 115.6 ms (per query, folding, lighter fixture) | **8.8 – 25.8 ms** |
+| one-time fold of the shipped english corpus | 1,979 ms @ 128.5 ns/char (`e1b87f4`, guard already linear) | **423 ms @ 27.5 ns/char** |
+| settle (assemble + fold), 20,020 real-length rows | 6,304 ms (`e1b87f4`) | **1,465 ms** |
+| extrapolated per keystroke over all 36,390 shipped rows | **~4,956 ms** (this is the device red: 5 s of main-thread-free but wall-clock-bound work per character typed, in JIT) | **~320 ms** |
 
 ## Cost #1, disclosed: the one-time pass
 
 The fold is now paid **once per row per book, at settle, inside the worker**. Measured
-on the real bundle: 15.4 M english chars in 519 ms (33.7 ns/char), and the mirrored
-build in the gate is 169.9 µs/row for 4 fields of real-length text. The worker's own
-line for a 20,020-row corpus is `240ms (12us/row)` per book, and the HR-1 benchmark's
-`settle (assemble + fold) … 1995ms — one time, off-main` covers the whole 7-book
-hand-off + assemble + fold in CI's JIT.
+on the real bundle: 15.4 M english chars in 423 ms (27.5 ns/char — and across the
+three runs that measured it: 1,979 ms @ 128.5 ns/char before this round's fold work,
+742 ms @ 48.2, then 519 ms @ 33.7 and 423 ms @ 27.5, so quote the *trend and the
+spread*, not one number as if it were a constant). The mirrored build in the gate is
+101.6 µs/row for 4 fields of real-length text (169.9 µs/row in the previous run), the
+worker's own line for a whole 20,020-row corpus is `198ms (9us/row)`, and the HR-1
+benchmark's `settle (assemble + fold) … 1465ms — one time, off-main` covers the whole
+7-book hand-off + assemble + fold in CI's JIT.
 
 Per char the shipped corpus is 1.8× heavier per row than that fixture (1,436 against
 658 searched chars), so the honest extrapolation for a cold boot on the full 7 books,
 in debug JIT, is **low single-digit seconds of *isolate* time**, off the main thread
 and behind the boot, never on a keystroke. That is the price of the fix and the owner
 should read it as a price: a debug build now has one more bounded thing to do before
-the first query can be answered from a settled corpus. A PROFILE build is where the
-number that matters will come from (the same 20,020-row scan is 12–27 ms in JIT; the
-device will show its own).
+the first query can be answered from a settled corpus. What it displaces is far
+larger and also measured: the same gate extrapolates the *old* shape to
+**~4,956 ms of folding per keystroke** on the full 36,390-row corpus, against ~320 ms
+for the cached one — a 15× cut in the thing the reader waits on, paid once at boot. A
+PROFILE build is where the number that matters will come from (the same 20,020-row
+scan is 8.8–25.8 ms in JIT; the device will show its own).
 
 ## Cost #2, disclosed: the RAM
 
@@ -684,6 +692,9 @@ arithmetic and the caveat:
   on main (the HR-1 rule, still pinned by name: `mainCopy == null` after boot), and
   it is released when the isolate dies — a retirement and revival pays the build
   again, once, behind the 60 s cooldown.
+* Both are **worker-isolate** numbers, and the mirror is per book: a book's mirror is
+  dropped and rebuilt when its rows are replaced, never carried alongside a stale row
+  set (a length mismatch falls back to folding that book inline).
 * The process-level measurement is **noisy and must not be quoted as the cost**:
   `RSS +15188KB` for 1,400 rows in this run, against `+7156KB` and `+8240KB` for the
   same test in earlier runs. That delta includes the transient garbage of building the
@@ -703,7 +714,21 @@ this class of change silently differs. A ratio pin then keeps the gate honest ab
 what it is comparing: the raw path must stay **>3× worse** than the cached one, or the
 cache has quietly stopped doing anything.
 
-## The two gates that were wrong before the code was
+## Rounds, every one, with its run
+
+| commit | CI run | outcome, and what the round actually proved |
+|---|---|---|
+| `73cdadd` | 43585154315 | **analyze RED, both findings in my own new test file** (a test name that interpolated a `const` by the wrong name, and a `final` initialised from a literal string — `prefer_const_declarations`). No `lib/` change, no existing gate moved. Lesson recorded for the file: in a new test file every `$x` in a description must be a real identifier |
+| `f1546a8` | 43585606786 | **GREEN, 703/0 — and the green was the problem.** The fix was in and the p95-500 ms gate passed, because the gate was timing 1,200 rows on a path it should not have been timing at all. A pass that a 30×-bigger corpus would fail is not proof; this is the round that produced the "representative fixture" rule for this hotfix, and it is reported as *insufficient evidence*, not as a red |
+| `54f5de4` | 43586298265 | **RED, `695 passed, 6 failed`** — the designed reds: the source pins (no corpus `fold` in the mirrored scan, the worker builds the mirror at settle and not on the keystroke path, the raw scan stays a delegate), the fold-linearity pin, and the fixture-weight pin. `git diff --stat` against the previous commit touched **only** the new test file, so no existing gate moved red — the 6 are 6 additions |
+| `b56ad4f` | 43587631203 | **analyze RED on one warning I introduced**: `unnecessary_non_null_assertion` at `hadith_database_service.dart:314` (my `mirror!`). Fixed by making the null test the promotion (a nullable local) rather than by silencing the lint — and that shape became the length-mismatch guard |
+| `e1b87f4` | 43588097068 | **`702 passed, 1 failed`** — the mis-targeted cost gate (round 3's row below). Everything fix-side in that run was green, including the one-time fold at 1,979 ms against a 2,000 ms bound, which is itself a finding about the bound |
+| `ff50faa` | 43588882619 | **`703 passed, 1 failed`** — gate retargeted, the fold's constant cut 128.5 → 48.2 ns/char with the differential pin added, and the one red became HR-1.1's burst floor (round 4's row below) |
+| `0118c25` | 43590301660 | **GREEN, `🎉 704 tests passed.`** — burst test reads the ledger mid-flight; fold ceiling moved to 4,000 ms with its doc saying what it is and is not |
+| `5c38afe` | 43590955179 | **`703 passed, 1 failed`** on a commit that only touched this file — HR-1.1's serial retirement test lost the race to a 0.2 ms scan (round 5's row below). Reported rather than re-run until it happened to pass |
+| `0b3ec65` | 43591484158 | **GREEN, `🎉 704 tests passed.`, analyze 0/0, battery `hard 0 · G2 319 · L2 83` — the landed state** |
+
+## The three gates that were wrong before the code was
 
 Both failures were mine, and both are recorded because a green run with a broken gate
 is worse than a red run:
@@ -711,6 +736,7 @@ is worse than a red run:
 | | |
 |---|---|
 | round 2, run **43588097068** (`e1b87f4`) — `702 passed, 1 failed` | The 500 ms gate called `scanHadithCorpus`, which HR-1 pins and which this fix *deliberately* keeps folding as the parity reference. It measured the shape being replaced, not the shape the app runs, and it stayed red for the right reason (728.3 ms of folding). Retargeted: one run now measures both paths side by side (`fold-per-scan … vs cached …`), bounds the **cached** one, and prints the raw one as a disclosure. `scanHadithCorpus` is never a perf gate's subject again |
+| round 4, run **43590955179** (`5c38afe`, a MARKDOWN-only commit) — `703 passed, 1 failed` | **The fix's own success broke a gate.** `hadith_hotfix_hr11_worker_liveness_test.dart:246` demanded `expect(second, isNull)` on a 1 µs budget, and the log says why it was answered anyway: `scan 2 answered in 0.2ms over 60 corpus rows (budget 0s)`. HR-1.3 made the scan ~5× faster than the round that armed this test (0.9 ms → 0.2 ms), so a settled 60-row worker now replies faster than a runner can service a µs timer. Shrinking the budget is not an option — there is nothing below 1 µs — so the assumption went instead: the test now hands the worker a book and deliberately does **not** await settle, so the isolate is ~400 ms deep in the assemble + mirror build measured in that very log line (`corpus folded at settle: 1 books new / 1 mirrored, 2860 rows, 423ms`) — 400,000× the budget, and the shape is the honest one (a query that arrives behind the boot backlog is what HR-1.1 exists for). No assertion was deleted or loosened; the group gained `supersededMisses == 0`, because in a **serial** test no query may be written off as superseded. This is the third timing repair in that file, and the standing rule is on record: a fourth would be a STOP-AND-REPORT, not another re-arm |
 | round 3, run **43588882619** (`ff50faa`) — `703 passed, 1 failed` | `hadith_hotfix_hr11_worker_liveness_test.dart:508`, an assertion **I added in HR-1.1 round 12**: `expect(worker.timeouts, greaterThanOrEqualTo(1))`, "so a fast runner cannot make this test VACUOUS". It was unsound, not flaky: a superseded query's lateness is *discarded* by design, a query answered inside its µs budget produces neither a discard nor a count, and a late reply refunds its own miss. CI's log shows the ledger closing correctly (`query 1 … discarded`, `query 2 … discarded`, `reply 1/4 missed its budget`, `inFlight → 0`) while my floor demanded `≥ 1`. Replaced with a **synchronous** reading of the ledger: the burst is asserted to be three armed waits *while it is in flight* (`inFlight == 3`, `pendingReplies hasLength 3`), then zero, then `timeouts + supersededMisses ≤ 3` and `timeouts ≤ 1`, no retirement, still live. Non-vacuity without a stopwatch: the pile-up HR-1 shipped with is counted at the moment it would exist. `supersededMisses` is the one field added to `HadithSearchWorker` for this — a counter the discard branch already logged, now countable, never written by app code |
 
 And the fold-cost ceiling itself: it carried 2,000 ms while the pre-optimisation fold
@@ -732,10 +758,15 @@ must cost 8.0× the time, bound at 12) plus the ns/char disclosure.
   the fixture is still 2.2× lighter per row than the shipped bundle (658 against
   1,436 searched chars), so `1,995 ms` of settle and `9.6-24.5 ms` per scan are
   same-order-of-magnitude evidence, not device numbers.**
-* `test/features/hadith/hadith_hotfix_hr11_worker_liveness_test.dart` — one test, the
-  burst/ledger one, for the reason in the table above (its `≥ 1` floor demanded an
-  outcome the code correctly refuses to produce). The two-miss retirement test in the
-  same file is untouched and green.
+* `test/features/hadith/hadith_hotfix_hr11_worker_liveness_test.dart` — **two** tests,
+  both mine from HR-1.1, both repaired because HR-1.3 changed what "slow" means: the
+  burst/ledger one (its `timeouts ≥ 1` floor demanded an outcome the code correctly
+  refuses to produce — now the ledger is read while the burst is in flight, which
+  needs no stopwatch) and the serial two-miss retirement one (round 4's row above).
+  The file's other 11 tests are byte-identical, and the assertions in the two changed
+  tests were **replaced with stronger ones**, not weakened: `inFlight == 3` before the
+  await, `supersededMisses == 0` after a serial pair, and a `timeouts +
+  supersededMisses ≤ 3` no-double-count bound.
 
 ## Holds, checked
 
