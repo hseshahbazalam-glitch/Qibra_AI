@@ -201,18 +201,29 @@ void main() {
   group('HR-1.1 a slow answer is a miss, not an execution', () {
     test('TWO misses with no reply in between is the retirement, and one is not',
         () async {
-      // THE MISS MUST BE ARMED AGAINST THE WORK, NOT AGAINST A SCHEDULING GUESS.
-      // The first version of this test asked for 1 ms and claimed no isolate can
-      // answer a round trip that fast. CI run 43574889342 disproved the claim on
-      // the same code that had passed twice before it: the runner scanned the
-      // 60-row book in 0.9 ms and the reply BEAT the timer, so query 2 answered,
-      // the two-miss counter never reached 2, and `expect(second, isNull)` got
-      // three real hits. That is not the code misbehaving — a worker that answers,
-      // even late-ish, is exactly what HR-1.1 wants to keep alive; the test was
-      // assuming a speed. 1 µs is ~500× under the fastest scan ever measured on
-      // this runner, so the timer wins — and the port is closed when the budget
-      // expires, so a late reply cannot arrive inside the SAME wait and refund
-      // the miss (`_refundLateReply`): the count survives to be asserted.
+      // THE MISS MUST BE ARMED AGAINST THE WORK, NOT AGAINST A SCHEDULING GUESS —
+      // armed here against a BACKLOG. This is the third time this file has had to
+      // learn that, and the second time it was HR-1.3's own success that taught
+      // it. Run 43574889342: a 1 ms budget lost to a 0.9 ms scan. Run
+      // 43590955179: a 1 µs budget lost to a 0.2 ms scan, right here at
+      // `expect(second, isNull)` — the reply BEAT the
+      // timer, so query 2 answered and the two-miss counter never reached 2. The
+      // second number is 0.2 ms because HR-1.3 did its job: the scan folds nothing
+      // any more, so a settled 60-row worker answers faster than a runner can
+      // service a µs timer. A test that wants a miss must not depend on the scan
+      // being slow.
+      //
+      // What it depends on instead: an isolate that is BUSY. The book is handed
+      // over and deliberately NOT settled — `noteBook` queues the payload and the
+      // flush behind each other, and that assemble + mirror build over 2,860 rows
+      // is measured at ~400 ms of isolate work (`corpus folded at settle: 1 books
+      // new / 1 mirrored, 2860 rows, 404ms` in that same run): 400,000× the budget.
+      // No reply can be early enough to rescue the worker and no timer late enough
+      // to matter — and the shape under test is the one HR-1.1 exists for: a query
+      // that arrives behind the boot backlog. (The tail of that hand-off is
+      // deliberately left unsettled: the retirement kills the isolate, `noteBook`'s
+      // ack wait is not awaited by anything here, and an un-answered ack is exactly
+      // the SLOW-is-not-DEAD case this group is about — see its source pin.)
       final worker = _worker(
         budget: const Duration(microseconds: 1),
         revive: const Duration(seconds: 600),
@@ -221,15 +232,15 @@ void main() {
       await worker.noteBook(
           slug: 'bukhari',
           name: 'Sahih al-Bukhari',
-          rawEnglish: _syntheticBook(1, 60));
-      await worker.whenSettled();
+          rawEnglish: _syntheticBook(1, 2860));
       expect(worker.isLive, isTrue, reason: 'spawn refused in this environment '
           '— every assertion below would be vacuous (same caveat '
           'hadith_pass_hr1_test states out loud)');
 
       final first = await worker.search(['namaz ka tarika'], maxPerQuery: 3);
       expect(first, isNull,
-          reason: 'the budget was 1 ms; the answer is empty. `firstReplyBudget` '
+          reason: 'the budget was 1 µs and the worker was ~400 ms deep in a '
+              'hand-off, so the answer is empty. `firstReplyBudget` '
               'is deliberately the INJECTED one here — a test that asks for a '
               'deterministic miss must get it on the first query too, or the '
               'cold-start patience hides the whole state machine (this exact '
@@ -244,6 +255,11 @@ void main() {
 
       final second = await worker.search(['patience'], maxPerQuery: 3);
       expect(second, isNull);
+      expect(worker.supersededMisses, 0,
+          reason: 'and both misses were COUNTED, not discarded: in a SERIAL test '
+              'no newer query overtakes an older one, so the newest-only rule '
+              'must not swallow either — if a discard shows up here, a serial '
+              'query was judged as though a burst had superseded it');
       expect(worker.retired, isTrue,
           reason: 'the SECOND consecutive miss retires it: a live worker that '
               'has not answered twice is not answering, and a search stream must '
