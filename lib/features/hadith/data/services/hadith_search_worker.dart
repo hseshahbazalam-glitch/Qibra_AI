@@ -159,9 +159,18 @@ class _HadithSearchReply {
     this.batches, {
     this.elapsedUs = 0,
     this.corpusRows = 0,
+    this.lateReply = false,
   });
 
   final bool superseded;
+
+  /// HR-1.1: set by MAIN on the copy it hands around, when this reply arrived
+  /// after its own budget had already expired. It changes nothing about the
+  /// answer (the reader still gets it) and everything about the bookkeeping: a
+  /// reply that landed is proof of life, so the counted miss is refunded. This
+  /// is the field that makes "answered after its budget" a NAME in the code and
+  /// not just a sentence in a report.
+  bool lateReply;
   final List<List<LocalSearchResult>> batches;
 
   /// Whole time the worker spent inside this scan, microseconds.
@@ -301,9 +310,14 @@ class HadithSearchWorker {
   /// because "the first query after boot gets a bigger budget" is a claim a
   /// test must be able to read, not just a comment that says it.
   Duration get currentReplyBudget =>
-      _everAnswered
-          ? effectiveReplyTimeout
-          : HadithSearchWorker.firstReplyTimeout;
+      _everAnswered ? effectiveReplyTimeout : firstReplyBudget;
+
+  /// The cold-start patience, override-aware: an injected `replyTimeout` REPLACES
+  /// both budgets, because a test that asks for a 1 ms miss must get one on the
+  /// first query too. With no injection the shipped `firstReplyTimeout` applies —
+  /// the number the device actually runs with.
+  Duration get firstReplyBudget =>
+      replyTimeoutOverride ?? HadithSearchWorker.firstReplyTimeout;
 
   int get effectiveRetireAfterTimeouts =>
       retireAfterTimeoutsOverride ?? HadithSearchWorker.retireAfterTimeouts;
@@ -581,6 +595,17 @@ class HadithSearchWorker {
   /// book is still queued in the worker's mailbox and will land; the reader's
   /// next query may simply be answered from a corpus that is one book short,
   /// which is exactly the boot behaviour HR-1 already shipped.
+  /// A reply that arrives AFTER its budget: the miss it cost is refunded, and
+  /// the answer is delivered. This is the other half of SLOW ≠ DEAD — HR-1 could
+  /// only see lateness as a timeout, never as a late ANSWER.
+  void _refundLateReply() {
+    if (_timeouts > 0) _timeouts--;
+    if (kDebugMode) {
+      debugPrint('[HADITH_SEARCH] reply answered after its budget — late is '
+          'not dead: the miss is refunded and the reader gets the results');
+    }
+  }
+
   void _noteLateHandoff(String what) {
     if (kDebugMode) {
       debugPrint('[HADITH_SEARCH] no ack for $what after '
@@ -693,6 +718,13 @@ class HadithSearchWorker {
     List<String> queries, {
     int maxPerQuery = 3,
   }) async {
+    // HR-1.1 requirement 2, in ONE line: the next search COMMIT is where a
+    // retired worker is revived, because `start()` is the single-flight,
+    // rate-limited door (`_reviveWindowOpen()` refuses a second attempt inside
+    // `reviveCooldown`, and it never runs a scan here as a fallback). The service
+    // still OWNS the re-hand of the corpus, so "revive" here means "get a live
+    // port back", never "answer from main's memory".
+    if (_toWorker == null || _retired) await start();
     final port = _toWorker;
     if (port == null || _retired || queries.isEmpty) return null;
     final id = ++_requestSeq;
@@ -752,6 +784,16 @@ class HadithSearchWorker {
         _noteMissedBudget('unrecognised reply to $id',
             newest: handoff.id >= _newestSentId);
         return null;
+      }
+      // SLOW ≠ DEAD, the last mile: if our own budget had already expired and
+      // this answer arrived anyway, the reply is LATE, not absent. Mark it on the
+      // reply (the name the disclosure and the test share), refund the miss it
+      // cost, and let the reader have the result — a reader who is shown the
+      // answer 46 s in is not a reader whose search is dead.
+      final late = handoff.done;
+      if (late) {
+        received.lateReply = true;
+        _refundLateReply();
       }
       handoff.markSuccess();
       _endSearchHandoff(handoff);

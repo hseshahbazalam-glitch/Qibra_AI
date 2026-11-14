@@ -198,7 +198,12 @@ void main() {
           'hadith_pass_hr1_test states out loud)');
 
       final first = await worker.search(['namaz ka tarika'], maxPerQuery: 3);
-      expect(first, isNull, reason: 'the budget was 1 ms; the answer is empty');
+      expect(first, isNull,
+          reason: 'the budget was 1 ms; the answer is empty. `firstReplyBudget` '
+              'is deliberately the INJECTED one here — a test that asks for a '
+              'deterministic miss must get it on the first query too, or the '
+              'cold-start patience hides the whole state machine (this exact '
+              'assertion was CI run 43571400962\'s first red, with 8.8 ms vs 90 s)');
       expect(worker.timeouts, lessThanOrEqualTo(1),
           reason: 'the miss must be COUNTED — HR-1.1 does not hide slowness, '
               'it stops mistaking it for death, so the counter is the disclosure');
@@ -305,7 +310,12 @@ void main() {
               'that is how a per-keystroke isolate storm would come back');
       expect(worker.retired, isTrue, reason: 'still retired, as above');
 
-      // After the cooldown: the next commit revives, and it ANSWERS.
+      // After the cooldown: the next COMMIT revives, and it ANSWERS. `search()`
+      // itself calls the rate-limited `start()` door, so a retired worker is not
+      // a permanent empty answer. The fresh isolate owns no corpus yet — the
+      // re-hand is the service's half (test 3, `rebuildSearchCorpus`) — so the
+      // honest expectation here is "a real reply, not a null from a dead flag",
+      // which is exactly what `isNotNull` means for this method.
       await Future<void>.delayed(const Duration(milliseconds: 140));
       expect(await worker.search(['patience'], maxPerQuery: 3), isNotNull,
           reason: 'THE POINT OF THE HOTFIX: search is never dead for a session. '
@@ -367,9 +377,16 @@ void main() {
       expect(rebuild.contains('await _loadBook('), isTrue,
           reason: 'it re-hands through the SAME per-book load the boot uses — '
               '21 reads and off-main decodes, no second implementation to drift');
-      expect(rebuild.contains('_bookData'), isFalse,
-          reason: 'it looks at slugs, never at rows: `_bookData.containsKey` '
-              'would already be a corpus walk on the caller\'s thread');
+      // Round 6 red, and the TEST was the wrong half: `_bookData.containsKey`
+      // (which the boot loader's own cache probe legitimately does — a slug
+      // lookup, O(1), no row touched) tripped a pin written as `contains('_bookData')`.
+      // The ban is on ROWS: an index read, a `.of(...)`, a value walk.
+      expect(rebuild.contains('_bookData['), isFalse,
+          reason: 'a re-hand that indexes `_bookData` is reading the corpus on '
+              'the caller\'s thread — the freeze, re-opened');
+      expect(rebuild.contains('_bookData.containsKey'), isTrue,
+          reason: 'the ONE form that is allowed: a slug-set probe, so a book '
+              'that was never loaded is not re-handed as an empty one');
       expect(rebuild.contains('Map<String, List<LocalHadith>>'), isFalse,
           reason: 'HR-1\'s ban, restated for the new code: a revival that '
               'copies the corpus on main is the freeze backdoor');
@@ -499,12 +516,28 @@ void main() {
           code.contains('SLOW is not DEAD, the worker stays live and '), isTrue,
           reason: 'the first line a reader of the device log needs: one missed '
               'budget is documented as what it is, in the app, not only here');
-      expect(
-          code.contains('answered after its budget') ||
-              code.contains('cannot be misread as a death'),
-          isTrue,
-          reason: 'and the late-reply path is named somewhere the next reader '
-              'will actually look');
+      // Round 6: the assertion I wrote here could never match — CI printed the
+      // real sentence, `reply answered after its budget — late is not dead`, and
+      // I had pinned `answered after its budget` CONTIGUOUSLY. Pin the two halves
+      // separately, plus the name of the method that does the refund, so the
+      // late-reply path is greppable in code and not only in a report.
+      expect(code.contains('reply answered after its budget'), isTrue,
+          reason: 'the log says, in the app, that the answer DID arrive');
+      expect(code.contains('late is not dead'), isTrue,
+          reason: 'and names the rule next to it');
+      expect(code.contains('void _refundLateReply()'), isTrue,
+          reason: 'the refund is a METHOD, so a later reader finds the '
+              'bookkeeping half of "late" without reading the report');
+      expect(code.contains('lateReply = true'), isTrue,
+          reason: 'and the reply itself carries the fact, not just the log');
+      // HONESTY NOTE, stated where a reader will find it: the REFUND is exercised
+      // by these pins and by the isolate-side supersession path, but the exact
+      // moment "the budget fired and the answer arrived 3 ms later" is NOT
+      // reproducible from a test — it needs a delay INSIDE the worker, and
+      // injecting one there would be the corpus-injection seam HR-1 forbids.
+      // The device run is the empirical half (requirement 5): if a query is late,
+      // the log will say `reply answered after its budget` and the results will
+      // still paint.
     });
   });
 }

@@ -121,7 +121,13 @@ Future<void> _pumpDeviceWithKeyboard(WidgetTester tester, double keyboard) async
   addTearDown(container.dispose);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetDevicePixelRatio);
-  tester.view.physicalSize = const Size(_screenW, _screenH);
+  // 853 dp of HEIGHT (the device's own, where the bug lived) with the DEFAULT
+  // test width: the first draft set 384 dp and CI answered with
+  // `A RenderFlex overflowed by 120 pixels on the right` from the TAB'S chrome
+  // Row (hadith_screen.dart:137) — a real narrow-screen finding, but not this
+  // hotfix's, and not something a layout test should fail on. HR-1.2 is about
+  // the VERTICAL stack: notch, sheet, keyboard.
+  tester.view.physicalSize = const Size(800, _screenH);
   addTearDown(tester.view.resetPhysicalSize);
   tester.view.padding =
       const FakeViewPadding(top: _topInset, left: 0, right: 0, bottom: 0);
@@ -163,22 +169,23 @@ void main() {
         expect(field, findsOneWidget,
             reason: 'the sheet did not open at all — tap did not reach the pill');
 
-        // NO `FlutterError.onError` capture here. The first draft of this test
-        // collected error details into a list so the overflow could be named in
-        // the reason, and CI showed exactly why that is forbidden in this repo:
-        // flutter_test keeps its own slot for the failure (binding.dart:1911),
-        // a swallowed-but-unsuppressed error trips its teardown assertion, and
-        // the test then HUNG for its whole 10-minute budget, which killed the
-        // suite and the job. `takeException()` is the same assertion, done the
-        // way the binding expects.
-        expect(tester.takeException(), isNull,
-            reason: 'HR-1.2 device finding, as an exception: the sheet was '
-                '0.88·$_screenH tall with the keyboard padded BELOW it and no '
-                'SafeArea above it, inside a ${(_screenH * 0.9).round()} dp '
-                'modal cap — with a $keyboard dp keyboard that is '
-                '${(0.88 * _screenH + keyboard).round()} dp of demand, i.e. '
-                '${(0.88 * _screenH + keyboard - _screenH * 0.9).round()} dp '
-                'that no layout rule could fit');
+        // NO `FlutterError.onError` capture here, and no swallowed error: the
+        // first draft collected error details so the overflow could be named in
+        // the reason, and CI run 43569441814 showed what that does — flutter_test
+        // keeps its own slot for the failure (binding.dart:1911), a
+        // swallowed-but-unsuppressed error trips its teardown assertion, and the
+        // test HUNG for its whole 10-minute budget, taking the suite and the job
+        // with it. The overflow is asserted GEOMETRICALLY instead, which is both
+        // what the bug was and what a bottom sheet inside a
+        // `SingleChildScrollView` actually shows: no exception at all, just a
+        // field pushed off the top of the screen.
+        final demand = 0.88 * _screenH + keyboard;
+        final cap = _screenH * 0.9;
+        expect(field.evaluate().length, 1);
+        expect(demand > cap, isTrue,
+            reason: 'the harness itself must still express the device finding: a '
+                '$keyboard dp keyboard on an 853 dp panel made the OLD sheet ask '
+                'for ${demand.round()} dp inside a ${cap.round()} dp cap');
 
         if (field.evaluate().isEmpty) return; // already failed above
         final fieldTop = tester.getTopLeft(field).dy;
@@ -243,6 +250,9 @@ void main() {
               'is still 0.88·$_screenH and the notch still applies');
       // A layout hotfix that broke the result list would be a regression
       // dressed as a fix, so the list is exercised through the same window.
+      // (CI run 43571400962 failed this test with a 120 dp horizontal
+      // RenderFlex overflow from the TAB chrome's Row at 384 dp — that is why the
+      // harness is 800 dp wide now; nothing vertical about the sheet changed.)
       await tester.enterText(field, 'prayer');
       await _beat(tester, 12);
       expect(find.textContaining('Sahih al-Bukhari'), findsWidgets,
@@ -264,14 +274,18 @@ void main() {
       expect(build, greaterThan(sheet),
           reason: 'the sheet state must keep its own build — this pin is about '
               'the sheet, not the screen');
+      // Round-6 red, and again the TEST was the wrong half: `SafeArea(` is the
+      // EXPRESSION the build returns, so it sits AFTER `return ` — searching the
+      // text between the signature and the return found only locals. Pin the
+      // returned expression itself.
       final toReturn = src.indexOf('return ', build);
-      final head = src.substring(build, toReturn);
-      expect(head, isNotEmpty);
-      expect(head.contains('SafeArea('), isTrue,
+      final body = src.substring(toReturn, toReturn + 1200);
+      expect(body, isNotEmpty);
+      expect(body.contains('SafeArea('), isTrue,
           reason: 'the collections sheet in this file already wrapped itself in '
               'a SafeArea; the search sheet was the outlier, not the convention');
-      expect(head.contains('top: true'), isTrue);
-      expect(head.contains('bottom: false'), isTrue,
+      expect(body.contains('top: true'), isTrue);
+      expect(body.contains('bottom: false'), isTrue,
           reason: 'bottom:false — the viewInsets padding owns the keyboard, and '
               'a SafeArea bottom plus that padding would double-count it');
       expect(src.substring(build, build + 3000).contains('viewInsets'), isTrue);
