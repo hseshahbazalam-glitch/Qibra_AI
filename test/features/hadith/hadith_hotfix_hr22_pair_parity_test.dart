@@ -37,7 +37,7 @@
 // on tests 1, 2 and 6: the assembler still joins by the floored int key only, so
 // `textUrdu` disagrees on exactly the 52 rescue rows, the count is 33,424 not
 // 33,476, and `urduJoinText` does not exist yet for the source pin to find. Run IDs
-// and the actual `Expected:/Actual:` blocks are recorded in
+// and the actual analyzer list is recorded in
 // docs/HADITH_HR_PASS_REPORT.md § HR-2.2 (b).
 //
 // Conventions match hadith_hotfix_hr21_coverage_census_test / hadith_pass_x6_test:
@@ -185,7 +185,7 @@ void main() {
           reason: '$mismatches of $compared rows disagree — and that disagreement IS '
               'HR-2.2: the app must implement the rule this file measures, not the '
               'other way round. First five: ${mismatch.join(', ')}');
-    }, timeout: const Duration(minutes: 8));
+    }, timeout: const Timeout(Duration(minutes: 8)));
 
     test('+52 recovered, 0 blanked, 0 re-attributed — measured against the app',
         () {
@@ -225,7 +225,7 @@ void main() {
               'the gate the owner set, and the reason the pair index rescues '
               'instead of overriding');
       expect(changed, 0, reason: 'and may not re-attribute one either');
-    }, timeout: const Duration(minutes: 8));
+    }, timeout: const Timeout(Duration(minutes: 8)));
 
     test('coverage old -> new: 33,424 to 33,476 urdu rows, 206 to 203 with neither',
         () {
@@ -276,7 +276,7 @@ void main() {
         'malik': 1590,
         'tirmidhi': 3931,
       });
-    }, timeout: const Duration(minutes: 8));
+    }, timeout: const Timeout(Duration(minutes: 8)));
 
     test('every recovered row is the SAME hadith, proved by a key neither join uses',
         () {
@@ -307,7 +307,7 @@ void main() {
       expect(unproven, isEmpty,
           reason: 'a recovery whose Urdu record points at a different '
               'book:hadith is a mis-join, not a gain (${unproven.join(', ')})');
-    }, timeout: const Duration(minutes: 8));
+    }, timeout: const Timeout(Duration(minutes: 8)));
 
     test('why no override: two books do not share the English numbering space', () {
       for (final slug in _books) {
