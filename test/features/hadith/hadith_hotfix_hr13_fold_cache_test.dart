@@ -243,7 +243,7 @@ void main() {
       'scan', () {
     /// THE COST GATE. Reads no synthetic text at all: the corpus is the shipped
     /// bundle, the queries are the owner's, and the bound is the brief's.
-    test('one scan of ${_rowsUnderGate} REAL rows is bounded, not "minutes"',
+    test('one scan of $_rowsUnderGate REAL rows is bounded, not "minutes"',
         () {
       final corpus = _realCorpus();
       final size = _measureCorpus(corpus);
@@ -296,7 +296,7 @@ void main() {
       const fixtureText = 'Volume 1, Book 1, Hadith 1: $topic — the Prophet '
           '(peace be upon him) said, and the chain is complete for row 1 of '
           'bukhari.';
-      final syntheticPerRow = fixtureText.length;
+      const syntheticPerRow = fixtureText.length;
       debugPrint('[HR13_MEASURE] real mean searched chars/row = '
           '${realPerRow.toStringAsFixed(0)}; HR-1 synthetic english/row = '
           '$syntheticPerRow; ratio = '

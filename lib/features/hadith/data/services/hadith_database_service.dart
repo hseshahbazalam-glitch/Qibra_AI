@@ -300,7 +300,6 @@ List<List<LocalSearchResult>> scanFoldedHadithCorpus(
   ];
   for (final entry in books.entries) {
     final rows = entry.value;
-    final mirror = folded[entry.key];
     // A mirror that is missing, or whose length differs, is not the mirror of
     // THESE rows — and matching a stale string is worse than folding slowly: it
     // drops a hit no device would ever see. So the mirror is used only when it
@@ -308,10 +307,17 @@ List<List<LocalSearchResult>> scanFoldedHadithCorpus(
     // is real but narrow: main has handed a book and not yet settled, or a
     // language fold replaced the rows. Never for a settled corpus, which is
     // what the worker's flush branch guarantees.
-    final mirrored = mirror != null && mirror.length == rows.length;
+    //
+    // The nullable local (rather than a `mirrored` bool plus `mirror!`) is
+    // deliberate: the null test is the promotion, so there is no `!` for the
+    // analyzer to call unnecessary and no way to dereference a mirror that was
+    // not the right size.
+    final mirror = folded[entry.key];
+    final mirrored =
+        mirror != null && mirror.length == rows.length ? mirror : null;
     for (var r = 0; r < rows.length; r++) {
       final hadith = rows[r];
-      final text = mirrored ? mirror![r] : foldHadithRow(hadith);
+      final text = mirrored != null ? mirrored[r] : foldHadithRow(hadith);
       for (var qi = 0; qi < queries.length; qi++) {
         if (hits[qi].length >= maxPerQuery * 4) continue;
         // An empty PATTERN is a miss, not a hit on everything: `indexOf('')`
