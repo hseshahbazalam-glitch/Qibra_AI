@@ -26,7 +26,10 @@
 // The arithmetic was the bug, so the test is arithmetic: it pumps the sheet
 // with `viewInsets.bottom > 0` at THREE different keyboard heights and demands
 // (a) no overflow exception, (b) a field top at/below the safe inset, (c) a
-// bottom that stays above the keyboard. The fix follows the convention already
+// bottom that stays above the keyboard. (a) is asserted through
+// `tester.takeException()`, NOT through a `FlutterError.onError` capture —
+// CI run 43569441814 showed that capture turning one failed expectation into a
+// 10-minute HANG that took the suite and the job down with it. The fix follows the convention already
 // in this same file — the collections sheet wraps itself in `SafeArea` — plus a
 // height of 0.88 of the space the keyboard LEFT (never of the whole screen), so
 // the sum cannot exceed 1 by construction, for any keyboard.
@@ -155,25 +158,29 @@ void main() {
     for (final keyboard in <double>[129, 300, 450]) {
       testWidgets('keyboard $keyboard dp: no overflow, and the field is fully '
           'on screen', (tester) async {
-        final errors = <String>[];
-        final prior = FlutterError.onError;
-        FlutterError.onError = (d) => errors.add(d.exceptionAsString());
-        addTearDown(() => FlutterError.onError = prior);
-
         await _pumpDeviceWithKeyboard(tester, keyboard);
         final field = find.byType(TextField);
         expect(field, findsOneWidget,
             reason: 'the sheet did not open at all — tap did not reach the pill');
 
-        expect(errors, isEmpty,
+        // NO `FlutterError.onError` capture here. The first draft of this test
+        // collected error details into a list so the overflow could be named in
+        // the reason, and CI showed exactly why that is forbidden in this repo:
+        // flutter_test keeps its own slot for the failure (binding.dart:1911),
+        // a swallowed-but-unsuppressed error trips its teardown assertion, and
+        // the test then HUNG for its whole 10-minute budget, which killed the
+        // suite and the job. `takeException()` is the same assertion, done the
+        // way the binding expects.
+        expect(tester.takeException(), isNull,
             reason: 'HR-1.2 device finding, as an exception: the sheet was '
                 '0.88·$_screenH tall with the keyboard padded BELOW it and no '
                 'SafeArea above it, inside a ${(_screenH * 0.9).round()} dp '
                 'modal cap — with a $keyboard dp keyboard that is '
                 '${(0.88 * _screenH + keyboard).round()} dp of demand, i.e. '
                 '${(0.88 * _screenH + keyboard - _screenH * 0.9).round()} dp '
-                'eaten off the top where the field lives. Errors: $errors');
+                'that no layout rule could fit');
 
+        if (field.evaluate().isEmpty) return; // already failed above
         final fieldTop = tester.getTopLeft(field).dy;
         expect(fieldTop, greaterThanOrEqualTo(_topInset),
             reason: 'the field must clear the punch hole / status bar even with '
@@ -196,6 +203,10 @@ void main() {
       final field = find.byType(TextField);
       expect(field, findsOneWidget,
           reason: 'this is the entry the owner found clipped');
+      if (field.evaluate().isEmpty) {
+        // No field, nothing to measure: the expect above already said so.
+        return;
+      }
       final fieldRect = tester.getRect(field);
       const keyboardTop = _screenH - 300.0;
       expect(fieldRect.top, greaterThanOrEqualTo(_topInset),
