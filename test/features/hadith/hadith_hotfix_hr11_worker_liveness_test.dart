@@ -52,7 +52,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
+// NO import of hadith_database_service.dart here on purpose: the service side
+// of HR-1.1 (`rebuildSearchCorpus` / `searchBatchOffMain`) is pinned by READING
+// its source below, exactly as hadith_pass_hr1_test does, because this file
+// needs no service instance — and CI's `unused_import` warning is the proof
+// that importing it "for the comment" is not a reason.
 import 'package:qibra_ai/features/hadith/data/services/hadith_search_worker.dart';
 
 import '../../support/source_guards.dart';

@@ -197,7 +197,7 @@ void main() {
       expect(field, findsOneWidget,
           reason: 'this is the entry the owner found clipped');
       final fieldRect = tester.getRect(field);
-      final keyboardTop = _screenH - 300;
+      const keyboardTop = _screenH - 300.0;
       expect(fieldRect.top, greaterThanOrEqualTo(_topInset),
           reason: 'below the notch');
       expect(fieldRect.bottom, lessThanOrEqualTo(keyboardTop + 1),
