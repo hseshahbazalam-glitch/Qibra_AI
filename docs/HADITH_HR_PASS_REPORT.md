@@ -1720,7 +1720,17 @@ how the shipped Dart and the validator's mirror were shown to agree to the row.
 
 ### HR-2.2 status
 
-**LANDED on `arena/01a05b41-qibra-ai` at `7bd0086`, CI GREEN** (run 43634767116: analyze gate
-passed, `🎉 719 tests passed.`, battery `hard 0 | G2 319 | L2 83`). Merge hold on `main`
-continues: the owner's next step is G2-D's workflows-free push (Option 3), and only then the
-PR and the merge as the `v1.0.0-rc` checkpoint.
+**LANDED on `arena/01a05b41-qibra-ai`, CI GREEN.** The code footprint is `7bd0086`
+(the last commit that touches `lib/`, `test/` or `backend/`); run **43634767116** is its
+evidence: analyze gate passed, `🎉 719 tests passed.`, battery
+`hard 0 | G2 319 | L2 83` -> `ALL GATES PASS`. This report's § (b)/(c) and the new test's
+header docstring are the docs tip `9373156`, comment-only over `7bd0086`, re-proven green as
+run **43635502981** — so the sha the merge cherry-picks and the sha this file describes are
+both named, and neither claim rots when the tip moves.
+
+Commit chain, in the order the owner's (a)/(b)/(c) required: `4c1ac80` (parity table, no code)
+→ `079c1f3` (red test) → `31a02ae` (`Timeout` fix, the intended red) → `bbd6d81` (the join +
+the re-pins) → `7bd0086` (`urduOffSpine` local restored) → `9373156` (docs).
+
+Merge hold on `main` continues: the owner's next step is G2-D's workflows-free push
+(Option 3), and only then the PR and the merge as the `v1.0.0-rc` checkpoint.
