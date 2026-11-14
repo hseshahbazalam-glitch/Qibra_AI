@@ -137,6 +137,18 @@ manifest stay `UNKNOWN` / `REQUIRES_PERMISSION` for a store build.
 | migration risk | — | a reader at 1.6 gets 1.4 (clamped UP to the new ceiling, not averaged down) |
 | Quran feature | split scales | **untouched** — different anatomy |
 
+### The name collision, checked rather than dodged
+
+`hadithTextScale` is also the name the Quran side owns, and the standing lesson from
+this pass was "resolve the pin, do not silently rename the design rule". Checked against
+the pin files as they now stand: the hadith directory carries **no** ABSENT-scan on that
+identifier — `hadith_pass_h2_test.dart:586` requires it PRESENT in the store and
+`hadith_world_class_pass_test.dart:32` reads it off the preferences object — while the
+two legacy v1 setters stay pinned ABSENT (`:588-589`). So the single-scale rule is
+expressed in the one name the tests ask for, Quran keeps its deliberate split pair, and
+nothing was renamed to satisfy a pin nor weakened to let one pass. CI agrees: every one
+of those pins ran green on run 43558228796.
+
 ### Reader chrome + card
 
 * Chapter picker: anonymous icon → **sticky chip naming the active chapter** (gold ring
@@ -176,6 +188,20 @@ the same commit as the cut, not left for CI to catch. Both fixes are test-side; 
 file changed in this round, so the battery is unaffected (`hard 0 · G2 318 · L2 83`,
 re-run after the edits).
 
+**Resolved by `0b9de2e` → run 43558228796 (GREEN):** `flutter analyze
+--no-fatal-infos` 0 errors / 0 warnings, **`🎉 674 tests passed.`** with zero failures, and the static
+battery step actually ran this time: `hard findings: 0 | G2 advisories: 318 | L2 alpha
+advisories: 83`. The suite total is 674 because HR-3's `migrate` group added four cases
+over the 670 that `8c5e0af` reported; the fix round added an assertion *inside* an
+existing case, not a new case, so 672 + 2 = 674 is the same population re-measured — a
+raw comparison against the older report is meaningless without that note.
+
+HR red-round count (this HR, TIMEBOX 8): **6 of 8 consumed** — 5 inside HR-1 (listed in
+its ledger above, all mine, all analyze-stage or my own mis-pins) and **1** for HR-2 +
+HR-3 (`a1780ee`, the two census pins above). No config file was touched in any of them:
+`.github/` and `analysis_options.yaml` stayed forbidden and every fix went into the
+code or into the pin that was actually wrong.
+
 ### Coverage denominators, re-measured (the one number this report had not earned)
 
 Replayed `assembleHadithBook`'s own join (`int`-keyed `arabicMap` / `urduMap`,
@@ -206,7 +232,8 @@ the rule, not a plausible-looking number, had to be replayed.
 | --- | --- |
 | `flutter analyze --no-fatal-infos` | 0 errors, 0 warnings (infos sanctioned) — green from `5a6c326` on |
 | `flutter test` at `8c5e0af` | **670 passed, 0 failed** (was 668/2 at `5a6c326`; every changed pin listed in the commit body) |
-| `flutter test` at `a1780ee` | **672 passed, 2 failed** — the two named failures and their fixes are in the CI round below |
+| `flutter test` at `a1780ee` | 672 passed, **2 failed** (run 43556204482) — both named, both fixed in the CI round above |
+| `flutter test` at `0b9de2e` / `dd126c0` | **674 passed, 0 failed** (run 43558228796 — GREEN, battery step ran: `hard 0 · G2 318 · L2 83`) |
 | `python3 scripts/static_battery.py` | `hard 0 · G2 318 · L2 83` — ALL GATES PASS |
 | G2 vs the pre-HR baseline | 313 → 318: five "'X' referenced but not provided by imports" false positives from HR-1's new cross-file symbols, each actually imported; nothing suppressed, no pin on the count |
 | multilang invariants | 22 files · `['en','ar','ur']` · 36,390 spine · 1:1 — untouched by this pass |
