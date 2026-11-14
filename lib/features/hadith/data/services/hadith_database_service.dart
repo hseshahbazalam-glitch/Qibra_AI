@@ -73,9 +73,16 @@ HadithAssembledBook? assembleHadithBook({
     final englishHadiths = englishData?['hadiths'] as List<dynamic>? ?? [];
     final urduHadiths = urduData?['hadiths'] as List<dynamic>? ?? [];
 
-    // Build lookup maps. HR-2.1 deleted the Arabic map with its file; the
-    // Urdu map is UNTOUCHED — same hadithnumber key, same last-write wins,
-    // same `?? ''` for an unmatched row — which is why no joined text moves.
+    // Build lookup maps. HR-2.1 deleted the Arabic map with its file and left the
+    // Urdu one exactly as it had always joined: floored `hadithnumber` key, LAST
+    // write wins, `?? ''` for a miss. HR-2.2 keeps that map as the primary source of
+    // a row's Urdu — every text any reader has ever been shown stays word for word —
+    // and puts the pair index beside it, consulted ONLY where the number map has
+    // nothing to give: a key the Urdu file does not carry, or a real text that a
+    // later blank record overwrote. That is the entire change, and it is +52 rows of
+    // Urdu, 0 rows blanked, 0 rows re-attributed, measured row by row over all 36,390
+    // spine rows by test/features/hadith/hadith_hotfix_hr22_pair_parity_test.dart and
+    // printed by scripts/hr22_pairkey_parity.py BEFORE this code existed (§ HR-2.2).
     final urduMap = <int, String>{};
     for (final h in urduHadiths) {
       try {
@@ -86,6 +93,14 @@ HadithAssembledBook? assembleHadithBook({
         continue;
       }
     }
+
+    // The HR-2.2 rescue index: `pairTextIndex` is the SAME function the Phase-B
+    // languages below already use (exact pair key, blank texts skipped, first record
+    // wins), applied to the Urdu rows. It is never an override: two of the seven
+    // Urdu files do not share the English file's numbering space, so a pair hit in
+    // those books is not evidence the text belongs to the row (measured: index-level
+    // `hadithnumber` agreement is 631/1,858 for malik and 0/7,563 for muslim).
+    final urduPairIndex = HadithDatabaseService.pairTextIndex(urduHadiths);
 
     // Phase B language joins: keyed by the (hadithnumber,
     // arabicnumber) PAIR — never by array index — because our shipped
@@ -124,7 +139,10 @@ HadithAssembledBook? assembleHadithBook({
           hadithNumber: hadithNum,
           arabicNumber: arabicNum == 0 ? hadithNum : arabicNum,
           textEnglish: map['text']?.toString() ?? '',
-          textUrdu: urduMap[hadithNum] ?? '',
+          textUrdu: HadithDatabaseService.urduJoinText(
+            byNumber: urduMap[hadithNum] ?? '',
+            byPair: urduPairIndex[pair] ?? '',
+          ),
           textBengali: langIndices['bn']?[pair] ?? '',
           textTurkish: langIndices['tr']?[pair] ?? '',
           textIndonesian: langIndices['id']?[pair] ?? '',
@@ -1279,6 +1297,26 @@ class HadithDatabaseService {
     }
     return out;
   }
+
+  /// HR-2.2 — the ONE rule that decides a row's Urdu text, named so the renderer,
+  /// the worker, the census tests and the content validator all answer to the same
+  /// function instead of each restating it. (Two implementations of this join is how
+  /// a fractional 402.2 once landed on its parent 402; that is on the record above.)
+  ///
+  /// The number-key text wins whenever it has content. The pair index rescues a blank
+  /// or a missing hit and nothing else — recovering text may not cost text, so this is
+  /// deliberately NOT "pair first": a pair-first join finds the same 52 rows and pays
+  /// for them by blanking 9 existing translations and re-attributing 28 more
+  /// (docs/HADITH_HR_PASS_REPORT.md § HR-2.2 (a) lists all 37 of them, row by row).
+  ///
+  /// `byPair` is only ever a NON-BLANK text, because `pairTextIndex` skips blanks — so
+  /// this can never set `hasUrdu` (which is `textUrdu.isNotEmpty`) on an empty string.
+  @visibleForTesting
+  static String urduJoinText({
+    required String byNumber,
+    required String byPair,
+  }) =>
+      byNumber.trim().isEmpty && byPair.isNotEmpty ? byPair : byNumber;
 
   static int _parseHadithNumber(dynamic value) {
     if (value == null) return 0;

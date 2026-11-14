@@ -63,7 +63,10 @@ int _appNum(dynamic v) {
 /// The joined coverage counts EXACTLY the way HadithDatabaseService
 /// computes them before exposing `languageCoverage` (en counted on
 /// itself; ur via hadithnumber int-map, last wins, blanks included (HR-2.1:
-/// the 'ar' arm went with the unbundled Arabic edition);
+/// the 'ar' arm went with the unbundled Arabic edition), and since HR-2.2
+/// rescued from the pair index when that int hit is blank or missing — the
+/// rescue is applied THROUGH the service's own `urduJoinText`, so this mirror
+/// cannot keep measuring a rule the app stopped having;
 /// every pair-key edition — `newLanguageFiles`, empty since X5 — via the
 /// public runtime pairTextIndex: empty skipped, first wins; absent → 0).
 Map<String, Map<String, ({int nonEmpty, int total})>> _coverageByBook() {
@@ -84,11 +87,19 @@ Map<String, Map<String, ({int nonEmpty, int total})>> _coverageByBook() {
       for (final h in hs) {
         m[_appNum((h as Map)['hadithnumber'])] = '${h['text'] ?? ''}';
       }
+      // HR-2.2: both halves of the rule come from the app — the pair index and
+      // the join decision are the very functions `assembleHadithBook` calls, so
+      // this census cannot drift into measuring a join nobody ships.
+      final pairIdx = HadithDatabaseService.pairTextIndex(hs);
       counts[lc] = (
-        nonEmpty: nonEmpty((i) =>
-            (m[_appNum((en[i] as Map)['hadithnumber'])] ?? '')
-                .trim()
-                .isNotEmpty),
+        nonEmpty: nonEmpty((i) => HadithDatabaseService.urduJoinText(
+              byNumber: m[_appNum((en[i] as Map)['hadithnumber'])] ?? '',
+              byPair: pairIdx[HadithDatabaseService.pairKey(
+                    (en[i] as Map)['hadithnumber'],
+                    (en[i] as Map)['arabicnumber'],
+                  )] ??
+                  '',
+            ).trim().isNotEmpty),
         total: en.length,
       );
     }

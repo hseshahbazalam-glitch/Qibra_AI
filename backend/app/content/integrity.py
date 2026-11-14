@@ -314,14 +314,70 @@ def _hadith_text(row) -> str:
     return str(row.get("text") or "").strip()
 
 
+def _hadith_exact_key(value) -> str:
+    """Mirror of `HadithDatabaseService.numberKey` — exact, fractional-aware.
+
+    `402` and `402.2` are different records; a join that floors them misattributes
+    text. Kept here because HR-2.2's rescue needs the same key the app uses, and a
+    census that invents its own key measures a corpus nobody ships.
+    """
+    if value is None or isinstance(value, bool):
+        return ""
+    if isinstance(value, int):
+        out = str(value)
+    elif isinstance(value, float):
+        out = str(int(value)) if value == round(value) else repr(value)
+    else:
+        out = str(value).strip()
+    if "." in out:
+        out = re.sub(r"0+$", "", out)
+        if out.endswith("."):
+            out = out[:-1]
+    return out
+
+
+def _hadith_pair_key(row) -> str:
+    """Mirror of `HadithDatabaseService.pairKey` (`a == 0` collapses to h|h)."""
+    h = _hadith_exact_key(row.get("hadithnumber"))
+    a = _hadith_exact_key(row.get("arabicnumber"))
+    return f"{h}|{h}" if a in ("", "0") else f"{h}|{a}"
+
+
+def _hadith_pair_index(rows: list) -> dict:
+    """Mirror of `HadithDatabaseService.pairTextIndex`: blanks skipped, first wins."""
+    out: dict[str, str] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        text = _hadith_text(row)
+        if not text:
+            continue
+        out.setdefault(_hadith_pair_key(row), text)
+    return out
+
+
+def _urdu_join(by_number: str, by_pair: str) -> str:
+    """Mirror of `HadithDatabaseService.urduJoinText` (HOTFIX HR-2.2).
+
+    The floored number-key text wins whenever it has content; the pair index only
+    rescues a blank or missing hit. `_hadith_text` already strips, so the trimmed
+    test the Dart version makes is the truth test here.
+    """
+    return by_number if by_number else (by_pair or by_number)
+
+
 def hadith_coverage_matrix() -> dict:
     """Per-book edition census, computed with the loader's OWN join rule.
 
     `assembleHadithBook` walks the English rows as the spine and looks each
     edition up by `hadithnumber` in an int map that is WRITTEN LAST-WINS — a
-    later blank row therefore overwrites an earlier non-blank one. That is the
-    shipped behaviour and this census reproduces it exactly rather than
-    "fixing" it, so every percentage here is the percentage the reader sees.
+    later blank row therefore overwrites an earlier non-blank one. Since HOTFIX
+    HR-2.2 a row whose number-key hit is blank or missing is rescued from the
+    exact `pairKey` index (the same `pairTextIndex` the Phase-B languages use),
+    which recovers 52 Urdu texts corpus-wide and moves no text that already
+    existed. This census reproduces that rule exactly, mirror functions and all,
+    so every percentage here is the percentage the reader sees — and the four
+    mirrors above are the only place a validator is allowed to restate it.
 
     For each book it returns row counts, per-edition non-blank coverage, the
     rows that have NO edition text at all (the honest ceiling on any 100%
@@ -407,8 +463,10 @@ def hadith_coverage_matrix() -> dict:
             books.append(entry)
             continue
         spine = rows_by_lang[spine_lang]
-        # Side maps, built exactly as the loader builds them.
+        # Side maps, built exactly as the loader builds them: the floored int map
+        # (last-wins, blanks included) and, since HR-2.2, the pair index beside it.
         side: dict[str, dict[int, str]] = {}
+        pair_side: dict[str, dict[str, str]] = {}
         for lang, rows in rows_by_lang.items():
             if lang == spine_lang:
                 continue
@@ -416,6 +474,7 @@ def hadith_coverage_matrix() -> dict:
             for row in rows:
                 joined[_hadith_number_key(row.get("hadithnumber"))] = _hadith_text(row)
             side[lang] = joined
+            pair_side[lang] = _hadith_pair_index(rows)
             spine_keys = {_hadith_number_key(r.get("hadithnumber")) for r in spine}
             off = [k for k in joined if k not in spine_keys]
             entry["off_spine"][lang] = len(off)
@@ -435,7 +494,10 @@ def hadith_coverage_matrix() -> dict:
                 if lang == spine_lang:
                     text = _hadith_text(row)
                 else:
-                    text = side.get(lang, {}).get(key, "")
+                    text = _urdu_join(
+                        side.get(lang, {}).get(key, ""),
+                        pair_side.get(lang, {}).get(_hadith_pair_key(row), ""),
+                    )
                 texts[lang] = text
                 if text:
                     non_blank[lang] += 1

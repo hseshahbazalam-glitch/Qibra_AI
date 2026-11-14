@@ -108,9 +108,16 @@ int _intKey(dynamic v) {
 
 /// The Urdu side map exactly as `assembleHadithBook` builds it: int key, LAST
 /// write wins, a blank row overwriting an earlier non-blank one, text verbatim
-/// (untrimmed). That is the shipped rule; "improving" it here would pin a
-/// number no reader ever sees.
+/// (untrimmed). HR-2.2 kept this map as the PRIMARY source of a row's Urdu — it
+/// is half the rule, not the whole one any more — and pins it beside the pair
+/// rescue below. "Improving" either half in this file would pin a number no
+/// reader ever sees.
 final Map<String, Map<int, String>> _urduByBook = {};
+
+/// HR-2.2's other half: the exact `pairKey` index over the same rows, built by
+/// the service's own function so this census and the loader cannot disagree about
+/// what "blanks skipped, first wins" means on a Tuesday.
+final Map<String, Map<String, String>> _urduByPair = {};
 
 Map<int, String> _urduMap(String slug) => _urduByBook.putIfAbsent(slug, () {
       final out = <int, String>{};
@@ -121,6 +128,23 @@ Map<int, String> _urduMap(String slug) => _urduByBook.putIfAbsent(slug, () {
     });
 
 String _text(Map<String, dynamic> row) => '${row['text'] ?? ''}';
+
+Map<String, String> _urduPairMap(String slug) => _urduByPair.putIfAbsent(
+      slug,
+      () => HadithDatabaseService.pairTextIndex(_rows(slug, 'urdu')),
+    );
+
+/// The shipped join, called through the shipped function.
+String _urduTextOf(String slug, Map<String, dynamic> row) =>
+    HadithDatabaseService.urduJoinText(
+      byNumber: _urduMap(slug)[_intKey(row['hadithnumber'])] ?? '',
+      byPair: _urduPairMap(slug)[
+              HadithDatabaseService.pairKey(
+                row['hadithnumber'],
+                row['arabicnumber'],
+              )] ??
+          '',
+    );
 
 /// One book, both editions, as the reader will see it.
 typedef _Census = ({
@@ -135,12 +159,11 @@ typedef _Census = ({
 
 _Census _census(String slug) {
   final spine = _rows(slug, 'english');
-  final urdu = _urduMap(slug);
   final spineKeys = [for (final r in spine) _intKey(r['hadithnumber'])];
   var english = 0, urduHits = 0, neither = 0, broken = 0;
   for (final row in spine) {
     final en = _text(row).trim();
-    final ur = (urdu[_intKey(row['hadithnumber'])] ?? '').trim();
+    final ur = _urduTextOf(slug, row).trim();
     if (en.isNotEmpty) english++;
     if (ur.isNotEmpty) urduHits++;
     if (en.isEmpty && ur.isEmpty) neither++;
@@ -258,13 +281,17 @@ void main() {
       // because the reader is shown the rounded percent and a rounded 100 can
       // hide a blank row (abudawud: 5,272 of 5,274 english).
       const expected = <String, ({int rows, int en, int ur, int neither})>{
-        'bukhari': (rows: 7589, en: 7580, ur: 6994, neither: 6),
+        // HR-2.2 re-pin, old → new, on the urdu column only (english and the row
+        // counts are untouched because the English join and the spine are):
+        //   bukhari 6994→7019 (+25)  nasai 3875→3876 (+1)
+        //   ibnmajah 4327→4329 (+2)   tirmidhi 3907→3931 (+24), neither 12→9
+        'bukhari': (rows: 7589, en: 7580, ur: 7019, neither: 6),
         'muslim': (rows: 7563, en: 7360, ur: 7458, neither: 82),
         'abudawud': (rows: 5274, en: 5272, ur: 5273, neither: 0),
-        'nasai': (rows: 5765, en: 5679, ur: 3875, neither: 82),
-        'ibnmajah': (rows: 4343, en: 4340, ur: 4327, neither: 1),
+        'nasai': (rows: 5765, en: 5679, ur: 3876, neither: 82),
+        'ibnmajah': (rows: 4343, en: 4340, ur: 4329, neither: 1),
         'malik': (rows: 1858, en: 1818, ur: 1590, neither: 23),
-        'tirmidhi': (rows: 3998, en: 3926, ur: 3907, neither: 12),
+        'tirmidhi': (rows: 3998, en: 3926, ur: 3931, neither: 9),
       };
       expect(expected.values.fold<int>(0, (a, e) => a + e.rows), 36390);
       for (final entry in expected.entries) {
@@ -279,7 +306,8 @@ void main() {
         expect(got.neither, want.neither,
             reason: '${entry.key}: the rows with NEITHER edition are the only '
                 'rows that can show a reader nothing at all — the report states '
-                '206 of them corpus-wide, and if this moved so did that claim');
+                '203 corpus-wide since HR-2.2 recovered three of the 206, and if '
+                'this moved so did that claim');
       }
       expect(HadithAvailability.coveragePercent(
           _all['nasai']!.urduNonBlank, _all['nasai']!.rows), 67);
@@ -318,21 +346,22 @@ void main() {
       final neither = _totalNeither;
       expect(rows, 36390);
       expect(en, 35975);
-      expect(ur, 33424);
-      expect(neither, 206);
+      expect(ur, 33476); // 33,424 + the 52 rows HR-2.2 rescues
+      expect(neither, 203); // was 206; three tirmidhi rows gained Urdu
       expect(HadithAvailability.coveragePercent(en, rows), 99);
       expect(HadithAvailability.coveragePercent(ur, rows), 92);
-      expect(rows - ur, 2966,
-          reason: 'the HR-2 figure, re-measured: 2,966 of 36,390 rows have no '
-              'Urdu anywhere in the upstream files this bundle came from, so '
-              '"100 % Urdu" is not a claim this data can support');
+      expect(rows - ur, 2914,
+          reason: 'the HR-2 figure (2,966) minus the 52 rows HR-2.2 rescues: 2,914 of '
+              '36,390 rows have no Urdu anywhere in the upstream files this '
+              'bundle came from, so "100 % Urdu" is not a claim this data can '
+              'support, and a re-join is not the same as a re-source');
       expect(rows - en, 415);
       expect(ur, lessThan(en),
           reason: 'urdu is the thinner edition; if that ever inverts, the '
               'fallback copy ("this language has nothing for this hadith") is '
               'pointing the wrong way and must be re-read');
       expect(neither / rows, lessThan(0.01),
-          reason: 'the ceiling, in the reader\'s terms: 0.57 % of the corpus '
+          reason: 'the ceiling, in the reader\'s terms: 0.56 % of the corpus '
               'has no text in either shipped edition. Stated as a fraction so a '
               'later pass cannot round it to nothing — and so "every hadith '
               'shows Urdu or English" is always read WITH this number, never '
@@ -363,7 +392,6 @@ void main() {
         final hadiths = assembled!.hadiths;
         expect(hadiths.length, spine.length,
             reason: '$slug: the diet may not lose or invent one row');
-        final urdu = _urduMap(slug);
         for (var i = 0; i < spine.length; i++) {
           final row = spine[i];
           final local = hadiths[i];
@@ -371,10 +399,12 @@ void main() {
               reason: '$slug row ${row['hadithnumber']}: the rendered english is '
                   'the file text verbatim — the fold is applied to match, never '
                   'to store');
-          expect(local.textUrdu, urdu[_intKey(row['hadithnumber'])] ?? '',
+          expect(local.textUrdu, _urduTextOf(slug, row),
               reason: '$slug row ${row['hadithnumber']}: the census and the '
                   'loader disagree about which Urdu text this row gets, so every '
-                  'coverage number in this file describes a different app');
+                  'coverage number in this file describes a different app '
+                  '(HR-2.2: both sides now go through `urduJoinText`, so a '
+                  'disagreement here means the JOIN moved, not the mirror)');
           expect(local.bookSlug, slug);
         }
       }
@@ -384,7 +414,10 @@ void main() {
         () {
       // `_parseHadithNumber` truncates, so `402.2` shares a URDU join key with
       // `402`: those rows still show their own english (the spine row) but get
-      // whichever urdu text the map holds last. 77 english rows across 4 books
+      // whichever urdu text the map holds last. HR-2.2 did NOT re-join on the
+      // pair key for these rows — it only rescues rows the int map left blank —
+      // so the collision census below is still describing the shipped join.
+      // 77 english rows across 4 books
       // are a second member of such a pair — 0.21 % of the corpus, pre-existing,
       // NOT introduced by HR-2.1, and not silently "fixed" either, because the
       // fix would re-join every book and change which text a reader is shown.

@@ -418,8 +418,11 @@ void main() {
   group('X6 H2b — coverage below 100% is measured, shown and pinned', () {
     // Computed HERE, from the shipped files, with the loader's own rule
     // (urdu joined onto the english rows by hadithnumber, int map, last wins,
-    // blanks included) — so this fails if the data moves and cannot be
-    // quietly re-pinned to a number that looks nicer.
+    // blanks included, and since HR-2.2 rescued from the pair index where that
+    // hit is blank — through the service's own `urduJoinText`) — so this fails
+    // if the data moves and cannot be quietly re-pinned to a number that looks
+    // nicer. The two percents pinned below did NOT move for those 52 rows,
+    // which is the point: the rescue buys content, not a better-looking number.
     Map<String, dynamic> bookJson(String slug, String edition) => jsonDecode(
         File('assets/data/hadith/$slug/$edition.json').readAsStringSync())
         as Map<String, dynamic>;
@@ -437,13 +440,23 @@ void main() {
       final en = (bookJson(slug, 'english')['hadiths'] as List<dynamic>)
           .cast<Map<String, dynamic>>();
       final ur = <int, String>{};
-      for (final r in (bookJson(slug, 'urdu')['hadiths'] as List<dynamic>)
-          .cast<Map<String, dynamic>>()) {
+      final urRaw =
+          (bookJson(slug, 'urdu')['hadiths'] as List<dynamic>).cast<Map<String, dynamic>>();
+      for (final r in urRaw) {
         ur[numberKey(r['hadithnumber'])] = text(r);
       }
+      final pairIdx = HadithDatabaseService.pairTextIndex(urRaw);
       var nonEmpty = 0;
       for (final r in en) {
-        if ((ur[numberKey(r['hadithnumber'])] ?? '').isNotEmpty) nonEmpty++;
+        final joined = HadithDatabaseService.urduJoinText(
+          byNumber: ur[numberKey(r['hadithnumber'])] ?? '',
+          byPair: pairIdx[HadithDatabaseService.pairKey(
+                r['hadithnumber'],
+                r['arabicnumber'],
+              )] ??
+              '',
+        );
+        if (joined.isNotEmpty) nonEmpty++;
       }
       return (nonEmpty: nonEmpty, total: en.length);
     }
