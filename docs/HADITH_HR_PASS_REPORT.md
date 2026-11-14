@@ -1359,3 +1359,222 @@ Four facts the log gave that § C had not claimed, added rather than swapped in:
   and still prints **243 hits / 12 queries / 1,400 rows**, the pre-diet parity
   count — proof both that the numbers above come from a dieted tree and that B's
   claim "no result changed" is executed, not asserted.
+
+---
+
+# HOTFIX HR-2.2 — the Urdu pair-key rescue (2026-09-01)
+
+Owner's order, verbatim in effect: **"(a) parity table FIRST, committed before any
+code change … (b) then the code change in `assembleHadithBook`'s Urdu join + the
+worker's mirror path; (c) re-pin coverage old → new … English join UNTOUCHED, spine
+36,390/1:1 pin untouched."** Merge hold on `main` continues: HR-2.2 lands, then
+G2-D's workflows-free push (Option 3), then the PR and the merge as the v1.0.0-rc
+checkpoint. The 206 neither-rows are **accepted as shipped** with the honest line,
+recorded as a **v1.0.2 research item** (a second Urdu edition source), not chased here.
+
+## § HR-2.2 (a) — the parity table, produced before one line of Dart changed
+
+Everything below is the output of `scripts/hr22_pairkey_parity.py`, which is
+committed in THIS commit and in no earlier one; the section is its printout, not a
+transcription of it. Three joins were run over all 36,390 spine rows:
+
+* **OLD** — what ships since HR-2.1: `Map<int,String>` keyed by
+  `_parseHadithNumber(hadithnumber)` (floored), last write wins, a blank overwrites.
+* **PUREPAIR** — what a naive "re-join on `pairKey`" does: `pairTextIndex` (exact
+  pair key, blanks skipped, first wins), with no fallback.
+* **SHIPPED (HR-2.2)** — keep the number-key text whenever it is non-blank; consult
+  the pair index **only** to rescue a blank or missing hit.
+
+```
+book        spine  urduRec numKeys pairKeys alignNum      alignRef   en    urOLD   urPAIR   urNEW  neither→  recov blanked changed
+bukhari      7589    7589    7563     7019 7589/7589     7589/7589      7580    6994     7019   7019     6→6       25       0       0
+muslim       7563    7564    7564     7459 0/7563        127/7563       7360    7458     7458   7458    82→82       0       0       0
+abudawud     5274    5274    5274     5273 5274/5274     5274/5274      5272    5273     5273   5273     0→0        0       0       0
+nasai        5765    5765    5758     3874 5765/5765     5765/5765      5679    3875     3874   3876    82→82       1       2       3
+ibnmajah     4343    4343    4341     4329 4343/4343     4343/4343      4340    4327     4329   4329     1→1        2       0       0
+malik        1858    1889    1858     1614 631/1858      644/1858       1818    1590     1583   1590    23→23       0       7      24
+tirmidhi     3998    3998    3956     3931 3998/3998     3998/3998      3926    3907     3931   3931    12→9       24       0       1
+TOTAL       36390   36422                                              35975   33424    33467  33476   206→203     52       9      28
+
+```
+
+`alignNum`/`alignRef` are how often the Urdu record at the same INDEX carries the
+English record's `hadithnumber` / `reference`. They are the whole argument for
+rescue-instead-of-override, and they are measured, not assumed:
+
+| book | index agreement (hadithnumber) | (reference) | verdict on a pair-first override |
+|---|---|---|---|
+| bukhari, abudawud, nasai, ibnmajah, tirmidhi | n/n, every row | n/n | safe — but not needed beyond the rescue |
+| malik | 631/1,858 | 644/1,858 | its Urdu file carries 1,889 records for a 1,858-row spine: a pair hit is not evidence the text belongs to the row |
+| muslim | 0/7,563 | 127/7,563 | its Urdu file is numbered in a different space entirely; only the value-level join works at all |
+
+### the effect, measured
+
+| quantity | OLD | SHIPPED (HR-2.2) | PUREPAIR (rejected) |
+|---|---|---|---|
+| rows with Urdu text | 33,424 | **33,476** (+52) | 33,467 (+43) |
+| urdu coverage of the 36,390-row spine | 91.85 % | **91.99 %** | 91.97 % |
+| rows with no Urdu at all | 2,966 | **2,914** | 2,923 |
+| rows with NEITHER language | 206 (0.57 %) | **203 (0.56 %)** | 203 (0.56 %) |
+| existing texts blanked | — | **0 by construction** | 9 |
+| existing texts re-attributed | — | **0** | 28 |
+| recovered rows whose pair-selected record carries the SAME `reference` | — | **52/52** | — |
+| per-book urdu counts that move | bukhari 6,994 · nasai 3,875 · ibnmajah 4,327 · tirmidhi 3,907 | **7,019 · 3,876 · 4,329 · 3,931** | 7,019 · 3,874 · 4,329 · 3,931 |
+| `coveragePercent` the reader sees, per book | bukhari 92 · muslim 99 · abudawud 100 · nasai 67 · ibnmajah 100 · malik 86 · tirmidhi 98 | **all seven unchanged** | all seven unchanged |
+| `thinCoverage` rows | `ur/nasai 67`, `ur/malik 86` | **unchanged** | unchanged |
+
+Two cells there were caught before they shipped, and they belong in the record: the
+neither-row count for PUREPAIR reads **203, not 208** — the 9 rows a pair-first join
+blanks all carry English text, so none of them becomes a neither-row. The first draft of
+this table assumed otherwise and was wrong, which is the same mistake § C nearly made
+with a `du` figure: an arithmetic-looking cell that nobody arithmeticked. Every number
+in this section now either comes out of the script's printout or was measured
+separately, including the per-book `coveragePercent` row.
+
+So the honest one-line result of HR-2.2: **+52 rows of Urdu, +0.14 pp, 203 neither-rows
+down from 206, and not one hadith's existing text moves.** That it can be stated that
+way is exactly why the rescue rule ships and the full re-key does not: the full re-key
+would buy 43 of those 52 rows and pay for them by blanking 9 and re-attributing 28.
+
+### the recovered rows — all 52, for the owner's device spot-check
+
+`spine index` is the 0-based position in `assets/data/hadith/<book>/english.json`, so
+each row is findable without the app; `ref` is the `reference` block the row carries.
+
+=== blank→text  (HR-2.2 recovers; the shipped rule's ONLY effect): 52 rows ===
+| book | spine index | hadithnumber | arabicnumber | pairKey | ref | old ch | pair ch | new ch | reference agrees |
+|---|---|---|---|---|---|---|---|---|---|
+| bukhari | 401 | 402 | 402 | 402|402 | 8:53 | 0 | 1043 | 1043 | YES |
+| bukhari | 690 | 690 | 690 | 690|690 | 10:84 | 0 | 561 | 561 | YES |
+| bukhari | 775 | 774 | 774 | 774|774 | 10:168 | 0 | 501 | 501 | YES |
+| bukhari | 1134 | 1132 | 1132 | 1132|1132 | 19:12 | 0 | 624 | 624 | YES |
+| bukhari | 1202 | 1199 | 1199 | 1199|1199 | 21:2 | 0 | 501 | 501 | YES |
+| bukhari | 1232 | 1228 | 1228 | 1228|1228 | 22:5 | 0 | 650 | 650 | YES |
+| bukhari | 1395 | 1390 | 1390 | 1390|1390 | 23:142 | 0 | 625 | 625 | YES |
+| bukhari | 2221 | 2214 | 2214 | 2214|2214 | 34:160 | 0 | 388 | 388 | YES |
+| bukhari | 2247 | 2239 | 2239 | 2239|2239 | 35:1 | 0 | 526 | 526 | YES |
+| bukhari | 2249 | 2240 | 2240 | 2240|2240 | 35:3 | 0 | 429 | 429 | YES |
+| bukhari | 2447 | 2437 | 2437 | 2437|2437 | 45:12 | 0 | 1507 | 1507 | YES |
+| bukhari | 3573 | 3562 | 3562 | 3562|3562 | 61:71 | 0 | 252 | 252 | YES |
+| bukhari | 3607 | 3595 | 3595 | 3595|3595 | 61:102 | 0 | 3034 | 3034 | YES |
+| bukhari | 3769 | 3756 | 3756 | 3756|3756 | 62:101 | 0 | 219 | 219 | YES |
+| bukhari | 3977 | 3963 | 3963 | 3963|3963 | 64:15 | 0 | 691 | 691 | YES |
+| bukhari | 4946 | 4931 | 4931 | 4931|4931 | 65:451 | 0 | 723 | 723 | YES |
+| bukhari | 4961 | 4945 | 4945 | 4945|4945 | 65:466 | 0 | 726 | 726 | YES |
+| bukhari | 5049 | 5032 | 5032 | 5032|5032 | 66:54 | 0 | 757 | 757 | YES |
+| bukhari | 5055 | 5037 | 5037 | 5037|5037 | 66:60 | 0 | 359 | 359 | YES |
+| bukhari | 5070 | 5051 | 5051 | 5051|5051 | 66:75 | 0 | 782 | 782 | YES |
+| bukhari | 5461 | 5441 | 5441 | 5441|5441 | 70:69 | 0 | 496 | 496 | YES |
+| bukhari | 5491 | 5470 | 5470 | 5470|5470 | 71:4 | 0 | 1373 | 1373 | YES |
+| bukhari | 5966 | 5944 | 5944 | 5944|5944 | 77:159 | 0 | 261 | 261 | YES |
+| bukhari | 6918 | 6895 | 6895 | 6895|6895 | 87:33 | 0 | 221 | 221 | YES |
+| bukhari | 6932 | 6908 | 6908 | 6908|6908 | 87:45 | 0 | 323 | 323 | YES |
+| nasai | 383 | 384 | 384 | 384|384 | 3:36 | 0 | 226 | 226 | YES |
+| ibnmajah | 3929 | 3930 | 3930 | 3930|3930 | 36:4 | 0 | 2551 | 2551 | YES |
+| ibnmajah | 4089 | 4089 | 4089 | 4089|4089 | 36:164 | 0 | 898 | 898 | YES |
+| tirmidhi | 390 | 391 | 391 | 391|391 | 2:243 | 0 | 2395 | 2395 | YES |
+| tirmidhi | 815 | 815 | 815 | 815|815 | 9:7 | 0 | 1015 | 1015 | YES |
+| tirmidhi | 1115 | 1114 | 1114 | 1114|1114 | 11:35 | 0 | 1369 | 1369 | YES |
+| tirmidhi | 1187 | 1185 | 1185 | 1185|1185 | 13:11 | 0 | 343 | 343 | YES |
+| tirmidhi | 1427 | 1424 | 1424 | 1424|1424 | 17:2 | 0 | 974 | 974 | YES |
+| tirmidhi | 1429 | 1425 | 1425 | 1425|1425 | 17:4 | 0 | 930 | 930 | YES |
+| tirmidhi | 1438 | 1433 | 1433 | 1433|1433 | 17:13 | 0 | 3321 | 3321 | YES |
+| tirmidhi | 1568 | 1561 | 1561 | 1561|1561 | 21:18 | 0 | 486 | 486 | YES |
+| tirmidhi | 1892 | 1884 | 1884 | 1884|1884 | 26:24 | 0 | 420 | 420 | YES |
+| tirmidhi | 1913 | 1904 | 1904 | 1904|1904 | 27:8 | 0 | 175 | 175 | YES |
+| tirmidhi | 2313 | 2302 | 2302 | 2302|2302 | 35:8 | 0 | 601 | 601 | YES |
+| tirmidhi | 2753 | 2741 | 2741 | 2741|2741 | 43:6 | 0 | 338 | 338 | YES |
+| tirmidhi | 2757 | 2743 | 2743 | 2743|2743 | 43:10 | 0 | 292 | 292 | YES |
+| tirmidhi | 2797 | 2780 | 2780 | 2780|2780 | 43:50 | 0 | 579 | 579 | YES |
+| tirmidhi | 2801 | 2783 | 2783 | 2783|2783 | 43:54 | 0 | 645 | 645 | YES |
+| tirmidhi | 2806 | 2787 | 2787 | 2787|2787 | 43:59 | 0 | 251 | 251 | YES |
+| tirmidhi | 2831 | 2811 | 2811 | 2811|2811 | 43:84 | 0 | 379 | 379 | YES |
+| tirmidhi | 2871 | 2846 | 2846 | 2846|2846 | 43:120 | 0 | 579 | 579 | YES |
+| tirmidhi | 2881 | 2855 | 2855 | 2855|2855 | 43:130 | 0 | 221 | 221 | YES |
+| tirmidhi | 2883 | 2856 | 2856 | 2856|2856 | 43:132 | 0 | 282 | 282 | YES |
+| tirmidhi | 2896 | 2868 | 2868 | 2868|2868 | 44:10 | 0 | 545 | 545 | YES |
+| tirmidhi | 3041 | 3011 | 3011 | 3011|3011 | 47:63 | 0 | 954 | 954 | YES |
+| tirmidhi | 3046 | 3015 | 3015 | 3015|3015 | 47:67 | 0 | 488 | 488 | YES |
+| tirmidhi | 3636 | 3604 | 3604 | 3604|3604 | 48:235 | 0 | 413 | 413 | YES |
+
+### the 9 rows a pair-first join would have blanked — every case, with its reason
+
+=== text→blank  (what a naive full re-key would destroy — every case below): 9 rows ===
+| book | spine index | hadithnumber | arabicnumber | pairKey | ref | old ch | pair ch | new ch |
+|---|---|---|---|---|---|---|---|---|
+| nasai | 3535 | 3533 | 3533 | 3533|3533 | 27:145 | 2710 | 0 | 2710 |
+| nasai | 3536 | 3533.2 | 3533.2 | 3533.2|3533.2 | 27:146 | 2710 | 0 | 2710 |
+| malik | 786 | 787 | 787 | 787|787 | 20:83 | 300 | 0 | 300 |
+| malik | 1354 | 1355 | 1355 | 1355|1355 | 31:17 | 523 | 0 | 523 |
+| malik | 1440 | 1441 | 1441 | 1441|1441 | 36:43 | 629 | 0 | 629 |
+| malik | 1441 | 1442 | 1442 | 1442|1442 | 36:44 | 562 | 0 | 562 |
+| malik | 1481 | 1482 | 1482 | 1482|1482 | 38:19 | 612 | 0 | 612 |
+| malik | 1593 | 1594 | 1594 | 1594|1594 | 43:11 | 877 | 0 | 877 |
+| malik | 1728 | 1729 | 1729 | 1729|1729 | 50:19 | 152 | 0 | 152 |
+
+The two nasai rows are the same 2,710-char Urdu text reached by a floored key: the
+file carries it under `3533.2` and leaves `3533` blank, so today BOTH `3533` and
+`3533.2` display it. A pair-first join is arguably *more* correct there (the parent
+row genuinely has no Urdu) — but it renders that row with nothing to show, and this
+hotfix's mandate is recovery, not re-attribution. The seven malik rows are the same
+shape with the same reasoning. **Decision: keep all nine, list them here, and hand the
+question to v1.0.2 with the 206→203 neither-rows.**
+
+### the 28 rows a pair-first join would have re-attributed
+
+=== text→different-text  (what a naive full re-key would re-attribute): 28 rows ===
+| book | spine index | hadithnumber | arabicnumber | pairKey | ref | old ch | pair ch | new ch |
+|---|---|---|---|---|---|---|---|---|
+| nasai | 434 | 434 | 434 | 434|434 | 4:39 | 343 | 65 | 343 |
+| nasai | 2822 | 2821 | 2821 | 2821|2821 | 24:203 | 458 | 253 | 458 |
+| nasai | 3726 | 3722 | 3722 | 3722|3722 | 34:3 | 104 | 105 | 104 |
+| malik | 630 | 631 | 631 | 631|631 | 18:2 | 4 | 227 | 4 |
+| malik | 873 | 874 | 874 | 874|874 | 20:170 | 521 | 367 | 521 |
+| malik | 903 | 904 | 904 | 904|904 | 20:200 | 103 | 79 | 103 |
+| malik | 925 | 926 | 926 | 926|926 | 20:222 | 1731 | 1074 | 1731 |
+| malik | 942 | 943 | 943 | 943|943 | 20:16 | 415 | 176 | 415 |
+| malik | 955 | 956 | 956 | 956|956 | 20:5 | 182 | 109 | 182 |
+| malik | 973 | 974 | 974 | 974|974 | 21:16 | 338 | 152 | 338 |
+| malik | 1013 | 1014 | 1014 | 1014|1014 | 22:1 | 211 | 594 | 211 |
+| malik | 1062 | 1063 | 1063 | 1063|1063 | 25:12 | 390 | 113 | 390 |
+| malik | 1065 | 1066 | 1066 | 1066|1066 | 25:15 | 128 | 150 | 128 |
+| malik | 1166 | 1167 | 1167 | 1167|1167 | 29:18 | 582 | 190 | 582 |
+| malik | 1207 | 1208 | 1208 | 1208|1208 | 29:5 | 171 | 201 | 171 |
+| malik | 1225 | 1226 | 1226 | 1226|1226 | 29:23 | 556 | 200 | 556 |
+| malik | 1321 | 1322 | 1322 | 1322|1322 | 31:33 | 664 | 383 | 664 |
+| malik | 1369 | 1370 | 1370 | 1370|1370 | 31:32 | 1509 | 1499 | 1509 |
+| malik | 1387 | 1388 | 1388 | 1388|1388 | 33:1 | 2038 | 487 | 2038 |
+| malik | 1407 | 1408 | 1408 | 1408|1408 | 36:10 | 540 | 4015 | 540 |
+| malik | 1423 | 1424 | 1424 | 1424|1424 | 36:26 | 1120 | 226 | 1120 |
+| malik | 1438 | 1439 | 1439 | 1439|1439 | 36:41 | 377 | 254 | 377 |
+| malik | 1447 | 1448 | 1448 | 1448|1448 | 36:50 | 370 | 338 | 370 |
+| malik | 1459 | 1460 | 1460 | 1460|1460 | 37:6 | 1110 | 594 | 1110 |
+| malik | 1461 | 1462 | 1462 | 1462|1462 | 37:8 | 363 | 698 | 363 |
+| malik | 1514 | 1515 | 1515 | 1515|1515 | 41:16 | 620 | 212 | 620 |
+| malik | 1592 | 1593 | 1593 | 1593|1593 | 43:10 | 1530 | 1633 | 1530 |
+| tirmidhi | 2982 | 2953 | 2953 | 2953|2953 | 47:4 | 3313 | 1444 | 3313 |
+
+Under the shipped rule every one of these keeps the text it has had since before
+HR-2.1, which is why HR-2.2 needs no "results changed" disclosure at all: the
+recovered 52 go from blank to real, and nothing goes from real to anything else.
+
+### what (b) and (c) must pin, listed now so the code cannot quietly redefine them
+
+1. `assembleHadithBook` grows `urduJoinText` as a **public, `@visibleForTesting`
+   static** so every mirror in the repo calls the real rule instead of restating it —
+   the repo's own doc line for `assembleHadithBook` says two implementations of the
+   join is how a fractional `402.2` once landed on its parent `402`.
+2. The worker needs **no separate edit, and that is verified, not assumed**: its book
+   hand-off calls the same `assembleHadithBook` (hadith_search_worker.dart:1000) and
+   its mirror folds `LocalHadith.textUrdu` (foldHadithRow), so the rescue reaches the
+   search index through the one assembler. (b) will pin that census rather than trust it.
+3. English join untouched: 35,975 rows, 415 blank texts, `en` counts in every mirror.
+4. Spine untouched: 36,390 rows, 1:1 under `HadithDatabaseService.numberKey`.
+5. Re-pins, old → new: the HR-2.1 census test's `33,424 / 91.8 %`, `rows-ur == 2966`,
+   `neither == 206` and per-book urdu counts; `backend/app/content/integrity.py`'s
+   `hadith_coverage_matrix()`; `scripts/validate_content.py`'s printout; the two
+   join-mirroring coverage helpers in `hadith_pass_h1_test.dart` and
+   `hadith_pass_x6_test.dart` (whose pinned 67 / 86 / >90 must NOT move — if they do,
+   the rule in (1) is wrong, not the pin).
+6. `assets/` untouched: HR-2.2 changes no data file, so the corpus the table above was
+   measured on is the corpus that ships.
