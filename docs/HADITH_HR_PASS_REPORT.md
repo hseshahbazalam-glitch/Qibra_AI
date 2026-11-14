@@ -16,6 +16,9 @@ Three sections: **HR-1** the search architecture, **HR-2** the data question,
 
 ### Before
 
+Quoted verbatim from `hadith_database_service.dart:842` as it stood at `ce49229`, the
+last commit before this pass:
+
 ```
  keystroke ─► provider ─► searchBatchOffMain()
                               │  final booksSnapshot = Map<String, List<LocalHadith>>.of(_bookData);
@@ -97,7 +100,7 @@ Equal SHA ⇒ byte-identical. Full table + the three diffs in
 | where upstream is *worse* | 8 hadiths: 16 × U+FFFD in upstream's own encoder |
 | blanks upstream fills | **0** (`urd-nasai` 1,891 = 1,891, `ara-ibnmajah` 5 = 5, `urd-abudawud` 1 = 1) |
 | structural drift | none: counts, spine order, `reference`, key set, `metadata.sections` |
-| coverage pins | unchanged — nasai/urdu 67 %, malik/urdu 86 %, bukhari/urdu 92 % |
+| coverage pins | unchanged — nasai/urdu 67 %, malik/urdu 86 %, bukhari/urdu 92 % (denominators re-measured below, not inherited) |
 | total bytes upstream − shipped | 1,760 (1,728 × 1 B + 16 × 2 B) — fully accounted |
 | size before / after | **113,553,406 B = 108.29 MiB (22 files) — unchanged** |
 | APK / AAB delta from HR-2 | **0 bytes** (nothing re-bundled; no edition added or dropped) |
@@ -180,6 +183,14 @@ not guessed — and both are pins this pass moved:
 | failure | measured | cause | fix |
 | --- | --- | --- | --- |
 | `test/core/a11y_pass_test.dart:271` "every IconButton in lib declares a tooltip" | `Expected: <64>` · `Actual: <63>` | the HR-3 card meta-diet deleted the per-card bookmark `IconButton` in `hadith_book_screen.dart`; the census counts `\bIconButton(` across all of `lib` | re-pinned **64 → 63** after re-measuring with the test's own comment-stripped/string-blanked scan; the companion `bare, isEmpty` assertion still holds (no tooltip-less button was added) |
+
+The direction of causality in that first row matters, so to be explicit: the gate says
+*do not delete a widget to satisfy a count*. The bookmark button was cut for the reason
+recorded in the cut table above — six meta icons per hadith is the density this redesign
+exists to remove, and the detail sheet already carries the bookmark — and the census
+moved **as a consequence**. The count was never an input to the design decision, and the
+assertion that actually guards the gate (`bare, isEmpty` — a tooltip-less button) still
+fails loudly if anyone adds one.
 | `test/features/hadith/hadith_world_class_pass_test.dart:75` "a missing legacy axis defaults to 1.0 before the max" | `Expected: <0.85>` · `Actual: <1.0>` | **my own new case was mis-pinned**: it contradicted its own name. `migrate(legacyArabic: 0.8)` folds `max(0.8, 1.0) = 1.0` — a missing v1 axis is read as the 1.0 default BEFORE the max, so it never reaches the clamp | expectation corrected **0.85 → 1.0** (the rule, not the assertion, is the authority), plus a new case pinning the floor path that was supposed to be covered: `migrate(legacyArabic: 0.8, legacyTranslation: 0.8) → 0.85` |
 
 Rule learned and applied: the census pins in `test/core/` count widget call sites
@@ -239,6 +250,9 @@ the rule, not a plausible-looking number, had to be replayed.
 | multilang invariants | 22 files · `['en','ar','ur']` · 36,390 spine · 1:1 — untouched by this pass |
 | forbidden patterns (incl. the new capture ban) | 0 |
 | boot diet | `decodeHadithAsset` still the single `jsonDecode`, off the UI isolate |
+| asset bytes in `8c5e0af..HEAD` | **0 files, 0 bytes** — `git diff --stat … -- assets` is empty, which is the measured proof of the 0-byte APK/AAB delta |
+| forbidden paths in `8c5e0af..HEAD` | `grep -E '^\.github/\|^analysis_options\.yaml'` on the changed-file list → **empty** |
+| branch state | `main` still under **MERGE HOLD** — every HR commit is on `arena/01a05b41-qibra-ai` only; the last commit touching `lib/` or `test/` that is green is `0b9de2e` (run 43558228796); everything after it is documentation |
 | local `flutter test` | **cannot run — this sandbox has no Flutter/Dart SDK**; CI is the first compile, stated rather than claimed clean |
 
 ## Device steps owed to the owner
