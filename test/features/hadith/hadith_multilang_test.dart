@@ -96,17 +96,23 @@ void main() {
           .where((e) => e.path.endsWith('.json'))
           .map((e) => e.path)
           .toList();
-      expect(files.length, 22,
-          reason: '21 edition files + kitab_names.json; anything else is '
-              'un-advertised data in the bundle');
+      // HOTFIX HR-2.1 re-pin: 22 → 15. The Arabic edition (7 files,
+      // 45.6 MB) was unbundled by owner order, so the tree is 7 books x 2
+      // editions + the names sidecar. A stray arabic.json reappearing here
+      // fails this line, which is the point.
+      expect(files.length, 15,
+          reason: '14 edition files (en + ur) + kitab_names.json; anything '
+              'else — including a re-added arabic.json — is un-advertised '
+              'data in the bundle');
     });
 
-    test('selector options are the THREE bundled codes, labels native', () {
-      // X5: three codes, seven books each -> no coverage note anywhere (a
-      // note now means the matrix and the bundle disagree, which is a bug).
+    test('selector options are the TWO bundled codes, labels native', () {
+      // HR-2.1: two codes (English + Urdu), seven books each -> no coverage
+      // note anywhere (a note now means the matrix and the bundle disagree,
+      // which is a bug). Re-pin: 3 rows → 2 rows, 'العربية' label gone.
       final options = HadithAvailability.selectorOptions();
-      expect(options.map((o) => o.code), ['en', 'ar', 'ur']);
-      expect(options.map((o) => o.label), ['English', 'العربية', 'اردو']);
+      expect(options.map((o) => o.code), ['en', 'ur']);
+      expect(options.map((o) => o.label), ['English', 'اردو']);
       expect(options.every((o) => o.note == null), isTrue);
     });
 
@@ -448,9 +454,13 @@ void main() {
       // source order, not a vibe.
       final sheet = book.indexOf('void _showQuickSettingsSheet');
       expect(sheet, greaterThan(0));
-      // i18n Phase A: literal moved into AppStrings.arabicTextSection (owner+verifier authorized)
+      // i18n Phase A: literal moved into AppStrings.arabicTextSection (owner+verifier
+      // authorized). HR-2.1 re-pin: that toggle was DELETED with the Arabic
+      // edition, so the ordering is pinned against the switch that is still
+      // there — the same rule (Language row above the toggles), a different
+      // lower neighbour.
       expect(book.indexOf('Icons.translate_rounded', sheet),
-          lessThan(book.indexOf('arabicTextSection', sheet)),
+          lessThan(book.indexOf('value: _showTranslation', sheet)),
           reason: 'Language row must sit above the toggles in the sheet');
       expect(book.contains('void _showReadingLanguageSheet'), isTrue,
           reason: 'the row opens a real picker, not a dead button');
@@ -497,13 +507,17 @@ void main() {
       expect(src.contains('pairTextIndex'), isTrue);
     });
 
-    test('sidecar records the THREE-edition layout and the X5 removal', () {
+    test('sidecar records the TWO-edition layout and both removals', () {
       final manifest =
           File('assets/data/content_manifest.json').readAsStringSync();
-      expect(manifest.contains('ar/en/ur JSON'), isTrue);
-      expect(manifest.contains('ar/en/ur/bn/tr/id/fr JSON'), isFalse,
+      // HR-2.1 re-pin: the sidecar used to say 'ar/en/ur JSON' on all seven
+      // rows. It now says en/ur and names the removal, because a ledger that
+      // claims an edition the bundle does not carry is a ledger that lies.
+      expect(manifest.contains('en/ur JSON; arabic unbundled'), isTrue);
+      expect(manifest.contains('ar/en/ur JSON'), isFalse,
           reason: 'the sidecar must not keep claiming editions it no longer '
                   'ships');
+      expect(manifest.contains('ar/en/ur/bn/tr/id/fr JSON'), isFalse);
       expect(manifest.contains('extract_hadith_languages.py'), isTrue,
           reason: 'the extractor stays as the documented re-bundle path');
     });
@@ -516,14 +530,16 @@ void main() {
       // blank after trim() — the exact input of the loader's coverage math,
       // so a future data pass must consciously re-pin it (same rule as the
       // Rev. 2 report this replaces).
+      // HR-2.1: the 'arabic' column is gone — the files it counted are not
+      // in the bundle, and a census of unbundled bytes is not a census.
       const floors = {
-        'bukhari':  {'english': [7589, 9],   'arabic': [7589, 9],   'urdu': [7589, 570]},
-        'muslim':   {'english': [7563, 203], 'arabic': [7563, 203], 'urdu': [7564, 105]},
-        'abudawud': {'english': [5274, 2],   'arabic': [5274, 2],   'urdu': [5274, 1]},
-        'nasai':    {'english': [5765, 86],  'arabic': [5765, 86],  'urdu': [5765, 1891]},
-        'tirmidhi': {'english': [3998, 72],  'arabic': [3998, 74],  'urdu': [3998, 67]},
-        'ibnmajah': {'english': [4343, 3],   'arabic': [4343, 5],   'urdu': [4343, 14]},
-        'malik':    {'english': [1858, 40],  'arabic': [1858, 29],  'urdu': [1889, 275]},
+        'bukhari':  {'english': [7589, 9],   'urdu': [7589, 570]},
+        'muslim':   {'english': [7563, 203], 'urdu': [7564, 105]},
+        'abudawud': {'english': [5274, 2],   'urdu': [5274, 1]},
+        'nasai':    {'english': [5765, 86],  'urdu': [5765, 1891]},
+        'tirmidhi': {'english': [3998, 72],  'urdu': [3998, 67]},
+        'ibnmajah': {'english': [4343, 3],   'urdu': [4343, 14]},
+        'malik':    {'english': [1858, 40],  'urdu': [1889, 275]},
       };
       expect(floors.keys.toList(), books, reason: 'one row per collection');
       for (final entry in floors.entries) {

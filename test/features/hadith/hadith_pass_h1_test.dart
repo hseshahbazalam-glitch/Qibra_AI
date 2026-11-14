@@ -35,9 +35,11 @@ const List<String> _colls = [
 // files that ship. `_coverageByBook`'s pair-key branch reads
 // HadithAvailability.newLanguageFiles instead of a hardcoded list, so a
 // re-bundled edition is measured here again with no test edit.
+// HOTFIX HR-2.1 re-pin: 'ar' is gone because arabic.json is gone — this map
+// is the test's own list of files to open, so keeping the row would make the
+// census read bytes that no longer ship.
 const Map<String, String> _stems = {
   'en': 'english',
-  'ar': 'arabic',
   'ur': 'urdu',
 };
 
@@ -60,7 +62,8 @@ int _appNum(dynamic v) {
 
 /// The joined coverage counts EXACTLY the way HadithDatabaseService
 /// computes them before exposing `languageCoverage` (en counted on
-/// itself; ar/ur via hadithnumber int-map, last wins, blanks included;
+/// itself; ur via hadithnumber int-map, last wins, blanks included (HR-2.1:
+/// the 'ar' arm went with the unbundled Arabic edition);
 /// every pair-key edition — `newLanguageFiles`, empty since X5 — via the
 /// public runtime pairTextIndex: empty skipped, first wins; absent → 0).
 Map<String, Map<String, ({int nonEmpty, int total})>> _coverageByBook() {
@@ -75,7 +78,7 @@ Map<String, Map<String, ({int nonEmpty, int total})>> _coverageByBook() {
           (i) => '${(en[i] as Map)['text'] ?? ''}'.trim().isNotEmpty),
       total: en.length,
     );
-    for (final lc in ['ar', 'ur']) {
+    for (final lc in _stems.keys.where((l) => l != 'en').toList()) {
       final hs = _book(coll, _stems[lc]!)['hadiths'] as List<dynamic>;
       final m = <int, String>{};
       for (final h in hs) {
@@ -377,15 +380,14 @@ void main() {
     });
 
     test('selector matrix + selectorOptions: FROZEN to what the bundle ships '
-        '(X5 re-pin — the four Phase B rows are gone from BOTH sides)', () {
-      expect(HadithAvailability.languageCodes, ['en', 'ar', 'ur']);
+        '(HR-2.1 re-pin — X5 took the four Phase B rows, HR-2.1 took '
+        'Arabic; both are gone from the map AND from disk)', () {
+      expect(HadithAvailability.languageCodes, ['en', 'ur']);
       expect(HadithAvailability.labelFor, {
         'en': 'English',
-        'ar': 'العربية',
         'ur': 'اردو',
       });
       expect(HadithAvailability.fileForLanguage, {
-        'ar': 'arabic',
         'ur': 'urdu',
       });
       expect(HadithAvailability.newLanguageFiles, isEmpty,

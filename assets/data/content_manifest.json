@@ -1,6 +1,6 @@
 {
  "schema": "qibra.content_manifest.v1",
- "notes": "UNKNOWN stays UNKNOWN. VERIFIED requires an in-repo license file. This sidecar does not rewrite Quran/Hadith JSON. Hadith editions: the ar/en/ur JSON files listed on each hadith row are the ONLY bundled translations (PASS X5, 2026-11-12). The four Phase B editions (bengali/turkish/indonesian/french, 27 files, 119.7 MB) were bundled on 2026-09-05 after being extracted from fawazahmed0/hadith-api@1 (repo-level The Unlicense; translator licensing UNKNOWN, so rows stayed UNKNOWN) by scripts/extract_hadith_languages.py and joined to our records ONLY by (hadithnumber, arabicnumber) — never positionally; they are UNBUNDLED here, and the extractor plus these provenance lines stay as the re-bundle path. Unbundling data changes no licence stance.",
+ "notes": "UNKNOWN stays UNKNOWN. VERIFIED requires an in-repo license file. This sidecar does not rewrite Quran/Hadith JSON. Hadith editions: the en/ur JSON files listed on each hadith row are the ONLY bundled translations (HOTFIX HR-2.1, 2026-09-01, owner order: original Urdu and English, Arabic removed — the arabic.json edition of all 7 books was UNBUNDLED on top of PASS X5, 2026-11-12, which had already removed the four Phase B editions. Removing data changes no licence stance.) The four Phase B editions (bengali/turkish/indonesian/french, 27 files, 119.7 MB) were bundled on 2026-09-05 after being extracted from fawazahmed0/hadith-api@1 (repo-level The Unlicense; translator licensing UNKNOWN, so rows stayed UNKNOWN) by scripts/extract_hadith_languages.py and joined to our records ONLY by (hadithnumber, arabicnumber) — never positionally; they are UNBUNDLED here, and the extractor plus these provenance lines stay as the re-bundle path. Unbundling data changes no licence stance.",
  "verified_at": null,
  "sources": [
   {
@@ -174,7 +174,7 @@
   },
   {
    "id": "hadith_bukhari",
-   "content": "Sahih al-Bukhari (ar/en/ur JSON)",
+   "content": "Sahih al-Bukhari (en/ur JSON; arabic unbundled 2026-09-01 by HOTFIX HR-2.1)",
    "source": "assets/data/hadith/bukhari/",
    "source_name": "metadata.name Sahih al Bukhari",
    "collection": "hadith",
@@ -195,7 +195,7 @@
   },
   {
    "id": "hadith_muslim",
-   "content": "Sahih Muslim (ar/en/ur JSON)",
+   "content": "Sahih Muslim (en/ur JSON; arabic unbundled 2026-09-01 by HOTFIX HR-2.1)",
    "source": "assets/data/hadith/muslim/",
    "source_name": "metadata.name Sahih Muslim",
    "collection": "hadith",
@@ -216,7 +216,7 @@
   },
   {
    "id": "hadith_abudawud",
-   "content": "Sunan Abu Dawud (ar/en/ur JSON)",
+   "content": "Sunan Abu Dawud (en/ur JSON; arabic unbundled 2026-09-01 by HOTFIX HR-2.1)",
    "source": "assets/data/hadith/abudawud/",
    "source_name": "metadata.name Sunan Abu Dawud",
    "collection": "hadith",
@@ -237,7 +237,7 @@
   },
   {
    "id": "hadith_nasai",
-   "content": "Sunan an-Nasa'i (ar/en/ur JSON)",
+   "content": "Sunan an-Nasa'i (en/ur JSON; arabic unbundled 2026-09-01 by HOTFIX HR-2.1)",
    "source": "assets/data/hadith/nasai/",
    "source_name": "metadata.name Sunan an Nasai",
    "collection": "hadith",
@@ -258,7 +258,7 @@
   },
   {
    "id": "hadith_ibnmajah",
-   "content": "Sunan Ibn Majah (ar/en/ur JSON)",
+   "content": "Sunan Ibn Majah (en/ur JSON; arabic unbundled 2026-09-01 by HOTFIX HR-2.1)",
    "source": "assets/data/hadith/ibnmajah/",
    "source_name": "metadata.name Sunan Ibn Majah",
    "collection": "hadith",
@@ -279,7 +279,7 @@
   },
   {
    "id": "hadith_malik",
-   "content": "Muwatta Malik (ar/en/ur JSON)",
+   "content": "Muwatta Malik (en/ur JSON; arabic unbundled 2026-09-01 by HOTFIX HR-2.1)",
    "source": "assets/data/hadith/malik/",
    "source_name": "metadata.name Muwatta Malik",
    "collection": "hadith",
@@ -300,7 +300,7 @@
   },
   {
    "id": "hadith_tirmidhi",
-   "content": "Jami at-Tirmidhi (ar/en/ur JSON; urdu backfilled 2026-09-02 from fawazahmed0/hadith-api@df57907 editions/urd-tirmidhi.json)",
+   "content": "Jami at-Tirmidhi (en/ur JSON; urdu backfilled 2026-09-02 from fawazahmed0/hadith-api@df57907 editions/urd-tirmidhi.json; arabic unbundled 2026-09-01 by HOTFIX HR-2.1)",
    "source": "assets/data/hadith/tirmidhi/",
    "source_name": "metadata.name Jami At Tirmidhi",
    "collection": "hadith",

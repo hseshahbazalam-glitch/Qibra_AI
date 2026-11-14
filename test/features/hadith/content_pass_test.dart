@@ -37,9 +37,12 @@ void main() {
     }
   });
 
-  test('all 7 collections ship the 3-file ar/en/ur layout', () {
+  test('all 7 collections ship the 2-file en/ur layout', () {
+    // HOTFIX HR-2.1 re-pin: 'arabic' left the list because it left the
+    // bundle (owner order — Urdu + English only). The loop shape is
+    // unchanged on purpose: it fails if an edition file is missing.
     for (final b in _books) {
-      for (final l in ['arabic', 'english', 'urdu']) {
+      for (final l in ['english', 'urdu']) {
         final f = File('assets/data/hadith/$b/$l.json');
         expect(f.existsSync(), isTrue, reason: '$b/$l.json missing');
         final d = jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;

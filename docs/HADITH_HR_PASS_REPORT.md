@@ -805,3 +805,98 @@ arrive in debug, the log now distinguishes the two remaining causes for us — a
 lazily per book rather than at flush, a one-line change in the same branch); a short
 one with `X` large means the scan itself is still the wall (then the answer is the
 inverted index, and this report will say so rather than raise a budget).
+
+---
+
+# HOTFIX HR-2.1 — the content diet: Urdu + English, Arabic unbundled
+
+Owner order, verbatim: *"mujhe original urdu and eng dalna h arabic hata dena h pura
+hadith ka sara book 100 verified sab"*. Read as three demands, and this pass answers
+all three: put the original Urdu and English in, take the Arabic out of every hadith
+book, and verify the coverage of every book so that the "100" claim is a measured
+number rather than a hope.
+
+Quran is out of scope by order: `assets/data/quran/` shows **zero diff** in this
+pass, and the Quran surfaces keep their Arabic (they are the book that is *supposed*
+to carry it). `hadithnumber` and `arabicnumber` stay in every row and every join —
+they are **join keys, not Arabic text**, and `pairKey`/`LocalHadith.numberLabel`
+still need them.
+
+## A — the data diet (checkpoint A)
+
+Exactly seven files were deleted, one per collection, and nothing else in
+`assets/data/hadith/` moved:
+
+| collection | pre-deletion blob (at `865c3f8`) | bytes |
+|---|---|---|
+| abudawud | `3a9fd5a36b1225a0e92f06b4d933feaba5bb2bad` | 7,345,422 |
+| bukhari | `72a64ea26134fb19e12c7eec4109a5bbc39ee62c` | 9,770,083 |
+| ibnmajah | `4dfc0eea4e87ebd2c0e946144fea491380b3cead` | 5,583,070 |
+| malik | `cbdd5570b9f1e526199ba751a76ce7a5841262e8` | 2,150,337 |
+| muslim | `a94ab4a02352c082a6c75834c0df2548026d3bb3` | 8,685,140 |
+| nasai | `e383bdb22b8f2c7b75faf05379823cc8c73d535c` | 7,152,291 |
+| tirmidhi | `80d8ed3d1aa4727e2ac8cdf51db8e617a736b3a0` | 7,120,806 |
+| **total** | | **47,807,149 B = 45.59 MB** |
+
+Those blob SHAs are the re-bundle path: `git cat-file blob <sha>` returns the deleted
+file byte-for-byte, which is what "a data drop plus one map row" is worth in practice.
+
+Measured before and after, in the same clean worktree, with `du -sb assets/data/hadith`
+and a `find … | wc -l` on `*.json`:
+
+| | files | bytes | MB |
+|---|---|---|---|
+| before HR-2.1 | 22 | 113,553,406 | 108.29 |
+| after HR-2.1 | **15** | **65,746,257** | **62.70** |
+| delta | −7 | −47,807,149 | **−42.1 %** |
+
+15 = 7 books × 2 editions (`english.json` + `urdu.json`) + `kitab_names.json`. The
+size reduction is the *bundle* size; the APK delta is in § C, labelled with whatever
+authority CI gives it.
+
+The boot diet follows from the same map, not from a second edit: `_loadBook` builds
+its `Future.wait` batch as `english.json` + one file per row of
+`HadithAvailability.fileForLanguage`, so removing the `'ar': 'arabic'` row takes the
+boot from 21 asset reads + isolate decodes (3 per book × 7) to **14** (2 × 7). No
+loop, threshold or cache constant was touched to get that — it is a consequence,
+which is the only kind of simplification this family of passes accepts.
+
+### `hadith_availability.dart` is where the removal happened
+
+`languageCodes` is now `['en', 'ur']`, and `labelFor`, `booksForLanguage` and
+`fileForLanguage` each lost their `'ar'` row. That is the whole UI-side change: the
+Settings selector, the reader sheet rows, `HadithLanguageNotifier.supported` and the
+boot batch all *derive* from those four lines (that derivation is itself pinned —
+`hadith_redesign_test` and `hadith_multilang_test` require `selectorOptions()` to be
+the source, and `HadithLanguageNotifier.supported == {...languageCodes}`), so no
+downstream file was allowed a hardcoded language list, and none needed one.
+
+A device that had `ar` persisted in `SharedPreferences` under the old build reads
+`hadith_display_language_v1 = 'ar'`; the notifier's `_load` already filters through
+`supported`, so that value falls back to `en` — the same path X5 built for a stale
+`bn`/`tr`/`id`/`fr`. No migration, no new code.
+
+### Re-pins carried by A (old → new, all disclosed here)
+
+| pin | was | now |
+|---|---|---|
+| `hadith_multilang_test` file census | 22 files | **15 files** |
+| `hadith_multilang_test` selector | 3 codes, `['English','العربية','اردو']` | **2 codes, `['English','اردو']`** |
+| `hadith_multilang_test` floors | 7 books × {english, arabic, urdu} | **7 books × {english, urdu}** |
+| `hadith_multilang_test` sidecar | `contains('ar/en/ur JSON')` | **`contains('en/ur JSON; arabic unbundled')`, and `isNot('ar/en/ur JSON')`** |
+| `content_pass_test` layout | "3-file ar/en/ur layout" | **"2-file en/ur layout"** |
+| `hadith_pass_h1_test` frozen matrix | `['en','ar','ur']` + `{'ar':'arabic','ur':'urdu'}` | **`['en','ur']` + `{'ur':'urdu'}`** |
+| `hadith_pass_h1_test` `_stems` | `{en, ar, ur}` | **`{en, ur}`** (it is a list of files to *open*) |
+| `assets/data/content_manifest.json` | 7 rows "(ar/en/ur JSON)" + notes | **7 rows "(en/ur JSON; arabic unbundled 2026-09-01 by HOTFIX HR-2.1)" + notes naming both diets** |
+
+The `content_manifest.json` edit is the one line in this pass that touches
+`assets/` besides the seven deletions, and it is ordered by the brief, not
+volunteered: a ledger that still claims three editions after two of them ship is a
+ledger that lies. `assets/data/hadith/**` itself is exactly the seven deletions, and
+`assets/data/quran/**` is empty of diff.
+
+Nothing else in the matrix moved: `bookDisplayNames`, `coveragePercent`,
+`thinCoverage` and the `newLanguageFiles` fold seam keep their behaviour, and the
+`thinCoverage` real-data rows are unchanged by the diet (they were already
+`ur/nasai` 67 % and `ur/malik` 86 %; the Arabic column was 97–100 % everywhere, so
+removing it removes no disclosure row and adds none).
