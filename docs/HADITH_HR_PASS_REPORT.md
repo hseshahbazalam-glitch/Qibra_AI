@@ -1286,13 +1286,17 @@ test gets compiled: the package name was guessed, and `LocalHadith` lives in the
 **service** library, not in `hadith_models.dart` — a fact the analyzer enforces
 and a 40-line balance audit cannot.
 
-Whole-chain footprint, `865c3f8..HEAD`:
+Whole-chain footprint, pinned to the last commit that changed code or data, so
+the number cannot rot against its own text (`git diff --stat 865c3f8 82c5c90 |
+tail -1`; the 658,957 deletions are the seven Arabic editions and nothing else,
+and the 1,611 insertions are the validator, the census file, the re-pins and
+§ A–§ C of this report):
 
 ```
  35 files changed, 1611 insertions(+), 658957 deletions(-)
 ```
 
-`assets/data/quran` is a zero diff across all five commits (the command
+`assets/data/quran` is a zero diff across the whole chain (the command
 `git diff --stat 865c3f8 HEAD -- assets/data/quran` prints nothing), and the only
 `assets/` entries in the chain are the seven `arabic.json` deletions and the
 `content_manifest.json` prose. Timebox-8 was spent as briefed — one checkpoint
