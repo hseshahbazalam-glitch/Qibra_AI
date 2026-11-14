@@ -159,6 +159,9 @@ typedef _Census = ({
 
 _Census _census(String slug) {
   final spine = _rows(slug, 'english');
+  // still the loader's own primary half, and still the key set the off-spine
+  // count below is measured on.
+  final urdu = _urduMap(slug);
   final spineKeys = [for (final r in spine) _intKey(r['hadithnumber'])];
   var english = 0, urduHits = 0, neither = 0, broken = 0;
   for (final row in spine) {
