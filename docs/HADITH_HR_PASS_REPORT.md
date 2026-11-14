@@ -1303,3 +1303,56 @@ and the 1,611 insertions are the validator, the census file, the re-pins and
 `content_manifest.json` prose. Timebox-8 was spent as briefed — one checkpoint
 per section, A's redness disclosed instead of hidden, and no gate moved to make
 the tree pass.
+
+### § C's post-diet `HR13` figures: re-read from the run that printed them
+
+The § C table was written from a read of run **43596310124** (B's run) and the one
+thing it had not yet had is the discipline the rest of this pass used: the numbers
+were not re-read from that job's log text. They are now. Job
+**132451447920**, `…/logs/job/job-logs.txt`, chunks 12–13, verbatim:
+
+```
+[HR13_MEASURE] rows=1200 searchedChars=1256131 meanCharsPerRow=1047 fields=3
+[HR13_MEASURE] mirror built for 1200 real rows in 65ms (54.4us/row) — one time, at settle, off-main
+[HR13_MEASURE] "patience" over 1200 real rows: fold-per-scan 63.7ms vs cached 5.6ms, 1 hits
+[HR13_MEASURE] p95 cached = 5.6ms (bound 500.0ms); p95 folding = 63.7ms; extrapolated to all 36,390 shipped rows: cached ~170ms vs folding ~1931ms per keystroke
+[HR13_MEASURE] real mean searched chars/row = 1159; HR-1 synthetic english/row = 131; ratio = 8.8x
+[HR13_RAM] 1400 real rows / 1485061 searched chars = 2.83MB of text; mirror = 1484061 chars = 99.9% of that, plus 1400 row objects; build 59053us = 42.2us/row; RSS +3600KB (the mirror's own chars are 2898KB)
+[HR13_PARITY] 243 hits compared across 12 single queries + 1 burst, over 1400 real rows (english + urdu + chapter + a populated Phase-B field; HR-2.1 removed the arabic field from both sides); 4 queries hit nothing on BOTH sides, which is the empty-pattern case
+[HR13_FOLD] one-time fold pass, english field of all 7 books: rows=36390 chars=15400840 foldedChars=15400840 cost=319ms (20.7ns/char)
+[HR13_FOLD] differential: 2125 inputs (26 adversarial shapes + 2100 real rows) fold identically under the legacy rule and the rune-keyed one
+[HR1_BENCH] settle (assemble + fold) over 20020 real-length rows took 764ms — one time, off-main
+[HR1_BENCH] ledger corpus weight: 20020 rows, 13168496 searched chars, 658 per row (the shipped bundle measures 1,436)
+Shell: [HADITH_SEARCH] corpus folded at settle: 1 books new / 7 mirrored, 20020 rows, 120ms (5us/row), 24403886 folded chars ~46.5MB held
+```
+
+**Every one of the ten § C figures matches the log line for line** — 54.4 µs/row,
+42.2 µs/row (59,053 µs), 1,256,131 / 1,047 / fields=3, mirror = 1,484,061 chars,
+RSS +3,600 KB with 2,898 KB of it the mirror's own chars, p95 cached 5.6 ms against
+the 500 ms bound, fold-per-scan 63.7 ms, the 319 ms whole-corpus fold of
+15,400,840 chars at 20.7 ns/char, and 24,403,886 folded chars ≈ 46.5 MB held. No
+number is relabelled and nothing in the table moves. The same log carries
+`🎉 704 tests passed.` (B's count, one commit before the census file) and the
+battery header `185 dart files under lib` / `G2 import advisories (319)`.
+
+Four facts the log gave that § C had not claimed, added rather than swapped in:
+
+* **settle is 764 ms, from 1,465 ms** — `[HR1_BENCH] settle (assemble + fold)` over
+  the same 20,020 real-length rows. Pre-diet printed 1,465 (and 1,995 once) on
+  identical code, so the suite's own noise is ±40 % and this is a 1.9× gap: larger
+  than the noise, but a *single* run pair, so quote it as "≈ half", not as 47.9 %.
+* **the per-book settle ladder shows the mirror cost is paid while the books are
+  already resident, not re-paid**: 2,860 rows/217 ms/76 µs-per-row, then 167, 99,
+  110, 102, 150, 120 ms as the mirror grows to 20,020 rows — µs/row 76 → 5, because
+  rows after the first book are `mirrored`, not folded. That is `boot-reads-once`
+  working, on the shipped tree, printed by CI rather than argued.
+* **the mirror is now 99.9 % of the searched text** (1,484,061 / 1,485,061) where
+  pre-diet it was 87.3 % (1,973,863 / 2,261,934): Arabic was the one searched field
+  the mirror did *not* cache, so the diet closed that gap and cut the cache anyway —
+  measured mirror chars 1,973,863 → 1,484,061 = **−24.8 %**, sitting between the
+  table's modelled −27.4 % (per-row) and the ledger's −25.3 %. The three are the same
+  fact at three sample sizes; the −24.8 % is the one a single run measured directly.
+* `[HR13_PARITY]`'s own text says *"HR-2.1 removed the arabic field from both sides"*
+  and still prints **243 hits / 12 queries / 1,400 rows**, the pre-diet parity
+  count — proof both that the numbers above come from a dieted tree and that B's
+  claim "no result changed" is executed, not asserted.
