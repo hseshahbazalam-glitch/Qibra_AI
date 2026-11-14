@@ -27,8 +27,6 @@ double hadithRelevanceFor(String text, String query) {
   return (0.5 + (occurrences * 0.1)).clamp(0.0, 0.8);
 }
 
-
-
 // ============================================================
 // PASS HR-1 — THE PER-BOOK DERIVATION, PURE AND SHARED
 // ============================================================
@@ -172,73 +170,192 @@ class _HadithAsset {
 // PASS HR-1 — THE BATCH SCAN, AS A PURE FUNCTION OF (corpus, queries)
 // ============================================================
 
-/// The relevance-ranked batch scan that used to be the BODY of an
-/// `Isolate.run` closure capturing a snapshot of the corpus. Same rules, one
-/// fewer copy: it now runs inside the persistent worker (which owns its rows)
-/// and takes the corpus as a parameter.
+/// HOTFIX HR-1.3 — the corpus fold, moved out of the scan and paid once.
 ///
-/// Unchanged semantics, pinned by test/features/hadith/hadith_h4_search_test.dart
-/// and test/features/ai/*: the RAW query text is matched verbatim (folded by
-/// [SearchNormalizer], which is the only normalization the hadith path allows),
-/// english scores through [hadithRelevanceFor], arabic upgrades to 0.9, urdu to
-/// 0.85, the chapter name only ever scores 0.5 when nothing else matched, the
-/// four Phase B candidates are upgrade-only and skip empty text, each term list
-/// is capped, then sorted by relevance descending.
-List<List<LocalSearchResult>> scanHadithCorpus(
-  Map<String, List<LocalHadith>> booksSnapshot,
+/// The pair below is ONE ranking rule in TWO declarations, deliberately:
+///
+///  * [scanFoldedHadithCorpus] is the body. It takes the corpus AND its folded
+///    mirror, and its loop contains no fold at all — matching is `indexOf` on
+///    cached strings, so a keystroke costs what the text costs, once, instead
+///    of what the text costs x fields x queries.
+///  * [scanHadithCorpus] is the pre-HR-1.3 signature (rows, queries), kept for
+///    its pinned callers, and it is now one line: fold the corpus, run the
+///    body. It is the REFERENCE that the parity test measures the mirror
+///    against, which is why the rule is not written twice.
+///
+/// Why this exists at all, in one line of device evidence: six
+/// `scan request N, budget 90s (first after a spawn)` and zero `scan N
+/// answered` — the scan never finished on real text, because
+/// `SearchNormalizer.contains(raw, q)` folds `raw` per row per field per query.
+///
+/// The rules themselves are unchanged and still pinned by
+/// test/features/hadith/hadith_h4_search_test.dart and test/features/ai/*: the
+/// RAW query text is matched verbatim (folded by [SearchNormalizer], which is
+/// the only normalization the hadith path allows), english scores through
+/// [hadithRelevanceFor], arabic upgrades to 0.9, urdu to 0.85, the chapter name
+/// only ever scores 0.5 when nothing else matched, the four Phase B candidates
+/// are upgrade-only and skip empty text, each term list is capped, then sorted
+/// by relevance descending.
+
+/// HOTFIX HR-1.3 — one row, as the scan wants it: every field it reads,
+/// ALREADY folded. Real hadith text is 300-2,000 chars
+/// (measured in the shipped bundle: english mean 423 chars, p95 1,134, max
+/// 24,676), so folding it per row per field per query is minutes, not
+/// milliseconds.
+///
+/// The mirror holds the worker's own copy of the corpus's TEXT ONLY — the rows
+/// stay untouched, because a result must point at the real row.
+class FoldedHadith {
+  const FoldedHadith({
+    required this.english,
+    required this.arabic,
+    required this.urdu,
+    required this.chapter,
+    required this.bengali,
+    required this.turkish,
+    required this.indonesian,
+    required this.french,
+  });
+
+  final String english;
+  final String arabic;
+  final String urdu;
+  final String chapter;
+
+  /// The Phase-B fields are mirrored too, not skipped: `foldLanguageIntoRows`
+  /// DOES put real text into them whenever a Phase-B language is active, and a
+  /// cache that stopped at three languages would quietly make those languages
+  /// unsearchable in the worker.
+  final String bengali;
+  final String turkish;
+  final String indonesian;
+  final String french;
+
+  /// Retained chars, for the RAM disclosure in the pass report: this is what
+  /// the mirror costs on top of the rows, measured rather than estimated.
+  int get foldedChars => english.length +
+      arabic.length +
+      urdu.length +
+      chapter.length +
+      bengali.length +
+      turkish.length +
+      indonesian.length +
+      french.length;
+}
+
+/// Fold one row. An empty field keeps the canonical `''` instead of a
+/// fold-shaped copy of nothing: in the shipped bundle most fields per row are
+/// empty, and `''` is shared, so the mirror costs no object per absent field.
+FoldedHadith foldHadithRow(LocalHadith hadith) {
+  String fold(String text) =>
+      text.isEmpty ? '' : SearchNormalizer.foldText(text);
+  return FoldedHadith(
+    english: fold(hadith.textEnglish),
+    arabic: fold(hadith.textArabic),
+    urdu: fold(hadith.textUrdu),
+    chapter: fold(hadith.chapterName),
+    bengali: fold(hadith.textBengali),
+    turkish: fold(hadith.textTurkish),
+    indonesian: fold(hadith.textIndonesian),
+    french: fold(hadith.textFrench),
+  );
+}
+
+/// THE pre-pass: fold a whole book once, off the main isolate, at hand-off.
+/// One fold per row per non-empty field, paid ONCE — the scan below pays zero.
+List<FoldedHadith> foldHadithBook(List<LocalHadith> rows) => [
+      for (final h in rows) foldHadithRow(h),
+    ];
+
+/// The same, book by book, in the shape the worker keeps (`books`).
+Map<String, List<FoldedHadith>> foldHadithCorpus(
+  Map<String, List<LocalHadith>> books,
+) =>
+    {
+      for (final entry in books.entries)
+        entry.key: foldHadithBook(entry.value),
+    };
+
+/// The batch scan, HOTFIX HR-1.3 shape: (rows, folded mirror, queries) in,
+/// relevance-ranked top-N out. Every rule is [scanHadithCorpus]'s and lives
+/// nowhere else: english scores through [hadithRelevanceFor] on the RAW text,
+/// arabic upgrades to 0.9, urdu to 0.85, the chapter name only ever scores 0.5
+/// when nothing else matched, the four Phase-B candidates are upgrade-only and
+/// skip empty text, each term list is capped at maxPerQuery * 4, then sorted by
+/// relevance descending and truncated. What changed is only WHERE the folding
+/// happens: the corpus side arrives pre-folded, so the loop below does
+/// `indexOf` on strings and folds exactly one thing — the query, once each.
+List<List<LocalSearchResult>> scanFoldedHadithCorpus(
+  Map<String, List<LocalHadith>> books,
+  Map<String, List<FoldedHadith>> folded,
   List<String> queries, {
   int maxPerQuery = 3,
 }) {
   final terms = queries.map((q) => q.toLowerCase().trim()).toList();
+  final patterns = [
+    for (final q in queries) SearchNormalizer.foldQuery(q),
+  ];
   final hits = <List<LocalSearchResult>>[
     for (final _ in queries) <LocalSearchResult>[],
   ];
-  for (final entry in booksSnapshot.entries) {
-    for (final hadith in entry.value) {
+  for (final entry in books.entries) {
+    final rows = entry.value;
+    final mirror = folded[entry.key];
+    // A mirror that is missing, or whose length differs, is not the mirror of
+    // THESE rows — and matching a stale string is worse than folding slowly: it
+    // drops a hit no device would ever see. So the mirror is used only when it
+    // matches, and otherwise the row is folded here, the old way. That window
+    // is real but narrow: main has handed a book and not yet settled, or a
+    // language fold replaced the rows. Never for a settled corpus, which is
+    // what the worker's flush branch guarantees.
+    final mirrored = mirror != null && mirror.length == rows.length;
+    for (var r = 0; r < rows.length; r++) {
+      final hadith = rows[r];
+      final text = mirrored ? mirror![r] : foldHadithRow(hadith);
       for (var qi = 0; qi < queries.length; qi++) {
         if (hits[qi].length >= maxPerQuery * 4) continue;
-        final q = queries[qi];
+        // An empty PATTERN is a miss, not a hit on everything: `indexOf('')`
+        // answers 0 for every row, while `firstMatch` — the pre-fix shape —
+        // returns null as soon as the folded query is empty. A query of pure
+        // tashkeel or spaces must still find nothing.
+        final q = patterns[qi];
+        if (q.isEmpty) continue;
         final lq = terms[qi];
         double relevance = 0;
         String matchedIn = '';
-        if (SearchNormalizer.contains(hadith.textEnglish, q)) {
+        if (text.english.indexOf(q) >= 0) {
           relevance = hadithRelevanceFor(hadith.textEnglish, lq);
           matchedIn = 'english';
         }
-        if (SearchNormalizer.contains(hadith.textArabic, q) &&
-            0.9 > relevance) {
+        if (text.arabic.indexOf(q) >= 0 && 0.9 > relevance) {
           relevance = 0.9;
           matchedIn = 'arabic';
         }
-        if (SearchNormalizer.contains(hadith.textUrdu, q) &&
-            0.85 > relevance) {
+        if (text.urdu.indexOf(q) >= 0 && 0.85 > relevance) {
           relevance = 0.85;
           matchedIn = 'urdu';
         }
-        if (SearchNormalizer.contains(hadith.chapterName, q) &&
-            relevance == 0) {
+        if (text.chapter.indexOf(q) >= 0 && relevance == 0) {
           relevance = 0.5;
           matchedIn = 'chapter';
         }
-        // Pass H4: the Phase-B languages join the OFF-MAIN scan with
-        // the EXACT rule the main-isolate search() already uses —
-        // scored position-aware, upgrade-only, empty text skipped.
-        // Before this the batch path searched en/ar/ur only, so
-        // routing hadith search here would have DROPPED
-        // bengali/turkish/indonesian/french hits the old search had.
+        // Pass H4: the Phase-B languages join the OFF-MAIN scan with the EXACT
+        // rule the main-isolate search() already uses — scored position-aware,
+        // upgrade-only, empty text skipped. Their folded side comes from the
+        // mirror like every other field, so no field is matched twice in two
+        // different ways.
         for (final candidate in [
-          (hadith.textBengali, 'bengali'),
-          (hadith.textTurkish, 'turkish'),
-          (hadith.textIndonesian, 'indonesian'),
-          (hadith.textFrench, 'french'),
+          (text.bengali, hadith.textBengali, 'bengali'),
+          (text.turkish, hadith.textTurkish, 'turkish'),
+          (text.indonesian, hadith.textIndonesian, 'indonesian'),
+          (text.french, hadith.textFrench, 'french'),
         ]) {
-          if (candidate.$1.trim().isEmpty) continue;
-          if (SearchNormalizer.contains(candidate.$1, q)) {
-            final candidateRelevance =
-                hadithRelevanceFor(candidate.$1, lq);
+          if (candidate.$2.trim().isEmpty) continue;
+          if (candidate.$1.indexOf(q) >= 0) {
+            final candidateRelevance = hadithRelevanceFor(candidate.$2, lq);
             if (candidateRelevance > relevance) {
               relevance = candidateRelevance;
-              matchedIn = candidate.$2;
+              matchedIn = candidate.$3;
             }
           }
         }
@@ -260,6 +377,30 @@ List<List<LocalSearchResult>> scanHadithCorpus(
   }
   return hits;
 }
+
+/// The pre-HR-1.3 entry point, kept EXACTLY as it was signed because HR-1 pins
+/// it (row identity, the benchmark) and `ai_responsiveness_test` pins its use:
+/// it is now the REFERENCE implementation of the ranking rule, and it is one
+/// line — fold the corpus, then run the one body. Two implementations of one
+/// ranking rule is how a cache starts disagreeing with the truth quietly, so
+/// the fold is hoisted out of the loop instead of duplicated into it.
+///
+/// Nothing on the typing path calls this any more: the worker answers from its
+/// cached mirror (see `_hadithSearchWorkerEntry`). Tests and the main-isolate
+/// one-shot paths may, and they pay the fold per call — which is the whole
+/// point of HR-1.3.
+List<List<LocalSearchResult>> scanHadithCorpus(
+  Map<String, List<LocalHadith>> booksSnapshot,
+  List<String> queries, {
+  int maxPerQuery = 3,
+}) =>
+    scanFoldedHadithCorpus(
+      booksSnapshot,
+      foldHadithCorpus(booksSnapshot),
+      queries,
+      maxPerQuery: maxPerQuery,
+    );
+
 /// Pass X1's late-language fold, as a pure function (PASS HR-1): a NEW
 /// immutable row per hadith, joined on the exact pair key the row already
 /// carries, plus the count of rows that ended up with non-empty text — the

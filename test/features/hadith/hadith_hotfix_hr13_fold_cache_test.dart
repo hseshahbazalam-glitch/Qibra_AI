@@ -34,15 +34,32 @@
 //
 // CI ROUNDS FOR THIS FILE (red evidence; the full table lives in
 // docs/HADITH_HR_PASS_REPORT.md under "HR-1.3"):
-//   `73cdadd`  run 43585154315  RED on Analyze only (my own bug: a `$name`
-//              interpolation in a test title pointed at an undeclared
-//              identifier) — no measurement produced.
-//   `f1546a8`  run 43585606786  GREEN 695/0, and the cost gate PASSED at
-//              1,200 real rows. Reported plainly because it is a finding: the
-//              bound is reachable at that size, so the red had to be moved to
-//              the fold itself (the two stopwatch tests below) and to the
-//              source pins. A stopwatch on a 1,200-row slice was not enough,
-//              exactly as the device was not reproduced by a 20-char fixture.
+//   `73cdadd`  run 43585154315  RED on Analyze only, and the failure was MINE:
+//              a `$rowsUnderGate` interpolation in a test title naming an
+//              identifier that does not exist (the const is `_rowsUnderGate`).
+//              No measurement produced: the suite never ran.
+//   `f1546a8`  run 43585606786  GREEN. The 1,200-row cost gate PASSED at that
+//              moment — reported because it is the finding that matters: a
+//              stopwatch on a slice of the corpus is not a proof, and CI's
+//              runner is not a CPH2573.
+//   `54f5de4`  run 43586298265  RED as designed: `695 tests passed, 6 failed`,
+//              `git diff --stat` proving the only changed file is this one, so
+//              every failure is a gate of HR-1.3 and no existing gate moved.
+//              Six, not five: the five designed reds (whole-corpus fold bound,
+//              fold-growth ratio, the three source pins) plus the 1,200-row p95
+//              gate, which at HEAD sits ON the 500 ms bound and so flips with
+//              the runner's mood. That is the honest state of the pre-fix code:
+//              a real-corpus scan is not "minutes" on a 4-core x86 in a warm VM
+//              and it is minutes on the owner's phone, and the only reason the
+//              first of those is even arguable is that CI's hadith benchmarks
+//              never carried real text. After the fix the gate has ~30x of
+//              margin for the same rows; at HEAD it had noise.
+//
+// So the red is aimed at the two things that scale honestly: the fold's own
+// cost (whole corpus, and a machine-independent growth ratio) and the scan
+// path's source (no fold of corpus text anywhere in it, mirror built at settle
+// only). A timing gate can be out-fiddled by a smaller fixture — that is
+// exactly how HR-1 ended up green and the phone red.
 
 @TestOn('vm')
 library;
@@ -210,6 +227,16 @@ String _realTextAtLeast(int targetChars) {
   }
   throw StateError('the shipped corpus is smaller than $targetChars chars');
 }
+
+/// The comparable identity of a result list: which row, at what score, matched
+/// in which field. Deliberately NOT `identical`: the fix must hand back the
+/// same rows (it does — the mirror never replaces them) but what the READER
+/// sees is hits, order and scores, and that is the promise being pinned.
+List<(int, String, double, String)> _signature(List<LocalSearchResult> hits) =>
+    [
+      for (final h in hits)
+        (h.hadith.hadithNumber, h.hadith.bookSlug, h.relevance, h.matchedIn),
+    ];
 
 void main() {
   group('HR-1.3 the fold must be paid once per row, not once per query per '
@@ -454,6 +481,136 @@ void main() {
               'payload and the language-fold replace `books[slug]`, and a fold '
               'cache that outlives its rows drops hits silently — the failure '
               'mode a device cannot see and a test must');
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // THE FIX'S TWO PROMISES, MEASURED. (a) the mirror must answer EXACTLY what
+  // the folding scan answered — "the optimization may not change one result";
+  // (b) the memory bought with that speed is a NUMBER, not "roughly doubles".
+  // ─────────────────────────────────────────────────────────────────────────
+  group('HR-1.3 the cached mirror is the same scan', () {
+    test('same hits, same order, same scores — real text, every field, plus a '
+        'populated Phase-B one', () {
+      final base = _realCorpus(rows: 1400);
+      // A Phase-B language `foldLanguageIntoRows` really installed, so the
+      // mirror is tested on the fields a shipped language fills — not only the
+      // three that always have text.
+      final withPhaseB = <String, List<LocalHadith>>{};
+      for (final entry in base.entries) {
+        withPhaseB[entry.key] = foldLanguageIntoRows(
+          rows: entry.value,
+          code: 'bn',
+          index: {
+            for (var i = 0; i < entry.value.length; i++)
+              entry.value[i].pairKey:
+                  '\u09a8\u09be\u09ae\u09be\u099c \u09b8\u0982\u0995\u09cd\u09b0'
+                  '\u09be\u09a8\u09cd\u09a4 \u09b9\u09be\u09a6\u09bf\u09b8 '
+                  '$i \u2014 \u09ac\u09b0\u09cd\u09a3\u09a8\u09be '
+                  '\u09b8\u0982\u0995\u09cd\u09b7\u09bf\u09aa\u09cd\u09a4',
+          },
+        ).rows;
+      }
+      final mirror = foldHadithCorpus(withPhaseB);
+      // Every query shape the phone can receive, including the two that are
+      // edge cases by construction: whitespace-only and tashkeel-only fold to
+      // EMPTY, where `indexOf('')` matches every row and `firstMatch` matches
+      // nothing. Parity here means the empty-pattern guard, not luck.
+      const queries = [
+        'namaz ka tarika', 'patience', 'prayer', 'the Prophet', 'book of',
+        '\u0627\u0644\u0631\u062d\u0645\u0646', '\u0635\u0628\u0631',
+        '\u09a8\u09be\u09ae\u09be\u099c', ' ', '\u064e\u0651 ', 'KIND',
+        'sahih bukhari',
+      ];
+      var checked = 0;
+      var missed = 0;
+      for (final q in queries) {
+        final raw = scanHadithCorpus(withPhaseB, [q], maxPerQuery: 50).single;
+        final cached =
+            scanFoldedHadithCorpus(
+                    withPhaseB, mirror, [q], maxPerQuery: 50)
+                .single;
+        expect(_signature(cached), equals(_signature(raw)),
+            reason: 'query "$q" (hits ${raw.length}) — the mirror changed a '
+                'result, which is the one thing this fix is not allowed to do');
+        checked += raw.length;
+        if (raw.isEmpty) missed++;
+      }
+      // Multi-query in one call: the per-query caps and the sort are shared
+      // state, so a burst is a different path from 12 single queries.
+      final rawBatch =
+          scanHadithCorpus(withPhaseB, [...queries], maxPerQuery: 50);
+      final cachedBatch = scanFoldedHadithCorpus(
+          withPhaseB, mirror, [...queries],
+          maxPerQuery: 50);
+      expect(
+          cachedBatch.map(_signature).toList(),
+          equals(rawBatch.map(_signature).toList()),
+          reason: 'a 12-query burst answered differently from 12 single '
+              'queries — the caps or the sort drifted');
+      expect(checked, greaterThan(0),
+          reason: 'a parity test on a corpus nothing matched is a tautology');
+      debugPrint('[HR13_PARITY] $checked hits compared across '
+          '${queries.length} single queries + 1 burst, over '
+          '${withPhaseB.values.first.length} real rows (english + arabic + '
+          'urdu + chapter + a populated Phase-B field); $missed queries hit '
+          'nothing on BOTH sides, which is the empty-pattern case');
+    });
+
+    test('what the mirror costs, measured: chars, build time, and RSS', () {
+      final corpus = _realCorpus(rows: 1400);
+      var rawChars = 0;
+      var rows = 0;
+      for (final list in corpus.values) {
+        for (final h in list) {
+          rows++;
+          rawChars += h.textEnglish.length + h.textArabic.length +
+              h.textUrdu.length + h.chapterName.length;
+        }
+      }
+      final rssBefore = ProcessInfo.currentRss;
+      final sw = Stopwatch()..start();
+      final mirror = foldHadithCorpus(corpus);
+      sw.stop();
+      final rssAfter = ProcessInfo.currentRss;
+      var mirrorChars = 0;
+      var mirrored = 0;
+      for (final list in mirror.values) {
+        for (final row in list) {
+          mirrored++;
+          mirrorChars += row.foldedChars;
+        }
+      }
+      expect(mirrored, rows,
+          reason: 'one mirrored row per real row, or the index-by-position is '
+              'a bug waiting to happen');
+      // The fold only ever REMOVES (inert diacritics, collapsed whitespace), so
+      // the mirror's text can never outweigh the rows it mirrors. A mirror that
+      // starts retaining `FoldedText` objects — the per-character index map, 4
+      // bytes per char, the very thing this pass stops building per query —
+      // breaks this immediately.
+      expect(mirrorChars, lessThanOrEqualTo(rawChars),
+          reason: 'mirror $mirrorChars chars vs raw $rawChars chars: folding '
+              'must not ADD characters, and must not keep the source or the '
+              'map beside the folded string');
+      final rssDeltaKb = (rssAfter - rssBefore) ~/ 1024;
+      final mirrorCharsKb = mirrorChars * 2 ~/ 1024;
+      debugPrint('[HR13_RAM] $rows real rows / $rawChars searched chars = '
+          '${(rawChars * 2 / (1024 * 1024)).toStringAsFixed(2)}MB of text; '
+          'mirror = $mirrorChars chars = '
+          '${(mirrorChars / rawChars * 100).toStringAsFixed(1)}% of that, plus '
+          '$mirrored row objects; build ${sw.elapsedMicroseconds}us = '
+          '${(sw.elapsedMicroseconds / rows).toStringAsFixed(1)}us/row; '
+          'RSS +${rssDeltaKb}KB (the mirror\'s own chars are '
+          '${mirrorCharsKb}KB)');
+      expect(rssDeltaKb, greaterThan(0),
+          reason: 'the mirror is retained memory; if RSS did not move, the '
+              'measurement is broken — and this number, not an estimate, is '
+              'what the pass report quotes');
+      expect(rssDeltaKb, lessThan(mirrorCharsKb * 4 + 8192),
+          reason: 'RSS grew more than 4x what the mirror\'s own characters '
+              'need — that is the shape of an index map (or a second copy of '
+              'the raw text) being retained beside it');
     });
   });
 }

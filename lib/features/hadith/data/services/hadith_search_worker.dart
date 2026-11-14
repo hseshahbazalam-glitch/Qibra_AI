@@ -952,6 +952,23 @@ void _hadithSearchWorkerEntry(SendPort mainPort) {
 
   // The corpus, owned HERE. Nothing on this side is reachable from main.
   final books = <String, List<LocalHadith>>{};
+  // HOTFIX HR-1.3 — the folded mirror of `books`, slug by slug.
+  //
+  // `books` is why a scan was possible; this is why a scan is POSSIBLE IN TIME.
+  // The pre-fix loop asked `SearchNormalizer.contains(row.text, q)`, which
+  // folds the row, per field, per query, so one hadith of 1,400 chars was
+  // re-normalised four times per keystroke, 36,390 rows deep — the owner's
+  // device answered that with `scan request N, budget 90s (first after a
+  // spawn)` six times and zero `answered` lines. Here the fold is paid ONCE per
+  // row at settle (below) and the keystroke path is `indexOf` on cached
+  // strings: same hits, same order, same scores, because the strings it matches
+  // are exactly the ones the old loop folded.
+  //
+  // The cost is memory, and it is DISCLOSED rather than waved at: one extra
+  // String per searched field per row, held in the worker. The pass report
+  // quotes the measured number (build ms and folded chars) from the log line
+  // this branch prints, not an estimate.
+  final folded = <String, List<FoldedHadith>>{};
   var newestRequestId = 0;
   // HR-1.1 telemetry, kept as an INT so the row count can ride the reply back to
   // main's debugPrint. Maintained incrementally (replace, not recount) because
@@ -982,6 +999,9 @@ void _hadithSearchWorkerEntry(SendPort mainPort) {
         rows -= books[message.slug]?.length ?? 0;
         books[message.slug] = assembled.hadiths;
         rows += assembled.hadiths.length;
+        // A mirror of rows that no longer exist is not a cache, it is a wrong
+        // answer with good timing. Drop it; the next settle rebuilds.
+        folded.remove(message.slug);
       }
       return;
     }
@@ -993,10 +1013,49 @@ void _hadithSearchWorkerEntry(SendPort mainPort) {
           code: message.code,
           index: message.index,
         ).rows;
+        // `foldLanguageIntoRows` makes NEW row objects with NEW text, so the
+        // mirror of this slug is describing a corpus that has been replaced.
+        // Index-by-position is only honest while the rows are the rows; this is
+        // the line that keeps that promise.
+        folded.remove(message.slug);
       }
       return;
     }
     if (message is _HadithFlushRequest) {
+      // THE settle point: every book main has is in `books` now, so this is the
+      // one moment the whole corpus can be folded once — off the main isolate,
+      // behind the boot, and BEFORE the reply below, because main reads that
+      // reply as "the corpus is ready" and a query that arrived first would pay
+      // the fold on the typing path again. One-time, not per keystroke, and
+      // never on a keystroke at all.
+      final sw = Stopwatch()..start();
+      // Incremental on purpose: `folded.remove(slug)` is what a replaced book
+      // leaves behind, so a slug that is already mirrored is already correct and
+      // must not be folded again — main may well settle twice in one boot, and
+      // "once per row" has to survive that.
+      var mirrored = 0;
+      for (final entry in books.entries) {
+        if (folded.containsKey(entry.key)) continue;
+        folded[entry.key] = foldHadithBook(entry.value);
+        mirrored++;
+      }
+      sw.stop();
+      if (kDebugMode) {
+        // The numbers the report quotes, measured on the device in the mode the
+        // device runs: a one-time cost, and the owner is entitled to its size.
+        var foldedChars = 0;
+        for (final mirror in folded.values) {
+          for (final row in mirror) {
+            foldedChars += row.foldedChars;
+          }
+        }
+        final usPerRow = rows == 0 ? 0 : sw.elapsedMicroseconds ~/ rows;
+        debugPrint('[HADITH_SEARCH] corpus folded at settle: $mirrored books '
+            'new / ${folded.length} mirrored, $rows rows, '
+            '${sw.elapsedMilliseconds}ms (${usPerRow}us/row), '
+            '$foldedChars folded chars ~'
+            '${(foldedChars * 2 / (1024 * 1024)).toStringAsFixed(1)}MB held');
+      }
       message.replyTo.send(true);
       return;
     }
@@ -1014,8 +1073,13 @@ void _hadithSearchWorkerEntry(SendPort mainPort) {
       }
       newestRequestId = message.id;
       final sw = Stopwatch()..start();
-      final batches = scanHadithCorpus(
+      // The keystroke path: no fold in this call, only `indexOf` on the
+      // strings built above. `folded` may lag `books` for one book mid-boot;
+      // the scan answers that by folding that book itself, which is correct and
+      // bounded, and never happens for a settled corpus.
+      final batches = scanFoldedHadithCorpus(
         books,
+        folded,
         message.queries,
         maxPerQuery: message.maxPerQuery,
       );

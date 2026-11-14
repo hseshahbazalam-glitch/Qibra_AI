@@ -69,18 +69,31 @@ abstract final class SearchNormalizer {
   /// Fold [source] for matching (lowercase, Arabic normalization).
   /// Whitespace is collapsed to single spaces *while building* so the
   /// folded→original index map never shifts.
+  ///
+  /// HOTFIX HR-1.3 — the collapse test reads a tracked `lastUnit` instead of
+  /// `foldedBuf.toString().codeUnitAt(len - 1)`. Asking a StringBuffer for its
+  /// own contents MATERIALIZES IT: one fresh copy of the whole partially-built
+  /// string, per whitespace character, and real hadith text has a space every
+  /// 5-6 characters. So a fold cost (length x spaces) rather than length — a
+  /// 1,400-char row paid ~240 copies averaging 700 chars, x 4 fields x 36,390
+  /// rows x every keystroke. That is the device's "the scan never finishes"
+  /// (owner log: six `scan request N, budget 90s`, zero `answered`), and the
+  /// output is bit-identical: the guard asks the same question, in a variable.
   static FoldedText fold(String source) {
     final foldedBuf = StringBuffer();
     final starts = <int>[];
+    // -1 = nothing written yet. Every `append` writes a non-empty [ch], so the
+    // buffer's last unit is always exactly the last unit of the last [ch].
+    var lastUnit = -1;
     void append(String ch, int i) {
       // Collapse runs of whitespace: skip if buffer empty or last char
       // already a space.
       if (ch == ' ') {
-        if (foldedBuf.isEmpty) return;
-        final last = foldedBuf.toString().codeUnitAt(foldedBuf.length - 1);
-        if (last == 0x20 || last == 0x09 || last == 0x0A) return;
+        if (lastUnit == -1) return;
+        if (lastUnit == 0x20 || lastUnit == 0x09 || lastUnit == 0x0A) return;
       }
       foldedBuf.write(ch);
+      lastUnit = ch.codeUnitAt(ch.length - 1);
       starts.add(i);
     }
 
@@ -109,18 +122,36 @@ abstract final class SearchNormalizer {
   }
 
   /// Fold a query the same way (no index map needed).
-  static String foldQuery(String query) {
+  ///
+  /// This is [foldText] under the name the search bars use — one
+  /// implementation on purpose: a query folded by a different rule than the
+  /// corpus would silently drop hits, and `fold` above is not reusable for the
+  /// corpus-side of HR-1.3 because building its index map per row is the cost
+  /// being removed.
+  static String foldQuery(String query) => foldText(query);
+
+  /// [fold]'s folded string, WITHOUT the per-character index map back into the
+  /// source. For a corpus-wide pre-pass (HOTFIX HR-1.3: the hadith worker
+  /// folds every row ONCE at hand-off and matches with `indexOf` afterwards),
+  /// where the map is 4 bytes per character of retained or thrown-away memory
+  /// for a position nobody will highlight.
+  ///
+  /// Bit-identical to `fold(source).folded` — same append, same collapse, same
+  /// trailing-space drop, pinned by
+  /// test/features/hadith/hadith_hotfix_hr13_fold_cache_test.dart.
+  static String foldText(String source) {
     final buf = StringBuffer();
+    // See the note on [fold]: the last written unit is tracked, never
+    // re-materialised out of the buffer.
+    var lastUnit = -1;
     void append(String ch) {
-      if (ch == ' ' && (buf.isEmpty ||
-          buf.toString().codeUnitAt(buf.length - 1) == 0x20)) {
-        return;
-      }
+      if (ch == ' ' && (lastUnit == -1 || lastUnit == 0x20)) return;
       buf.write(ch);
+      lastUnit = ch.codeUnitAt(ch.length - 1);
     }
 
-    for (int i = 0; i < query.length; i++) {
-      final rune = query.codeUnitAt(i);
+    for (int i = 0; i < source.length; i++) {
+      final rune = source.codeUnitAt(i);
       if (rune == 0x20 || rune == 0x09 || rune == 0x0A || rune == 0x0D) {
         append(' ');
         continue;
