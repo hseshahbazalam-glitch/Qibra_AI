@@ -54,7 +54,14 @@ import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The owner's panel, in dp: 1080/2.8125 x 2400/2.8125, punch hole ≈34 dp.
-const double _screenW = 384;
+/// The HEIGHT is the device's, because the bug was vertical. The WIDTH is not:
+/// an honest 384 dp made the tab's own chrome Row overflow by 120 dp
+/// (`hadith_screen.dart:137`, CI run 43571400962) — a real narrow-screen finding
+/// for another pass, and not something a sheet-fit test should be red on. See
+/// `_pumpDeviceWithKeyboard`. Round 7's red was exactly this: a `_screenW` left
+/// unreferenced is an `unused_element` WARNING in a file-level private, and this
+/// gate fails on warnings.
+const double _deviceW = 384;
 const double _screenH = 853;
 const double _topInset = 34;
 
@@ -127,7 +134,7 @@ Future<void> _pumpDeviceWithKeyboard(WidgetTester tester, double keyboard) async
   // Row (hadith_screen.dart:137) — a real narrow-screen finding, but not this
   // hotfix's, and not something a layout test should fail on. HR-1.2 is about
   // the VERTICAL stack: notch, sheet, keyboard.
-  tester.view.physicalSize = const Size(800, _screenH);
+  tester.view.physicalSize = const Size(2 * _deviceW, _screenH);
   addTearDown(tester.view.resetPhysicalSize);
   tester.view.padding =
       const FakeViewPadding(top: _topInset, left: 0, right: 0, bottom: 0);
@@ -179,8 +186,8 @@ void main() {
         // what the bug was and what a bottom sheet inside a
         // `SingleChildScrollView` actually shows: no exception at all, just a
         // field pushed off the top of the screen.
-        final demand = 0.88 * _screenH + keyboard;
-        final cap = _screenH * 0.9;
+        const demand = 0.88 * _screenH + keyboard;
+        const cap = _screenH * 0.9;
         expect(field.evaluate().length, 1);
         expect(demand > cap, isTrue,
             reason: 'the harness itself must still express the device finding: a '
