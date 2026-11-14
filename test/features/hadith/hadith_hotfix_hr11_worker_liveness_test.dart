@@ -201,12 +201,19 @@ void main() {
   group('HR-1.1 a slow answer is a miss, not an execution', () {
     test('TWO misses with no reply in between is the retirement, and one is not',
         () async {
-      // A budget of one millisecond makes a miss DETERMINISTIC on any machine:
-      // no real isolate answers a round trip in under 1 ms. We are not testing
-      // that a phone is slow — we are testing what this code DOES when a reply
-      // is late, and HR-1 answered that question with `retired for this session`.
+      // THE MISS MUST BE ARMED AGAINST THE WORK, NOT AGAINST A SCHEDULING GUESS.
+      // The first version of this test asked for 1 ms and claimed no isolate can
+      // answer a round trip that fast. CI run 43574889342 disproved the claim on
+      // the same code that had passed twice before it: the runner scanned the
+      // 60-row book in 0.9 ms and the reply BEAT the timer, so query 2 answered,
+      // the two-miss counter never reached 2, and `expect(second, isNull)` got
+      // three real hits. That is not the code misbehaving — a worker that answers,
+      // even late-ish, is exactly what HR-1.1 wants to keep alive; the test was
+      // assuming a speed. 1 µs is ~500× under the fastest scan ever measured on
+      // this runner, so the timer is guaranteed to win the race while the shipped
+      // 45 s / 90 s budgets stay what the app actually runs.
       final worker = _worker(
-        budget: const Duration(milliseconds: 1),
+        budget: const Duration(microseconds: 1),
         revive: const Duration(seconds: 600),
       );
       addTearDown(worker.shutdownForTest);
@@ -472,7 +479,11 @@ void main() {
       // burst leaves no ledger and at most one honest miss, not that two misses
       // retire (the group above pins that).
       final worker = _worker(
-        budget: const Duration(milliseconds: 2),
+        // Same lesson as group 2, applied here so this test cannot go VACUOUS:
+        // at 2 ms a fast runner may answer all three queries in time and then
+        // "at most two misses" is satisfied by zero misses, which proves
+        // nothing. 1 µs guarantees the burst really does miss.
+        budget: const Duration(microseconds: 1),
         retireAfter: 4,
       );
       addTearDown(worker.shutdownForTest);
@@ -494,6 +505,10 @@ void main() {
           reason: 'the ×6 pile, in one line: HR-1 left one stale armed wait per '
               'keystroke, and every one of them could reach for the kill switch');
       expect(worker.pendingReplies, isEmpty);
+      expect(worker.timeouts, greaterThanOrEqualTo(1),
+          reason: 'and the assertion below is not vacuous: with a 1 µs budget the '
+              'burst MUST cost at least one counted miss, or this test is only '
+              'proving the runner was slow');
       expect(worker.timeouts, lessThanOrEqualTo(2),
           reason: 'three concurrent queries may cost AT MOST two counted misses: '
               'a superseded one is discarded, and a retirement for a phrase the '
