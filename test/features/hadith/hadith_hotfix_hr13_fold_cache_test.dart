@@ -98,10 +98,16 @@ const _rowsUnderGate = 1200;
 /// 500 ms is the brief's end-to-end bound.
 const _scanBoundMs = 500.0;
 
-/// One pass of the fold over the ENTIRE shipped corpus must fit in this (ms).
-/// Folding 15.4 M linear chars is a fraction of it; the per-whitespace
-/// `buf.toString()` guard is not.
-const _wholeCorpusFoldBoundMs = 2000.0;
+/// The bound on the ONE-TIME pass over every char the shipped bundle holds.
+///
+/// IT IS A CEILING, NOT A WITNESS: the pre-fix fold measured 1,979 ms against
+/// the 2,000 ms this used to carry — a green light for code that was 2.7x slower
+/// than it needed to be. So the witness of the fold fix is the linearity test
+/// below (8.0x the text must cost 8.0x the time) plus the ns/char number printed
+/// with it; this bound only says "seconds once at settle, never minutes per
+/// keystroke", and 4,000 ms is where it is so a loaded runner cannot decide the
+/// verdict. CI measured 1,979 ms before the fix and 742 ms after it.
+const _wholeCorpusFoldBoundMs = 4000.0;
 
 /// Fold-time growth between two texts 8x apart: a linear fold grows by ~8, the
 /// quadratic guard grows by ~8 x 8. A ratio, so runner speed cannot flake it.

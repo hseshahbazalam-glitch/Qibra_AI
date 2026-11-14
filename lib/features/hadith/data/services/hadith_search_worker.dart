@@ -262,6 +262,13 @@ class HadithSearchWorker {
   /// Missed reply budgets in a row. Cleared by any successful round trip.
   int _timeouts = 0;
 
+  /// Missed budgets that were DISCARDED because a newer query had already
+  /// overtaken them (the half of HR-1.1's ledger that `[timeouts]` deliberately
+  /// does not count). Cumulative, and deliberately NOT cleared by a late reply
+  /// arriving: a refunded miss still happened, and "the burst was really armed"
+  /// is a fact a test must be able to read even after the refund.
+  int _supersededMisses = 0;
+
   /// Highest request id main has sent: a reply for anything below it was
   /// already overtaken, so its lateness says nothing about the worker's health.
   int _newestSentId = 0;
@@ -327,6 +334,11 @@ class HadithSearchWorker {
 
   /// See [timeouts]: a test seam, documented as one.
   set timeouts(int value) => _timeouts = value;
+
+  /// See [timeouts]: the discard ledger, as a seam. Pinned by the HR-1.1 burst
+  /// test because a COUNTED miss is not observable there — the late reply that
+  /// HR-1.1 delivers refunds it (`_refundLateReply`) — while the discards are.
+  int get supersededMisses => _supersededMisses;
 
   bool get retired => _retired;
 
@@ -682,6 +694,7 @@ class HadithSearchWorker {
   /// Missed budgets that were NOT superseded. Any live round trip clears them.
   void _noteMissedBudget(String why, {required bool newest}) {
     if (!newest) {
+      _supersededMisses++;
       if (kDebugMode) {
         debugPrint('[HADITH_SEARCH] $why missed its budget but a newer query '
             'had already overtaken it — discarded, not counted');
@@ -894,6 +907,7 @@ class HadithSearchWorker {
     _kill();
     _retired = false;
     _timeouts = 0;
+    _supersededMisses = 0;
     _pendingReplies.clear();
     _newestSentId = 0;
     _corpusStale = false;

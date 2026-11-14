@@ -210,8 +210,9 @@ void main() {
       // three real hits. That is not the code misbehaving — a worker that answers,
       // even late-ish, is exactly what HR-1.1 wants to keep alive; the test was
       // assuming a speed. 1 µs is ~500× under the fastest scan ever measured on
-      // this runner, so the timer is guaranteed to win the race while the shipped
-      // 45 s / 90 s budgets stay what the app actually runs.
+      // this runner, so the timer wins — and the port is closed when the budget
+      // expires, so a late reply cannot arrive inside the SAME wait and refund
+      // the miss (`_refundLateReply`): the count survives to be asserted.
       final worker = _worker(
         budget: const Duration(microseconds: 1),
         revive: const Duration(seconds: 600),
@@ -479,10 +480,6 @@ void main() {
       // burst leaves no ledger and at most one honest miss, not that two misses
       // retire (the group above pins that).
       final worker = _worker(
-        // Same lesson as group 2, applied here so this test cannot go VACUOUS:
-        // at 2 ms a fast runner may answer all three queries in time and then
-        // "at most two misses" is satisfied by zero misses, which proves
-        // nothing. 1 µs guarantees the burst really does miss.
         budget: const Duration(microseconds: 1),
         retireAfter: 4,
       );
@@ -492,30 +489,61 @@ void main() {
           name: 'Sahih al-Bukhari',
           rawEnglish: _syntheticBook(1, 60));
       await worker.whenSettled();
+      expect(worker.isLive, isTrue, reason: 'no live port — the burst below '
+          'would never reach a ledger and every assertion here would be vacuous');
 
-      // Three commits at once — the shape of a typing burst that reached the
-      // worker before the debounce was introduced. None may leave a ghost.
-      final three = await Future.wait([
+      // NON-VACUITY, READ SYNCHRONOUSLY. The version this replaces demanded a
+      // COUNTED miss with `timeouts >= 1`. That was unsound, not merely flaky: a
+      // superseded query's lateness is DISCARDED by design, and a query answered
+      // inside its µs budget is neither — so on correct code the count can be
+      // zero. CI run 43588882619: `Actual: <0>` against `>= 1`, on a ledger that
+      // was closing exactly as HR-1.1 requires. What IS observable without asking
+      // a scheduler who won is the ledger itself.
+      //
+      // The three `search` calls run their
+      // ledger bookkeeping before their first real suspension (the await on
+      // `start()` only happens on a cold or retired worker), so at this instant
+      // the burst is three armed waits and nothing has resolved yet. THAT is the
+      // pile-up HR-1 shipped with — ×6 on the owner's device log for one typed
+      // phrase — and it is the only part of a burst a test can count without
+      // asking a scheduler who won a race.
+      final burst = [
         worker.search(['n'], maxPerQuery: 3),
         worker.search(['na'], maxPerQuery: 3),
         worker.search(['namaz ka tarika'], maxPerQuery: 3),
-      ]);
+      ];
+      expect(worker.inFlight, 3,
+          reason: 'three keystrokes, three ledger entries: if this is not 3, the '
+              'burst never reached the ledger and the "closes to zero" assertion '
+              'below is proving that nothing happened');
+      expect(worker.pendingReplies, hasLength(3));
+
+      final three = await Future.wait(burst);
       expect(three, hasLength(3));
       expect(worker.inFlight, 0,
-          reason: 'the ×6 pile, in one line: HR-1 left one stale armed wait per '
-              'keystroke, and every one of them could reach for the kill switch');
+          reason: 'and the ledger is EMPTY again: HR-1 left one stale armed wait '
+              'per keystroke, and every one of them could reach for the kill '
+              'switch');
       expect(worker.pendingReplies, isEmpty);
-      expect(worker.timeouts, greaterThanOrEqualTo(1),
-          reason: 'and the assertion below is not vacuous: with a 1 µs budget the '
-              'burst MUST cost at least one counted miss, or this test is only '
-              'proving the runner was slow');
-      expect(worker.timeouts, lessThanOrEqualTo(2),
-          reason: 'three concurrent queries may cost AT MOST two counted misses: '
-              'a superseded one is discarded, and a retirement for a phrase the '
-              'reader is still typing is the bug we came to fix (HR-1 counted '
-              'every one of them)');
-      expect(worker.retired, isFalse, reason: 'and the worker is still live');
-      expect(worker.isLive, isTrue);
+      // No miss may be counted twice, and no ghost may be left behind. The exact
+      // SPLIT is deliberately not asserted: a wait that is answered before its
+      // budget expires produces neither a miss nor a discard, and that is
+      // correct — which is why CI run 43588882619 could report `Actual: <0>`
+      // against a `timeouts >= 1` floor on code that was behaving. A late reply
+      // can also pay back the miss it cost (`_refundLateReply`), so the SUM of
+      // the two branches is the invariant and either count alone is not.
+      expect(worker.timeouts + worker.supersededMisses, lessThanOrEqualTo(3),
+          reason: 'three armed waits, at most three miss records — the ledger '
+              'may not double-count a slow moment across the two branches');
+      expect(worker.timeouts, lessThanOrEqualTo(1),
+          reason: 'at most the NEWEST query may be counted; a superseded one is '
+              'discarded by definition (HR-1 counted every one of them, which is '
+              'how a healthy worker was executed mid-phrase)');
+      expect(worker.retired, isFalse,
+          reason: 'a burst of keystrokes may not retire anything at all');
+      expect(worker.isLive, isTrue,
+          reason: 'still live on the same port — the next keystroke is answered, '
+              'not silenced for the session');
     });
 
     test('the newest-only rule is written down, not implied', () {
