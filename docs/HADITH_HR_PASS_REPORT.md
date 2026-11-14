@@ -1263,3 +1263,38 @@ languages already use — would stop a sub-narration inheriting its sibling's te
 and recover those 52 rows (a measured +0.16 % Urdu coverage on four books), but it
 changes which text a reader is shown, so it waits for a word rather than riding in
 on a diet.
+
+## Addendum — HR-2.1 lands green (the run the § C promises were measured on)
+
+Run **43628568264** (`82c5c90`) is the pass's evidence line, and every § C claim
+above that said "CI to confirm" now has a number:
+
+| gate | run 43628568264 |
+|---|---|
+| Dependencies | ✓ |
+| **Analyze** (0 errors, 0 warnings; infos sanctioned) | ✓ — no `error •`, no `warning •` anywhere |
+| **Full test suite** | **`🎉 712 tests passed.`** = 704 (the HR-1.3 baseline) **+ 8** (the new `hadith_hotfix_hr21_coverage_census_test`), so HR-2.1 removed a 45.6 % data slice, rewrote 20 files and added a census **without losing one test** |
+| **Static battery** | `static battery: 185 dart files under lib` · `hard findings: 0 | G2 advisories: 319 | L2 alpha advisories: 83` · **ALL GATES PASS** |
+
+The pass is five commits, each pushed and CI-read:
+`24297a3` (A, the data diet) → `13f9f55` (B, the code diet) → `8ba57fa`
+(C, the tool + the census + the ledger) → `6af5f9f` (the `qibra` → `qibra_ai`
+import fix) → `82c5c90` (drop the `unused_import` the analyzer caught, and this
+report's § B/§ C). The two red rounds between C and green are recorded in § C
+above rather than edited out, because both are facts about how a blind-written
+test gets compiled: the package name was guessed, and `LocalHadith` lives in the
+**service** library, not in `hadith_models.dart` — a fact the analyzer enforces
+and a 40-line balance audit cannot.
+
+Whole-chain footprint, `865c3f8..HEAD`:
+
+```
+ 35 files changed, 1611 insertions(+), 658957 deletions(-)
+```
+
+`assets/data/quran` is a zero diff across all five commits (the command
+`git diff --stat 865c3f8 HEAD -- assets/data/quran` prints nothing), and the only
+`assets/` entries in the chain are the seven `arabic.json` deletions and the
+`content_manifest.json` prose. Timebox-8 was spent as briefed — one checkpoint
+per section, A's redness disclosed instead of hidden, and no gate moved to make
+the tree pass.
