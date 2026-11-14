@@ -186,7 +186,11 @@ void main() {
         // what the bug was and what a bottom sheet inside a
         // `SingleChildScrollView` actually shows: no exception at all, just a
         // field pushed off the top of the screen.
-        const demand = 0.88 * _screenH + keyboard;
+        // `cap` is const, `demand` CANNOT be: it contains the loop's `keyboard`,
+        // which is a runtime value here (CI run 43572733472,
+        // `const_initialized_with_non_constant_value`, ERROR severity — my
+        // over-eager const-sweep from the previous round's info).
+        final demand = 0.88 * _screenH + keyboard;
         const cap = _screenH * 0.9;
         expect(field.evaluate().length, 1);
         expect(demand > cap, isTrue,
