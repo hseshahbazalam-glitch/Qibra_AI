@@ -1000,15 +1000,56 @@ class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
     widget.onOpenInBook(hadith);
   }
 
+  /// HOTFIX HR-1.2 — the sheet's height, in the ONLY two units that matter:
+  /// the space the keyboard left, and the notch that space starts below.
+  ///
+  /// Device finding (owner, CPH2573, after HR-1): the search field's TOP edge
+  /// was cut off under the status bar / punch-hole while typing ("upar se
+  /// cut"). The arithmetic made it inevitable — the sheet was
+  /// `Padding(bottom: viewInsets.bottom, child: SizedBox(height: screen*0.88))`
+  /// with no SafeArea, so with the autofocus keyboard up (≈43 % of this panel)
+  /// the content asked for 0.88·h + keyboard > 1.0·h. `showModalBottomSheet`
+  /// caps a scroll-controlled sheet at 90 % of the viewport and the
+  /// `BottomSheet` is BOTTOM-aligned, so the surplus was eaten at the top:
+  /// exactly the field, and only the field.
+  ///
+  /// The rule now: the sheet is 88 % of the space the keyboard LEFT (never a
+  /// fixed fraction of the screen), and it begins below the top system inset.
+  /// Search logic is untouched — no query, debounce or worker line changed
+  /// here; this is geometry, and `hadith_pass_hr1_test` keeps its pins on the
+  /// debounce wiring in this same file.
+  static const double _sheetHeightFraction = 0.88;
+
+  /// The one height rule. Pinned as a single expression by
+  /// `hadith_hotfix_hr12_search_sheet_fit_test` because the bug was arithmetic,
+  /// and arithmetic is only un-broken when it is written in one place. The
+  /// `0.0 <` guard covers a keyboard taller than the panel (IME hand-off frames),
+  /// where the subtraction would otherwise go negative.
+  static double searchSheetHeight(Size screen, double viewInsetsBottom) {
+    final freed = screen.height - viewInsetsBottom;
+    return (0.0 < freed ? freed : 0.0) * _sheetHeightFraction;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    return Padding(
+    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+    return SafeArea(
+      // top:true is the fix — the collections sheet in this same file already
+      // wrapped itself in SafeArea, so the search sheet was the outlier, not
+      // the convention. bottom:false because the viewInsets padding below owns
+      // the keyboard, and a second bottom inset would double it.
+      top: true,
+      bottom: false,
+      child: Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: viewInsets,
           ),
           child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.88,
+            height: searchSheetHeight(
+              MediaQuery.of(context).size,
+              viewInsets,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -1244,7 +1285,8 @@ class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
               ],
             ),
           ),
-        );
+        ),
+    );
   }
 }
 

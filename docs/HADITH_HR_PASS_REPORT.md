@@ -270,7 +270,7 @@ the rule, not a plausible-looking number, had to be replayed.
 ---
 ---
 
-# HOTFIX HR-1.1 + HR-1.2 (device re-run after HR-1 landed)
+# HOTFIX HR-1.1 (device re-run after HR-1 landed)
 
 Two surgical fixes, both scoped to the search path HR-1 introduced. HR-1 removed
 the per-keystroke corpus copy; the device came back and said the search now
@@ -372,3 +372,89 @@ supersedes groups and the **20,020-hadith benchmark gate** all still hold agains
 the new code by construction — the benchmark uses the default 45 s budget, so its
 14 sequential queries are answered rather than timed out.
 
+
+## HR-1.2 — the sheet was taller than the space left for it
+
+### Device red, verbatim
+
+> "search screen upar se cut ho raha hai" — the search field's top edge (and the
+> sheet's first row) disappears under the status bar / punch hole while typing.
+> The results were reachable; the entry was not.
+
+### Root cause (arithmetic, in `_HadithSearchSheetState.build`)
+
+```dart
+Padding(
+  padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+  child: SizedBox(height: MediaQuery.of(context).size.height * 0.88),
+  …
+)
+```
+
+…with **no `SafeArea`** anywhere in the sheet. `showModalBottomSheet(isScrollControlled:
+true)` caps the sheet at 90 % of the viewport and `BottomSheet` is **bottom-aligned**, so
+every excess pixel is eaten **at the top**. On the owner's panel (1080×2400 @ 2.8125 →
+384×853 dp, punch hole ≈34 dp, autofocus keyboard ≈43 % ≈ 300 dp once the system strips
+are counted):
+
+```
+0.88·853 + 300 = 1050 dp demanded, inside a 767 dp cap  →  283 dp above the screen
+```
+
+and the field — the first child, with its own 16 dp of top padding and no knowledge of
+the 34 dp notch — is exactly that much. The collections sheet **in the same file**
+already wraps itself in `SafeArea`, so the search sheet was the outlier, not the
+convention.
+
+### The fix (`hadith_screen.dart` only, this sheet only)
+
+1. `SafeArea(top: true, bottom: false)` — top for the notch; bottom false because the
+   `viewInsets` padding already owns the keyboard and a second bottom inset would
+   double-count it.
+2. `SizedBox(height: searchSheetHeight(screen, viewInsets.bottom))` where
+   `searchSheetHeight` is `fraction × (screen.height − viewInsetsBottom)` with a `0.0 <`
+   guard for a keyboard taller than the panel. The sum **cannot** exceed the viewport for
+   any keyboard height — which is why the fix is a formula and not a smaller constant.
+   The 88 % presence the design asked for is kept (it is now 88 % of what is *left*).
+3. **No** change to search logic: the debounce, the worker, the result list and the
+   book filter are untouched. The last test in the new file re-checks this file's
+   `1 × .note(` / `4 × .commitNow(` wiring, so a "layout" commit that quietly
+   re-plumbed the keystroke path fails there too.
+
+### Tests (`test/features/hadith/hadith_hotfix_hr12_search_sheet_fit_test.dart`, 7)
+
+Pumps the real tab through the real opening path (pill → `showModalBottomSheet`) inside a
+`View` carrying `padding.top = 34` and `viewInsets.bottom ∈ {129, 300, 450}` dp, and
+asserts per keyboard: **no overflow/geometry exception at all** (the old code throws
+before anything can be measured — a FlutterError trap collects them), the `TextField`
+top at/below the safe inset, its bottom above the keyboard, nothing above y = 0. Then the
+formula itself (subtraction inside the height computation, named fraction, negative
+guard), the no-keyboard case (88 % presence kept, notch respected, typing still returns
+the fixture hit through HR-1's debounce), and the source pins — `SafeArea(` +
+`top: true` + `bottom: false` before the sheet's `return`, and the **absence** of
+`SizedBox(height: MediaQuery…size.height * 0.88)`.
+
+## Gates — HR-1.2 (and the pair, together)
+
+| gate | value |
+| --- | --- |
+| `python3 scripts/static_battery.py` after **both** fixes | `hard 0 · G2 318 · L2 83` — identical to the `1097d27` baseline; ALL GATES PASS |
+| changed files, both hotfixes | `hadith_search_worker.dart`, `hadith_database_service.dart`, `hadith_screen.dart`, 2 new test files, this report — nothing else |
+| `assets/` | **untouched** (0 files, 0 bytes) |
+| `lib/features/hadith` scope | worker/search-availability (HR-1.1) + `_HadithSearchSheetState` geometry (HR-1.2) — no other file in the feature was opened |
+| `flutter analyze` / `flutter test` | **not measurable in this sandbox — no Flutter/Dart SDK.** CI measures them. If all green: 674 (HR tip, run 43558228796) + 13 + 7 = **694**, plus 9 if the lost G2-D QB-006 file is re-landed (703). CI's number is authoritative; these two are arithmetic |
+| main-isolate corpus copy | **0 new**, and the two hotfixes add none: `searchBatchOffMain` still has no `Isolate.run` / `Map<String, List<LocalHadith>>.of(_bookData)`, and the revive re-hand goes through `_loadBook` |
+| existing HR-1 tests | `hadith_pass_hr1_test.dart` byte-identical to `1097d27` (not edited, as required); `hadith_h4_search_test.dart` also untouched |
+| `main` | still under **MERGE HOLD** — both commits are on `arena/01a05b41-qibra-ai` only |
+
+### Risk disclosed, per fix
+
+* **HR-1.1** — the budgets are still guesses (45 s / 90 s / 120 s) until the device
+  prints its own numbers; a revival costs one re-hand of 21 asset reads (bounded by the
+  60 s cooldown, never per keystroke); two consecutive misses still retire, so a worker
+  that is alive-but-slower-than-45 s every time will blink out and back once a minute
+  rather than answer — which is the intended trade and is logged on every transition.
+* **HR-1.2** — with the keyboard up the sheet is now shorter than it was (88 % of the
+  remaining space instead of an un-fittable 88 % of the screen); that is the fix, not a
+  regression: the old height was not actually displayable. Landscape/IME hand-off frames
+  where insets exceed the panel height yield height 0 rather than a negative assert.
