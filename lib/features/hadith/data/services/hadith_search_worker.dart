@@ -186,11 +186,10 @@ class HadithSearchWorker {
   /// The app has exactly one hadith corpus, so exactly one worker owns it.
   static final HadithSearchWorker instance = HadithSearchWorker._shared();
 
-  HadithSearchWorker._shared({
-    this.replyTimeoutOverride,
-    this.retireAfterTimeoutsOverride,
-    this.reviveCooldownOverride,
-  });
+  // The shared singleton takes no overrides: it MUST run the shipped numbers,
+  // and giving it optional knobs is how a test seam leaks into production
+  // (the analyzer flags an optional parameter nobody on this path can pass).
+  HadithSearchWorker._shared();
 
   /// The budget for ONE reply before the worker is treated as possibly-wedged
   /// (HR-1.1: 45 s, not HR-1's 20 s).
@@ -301,7 +300,7 @@ class HadithSearchWorker {
           ? effectiveReplyTimeout
           : HadithSearchWorker.firstReplyTimeout;
 
-  int get retireAfterTimeouts =>
+  int get effectiveRetireAfterTimeouts =>
       retireAfterTimeoutsOverride ?? HadithSearchWorker.retireAfterTimeouts;
 
   Duration get effectiveReviveCooldown =>
@@ -451,8 +450,7 @@ class HadithSearchWorker {
       if (kDebugMode) {
         debugPrint('[HADITH_SEARCH] spawn refused ($e) — hadith search '
             'answers empty rather than copying the corpus on the main isolate; '
-            'revive allowed again after '
-            '${effectiveReviveCooldown.inSeconds}s');
+            'revive allowed again after ${effectiveReviveCooldown.inSeconds}s');
       }
     } finally {
       _starting = null;
@@ -476,9 +474,10 @@ class HadithSearchWorker {
   void _retire({required bool lateReply}) {
     if (lateReply) {
       _timeouts++;
-      if (_timeouts < retireAfterTimeouts) {
+      if (_timeouts < effectiveRetireAfterTimeouts) {
         if (kDebugMode) {
-          debugPrint('[HADITH_SEARCH] reply $_timeouts/${retireAfterTimeouts} '
+          final patience = effectiveRetireAfterTimeouts;
+          debugPrint('[HADITH_SEARCH] reply $_timeouts/$patience '
               'missed its budget — SLOW is not DEAD, the worker stays live and '
               'the UI kept responding');
         }
@@ -493,8 +492,9 @@ class HadithSearchWorker {
       final evidence = lateReply
           ? '$_timeouts consecutive missed budgets'
           : 'death evidence';
+      final wait = effectiveReviveCooldown.inSeconds;
       debugPrint('[HADITH_SEARCH] worker retired ($evidence) — search answers '
-          'empty until the next commit after ${effectiveReviveCooldown.inSeconds}s, and '
+          'empty until the next commit after ${wait}s, and '
           'the corpus is never scanned on main meanwhile');
     }
   }
@@ -697,8 +697,9 @@ class HadithSearchWorker {
     // the boot hand-offs, so it gets the longer budget. Measured, not assumed.
     final budget = currentReplyBudget;
     if (kDebugMode) {
+      final warmness = _everAnswered ? 'warm' : 'first after a spawn';
       debugPrint('[HADITH_SEARCH] scan request $id, budget '
-          '${budget.inSeconds}s (${_everAnswered ? 'warm' : 'first after boot'})');
+          '${budget.inSeconds}s ($warmness)');
     }
     try {
       port.send(_HadithSearchRequest(

@@ -483,6 +483,9 @@ void main() {
     test('slowness is DISCLOSED in the log line, not hidden by a bigger number',
         () {
       final code = stripCommentsForGuard(_read(_workerPath));
+      expect(code.contains('missed its budget — SLOW is not DEAD'), isTrue,
+          reason: 'the log names both halves of the rule: a miss, and the fact '
+              'that a miss is not a death');
       expect(
           code.contains('SLOW is not DEAD, the worker stays live and '), isTrue,
           reason: 'the first line a reader of the device log needs: one missed '
