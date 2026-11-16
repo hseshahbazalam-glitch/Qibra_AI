@@ -4,12 +4,14 @@
 // QIBRA AI — FORGOT PASSWORD SCREEN (QB-006, G2-D)
 // Version: 3.0.0 — the honest rebuild
 //
-// This screen used to run a fake: an email field, `await Future.delayed(2s)`
-// under a comment claiming to simulate one, a success animation with a
-// heavy haptic, and an "Open Email App" button that opened nothing. There is no
-// reset endpoint in the backend (`forgot`/`reset` do not appear in
-// backend/app/api/ at all) and no email system in the product, so every one of
-// those affordances promised a thing this build cannot do.
+// This screen used to run a fake: an email field, a two-second delay under a
+// comment claiming to simulate the API call, a success animation with a heavy
+// haptic, and an "Open Email App" button that opened nothing. The backend has no
+// recovery route for it to fake: `grep -rniE "forgot|reset_password|password_reset|/reset"
+// backend/app/` matches nothing, and routers/auth.py mounts only POST /register,
+// /login, /refresh, /logout, /logout-all and GET /me, /sessions. The product has no
+// email system either. So every one of those affordances promised a thing this
+// build cannot do.
 //
 // What ships instead: the truth, and only the exits that exist.
 //   • sign in with the current password (AppRoutes.login)
@@ -22,6 +24,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';

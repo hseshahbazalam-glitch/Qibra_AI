@@ -8,9 +8,11 @@
 // "Send reset link" button that ran `await Future.delayed(Duration(seconds: 2))`
 // labelled `// Simulate API call`, a success state with its own elasticOut
 // animation and a heavy-impact haptic, and an "Open Email App" button whose
-// only action was a SnackBar. The backend has NO reset endpoint of any kind
-// (`grep -rn "forgot\|reset" backend/app/api/` -> nothing), and the standing
-// wall says there is no email system. So the screen's whole job was to fake a
+// only action was a SnackBar. The backend has no recovery route of any kind:
+// `grep -rniE "forgot|reset_password|password_reset|/reset" backend/app/` matches
+// nothing (exit 1), and routers/auth.py mounts only POST /register, /login,
+// /refresh, /logout, /logout-all plus GET /me, /sessions. The standing wall says
+// there is no email system. So the screen's whole job was to fake a
 // capability, and its "error state" was unreachable by construction — a catch
 // around a Future.delayed.
 //
