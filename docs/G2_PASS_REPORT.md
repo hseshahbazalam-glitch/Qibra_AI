@@ -5,26 +5,41 @@ Path: `docs/G2_PASS_REPORT.md` · Written on 2026-09-01 against
 this file is a GitHub runner timestamp, and those runners' clocks read 2026-11-16;
 the two dates are not a typo and the logs are quoted as printed.
 
-Status: the code of this pass is `47d0755`→`5e6abac`; run **`43808377270`** verified
-that tree (`🎉 728 tests passed.`, `hard findings: 0 | G2 advisories: 318 | L2 alpha
-advisories: 80`, success). This file landed in `0efc263` and run **`43808868341`**
-went green on that tree with the same two lines read from its log — `🎉 728 tests
-passed.` and `static battery: 185 dart files under lib` / `ALL GATES PASS`.
+Status — every run this pass produced, with the line read from that run's own log. A
+docs-only commit gets its own run, and this file does not predict the outcome of the
+run that follows it; the head's run is recorded in the hand-off.
 
-That earlier claim — "one docs line moves no count" — was mine, and CI answered it:
-the follow-up docs-only commit `41bf1d5` ran as **`43809214669`** and printed
-`727 tests passed, 1 failed.` — its `Analyze` step success, its `Static battery` step
-skipped because the suite step died first. The next commit on this branch is
-an EMPTY one, `604f635`, whose tree differs from `41bf1d5` by nothing at all, and its
-run **`43809711358`** passed every step: `Full test suite (the ~318-test gate)`
-success, `Static battery` success. Identical content, red once, green once — so the
-failure in `43809214669` is not something this pass changed. This file is the commit
-on top of that, and its own run is **`43810762467`**: all seven steps success, `🎉 728
-tests passed.` at `05:33:19.336` in its log, job annotation `hard findings: 0 | G2
-advisories: 318 | L2 alpha advisories: 80`. Those two runs cover the trees they ran
-on; this sentence is one commit further, and this file does not predict its outcome —
-the run for whatever head this lands on is in the hand-off, which is where a gate's
-answer belongs.
+| Tree | What it is | Run | Read from that run |
+| --- | --- | --- | --- |
+| `5e6abac` | the code of this pass (`47d0755`→`5e6abac`) | `43808377270` | `🎉 728 tests passed.` · `hard findings: 0 \| G2 advisories: 318 \| L2 alpha advisories: 80` · `ALL GATES PASS (static; device compile remains the authority)` |
+| `0efc263` | this file, first landing | `43808868341` | `🎉 728 tests passed.` (`05:15:58.974`) · `static battery: 185 dart files under lib` · `0 \| 318 \| 80` |
+| `41bf1d5` | prose only | `43809214669` | **`727 tests passed, 1 failed.`** — `Analyze` success, `Full test suite` failure, `Static battery` skipped |
+| `604f635` | EMPTY commit, tree byte-identical to `41bf1d5` | `43809711358` | conclusion success with `Full test suite` and `Static battery` both success — a step list, not a quote: no log line was read for this one |
+| `1e15761` | § 3 item 5 added | `43810762467` | `🎉 728 tests passed.` (`05:33:19.336`) · annotation `hard findings: 0 \| G2 advisories: 318 \| L2 alpha advisories: 80` |
+| `06162ee` | run ids and claims tightened | `43811204972` | `🎉 728 tests passed.` (`05:37:05.414`) · annotation `hard findings: 0 \| G2 advisories: 318 \| L2 alpha advisories: 80` |
+
+The `41bf1d5` row is the answer to a claim this file itself made in its `0efc263`
+version — "one docs line moves no count". It moved one; § 3 item 5 is the finding.
+Byte-identical content, red once and green once, is what makes that row a flake and
+not a regression, and nothing was edited, skipped, retried or re-pinned to get the
+three runs after it green.
+
+Operational note, because it changes what "the workspace" is: after `06162ee` the
+sandbox was re-provisioned. `/home/user/Qibra_AI` came back as a fresh shallow clone
+at `15a3a81` with 181 stale-modified paths and 54 untracked leftovers restored from a
+snapshot, and the `.hrfix` worktree this pass was built in came back empty. Nothing
+was authored away and nothing was deleted: the branch was fetched from `origin`, the
+checkout fast-forwarded to `06162ee` (`git status --porcelain` → 0 lines,
+`git diff --name-only 06162ee` → 0 paths), and the untracked leftovers were moved
+aside to `/tmp/arena-stale-06162ee/`. All static and backend gates were then re-run
+on the restored tree and reproduced exactly: `hard findings: 0 | G2 advisories: 318 |
+L2 alpha advisories: 80` with `ALL GATES PASS`; backend `327 passed, 1 warning in
+31.16s`; `pip-audit` → `No known vulnerabilities found`; `validate_content.py` →
+`hadith_matrix_issues []`, 14 files / 14, `rows_with_neither_edition` 203,
+`urdu_rows_off_spine` 1, `OK 114/6236; licenses not VERIFIED`; the hadith bundle on
+disk 15 files, 65,741,265 bytes, no `arabic.json`. The Flutter gates could not be
+re-run here (no Dart SDK in this sandbox either), which is why their evidence stays
+the six CI rows above.
 
 What it was is written up as a finding in § 3 item 5, and the honest headline is that
 **the identity of that single failing test is not recoverable from here**: GitHub's
@@ -320,7 +335,7 @@ pass may not touch would be a lie with an exit code.
 | Gate | Required | Measured |
 | --- | --- | --- |
 | `flutter analyze --no-fatal-infos` | 0 errors, 0 warnings | green in run `43808377270` (the gate run). History: run `43806206960` (red tree) passed analyze and failed tests, which is the only reason a red round is useful; run `43807569632` **failed here with 3 × `error • Undefined name 'AppRoutes'`**, my mistake, fixed in `8f0be57`; run `43808267080` was cancelled by the next push (`5e6abac`) before it finished |
-| `flutter test` | green | run `43808377270`: **`🎉 728 tests passed.`** — 719 + QB-006's 9. Red evidence, run `43806206960`: `720 tests passed, 8 failed.`, and the 9th (the controls test) passed on the old tree exactly as designed. Post-report docs-only runs on this same suite: `43809214669` `727 tests passed, 1 failed.` then `43809711358` green on a byte-identical tree — § 3 item 5 |
+| `flutter test` | green | run `43808377270`: **`🎉 728 tests passed.`** — 719 + QB-006's 9. Red evidence, run `43806206960`: `720 tests passed, 8 failed.`, and the 9th (the controls test) passed on the old tree exactly as designed. Post-report docs-only runs on this same suite: `43809214669` `727 tests passed, 1 failed.` then `43809711358` green on a byte-identical tree — § 3 item 5 — then `43810762467` and `43811204972`, both `🎉 728 tests passed.` read from their logs |
 | `python3 scripts/static_battery.py` | hard 0 · G2 ≤ 319 · L2 ≤ 83 | **`hard findings: 0 \| G2 advisories: 318 \| L2 alpha advisories: 80`**, `static battery: 185 dart files under lib`, `ALL GATES PASS (static; device compile remains the authority)` — printed identically by CI (`43808377270`, from the log) and by the local A/B measurement (baseline `319 \| 83` obtained on this machine by checking out the pre-change files, so the −1/−3 delta is a measurement and not an inference) |
 | backend suite | green | `327 passed, 1 warning in 31.92s` (321 + QB-018's 6) |
 | `pip-audit` | 0 known vulns | `No known vulnerabilities found`, exit 0 |
@@ -351,7 +366,7 @@ backend suite collected            321        ->  327  (+6, QB-018's file)
 backend pytest warnings            3          ->  1    (on_event x2 gone; TestClient's stays)
 backend pip-audit findings         26          ->  0
 requirements.txt lines             12         ->  10   (+ new requirements-dev.txt: 12 lines)
-hadith asset bytes / files         unchanged (15 files, 65,741,265 B, 62.69 MiB)
+hadith asset bytes / files         unchanged (15 files, 65,741,265 B, 62.70 MiB)
 ```
 
 ## 5. Standing walls — unchanged, and now matched by the UI

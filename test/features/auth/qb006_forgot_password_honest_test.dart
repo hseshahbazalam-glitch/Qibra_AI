@@ -38,9 +38,14 @@
 //
 // RED EVIDENCE: written against `a3f9ebf` in a sandbox with no Dart/Flutter SDK
 // — CI is the only compiler. This file is committed ALONE, so the run it produces
-// is the pass's test-first red; the run id and the per-test Expected:/Actual:
-// blocks are recorded in docs/G2_PASS_REPORT.md § QB-006. Test 9 is deliberately
-// true on both trees (see above); the other eight are the change's specification.
+// is the pass's test-first red: run `43806206960`, `720 tests passed, 8 failed.`.
+// What is NOT reproduced anywhere is the per-test Expected:/Actual: text — the
+// runner's raw job log sits behind a blob host this sandbox cannot reach, and the
+// check-run annotations for that job carry only the totals, so docs/G2_PASS_REPORT.md
+// § 2.1 quotes the two lines that were actually read. (This comment used to claim the
+// blocks were recorded there; the claim was false, and correcting it is the only
+// change to this file since `5e6abac`.) Test 9 is deliberately true on both trees
+// (see above); the other eight are the change's specification.
 //
 // Conventions copied from the family: source pins through
 // test/support/source_guards.dart (comments stripped, so a `// Simulate API
