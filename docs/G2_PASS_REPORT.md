@@ -1,8 +1,8 @@
 # G2 pass report — honesty pass, and the workflows-free rebuild
 
 Path: `docs/G2_PASS_REPORT.md` · Written on 2026-09-01 against
-`arena/01a05b41-qibra-ai`, parent of this pass `a3f9ebf`. The one log-window time in
-this file is a GitHub runner timestamp and those runners' clocks read 2026-11-16;
+`arena/01a05b41-qibra-ai`, parent of this pass `a3f9ebf`. Every `05:xx:xx` time in
+this file is a GitHub runner timestamp, and those runners' clocks read 2026-11-16;
 the two dates are not a typo and the logs are quoted as printed.
 
 Status: the code of this pass is `47d0755`→`5e6abac`; run **`43808377270`** verified
@@ -13,20 +13,26 @@ passed.` and `static battery: 185 dart files under lib` / `ALL GATES PASS`.
 
 That earlier claim — "one docs line moves no count" — was mine, and CI answered it:
 the follow-up docs-only commit `41bf1d5` ran as **`43809214669`** and printed
-`727 tests passed, 1 failed.` with analyze green. The next commit on this branch is
+`727 tests passed, 1 failed.` — its `Analyze` step success, its `Static battery` step
+skipped because the suite step died first. The next commit on this branch is
 an EMPTY one, `604f635`, whose tree differs from `41bf1d5` by nothing at all, and its
 run **`43809711358`** passed every step: `Full test suite (the ~318-test gate)`
-success, `Static battery` success, `ALL GATES PASS`. Identical content, red once,
-green once. So `604f635` — this file — is the tree to read as the pass's state, and
-the one failure in `43809214669` is not something this pass changed.
+success, `Static battery` success. Identical content, red once, green once — so the
+failure in `43809214669` is not something this pass changed. This file is the commit
+on top of that, and its own run is **`43810762467`**: all seven steps success, `🎉 728
+tests passed.` at `05:33:19.336` in its log, job annotation `hard findings: 0 | G2
+advisories: 318 | L2 alpha advisories: 80`. Those two runs cover the trees they ran
+on; this sentence is one commit further, and this file does not predict its outcome —
+the run for whatever head this lands on is in the hand-off, which is where a gate's
+answer belongs.
 
 What it was is written up as a finding in § 3 item 5, and the honest headline is that
 **the identity of that single failing test is not recoverable from here**: GitHub's
 check-run annotations for that job carry only `727 tests passed, 1 failed.` and
 `Process completed with exit code 1.` (3 annotations total, `output.summary` empty),
 and the raw job log lives behind a blob-store redirect that this sandbox's egress
-policy refuses (`curl` exits 35). Reading the log's readable windows
-(05:17:59–05:18:35 and 05:18:55–05:19:27 of that run) shows only `✅` lines — the
+policy refuses (`curl` exits 35). The windows of that log that were readable
+(05:17:59–05:18:35 and 05:18:55–05:19:27) contain no `❌` or `[E]` line at all — the
 HR-1 benchmark and the HR-1.3 measurement both passing there — so the `[E]` line sits
 in the stretch that was not readable, and no test is being named on suspicion.
 Every number below was printed by a command and copied; where a number came from a
