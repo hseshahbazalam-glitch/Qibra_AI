@@ -40,8 +40,8 @@ than one budget. Autoscaling is off on this service.
 |---|---|---|
 | `GROQ_API_KEY` | for grounded AI answers | Key lives ONLY here. Absent ⇒ `/ai/ask` degrades to the deterministic extractive RAG path, never an error. |
 | `JWT_SECRET` | yes | `app/config.py` refuses well-known values when `QIBRA_ENV=production`. |
-| `DATABASE_URL` | optional | Default in-memory SQLite (dev posture); set a managed Postgres URL for persistence, then `alembic upgrade head`. |
-| `QIBRA_ENV` | optional | `production` turns on strict secret validation. |
+| `DATABASE_URL` | **yes** | There is no default in the code: `database_url_or_raise` (app/config.py:77) refuses to boot without one and rejects SQLite unless `QIBRA_ENV=dev`. Set the managed Postgres URL, then run `alembic upgrade head` from `backend/`. (This row used to say "optional / default in-memory SQLite" — stale since QB-004, corrected while QB-018 made the boot path depend on it.) |
+| `QIBRA_ENV` | optional | Strict is the DEFAULT, not the production opt-in: unset means "not dev", so SQLite is refused, and since QB-018 the app also stops creating tables at boot — an un-migrated database now fails loudly instead of being quietly built. `dev`/`development` is the explicit convenience opt-in. |
 | `GROQ_MODEL` | optional | Defaults to `llama-3.3-70b-versatile`. |
 | `GROQ_TIMEOUT_SECONDS` | optional | Defaults to `30`. |
 

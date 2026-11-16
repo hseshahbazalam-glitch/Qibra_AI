@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
@@ -13,7 +15,23 @@ from .routers import ai, auth, billing, bookmarks, health, progress, settings as
 
 cfg = get_settings()
 
-app = FastAPI(title=cfg.app_name, version=cfg.version, debug=False)
+@asynccontextmanager
+async def _lifespan(_: FastAPI):
+    """QB-018: replaces `@app.on_event("startup")`, which Starlette deprecates and
+    which printed a DeprecationWarning on every boot.
+
+    The handler deliberately does NOT create tables of its own: it calls
+    `reset_engine()`, and that function is where the dev gate lives. So a non-dev
+    process boots, serves, and never touches the schema; a dev process still gets
+    its convenience build.
+    """
+    reset_engine()
+    yield
+
+
+app = FastAPI(
+    title=cfg.app_name, version=cfg.version, debug=False, lifespan=_lifespan
+)
 
 # add_middleware prepends, so the LAST one added is the OUTERMOST — i.e. this list runs
 # bottom-to-top per request. The order is the fix for QB-013's second half: RequestId and
@@ -63,8 +81,3 @@ app.include_router(ai.router)
 app.include_router(billing.router)
 app.include_router(settings_router.router)
 app.include_router(progress.router)
-
-
-@app.on_event("startup")
-def _startup():
-    reset_engine()

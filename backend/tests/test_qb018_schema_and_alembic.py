@@ -94,14 +94,44 @@ def test_alembic_ini_prepends_sys_path():
     assert pins["script_location"] == "alembic"
 
 
-def test_console_script_actually_executes_env_py(tmp_path):
-    """Offline mode (`--sql`) still executes env.py, so it proves the import works,
-    while touching no database — safe inside a suite."""
+def _code_only(path: Path) -> str:
+    """Source with comments and every string literal blanked, newline-for-newline so
+    positions still line up. A pin must not be satisfiable by prose — same rule the
+    Dart suite's `stripCommentsForGuard` enforces, and needed here for the same
+    reason: `_lifespan`'s docstring names the decorator it replaced."""
+    import tokenize
+
+    lines = path.read_text().splitlines(keepends=True)
+    out = []
+    for tok in tokenize.generate_tokens(iter(lines).__next__):
+        if tok.type in (tokenize.COMMENT, tokenize.STRING):
+            out.append("".join("\n" if ch == "\n" else " " for ch in tok.string))
+        else:
+            out.append(tok.string)
+    return "".join(out)
+
+
+def test_the_console_script_builds_the_schema_on_a_clean_database(tmp_path):
+    """End to end, via the console script: `alembic upgrade head` against a fresh
+    file database. This is what docs/DATABASE.md tells an operator to run, and it is
+    the command that died with ModuleNotFoundError before QB-018.
+
+    It also proves the OTHER half of the change: with create_all gone from a non-dev
+    boot, alembic must still deliver every table the models declare, or "the
+    migrations own the schema" would be a slogan.
+
+    (Offline `--sql` is deliberately NOT used: revision 0004 uses
+    `batch_alter_table` on sqlite, which needs a live connection to reflect
+    `progress`, so `alembic upgrade head --sql` ends in "This operation cannot
+    proceed in --sql mode" even when everything else is wired correctly.)
+    """
     exe = _alembic_console_script()
+    db = tmp_path / "fresh.db"
     stray = BACKEND / "qibra.db"
     had_stray_before = stray.exists()  # a developer's own database is not our business
+    url = f"sqlite+pysqlite:///{db}"
     proc = subprocess.run(
-        [exe, "upgrade", "head", "--sql"],
+        [exe, "upgrade", "head"],
         cwd=BACKEND,
         capture_output=True,
         text=True,
@@ -109,29 +139,47 @@ def test_console_script_actually_executes_env_py(tmp_path):
         env={
             **os.environ,
             # env.py boots the app's settings, which require these by design
-            # (QB-001). Same values tests/helpers.py declares.
+            # (QB-001). Same values tests/helpers.py declares. QIBRA_ENV=dev keeps
+            # _make_engine happy about sqlite; the alembic run itself never calls
+            # create_all, which is the point.
             "QIBRA_ENV": "dev",
             "JWT_SECRET": os.environ.get(
                 "JWT_SECRET", "qibra-test-only-signing-secret-32b+"
             ),
-            "DATABASE_URL": "sqlite+pysqlite:///:memory:",
+            "DATABASE_URL": url,
         },
     )
     joined = proc.stdout + proc.stderr
-    assert proc.returncode == 0, (
-        "`alembic upgrade head --sql` from backend/ must work with the console "
-        f"script, not only with `python -m alembic`:\n{joined[-900:]}"
+    assert "ModuleNotFoundError" not in joined, (
+        "env.py could not import `app` — the console script needs "
+        f"`prepend_sys_path = .` in alembic.ini:\n{joined[-500:]}"
     )
-    assert "ModuleNotFoundError" not in joined, joined[-500:]
-    # The offline SQL must cover the whole chain, ending at head.
-    assert "alembic_version" in joined
-    for rev in ("0001", "0002", "0003", "0004"):
-        assert rev in joined, f"revision {rev} missing from the generated SQL"
-    # No stray file: DATABASE_URL above overrides the ini's ./qibra.db, and an
-    # offline run must not create one either way.
+    assert proc.returncode == 0, f"`alembic upgrade head` failed:\n{joined[-900:]}"
+    assert "Running upgrade 0003 -> 0004" in joined, joined[-900:]
     assert stray.exists() == had_stray_before, (
-        "an offline `upgrade head --sql` must not create a database file; the ini's "
-        "default sqlite+pysqlite:///./qibra.db must stay overridden by DATABASE_URL"
+        "the run must use DATABASE_URL, not the ini's default "
+        "sqlite+pysqlite:///./qibra.db"
+    )
+
+    import sqlite3
+
+    con = sqlite3.connect(db)
+    try:
+        assert list(con.execute("select version_num from alembic_version")) == [("0004",)]
+        built = {r[0] for r in con.execute("select name from sqlite_master where type='table'")}
+    finally:
+        con.close()
+    from app.db import models  # noqa: F401 — register the mappers
+
+    from app.db.session import Base
+
+    declared = set(Base.metadata.tables)
+    assert declared - built == set(), (
+        f"`alembic upgrade head` did not build {sorted(declared - built)}; the "
+        "migrations must cover the models now that create_all is dev-only"
+    )
+    assert len(built) == len(declared) + 1, (
+        f"expected {len(declared)} model tables plus alembic_version, got {sorted(built)}"
     )
 
 
@@ -193,7 +241,7 @@ def test_session_py_gates_create_all_on_dev_mode():
 
 
 def test_main_py_has_no_on_event_and_defers_to_reset_engine():
-    src = MAIN_PY.read_text()
+    src = _code_only(MAIN_PY)  # comments/docstrings blanked: prose may not satisfy a pin
     assert "on_event" not in src, "@app.on_event is deprecated; use a lifespan handler"
     assert "asynccontextmanager" in src and "lifespan" in src
     assert re.search(r"FastAPI\([^)]*lifespan=", src, re.S), "FastAPI(… lifespan=…) missing"
