@@ -17,12 +17,18 @@ run that follows it; the head's run is recorded in the hand-off.
 | `604f635` | EMPTY commit, tree byte-identical to `41bf1d5` | `43809711358` | conclusion success with `Full test suite` and `Static battery` both success — a step list, not a quote: no log line was read for this one |
 | `1e15761` | § 3 item 5 added | `43810762467` | `🎉 728 tests passed.` (`05:33:19.336`) · annotation `hard findings: 0 \| G2 advisories: 318 \| L2 alpha advisories: 80` |
 | `06162ee` | run ids and claims tightened | `43811204972` | `🎉 728 tests passed.` (`05:37:05.414`) · annotation `hard findings: 0 \| G2 advisories: 318 \| L2 alpha advisories: 80` |
+| `251da05` | alembic `0005` (§ 7); **zero Dart files** | `43814662942` | **`727 tests passed, 1 failed.`** — the § 3 item 5 flake again, same shape, on a tree that cannot have caused it |
+| `61219fe` | EMPTY commit, tree byte-identical to `251da05` — the policy re-run | `43814962927` | all ten listed steps success · annotation `hard findings: 0 \| G2 advisories: 318 \| L2 alpha advisories: 80` |
 
-The `41bf1d5` row is the answer to a claim this file itself made in its `0efc263`
-version — "one docs line moves no count". It moved one; § 3 item 5 is the finding.
-Byte-identical content, red once and green once, is what makes that row a flake and
-not a regression, and nothing was edited, skipped, retried or re-pinned to get the
-three runs after it green.
+Two rows in that table are the same story: `41bf1d5` (prose) and `251da05` (alembic
+and backend tests, **no Dart file at all**) both printed
+`727 tests passed, 1 failed.`, and both went green on a byte-identical tree one
+commit later (`43809711358`, `43814962927`). That is the answer to the claim this file
+itself made in its `0efc263` version — "one docs line moves no count" — and it is also
+the evidence for § 3 item 5: the same one-test shape reproduces on trees that share
+nothing but the Dart code, so the cause is the runner, not the diff. Nothing was
+edited, skipped, retried or re-pinned to get any green in that table; the mechanism is
+the owner's policy, recorded verbatim in § 7.
 
 Operational note, because it changes what "the workspace" is: after `06162ee` the
 sandbox was re-provisioned. `/home/user/Qibra_AI` came back as a fresh shallow clone
@@ -286,16 +292,18 @@ deliberately **not** a step, for the reason in § 3.
 workflow — held back on purpose, because a test asserting the contents of a file this
 pass may not touch would be a lie with an exit code.
 
-## 3. Findings opened, and left open
+## 3. Findings opened — one since closed by § 7, four still open
 
-1. **`alembic check` is not clean** (found by QB-018, not by the brief). Against a
-   database built by `upgrade head` it exits 255 with: missing index
-   `ix_progress_user_id` on `progress.user_id`, and `users.updated_at` nullable in the
-   migrations vs `nullable=False` in the model. This was invisible while every boot
-   ran `create_all`, because dev databases came from the models and production ones
-   from the migrations. It needs a `0005` revision — out of scope for a pass that
-   pins head = `0004` — so it is named here and in `docs/DATABASE.md`, and `alembic
-   check` is not wired into the CI job so the owner's paste is green on arrival.
+1. **`alembic check` is not clean** (found by QB-018, not by the brief) —
+   **CLOSED by `0005`, § 7.** It read: against a database built by `upgrade head`, exit
+   255 with missing index `ix_progress_user_id` on `progress.user_id`, and
+   `users.updated_at` nullable in the migrations vs `nullable=False` in the model.
+   Invisible while every boot ran `create_all`, because dev databases came from the
+   models and production ones from the migrations. G2-D could not fix it (that pass
+   pins head = `0004`), so it was named here and in `docs/DATABASE.md`, and `alembic
+   check` was deliberately kept out of the CI paste so the paste would be green on
+   arrival. The owner ordered the closure pre-merge; `alembic check` now exits 0 and
+   the paste runs it fatally.
 2. **The backend tip was not green when this pass found it** (`1 failed, 320 passed`)
    for the HR-2.1 reason in § 2.2. Re-pinned, with its name and justification.
 3. **`docs/DEPLOY.md` carried two stale environment claims**, corrected in § 2.3.
@@ -323,22 +331,29 @@ pass may not touch would be a lie with an exit code.
    `test/features/ai/ai_revival_test.dart:128-131` (a 150 ms bounded poll asserted
    `>= 100` and `< 2000`) and `:160` (`< 1000`).
    A 16 ms p95 on a shared 2-core runner is the sort of gate that reads 11.3 ms on
-   one run and 10.6 ms on the next, so a single excursion is plausible. Fixing it is
-   the owner's call and it is deliberately not taken here: the options are to move
-   the load-sensitive tests into a job that sets a higher bound and runs alone, to
-   mark them `@Tags(['perf'])` and exclude them from the gate job, or to accept one
-   re-run as the repo's answer to a red that does not reproduce. This pass is
-   reported green on `604f635` with that caveat named, not smoothed over.
+   one run and 10.6 ms on the next, so a single excursion is plausible.
+   **Status: the owner decided (2026-09-01) — "green on the shipping tree + one
+   re-run, no re-pin, no skip", with the `@Tags(['perf'])` exclusion to be added by
+   the owner's own `ci.yml` edit and `.github/` staying untouched by this agent.**
+   That policy has now been applied twice on this branch, once on each side of the
+   micro-pass (`43809214669` → `43809711358`, `43814662942` → `43814962927`), and the
+   second pair is the sharper evidence because `251da05` changes no Dart file at all.
+   Two consequences worth stating: the candidate list above is the exclusion list the
+   owner will need, and the identity of the failing test is still unrecovered — if the
+   `@Tags(['perf'])` edit is to be exact rather than broad, someone must read one of
+   these logs from a machine that can reach the blob host.
 
 ## 4. Gates
 
 | Gate | Required | Measured |
 | --- | --- | --- |
 | `flutter analyze --no-fatal-infos` | 0 errors, 0 warnings | green in run `43808377270` (the gate run). History: run `43806206960` (red tree) passed analyze and failed tests, which is the only reason a red round is useful; run `43807569632` **failed here with 3 × `error • Undefined name 'AppRoutes'`**, my mistake, fixed in `8f0be57`; run `43808267080` was cancelled by the next push (`5e6abac`) before it finished |
-| `flutter test` | green | run `43808377270`: **`🎉 728 tests passed.`** — 719 + QB-006's 9. Red evidence, run `43806206960`: `720 tests passed, 8 failed.`, and the 9th (the controls test) passed on the old tree exactly as designed. Post-report docs-only runs on this same suite: `43809214669` `727 tests passed, 1 failed.` then `43809711358` green on a byte-identical tree — § 3 item 5 — then `43810762467` and `43811204972`, both `🎉 728 tests passed.` read from their logs |
+| `flutter test` | green | run `43808377270`: **`🎉 728 tests passed.`** — 719 + QB-006's 9. Red evidence, run `43806206960`: `720 tests passed, 8 failed.`, and the 9th (the controls test) passed on the old tree exactly as designed. Post-report runs on this same suite, none of which touched a Dart file: `43809214669` `727 tests passed, 1 failed.` → `43809711358` green on a byte-identical tree (§ 3 item 5); `43810762467` and `43811204972`, both `🎉 728 tests passed.` read from their logs; `43814662942` `727 tests passed, 1 failed.` on the `0005` commit → `43814962927` green, the policy re-run, all ten steps |
 | `python3 scripts/static_battery.py` | hard 0 · G2 ≤ 319 · L2 ≤ 83 | **`hard findings: 0 \| G2 advisories: 318 \| L2 alpha advisories: 80`**, `static battery: 185 dart files under lib`, `ALL GATES PASS (static; device compile remains the authority)` — printed identically by CI (`43808377270`, from the log) and by the local A/B measurement (baseline `319 \| 83` obtained on this machine by checking out the pre-change files, so the −1/−3 delta is a measurement and not an inference) |
-| backend suite | green | `327 passed, 1 warning in 31.92s` (321 + QB-018's 6) |
+| backend suite | green | `335 passed, 1 warning in 34.34s` — 321 + QB-018's 6 + `0005`'s 8 (§ 7). At the G2-D gate run itself it was `327 passed, 1 warning in 31.92s` |
 | `pip-audit` | 0 known vulns | `No known vulnerabilities found`, exit 0 |
+| `alembic upgrade head` / `heads` / `check` | lands clean | exit 0 with `Running upgrade 0004 -> 0005`; `0005 (head)`; **`No new upgrade operations detected.`, exit 0** — was exit 255 with two drift ops before `0005` (§ 7) |
+| `alembic downgrade 0004` + re-`upgrade head` | reversible | both exit 0 on the same file database, and `ix_progress_user_id` comes back |
 | `assets/` | zero diff | `git diff --name-only a3f9ebf..HEAD -- assets/` → 0 files |
 | hadith feature | untouched | `git diff --name-only a3f9ebf..HEAD -- lib/features/hadith test/features/hadith scripts/` → 0 files |
 | `validate_content.py` | unchanged | `hadith_matrix_issues []`, `manifest {"ok": true, …, "issues": []}`, 14/14 files, english 35,975 (98.9 %), urdu 33,476 (92.0 %), `rows_with_neither_edition` 203 |
@@ -362,7 +377,8 @@ static battery G2 advisories       319        ->  318   (the deleted 0.20/0.24 w
 static battery L2 alpha advisories 83         ->  80    (same cause)
 i18n raw-Text census               5          ->  5    (allowlist entries; this screen: 0)
 Dart tests collected               719        ->  728  (+9, QB-006's file)
-backend suite collected            321        ->  327  (+6, QB-018's file)
+backend suite collected            321        ->  327  ->  335   (QB-018's 6, then 0005's 8)
+alembic revisions / head           4 / 0004   ->  5 / 0005        (pre-merge micro-pass)
 backend pytest warnings            3          ->  1    (on_event x2 gone; TestClient's stays)
 backend pip-audit findings         26          ->  0
 requirements.txt lines             12         ->  10   (+ new requirements-dev.txt: 12 lines)
@@ -395,11 +411,140 @@ hadith asset bytes / files         unchanged (15 files, 65,741,265 B, 62.70 MiB)
 * It does not claim Postgres behaviour: `pool_pre_ping`/`pool_size` are unread here,
   and no Postgres test runs anywhere.
 * It does not claim CI enforces the backend. That needs the owner's paste of
-  `docs/ci-backend-job.yaml` (QB-019), after which `327 passed` and `0 known
-  vulnerabilities` become machine-checked rather than reported here.
+  `docs/ci-backend-job.yaml` (QB-019), after which `335 passed`, `0 known
+  vulnerabilities` and `alembic check` become machine-checked rather than reported here.
 * It does not claim a deterministic first-attempt green from this suite. One test in
-  the 728 moved between runs on identical content (`43809214669` red,
-  `43809711358` green); the gate is "green on the tree that ships", and a red that
-  does not reproduce is reported, not re-pinned.
-* It does not open `0005` for the alembic drift in § 3; that number is now reserved by
-  a finding, not by a file.
+  the 728 has moved between runs on identical content twice (`43809214669` →
+  `43809711358`, `43814662942` → `43814962927`); the gate is "green on the shipping
+  tree + one re-run" (owner policy, § 7), and a red that does not reproduce is
+  reported, not re-pinned.
+* It does not verify 0005 against Postgres. `batch_alter_table`'s non-SQLite branch is
+  read out of alembic's source, not executed — the first managed-database
+  `alembic upgrade head` is that check, and the revision says so in its own docstring.
+* It does not carry the release-chain ids: the PR number, the merge SHA and the
+  `v1.0.0-rc` tag SHA live in the PR body and in the tag, because a file cannot contain
+  the id of the merge that brings it in.
+
+---
+
+## 7. The pre-merge micro-pass — alembic `0005`, and the flake policy as ordered
+
+Ordered by the owner on 2026-09-01, executed after G2-D and before the release
+candidate: *"ALEMBIC 0005 FIRST (pre-merge, micro-pass): one migration that brings
+the schema to what the models already say — create ix_progress_user_id, and align
+users.updated_at nullability with the model. Red test first (a spec that fails on
+0004, passes on 0005). Gates: backend suite green, alembic upgrade head lands clean,
+flutter side untouched."*
+
+**Red first — `5f4cc60`, one file only:** `backend/tests/test_alembic_0005_schema_drift.py`,
+8 tests. CI has no backend job (§ 3 item 4), so the local run is the evidence, exactly
+as in QB-018:
+
+```
+$ python -m pytest tests/test_alembic_0005_schema_drift.py -q
+  8 failed in 4.54s
+$ python -m pytest tests -q
+  8 failed, 327 passed, 1 warning in 33.39s
+```
+
+The printed reasons are the drift, not scaffolding: `` `alembic check` still wants to
+change the schema (exit 255) ``, `` `progress` has only ['sqlite_autoindex_progress_1'] ``,
+`users.updated_at carries notnull=0`, `head must be exactly 0005, got ['0004']`,
+`no revision file starting with '0005' exists`. All eight failed; none passed
+vacuously, which is why the spec has no "expected to fail today" carve-out.
+
+**Then the migration — `251da05`:**
+`backend/alembic/versions/0005_schema_drift_closure.py`, three statements up, two
+down, no new table:
+
+| # | `upgrade()` | `downgrade()` |
+| --- | --- | --- |
+| 1 | `UPDATE users SET updated_at = created_at WHERE updated_at IS NULL` | `batch_alter_table("users")` → `alter_column("updated_at", nullable=True)` |
+| 2 | `create_index("ix_progress_user_id", "progress", ["user_id"])` | `drop_index("ix_progress_user_id")` |
+| 3 | `batch_alter_table("users")` → `alter_column("updated_at", nullable=False)` | — |
+
+Two decisions in that order are the substance, not cosmetics. The `UPDATE` comes
+first because a live database holding one NULL row would otherwise refuse the
+migration outright. The `WHERE` is scoped because `now()` (or a `COALESCE(..., now())`
+"just in case") would stamp every migrated account as freshly active — a lie about
+data the app wrote correctly. A row that never changed was last changed when it was
+created, so `created_at` is the only defensible fill, and `created_at` has been
+NOT NULL since `0001`, so no fallback branch is needed at all.
+
+**Green — the same two commands:**
+
+```
+$ python -m pytest tests/test_alembic_0005_schema_drift.py -q
+  8 passed in 4.73s
+$ python -m pytest tests -q
+  335 passed, 1 warning in 34.34s
+```
+
+**The operator path, run the way `docs/DATABASE.md` tells an operator to run it**
+(console script, from `backend/`, fresh file database — not `python -m alembic`, per
+QB-018's `prepend_sys_path` hole):
+
+```
+alembic upgrade head                    exit 0, last step "Running upgrade 0004 -> 0005"
+alembic heads                           0005 (head)
+alembic check                           "No new upgrade operations detected."   exit 0
+   (before 0005, the same command: exit 255,
+    "New upgrade operations detected: [('add_index', Index('ix_progress_user_id', …)),
+     [('modify_nullable', None, 'users', 'updated_at', …, True, False)]]")
+alembic downgrade 0004; alembic upgrade head     both exit 0, and the index returns
+PRAGMA index_list('progress')           ['ix_progress_user_id', 'sqlite_autoindex_progress_1']
+PRAGMA table_info('users') → updated_at notnull = 1
+```
+
+**Existing tests moved, by name and justification** — QB-018 pinned the head the owner
+ordered moved, so its pins moved with it and nothing else in that file did:
+
+| Test | Change |
+| --- | --- |
+| `test_head_is_0004_and_the_chain_is_linear` | renamed to `test_head_is_0005_and_the_chain_is_linear`; `len(revisions) == 4 → 5`, `heads == ["0004"] → ["0005"]`, chain `["0004","0003","0002","0001"] → ["0005","0004","0003","0002","0001"]` |
+| `test_the_console_script_builds_the_schema_on_a_clean_database` | `version_num == [("0004",)] → [("0005",)]`, and it now asserts `Running upgrade 0004 -> 0005` alongside the `0003 -> 0004` line. The nine-table census, the `declared - built == set()` assertion and the "the developer's own `./qibra.db` stays untouched" guard are unchanged |
+
+One fix went to the new file itself, and it is disclosed because it was found by
+running the test rather than by reading it: the model-side half of
+`test_the_models_and_the_migrations_now_agree_by_construction` imported `Base` without
+`from app.db import models`, so `Base.metadata` was empty and the comparison would
+have passed vacuously (in practice it surfaced as `NoSuchTableError`). It now imports
+the mappers and asserts `{"progress", "users"} <= set(Base.metadata.tables)` first.
+
+**Docs, because the finding they record is closed.** `docs/DATABASE.md` keeps the
+before/after measurements and its revision chain now ends at `0005`. The QB-019 paste
+`docs/ci-backend-job.yaml` pins `0005 (head)`, counts 335 tests, and **adds `alembic
+check` as a fatal step** — the only reason it was excluded was "not clean", and that
+reason is gone; the block still parses to 6 steps with PyYAML. `docs/DEPLOY.md` needed
+no change: it never names a revision.
+
+**Disclosed, not claimed.** The Postgres branch of `batch_alter_table` is source
+inspection — `requires_recreate_in_batch` returns False in
+`alembic/ddl/impl.py:139-149` and the SQLite override at `alembic/ddl/sqlite.py:46-70`
+returns True for any batch op that is not create/drop index — so `recreate="auto"`
+means "recreate and copy here, plain `SET NOT NULL` there". There is no Postgres in
+this sandbox; the first managed-database `alembic upgrade head` is the check, and the
+revision says so about itself.
+
+**Flutter side untouched, and CI answered twice.** `5f4cc60` and `251da05` change no
+Dart file: 1 migration, 2 backend test files, 2 docs. The branch run for `251da05` was
+**`43814662942` = `727 tests passed, 1 failed.`** — `Analyze` success, `Full test
+suite` failure, `Static battery` skipped — the § 3 item 5 flake, same shape, on a tree
+that cannot have caused it. Under the policy below it was re-run rather than repaired:
+**`43814962927`** on `61219fe`, an empty commit whose tree is byte-identical, all ten
+listed steps success with `hard findings: 0 | G2 advisories: 318 | L2 alpha
+advisories: 80`. That re-run is the gate the release stands on.
+
+### The flake policy, as ordered (decision 4, recorded here)
+
+> the load-sensitive suite test is governed by "green on the shipping tree + one
+> re-run" — no re-pin, no skip. The `@Tags(['perf'])` exclusion will be added by the
+> OWNER's ci.yml edit, not by you. `.github/` stays untouched by you in all of this.
+
+Applied, not just written down: each red above produced exactly one re-run on an
+identical tree and a green, and no bound, tag, skip, `retry` or `filterwarnings` was
+touched anywhere in this pass — `git diff --name-only a3f9ebf..HEAD -- .github/
+analysis_options.yaml` → 0 files, re-measured after `0005`. Two notes for whoever
+makes the owner's `ci.yml` edit: the list in § 3 item 5 is the exclusion list, and the
+excluded tests should keep running in a job of their own — a gate moved somewhere that
+never runs is a gate deleted.
