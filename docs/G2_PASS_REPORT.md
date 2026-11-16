@@ -1,7 +1,15 @@
 # G2 pass report — honesty pass, and the workflows-free rebuild
 
 Path: `docs/G2_PASS_REPORT.md` · Written on 2026-11-16 against
-`arena/01a05b41-qibra-ai`, branch tip `5e6abac`, parent of this pass `a3f9ebf`.
+`arena/01a05b41-qibra-ai`, parent of this pass `a3f9ebf`.
+
+Status: the code of this pass is `47d0755`→`5e6abac`; run **`43808377270`** verified
+that tree (`🎉 728 tests passed.`, `hard findings: 0 | G2 advisories: 318 | L2 alpha
+advisories: 80`, success). This file landed in `0efc263` and run **`43808868341`**
+went green on that tree with the same two lines read from its log — `🎉 728 tests
+passed.` and `static battery: 185 dart files under lib` / `ALL GATES PASS`. The
+sentence naming that run is a docs-only commit on top, and one docs line moves no
+count; the run for it is named in the pass hand-off, not here.
 Every number below was printed by a command and copied; where a number came from a
 CI run, the run id is named next to it. Where a premise in the brief turned out to
 be wrong, the correction is in the text, not in a footnote.
