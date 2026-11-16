@@ -1,15 +1,34 @@
 # G2 pass report — honesty pass, and the workflows-free rebuild
 
-Path: `docs/G2_PASS_REPORT.md` · Written on 2026-11-16 against
-`arena/01a05b41-qibra-ai`, parent of this pass `a3f9ebf`.
+Path: `docs/G2_PASS_REPORT.md` · Written on 2026-09-01 against
+`arena/01a05b41-qibra-ai`, parent of this pass `a3f9ebf`. The one log-window time in
+this file is a GitHub runner timestamp and those runners' clocks read 2026-11-16;
+the two dates are not a typo and the logs are quoted as printed.
 
 Status: the code of this pass is `47d0755`→`5e6abac`; run **`43808377270`** verified
 that tree (`🎉 728 tests passed.`, `hard findings: 0 | G2 advisories: 318 | L2 alpha
 advisories: 80`, success). This file landed in `0efc263` and run **`43808868341`**
 went green on that tree with the same two lines read from its log — `🎉 728 tests
-passed.` and `static battery: 185 dart files under lib` / `ALL GATES PASS`. The
-sentence naming that run is a docs-only commit on top, and one docs line moves no
-count; the run for it is named in the pass hand-off, not here.
+passed.` and `static battery: 185 dart files under lib` / `ALL GATES PASS`.
+
+That earlier claim — "one docs line moves no count" — was mine, and CI answered it:
+the follow-up docs-only commit `41bf1d5` ran as **`43809214669`** and printed
+`727 tests passed, 1 failed.` with analyze green. The next commit on this branch is
+an EMPTY one, `604f635`, whose tree differs from `41bf1d5` by nothing at all, and its
+run **`43809711358`** passed every step: `Full test suite (the ~318-test gate)`
+success, `Static battery` success, `ALL GATES PASS`. Identical content, red once,
+green once. So `604f635` — this file — is the tree to read as the pass's state, and
+the one failure in `43809214669` is not something this pass changed.
+
+What it was is written up as a finding in § 3 item 5, and the honest headline is that
+**the identity of that single failing test is not recoverable from here**: GitHub's
+check-run annotations for that job carry only `727 tests passed, 1 failed.` and
+`Process completed with exit code 1.` (3 annotations total, `output.summary` empty),
+and the raw job log lives behind a blob-store redirect that this sandbox's egress
+policy refuses (`curl` exits 35). Reading the log's readable windows
+(05:17:59–05:18:35 and 05:18:55–05:19:27 of that run) shows only `✅` lines — the
+HR-1 benchmark and the HR-1.3 measurement both passing there — so the `[E]` line sits
+in the stretch that was not readable, and no test is being named on suspicion.
 Every number below was printed by a command and copied; where a number came from a
 CI run, the run id is named next to it. Where a premise in the brief turned out to
 be wrong, the correction is in the text, not in a footnote.
@@ -262,13 +281,40 @@ pass may not touch would be a lie with an exit code.
 4. **CI cannot see any of the backend work** — 327 tests and an audit that only this
    sandbox ran. QB-019 is the paste that closes it; until then every backend claim
    here is "green in `/home/user/.venv-qb2`, a venv nobody else has".
+5. **The Flutter suite contains at least one test that is not stable under runner
+   load** (found by `43809214669`, proven by `43809711358`). On a tree whose only
+   difference from the green `43808868341` was prose in `docs/`, one test of 728
+   failed; on a byte-identical tree one commit later, zero failed. Nothing was
+   changed to buy that green — no test edited, no bound moved, no `retry`, no
+   `skip`, no `filterwarnings` — because a flake papered over is a flake that comes
+   back on the owner's machine at a worse moment.
+   The suite's threshold-based tests, all of them pre-existing and none of them
+   touched by this pass, are the only candidates by class:
+   `test/features/hadith/hadith_pass_hr1_test.dart:612` (settle < 15,000 ms),
+   `:681` (p95 main block < 16 ms over 14 keystrokes on 20,020 rows), `:684`
+   (p95 end-to-end < 500 ms);
+   `test/features/hadith/hadith_hotfix_hr13_fold_cache_test.dart:318`
+   (p95 cached scan < `_scanBoundMs = 500.0`), `:398` (whole-corpus fold <
+   `_wholeCorpusFoldBoundMs = 4000.0`), `:512` (fold growth ratio <
+   `_foldGrowthBound = 12.0`), `:747` (RSS delta bounded by the mirror's own size);
+   `test/features/hadith/hadith_hotfix_hr11_worker_liveness_test.dart:248,551,554`
+   (miss/timeout counters, which move if the box stalls a reply);
+   `test/features/ai/ai_revival_test.dart:128-131` (a 150 ms bounded poll asserted
+   `>= 100` and `< 2000`) and `:160` (`< 1000`).
+   A 16 ms p95 on a shared 2-core runner is the sort of gate that reads 11.3 ms on
+   one run and 10.6 ms on the next, so a single excursion is plausible. Fixing it is
+   the owner's call and it is deliberately not taken here: the options are to move
+   the load-sensitive tests into a job that sets a higher bound and runs alone, to
+   mark them `@Tags(['perf'])` and exclude them from the gate job, or to accept one
+   re-run as the repo's answer to a red that does not reproduce. This pass is
+   reported green on `604f635` with that caveat named, not smoothed over.
 
 ## 4. Gates
 
 | Gate | Required | Measured |
 | --- | --- | --- |
 | `flutter analyze --no-fatal-infos` | 0 errors, 0 warnings | green in run `43808377270` (the gate run). History: run `43806206960` (red tree) passed analyze and failed tests, which is the only reason a red round is useful; run `43807569632` **failed here with 3 × `error • Undefined name 'AppRoutes'`**, my mistake, fixed in `8f0be57`; run `43808267080` was cancelled by the next push (`5e6abac`) before it finished |
-| `flutter test` | green | run `43808377270`: **`🎉 728 tests passed.`** — 719 + QB-006's 9. Red evidence, run `43806206960`: `720 tests passed, 8 failed.`, and the 9th (the controls test) passed on the old tree exactly as designed |
+| `flutter test` | green | run `43808377270`: **`🎉 728 tests passed.`** — 719 + QB-006's 9. Red evidence, run `43806206960`: `720 tests passed, 8 failed.`, and the 9th (the controls test) passed on the old tree exactly as designed. Post-report docs-only runs on this same suite: `43809214669` `727 tests passed, 1 failed.` then `43809711358` green on a byte-identical tree — § 3 item 5 |
 | `python3 scripts/static_battery.py` | hard 0 · G2 ≤ 319 · L2 ≤ 83 | **`hard findings: 0 \| G2 advisories: 318 \| L2 alpha advisories: 80`**, `static battery: 185 dart files under lib`, `ALL GATES PASS (static; device compile remains the authority)` — printed identically by CI (`43808377270`, from the log) and by the local A/B measurement (baseline `319 \| 83` obtained on this machine by checking out the pre-change files, so the −1/−3 delta is a measurement and not an inference) |
 | backend suite | green | `327 passed, 1 warning in 31.92s` (321 + QB-018's 6) |
 | `pip-audit` | 0 known vulns | `No known vulnerabilities found`, exit 0 |
@@ -330,7 +376,9 @@ hadith asset bytes / files         unchanged (15 files, 65,741,265 B, 62.69 MiB)
 * It does not claim CI enforces the backend. That needs the owner's paste of
   `docs/ci-backend-job.yaml` (QB-019), after which `327 passed` and `0 known
   vulnerabilities` become machine-checked rather than reported here.
-* It does not claim the merge: `main` is on hold until the owner orders the PR, the
-  merge commit, and the `v1.0.0-rc` tag.
+* It does not claim a deterministic first-attempt green from this suite. One test in
+  the 728 moved between runs on identical content (`43809214669` red,
+  `43809711358` green); the gate is "green on the tree that ships", and a red that
+  does not reproduce is reported, not re-pinned.
 * It does not open `0005` for the alembic drift in § 3; that number is now reserved by
   a finding, not by a file.
