@@ -356,15 +356,65 @@ class AppStrings {
   String get goBack => _t('Go Back', 'العودة للخلف', 'واپس جائیں');
 
   // ── Auth ──
+  // QB-006 (G2-D) adds ten getters here for the honest forgot-password screen:
+  // three real languages each, and every one a plain statement of what this
+  // build can and cannot do. `openingEmailApp` was retired in the same pass —
+  // it labelled a button that opened nothing.
+  String get forgotEyebrow => _t(
+        'Password recovery',
+        'استعادة كلمة المرور',
+        'پاسورڈ کی بحالی',
+      );
+  String get forgotUnavailableHeadline => _t(
+        'Not available in this build',
+        'غير متاحة في هذا الإصدار',
+        'اس بلڈ میں دستیاب نہیں',
+      );
+  String get forgotUnavailableBody => _t(
+        'Qibra AI has no email service connected, so this app cannot send a password reset link.',
+        'لا يملك التطبيق خدمة بريد إلكتروني موصولة، لذلك لا يمكنه إرسال رابط إعادة تعيين كلمة المرور.',
+        'ایپ سے کوئی ای میل سروس جڑی ہوئی نہیں، اس لیے یہ پاسورڈ دوبارہ ترتیب دینے کا لنک نہیں بھیج سکتا۔',
+      );
+  String get forgotNothingSentLabel => _t(
+        'Nothing was sent',
+        'لم يُرسل شيء',
+        'کچھ بھی نہیں بھیجا گیا',
+      );
+  String get forgotNothingSentBody => _t(
+        'No reset request was made and no message is on its way. Your password is unchanged.',
+        'لم تُطلب أي إعادة تعيين، ولا توجد رسالة في الطريق. كلمة مرورك لم تتغير.',
+        'کوئی دوبارہ ترتیب کی درخواست نہیں کی گئی اور کوئی پیغام راستے میں نہیں۔ آپ کا پاسورڈ تبدیل نہیں ہوا۔',
+      );
+  String get forgotOptionsLabel => _t(
+        'What you can do',
+        'ما يمكنك فعله',
+        'آپ کیا کر سکتے ہیں',
+      );
+  String get forgotOptionSignInHint => _t(
+        'If you remember your password, sign in as usual — nothing needs resetting.',
+        'إذا كنت تذكر كلمة المرور فسجّل الدخول كالمعتاد — لا حاجة لأي إعادة تعيين.',
+        'اگر آپ پاسورڈ یاد رکھتے ہیں تو معمول کے مطابق سائن ان کریں — کسی دوبارہ ترتیب کی ضرورت نہیں۔',
+      );
+  String get forgotOptionRegisterHint => _t(
+        'If you cannot sign in, create a new account and set a fresh password for it.',
+        'وإن لم تتمكن من تسجيل الدخول فأنشئ حسابًا جديدًا واختر له كلمة مرور جديدة.',
+        'اگر سائن ان نہیں ہو سکتا تو نیا کھاتہ بنائیں اور اس کے لیے نیا پاسورڈ مقرر کریں۔',
+      );
+  String get forgotBackToSignIn => _t(
+        'Back to sign in',
+        'العودة إلى تسجيل الدخول',
+        'سائن ان پر واپس جائیں',
+      );
+  String get forgotCreateAccount => _t(
+        'Create a new account',
+        'إنشاء حساب جديد',
+        'نیا کھاتہ بنائیں',
+      );
+
   String get acceptTermsAndConditions => _t(
         'Please accept the Terms & Conditions',
         'يرجى قبول الشروط والأحكام',
         'براہ کرم شرائط و ضوابط قبول کریں',
-      );
-  String get openingEmailApp => _t(
-        'Opening email app...',
-        'جارٍ فتح تطبيق البريد...',
-        'ای میل ایپ کھولا جا رہا ہے...',
       );
   String get otpSentSuccessfully => _t(
         'OTP sent successfully!',
