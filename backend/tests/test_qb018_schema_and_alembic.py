@@ -30,11 +30,17 @@ assumed:
    run printed). The replacement is a lifespan handler.
 
 Red evidence: written before the change, run against the unmodified tree —
-`5 failed, 1 passed in 0.70s` (the survivor is
-test_head_is_0004_and_the_chain_is_linear, which guards the future rather than
-proving the present). CI has no backend job at all yet
+`5 failed, 1 passed in 0.70s` (the survivor was the chain census, which guards the
+future rather than proving the present — and the future arrived: see the amendment
+below). CI has no backend job at all yet
 (that is QB-019), so the pytest run below is the evidence, quoted in
 docs/G2_PASS_REPORT.md § QB-018.
+
+AMENDED by the owner-ordered 0005 micro-pass (docs/G2_PASS_REPORT.md § 7): two
+assertions here pinned head = 0004 and both moved to 0005, because the drift
+QB-018 left open is now closed by a revision instead of by a note. The renames and
+the old → new lines are listed there. Nothing else in this file changed, and the
+"0004 (head)" quotes above are kept as the historical measurements they are.
 """
 
 import ast
@@ -155,7 +161,10 @@ def test_the_console_script_builds_the_schema_on_a_clean_database(tmp_path):
         f"`prepend_sys_path = .` in alembic.ini:\n{joined[-500:]}"
     )
     assert proc.returncode == 0, f"`alembic upgrade head` failed:\n{joined[-900:]}"
+    # 0003 → 0004 still runs, and so does the drift closure on top of it: a clean
+    # database gets 0005 too, which is the point of the micro-pass.
     assert "Running upgrade 0003 -> 0004" in joined, joined[-900:]
+    assert "Running upgrade 0004 -> 0005" in joined, joined[-900:]
     assert stray.exists() == had_stray_before, (
         "the run must use DATABASE_URL, not the ini's default "
         "sqlite+pysqlite:///./qibra.db"
@@ -165,7 +174,9 @@ def test_the_console_script_builds_the_schema_on_a_clean_database(tmp_path):
 
     con = sqlite3.connect(db)
     try:
-        assert list(con.execute("select version_num from alembic_version")) == [("0004",)]
+        assert list(con.execute("select version_num from alembic_version")) == [
+            ("0005",)
+        ]
         built = {r[0] for r in con.execute("select name from sqlite_master where type='table'")}
     finally:
         con.close()
@@ -183,7 +194,7 @@ def test_the_console_script_builds_the_schema_on_a_clean_database(tmp_path):
     )
 
 
-def test_head_is_0004_and_the_chain_is_linear():
+def test_head_is_0005_and_the_chain_is_linear():
     revisions = {}
     for path in sorted(VERSIONS.glob("*.py")):
         fields = {}
@@ -197,16 +208,16 @@ def test_head_is_0004_and_the_chain_is_linear():
         assert "revision" in fields, f"{path.name} declares no `revision`"
         revisions[fields["revision"]] = fields.get("down_revision")
 
-    assert len(revisions) == 4, f"expected 4 revisions, found {sorted(revisions)}"
+    assert len(revisions) == 5, f"expected 5 revisions, found {sorted(revisions)}"
     parents = {d for d in revisions.values() if d}
     heads = [r for r in revisions if r not in parents]
-    assert heads == ["0004"], f"head must be exactly 0004, got {heads}"
-    chain, cur = [], "0004"
+    assert heads == ["0005"], f"head must be exactly 0005, got {heads}"
+    chain, cur = [], "0005"
     while cur is not None:
         assert cur in revisions, f"{cur} is a down_revision with no file"
         chain.append(cur)
         cur = revisions[cur]
-    assert chain == ["0004", "0003", "0002", "0001"], chain
+    assert chain == ["0005", "0004", "0003", "0002", "0001"], chain
 
 
 # ── 2. create_all is a dev convenience, nothing more ───────────────────────

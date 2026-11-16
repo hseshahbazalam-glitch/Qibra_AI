@@ -2,7 +2,7 @@
 #
 # WHY THIS FILE EXISTS INSTEAD OF AN EDIT TO .github/workflows/ci.yml
 # -------------------------------------------------------------------
-# The backend has 327 tests and a dependency audit gate, and none of them run in
+# The backend has 335 tests and a dependency audit gate, and none of them run in
 # CI: `.github/workflows/ci.yml` has exactly one job (`quality`, 39 lines:
 # flutter pub get → flutter analyze → flutter test → python3
 # scripts/static_battery.py). Every backend claim in every pass report so far has
@@ -33,7 +33,9 @@
 #
 # The two commands below are exactly what was run locally for QB-014/QB-018, so
 # the numbers in docs/G2_PASS_REPORT.md are reproducible in CI:
-#   python -m pytest tests -q          -> 327 passed, 1 warning in 31.92s
+#   python -m pytest tests -q          -> 335 passed, 1 warning in 33.96s
+#                                        (327 at the G2-D gate run, + 8 from the
+#                                        pre-merge 0005 drift spec)
 #   pip-audit -r requirements.txt -r requirements-dev.txt
 #                                      -> "No known vulnerabilities found"  (exit 0)
 #   (the same audit on the pre-QB-014 requirements.txt: exit 1, "Found 26 known
@@ -95,14 +97,23 @@
       # QB-018 replaced this with `if dev_mode()`. The job asserts the contract
       # instead of trusting it: an app that can build its own schema would let a
       # broken migration chain look green, because the tests would pass on tables
-      # create_all made rather than on the ones 0004 made.
+      # create_all made rather than on the ones the revisions made (head 0005 since
+      # the drift closure; the `alembic heads` pin below moved with it).
       - name: Migrations apply to a clean database
         run: |
           export QIBRA_ENV=dev
           export JWT_SECRET="ci-only-signing-secret-not-a-real-one-32b+"
           export DATABASE_URL="sqlite+pysqlite:///$(mktemp -d)/ci.db"
           alembic upgrade head
-          alembic heads | grep -q "0004 (head)"
+          alembic heads | grep -q "0005 (head)"
+          # Fatal, and safe to be now that 0005 closed the drift QB-018 found: on
+          # the tree that added 0005 this prints "No new upgrade operations
+          # detected." and exits 0; on the tree before it, exit 255 with "New
+          # upgrade operations detected: [add_index ix_progress_user_id,
+          # modify_nullable users.updated_at]". It is the one gate that makes a
+          # model edit without a revision impossible to land quietly — the reason
+          # QB-019 deliberately left it out is gone, so the paste now has it.
+          alembic check
         env:
           # the console script, not `python -m alembic` — see QB-018's note on
           # prepend_sys_path in docs/DATABASE.md

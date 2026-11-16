@@ -361,7 +361,14 @@ def test_the_models_and_the_migrations_now_agree_by_construction(tmp_path):
     ] is False, "users.updated_at is still nullable where the model says NOT NULL"
 
     model_db = tmp_path / "from_models.db"
+    from app.db import models  # noqa: F401 — register the mappers on Base
     from app.db.session import Base  # noqa: PLC0415 — the models are the reference
+
+    assert {"progress", "users"} <= set(Base.metadata.tables), (
+        "the models never registered on Base in this process \u2014 create_all would "
+        f"build nothing and the comparison below would pass vacuously (tables: "
+        f"{sorted(Base.metadata.tables)})"
+    )
 
     model_engine = create_engine(f"sqlite+pysqlite:///{model_db}")
     Base.metadata.create_all(model_engine)
