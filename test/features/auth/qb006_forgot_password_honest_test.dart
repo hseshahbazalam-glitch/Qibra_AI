@@ -289,10 +289,15 @@ void main() {
     });
 
     test('the invented "Open email app" getter stays deleted', () {
-      final strings = File(_strings).readAsStringSync();
+      // Comment-stripped on purpose. The pin is about the DECLARATION coming back,
+      // and app_strings.dart now carries a ledger comment that names the retirement
+      // — forbidding the word would punish the documentation that makes the
+      // retirement findable.
+      final strings = _code(_strings);
       expect(strings.contains('openingEmailApp'), isFalse,
           reason: 'the getter outlives its button, and then someone re-adds '
               'the button');
+      expect(strings.contains('String get openingEmailApp'), isFalse);
       var referenced = 0;
       for (final entry in Directory('lib')
           .listSync(recursive: true)
