@@ -8,7 +8,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import '../constants/app_constants.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
 
 enum ApiErrorType {
   offline,
@@ -85,7 +85,9 @@ class ApiClient {
               try {
                 final resp = await _dio.fetch<dynamic>(e.requestOptions);
                 return handler.resolve(resp);
-              } catch (_) {}
+              } catch (_) {
+                // Pass P3 honest-silence: post-refresh re-fetch failed — fall through so the ORIGINAL error surfaces (never swallowed)
+              }
             } else if (outcome == RefreshOutcome.rejected) {
               onAuthExpired?.call();
             }
@@ -99,7 +101,9 @@ class ApiClient {
             try {
               final resp = await _dio.fetch<dynamic>(e.requestOptions);
               return handler.resolve(resp);
-            } catch (_) {}
+            } catch (_) {
+              // Pass P3 honest-silence: retry attempt failed — the retry loop ends here and the caller sees the original error
+            }
           }
           return handler.next(e);
         },
@@ -141,6 +145,9 @@ class ApiClient {
   }
 
   bool _shouldRetry(DioException e) {
+    // Callers can opt out per request (AI ask: one attempt under a hard
+    // 90s ceiling — retries would stack to ~370s on a cold Render tier).
+    if (e.requestOptions.extra['noRetry'] == true) return false;
     return e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.connectionError ||

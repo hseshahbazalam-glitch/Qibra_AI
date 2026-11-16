@@ -3,12 +3,10 @@
 // ============================================================
 // QIBRA AI — PREMIUM LOGIN SCREEN (Phase 2)
 // Version: 2.0.0
-// Description: Apple-quality login with glassmorphism,
-//              biometric option, and premium animations.
+// Description: Apple-quality login with glassmorphism and premium
+//              animations.
 // ============================================================
 
-import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,6 +21,7 @@ import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_button.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_social_buttons.dart';
 import 'package:qibra_ai/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 // ============================================================
 // PREMIUM LOGIN SCREEN
@@ -50,7 +49,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   bool _isPasswordFocused = false;
 
   // ── ANIMATION CONTROLLERS ────────────────────────────
-  late AnimationController _particleController;
   late AnimationController _logoController;
   late Animation<double> _logoScale;
   late Animation<double> _logoFade;
@@ -59,18 +57,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   late Animation<double> _formFade;
   late Animation<Offset> _formSlide;
 
-  late AnimationController _buttonPulseController;
-  late Animation<double> _buttonPulse;
 
   @override
   void initState() {
     super.initState();
-
-    // Particles
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 15),
-    )..repeat();
 
     // Logo animation
     _logoController = AnimationController(
@@ -116,20 +106,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
     ));
 
-    // Button pulse animation
-    _buttonPulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-
-    _buttonPulse = Tween<double>(
-      begin: 0.95,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _buttonPulseController,
-      curve: Curves.easeInOut,
-    ));
-
     // Focus listeners
     _emailFocus.addListener(() {
       setState(() => _isEmailFocused = _emailFocus.hasFocus);
@@ -152,10 +128,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     _passwordController.dispose();
     _emailFocus.dispose();
     _passwordFocus.dispose();
-    _particleController.dispose();
     _logoController.dispose();
     _formController.dispose();
-    _buttonPulseController.dispose();
     super.dispose();
   }
 
@@ -204,14 +178,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
-  // Biometric, Google, and Apple authentication are not implemented in this
-  // build. Their controls remain visible but explicitly disabled so no button
-  // appears to sign a user in when it cannot do so.
+  // Google and Apple authentication are not implemented in this build. Their
+  // controls remain visible but explicitly disabled (labeled '(soon)') so no
+  // button appears to sign a user in when it cannot do so. The biometric tile
+  // was a permanently dead affordance and has been deleted (Error Shield
+  // pass, build-or-delete ruling).
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    final size = MediaQuery.sizeOf(context);
     final authState = ref.watch(authProvider);
     final isLoading = authState.isLoading;
 
@@ -221,9 +195,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         children: [
           // ── LAYER 1: Background gradient ──
           _buildBackground(),
-
-          // ── LAYER 2: Particles ──
-          _buildParticles(size),
 
           // ── LAYER 3: Content ──
           SafeArea(
@@ -313,38 +284,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topCenter,
-            radius: 1.5,
-            colors: [
-              colors.background,
-              colors.cardMuted,
-              colors.background,
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
+          color: colors.background,
         ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // PARTICLES
-  // ══════════════════════════════════════════
-
-  Widget _buildParticles(Size size) {
-    final colors = QibraColors.of(context);
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _LoginParticlePainter(
-              animationValue: _particleController.value,
-            ),
-            size: size,
-          );
-        },
       ),
     );
   }
@@ -360,45 +301,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       height: 90,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: AppGradients.gold,
-        boxShadow: [
-          BoxShadow(
-            color: colors.accent.withValues(alpha: 0.60),
-            blurRadius: 40,
-            spreadRadius: 8,
-          ),
-          BoxShadow(
-            color: colors.accent.withValues(alpha: 0.30),
-            blurRadius: 80,
-            spreadRadius: 16,
-          ),
-        ],
-      ),
-      child: ClipOval(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colors.background.withValues(alpha: 0.85),
-              border: Border.all(
-                color: colors.accent.withValues(alpha: 0.50),
-                width: 2,
-              ),
-            ),
-            child: Center(
-              child: ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppGradients.gold.createShader(bounds),
-                child: Icon(
-                  Icons.mosque_rounded,
-                  size: 44,
-                  color: colors.textPrimary,
-                ),
-              ),
-            ),
-          ),
+        color: colors.card,
+        border: Border.all(
+          color: colors.accent.withValues(alpha: 0.24),
+          width: 2,
         ),
+      ),
+      child: Icon(
+        Icons.mosque_rounded,
+        size: 44,
+        color: colors.goldText,
       ),
     );
   }
@@ -412,19 +324,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     return Column(
       children: [
         // Arabic greeting
-        ShaderMask(
-          shaderCallback: (bounds) => AppGradients.gold.createShader(bounds),
-          child: Text(
-            'السَّلامُ عَلَيْكُم',
-            style: TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: colors.textPrimary,
-              height: 1.0,
-            ),
-            textDirection: TextDirection.rtl,
+        Text(
+          'السَّلامُ عَلَيْكُم',
+          style: AppArabicStyles.quranBold.copyWith(
+            color: colors.goldText,
+            height: 1.0,
           ),
+          textDirection: TextDirection.rtl,
         ),
 
         const SizedBox(height: AppSpacing.sm),
@@ -457,11 +363,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Widget _buildFormCard(AuthState authState, bool isLoading) {
     final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadiusLarge,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
+    return Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: colors.surface,
@@ -470,7 +372,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               color: colors.border,
               width: 1,
             ),
-            boxShadow: AppShadows.subtle,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -523,18 +424,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 },
                 isLoading: false,
                 height: 48,
-                gradient: LinearGradient(
-                    colors: [colors.primary, colors.primary]),
               ),
 
-              const SizedBox(height: AppSpacing.md),
-
-              // Biometric button
-              _buildBiometricButton(isLoading),
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -547,15 +440,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colors.error.withValues(alpha: 0.20),
-            colors.error.withValues(alpha: 0.10),
-          ],
-        ),
+        color: colors.error.withValues(alpha: 0.12),
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
-          color: colors.error.withValues(alpha: 0.40),
+          color: colors.error.withValues(alpha: 0.24),
           width: 1,
         ),
       ),
@@ -564,7 +452,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: colors.error.withValues(alpha: 0.20),
+              color: colors.error.withValues(alpha: 0.16),
               borderRadius: AppRadius.pillRadius,
             ),
             child: Icon(
@@ -615,7 +503,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     required bool enabled,
     required void Function(String)? onSubmitted,
   }) {
-    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: controller,
       focusNode: focusNode,
@@ -636,7 +523,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildPremiumPasswordField(bool isLoading) {
-    final colors = QibraColors.of(context);
     return AuthTextField(
       controller: _passwordController,
       focusNode: _passwordFocus,
@@ -652,6 +538,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       suffixIcon: _obscurePassword
           ? Icons.visibility_off_rounded
           : Icons.visibility_rounded,
+      suffixTooltip: _obscurePassword
+          ? AppStrings.of(context).tooltipShowPassword
+          : AppStrings.of(context).tooltipHidePassword,
       onSuffixPressed: () {
         HapticFeedback.selectionClick();
         setState(() => _obscurePassword = !_obscurePassword);
@@ -682,28 +571,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 height: 20,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(6),
-                  gradient: _rememberMe ? AppGradients.emerald : null,
-                  color:
-                      _rememberMe ? null : QibraColors.light.textPrimary.withValues(alpha: 0.05),
+                  color: _rememberMe
+                      ? colors.primary
+                      : colors.cardMuted,
                   border: Border.all(
-                    color: _rememberMe
-                        ? colors.primary
-                        : QibraColors.light.textPrimary.withValues(alpha: 0.20),
+                    color: _rememberMe ? colors.primary : colors.border,
                     width: 1.5,
                   ),
-                  boxShadow: _rememberMe
-                      ? [
-                          BoxShadow(
-                            color: colors.primary.withValues(alpha: 0.40),
-                            blurRadius: 8,
-                          ),
-                        ]
-                      : null,
                 ),
                 child: _rememberMe
                     ? Icon(
                         Icons.check_rounded,
-                        color: colors.card,
+                        color: colors.onPrimary,
                         size: 14,
                       )
                     : null,
@@ -743,33 +622,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildLoginButton(bool isLoading) {
-    final colors = QibraColors.of(context);
     return AuthButton(
       label: 'Sign In',
       onTap: _handleLogin,
       isLoading: isLoading,
       trailingIcon: Icons.arrow_forward_rounded,
-      pulseAnimation: _buttonPulse,
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // BIOMETRIC BUTTON
-  // ══════════════════════════════════════════
-
-  Widget _buildBiometricButton(bool isLoading) {
-    final colors = QibraColors.of(context);
-    return AuthButton(
-      label: 'Biometric (coming soon)',
-      onTap: null,
-      isLoading: isLoading,
-      height: 48,
-      gradient: null,
-      backgroundColor: Colors.transparent,
-      borderColor: colors.accent.withValues(alpha: 0.30),
-      leadingIcon: Icons.fingerprint_rounded,
-      textColor: colors.accent,
-      enabled: false,
     );
   }
 
@@ -785,12 +642,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           child: Container(
             height: 1,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  QibraColors.light.textPrimary.withValues(alpha: 0.20),
-                ],
-              ),
+              color: colors.border,
             ),
           ),
         ),
@@ -811,12 +663,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           child: Container(
             height: 1,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  QibraColors.light.textPrimary.withValues(alpha: 0.20),
-                  Colors.transparent,
-                ],
-              ),
+              color: colors.border,
             ),
           ),
         ),
@@ -829,7 +676,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ══════════════════════════════════════════
 
   Widget _buildSocialButtons(bool isLoading) {
-    final colors = QibraColors.of(context);
     return AuthSocialButtons(
       onGoogleTap: null,
       onAppleTap: null,
@@ -859,75 +705,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             HapticFeedback.selectionClick();
             context.go(AppRoutes.register);
           },
-          child: ShaderMask(
-            shaderCallback: (bounds) => AppGradients.gold.createShader(bounds),
-            child: Text(
-              'Sign Up',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w800,
-              ),
+          child: Text(
+            'Sign Up',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: colors.goldText,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
       ],
     );
   }
-}
-
-// ============================================================
-// LOGIN PARTICLE PAINTER
-// ============================================================
-
-class _LoginParticlePainter extends CustomPainter {
-  final double animationValue;
-
-  _LoginParticlePainter({required this.animationValue});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
-    final random = math.Random(99);
-
-    for (int i = 0; i < 25; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      final offset = math.sin(
-        (animationValue * 2 * math.pi) + i,
-      );
-
-      final x = baseX + (offset * 25);
-      final y = baseY + (offset * 35);
-
-      final particleSize = 1.5 + random.nextDouble() * 2;
-      final isGold = i % 3 == 0;
-      final color = isGold ? colors.accent : colors.primary;
-      final alpha = 0.15 + (random.nextDouble() * 0.25);
-
-      final paint = Paint()
-        ..color = color.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(Offset(x, y), particleSize, paint);
-
-      // Glow
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: alpha * 0.3)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize * 4,
-        glowPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(
-    covariant _LoginParticlePainter oldDelegate,
-  ) =>
-      oldDelegate.animationValue != animationValue;
 }

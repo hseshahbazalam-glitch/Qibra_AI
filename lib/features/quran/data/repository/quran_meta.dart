@@ -18,10 +18,11 @@ class SajdahPoint {
 }
 
 abstract final class QuranMeta {
-  /// Total surahs, ayahs, juz.
+  /// Total surahs and ayahs. (A juz-count constant that used to live here
+  /// was removed in Pass P3 — zero references; the juz screens take their
+  /// count from `AppIslamicConstants.juzBoundaries.length` instead.)
   static const int totalSurahs = 114;
   static const int totalAyahs = 6236;
-  static const int totalJuz = 30;
 
   /// Compact 114-surah metadata table.
   /// Each entry: [number, ayahs, revelationOrder, isMeccan(1=true,0=false)]
@@ -242,7 +243,7 @@ abstract final class QuranMeta {
   static int computeTotalAyahs() {
     var total = 0;
     for (final row in _surahTable) {
-      total += row[1] as int;
+      total += row[1];
     }
     return total;
   }

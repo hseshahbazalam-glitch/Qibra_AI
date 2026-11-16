@@ -1,5 +1,6 @@
 // lib/core/design_system/app_theme.dart
-// QIBRA AI — Dark-first emerald + gold. Light Family A remains for migration.
+// QIBRA AI — Dark-first MIDNIGHT NAVY identity (emerald / violet / gold
+// accents, per QibraNavy tokens). Light Family A ivory remains for migration.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +8,7 @@ import 'app_colors.dart';
 import 'app_design_system.dart';
 import 'app_typography.dart';
 import 'qibra_colors.dart';
-import 'qibra_colors_next.dart';
+import 'qibra_navy.dart';
 
 abstract final class AppTheme {
   static ThemeData get light => _build(
@@ -35,21 +36,21 @@ abstract final class AppTheme {
   static ThemeData get dark => _build(
         brightness: Brightness.dark,
         palette: QibraColors.dark,
-        background: const Color(0xFF071512),
-        surface: const Color(0xFF102721),
-        surfaceHigh: const Color(0xFF14332A),
-        surfaceHighest: const Color(0xFF14332A),
-        surfaceSheet: const Color(0xFF0B1D19),
-        primary: const Color(0xFF2ED39A),
-        onPrimary: const Color(0xFF071512),
-        accent: const Color(0xFFD7AD5A),
-        onAccent: const Color(0xFF071512),
-        textPrimary: const Color(0xFFF4F7F4),
-        textSecondary: const Color(0xFFA9B8B2),
-        border: const Color(0xFF244139),
-        navBackground: const Color(0xFF0B1D19),
-        navInactive: const Color(0xFF71817B),
-        inputBackground: const Color(0xFF14332A),
+        background: QibraNavy.canvas,
+        surface: QibraNavy.card,
+        surfaceHigh: QibraNavy.cardElevated,
+        surfaceHighest: QibraNavy.cardElevated,
+        surfaceSheet: QibraNavy.surface,
+        primary: QibraNavy.emerald,
+        onPrimary: QibraNavy.textOnEmerald,
+        accent: QibraNavy.gold,
+        onAccent: QibraNavy.textOnGold,
+        textPrimary: QibraNavy.textPrimary,
+        textSecondary: QibraNavy.textSecondary,
+        border: QibraNavy.hairline,
+        navBackground: QibraNavy.surface,
+        navInactive: QibraNavy.textMuted,
+        inputBackground: QibraNavy.cardElevated,
         statusIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
       );
@@ -79,24 +80,10 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      extensions: [
-        palette,
-        isDark ? QibraColorsNext.dark : QibraColorsNext.dark.copyWith(
-          bgCanvas: palette.background,
-          bgSurface: palette.backgroundSecondary,
-          bgCard: palette.card,
-          bgCardElevated: palette.cardMuted,
-          borderSubtle: palette.border,
-          emeraldPrimary: palette.primary,
-          emeraldDeep: palette.primarySoft,
-          goldIslamic: palette.accent,
-          goldSoft: palette.goldText,
-          textPrimary: palette.textPrimary,
-          textSecondary: palette.textSecondary,
-          textMuted: palette.textTertiary,
-          error: palette.error,
-        ),
-      ],
+      // Phase B dead-weight removal: QibraColorsNext was a mirror
+      // extension with ZERO readers (only this registration existed);
+      // QibraColors (palette above) is the single semantic source.
+      extensions: [palette],
       scaffoldBackgroundColor: background,
       textTheme: AppTextTheme.textTheme.apply(
         bodyColor: textPrimary,
@@ -106,8 +93,11 @@ abstract final class AppTheme {
         brightness: brightness,
         primary: primary,
         onPrimary: onPrimary,
-        primaryContainer: isDark ? AppColorsDark.surfaceElevated : AppEmerald.s100,
-        onPrimaryContainer: isDark ? AppColorsDark.textPrimary : AppEmerald.s800,
+        // AppColorsDark's values MIRRORED QibraNavy verbatim (its own
+        // header said so; phase17 pinned the mirror) — the theme now
+        // reads the canonical tokens directly, same Color(0xFF...) values.
+        primaryContainer: isDark ? QibraNavy.cardElevated : AppEmerald.s100,
+        onPrimaryContainer: isDark ? QibraNavy.textPrimary : AppEmerald.s800,
         secondary: accent,
         onSecondary: onAccent,
         secondaryContainer: isDark ? AppGold.s800 : AppGold.s100,
@@ -126,8 +116,8 @@ abstract final class AppTheme {
         onSurfaceVariant: textSecondary,
         outline: border,
         outlineVariant: border,
-        shadow: const Color(0xFF19312C),
-        scrim: const Color(0xFF19312C),
+        shadow: isDark ? const Color(0xFF01070D) : const Color(0xFF19312C),
+        scrim: isDark ? const Color(0xFF01070D) : const Color(0xFF19312C),
         inverseSurface: isDark ? AppNeutral.s50 : AppNeutral.s800,
         onInverseSurface: isDark ? AppNeutral.s800 : AppNeutral.s50,
         inversePrimary: AppEmerald.s400,
@@ -152,7 +142,9 @@ abstract final class AppTheme {
       cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
-        shadowColor: const Color(0xFF19312C).withValues(alpha: 0.06),
+        shadowColor: isDark
+            ? const Color(0xFF01070D).withValues(alpha: 0.45)
+            : const Color(0xFF19312C).withValues(alpha: 0.06),
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardRadiusLarge,
           side: BorderSide(color: border),
@@ -236,7 +228,7 @@ abstract final class AppTheme {
         ),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: isDark ? const Color(0xFF14332A) : AppColors.primary,
+        backgroundColor: isDark ? const Color(0xFF0A2536) : AppColors.primary,
         contentTextStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.white),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.cardRadius),
@@ -324,7 +316,7 @@ abstract final class AppSystemUI {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: Color(0xFF0B1D19),
+        systemNavigationBarColor: Color(0xFF04111C),
         systemNavigationBarIconBrightness: Brightness.light,
         systemNavigationBarDividerColor: Colors.transparent,
       ),

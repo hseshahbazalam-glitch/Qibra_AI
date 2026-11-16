@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
-import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/features/duas/data/models/dua_model.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
@@ -141,15 +140,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFEEF1EA),
-                Color(0xFFF5F3EC),
-                colors.background,
-              ],
-            ),
+            color: colors.surface,
           ),
           child: SafeArea(
             child: Padding(
@@ -161,7 +152,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                   Text(
                     'الأدعية المأثورة',
                     style: AppTextStyles.arabicLarge.copyWith(
-                      color: colors.primary.withValues(alpha: 0.9),
+                      color: colors.primary,
                       fontSize: 22,
                     ),
                   ),
@@ -207,19 +198,8 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
           color: colors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: _isSearching
-                ? colors.primary.withValues(alpha: 0.5)
-                : colors.border,
+            color: _isSearching ? colors.primary : colors.border,
           ),
-          boxShadow: _isSearching
-              ? [
-                  BoxShadow(
-                    color: colors.primary.withValues(alpha: 0.1),
-                    blurRadius: 12,
-                    spreadRadius: 0,
-                  ),
-                ]
-              : null,
         ),
         child: Row(
           children: [
@@ -286,7 +266,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
               Icon(
                 Icons.search_off_rounded,
                 size: 56,
-                color: colors.textTertiary.withValues(alpha: 0.5),
+                color: colors.textTertiary,
               ),
               const SizedBox(height: 16),
               Text(
@@ -344,22 +324,8 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colors.primarySoft,
-                colors.primary,
-              ],
-            ),
+            color: colors.primary,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: colors.primary.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,7 +345,8 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('✨', style: TextStyle(fontSize: 12)),
+                        Icon(Icons.auto_awesome_rounded,
+                            size: 12, color: colors.onPrimary),
                         const SizedBox(width: 6),
                         Text(
                           'Dua of the Day',
@@ -405,7 +372,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
                       color: dailyDua.isFavorite
-                          ? QibraColors.light.error
+                          ? colors.onPrimary
                           : colors.onPrimary.withValues(alpha: 0.7),
                       size: 22,
                     ),
@@ -509,7 +476,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
             width: 3,
             height: 22,
             decoration: BoxDecoration(
-              gradient: AppGradients.emerald,
+              color: colors.primary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -537,7 +504,6 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildCategoriesGrid() {
-    final colors = QibraColors.of(context);
     final categories = ref.watch(duaCategoriesProvider);
 
     return Padding(
@@ -594,9 +560,10 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(
-                  category.icon,
-                  style: const TextStyle(fontSize: 24),
+                child: Icon(
+                  category.iconGlyph,
+                  size: 24,
+                  color: cardColor,
                 ),
               ),
             ),
@@ -650,7 +617,6 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // ──────────────────────────────────────────────────────────
 
   Widget _buildFavoritesSection() {
-    final colors = QibraColors.of(context);
     final favorites = ref.watch(favoriteDuasProvider);
     if (favorites.isEmpty) return const SizedBox.shrink();
 
@@ -696,9 +662,10 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
-                child: Text(
-                  _getCategoryIcon(dua.category),
-                  style: const TextStyle(fontSize: 20),
+                child: Icon(
+                  _categoryIconFor(dua.category),
+                  size: 20,
+                  color: tileColor,
                 ),
               ),
             ),
@@ -737,7 +704,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                       Icon(
                         Icons.verified_rounded,
                         size: 11,
-                        color: colors.primary.withValues(alpha: 0.7),
+                        color: colors.primary,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
@@ -772,7 +739,7 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
                 color: dua.isFavorite
-                    ? QibraColors.light.error
+                    ? colors.primary
                     : colors.textSecondary,
                 size: 20,
               ),
@@ -787,13 +754,14 @@ class _DuasHomeScreenState extends ConsumerState<DuasHomeScreen>
   // HELPERS
   // ──────────────────────────────────────────────────────────
 
-  String _getCategoryIcon(String categoryId) {
+  IconData _categoryIconFor(String categoryId) {
     try {
-      final cat =
-          ref.read(duaCategoriesProvider).firstWhere((c) => c.id == categoryId);
-      return cat.icon;
+      final cat = ref
+          .read(duaCategoriesProvider)
+          .firstWhere((c) => c.id == categoryId);
+      return cat.iconGlyph;
     } catch (_) {
-      return '🤲';
+      return Icons.volunteer_activism_rounded;
     }
   }
 

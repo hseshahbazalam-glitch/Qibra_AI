@@ -9,9 +9,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/notifications/dua_reminder_policy.dart';
+import 'package:qibra_ai/core/services/notification_service.dart';
+import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/features/ai/presentation/ai_explain_screen.dart';
 import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class DuaDetailScreen extends ConsumerStatefulWidget {
   final String duaId;
@@ -27,6 +34,121 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   bool _showUrdu = true;
   bool _showEnglish = true;
 
+  // P1 · Item 1 — daily reminder state. Loaded from the real
+  // scheduler-backed prefs (no optimistic UI): the card renders only
+  // once the stored state is known.
+  DuaReminderTime _reminderAt = const DuaReminderTime(8, 0);
+  bool _reminderOn = false;
+  bool _reminderLoaded = false;
+  bool _reminderBusy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReminderState();
+  }
+
+  Future<void> _loadReminderState() async {
+    final dua = ref.read(duaByIdProvider(widget.duaId));
+    final fallback = dua == null
+        ? const DuaReminderTime(8, 0)
+        : DuaReminderPolicy.defaultFor(
+            category: dua.category, titleEnglish: dua.titleEnglish);
+    final stored =
+        await NotificationService.instance.duaReminderFor(widget.duaId);
+    if (!mounted) return;
+    setState(() {
+      _reminderAt = stored ?? fallback;
+      _reminderOn = stored != null;
+      _reminderLoaded = true;
+    });
+  }
+
+  String get _reminderBodyText {
+    final dua = ref.read(duaByIdProvider(widget.duaId));
+    if (dua == null) return 'Time for your dua';
+    return dua.arabic.trim().isNotEmpty ? dua.arabic : dua.translationEnglish;
+  }
+
+  Future<void> _toggleReminder(bool on) async {
+    final dua = ref.read(duaByIdProvider(widget.duaId));
+    if (dua == null || _reminderBusy) return;
+    HapticFeedback.selectionClick();
+    setState(() => _reminderBusy = true);
+    if (on) {
+      await NotificationService.instance.setDuaReminder(
+        duaId: widget.duaId,
+        title: dua.titleEnglish,
+        body: _reminderBodyText,
+        hour: _reminderAt.hour,
+        minute: _reminderAt.minute,
+      );
+    } else {
+      await NotificationService.instance.removeDuaReminder(widget.duaId);
+    }
+    if (!mounted) return;
+    setState(() {
+      _reminderOn = on;
+      _reminderBusy = false;
+    });
+    _showReminderSnack(on
+        ? 'Daily reminder set for ${_reminderAt.label}'
+        : 'Reminder turned off');
+  }
+
+  Future<void> _editReminderTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime:
+          TimeOfDay(hour: _reminderAt.hour, minute: _reminderAt.minute),
+      builder: (ctx, child) => Theme(
+        data: ThemeData.dark().copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: QibraNavy.emerald,
+            surface: QibraNavy.textPrimary,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked == null || !mounted) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _reminderAt = DuaReminderTime(picked.hour, picked.minute);
+    });
+    if (_reminderOn) {
+      final dua = ref.read(duaByIdProvider(widget.duaId));
+      if (dua == null) return;
+      // Re-arm the one true daily schedule at the new wall-clock time.
+      await NotificationService.instance.setDuaReminder(
+        duaId: widget.duaId,
+        title: dua.titleEnglish,
+        body: _reminderBodyText,
+        hour: picked.hour,
+        minute: picked.minute,
+      );
+      if (!mounted) return;
+      _showReminderSnack('Reminder moved to ${_reminderAt.label}');
+    }
+  }
+
+  void _showReminderSnack(String message) {
+    final colors = QibraColors.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message,
+            style: AppTextStyles.labelMedium
+                .copyWith(color: colors.onPrimary)),
+        backgroundColor: QibraNavy.emeraldDeep,
+        behavior: SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
@@ -37,7 +159,10 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         backgroundColor: colors.background,
         body: SafeArea(
           child: Center(
-            child: Text('Dua not found'),
+            child: QibraStatus.empty(
+              title: 'Dua not found',
+              message: 'This dua is not in the bundled collection.',
+            ),
           ),
         ),
       );
@@ -54,6 +179,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
               pinned: true,
               backgroundColor: colors.background,
               leading: IconButton(
+                tooltip: AppStrings.of(context).tooltipBack,
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -72,12 +198,15 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
               actions: [
                 // Favorite button
                 IconButton(
+                  tooltip: dua.isFavorite
+                    ? AppStrings.of(context).tooltipUnfavorite
+                    : AppStrings.of(context).tooltipFavorite,
                   icon: Icon(
                     dua.isFavorite
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
                     color: dua.isFavorite
-                        ? QibraColors.light.error
+                        ? QibraNavy.red
                         : colors.textSecondary,
                   ),
                   onPressed: () {
@@ -87,8 +216,32 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                         .toggleFavorite(dua.id);
                   },
                 ),
+                // P1 · Item 2 — Ask AI about this dua (violet marks
+                // the AI surface). Reuses the existing explain screen
+                // with this dua's real bundled text as the context.
+                IconButton(
+                  tooltip: AppStrings.of(context).tooltipExplainAI,
+                  icon: Icon(
+                    // Violet marks the AI surface (G14/design rule): ride
+                    // the sanctioned theme token, never the raw palette
+                    // constant outside the AI feature.
+                    Icons.auto_awesome_rounded,
+                    color: colors.violetAi,
+                  ),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AIExplainScreen(
+                        duaTitle: dua.titleEnglish,
+                        duaArabic: dua.arabic,
+                        duaTranslation: dua.translationEnglish,
+                      ),
+                    ),
+                  ),
+                ),
                 // Share button
                 IconButton(
+                  tooltip: AppStrings.of(context).tooltipShare,
                   icon: Icon(
                     Icons.share_rounded,
                     color: colors.textSecondary,
@@ -97,6 +250,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 ),
                 // Copy button
                 IconButton(
+                  tooltip: AppStrings.of(context).copy,
                   icon: Icon(
                     Icons.copy_rounded,
                     color: colors.textSecondary,
@@ -131,7 +285,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showTransliteration)
                       _buildInfoCard(
                         icon: Icons.translate_rounded,
-                        iconColor: const Color(0xFF123F36),
+                        iconColor: QibraNavy.emerald,
                         label: 'Transliteration',
                         content: dua.transliteration,
                         isItalic: true,
@@ -139,7 +293,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showUrdu)
                       _buildInfoCard(
                         icon: Icons.language_rounded,
-                        iconColor: const Color(0xFFC6A15B),
+                        iconColor: QibraNavy.gold,
                         label: 'Urdu Translation',
                         content: dua.translationUrdu,
                         isRtl: true,
@@ -147,7 +301,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     if (_showEnglish)
                       _buildInfoCard(
                         icon: Icons.article_rounded,
-                        iconColor: const Color(0xFF2F6B5D),
+                        iconColor: QibraNavy.emerald,
                         label: 'English Translation',
                         content: dua.translationEnglish,
                       ),
@@ -160,21 +314,25 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                     ),
                     const SizedBox(height: 16),
                     _buildDetailSection(
-                      icon: '🕐',
+                      icon: Icons.schedule_rounded,
                       title: 'When to Recite',
                       content: dua.whenToRecite,
                     ),
                     _buildDetailSection(
-                      icon: '📿',
+                      icon: Icons.menu_book_rounded,
                       title: 'How to Recite',
                       content: dua.howToRecite,
                     ),
                     _buildDetailSection(
-                      icon: '✨',
+                      icon: Icons.auto_awesome_rounded,
                       title: 'Benefits & Fazilat',
                       content: dua.benefits,
                       isHighlighted: true,
                     ),
+                    if (_reminderLoaded) ...[
+                      const SizedBox(height: 16),
+                      _buildReminderCard(colors),
+                    ],
                     const SizedBox(height: 120),
                   ],
                 ),
@@ -200,14 +358,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF123F36),
-            Color(0xFF123F36),
-          ],
-        ),
+        color: colors.primary,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -284,15 +435,8 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         color: colors.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colors.primary.withValues(alpha: 0.3),
+          color: colors.primary.withValues(alpha: 0.16),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.05),
-            blurRadius: 20,
-            spreadRadius: 0,
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -303,7 +447,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                 width: 3,
                 height: 18,
                 decoration: BoxDecoration(
-                  gradient: AppGradients.emerald,
+                  color: colors.primary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -472,10 +616,10 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         gradeColor = colors.primary;
         break;
       case 'hasan':
-        gradeColor = const Color(0xFF123F36);
+        gradeColor = QibraNavy.emerald;
         break;
       case 'quran':
-        gradeColor = const Color(0xFFC6A15B);
+        gradeColor = QibraNavy.gold;
         break;
       default:
         gradeColor = colors.textSecondary;
@@ -487,7 +631,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         color: gradeColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: gradeColor.withValues(alpha: 0.3),
+          color: gradeColor.withValues(alpha: 0.16),
         ),
       ),
       child: Row(
@@ -545,7 +689,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   // ============================================================
 
   Widget _buildDetailSection({
-    required String icon,
+    required IconData icon,
     required String title,
     required String content,
     bool isHighlighted = false,
@@ -561,7 +705,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isHighlighted
-              ? colors.primary.withValues(alpha: 0.2)
+              ? colors.primary.withValues(alpha: 0.16)
               : colors.border,
         ),
       ),
@@ -570,7 +714,11 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         children: [
           Row(
             children: [
-              Text(icon, style: const TextStyle(fontSize: 18)),
+              Icon(icon,
+                  size: 18,
+                  color: isHighlighted
+                      ? colors.primary
+                      : colors.textSecondary),
               const SizedBox(width: 8),
               Text(
                 title,
@@ -626,7 +774,7 @@ Reference: ${dua.reference} (${dua.grade})
         content: Row(
           children: [
             const Icon(Icons.check_circle_rounded,
-                color: const Color(0xFF19312C), size: 18),
+                color: QibraNavy.textPrimary, size: 18),
             const SizedBox(width: 10),
             Text(
               'Dua copied to clipboard',
@@ -652,7 +800,7 @@ Reference: ${dua.reference} (${dua.grade})
     final dua = ref.read(duaByIdProvider(widget.duaId));
     if (dua == null) return;
 
-    final text = '''🤲 ${dua.titleEnglish}
+    final text = '''${dua.titleEnglish}
 
 ${dua.arabic}
 
@@ -660,7 +808,7 @@ ${dua.transliteration}
 
 "${dua.translationEnglish}"
 
-📚 ${dua.reference} — ${dua.grade}
+${dua.reference} — ${dua.grade}
 
 Shared via QIBRA AI''';
 
@@ -671,7 +819,7 @@ Shared via QIBRA AI''';
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.share_rounded, color: const Color(0xFF19312C), size: 18),
+            const Icon(Icons.share_rounded, color: QibraNavy.textPrimary, size: 18),
             const SizedBox(width: 10),
             Text(
               'Copied — paste to share anywhere',
@@ -681,13 +829,79 @@ Shared via QIBRA AI''';
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF123F36),
+        backgroundColor: QibraNavy.emeraldDeep,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // ============================================================
+  // DAILY REMINDER CARD (P1 · Item 1)
+  // Real state only: driven by the persisted scheduler prefs and the
+  // time picker; the toggle reflects what NotificationService holds.
+  // ============================================================
+
+  Widget _buildReminderCard(QibraColors colors) {
+    return Material(
+      color: colors.surface,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: colors.border),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Material-owned ink, the proven QibraCard/QibraChip pattern:
+          // the SwitchListTile gets its own transparency Material so the
+          // decorated card never sits between the tile and its Material.
+          Material(
+            type: MaterialType.transparency,
+            child: AppSwitchListTile(
+              value: _reminderOn,
+              dense: true,
+              onChanged: _reminderBusy ? null : _toggleReminder,
+              secondary: Icon(
+                _reminderOn
+                    ? Icons.notifications_active_rounded
+                    : Icons.notifications_none_rounded,
+                color: QibraNavy.emerald,
+                size: 22,
+              ),
+              title: Text(
+                'Daily Reminder',
+                style: AppTextStyles.labelMedium
+                    .copyWith(color: colors.textPrimary),
+              ),
+              subtitle: Text(
+                _reminderOn
+                    ? 'Sends a daily reminder at ${_reminderAt.label}'
+                    : 'Get a daily nudge to recite this dua',
+                style: AppTextStyles.labelSmall
+                    .copyWith(color: colors.textSecondary),
+              ),
+            ),
+          ),
+          if (_reminderOn)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _reminderBusy ? null : _editReminderTime,
+                icon: Icon(Icons.schedule_rounded,
+                    size: 15, color: colors.primary),
+                label: Text(
+                  '${_reminderAt.label} · Change',
+                  style: AppTextStyles.labelSmall.copyWith(
+                      color: colors.primary),
+                ),
+              ),
+            ),
+          const SizedBox(height: 4),
+        ],
       ),
     );
   }

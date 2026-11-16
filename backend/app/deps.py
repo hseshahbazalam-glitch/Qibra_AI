@@ -6,13 +6,26 @@ from .security import decode_token
 from .services.auth_service import get_user
 
 
-def current_user_id(authorization: str | None = Header(default=None)) -> int:
+def bearer_subject(authorization: str | None) -> tuple[str | None, str | None]:
+    """(subject, error) — the one place the Authorization header is parsed.
+
+    `error` is the stable code: missing_token (nothing usable was sent) versus
+    invalid_token (something was sent and it does not verify). Endpoints that need a
+    different wording depend on this helper instead of re-reading the header, so the
+    parsing rules cannot drift between them.
+    """
     if not authorization or not authorization.lower().startswith("bearer "):
-        raise HTTPException(status_code=401, detail="missing_token")
-    token = authorization.split(" ", 1)[1]
-    sub = decode_token(token)
+        return None, "missing_token"
+    sub = decode_token(authorization.split(" ", 1)[1])
     if not sub:
-        raise HTTPException(status_code=401, detail="invalid_token")
+        return None, "invalid_token"
+    return sub, None
+
+
+def current_user_id(authorization: str | None = Header(default=None)) -> int:
+    sub, error = bearer_subject(authorization)
+    if error:
+        raise HTTPException(status_code=401, detail=error)
     return int(sub)
 
 

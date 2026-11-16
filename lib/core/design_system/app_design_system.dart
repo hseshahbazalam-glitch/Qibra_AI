@@ -191,80 +191,6 @@ abstract final class AppElevation {
   static const double xl3 = 24.0;
 }
 
-abstract final class AppShadows {
-  static List<BoxShadow> get subtle => [
-        BoxShadow(
-          color: const Color(0xFF19312C).withValues(alpha: 0.04),
-          blurRadius: 10,
-          spreadRadius: 0,
-          offset: const Offset(0, 2),
-        ),
-      ];
-
-  static List<BoxShadow> get small => [
-        BoxShadow(
-          color: const Color(0xFF19312C).withValues(alpha: 0.06),
-          blurRadius: 16,
-          spreadRadius: 0,
-          offset: const Offset(0, 4),
-        ),
-      ];
-
-  static List<BoxShadow> get medium => [
-        BoxShadow(
-          color: const Color(0xFF19312C).withValues(alpha: 0.08),
-          blurRadius: 24,
-          spreadRadius: 0,
-          offset: const Offset(0, 8),
-        ),
-      ];
-
-  static List<BoxShadow> get large => [
-        BoxShadow(
-          color: const Color(0xFF19312C).withValues(alpha: 0.12),
-          blurRadius: 32,
-          spreadRadius: 0,
-          offset: const Offset(0, 12),
-        ),
-      ];
-
-  static List<BoxShadow> get goldGlow => [
-        BoxShadow(
-          color: const Color(0xFFC6A15B).withValues(alpha: 0.16),
-          blurRadius: 16,
-          spreadRadius: 0,
-          offset: const Offset(0, 4),
-        ),
-      ];
-
-  static List<BoxShadow> get emeraldGlow => [
-        BoxShadow(
-          color: const Color(0xFF123F36).withValues(alpha: 0.16),
-          blurRadius: 16,
-          spreadRadius: 0,
-          offset: const Offset(0, 4),
-        ),
-      ];
-
-  static List<BoxShadow> get darkCard => [
-        BoxShadow(
-          color: const Color(0xFF19312C).withValues(alpha: 0.06),
-          blurRadius: 18,
-          spreadRadius: 0,
-          offset: const Offset(0, 6),
-        ),
-      ];
-
-  static List<BoxShadow> get inset => [
-        BoxShadow(
-          color: const Color(0xFF19312C).withValues(alpha: 0.08),
-          blurRadius: 4,
-          spreadRadius: 0,
-          offset: const Offset(0, 2),
-        ),
-      ];
-}
-
 // ============================================================
 // SECTION 4: APP ANIMATION DURATIONS & CURVES
 // ============================================================
@@ -455,118 +381,6 @@ abstract final class AppBreakpoints {
 // - Emerald → Teal (feature accents)
 // ============================================================
 
-abstract final class AppGradients {
-  static const LinearGradient primaryBackground = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFFF5F3EC),
-      Color(0xFFEEF1EA),
-      Color(0xFFF5F3EC),
-    ],
-    stops: [0.0, 0.5, 1.0],
-  );
-
-  static const LinearGradient emerald = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF2F6B5D),
-      Color(0xFF123F36),
-    ],
-  );
-
-  static const LinearGradient gold = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFFD4B87A),
-      Color(0xFFC6A15B),
-    ],
-  );
-
-  static const LinearGradient goldShimmer = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [
-      Color(0xFFA88748),
-      Color(0xFFC6A15B),
-      Color(0xFFD4B87A),
-      Color(0xFFC6A15B),
-      Color(0xFFA88748),
-    ],
-    stops: [0.0, 0.25, 0.5, 0.75, 1.0],
-  );
-
-  static const LinearGradient premiumCard = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFFFEFDF9),
-      Color(0xFFF8F6EF),
-    ],
-  );
-
-  static const LinearGradient emeraldCard = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF2F6B5D),
-      Color(0xFF123F36),
-    ],
-  );
-
-  static const LinearGradient goldCard = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFFD4B87A),
-      Color(0xFFC6A15B),
-    ],
-  );
-
-  static const RadialGradient splashGradient = RadialGradient(
-    center: Alignment.center,
-    radius: 1.4,
-    colors: [
-      Color(0xFFEEF1EA),
-      Color(0xFFF5F3EC),
-      Color(0xFFE8EBE3),
-    ],
-    stops: [0.0, 0.55, 1.0],
-  );
-
-  static const LinearGradient onboarding = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFFF5F3EC),
-      Color(0xFFEEF1EA),
-    ],
-  );
-
-  static const LinearGradient imageOverlay = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      Colors.transparent,
-      Color(0x9912312C),
-    ],
-    stops: [0.35, 1.0],
-  );
-
-  static const LinearGradient shimmerLoading = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [
-      Color(0xFFEEF1EA),
-      Color(0xFFFEFDF9),
-      Color(0xFFEEF1EA),
-    ],
-    stops: [0.0, 0.5, 1.0],
-  );
-}
-
 // ============================================================
 // SECTION 8: APP BORDER STYLES
 // ============================================================
@@ -658,30 +472,24 @@ abstract final class AppOpacity {
 abstract final class AppAssets {
   static const String _images = 'assets/images';
   static const String _icons = 'assets/icons';
-  static const String _animations = 'assets/animations';
 
   static const String logo = '$_images/logo/qibra_logo.png';
   static const String splashBackground = '$_images/hero/splash_bg.png';
   static const String splashLogo = logo;
   static const String homeHeroBg = '$_images/hero/home_hero_bg.png';
   static const String patternTile = '$_images/hero/pattern_tile.png';
-  static const String emptyState = '$_images/hero/empty_state.png';
+  /// Perf pass item 3: pre-faded (5% alpha baked) + 256px tile that
+  /// PatternBackdrop paints WITHOUT a per-frame Opacity/saveLayer.
+  /// Regenerate via scripts/make_faded_tile.py.
+  static const String patternTileFaded =
+      '$_images/hero/pattern_tile_faded.png';
 
-  static const String quranArt = '$_images/features/quran_art.png';
-  static const String prayerArt = '$_images/features/prayer_art.png';
   static const String hadithArt = '$_images/features/hadith_art.png';
   static const String aiArt = '$_images/features/ai_art.png';
 
   static const String onboarding1 = '$_images/illustrations/onboarding_1.png';
   static const String onboarding2 = '$_images/illustrations/onboarding_2.png';
-  static const String onboarding3 = '$_images/illustrations/onboarding_3.png';
 
-  static const String loadingAnimation = '$_animations/loading.json';
-  static const String successAnimation = '$_animations/success.json';
-  static const String errorAnimation = '$_animations/error.json';
-  static const String prayerAnimation = '$_animations/prayer.json';
-  static const String quranAnimation = '$_animations/quran.json';
-  static const String aiAnimation = '$_animations/ai_thinking.json';
 
   static const String iconQuran = '$_icons/quran.svg';
   static const String iconPrayer = '$_icons/prayer.svg';
@@ -733,14 +541,7 @@ abstract final class AppZIndex {
 /// BorderRadius.circular(AppRadius.lg)
 /// decoration: BoxDecoration(borderRadius: AppRadius.cardRadius)
 ///
-/// // Shadows
-/// boxShadow: AppShadows.goldGlow
-/// boxShadow: AppShadows.darkCard
-///
-/// // Gradients
-/// gradient: AppGradients.emerald
-/// gradient: AppGradients.gold
-///
+
 /// // Animation
 /// duration: AppDurations.medium
 /// curve: AppCurves.enter
@@ -752,7 +553,7 @@ abstract final class AppZIndex {
 abstract final class AppDesignSystem {
   // This class acts as documentation and namespace.
   // All design tokens are accessible via their own classes:
-  // AppSpacing, AppRadius, AppElevation, AppShadows,
+  // AppSpacing, AppRadius, AppElevation,
   // AppDurations, AppCurves, AppIconSizes, AppBreakpoints,
-  // AppGradients, AppBorders, AppOpacity, AppAssets
+  // AppBorders, AppOpacity, AppAssets
 }

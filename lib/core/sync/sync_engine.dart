@@ -5,7 +5,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../constants/app_constants.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'retry_policy.dart';
 
 enum SyncOpType { upsert, delete }
@@ -102,8 +102,10 @@ class SyncQueue {
   List<SyncOp> get pending =>
       List.unmodifiable(_ops.where((o) => o.status == SyncOpStatus.pending));
 
-  List<SyncOp> due(DateTime now) =>
-      List.unmodifiable(pending.where((o) => o.isDue(now)));
+  List<SyncOp> due(DateTime now) => List.unmodifiable(_ops.where((o) =>
+      (o.status == SyncOpStatus.pending ||
+          (o.status == SyncOpStatus.failed && o.nextRetryAt != null)) &&
+      o.isDue(now)));
 
   List<SyncOp> get all => List.unmodifiable(_ops);
 
@@ -174,7 +176,7 @@ class SyncEngine {
     if (decoded is! List) return;
     queue.restore(
       decoded
-          .whereType<Map>()
+          .whereType<Map<String, dynamic>>()
           .map((row) => SyncOp.fromJson(Map<String, dynamic>.from(row)))
           .toList(),
     );
@@ -187,14 +189,18 @@ class SyncEngine {
   }
 
   /// Flush pending ops when the device is online. No-op while backend is off.
+  /// [backendEnabled] is a test seam: null uses the production constant,
+  /// a value pins this one call — both branches stay testable without
+  /// re-releasing the app with a flipped flag.
   Future<void> flushWhenOnline({
     required bool online,
     Future<void> Function(List<SyncOp> batch)? sender,
     SharedPreferences? prefs,
     DateTime? now,
+    bool? backendEnabled,
   }) async {
     if (prefs != null) await persist(prefs);
-    if (!online || !AppApi.isBackendEnabled) return;
+    if (!online || !(backendEnabled ?? AppApi.isBackendEnabled)) return;
     await runSingleFlight(() async {
       final batch = takeBatch(now: now ?? DateTime.now());
       if (batch.isEmpty || sender == null) return;

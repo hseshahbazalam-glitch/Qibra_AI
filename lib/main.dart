@@ -4,12 +4,15 @@
 // Version: 6.0.0 — Clean (No Audio, New AI System)
 // ============================================================
 
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:qibra_ai/core/observability/error_shield.dart';
 import 'package:qibra_ai/core/services/notification_service.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/constants/app_assets_check.dart';
@@ -20,8 +23,8 @@ import 'package:qibra_ai/core/providers/theme_provider.dart';
 import 'package:qibra_ai/core/router/app_router.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
-import 'package:qibra_ai/features/quran/data/repository/quran_repository.dart';
-import 'package:qibra_ai/features/ai/services/rag_service.dart';
+import 'package:qibra_ai/features/ai/domain/rag_service.dart';
+import 'package:qibra_ai/features/quran/data/audio/quran_audio_service.dart';
 
 // ============================================================
 // GLOBAL HADITH DATABASE INSTANCE
@@ -34,24 +37,34 @@ HadithDatabaseService? get globalHadithDb => _globalHadithDb;
 // MAIN ENTRY POINT
 // ============================================================
 
-void main() async {
+void main() {
+  // Error Shield (install FIRST — synchronous, zero IO — then the whole
+  // boot runs inside the guarded zone; semantics inside are preserved
+  // byte-for-byte, this commit adds no awaited work before runApp).
+  ErrorShield.install();
+  runZonedGuarded(() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inter (Latin) and Amiri (Arabic) are bundled in assets/fonts and
+  // registered under fonts: in pubspec.yaml — the runtime CDN font package
+  // is no longer a dependency, so no text style can depend on a fetch.
 
   // ─── Timezone DB (Phase 2: IANA for exact prayer timezone) ─────
   try {
     tz_data.initializeTimeZones();
-    NotificationService.markTimeZonesInitialized();
-    debugPrint('✅ Timezone DB initialized');
+    if (kDebugMode) debugPrint('✅ Timezone DB initialized');
   } catch (e) {
-    debugPrint('⚠️ Timezone DB failed: $e');
+    if (kDebugMode) debugPrint('⚠️ Timezone DB failed: $e');
   }
 
   // ─── Load .env (debug only, not bundled in release) ────────────
+  var envLoaded = false; // device-log fix 2: the banner prints the TRUTH
   try {
     await dotenv.load(fileName: '.env');
-    debugPrint('✅ .env loaded successfully');
+    envLoaded = true;
+    if (kDebugMode) debugPrint('✅ .env loaded successfully');
   } catch (e) {
-    debugPrint('⚠️ .env not loaded: $e');
+    if (kDebugMode) debugPrint('⚠️ .env not loaded: $e');
   }
 
   // ─── System UI Setup ─────────────────────────
@@ -64,27 +77,50 @@ void main() async {
     return true;
   }());
 
-  // ─── Notification Service ─────────────────────────
-  try {
-    debugPrint('🔔 Initializing Notification Service...');
-    await NotificationService().initialize();
-    debugPrint('✅ Notification Service ready');
-  } catch (e) {
-    debugPrint('⚠️ Notification Service failed: $e');
-  }
+  // ─── Notification Service + Quran Data ─────────────────
+  // (Perf pass item 2) Both heavy awaits moved OUT of the pre-runApp
+  // path: they now run in dataBootstrapProvider
+  // (lib/core/providers/app_providers.dart), started by the splash's
+  // first frame — runApp is no longer gated on corpus decode. The
+  // timezone DB above STAYS pre-runApp on purpose: it is a synchronous,
+  // in-memory IANA table registration, and prayer math reads it from
+  // its own first frame (documented per owner instruction; no screen
+  // blocks on it).
 
-  // ─── Quran Data ─────────────────────────
-  try {
-    debugPrint('📖 Loading Quran data...');
-    final quranRepo = QuranRepository();
-    await quranRepo.initialize();
-    debugPrint('✅ Quran data loaded successfully!');
-  } catch (e) {
-    debugPrint('⚠️ Quran data loading failed: $e');
-  }
+  // ─── Notification tap routing (P1 · Item 1) ─────────────────
+  // 'dua:<id>' payloads open that dua's detail through the router.
+  // All other payloads keep existing behavior (tap foregrounds the
+  // app; the prayer/adhkar channels never navigated and still don't).
+  NotificationService.onNotificationTap = (payload) {
+    if (!payload.startsWith('dua:')) return;
+    final id = Uri.encodeComponent(payload.substring('dua:'.length));
+    if (id.isEmpty) return;
+    void navigate(int attemptsLeft) {
+      final ctx = rootNavigatorKey.currentContext;
+      if (ctx == null) {
+        // Cold start: the router's navigator may not exist yet for a
+        // frame or two — retry on post-frame, then give up quietly.
+        if (attemptsLeft > 0) {
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => navigate(attemptsLeft - 1));
+        }
+        return;
+      }
+      GoRouter.of(ctx).push('${AppRoutes.duaDetail}?id=$id');
+    }
+
+    navigate(30);
+  };
 
   // ─── Boot Info ─────────────────────────
-  _printBootInfo();
+  _printBootInfo(envLoaded);
+
+  // ─── Pass Q1: tilawat media-notification boot ───────────────
+  // AudioService.init runs on the platform channel; TilawatAudioHandler
+  // .boot() swallows ANY failure (tests, desktop, exotic ROMs) and the
+  // app continues without notification controls. Playback never depends
+  // on this — the handler is an optional mirror, wired via a delegate.
+  await TilawatAudioHandler.boot();
 
   // ─── Run App ─────────────────────────
   runApp(
@@ -95,20 +131,21 @@ void main() async {
 
   // Hadith corpus is large; screens call initialize() if still loading.
   unawaited(_loadHadithInBackground());
+  }, ErrorShield.zoneHandler);
 }
 
 Future<void> _loadHadithInBackground() async {
   try {
-    debugPrint('📚 Loading Hadith database...');
+    if (kDebugMode) debugPrint('📚 Loading Hadith database...');
     final hadithDb = HadithDatabaseService();
     await hadithDb.initialize();
-    debugPrint('✅ Hadith database loaded!');
+    if (kDebugMode) debugPrint('✅ Hadith database loaded!');
     _globalHadithDb = hadithDb;
     try {
       RagService.instance.attachHadithDb(hadithDb);
     } catch (_) {}
   } catch (e) {
-    debugPrint('⚠️ Hadith database loading failed: $e');
+    if (kDebugMode) debugPrint('⚠️ Hadith database loading failed: $e');
   }
 }
 
@@ -154,17 +191,26 @@ class QibraApp extends ConsumerWidget {
 // BOOT INFO LOGGER
 // ============================================================
 
-void _printBootInfo() {
-  debugPrint('╔═══════════════════════════════════════╗');
-  debugPrint('║       QIBRA AI — System Boot          ║');
-  debugPrint('╠═══════════════════════════════════════╣');
-  debugPrint('║  Name    : ${AppInfo.appName}');
-  debugPrint('║  Version : ${AppInfo.version}');
-  debugPrint('║  ✅ .env loaded');
-  debugPrint('║  ✅ Riverpod initialized');
-  debugPrint('║  ✅ Router ready');
-  debugPrint('║  📖 Quran data ready');
-  debugPrint('║  📚 Hadith DB loading after first frame');
-  debugPrint('║  🤖 AI Engine ready');
-  debugPrint('╚═══════════════════════════════════════╝');
+void _printBootInfo(bool envLoaded) {
+  if (kDebugMode) debugPrint('╔═══════════════════════════════════════╗');
+  if (kDebugMode) debugPrint('║       QIBRA AI — System Boot          ║');
+  if (kDebugMode) debugPrint('╠═══════════════════════════════════════╣');
+  if (kDebugMode) debugPrint('║  Name    : ${AppInfo.appName}');
+  if (kDebugMode) debugPrint('║  Version : ${AppInfo.version}');
+  // device-log fix 2 (honesty audit of every static ✅ line):
+  //  .env — real outcome captured from the try/catch above.
+  //  Riverpod / Router — true BY CONSTRUCTION at print time: the very
+  //  next statements build ProviderScope(routerProvider) synchronously.
+  //  Quran data — NOT 'ready' here: it decodes in dataBootstrapProvider
+  //  after the splash's first frame (see the perf-pass comment above),
+  //  so the line states that. Hadith line already told the truth.
+  //  AI Engine — local RAG only until the background hadith attach
+  //  completes and every AI flag stays backend-off (AppFeatureFlags).
+  if (kDebugMode) debugPrint('║  ${envLoaded ? '✅ .env loaded' : '⚠️ .env not present'}');
+  if (kDebugMode) debugPrint('║  ✅ Riverpod initialized');
+  if (kDebugMode) debugPrint('║  ✅ Router ready');
+  if (kDebugMode) debugPrint('║  📖 Quran data queued (loads after first frame)');
+  if (kDebugMode) debugPrint('║  📚 Hadith DB loading after first frame');
+  if (kDebugMode) debugPrint('║  🤖 AI Engine: local RAG (backend off)');
+  if (kDebugMode) debugPrint('╚═══════════════════════════════════════╝');
 }

@@ -185,5 +185,32 @@ class DuaFood {
       tags: ['food', 'fasting', 'ramadan', 'sehri', 'niyyah'],
       sortOrder: 8,
     ),
+    // Merged from the retired standalone Ramadan timer screen (LEAN PASS).
+    // Same hadith as fd_004 (Abu Dawud 2358 carries both wordings).
+    DuaModel(
+      id: 'fd_009',
+      category: 'food',
+      titleEnglish: 'Dua After Breaking Fast (Dhahaba)',
+      titleUrdu: 'افطار کے بعد کی دعا',
+      titleArabic: 'دعاء عند الفطر',
+      arabic:
+          'ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ',
+      transliteration:
+          'Dhahaba al-zama wa abtallatil-urooq wa thabatal-ajru insha Allah.',
+      translationUrdu:
+          'Pyaas khatam hui, rangein tar ho gayin aur Insha\'Allah sawab tay ho gaya.',
+      translationEnglish:
+          'The thirst has gone, the veins are moistened and the reward is confirmed, if Allah wills.',
+      reference: 'Sunan Abu Dawud 2358',
+      referenceBook: 'Sunan Abu Dawud',
+      referenceNumber: '2358',
+      grade: 'Hasan',
+      whenToRecite: 'Iftar ke foran baad.',
+      howToRecite: 'Roza iftar karte waqt ka sunan shukr.',
+      benefits:
+          'Iftar ke waqt ki dua — reward ki bishwas ke saath shukr ada hota hai.',
+      tags: ['food', 'fasting', 'ramadan', 'iftar'],
+      sortOrder: 9,
+    ),
   ];
 }

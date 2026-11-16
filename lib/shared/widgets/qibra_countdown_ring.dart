@@ -1,0 +1,136 @@
+// lib/shared/widgets/qibra_countdown_ring.dart
+// ============================================================
+// QIBRA AI — PREMIUM COUNTDOWN RING
+// Arc countdown used by Home hero and (stage 2) Prayer hero.
+// Pure CustomPaint — no infinite animations, reduced-motion safe.
+// Meaning is never conveyed by color alone: the ring always
+// carries a text label and the parent supplies semantic labels.
+// ============================================================
+
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+
+class QibraCountdownRing extends StatelessWidget {
+  const QibraCountdownRing({
+    super.key,
+    required this.progress,
+    required this.child,
+    this.size = 96,
+    this.strokeWidth = 7,
+  });
+
+  /// 0.0 → 1.0 elapsed fraction of the current prayer interval.
+  final double progress;
+  final Widget child;
+  final double size;
+  final double strokeWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final track = colors.border;
+    final active = colors.primary;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+          painter: _CountdownRingPainter(
+            progress: progress,
+            strokeWidth: strokeWidth,
+            trackColor: track,
+            activeColor: active,
+            deepColor: isNavy(colors)
+                ? QibraNavy.emeraldDeep
+                : colors.primarySoft,
+          ),
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(strokeWidth + 4),
+              child: FittedBox(fit: BoxFit.scaleDown, child: child),
+            ),
+          ),
+        ),
+    );
+  }
+
+  static bool isNavy(QibraColors colors) =>
+      colors.background == QibraNavy.canvas;
+}
+
+class _CountdownRingPainter extends CustomPainter {
+  _CountdownRingPainter({
+    required this.progress,
+    required this.strokeWidth,
+    required this.trackColor,
+    required this.activeColor,
+    required this.deepColor,
+  });
+
+  final double progress;
+  final double strokeWidth;
+  final Color trackColor;
+  final Color activeColor;
+  final Color deepColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (math.min(size.width, size.height) - strokeWidth) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    final track = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..color = trackColor;
+    canvas.drawCircle(center, radius, track);
+
+    final t = progress.clamp(0.0, 1.0);
+    if (t <= 0) return;
+
+    final arc = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..shader = SweepGradient(
+        startAngle: -math.pi / 2,
+        endAngle: -math.pi / 2 + 2 * math.pi,
+        colors: [deepColor, activeColor, activeColor, deepColor],
+        stops: const [0.0, 0.35, 0.9, 1.0],
+        tileMode: TileMode.clamp,
+        transform: GradientRotation(-math.pi / 2),
+      ).createShader(rect);
+    // Draw the elapsed fraction from the top, clockwise.
+    canvas.drawArc(rect, -math.pi / 2, 2 * math.pi * t, false, arc);
+
+    // Leading dot for the current position.
+    final angle = -math.pi / 2 + 2 * math.pi * t;
+    final dot = Offset(
+      center.dx + radius * math.cos(angle),
+      center.dy + radius * math.sin(angle),
+    );
+    // PASS X4 (blur audit): this halo was a live `MaskFilter.blur`, and THIS
+    // painter repaints on every `progress` tick (shouldRepaint below) while the
+    // ring sits in a ticking hero — so the device paid a Gaussian blur + an
+    // offscreen pass per frame for a 3px glow. Flat token-wash instead: one
+    // translucent circle, same visual weight class, zero offscreen work. Blur
+    // is kept only where it is static (see safe_image.dart's painter, which
+    // repaints on `accent` alone).
+    canvas.drawCircle(
+      dot,
+      strokeWidth * 1.15,
+      Paint()..color = activeColor.withValues(alpha: 0.16),
+    );
+    canvas.drawCircle(dot, strokeWidth * 0.42, Paint()..color = activeColor);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CountdownRingPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.trackColor != trackColor ||
+        oldDelegate.activeColor != activeColor;
+  }
+}

@@ -3,19 +3,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/l10n/app_strings.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class NavBarItem {
   final IconData icon;
   final IconData activeIcon;
   final String label;
 
+  /// Optional active accent (AI tab uses violet; everything else emerald).
+  final Color? activeColor;
+
   const NavBarItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
+    this.activeColor,
   });
 }
 
@@ -72,18 +76,17 @@ class _NavItem extends StatelessWidget {
     required this.item,
     required this.isActive,
     required this.onTap,
-    this.compact = false,
   });
 
   final NavBarItem item;
   final bool isActive;
   final VoidCallback onTap;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final color = isActive ? colors.primary : colors.textTertiary;
+    final accent = item.activeColor ?? colors.primary;
+    final color = isActive ? accent : colors.textTertiary;
     return Semantics(
       button: true,
       selected: isActive,
@@ -95,12 +98,32 @@ class _NavItem extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Active indicator hairline — state is never color-only.
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                width: isActive ? 18 : 0,
+                height: 3,
+                margin: const EdgeInsets.only(bottom: 5),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
               Icon(
                 isActive ? item.activeIcon : item.icon,
                 color: color,
-                size: compact ? 18 : 22,
+                size: 22,
+                shadows: isActive
+                    ? [
+                        Shadow(
+                          color: color.withValues(alpha: 0.45),
+                          blurRadius: 14,
+                        ),
+                      ]
+                    : null,
               ),
-              SizedBox(height: compact ? 2 : 4),
+              SizedBox(height: 4),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
@@ -109,7 +132,7 @@ class _NavItem extends StatelessWidget {
                   softWrap: false,
                   style: AppTextStyles.labelSmall.copyWith(
                     color: color,
-                    fontSize: compact ? 9 : 11,
+                    fontSize: 11,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
@@ -224,6 +247,7 @@ class AppShellScaffold extends StatelessWidget {
             icon: Icons.auto_awesome_outlined,
             activeIcon: Icons.auto_awesome_rounded,
             label: strings.navAi,
+            activeColor: colors.violetAi,
           ),
           NavBarItem(
             icon: Icons.grid_view_outlined,

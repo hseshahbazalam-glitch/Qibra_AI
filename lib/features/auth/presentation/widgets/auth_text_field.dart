@@ -19,6 +19,7 @@ class AuthTextField extends StatelessWidget {
     this.onSubmitted,
     this.obscureText = false,
     this.suffixIcon,
+    this.suffixTooltip,
     this.onSuffixPressed,
     this.style,
   });
@@ -36,27 +37,15 @@ class AuthTextField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final bool obscureText;
   final IconData? suffixIcon;
+  /// Pass A (a11y): what the suffix button does — TalkBack says it.
+  final String? suffixTooltip;
   final VoidCallback? onSuffixPressed;
   final TextStyle? style;
 
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.cardRadius,
-        boxShadow: isFocused
-            ? [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.30),
-                  blurRadius: 20,
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
-      ),
-      child: TextFormField(
+    return TextFormField(
         controller: controller,
         focusNode: focusNode,
         keyboardType: keyboardType,
@@ -91,6 +80,7 @@ class AuthTextField extends StatelessWidget {
           suffixIcon: suffixIcon == null
               ? null
               : IconButton(
+                  tooltip: suffixTooltip,
                   icon: Icon(
                     suffixIcon,
                     color: colors.textSecondary,
@@ -99,9 +89,7 @@ class AuthTextField extends StatelessWidget {
                   onPressed: onSuffixPressed,
                 ),
           filled: true,
-          fillColor: isFocused
-              ? QibraColors.light.textPrimary.withValues(alpha: 0.05)
-              : QibraColors.light.textPrimary.withValues(alpha: 0.02),
+          fillColor: colors.cardMuted,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
@@ -109,14 +97,14 @@ class AuthTextField extends StatelessWidget {
           border: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: colors.textPrimary.withValues(alpha: 0.10),
+              color: colors.border,
               width: 1,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: AppRadius.cardRadius,
             borderSide: BorderSide(
-              color: colors.textPrimary.withValues(alpha: 0.10),
+              color: colors.border,
               width: 1,
             ),
           ),
@@ -146,7 +134,6 @@ class AuthTextField extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-      ),
     );
   }
 }

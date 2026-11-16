@@ -1,7 +1,10 @@
 // lib/core/design_system/app_colors.dart
 //
 // QIBRA AI — Unified colour system
-// Warm Ivory + Deep Forest Green + Sage + Champagne Gold
+// LIGHT  (Family A, migration only): Warm Ivory + Deep Forest + Champagne Gold.
+// DARK   (approved global identity): MIDNIGHT NAVY + emerald + violet + gold
+//        — QibraNavy tokens directly (AppColorsDark mirror class removed
+//        in Professionalization Phase B; the theme reads canonicals).
 // Token names are preserved so existing AppColors.* call sites keep compiling.
 
 import 'package:flutter/material.dart';
@@ -265,22 +268,4 @@ abstract final class AppColors {
   static const Color shimmerHighlight = Color(0xFFFEFDF9);
 }
 
-// ============================================================
-// DARK VARIANT (forest night — not neon)
-// ============================================================
 
-abstract final class AppColorsDark {
-  static const Color background = Color(0xFF071512);
-  static const Color backgroundSecondary = Color(0xFF0B1D19);
-  static const Color surface = Color(0xFF102721);
-  static const Color surfaceElevated = Color(0xFF14332A);
-  static const Color surfaceHigh = Color(0xFF14332A);
-  static const Color primary = Color(0xFF2ED39A);
-  static const Color primaryDeep = Color(0xFF0F8F68);
-  static const Color accent = Color(0xFFD7AD5A);
-  static const Color textPrimary = Color(0xFFF4F7F4);
-  static const Color textSecondary = Color(0xFFA9B8B2);
-  static const Color textTertiary = Color(0xFF71817B);
-  static const Color border = Color(0xFF244139);
-  static const Color navBackground = Color(0xFF0B1D19);
-}

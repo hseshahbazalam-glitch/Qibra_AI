@@ -13,15 +13,29 @@ class ResolvedEdition {
     required this.language,
     required this.assetPath,
     required this.label,
+    // Pass P3 (TQ-217): the upstream Tahir-ul-Qadri file ships surahs 7
+    // and 100 EMPTY (Irfan-ul-Quran source gap — 217 ayahs total). The
+    // picker discloses that on the row itself instead of letting a user
+    // select an edition and find a wall of nothing.
+    this.disclosesGap = false,
   });
 
   final String id;
   final String language;
   final String assetPath;
   final String label;
+  final bool disclosesGap;
 }
 
 abstract final class EditionResolver {
+  /// Legacy alias: 'ur' predates the per-edition ids and IS Jalandhry.
+  /// Pinned down once here so the picker checkmark, prefs round-trip
+  /// and the reader all agree on the canonical identity (Pass E).
+  static String canonical(String id) {
+    final low = id.toLowerCase();
+    return low == 'ur' ? 'ur_jalandhry' : low;
+  }
+
   static const Map<String, ResolvedEdition> bundled = {
     'ar': ResolvedEdition(
       id: 'ar',
@@ -70,6 +84,7 @@ abstract final class EditionResolver {
       language: 'ur',
       assetPath: 'assets/data/quran/translation_ur_tahirulqadri.json',
       label: 'Urdu (Tahir-ul-Qadri)',
+      disclosesGap: true,
     ),
     'ur_usmani': ResolvedEdition(
       id: 'ur_usmani',
@@ -92,4 +107,13 @@ abstract final class EditionResolver {
   }
 
   static List<ResolvedEdition> allBundled() => bundled.values.toList();
+
+  /// Pass E: the picker's truth list — everything bundled that a reader
+  /// can actually load and that renders as ITSELF. The Arabic row is the
+  /// base text, not a translation; the legacy 'ur' alias is a duplicate
+  /// of ur_jalandhry (one row per edition — "jo offer ho wo LOAD ho").
+  static List<ResolvedEdition> pickerEntries() => [
+        for (final e in bundled.values)
+          if (e.id != 'ar' && e.id != 'ur') e,
+      ];
 }

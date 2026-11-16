@@ -17,8 +17,6 @@
 //   8. medinanSurahsProvider - Medinan only
 //   9. searchQuranProvider - Search Quran
 //   10. searchSurahProvider - Search surahs by name
-//   11. currentSurahIndexProvider - Selected surah state
-//   12. lastReadProvider - Last read position
 //   13. bookmarksProvider - User bookmarks
 // ============================================================
 
@@ -29,6 +27,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/models/quran_models.dart';
 import '../data/repository/quran_repository.dart';
+import '../data/repository/urdu_edition_catalog.dart';
+import '../data/search/quran_ayah_search.dart';
 
 // ============================================================
 // SECTION 1 — REPOSITORY PROVIDER
@@ -51,6 +51,21 @@ final quranInitProvider = FutureProvider<bool>((ref) async {
   await repository.initialize();
   return true;
 });
+
+// ============================================================
+// SECTION 2b — PASS E: SELECTED EDITION TEXTS
+// ============================================================
+
+/// The selected Urdu edition's ayah map, lazy-loaded through the
+/// catalog's LRU. Null (the resolved value, not the loading state)
+/// means "the model's default face serves" — English and the two
+/// editions the repository already attaches (Jalandhry, Maududi
+/// roman). Consumers keep the previous face while this is in flight:
+/// never blank-by-switch, never a wrong edition.
+final editionTextProvider =
+    FutureProvider.family<Map<String, String>?, String>(
+  (ref, editionId) => UrduEditionCatalog.instance.ensure(editionId),
+);
 
 // ============================================================
 // SECTION 3 — SURAHS LIST PROVIDERS
@@ -125,16 +140,42 @@ final randomAyahProvider = FutureProvider<AyahModel?>((ref) async {
 /// Deterministic local verse for the current calendar day.
 /// The same device date returns the same verified offline ayah without storing
 /// a random choice or making a network request.
-final dailyAyahProvider = FutureProvider<AyahModel?>((ref) async {
-  final repository = ref.read(quranRepositoryProvider);
+int _dayOfVerseKey() {
   final today = DateTime.now();
-  final dayKey = DateTime(today.year, today.month, today.day)
+  return DateTime(today.year, today.month, today.day)
       .difference(DateTime(2000, 1, 1))
       .inDays;
+}
+
+final dailyAyahProvider = FutureProvider<AyahModel?>((ref) async {
+  final repository = ref.read(quranRepositoryProvider);
+  final dayKey = _dayOfVerseKey();
   final surahNumber = (dayKey % 114) + 1;
   final surah = await repository.getSurah(surahNumber);
   if (surah == null || surah.ayahs.isEmpty) return null;
   return surah.ayahs[dayKey % surah.ayahs.length];
+});
+
+/// Daily verse with full surah context so the UI can show an honest,
+/// traceable reference (Surah name + ayah number), not just text.
+class DailyVerseBundle {
+  const DailyVerseBundle({required this.surah, required this.ayah});
+
+  final SurahModel surah;
+  final AyahModel ayah;
+
+  String get reference => '${surah.name} ${ayah.number}';
+  String get shortReference => 'Quran ${surah.number}:${ayah.number}';
+}
+
+final dailyVerseBundleProvider = FutureProvider<DailyVerseBundle?>((ref) async {
+  final repository = ref.read(quranRepositoryProvider);
+  final dayKey = _dayOfVerseKey();
+  final surahNumber = (dayKey % 114) + 1;
+  final surah = await repository.getSurah(surahNumber);
+  if (surah == null || surah.ayahs.isEmpty) return null;
+  final ayah = surah.ayahs[dayKey % surah.ayahs.length];
+  return DailyVerseBundle(surah: surah, ayah: ayah);
 });
 
 /// Auto-refreshing random ayah (changes every N seconds).
@@ -192,6 +233,19 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
   SearchNotifier(this._repository) : super(const SearchState());
 
+  /// Pass Q2: search scope (Translations | Arabic | All), owned here so
+  /// the UI and the repository share ONE truth. Default = [all], the
+  /// historical behaviour for every other caller (AI bridge included).
+  QuranSearchScope _scope = QuranSearchScope.all;
+  QuranSearchScope get scope => _scope;
+
+  Future<void> setScope(QuranSearchScope scope) async {
+    if (_scope == scope) return;
+    _scope = scope;
+    final q = state.query;
+    if (q.trim().isNotEmpty) await search(q); // re-run within the scope
+  }
+
   /// Perform search
   Future<void> search(String query) async {
     if (query.trim().isEmpty) {
@@ -202,7 +256,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     state = state.copyWith(query: query, isLoading: true, error: null);
 
     try {
-      final results = await _repository.search(query);
+      final results = await _repository.search(query, scope: _scope);
       state = state.copyWith(
         results: results,
         isLoading: false,
@@ -217,6 +271,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
   /// Clear search
   void clear() {
+    _scope = QuranSearchScope.all;
     state = const SearchState();
   }
 }
@@ -240,54 +295,13 @@ final searchSurahProvider =
 // SECTION 7 — CURRENT SURAH STATE
 // ============================================================
 
-/// Currently selected surah number (default: 1 = Al-Fatihah)
-final currentSurahIndexProvider = StateProvider<int>((ref) => 1);
-
-/// Currently selected ayah number
-final currentAyahIndexProvider = StateProvider<int>((ref) => 1);
-
 // ============================================================
-// SECTION 8 — LAST READ POSITION (DEPRECATED — P1 merge)
+// SECTION 8 — REMOVED (dead sweep 2026-09-04)
 // ============================================================
-// Phase 4: lastReadProvider is now a legacy alias for backward compat.
-// New code should use reading_progress_provider.dart's MushafPageModel.
-// This notifier now syncs to ReadingProgressRepository when updated, so both
-// sources stay consistent. Will be removed after migration.
-
-/// Last read state notifier — legacy, delegates to readingProgressProvider
-class LastReadNotifier extends StateNotifier<LastReadModel?> {
-  LastReadNotifier() : super(null);
-
-  /// Update last read position — also syncs to Mushaf progress for统一 source of truth
-  void updateLastRead({
-    required int surahNumber,
-    required int ayahNumber,
-    required String surahName,
-    required int totalAyahsInSurah,
-  }) {
-    state = LastReadModel(
-      surahNumber: surahNumber,
-      ayahNumber: ayahNumber,
-      surahName: surahName,
-      lastReadAt: DateTime.now(),
-      totalAyahsInSurah: totalAyahsInSurah,
-    );
-    // Also sync to new readingProgressProvider is done via UI layer (SurahReader calls both for now)
-  }
-
-  /// Clear last read
-  void clear() {
-    state = null;
-  }
-}
-
-/// Last read provider — DEPRECATED, use readingProgressProvider from reading_progress_provider.dart
-@Deprecated(
-    'Use readingProgressProvider (MushafPageModel) as single source of truth')
-final lastReadProvider =
-    StateNotifierProvider<LastReadNotifier, LastReadModel?>((ref) {
-  return LastReadNotifier();
-});
+// The legacy in-memory LastReadNotifier/lastReadProvider pair had ZERO
+// callers and no persistence; the real last-read store now lives in
+// reading_progress_provider.dart (lastReadStoreProvider), backed by
+// ReadingProgressRepository.saveLastRead/getLastRead.
 
 // ============================================================
 // SECTION 9 — BOOKMARKS
@@ -310,7 +324,9 @@ class BookmarksNotifier extends StateNotifier<List<BookmarkModel>> {
       state = list
           .map((e) => BookmarkModel.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: corrupt bookmark JSON → start empty rather than crash (the next save rewrites it)
+    }
   }
 
   Future<void> _persist() async {
@@ -399,91 +415,12 @@ final isBookmarkedProvider =
 });
 
 // ============================================================
-// SECTION 10 — READING PROGRESS
-// ============================================================
-
-/// Reading progress state notifier
-class ReadingProgressNotifier extends StateNotifier<ReadingProgressModel> {
-  ReadingProgressNotifier() : super(ReadingProgressModel.empty());
-
-  /// Increment ayahs read
-  void incrementAyahsRead(int count) {
-    state = state.copyWith(
-      totalAyahsRead: state.totalAyahsRead + count,
-      lastReadDate: DateTime.now(),
-    );
-  }
-
-  /// Update current position
-  void updatePosition({
-    required int surahNumber,
-    required int juz,
-  }) {
-    state = state.copyWith(
-      currentSurah: surahNumber,
-      currentJuz: juz,
-      lastReadDate: DateTime.now(),
-    );
-  }
-
-  /// Increment streak
-  void incrementStreak() {
-    state = state.copyWith(
-      daysStreak: state.daysStreak + 1,
-    );
-  }
-
-  /// Add reading time
-  void addReadingTime(int minutes) {
-    state = state.copyWith(
-      totalMinutesRead: state.totalMinutesRead + minutes,
-    );
-  }
-
-  /// Reset progress
-  void reset() {
-    state = ReadingProgressModel.empty();
-  }
-}
-
-/// Reading progress provider
-final readingProgressProvider =
-    StateNotifierProvider<ReadingProgressNotifier, ReadingProgressModel>((ref) {
-  return ReadingProgressNotifier();
-});
-
-// ============================================================
 // SECTION 11 — STATISTICS PROVIDER
 // ============================================================
-
-/// Quran statistics (surahs count, ayahs count, etc.)
-final quranStatisticsProvider = Provider<Map<String, dynamic>>((ref) {
-  final repository = ref.read(quranRepositoryProvider);
-  return repository.statistics;
-});
 
 // ============================================================
 // SECTION 12 — HELPER PROVIDERS
 // ============================================================
-
-/// Check if Quran data is loaded
-final isQuranLoadedProvider = Provider<bool>((ref) {
-  final initState = ref.watch(quranInitProvider);
-  return initState.value ?? false;
-});
-
-/// Get current surah based on lastReadProvider
-final currentReadingSurahProvider = FutureProvider<SurahModel?>((ref) async {
-  final lastRead = ref.watch(lastReadProvider);
-  if (lastRead == null) {
-    // Default to Al-Fatihah
-    final repository = ref.read(quranRepositoryProvider);
-    return await repository.getSurah(1);
-  }
-
-  final repository = ref.read(quranRepositoryProvider);
-  return await repository.getSurah(lastRead.surahNumber);
-});
 
 // ============================================================
 // END OF FILE — quran_provider.dart

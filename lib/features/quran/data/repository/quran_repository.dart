@@ -13,6 +13,8 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'package:qibra_ai/core/utils/search_normalizer.dart';
+import '../search/quran_ayah_search.dart';
 import '../models/quran_models.dart';
 
 // Top-level helpers for Isolate (must be top-level for compute/Isolate.run)
@@ -67,7 +69,7 @@ class QuranRepository {
   Future<void> _initializeInternal() async {
     if (_isInitialized) return;
     try {
-      debugPrint('[QURAN] Initializing...');
+      if (kDebugMode) debugPrint('[QURAN] Initializing...');
       final stopwatch = Stopwatch()..start();
 
       await Future.wait([
@@ -81,12 +83,12 @@ class QuranRepository {
       _isInitialized = true;
       stopwatch.stop();
 
-      debugPrint('[QURAN] Initialized in ${stopwatch.elapsedMilliseconds}ms');
-      debugPrint(
+      if (kDebugMode) debugPrint('[QURAN] Initialized in ${stopwatch.elapsedMilliseconds}ms');
+      if (kDebugMode) debugPrint(
           '   English translations: ${_cachedTranslationsEn?.length ?? 0}');
-      debugPrint(
+      if (kDebugMode) debugPrint(
           '   Urdu translations: ${_cachedTranslationsUrdu?.length ?? 0}');
-      debugPrint(
+      if (kDebugMode) debugPrint(
           '   Roman translations: ${_cachedTranslationsRoman?.length ?? 0}');
     } catch (e, stackTrace) {
       throw QuranRepositoryException(
@@ -170,7 +172,7 @@ class QuranRepository {
         }
       }
     } catch (e) {
-      debugPrint('[QURAN] English translations failed: $e');
+      if (kDebugMode) debugPrint('[QURAN] English translations failed: $e');
       _cachedTranslationsEn = {};
     }
   }
@@ -196,7 +198,7 @@ class QuranRepository {
         _cachedTranslationsUrdu![key] = text;
       }
     } catch (e) {
-      debugPrint('[QURAN] Urdu translations failed: $e');
+      if (kDebugMode) debugPrint('[QURAN] Urdu translations failed: $e');
       _cachedTranslationsUrdu = {};
     }
   }
@@ -221,7 +223,7 @@ class QuranRepository {
         _cachedTranslationsRoman![key] = text;
       }
     } catch (e) {
-      debugPrint('[QURAN] Roman translations failed: $e');
+      if (kDebugMode) debugPrint('[QURAN] Roman translations failed: $e');
       _cachedTranslationsRoman = {};
     }
   }
@@ -233,6 +235,19 @@ class QuranRepository {
   Future<List<SurahInfoModel>> getAllSurahsInfo() async {
     await _ensureInitialized();
     return _cachedSurahInfoList ?? [];
+  }
+
+  /// Pass Q3 (word layer): the raw Uthmani texts of all 6236 ayahs,
+  /// straight from the already-loaded cache — the occurrence counter
+  /// runs over exactly the text the app renders (no second source).
+  /// Empty when the corpus has not been initialized yet (honest zero).
+  List<String> allAyahTextsSync() {
+    final map = _cachedSurahsMap;
+    if (map == null) return const [];
+    return [
+      for (final n in map.keys.toList()..sort())
+        for (final a in map[n]!.ayahs) a.text,
+    ];
   }
 
   Future<SurahModel?> getSurah(int surahNumber) async {
@@ -312,7 +327,15 @@ class QuranRepository {
   // SECTION 5 — SEARCH
   // ============================================================
 
-  Future<List<SearchResultModel>> search(String query) async {
+  /// [scope] (Pass Q2) restricts WHICH fields are consulted —
+  /// translations never borrow an Arabic hit, Arabic never borrow a
+  /// translation hit; [QuranSearchScope.all] is the historical
+  /// either-field search. Matching + folding are the ONE pure
+  /// definition in data/search/quran_ayah_search.dart.
+  Future<List<SearchResultModel>> search(
+    String query, {
+    QuranSearchScope scope = QuranSearchScope.all,
+  }) async {
     if (query.trim().isEmpty) return [];
 
     await _ensureInitialized();
@@ -320,11 +343,10 @@ class QuranRepository {
     // Phase 4 P1-4: Heavy Quran search off main isolate where safe (6236 ayahs + translations)
     // Use Isolate.run for queries >2 chars (non-trivial) to avoid jank
     if (query.trim().length > 2) {
-      return _searchInIsolate(query);
+      return _searchInIsolate(query, scope);
     }
 
     final results = <SearchResultModel>[];
-    final lowerQuery = query.toLowerCase().trim();
 
     if (_cachedSurahsMap == null) return results;
 
@@ -332,24 +354,14 @@ class QuranRepository {
       final surah = entry.value;
 
       for (final ayah in surah.ayahs) {
-        // Arabic text search
-        if (ayah.text.contains(query)) {
-          results.add(SearchResultModel(
-            surahNumber: surah.number,
-            surahName: surah.name,
-            ayahNumber: ayah.number,
-            ayahText: ayah.text,
-            translation: _getTranslationEn(ayah.numberInQuran),
-            matchedText: query,
-            matchType: 0,
-          ));
-          continue;
-        }
-
-        // English translation search
         final translation = _getTranslationEn(ayah.numberInQuran);
-        if (translation != null &&
-            translation.toLowerCase().contains(lowerQuery)) {
+        final t = QuranAyahSearch.matchType(
+          scope: scope,
+          query: query,
+          arabicText: ayah.text,
+          translation: translation,
+        );
+        if (t != null) {
           results.add(SearchResultModel(
             surahNumber: surah.number,
             surahName: surah.name,
@@ -357,7 +369,7 @@ class QuranRepository {
             ayahText: ayah.text,
             translation: translation,
             matchedText: query,
-            matchType: 1,
+            matchType: t,
           ));
         }
 
@@ -368,8 +380,71 @@ class QuranRepository {
     return results;
   }
 
-  // Isolate helper for heavy search (Phase 4 P1-4)
-  Future<List<SearchResultModel>> _searchInIsolate(String query) async {
+  /// Batch search off the main isolate (AI Roman-Urdu bridge, owner
+  /// 2026-09-02): scans every term in ONE background pass and returns
+  /// per-term hits (max [perQuery] each). The per-term isolate-spawn path
+  /// the bridge used before copied the full surah snapshot on the main
+  /// thread N times — the ANR. Same folding matcher as the search UI.
+  Future<List<List<SearchResultModel>>> searchBatchOffMain(
+    List<String> queries, {
+    int perQuery = 3,
+  }) async {
+    if (queries.isEmpty) return [for (final _ in queries) <SearchResultModel>[]];
+    await _ensureInitialized();
+    final surahsSnapshot = _cachedSurahsMap;
+    final translationsSnapshot = _cachedTranslationsEn;
+    if (surahsSnapshot == null) {
+      return [for (final _ in queries) <SearchResultModel>[]];
+    }
+    return Isolate.run(() {
+      final hits = <List<SearchResultModel>>[
+        for (final _ in queries) <SearchResultModel>[],
+      ];
+      for (final entry in surahsSnapshot.entries) {
+        final surah = entry.value;
+        for (final ayah in surah.ayahs) {
+          final trans = translationsSnapshot?[ayah.numberInQuran];
+          for (var qi = 0; qi < queries.length; qi++) {
+            if (hits[qi].length >= perQuery) continue;
+            final q = queries[qi];
+            if (SearchNormalizer.contains(ayah.text, q)) {
+              hits[qi].add(SearchResultModel(
+                surahNumber: surah.number,
+                surahName: surah.name,
+                ayahNumber: ayah.number,
+                ayahText: ayah.text,
+                translation: trans,
+                matchedText: q,
+                matchType: 0,
+              ));
+              continue;
+            }
+            if (trans != null && SearchNormalizer.contains(trans, q)) {
+              hits[qi].add(SearchResultModel(
+                surahNumber: surah.number,
+                surahName: surah.name,
+                ayahNumber: ayah.number,
+                ayahText: ayah.text,
+                translation: trans,
+                matchedText: q,
+                matchType: 1,
+              ));
+            }
+          }
+        }
+      }
+      return hits;
+    });
+  }
+
+  // Isolate helper for heavy search (Phase 4 P1-4). Pass Q2: the
+  // [scope] enum crosses to the isolate; matching runs through the SAME
+  // pure QuranAyahSearch definition as the main-thread path — no second
+  // dialect.
+  Future<List<SearchResultModel>> _searchInIsolate(
+    String query,
+    QuranSearchScope scope,
+  ) async {
     // Snapshot needed data for isolate (avoid capturing entire repo which is not transferable)
     final surahsSnapshot = _cachedSurahsMap;
     final translationsSnapshot = _cachedTranslationsEn;
@@ -379,25 +454,17 @@ class QuranRepository {
     // To keep Arabic matching correct, we run the loop in isolate with copied data
     return Isolate.run(() {
       final results = <SearchResultModel>[];
-      final lowerQuery = query.toLowerCase().trim();
       for (final entry in surahsSnapshot.entries) {
         final surah = entry.value;
         for (final ayah in surah.ayahs) {
-          if (ayah.text.contains(query)) {
-            final trans = translationsSnapshot?[ayah.numberInQuran];
-            results.add(SearchResultModel(
-              surahNumber: surah.number,
-              surahName: surah.name,
-              ayahNumber: ayah.number,
-              ayahText: ayah.text,
-              translation: trans,
-              matchedText: query,
-              matchType: 0,
-            ));
-            continue;
-          }
           final trans = translationsSnapshot?[ayah.numberInQuran];
-          if (trans != null && trans.toLowerCase().contains(lowerQuery)) {
+          final t = QuranAyahSearch.matchType(
+            scope: scope,
+            query: query,
+            arabicText: ayah.text,
+            translation: trans,
+          );
+          if (t != null) {
             results.add(SearchResultModel(
               surahNumber: surah.number,
               surahName: surah.name,
@@ -405,7 +472,7 @@ class QuranRepository {
               ayahText: ayah.text,
               translation: trans,
               matchedText: query,
-              matchType: 1,
+              matchType: t,
             ));
           }
           if (results.length >= 100) return results;

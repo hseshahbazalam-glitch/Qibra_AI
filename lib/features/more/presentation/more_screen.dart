@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_constants.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/providers/auth_provider.dart';
-import '../../../shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/providers/auth_provider.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});

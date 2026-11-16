@@ -15,7 +15,7 @@ import 'dart:math' as math;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz_data;
 
-import '../../../../core/constants/app_constants.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
 import '../models/prayer_models.dart';
 
 class PrayerCalculationService {
@@ -30,7 +30,9 @@ class PrayerCalculationService {
     try {
       tz_data.initializeTimeZones();
       _tzInitialized = true;
-    } catch (_) {}
+    } catch (_) {
+      // Pass P3 honest-silence: tz database init failed → flag stays unset; the offset lookup below has its own fallback
+    }
   }
 
   // ============================================================
@@ -577,7 +579,9 @@ class PrayerCalculationService {
             return tzDateTime.timeZoneOffset.inMinutes / 60.0;
           }
         }
-      } catch (_) {}
+      } catch (_) {
+        // Pass P3 honest-silence: no IANA zone matched → fall through to the default-offset estimate below
+      }
       return null;
     }
   }

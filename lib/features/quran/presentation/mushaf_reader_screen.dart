@@ -1,18 +1,99 @@
 // lib/features/quran/presentation/mushaf_reader_screen.dart
+// ============================================================
+// QIBRA AI — MUSHAF READER (Stage B rewrite, midnight navy)
+//
+// Honesty upgrade over the legacy screen:
+//  • The old viewer rendered assets/mushaf_pages/<n>.png — a path
+//    that does not exist in the bundle — so all 604 pages showed
+//    the same fallback artwork, and its surah/juz tables were
+//    fabricated (every page past 221 claimed 'Al-Quran', juz was
+//    '(page-1)/20'). It now renders the REAL verses of each page
+//    from the bundled Uthmaniya dataset, whose per-ayah page and
+//    juz fields are authentic (alquran.cloud).
+//  • 'Audio' action deleted (recitation is not bundled — no fake
+//    player chrome); all toast/share emoji removed.
+//  • All colors are theme tokens (navy); no bespoke night-mode
+//    inversion of a page that is now text.
+// ============================================================
 
 import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/a11y/app_a11y.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/media/safe_image.dart';
-import '../../tafseer/presentation/tafseer_screen.dart';
-import 'surah_reader_screen.dart';
+import 'package:qibra_ai/core/a11y/app_a11y.dart';
+import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_chrome.dart';
+import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_ribbon.dart';
+import 'package:qibra_ai/features/quran/presentation/mushaf/mushaf_turn.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
+import '../data/models/quran_models.dart';
+import '../data/repository/reading_progress_repository.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import '../providers/quran_audio_provider.dart';
+import '../providers/quran_provider.dart';
+import '../providers/reading_progress_provider.dart';
+import '../providers/reading_preferences_provider.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
+import 'package:qibra_ai/features/tafseer/presentation/tafseer_screen.dart';
+import 'package:qibra_ai/core/design_system/app_colors.dart';
+import 'package:qibra_ai/features/quran/data/word/quran_word_data.dart';
+import 'package:qibra_ai/features/quran/providers/quran_word_provider.dart';
+import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
+import 'word_explain_sheet.dart';
+
+/// B3 (M6): the bottom-chrome reserve the page layout pays against.
+/// #289 measured the settled bottom bar (slider row + medallion row
+/// + extras row) at 175px on 390/1.0 — the old hard 148 was 27px
+/// short and content slid UNDER the bar (the persistent half of
+/// 'neeche se cut ho rha h'). 196 covers the bar plus its air up to
+/// textScale 1.3; the M6 test pins the measured bar against this
+/// constant with >= 8px of slack at BOTH scales, so the number can
+/// never again be folklore.
+const double kMushafChromeBottomReserve = 196;
+
+/// One ayah occurrence on a mushaf page, with its surah context.
+class MushafPageEntry {
+  const MushafPageEntry({
+    required this.surahNumber,
+    required this.surahName,
+    required this.ayah,
+  });
+
+  final int surahNumber;
+  final String surahName;
+  final AyahModel ayah;
+}
+
+/// Real page -> ayahs index built once from the bundled corpus.
+final mushafPageIndexProvider =
+    FutureProvider<Map<int, List<MushafPageEntry>>>((ref) async {
+  final repository = ref.watch(quranRepositoryProvider);
+  final infos = await repository.getAllSurahsInfo();
+  final byPage = <int, List<MushafPageEntry>>{};
+  for (final info in infos) {
+    final surah = await repository.getSurah(info.number);
+    if (surah == null) continue;
+    for (final ayah in surah.ayahs) {
+      byPage.putIfAbsent(ayah.page, () => <MushafPageEntry>[]).add(
+            MushafPageEntry(
+              surahNumber: surah.number,
+              surahName: surah.name,
+              ayah: ayah,
+            ),
+          );
+    }
+  }
+  return byPage;
+});
 
 final _currentPageProvider = StateProvider.autoDispose<int>((ref) => 1);
-final _isNightModeProvider = StateProvider.autoDispose<bool>((ref) => false);
 final _showControlsProvider = StateProvider.autoDispose<bool>((ref) => true);
 
 class MushafReaderScreen extends ConsumerStatefulWidget {
@@ -32,6 +113,13 @@ class MushafReaderScreen extends ConsumerStatefulWidget {
 class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   late PageController _pageController;
   Set<int> _bookmarkedPages = {};
+  bool _userPaged = false;
+  // Pass M: the ribbon reads/writes the SAME progress store the restore
+  // path uses; this mirror is display-only (null = nothing saved yet).
+  int? _lastReadPage;
+  // Pass M: a committed turn jumps the pager itself — the page-change
+  // haptic belongs to the turn's settle thump, not to this jump.
+  bool _suppressTurnHaptic = false;
 
   @override
   void initState() {
@@ -41,6 +129,52 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
       ref.read(_currentPageProvider.notifier).state = widget.initialPage;
     });
     _loadBookmarks();
+    _restoreLastPage();
+  }
+
+  /// Restore the last-viewed page from the shared progress store (item 2).
+  /// An explicit route page argument always wins over the stored one.
+  Future<void> _restoreLastPage() async {
+    try {
+      final saved =
+          await ReadingProgressRepository.instance.getCurrentPage();
+      // Pass M: the ribbon always learns the saved page (display truth),
+      // but an explicit route page argument still wins over auto-jump.
+      if (mounted && saved != null) _lastReadPage = saved.pageNumber;
+      if (widget.initialPage != 1) return;
+      if (saved == null || !mounted || _userPaged) return;
+      if (saved.pageNumber < 1 || saved.pageNumber > 604) return;
+      if (saved.pageNumber == widget.initialPage) return;
+      _pageController.jumpToPage(saved.pageNumber - 1);
+      ref.read(_currentPageProvider.notifier).state = saved.pageNumber;
+    } catch (_) {
+      // Storage unreadable: staying on the requested page is the honest
+      // fallback — no guessing.
+    }
+  }
+
+  /// Persist the REAL page context on every page change (this is the
+  /// store's documented 'auto-called when page changes' contract). Until
+  /// the corpus index loads there are no real fields to store — the save
+  /// is skipped rather than fabricated.
+  void _saveProgress(int page) {
+    _lastReadPage = page; // Pass M: ribbon display follows the real save
+    final list = _index(ref)?[page];
+    if (list == null || list.isEmpty) return;
+    final first = list.first;
+    unawaited(ref.read(readingProgressProvider.notifier).savePage(
+      MushafPageModel(
+        pageNumber: page,
+        surahNumber: first.surahNumber,
+        surahName: first.surahName,
+        ayahNumber: first.ayah.number,
+        juzNumber: first.ayah.juz,
+        // hizbQuarter is nullable per ayah; 1 is the model's documented
+        // unknown-default (the field is never rendered in the UI).
+        hizbNumber: first.ayah.hizbQuarter ?? 1,
+        savedAt: DateTime.now(),
+      ),
+    ));
   }
 
   @override
@@ -49,24 +183,21 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     super.dispose();
   }
 
-  // ═══════════════════════════════════════════════
-  // BOOKMARKS (Real - SharedPreferences)
-  // ═══════════════════════════════════════════════
+  // ── Bookmarks (real — SharedPreferences) ────────────────────
 
   Future<void> _loadBookmarks() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
-    final bookmarks = prefs.getStringList('mushaf_bookmarked_pages') ?? [];
+    final raw = prefs.getStringList('mushaf_bookmarked_pages') ?? const [];
     setState(() {
       _bookmarkedPages =
-          bookmarks.map((e) => int.tryParse(e)).whereType<int>().toSet();
+          raw.map((e) => int.tryParse(e)).whereType<int>().toSet();
     });
   }
 
   Future<void> _toggleBookmark(int page) async {
     HapticFeedback.mediumImpact();
     final prefs = await SharedPreferences.getInstance();
-
     if (!mounted) return;
     setState(() {
       if (_bookmarkedPages.contains(page)) {
@@ -75,114 +206,586 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
         _bookmarkedPages.add(page);
       }
     });
-
     await prefs.setStringList(
       'mushaf_bookmarked_pages',
       _bookmarkedPages.map((e) => e.toString()).toList(),
     );
-
     if (!mounted) return;
-    _showToast(
-      _bookmarkedPages.contains(page)
-          ? '🔖 Page $page bookmarked'
-          : 'Bookmark removed from page $page',
+    final s = AppStrings.of(context);
+    _showToast(_bookmarkedPages.contains(page)
+        ? s.pageBookmarkedToast(page)
+        : s.bookmarkRemovedToast(page));
+  }
+
+  // ── Page helpers (REAL data from the index) ─────────────────
+
+  List<MushafPageEntry> _entriesFor(
+    Map<int, List<MushafPageEntry>> index,
+    int page,
+  ) =>
+      index[page] ?? const [];
+
+  Map<int, List<MushafPageEntry>>? _index(WidgetRef ref) =>
+      ref.read(mushafPageIndexProvider).value;
+
+  int? _firstSurahOnPage(int page) {
+    final list = _index(ref)?[page];
+    if (list == null || list.isEmpty) return null;
+    return list.first.surahNumber;
+  }
+
+  int? _juzOnPage(int page) {
+    final list = _index(ref)?[page];
+    if (list == null || list.isEmpty) return null;
+    return list.first.ayah.juz;
+  }
+
+  String _pageSurahLabel(int page) {
+    final list = _index(ref)?[page];
+    if (list == null || list.isEmpty) return '—';
+    final names = <String>[];
+    for (final e in list) {
+      if (names.isEmpty || names.last != e.surahName) {
+        names.add(e.surahName);
+      }
+    }
+    return names.join(' · ');
+  }
+
+  void _showToast(String message) {
+    final colors = QibraColors.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        backgroundColor: colors.cardMuted,
+        behavior: SnackBarBehavior.floating,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+      ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    final currentPage = ref.watch(_currentPageProvider);
-    final isNightMode = ref.watch(_isNightModeProvider);
-    final showControls = ref.watch(_showControlsProvider);
+  // ── Actions ─────────────────────────────────────────────────
 
-    return Scaffold(
-      backgroundColor: isNightMode ? Colors.black : const Color(0xFFF5EEDC),
-      body: SafeArea(
-        child: Stack(
+  void _openTafsir(int page) {
+    final surah = _firstSurahOnPage(page);
+    if (surah == null) {
+      _showToast(AppStrings.of(context).tafsirAwaitDataToast);
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TafseerScreen(
+          surahNumber: surah,
+          initialAyah: _firstAyahOfSurahOnPage(page, surah) ?? 1,
+        ),
+      ),
+    );
+  }
+
+  int? _firstAyahOfSurahOnPage(int page, int surahNumber) {
+    final list = _index(ref)?[page];
+    if (list == null) return null;
+    for (final e in list) {
+      if (e.surahNumber == surahNumber) return e.ayah.number;
+    }
+    return null;
+  }
+
+  void _openTranslation(int page) {
+    final surah = _firstSurahOnPage(page);
+    if (surah == null) {
+      _showToast(AppStrings.of(context).textAwaitDataToast);
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    context.push(
+      '${AppRoutes.surahReader}?surah=$surah'
+      '&ayah=${_firstAyahOfSurahOnPage(page, surah) ?? 1}'
+      '&tab=Translation',
+    );
+  }
+
+  void _copyPageInfo(int page) {
+    final juz = _juzOnPage(page);
+    final text = '''QIBRA AI — Quran reading progress
+
+Page: $page / 604
+Surah: ${_pageSurahLabel(page)}
+Juz: ${juz ?? '—'}''';
+    Clipboard.setData(ClipboardData(text: text));
+    HapticFeedback.mediumImpact();
+    _showToast(AppStrings.of(context).pageInfoCopiedToast);
+  }
+
+  void _sharePage(int page) {
+    // Sharing goes through the same clipboard handoff the rest of the
+    // app uses (no share plugin is bundled).
+    _copyPageInfo(page);
+    _showToast(AppStrings.of(context).pageInfoCopiedShareToast);
+  }
+
+
+
+  void _showGoToPageSheet() {
+    HapticFeedback.selectionClick();
+    final colors = QibraColors.of(context);
+    final controller = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.card,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
+        title: Row(
           children: [
-            GestureDetector(
-              onTap: () {
-                ref.read(_showControlsProvider.notifier).state = !showControls;
-              },
-              child: PageView.builder(
-                controller: _pageController,
-                reverse: true,
-                itemCount: 604,
-                onPageChanged: (index) {
-                  HapticFeedback.selectionClick();
-                  ref.read(_currentPageProvider.notifier).state = index + 1;
-                },
-                itemBuilder: (context, index) {
-                  return _MushafPage(
-                    pageNumber: index + 1,
-                    isNightMode: isNightMode,
-                  );
-                },
+            Icon(Icons.article_outlined, color: colors.textSecondary, size: 22),
+            const SizedBox(width: 8),
+            Text(
+              AppStrings.of(context).goToPageTitle,
+              style: AppTextStyles.titleMedium.copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w700,
               ),
-            ),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              top: showControls ? 0 : -100,
-              left: 0,
-              right: 0,
-              child: _buildTopBar(currentPage, isNightMode),
-            ),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              bottom: showControls ? 0 : -200,
-              left: 0,
-              right: 0,
-              child: _buildBottomBar(currentPage, isNightMode),
             ),
           ],
         ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              AppStrings.of(context).enterPageNumberHint,
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: colors.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              textAlign: TextAlign.center,
+              style: AppTextStyles.titleLarge.copyWith(
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+              decoration: InputDecoration(
+                hintText: 'e.g. 100',
+                hintStyle: AppTextStyles.titleLarge
+                    .copyWith(color: colors.textTertiary),
+                filled: true,
+                fillColor: colors.cardMuted,
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onSubmitted: (value) => _goToPage(value, ctx),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              AppStrings.of(context).cancel,
+              style: AppTextStyles.labelLarge
+                  .copyWith(color: colors.textSecondary),
+            ),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: colors.primary,
+              foregroundColor: colors.onPrimary,
+            ),
+            onPressed: () => _goToPage(controller.text, ctx),
+            child: Text(AppStrings.of(context).goLabel),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildTopBar(int currentPage, bool isNightMode) {
-    final colors = QibraColors.of(context);
-    final isBookmarked = _bookmarkedPages.contains(currentPage);
+  void _goToPage(String text, BuildContext dialogContext) {
+    final page = int.tryParse(text);
+    if (page == null || page < 1 || page > 604) {
+      _showToast(AppStrings.of(context).invalidPageToast);
+      return;
+    }
+    Navigator.pop(dialogContext);
+    _pageController.jumpToPage(page - 1);
+    HapticFeedback.mediumImpact();
+    _showToast(AppStrings.of(context).onPageToast(page));
+  }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: isNightMode
-            ? Colors.black.withValues(alpha: 0.85)
-            : colors.primary.withValues(alpha: 0.95),
-        border: Border(
-          bottom: BorderSide(color: colors.accent.withValues(alpha: 0.3)),
+  // ── Build ───────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    final currentPage = ref.watch(_currentPageProvider);
+    final showControls = ref.watch(_showControlsProvider);
+    final indexAsync = ref.watch(mushafPageIndexProvider);
+
+    // Pass D2: one paper scope over the whole reader (all when
+    // branches ride it). NIGHT: scope returns the child UNWRAPPED —
+    // zero added widgets on the navy path, which is why Night stays
+    // byte-identical by construction, not by promise.
+    return QibraPaper.scope(
+      active:
+          ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
+      // P (M4 chain fix): the Scaffold's own colors MUST be read under
+      // the scope-installed Theme. Reading them from the reader's own
+      // context (one frame ABOVE the scope) left the canvas navy while
+      // the pages went paper — P2/P5 caught it at the rendered level.
+      // Night: the Builder resolves to the very same app palette —
+      // identity, not approximation (pinned by P5's same(night)).
+      child: Builder(builder: (scopeContext) {
+        final colors = QibraColors.of(scopeContext);
+        return indexAsync.when(
+      loading: () => Scaffold(
+        backgroundColor: colors.background,
+        body: Center(child: QibraStatus.skeleton(height: 420)),
+      ),
+      error: (e, st) => Scaffold(
+        backgroundColor: colors.background,
+        body: QibraStatus.error(
+          title: AppStrings.of(context).quranTextUnavailableTitle,
+          message: AppStrings.of(context).quranTextUnavailableBody,
+          onRetry: () => ref.invalidate(mushafPageIndexProvider),
         ),
       ),
+      data: (index) {
+        final playingHere = ref.watch(quranAudioProvider.select(
+            (a) => a.active && a.isPlaying
+                ? (a.surahNumber, a.ayahNumber)
+                : null));
+        // W1/W5 (M6): the gloss mode rides the prefs; OFF costs
+        // nothing (the corpus provider is not even watched) and ON
+        // is INSTANT because the cache keys carry the mode.
+        final wordMode = ref.watch(
+            readingPreferencesProvider.select((p) => p.wordByWordGloss));
+        final wordCorpus =
+            wordMode ? ref.watch(quranWordCorpusProvider).valueOrNull : null;
+        return Scaffold(
+          // B1 (M6): the goto dialog's keyboard must NOT resize the
+          // reading surface. The #289 probe measured the page slot
+          // going 844 -> 508 -> 844 across one IME cycle: the jump
+          // renders at the mid-animation size and the last band of
+          // the page shaves (device: 'neeche se cut… goto wajh se').
+          // The AlertDialog lifts itself over viewInsets — Dialog
+          // handles that internally — so the reader needs no resize.
+          resizeToAvoidBottomInset: false,
+          backgroundColor: colors.background,
+          body: SafeArea(
+            child: Stack(
+              children: [
+                GestureDetector(
+                  onTap: () => ref.read(_showControlsProvider.notifier).state =
+                      !showControls,
+                  // Pass M: the turn overlay owns horizontal drags and
+                  // paints the lift; the pager underneath is switched to
+                  // a NON-user-scrollable physics so one gesture never
+                  // drives two systems (programmatic jump/animate — the
+                  // slider, the chevrons, turn commits — all still work).
+                  child: MushafTurnOverlay(
+                    currentPage: currentPage,
+                    pageCount: 604,
+                    pageAt: (page) => _pageAt(page, index, playingHere,
+                        wordMode: wordMode, corpus: wordCorpus),
+                    // M2 (F3): in-motion renders get the non-selectable
+                    // twin; the settled page keeps SelectableText.
+                    pageAtStatic: (page) => _pageAt(page, index,
+                        playingHere,
+                        selectable: false,
+                        wordMode: wordMode,
+                        corpus: wordCorpus),
+                    onCommitPage: (page) {
+                      _suppressTurnHaptic = true;
+                      _pageController.jumpToPage(page - 1);
+                    },
+                    child: PageView.builder(
+                      controller: _pageController,
+                      reverse: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: 604,
+                      onPageChanged: (page) {
+                        if (_suppressTurnHaptic) {
+                          _suppressTurnHaptic = false;
+                        } else {
+                          HapticFeedback.selectionClick();
+                        }
+                        _userPaged = true;
+                        ref.read(_currentPageProvider.notifier).state = page + 1;
+                        _saveProgress(page + 1);
+                        // M2 (F1): the window follows the settled page;
+                        // neighbours are built in a post-frame so the
+                        // next turn's first tick is a cache hit.
+                        _warmPageCache(page + 1, index, playingHere,
+                            wordMode, wordCorpus);
+                      },
+                      itemBuilder: (context, page) => _pageAt(page + 1,
+                          index, playingHere,
+                          wordMode: wordMode, corpus: wordCorpus),
+                    ),
+                  ),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  top: showControls ? 0 : -140,
+                  left: 0,
+                  right: 0,
+                  child: _buildTopBar(currentPage),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  bottom: showControls ? 0 : -220,
+                  left: 0,
+                  right: 0,
+                  child: _buildBottomBar(currentPage),
+                ),
+                // Pass M (ribbon bookmark) — topmost so the chrome never
+                // clips it; both actions reuse EXISTING progress paths.
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 96,
+                  child: MushafRibbon(
+                    totalPages: 604,
+                    lastReadPage: _lastReadPage,
+                    currentPage: currentPage,
+                    onJumpToLastRead: _ribbonJump,
+                    onDropHere: () {
+                      _saveProgress(currentPage);
+                      _showToast(AppStrings.of(context)
+                          .progressSavedToast(currentPage));
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+      }),
+    );
+  }
+
+  // ── Pass M2 (F1): the page cache ──────────────────────────────
+  // Every render path (PageView itemBuilders, the overlay's latched
+  // leaf/base) asks _pageAt. Building a page costs the full spans
+  // loop + a justified RTL paragraph per call; mid-turn that ran on
+  // EVERY drag tick (the device-jank report). The cache hands out the
+  // SAME widget instance for the same (page, variant) while inputs
+  // hold — an identical config makes the framework skip the element
+  // update outright, so a tick costs zero. Window: current ±1 × both
+  // variants (≤6 entries: the LRU-3 window per variant the brief
+  // asks for). Retired on every page change; the neighbours are
+  // pre-warmed in a post-frame so the FIRST drag tick finds a hit.
+  // Deps are (index map, playing tuple): identity check clears
+  // everything when data or the follow-tint changes.
+  final Map<int, Widget> _pageCache = <int, Widget>{};
+  Object? _cacheIndex;
+  Object? _cachePlaying;
+
+  // W5 (M6): the mode is part of the identity — a stale non-word
+  // page can never flash through a word-mode rebuild, and the LRU
+  // window stays current ±1 (now ×4 render variants, ≤12 entries).
+  static int _pageCacheKey(int page, bool selectable, bool wordMode) =>
+      page * 4 + (selectable ? 1 : 0) + (wordMode ? 2 : 0);
+
+  void _retirePageCache(int around) {
+    final keep = <int>{
+      for (var p = around - 1; p <= around + 1; p++)
+        if (p >= 1 && p <= 604) ...[
+          for (final wm in [false, true]) ...[
+            _pageCacheKey(p, true, wm),
+            _pageCacheKey(p, false, wm),
+          ],
+        ],
+    };
+    _pageCache.removeWhere((k, _) => !keep.contains(k));
+  }
+
+  void _warmPageCache(
+    int around,
+    Map<int, List<MushafPageEntry>> index,
+    (int?, int?)? playing,
+    bool wordMode,
+    QuranWordCorpus? corpus,
+  ) {
+    _retirePageCache(around);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      for (final p in [
+        if (around > 1) around - 1,
+        around,
+        if (around < 604) around + 1,
+      ]) {
+        _pageAt(p, index, playing,
+            selectable: false, wordMode: wordMode, corpus: corpus);
+        _pageAt(p, index, playing, wordMode: wordMode, corpus: corpus);
+      }
+    });
+  }
+
+  /// Single source for settled AND turning page content (Pass M): the
+  /// PageView's itemBuilder and the turn overlay's leaf both call this,
+  /// so the two renders can never drift apart. Pass M2: results are
+  /// cached per (page, variant) — see [_pageCache].
+  Widget _pageAt(
+    int page,
+    Map<int, List<MushafPageEntry>> index,
+    (int?, int?)? playing, {
+    bool selectable = true,
+    bool wordMode = false,
+    QuranWordCorpus? corpus,
+  }) {
+    if (!identical(_cacheIndex, index) || _cachePlaying != playing) {
+      _cacheIndex = index;
+      _cachePlaying = playing;
+      _pageCache.clear();
+    }
+    return _pageCache.putIfAbsent(
+      _pageCacheKey(page, selectable, wordMode),
+      () => _MushafPage(
+        pageNumber: page,
+        entries: _entriesFor(index, page),
+        // Real playback follow (item 1, mushaf): the playing ayah on
+        // the open page gets its ACTUAL TextSpan tinted — the flow
+        // layout has no per-ayah box geometry, so nothing fancier is
+        // claimed or faked, and non-playing renders zero.
+        playingSurah: playing?.$1,
+        playingAyah: playing?.$2,
+        selectable: selectable,
+        // W2 (M6): the corpus flows only when the mode is on; the
+        // motion twin keeps the WORDS (a turning page must not
+        // morph — F3's zero-drift twin rule) but loses the TAP:
+        // in-flight renders carry zero gesture machinery.
+        wordCorpus: wordMode ? corpus : null,
+        onWordTap: wordMode && selectable ? _onMushafWordTap : null,
+      ),
+    );
+  }
+
+  /// W3 (M6): word tap opens the SAME sheet the surah reader shows —
+  /// one explain path for the whole app. It is only armed in word
+  /// mode (the default page keeps selection-and-toolbar exactly as
+  /// it shipped; nothing existing is disturbed).
+  void _onMushafWordTap(MushafPageEntry e, int spanIndex, WordSpan w) {
+    final corpus = ref.read(quranWordCorpusProvider).valueOrNull;
+    final prefs = ref.read(readingPreferencesProvider);
+    final cues =
+        corpus?.cuesFor(prefs.qariId, e.surahNumber, e.ayah.number);
+    final roman = e.ayah.translationRoman?.trim();
+    unawaited(showWordExplainSheet(
+      context,
+      surahNumber: e.surahNumber,
+      surahName: e.surahName,
+      ayahNumber: e.ayah.number,
+      ayahText: e.ayah.text,
+      word: w.word,
+      gloss: w.gloss,
+      spanIndex: spanIndex,
+      hasExactTimings: cues != null &&
+          QuranWordCorpus.seekStartMs(cues, spanIndex) != null,
+      romanUrdu: (roman != null && roman.isNotEmpty) ? roman : null,
+      onPlayFromWord: () => _playMushafFromWord(e, spanIndex, cues),
+    ));
+  }
+
+  Future<void> _playMushafFromWord(
+      MushafPageEntry e, int spanIndex, List<WordCue>? cues) async {
+    final surah =
+        await ref.read(quranRepositoryProvider).getSurah(e.surahNumber);
+    if (surah == null || !mounted) return;
+    final idx = surah.ayahs.indexWhere((a) => a.number == e.ayah.number);
+    await ref.read(quranAudioProvider.notifier).playFromWord(
+          surahNumber: e.surahNumber,
+          surahName: surah.name,
+          queue: tilawatQueueFor(surah),
+          startIndex: idx < 0 ? 0 : idx,
+          spanIndex: spanIndex,
+          cues: cues,
+        );
+  }
+
+  /// Ribbon tap: jump to the saved page, or say honestly there is none.
+  void _ribbonJump() {
+    final saved = _lastReadPage;
+    if (saved == null) {
+      _showToast(AppStrings.of(context).noSavedPageToast);
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    // Clamp, don't trust: the store is prefs-serialisable and a corrupt
+    // page must land on the last real page, not throw inside the pager.
+    _pageController.jumpToPage(saved.clamp(1, 604) - 1);
+  }
+
+  Widget _buildTopBar(int currentPage) {
+    final colors = QibraColors.of(context);
+    final isBookmarked = _bookmarkedPages.contains(currentPage);
+    final juz = _juzOnPage(currentPage);
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.card,
+        border: Border(bottom: BorderSide(color: colors.border)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: [
           _iconButton(
-            icon: Icons.arrow_back_ios_new_rounded,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.pop(context);
-            },
+            icon: Icons.arrow_back_rounded,
+            tooltip: AppStrings.of(context).tooltipBack,
+            onTap: () => Navigator.pop(context),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _getSurahName(currentPage),
-                  style: TextStyle(
+                  _pageSurahLabel(currentPage),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.titleSmall.copyWith(
                     color: colors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                Text(
-                  'Juz ${_getJuzForPage(currentPage)} • Page $currentPage',
-                  style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.7),
-                    fontSize: 12,
-                  ),
+                Row(
+                  children: [
+                    // Pass M (chrome): the juz marker that was plain
+                    // text becomes a chip — same single data source
+                    // (ayah.juz from the authentic page index).
+                    if (juz != null) ...[
+                      MushafJuzChip(juz: juz),
+                      const SizedBox(width: 6),
+                    ],
+                    Flexible(
+                      child: Text(
+                        juz == null
+                            ? AppStrings.of(context)
+                                .mushafPageOfTotal(currentPage)
+                            : AppStrings.of(context)
+                                .mushafPageSlash604(currentPage),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.labelSmall
+                            .copyWith(color: colors.textSecondary),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -191,67 +794,55 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
             icon: isBookmarked
                 ? Icons.bookmark_rounded
                 : Icons.bookmark_border_rounded,
-            onTap: () => _toggleBookmark(currentPage),
+            tooltip: isBookmarked
+                ? AppStrings.of(context).tooltipRemoveBookmark
+                : AppStrings.of(context).tooltipBookmarkPage,
             highlight: isBookmarked,
-          ),
-          const SizedBox(width: 8),
-          _iconButton(
-            icon: isNightMode ? Icons.wb_sunny_rounded : Icons.nightlight_round,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              ref.read(_isNightModeProvider.notifier).state = !isNightMode;
-            },
+            onTap: () => _toggleBookmark(currentPage),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomBar(int currentPage, bool isNightMode) {
+  Widget _buildBottomBar(int currentPage) {
     final colors = QibraColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: isNightMode
-            ? Colors.black.withValues(alpha: 0.85)
-            : colors.primary.withValues(alpha: 0.95),
-        border: Border(
-          top: BorderSide(color: colors.accent.withValues(alpha: 0.3)),
-        ),
+        color: colors.card,
+        border: Border(top: BorderSide(color: colors.border)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
               children: [
                 Text(
                   '1',
-                  style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.7),
-                    fontSize: 11,
-                  ),
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: colors.textTertiary),
                 ),
                 Expanded(
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 3,
-                      activeTrackColor: colors.accent,
-                      inactiveTrackColor: colors.onPrimary.withValues(alpha: 0.2),
-                      thumbColor: colors.accent,
-                      overlayColor: colors.accent.withValues(alpha: 0.2),
+                      activeTrackColor: colors.primary,
+                      inactiveTrackColor: colors.border,
+                      thumbColor: colors.primary,
+                      overlayColor: colors.primary.withValues(alpha: 0.15),
                       thumbShape: const RoundSliderThumbShape(
                         enabledThumbRadius: 8,
                       ),
                     ),
                     child: Slider(
-                      value: currentPage.toDouble(),
+                      value: currentPage.toDouble().clamp(1, 604),
                       min: 1,
                       max: 604,
-                      onChanged: (value) {
-                        ref.read(_currentPageProvider.notifier).state =
-                            value.toInt();
-                      },
+                      onChanged: (value) => ref
+                          .read(_currentPageProvider.notifier)
+                          .state = value.toInt(),
                       onChangeEnd: (value) {
                         _pageController.jumpToPage(value.toInt() - 1);
                         HapticFeedback.selectionClick();
@@ -261,20 +852,19 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 ),
                 Text(
                   '604',
-                  style: TextStyle(
-                    color: colors.textPrimary.withValues(alpha: 0.7),
-                    fontSize: 11,
-                  ),
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: colors.textTertiary),
                 ),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
             child: Row(
               children: [
                 _iconButton(
                   icon: Icons.chevron_left_rounded,
+                  tooltip: AppStrings.of(context).tooltipNextPage,
                   onTap: () {
                     if (currentPage < 604) {
                       _pageController.nextPage(
@@ -285,32 +875,17 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                   },
                 ),
                 Expanded(
-                  child: GestureDetector(
+                  // Pass M (chrome): flat pill -> page medallion (code-
+                  // drawn rosette, token colors). Same tap target, same
+                  // text — the '$currentPage / 604' string is untouched.
+                  child: MushafPageMedallion(
+                    pageLabel: '$currentPage / 604',
                     onTap: _showGoToPageSheet,
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 12),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: colors.accent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: colors.accent.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Text(
-                        '$currentPage / 604',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
                   ),
                 ),
                 _iconButton(
                   icon: Icons.chevron_right_rounded,
+                  tooltip: AppStrings.of(context).tooltipPrevPage,
                   onTap: () {
                     if (currentPage > 1) {
                       _pageController.previousPage(
@@ -324,39 +899,32 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
             decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: colors.accent.withValues(alpha: 0.2)),
-              ),
+              border: Border(top: BorderSide(color: colors.border)),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _actionButton(
                   icon: Icons.article_outlined,
-                  label: 'Go to',
+                  label: AppStrings.of(context).goToShort,
                   onTap: _showGoToPageSheet,
                 ),
                 _actionButton(
                   icon: Icons.menu_book_outlined,
-                  label: 'Tafsir',
-                  onTap: _openTafsir,
-                ),
-                _actionButton(
-                  icon: Icons.play_arrow_rounded,
-                  label: 'Audio',
-                  onTap: _playAudio,
+                  label: AppStrings.of(context).toolTafsir,
+                  onTap: () => _openTafsir(currentPage),
                 ),
                 _actionButton(
                   icon: Icons.translate_rounded,
-                  label: 'Translate',
-                  onTap: _openTranslation,
+                  label: AppStrings.of(context).translateLabel,
+                  onTap: () => _openTranslation(currentPage),
                 ),
                 _actionButton(
                   icon: Icons.more_horiz_rounded,
-                  label: 'More',
-                  onTap: _showMoreOptions,
+                  label: AppStrings.of(context).navMore,
+                  onTap: () => _showMoreOptions(currentPage),
                 ),
               ],
             ),
@@ -368,25 +936,28 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
 
   Widget _iconButton({
     required IconData icon,
+    required String tooltip,
     required VoidCallback onTap,
     bool highlight = false,
   }) {
     final colors = QibraColors.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: AppA11y.minTapTarget,
-        height: AppA11y.minTapTarget,
-        decoration: BoxDecoration(
-          color: highlight
-              ? colors.accent.withValues(alpha: 0.35)
-              : colors.accent.withValues(alpha: 0.15),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          icon,
-          color: highlight ? colors.accent : colors.onPrimary,
-          size: 20,
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: AppA11y.minTapTarget,
+          height: AppA11y.minTapTarget,
+          decoration: BoxDecoration(
+            color: highlight ? colors.primarySoft : colors.cardMuted,
+            shape: BoxShape.circle,
+            border: Border.all(color: colors.border),
+          ),
+          child: Icon(
+            icon,
+            color: highlight ? colors.primary : colors.textPrimary,
+            size: 20,
+          ),
         ),
       ),
     );
@@ -398,13 +969,14 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     required VoidCallback onTap,
   }) {
     final colors = QibraColors.of(context);
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         HapticFeedback.selectionClick();
         onTap();
       },
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -412,9 +984,8 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
             const SizedBox(height: 4),
             Text(
               label,
-              style: TextStyle(
-                color: colors.textPrimary,
-                fontSize: 10,
+              style: AppTextStyles.labelSmall.copyWith(
+                color: colors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -424,77 +995,21 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
     );
   }
 
-  int _getSurahNumberForPage(int page) {
-    if (page == 1) return 1;
-    if (page <= 49) return 2;
-    if (page <= 76) return 3;
-    if (page <= 106) return 4;
-    if (page <= 127) return 5;
-    if (page <= 149) return 6;
-    if (page <= 176) return 7;
-    if (page <= 187) return 8;
-    if (page <= 207) return 9;
-    if (page <= 221) return 10;
-    return 1;
-  }
-
-  void _openTafsir() {
-    HapticFeedback.mediumImpact();
-    final currentPage = ref.read(_currentPageProvider);
-    final surahNum = _getSurahNumberForPage(currentPage);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => TafseerScreen(
-          surahNumber: surahNum,
-          initialAyah: 1,
-        ),
-      ),
-    );
-  }
-
-  void _openTranslation() {
-    HapticFeedback.mediumImpact();
-    final currentPage = ref.read(_currentPageProvider);
-    final surahNum = _getSurahNumberForPage(currentPage);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SurahReaderScreen(surahNumber: surahNum),
-      ),
-    );
-  }
-
-  // ✅ AUDIO - Opens Surah Reader with audio
-  void _playAudio() {
-    HapticFeedback.mediumImpact();
-    final currentPage = ref.read(_currentPageProvider);
-    final surahNum = _getSurahNumberForPage(currentPage);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SurahReaderScreen(surahNumber: surahNum),
-      ),
-    );
-    _showToast('🎵 Opening surah reader with audio');
-  }
-
-  // ✅ MORE OPTIONS - Real menu
-  void _showMoreOptions() {
+  void _showMoreOptions(int currentPage) {
     final colors = QibraColors.of(context);
     HapticFeedback.selectionClick();
-    final currentPage = ref.read(_currentPageProvider);
-
-    showModalBottomSheet(
+    // Sheets sweep verdict (Q2, pumped at 360x640): the ~340px body
+    // FITS the default 9/16 cap, so no scroll wrap ships here — the
+    // only proven defect was invisible tile ink, fixed in _menuOption.
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         decoration: BoxDecoration(
           color: colors.card,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(24),
+          ),
         ),
         child: SafeArea(
           top: false,
@@ -515,14 +1030,14 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                 child: Row(
                   children: [
                     Icon(Icons.more_horiz_rounded,
-                        color: colors.accent, size: 24),
+                        color: colors.textSecondary, size: 22),
                     const SizedBox(width: 8),
                     Text(
-                      'Page $currentPage Options',
-                      style: TextStyle(
+                      AppStrings.of(context)
+                          .pageOptionsTitle(currentPage),
+                      style: AppTextStyles.titleMedium.copyWith(
                         color: colors.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -531,17 +1046,15 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               Divider(color: colors.border, height: 1),
               _menuOption(
                 icon: Icons.copy_rounded,
-                label: 'Copy Page Info',
-                color: colors.primarySoft,
+                label: AppStrings.of(context).copyPageInfoLabel,
                 onTap: () {
                   Navigator.pop(context);
                   _copyPageInfo(currentPage);
                 },
               ),
               _menuOption(
-                icon: Icons.share_rounded,
-                label: 'Share Page',
-                color: colors.primarySoft,
+                icon: Icons.share_outlined,
+                label: AppStrings.of(context).sharePageLabel,
                 onTap: () {
                   Navigator.pop(context);
                   _sharePage(currentPage);
@@ -552,9 +1065,8 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
                     ? Icons.bookmark_rounded
                     : Icons.bookmark_border_rounded,
                 label: _bookmarkedPages.contains(currentPage)
-                    ? 'Remove Bookmark'
-                    : 'Bookmark Page',
-                color: colors.accent,
+                    ? AppStrings.of(context).tooltipRemoveBookmark
+                    : AppStrings.of(context).tooltipBookmarkPage,
                 onTap: () {
                   Navigator.pop(context);
                   _toggleBookmark(currentPage);
@@ -562,20 +1074,10 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
               ),
               _menuOption(
                 icon: Icons.list_alt_rounded,
-                label: 'View All Bookmarks',
-                color: colors.accent,
+                label: AppStrings.of(context).viewAllBookmarksLabel,
                 onTap: () {
                   Navigator.pop(context);
                   _showBookmarksList();
-                },
-              ),
-              _menuOption(
-                icon: Icons.info_outline_rounded,
-                label: 'Page Info',
-                color: colors.accent,
-                onTap: () {
-                  Navigator.pop(context);
-                  _showPageInfo(currentPage);
                 },
               ),
               const SizedBox(height: 8),
@@ -589,159 +1091,51 @@ class _MushafReaderScreenState extends ConsumerState<MushafReaderScreen> {
   Widget _menuOption({
     required IconData icon,
     required String label,
-    required Color color,
     required VoidCallback onTap,
   }) {
     final colors = QibraColors.of(context);
-    return ListTile(
-      onTap: onTap,
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
-          shape: BoxShape.circle,
+    // Sheets sweep (Q2) — the ONE fix this sheet's pump proved: a
+    // transparent Material between the sheet's decorated Container and
+    // each tile, so ink paints visibly (the @360x640 pump captured four
+    // 'ink splashes may be invisible' diagnostics; same pattern as the
+    // bookmarks rows in the owner ink-assertion sweep).
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: colors.cardMuted,
+            shape: BoxShape.circle,
+            border: Border.all(color: colors.border),
+          ),
+          child: Icon(icon, color: colors.textPrimary, size: 20),
         ),
-        child: Icon(icon, color: color, size: 22),
-      ),
-      title: Text(
-        label,
-        style: TextStyle(
-          color: colors.textPrimary,
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
+        title: Text(
+          label,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: colors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
-      trailing: Icon(
-        Icons.arrow_forward_ios_rounded,
-        color: colors.textTertiary,
-        size: 14,
       ),
     );
   }
 
-  // ✅ COPY PAGE INFO
-  void _copyPageInfo(int page) {
-    final text = '''📖 Quran Reading Progress
-
-Page: $page / 604
-Surah: ${_getSurahName(page)}
-Juz: ${_getJuzForPage(page)}
-
-Shared via Qibra AI''';
-
-    Clipboard.setData(ClipboardData(text: text));
-    HapticFeedback.mediumImpact();
-    _showToast('📋 Page info copied');
-  }
-
-  // ✅ SHARE PAGE
-  void _sharePage(int page) {
-    final text = '''📖 I'm reading Quran
-
-Currently on Page $page of 604
-Surah: ${_getSurahName(page)}
-Juz: ${_getJuzForPage(page)}
-
-Join me on Qibra AI 🕌''';
-
-    Clipboard.setData(ClipboardData(text: text));
-    HapticFeedback.mediumImpact();
-    _showToast('📤 Page info copied - paste to share');
-  }
-
-  // ✅ SHOW PAGE INFO DIALOG
-  void _showPageInfo(int page) {
-    final colors = QibraColors.of(context);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: colors.card,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Row(
-          children: [
-            Icon(Icons.info_outline, color: colors.accent),
-            const SizedBox(width: 8),
-            Text(
-              'Page $page',
-              style: TextStyle(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _infoRow('Surah', _getSurahName(page)),
-            _infoRow('Juz', 'Para ${_getJuzForPage(page)}'),
-            _infoRow('Position', '$page of 604'),
-            _infoRow('Progress', '${(page / 604 * 100).toStringAsFixed(1)}%'),
-            _infoRow(
-              'Bookmarked',
-              _bookmarkedPages.contains(page) ? 'Yes ✓' : 'No',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Close',
-              style: TextStyle(color: colors.goldText),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    final colors = QibraColors.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: colors.textPrimary.withValues(alpha: 0.7),
-              fontSize: 13,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ✅ BOOKMARKS LIST
   void _showBookmarksList() {
     final colors = QibraColors.of(context);
     if (_bookmarkedPages.isEmpty) {
-      _showToast('No bookmarks yet. Bookmark pages to see them here!');
+      _showToast(AppStrings.of(context).noBookmarksToast);
       return;
     }
-
-    final sortedBookmarks = _bookmarkedPages.toList()..sort();
-
-    showModalBottomSheet(
+    final pages = _bookmarkedPages.toList()..sort();
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => DraggableScrollableSheet(
+      builder: (sheetContext) => DraggableScrollableSheet(
         initialChildSize: 0.6,
         maxChildSize: 0.9,
         minChildSize: 0.4,
@@ -749,41 +1143,31 @@ Join me on Qibra AI 🕌''';
         builder: (_, controller) => Container(
           decoration: BoxDecoration(
             color: colors.card,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(24),
+            ),
           ),
           child: Column(
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: colors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
                     Icon(Icons.bookmark_rounded,
-                        color: colors.accent, size: 24),
+                        color: colors.primary, size: 22),
                     const SizedBox(width: 8),
                     Text(
-                      'Bookmarked Pages',
-                      style: TextStyle(
+                      AppStrings.of(context).bookmarkedPagesTitle,
+                      style: AppTextStyles.titleMedium.copyWith(
                         color: colors.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const Spacer(),
                     Text(
-                      '${sortedBookmarks.length} pages',
-                      style: TextStyle(
-                        color: colors.textPrimary.withValues(alpha: 0.6),
-                        fontSize: 12,
-                      ),
+                      AppStrings.of(context).pagesCountLabel(pages.length),
+                      style: AppTextStyles.labelSmall
+                          .copyWith(color: colors.textTertiary),
                     ),
                   ],
                 ),
@@ -793,67 +1177,68 @@ Join me on Qibra AI 🕌''';
                 child: ListView.builder(
                   controller: controller,
                   padding: const EdgeInsets.all(12),
-                  itemCount: sortedBookmarks.length,
-                  itemBuilder: (context, index) {
-                    final page = sortedBookmarks[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: colors.textPrimary.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _pageController.jumpToPage(page - 1);
-                          HapticFeedback.mediumImpact();
-                        },
-                        leading: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                colors.primary,
-                                colors.accent,
-                              ],
+                  itemCount: pages.length,
+                  itemBuilder: (context, i) {
+                    final page = pages[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colors.cardMuted,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: colors.border),
+                        ),
+                        // Material between the tile and this Container's
+                        // decoration (owner 2026-09-02 ink-assertion sweep).
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                          onTap: () {
+                            Navigator.pop(sheetContext);
+                            _pageController.jumpToPage(page - 1);
+                            HapticFeedback.mediumImpact();
+                          },
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: colors.primarySoft,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: colors.border),
                             ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$page',
-                              style: TextStyle(
-                                color: colors.textPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
+                            child: Center(
+                              child: Text(
+                                '$page',
+                                style: AppTextStyles.labelLarge.copyWith(
+                                  color: colors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        title: Text(
-                          'Page $page',
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontWeight: FontWeight.w700,
+                          title: Text(
+                            AppStrings.of(context).bookmarkPageEntry(page),
+                            style: AppTextStyles.titleSmall.copyWith(
+                              color: colors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            _pageSurahLabel(page),
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                          trailing: IconButton(
+                            tooltip: AppStrings.of(context).tooltipRemoveBookmark,
+                            icon: Icon(Icons.delete_outline_rounded,
+                                color: colors.textTertiary),
+                            onPressed: () {
+                              _toggleBookmark(page);
+                              Navigator.pop(sheetContext);
+                            },
                           ),
                         ),
-                        subtitle: Text(
-                          '${_getSurahName(page)} • Juz ${_getJuzForPage(page)}',
-                          style: TextStyle(
-                            color: colors.textPrimary.withValues(alpha: 0.6),
-                            fontSize: 12,
-                          ),
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.delete_outline_rounded,
-                            color: colors.error,
-                          ),
-                          onPressed: () async {
-                            _toggleBookmark(page);
-                            Navigator.pop(context);
-                          },
                         ),
                       ),
                     );
@@ -866,220 +1251,422 @@ Join me on Qibra AI 🕌''';
       ),
     );
   }
-
-  // ✅ GO TO PAGE - Real dialog
-  void _showGoToPageSheet() {
-    final colors = QibraColors.of(context);
-    HapticFeedback.selectionClick();
-    final controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: colors.card,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Row(
-          children: [
-            Icon(Icons.article_outlined, color: colors.accent),
-            SizedBox(width: 8),
-            Text(
-              'Go to Page',
-              style: TextStyle(
-                color: colors.textPrimary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Enter page number (1 - 604)',
-              style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.7),
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-              style: TextStyle(
-                color: colors.textPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-              ),
-              textAlign: TextAlign.center,
-              decoration: InputDecoration(
-                hintText: 'e.g. 100',
-                hintStyle: TextStyle(
-                  color: colors.textPrimary.withValues(alpha: 0.3),
-                ),
-                filled: true,
-                fillColor: colors.onPrimary.withValues(alpha: 0.05),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              onSubmitted: (value) => _goToPage(value, ctx),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: colors.textPrimary.withValues(alpha: 0.7)),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colors.primary,
-              foregroundColor: colors.onPrimary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () => _goToPage(controller.text, ctx),
-            child: const Text('Go'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _goToPage(String text, BuildContext dialogContext) {
-    final page = int.tryParse(text);
-    if (page == null || page < 1 || page > 604) {
-      _showToast('❌ Please enter a valid page (1-604)');
-      return;
-    }
-
-    Navigator.pop(dialogContext);
-    _pageController.jumpToPage(page - 1);
-    HapticFeedback.mediumImpact();
-    _showToast('📄 Jumped to page $page');
-  }
-
-  String _getSurahName(int page) {
-    if (page == 1) return 'Al-Fatihah';
-    if (page <= 49) return 'Al-Baqarah';
-    if (page <= 76) return 'Aal-Imran';
-    if (page <= 106) return 'An-Nisa';
-    if (page <= 127) return 'Al-Maidah';
-    if (page <= 149) return 'Al-Anam';
-    if (page <= 176) return 'Al-Araf';
-    if (page <= 187) return 'Al-Anfal';
-    if (page <= 207) return 'At-Tawbah';
-    if (page <= 221) return 'Yunus';
-    return 'Al-Quran';
-  }
-
-  int _getJuzForPage(int page) {
-    return ((page - 1) ~/ 20) + 1;
-  }
-
-  void _showToast(String message) {
-    final colors = QibraColors.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        backgroundColor: colors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
 }
+
+// ─────────────────────────────────────────────────────────────
+// One real mushaf page rendered from bundled text data
+// ─────────────────────────────────────────────────────────────
 
 class _MushafPage extends StatelessWidget {
   const _MushafPage({
     required this.pageNumber,
-    required this.isNightMode,
+    required this.entries,
+    this.playingSurah,
+    this.playingAyah,
+    this.selectable = true,
+    this.wordCorpus,
+    this.onWordTap,
   });
 
+  /// W2 (M6): a non-null corpus renders every ALIGNED ayah as word
+  /// cells (Arabic glyph over EN gloss); mis-aligned or uncovered
+  /// ayahs fall back to the classic justified line — never a guessed
+  /// segmentation (the same honesty rule as the audio cues).
+  final QuranWordCorpus? wordCorpus;
+
+  /// The word tap, armed only on the settled render (M2 rule).
+  final void Function(MushafPageEntry entry, int spanIndex, WordSpan span)?
+      onWordTap;
+
+  /// Pass M2 (F3): false renders the EXACT same justified RTL paragraph
+  /// through [Text.rich] instead of [SelectableText.rich] — a page in
+  /// motion (turn leaf / revealed base) is never selectable by hand,
+  /// and dropping the selection machinery keeps that paragraph's
+  /// gesture layer out of the arena while the finger turns. Copy and
+  /// Share behavior live solely on the settled render and are
+  /// byte-identical; the resting page still owns the SelectableText.
+  final bool selectable;
+
   final int pageNumber;
-  final bool isNightMode;
+  final List<MushafPageEntry> entries;
+
+  /// The globally-playing ayah (single app-wide player) when it lands
+  /// on THIS page; null otherwise.
+  final int? playingSurah;
+  final int? playingAyah;
+
+  static const _arabicDigits = [
+    '٠',
+    '١',
+    '٢',
+    '٣',
+    '٤',
+    '٥',
+    '٦',
+    '٧',
+    '٨',
+    '٩'
+  ];
+
+  static String _toArabicDigits(int value) =>
+      value.toString().split('').map((d) {
+        final n = int.parse(d);
+        return _arabicDigits[n];
+      }).join();
 
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    return Container(
-      padding: EdgeInsets.only(
-        left: 8,
-        right: 8,
-        top: 60,
-        bottom: MediaQuery.of(context).padding.bottom + 80,
-      ),
-      child: Center(
-        child: InteractiveViewer(
-          minScale: 1.0,
-          maxScale: 4.0,
-          child: ColorFiltered(
-            colorFilter: isNightMode
-                ? const ColorFilter.matrix([
-                    -1,
-                    0,
-                    0,
-                    0,
-                    255,
-                    0,
-                    -1,
-                    0,
-                    0,
-                    255,
-                    0,
-                    0,
-                    -1,
-                    0,
-                    255,
-                    0,
-                    0,
-                    0,
-                    1,
-                    0,
-                  ])
-                : const ColorFilter.matrix([
-                    1,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    1,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    1,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    1,
-                    0,
-                  ]),
-            child: SafeImage(
-              assetPath: 'assets/mushaf_pages/$pageNumber.png',
-              fit: BoxFit.contain,
-              fallback: SafeImageFallback.quran,
+    if (entries.isEmpty) {
+      return Center(
+        child: Text(
+          AppStrings.of(context).mushafNoVersesNote,
+          style: AppTextStyles.bodyMedium.copyWith(color: colors.textTertiary),
+        ),
+      );
+    }
+    final hasSajdah = entries.any((e) => e.ayah.sajdah);
+
+    final spans = <InlineSpan>[];
+    // W2: the gloss line rides the palette's muted meta tone —
+    // textTertiary IS inkMuted on paper (mapping at the token
+    // level, qibra_paper.dart) and textMuted on navy. One field,
+    // both palettes, zero new hex.
+    final glossStyle = AppTextStyles.labelSmall
+        .copyWith(color: colors.textTertiary, height: 1.15);
+    // F1/N2 (M6): the page's gold marks — antique on paper, the
+    // AppGold pair on navy. FIVE tiny places in total (one teardrop
+    // + four 3px corner dots); the frame body itself is hairline,
+    // never gold — the <=8% budget is met by area (test pins it at
+    // <1% coverage), not by an alpha fudge.
+    final cornerGold =
+        QibraPaper.isActive(context) ? QibraPaper.gild : AppGold.s500;
+    for (var i = 0; i < entries.length; i++) {
+      final e = entries[i];
+      final startsSurahHere = e.ayah.number == 1 &&
+          (i == 0 || entries[i - 1].surahNumber != e.surahNumber);
+      if (startsSurahHere) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              // L4 (M2 look): the specced spacing refinement on the
+              // surah hairline — 8 → 12 vertical breathing, side-text
+              // inset 10 → 12; weight/height untouched (1.0 stays
+              // crisp at every DPR).
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                children: [
+                  Expanded(child: Container(height: 1, color: colors.border)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'سُورَة ${e.surahName}',
+                      style: AppArabicStyles.quranSmall.copyWith(
+                        // D2 mapping: surah-header hairlines pair
+                        // hairlinePaper + INK on paper (navy keeps
+                        // textSecondary exactly as before).
+                        color: QibraPaper.isActive(context)
+                            ? colors.textPrimary
+                            : colors.textSecondary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Container(height: 1, color: colors.border)),
+                ],
+              ),
             ),
           ),
+        );
+      }
+      final isPlayingHere = playingSurah != null &&
+          playingAyah != null &&
+          e.surahNumber == playingSurah &&
+          e.ayah.number == playingAyah;
+      // D2: the wash token follows the surface — navy's goldWash on
+      // the navy page, the antique #A8823F wash on paper (mapping
+      // rule; marker only, the text on top stays full ink).
+      final wash = QibraPaper.isActive(context)
+          ? QibraPaper.playingWash
+          : QibraNavy.goldWash;
+      var ayahStyle = AppArabicStyles.quranMedium.copyWith(
+        color: colors.textPrimary,
+        // Restrained gold tint on the REAL span of the playing ayah
+        // (background wash token only — the highlight IS the text's
+        // own region; no invented geometry overlay).
+        backgroundColor: isPlayingHere ? wash : null,
+      );
+      // T1/T2 (paper only): one size step up, 1.75–1.85 leading.
+      if (QibraPaper.isActive(context)) {
+        ayahStyle = QibraPaper.paperArabicBody(ayahStyle);
+      }
+      final words = wordCorpus?.wordsFor(
+          e.surahNumber, e.ayah.number, e.ayah.text);
+      if (words != null) {
+        // W2 (M6): word cells over their glosses, flowing RTL like
+        // the paragraph. The playing-ayah wash moves onto the cell
+        // block so the marker stays ONE region (the background per
+        // cell would shatter it into stripes); the number chip
+        // closes the run exactly where the inline (١٢٣) sat.
+        final cellArabic = ayahStyle.copyWith(backgroundColor: null);
+        spans.add(WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Container(
+            color: isPlayingHere ? wash : null,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 10,
+              children: [
+                for (var i = 0; i < words.spans.length; i++)
+                  _WordGlossCell(
+                    word: words.spans[i].word,
+                    gloss: words.spans[i].gloss,
+                    arabic: cellArabic,
+                    glossStyle: glossStyle,
+                    onTap: onWordTap == null
+                        ? null
+                        : () => onWordTap!(e, i, words.spans[i]),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Text(
+                    '(${_toArabicDigits(e.ayah.number)})',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ));
+        spans.add(const TextSpan(text: ' '));
+      } else {
+        spans.add(TextSpan(text: '${e.ayah.text} ', style: ayahStyle));
+        spans.add(
+          TextSpan(
+            text: '(${_toArabicDigits(e.ayah.number)}) ',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: colors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        );
+      }
+    }
+
+    return Stack(
+      children: [
+        Container(
+      // T3 (paper): page margins ride the 24 rhythm; navy keeps 20.
+      // The RIGHT margin is the gutter — 30px in BOTH palettes, a
+      // raw value (not pad()): in a codex the spine half carries a
+      // wider inner margin, and 30 keeps the text off the ream
+      // strip. B3 (M6): the bottom reserve is the MEASURED chrome height —
+      // #289 found the settled bar at 175px under the old 148, i.e.
+      // the last 27px of content sat under the chrome. The named
+      // constant (public, top of this file) is what the M6 test
+      // pins the real bar against — at textScale 1.0 AND 1.3.
+      padding: EdgeInsets.fromLTRB(
+          QibraPaper.pad(context, 20), 84, 30, kMushafChromeBottomReserve),
+      child: Column(
+        children: [
+          Expanded(
+            child: Scrollbar(
+              child: SingleChildScrollView(
+                child: selectable
+                    // The settled render: selectable, exactly as ever.
+                    ? SelectableText.rich(
+                        TextSpan(children: spans),
+                        textAlign: TextAlign.justify,
+                        textDirection: TextDirection.rtl,
+                      )
+                    // The motion render (M2 F3): same span list, same
+                    // justify + rtl paragraph — zero gesture machinery.
+                    : Text.rich(
+                        TextSpan(children: spans),
+                        textAlign: TextAlign.justify,
+                        textDirection: TextDirection.rtl,
+                      ),
+              ),
+            ),
+          ),
+          if (hasSajdah)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.mosque, size: 14, color: colors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    AppStrings.of(context).mushafSajdahNote,
+                    style: AppTextStyles.labelSmall
+                        .copyWith(color: colors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          // N1/N3 (M6): the page number, Arabic-Indic (١..٦٠٤), the
+          // LAST Column child — it stacks under the sajdah footer by
+          // layout order (zero overlap by construction), and it
+          // renders on EMPTY pages too because it is a page child,
+          // never an entry decoration.
+          Padding(
+            key: const ValueKey('mushaf-page-number'),
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _toArabicDigits(pageNumber),
+                  style: AppTextStyles.labelSmall.copyWith(
+                    // N3: paper reads the ink meta tone, navy its
+                    // secondary — both palette fields, zero hex.
+                    color: QibraPaper.isActive(context)
+                        ? QibraPaper.inkMuted
+                        : colors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                const SizedBox(width: 7),
+                // N2: the teardrop — one 4.5px diamond of the
+                // antique tone, code-drawn, static at rest.
+                Transform.rotate(
+                  angle: 0.7854, // 45deg — pi/4, inline const-safe
+                  child: Container(
+                    key: const ValueKey('mushaf-number-ornament'),
+                    width: 4.5,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: cornerGold,
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+        ),
+        // F1/F4 (M6): the double-rule frame. Sibling overlay of
+        // the content Container, IgnorePointer so it never eats a
+        // tap, RepaintBoundary so the M2/M5 repaint discipline
+        // holds — nothing inside it animates, so at rest it paints
+        // EXACTLY when the page itself does (the M4 E2-style pin
+        // applies; there is no second clock). Geometry carries F2:
+        // the gaps to content are 20 (navy) / 24 (paper) left, 24
+        // top and bottom; the right rule sits at 10px — between
+        // the 9px ream strip and the 30px gutter text edge, so
+        // frame and ream never touch.
+        Positioned.fill(
+          key: const ValueKey('mushaf-page-frame'),
+          child: IgnorePointer(
+            child: RepaintBoundary(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                    0,
+                    60,
+                    10,
+                    kMushafChromeBottomReserve - 24.0),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colors.border, width: 1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2.5),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        // Night pairs hairline/hairlineStrong;
+                        // Paper uses hairlinePaper for BOTH rules
+                        // (the duo-tone has no "strong" tier — the
+                        // depth comes from the weight step alone).
+                        border: Border.all(
+                            color: QibraPaper.isActive(context)
+                                ? QibraPaper.hairlinePaper
+                                : QibraNavy.hairlineStrong,
+                            width: 0.5),
+                        borderRadius: BorderRadius.circular(3.5),
+                      ),
+                      child: Stack(
+                        children: [
+                          for (final a in [
+                            Alignment.topLeft,
+                            Alignment.topRight,
+                            Alignment.bottomLeft,
+                            Alignment.bottomRight,
+                          ])
+                            Align(
+                              alignment: a,
+                              child: Padding(
+                                padding: const EdgeInsets.all(2),
+                                child: Container(
+                                  width: 3,
+                                  height: 3,
+                                  decoration: BoxDecoration(
+                                    color: cornerGold,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// W2 (M6): one word of the word-by-word render — the Arabic glyph
+/// over its English gloss. A cell, not a span pair: the tap and the
+/// semantics node need their own box, and the Wrap lays cells out
+/// RTL exactly like the justified paragraph flows words.
+class _WordGlossCell extends StatelessWidget {
+  const _WordGlossCell({
+    required this.word,
+    required this.gloss,
+    required this.arabic,
+    required this.glossStyle,
+    required this.onTap,
+  });
+
+  final String word;
+  final String gloss;
+  final TextStyle arabic;
+  final TextStyle glossStyle;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      // Pass A a11y shape: the gesture would otherwise be invisible
+      // to TalkBack; one node per word, button only when it does
+      // something (never promise a double-tap that no-ops).
+      child: Semantics(
+        button: onTap != null,
+        label: '$word — $gloss',
+        excludeSemantics: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(word, style: arabic),
+            const SizedBox(height: 1.5),
+            Text(gloss, textAlign: TextAlign.center, style: glossStyle),
+          ],
         ),
       ),
     );

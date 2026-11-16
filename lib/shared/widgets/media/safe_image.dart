@@ -13,10 +13,11 @@
 //   Otherwise                   → Decorative Islamic pattern vector
 // ===========================================================
 
+import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-import '../../../core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 
 /// Possible fallback variants for [SafeImage].
 enum SafeImageFallback { quran, mosque, pattern, logo }
@@ -35,7 +36,14 @@ class SafeImage extends StatelessWidget {
   final BoxFit? fit;
   final BorderRadius? borderRadius;
   final Color? fallbackTint;
+  /// Pass A (a11y): meaningful images get a label; everything the
+  /// app currently ships is decorative brand art / backdrops, so the default
+  /// is to hide the image from assistive tech (never a fake description).
+  final String? semanticLabel;
   final SafeImageFallback? fallback;
+  /// Decode-size hint (pixels). Set for large art so memory matches
+  /// display size (P0 perf pass).
+  final int? cacheWidth;
   final AlignmentGeometry alignment;
 
   const SafeImage({
@@ -46,7 +54,9 @@ class SafeImage extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.borderRadius,
     this.fallbackTint,
+    this.semanticLabel,
     this.fallback,
+    this.cacheWidth,
     this.alignment = Alignment.center,
   });
 
@@ -71,7 +81,6 @@ class SafeImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
     final variant = fallback ?? _inferFallback();
     final placeholder = _VectorFallback(
       variant: variant,
@@ -82,12 +91,14 @@ class SafeImage extends StatelessWidget {
 
     Widget image = Image.asset(
       assetPath,
+      semanticLabel: semanticLabel,
       width: width,
       height: height,
       fit: fit,
+      cacheWidth: cacheWidth,
       alignment: alignment,
       errorBuilder: (context, error, stackTrace) {
-        debugPrint('[SafeImage] Asset missing/failed: $assetPath — $error');
+        if (kDebugMode) debugPrint('[SafeImage] Asset missing/failed: $assetPath — $error');
         return placeholder;
       },
       frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
@@ -102,6 +113,9 @@ class SafeImage extends StatelessWidget {
       },
     );
 
+    if (semanticLabel == null) {
+      image = ExcludeSemantics(child: image);
+    }
     if (borderRadius != null) {
       image = ClipRRect(borderRadius: borderRadius!, child: image);
     }

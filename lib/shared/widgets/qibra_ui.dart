@@ -4,13 +4,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../core/a11y/app_a11y.dart';
-import '../../core/design_system/app_design_system.dart';
-import '../../core/design_system/app_typography.dart';
-import '../../core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/a11y/app_a11y.dart';
+import 'package:qibra_ai/core/design_system/app_design_system.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'media/pattern_backdrop.dart';
 import 'media/safe_image.dart';
-import 'qibra_status.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
   const QibraAppBar({
@@ -35,7 +35,19 @@ class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final canPop = Navigator.of(context).canPop();
+    // "Can this PAGE pop" — not "can the navigator pop". Navigator
+    // .canPop() also flips true while a modal SHEET sits above this
+    // page: a settings toggle then relaied the page mid-sheet, growing
+    // a phantom back button whose 48px stole the title slot (real
+    // 7px RenderFlex overflow on narrow phones — surfaced by the
+    // Pass Q3 settings-sheet widget test, device class CPH2573).
+    // The Navigator always pins its first route, so isFirst is immune
+    // to whatever rides on top: root pages never grow a back button,
+    // pushed pages always have one — exactly the contract. (isFirst,
+    // NOT hasActiveUnderlyingRoute — flutter 3.44.6 does not define the
+    // latter; CI run 35181150868 said so the honest way.)
+    final route = ModalRoute.of(context);
+    final canPop = route != null && !route.isFirst;
     return Material(
       color: colors.background,
       child: SafeArea(
@@ -51,7 +63,7 @@ class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
                 else if (onBack != null || canPop)
                   AppA11y.ensureTapTarget(
                     child: IconButton(
-                      tooltip: 'Back',
+                      tooltip: AppStrings.of(context).tooltipBack,
                       icon: Icon(
                         Directionality.of(context) == TextDirection.rtl
                             ? Icons.arrow_forward_rounded
@@ -62,25 +74,45 @@ class QibraAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: AppTextStyles.titleLarge.copyWith(
-                          color: colors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (subtitle != null)
+                  child: FittedBox(
+                    // Pass A (A5 sweep): the band height is fixed 56/72
+                    // via preferredSize and the Scaffold's appBar slot is
+                    // tight — wrapped or 2.0x tall text overflowed the
+                    // band by 30/68px. Flutter's toolbar contract is a
+                    // single-line ellipsized title; on top of that the
+                    // scaleDown fit is the graceful-degradation valve: it
+                    // is a NO-OP whenever the content fits (every 1.0/1.3
+                    // rendering stays pixel-identical) and only trims
+                    // scale at extremes the fixed band cannot show.
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // One line each — long titles ellipsize instead of
+                        // stacking into the fixed band.
                         Text(
-                          subtitle!,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: colors.textSecondary,
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.titleLarge.copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                    ],
+                        if (subtitle != null)
+                          Text(
+                            subtitle!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
                 ...actions.map((a) => AppA11y.ensureTapTarget(child: a)),
@@ -165,6 +197,14 @@ class QibraHeroCard extends StatelessWidget {
             child: SafeImage(
               assetPath: backgroundAsset,
               fit: BoxFit.cover,
+              // (Perf pass item 5) dpr-aware decode budget for hero art:
+              // this card spans the screen width, so cap the decode at the
+              // physical card width (clamped 320..1536). A hint ABOVE the
+              // native asset size is a codec no-op — it can never upscale.
+              cacheWidth: (MediaQuery.sizeOf(context).width *
+                      MediaQuery.devicePixelRatioOf(context))
+                  .clamp(320, 1536)
+                  .toInt(),
               fallback: SafeImageFallback.mosque,
             ),
           ),
@@ -190,7 +230,11 @@ class QibraHeroCard extends StatelessWidget {
         ],
       ),
     );
-    if (onTap == null) return card;
+    if (onTap == null) {
+      // Ink needs a Material ancestor: a ListTile inside a non-tappable
+      // decorated card spammed debug assertions (owner 2026-09-02).
+      return Material(type: MaterialType.transparency, child: card);
+    }
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -211,45 +255,50 @@ class QibraCard extends StatelessWidget {
     required this.child,
     this.padding,
     this.onTap,
-    this.accentBorder = false,
     this.filled = false,
   });
 
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
-  final bool accentBorder;
   final bool filled;
 
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
-    final card = Container(
-      width: double.infinity,
+    // Device-log pass 2 (owner session: the REAL remaining assertion
+    // source — #071B28 + #143045 + radius 20 fingerprint). The old shape
+    // painted the card color on a Container ABOVE a transparent Material:
+    // a ListTile inside hid its ink behind that color (assertion), and
+    // the tappable path hid the InkWell splash entirely (no ripple).
+    // Now the color rides ON the Material — both paths, one widget — so
+    // ink paints on the visible surface and Clip.antiAlias keeps splashes
+    // inside radius 20. Paint parity: same card color, same 20 radius,
+    // same 1px colors.border hairline (ShapeDecoration side == old
+    // Border.all), same padding, and the old width: double.infinity is
+    // preserved by the outer SizedBox.
+    final padded = Padding(
       padding: padding ?? const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: filled ? colors.primarySoft : colors.card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: accentBorder
-              ? colors.accent.withValues(alpha: 0.45)
-              : colors.border,
-        ),
-        boxShadow: filled ? null : AppShadows.subtle,
-      ),
       child: child,
     );
-
-    if (onTap == null) return card;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap!();
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: card,
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        color: filled ? colors.primarySoft : colors.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: colors.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: onTap == null
+            ? padded
+            : InkWell(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onTap!();
+                },
+                child: padded,
+              ),
       ),
     );
   }
@@ -405,21 +454,35 @@ class QibraChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
+    // Owner 2026-09-02 (debug-console flood): ChoiceChip drives an internal
+    // ListTile and paints its own decorated surface (card bg + border +
+    // radius 20) — the assertion machine. Same pill, honest Material:
+    // selection colors move onto this Material, no embedded tile anywhere.
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
-        showCheckmark: false,
-        selectedColor: colors.primary.withValues(alpha: 0.12),
-        backgroundColor: colors.card,
-        labelStyle: AppTextStyles.labelMedium.copyWith(
-          color: selected ? colors.primary : colors.textSecondary,
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+      child: Material(
+        color: selected
+            ? colors.primary.withValues(alpha: 0.12)
+            : colors.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: selected ? colors.primary : colors.border),
         ),
-        side: BorderSide(color: selected ? colors.primary : colors.border),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            child: Text(
+              label,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: selected ? colors.primary : colors.textSecondary,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -497,7 +560,10 @@ class QibraSoftButton extends StatelessWidget {
     final colors = QibraColors.of(context);
     return Expanded(
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),

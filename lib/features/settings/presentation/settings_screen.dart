@@ -13,10 +13,11 @@ import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/content/edition_resolver.dart';
-import 'package:qibra_ai/core/l10n/app_locales.dart';
 import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:qibra_ai/core/providers/auth_provider.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import 'package:qibra_ai/core/providers/theme_provider.dart';
+import 'package:qibra_ai/features/hadith/data/hadith_availability.dart';
 import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
 import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
 import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
@@ -36,10 +37,15 @@ class SettingsScreen extends ConsumerWidget {
     final readingPrefs = ref.watch(readingPreferencesProvider);
     final hadithLang = ref.watch(hadithLanguageProvider);
     final quranEdition =
-        EditionResolver.resolve(readingPrefs.translationId)?.label ?? 'English';
-    final fontLabel = readingPrefs.fontScale >= 1.25
+        EditionResolver.resolve(
+                EditionResolver.canonical(readingPrefs.translationId))
+                ?.label ??
+            'English';
+    // The settings knob sets BOTH split scales together; the label
+    // follows the Arabic scale (equal unless fine-tuned in the reader).
+    final fontLabel = readingPrefs.arabicScale >= 1.25
         ? 'Large'
-        : readingPrefs.fontScale <= 0.9
+        : readingPrefs.arabicScale <= 0.9
             ? 'Small'
             : 'Medium';
 
@@ -81,6 +87,65 @@ class SettingsScreen extends ConsumerWidget {
                         onChanged: (_) {
                           HapticFeedback.lightImpact();
                           ref.read(themeProvider.notifier).toggleTheme();
+                        },
+                      ),
+                    ),
+                    // Pass D2: the reading-surface theme. GLOBAL app
+                    // identity untouched — this only repaints the
+                    // Quran-reading surfaces (mushaf, surah reader,
+                    // tafseer, word/ayah sheets). Persists instantly
+                    // through the reading-preferences store; every
+                    // scoped surface rebuilds live.
+                    _SettingsTile(
+                      icon: Icons.book_rounded,
+                      iconColor: colors.accent,
+                      title: 'Reading Theme',
+                      subtitle: 'Night keeps navy everywhere; Paper '
+                          'paints the cream duo-tone on reading pages',
+                      trailing: SegmentedButton<QibraReadingTheme>(
+                        showSelectedIcon: false,
+                        style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                        segments: const [
+                          ButtonSegment(
+                              value: QibraReadingTheme.night, label: Text('Night')),
+                          ButtonSegment(
+                              value: QibraReadingTheme.paper, label: Text('Paper')),
+                        ],
+                        selected: {
+                          ref.watch(readingPreferencesProvider
+                              .select((p) => p.readingTheme))
+                        },
+                        onSelectionChanged: (sel) {
+                          HapticFeedback.lightImpact();
+                          ref
+                              .read(readingPreferencesProvider.notifier)
+                              .setReadingTheme(sel.first);
+                        },
+                      ),
+                    ),
+                    // Pass M6 (W1): word-by-word gloss for the mushaf
+                    // pages, living beside its sibling reading prefs.
+                    // The subtitle states the data truth — English
+                    // glosses, because that is all the corpus holds
+                    // (W4: no fake label, no fake transliteration).
+                    _SettingsTile(
+                      icon: Icons.translate_rounded,
+                      iconColor: colors.accent,
+                      title: 'Word-by-word',
+                      subtitle: 'English gloss under each Arabic '
+'word on the mushaf pages',
+                      trailing: Switch(
+                        value: ref.watch(readingPreferencesProvider
+                            .select((p) => p.wordByWordGloss)),
+                        activeThumbColor: colors.primary,
+                        onChanged: (_) {
+                          HapticFeedback.lightImpact();
+                          final now = ref
+                              .read(readingPreferencesProvider)
+                              .wordByWordGloss;
+                          ref
+                              .read(readingPreferencesProvider.notifier)
+                              .setWordByWordGloss(!now);
                         },
                       ),
                     ),
@@ -265,13 +330,6 @@ class SettingsScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.primary,
         borderRadius: AppRadius.cardRadiusLarge,
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.30),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -280,19 +338,12 @@ class SettingsScreen extends ConsumerWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              gradient: AppGradients.gold,
+              color: colors.accent,
               shape: BoxShape.circle,
               border: Border.all(
-                color: colors.onPrimary.withValues(alpha: 0.30),
+                color: colors.onPrimary.withValues(alpha: 0.24),
                 width: 2,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.accent.withValues(alpha: 0.40),
-                  blurRadius: 12,
-                  spreadRadius: 0,
-                ),
-              ],
             ),
             child: Center(
               child: Text(
@@ -438,17 +489,10 @@ class SettingsScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.accent.withValues(alpha: 0.10),
-            colors.primary.withValues(alpha: 0.05),
-          ],
-        ),
+        color: colors.card,
         borderRadius: AppRadius.cardRadiusLarge,
         border: Border.all(
-          color: colors.accent.withValues(alpha: 0.25),
+          color: colors.border,
         ),
       ),
       child: Column(
@@ -460,14 +504,8 @@ class SettingsScreen extends ConsumerWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  gradient: AppGradients.gold,
+                  color: colors.accent,
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.accent.withValues(alpha: 0.40),
-                      blurRadius: 10,
-                    ),
-                  ],
                 ),
                 child: Icon(
                   Icons.mosque_rounded,
@@ -580,13 +618,7 @@ class SettingsScreen extends ConsumerWidget {
           Container(
             height: 1,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  colors.accent.withValues(alpha: 0.30),
-                  Colors.transparent,
-                ],
-              ),
+              color: colors.border,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -688,20 +720,15 @@ class SettingsScreen extends ConsumerWidget {
               child: Container(
                 height: 1,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      colors.accent.withValues(alpha: 0.30),
-                    ],
-                  ),
+                  color: colors.border,
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Icon(
                 Icons.star_rounded,
-                color: colors.accent.withValues(alpha: 0.60),
+                color: colors.accent,
                 size: 14,
               ),
             ),
@@ -709,18 +736,13 @@ class SettingsScreen extends ConsumerWidget {
               child: Container(
                 height: 1,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colors.accent.withValues(alpha: 0.30),
-                      Colors.transparent,
-                    ],
-                  ),
+                  color: colors.border,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: AppSpacing.md),
         Text(
           'بَارَكَ اللَّهُ فِيك',
           style: TextStyle(
@@ -731,7 +753,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           textDirection: TextDirection.rtl,
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text(
           'May Allah bless you',
           style: AppTextStyles.labelSmall.copyWith(
@@ -740,7 +762,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 10,
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: AppSpacing.md),
         Text(
           '© 2026 Shahbaz Alam',
           style: AppTextStyles.labelSmall.copyWith(
@@ -748,7 +770,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 10,
           ),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           'All Rights Reserved',
           style: AppTextStyles.labelSmall.copyWith(
@@ -756,7 +778,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 9,
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: AppSpacing.sm),
         Text(
           'QIBRA AI',
           style: AppTextStyles.labelSmall.copyWith(
@@ -832,7 +854,7 @@ class SettingsScreen extends ConsumerWidget {
 
   void _showFontSizeSheet(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final current = ref.read(readingPreferencesProvider).fontScale;
+    final current = ref.read(readingPreferencesProvider).arabicScale;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: colors.card,
@@ -849,7 +871,7 @@ class SettingsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Font Size',
+                  'Font Size (Arabic + translation)',
                   style: AppTextStyles.titleMedium.copyWith(
                     color: sheetColors.goldText,
                     fontWeight: FontWeight.w700,
@@ -873,9 +895,11 @@ class SettingsScreen extends ConsumerWidget {
                         ? Icon(Icons.check_rounded, color: sheetColors.primary)
                         : null,
                     onTap: () {
+                      // Single knob moves BOTH scales together; the
+                      // reader's settings sheet fine-tunes them apart.
                       ref
                           .read(readingPreferencesProvider.notifier)
-                          .setFontScale(entry.$1);
+                          .setBothScales(entry.$1);
                       Navigator.pop(ctx);
                     },
                   ),
@@ -889,10 +913,12 @@ class SettingsScreen extends ConsumerWidget {
 
   void _showQuranTranslationSheet(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final current = ref.read(readingPreferencesProvider).translationId;
-    final editions = EditionResolver.allBundled()
-        .where((e) => e.id != 'ar')
-        .toList();
+    // Pass E: the list below IS the loadable set — every row is a real
+    // bundled file the catalog can serve (the legacy 'ur' duplicate and
+    // the Arabic base row are filtered at the resolver, single source).
+    final current = EditionResolver.canonical(
+        ref.read(readingPreferencesProvider).translationId);
+    final editions = EditionResolver.pickerEntries();
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: colors.card,
@@ -925,6 +951,18 @@ class SettingsScreen extends ConsumerWidget {
                         color: sheetColors.textPrimary,
                       ),
                     ),
+                    // Pass P3 (TQ-217 honest blank): the row for an
+                    // edition with a known upstream coverage gap says
+                    // so, in all three locales, right where the choice
+                    // is made.
+                    subtitle: edition.disclosesGap
+                        ? Text(
+                            AppStrings.of(context).quranTqGapNote,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: sheetColors.textSecondary,
+                            ),
+                          )
+                        : null,
                     trailing: current == edition.id
                         ? Icon(Icons.check_rounded, color: sheetColors.primary)
                         : null,
@@ -954,6 +992,15 @@ class SettingsScreen extends ConsumerWidget {
       ),
       builder: (ctx) {
         final sheetColors = QibraColors.of(ctx);
+        // Pass H1 parity disclosure: absent editions are derivable from
+        // the matrix alone (shown at once); depth percentages need the
+        // loaded corpus — until then they are OMITTED, never guessed.
+        // Read, not watched: this sheet builder runs outside the widget's
+        // build scope (Riverpod rule), and a point-in-time snapshot is
+        // exactly what a disclosure footnote needs.
+        final covRows = HadithAvailability.thinCoverage(
+            ref.read(hadithLanguageCoverageProvider).valueOrNull ??
+                const <String, Map<String, ({int nonEmpty, int total})>>{});
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -969,29 +1016,61 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                for (final entry in const [
-                  ('en', 'English'),
-                  ('ar', 'العربية'),
-                  ('ur', 'اردو'),
-                ])
+                // Phase B: the option list is DERIVED from the
+                // availability matrix (native labels; languages below
+                // full book coverage carry an honest count note — e.g.
+                // Français is 6-of-7 because the dataset has no
+                // fra-tirmidhi edition at all).
+                for (final option in HadithAvailability.selectorOptions())
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(
-                      entry.$2,
+                      option.note == null
+                          ? option.label
+                          : '${option.label}  ·  ${option.note}',
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: sheetColors.textPrimary,
                       ),
                     ),
-                    trailing: current == entry.$1
+                    trailing: current == option.code
                         ? Icon(Icons.check_rounded, color: sheetColors.primary)
                         : null,
                     onTap: () {
                       ref
                           .read(hadithLanguageProvider.notifier)
-                          .setLanguage(entry.$1);
+                          .setLanguage(option.code);
                       Navigator.pop(ctx);
                     },
                   ),
+                // Pass H1 depth notes (Part 3a+b): every language/book
+                // pair below 90% translated — percent rounded from real
+                // loaded counts, never a shipped number — plus every
+                // absent edition named at reason level (e.g. French has
+                // NO Jami at-Tirmidhi edition upstream at all).
+                if (covRows.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  for (final row in covRows)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        row.absent
+                            ? AppStrings.of(context).hadithNoEditionFor(
+                                HadithAvailability.label(row.language),
+                                HadithAvailability.bookDisplayNames[row.book] ??
+                                    row.book,
+                              )
+                            : AppStrings.of(context).hadithThinCoverage(
+                                HadithAvailability.label(row.language),
+                                HadithAvailability.bookDisplayNames[row.book] ??
+                                    row.book,
+                                row.percent,
+                              ),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: sheetColors.textTertiary,
+                        ),
+                      ),
+                    ),
+                ],
               ],
             ),
           ),
@@ -1030,7 +1109,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Close', style: TextStyle(color: colors.textSecondary)),
+            child: Text(AppStrings.of(context).close, style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1052,7 +1131,7 @@ class SettingsScreen extends ConsumerWidget {
                 );
               }
             },
-            child: const Text('Copy URL'),
+            child: Text(AppStrings.of(context).copyUrl),
           ),
         ],
       ),
@@ -1086,7 +1165,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: colors.textSecondary)),
+            child: Text(AppStrings.of(context).cancel, style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1109,7 +1188,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               );
             },
-            child: const Text('Delete local data'),
+            child: Text(AppStrings.of(context).deleteLocalData),
           ),
         ],
       ),
@@ -1195,7 +1274,7 @@ class SettingsScreen extends ConsumerWidget {
               Navigator.pop(ctx);
               await ref.read(authProvider.notifier).logout();
             },
-            child: const Text('Logout'),
+            child: Text(AppStrings.of(context).logout),
           ),
         ],
       ),

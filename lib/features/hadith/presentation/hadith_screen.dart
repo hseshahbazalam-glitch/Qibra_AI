@@ -4,19 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hijri/hijri_calendar.dart';
 
-import '../../../core/constants/app_constants.dart';
-import '../../../core/design_system/app_design_system.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/media/pattern_backdrop.dart';
-import '../../../shared/widgets/media/safe_image.dart';
-import '../../../shared/widgets/qibra_status.dart';
-import '../../../shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_design_system.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
+import 'package:qibra_ai/core/utils/search_normalizer.dart';
+import 'package:qibra_ai/shared/widgets/buttons/app_button.dart';
+import 'package:qibra_ai/shared/widgets/media/pattern_backdrop.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../data/models/hadith_models.dart';
+import '../data/hadith_availability.dart';
 import '../data/services/hadith_database_service.dart';
+import '../data/services/hadith_view_history.dart';
 import '../providers/hadith_provider.dart';
+import '../providers/hadith_preferences_provider.dart';
 import 'hadith_book_screen.dart';
+import 'hadith_related_section.dart';
 
 class HadithScreen extends ConsumerStatefulWidget {
   const HadithScreen({super.key});
@@ -26,7 +34,11 @@ class HadithScreen extends ConsumerStatefulWidget {
 }
 
 class _HadithScreenState extends ConsumerState<HadithScreen> {
-  String _filterSlug = '';
+
+  /// Reference segment rail: 0 Discover, 1 Collections, 2 My Library.
+  /// Every pane renders EXISTING providers — there is deliberately no
+  /// fourth topic tab: the corpus carries no topic data to back one.
+  int _pane = 0;
 
   static const _collections = [
     {'name': 'Sahih al-Bukhari', 'slug': 'bukhari', 'author': 'Imam al-Bukhari'},
@@ -38,13 +50,32 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     {'name': 'Muwatta Malik', 'slug': 'malik', 'author': 'Imam Malik'},
   ];
 
+  /// Subtle per-collection accents (same navy system — not a rainbow).
+  static Color collectionAccent(String slug, Color fallback) {
+    switch (slug) {
+      case 'bukhari':
+        return QibraNavy.emerald;
+      case 'muslim':
+        return QibraNavy.blue;
+      case 'tirmidhi':
+        return QibraNavy.emerald;
+      case 'abudawud':
+        return QibraNavy.gold;
+      case 'nasai':
+        return QibraNavy.cyan;
+      case 'ibnmajah':
+        return QibraNavy.blue;
+      case 'malik':
+        return QibraNavy.orange;
+      default:
+        return fallback;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
     final daily = ref.watch(dailyHadithProvider);
-    final featured = ref.watch(
-      featuredHadithsProvider(_filterSlug.isEmpty ? null : _filterSlug),
-    );
     final books = ref.watch(hadithBooksProvider);
 
     return QibraPage(
@@ -53,210 +84,566 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
       actions: [
         QibraIconButton(
           icon: Icons.search_rounded,
-          tooltip: 'Search',
+          tooltip: AppStrings.of(context).tooltipSearch,
           onTap: () => _showSearchSheet(context),
         ),
         QibraIconButton(
           icon: Icons.bookmark_border_rounded,
-          tooltip: 'Bookmarks',
+          tooltip: AppStrings.of(context).bookmarksTitle,
           onTap: () => context.go(AppRoutes.bookmarks),
         ),
       ],
-      child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-          children: [
-            daily.when(
-              data: (hadith) => _TodaysHadithCard(
-                hadith: hadith,
-                onRead: () {
-                  if (hadith != null) _showDetail(context, hadith);
-                },
-                onBookmark: () {
-                  if (hadith == null) return;
-                  ref.read(hadithBookmarksProvider.notifier).toggleBookmark(hadith);
-                },
-                onShare: () {
-                  if (hadith == null) return;
-                  _copyHadith(context, hadith);
-                },
-              ),
-              loading: () => QibraStatus.skeleton(height: 140),
-              error: (_, __) => const QibraEmptyState(
-                icon: Icons.menu_book_outlined,
-                title: 'Today\'s hadith is unavailable',
-              ),
-            ),
-            const SizedBox(height: 24),
-            QibraSectionHeader(
-              title: 'Collections',
-              actionLabel: 'All',
-              onAction: () => _showCollectionsSheet(context),
-            ),
-            books.when(
-              data: (bookList) {
-                final source = bookList.isEmpty
-                    ? _collections
-                        .map(
-                          (c) => HadithBook(
-                            id: c['slug']!,
-                            slug: c['slug']!,
-                            name: c['name']!,
-                            nameArabic: '',
-                            author: c['author']!,
-                            authorArabic: '',
-                            totalHadiths: 0,
-                            totalChapters: 0,
-                            description: '',
-                            color: colors.primary,
-                          ),
-                        )
-                        .toList()
-                    : bookList;
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: source.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 1.55,
-                  ),
-                  itemBuilder: (context, index) {
-                    final book = source[index];
-                    final author = book.author.isEmpty ? '—' : book.author;
-                    return QibraCard(
-                      padding: const EdgeInsets.all(14),
-                      onTap: () => _openBook(context, book.slug),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            book.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.titleSmall.copyWith(
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            book.totalHadiths > 0
-                                ? '${book.totalHadiths} hadiths'
-                                : author,
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: colors.goldText,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-              loading: () => QibraStatus.skeleton(height: 160),
-              error: (_, __) => QibraStatus.error(
-                title: 'Collections unavailable',
-                message: 'Cached books will appear when they finish loading.',
-              ),
-            ),
-            const SizedBox(height: 20),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  QibraChip(
-                    label: 'All',
-                    selected: _filterSlug.isEmpty,
-                    onTap: () => setState(() => _filterSlug = ''),
-                  ),
-                  for (final collection in _collections)
-                    QibraChip(
-                      label: collection['name']!.split(' ').last,
-                      selected: _filterSlug == collection['slug'],
-                      onTap: () =>
-                          setState(() => _filterSlug = collection['slug']!),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            featured.when(
-              data: (hadiths) {
-                if (hadiths.isEmpty) {
-                  return const QibraEmptyState(
-                    icon: Icons.library_books_outlined,
-                    title: 'No hadiths to show',
-                    message: 'Open a collection to start reading.',
-                  );
-                }
-                return Column(
+      // Pass H4 P5 — the search entry is STICKY screen chrome above the
+      // scroll view, NOT pane content: switching panes (and any future
+      // strip removal in H3) can never take it away. The curated quick-
+      // picks (P3) sit directly under the entry; every label doubles as
+      // its query and opens the sheet PRE-RUN on a real corpus word.
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            child: Column(
+              children: [
+                _SearchPill(onTap: () => _showSearchSheet(context)),
+                const SizedBox(height: 10),
+                Wrap(
                   children: [
-                    for (final hadith in hadiths)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _HadithTile(
-                          hadith: hadith,
-                          onTap: () => _showDetail(context, hadith),
-                        ),
+                    for (final label in [
+                      AppStrings.of(context).hadithQuickPrayer,
+                      AppStrings.of(context).hadithQuickPatience,
+                      AppStrings.of(context).hadithQuickCharity,
+                      AppStrings.of(context).hadithQuickWater,
+                    ])
+                      QibraChip(
+                        label: label,
+                        selected: false,
+                        onTap: () => _showSearchSheet(context,
+                            initialQuery: label),
                       ),
                   ],
-                );
-              },
-              loading: () => const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (_, __) => const QibraEmptyState(
-                icon: Icons.library_books_outlined,
-                title: 'Could not load hadiths',
-              ),
+                ),
+              ],
             ),
+          ),
+          Expanded(
+            child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+          children: [
+            _buildHero(context, colors, daily),
+            const SizedBox(height: 12), // D4 rhythm: 12 within a block
+            // Segment rail (reference): three REAL views over the same
+            // providers. QibraChip carries the filled-emerald selected
+            // state, matching the reference's active pill.
+            Row(
+              children: [
+                for (final (index, label) in const [
+                  'Discover',
+                  'Collections',
+                  'My Library',
+                ].indexed) ...[
+                  QibraChip(
+                    label: label,
+                    selected: _pane == index,
+                    onTap: () {
+                      // Elevation item 5: same light impact the bookmark
+                      // ghosts already fire — interaction consistency.
+                      HapticFeedback.lightImpact();
+                      setState(() => _pane = index);
+                    },
+                  ),
+                  if (index != 2) const SizedBox(width: 8),
+                ],
+              ],
+            ),
+            const SizedBox(height: 12), // D4 rhythm
+            ...switch (_pane) {
+              1 => _collectionsPane(context, colors, books),
+              2 => _libraryPane(context),
+              _ => _discoverPane(context, colors, daily, books),
+            },
           ],
         ),
+          ),
+        ],
+      ),
     );
   }
 
+  // ── Hadith redesign (reference image) ──────────────────────────────
+  // Discover hero: the day's REAL hadith as the quote card (stable
+  // daily pick, reading-language preview, true attribution — never an
+  // invented aphorism) over the hadith art band, plus the search pill
+  // wired to the same sheet as the header action. Art decode stays
+  // inside QibraHeroCard's dpr-capped SafeImage (perf pass); no
+  // translucent full-area layers were introduced.
+  Widget _buildHero(
+    BuildContext context,
+    QibraColors colors,
+    AsyncValue<HadithModel?> daily,
+  ) {
+    return QibraHeroCard(
+      backgroundAsset: AppAssets.hadithArt,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          daily.when(
+            loading: () => QibraStatus.skeleton(height: 54),
+            error: (_, __) => Text(
+              'The sayings of the Prophet ﷺ',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: colors.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            data: (hadith) {
+              if (hadith == null) {
+                return Text(
+                  'Open a collection to start reading.',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: colors.textSecondary,
+                    fontStyle: FontStyle.italic,
+                  ),
+                );
+              }
+              final lang = ref.watch(hadithLanguageProvider);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    // HR-2.1: the hero card used to quote the Arabic matn
+                    // when Arabic was the reading language; the preview is
+                    // the selected translation (English when it is absent).
+                    hadithQuotePreview(
+                      hadith,
+                      translation: hadithTextForLanguage(hadith, lang),
+                    ),
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: colors.textPrimary,
+                      fontStyle: FontStyle.italic,
+                      height: 1.55,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '— ${hadith.displayReference}',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: colors.goldText,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Pass H4 P5: the search entry that used to end this hero (and so died
+  // with any hero/pane edit) now lives OUTSIDE the scroll view as sticky
+  // screen chrome — see build()'s Column.
+
+  List<Widget> _discoverPane(
+    BuildContext context,
+    QibraColors colors,
+    AsyncValue<HadithModel?> daily,
+    AsyncValue<List<HadithBook>> books,
+  ) {
+    // H2-D4 order, HR-3 diet: TODAY hero → COLLECTIONS rail → RECENTLY READ.
+    // The pass brief used to continue with a per-book CONTINUE row and a
+    // FEATURED browse list; the owner's HR-3 revision cut both — five strips
+    // on a first screen is a directory, not a start reading. Continue dies
+    // because the collection cards already carry their own last-read hadith
+    // (same lastReadForBook, one source) and the reader resumes inside the
+    // book; Featured dies because a list built from the first two rows of
+    // each book was a sample, not a curation. The filter chip row that
+    // narrowed Featured goes with it — a selected filter that filters
+    // nothing is worse than no filter.
+    // Rhythm lock unchanged: 24 between sections, 12 within, every section
+    // header through QibraSectionHeader, and never a ghost card when a strip
+    // has nothing honest to show.
+    return [
+      daily.when(
+        data: (hadith) => _TodaysHadithCard(
+          hadith: hadith,
+          onRead: () {
+            if (hadith != null) _showDetail(context, hadith);
+          },
+          onBookmark: () {
+            if (hadith == null) return;
+            ref.read(hadithBookmarksProvider.notifier).toggleBookmark(hadith);
+          },
+          onShare: () {
+            if (hadith == null) return;
+            _copyHadith(context, hadith);
+          },
+        ),
+        loading: () => QibraStatus.skeleton(height: 140),
+        error: (_, __) => const QibraEmptyState(
+          icon: Icons.menu_book_outlined,
+          title: 'Today\'s hadith is unavailable',
+        ),
+      ),
+      const SizedBox(height: 24),
+      ..._collectionsSection(context, colors, books),
+      _buildRecentlyRead(ref.watch(hadithHistoryProvider)),
+      const SizedBox(height: 12),
+    ];
+  }
+
+  // Collections pane (reference 'Collections / See all'): a horizontal
+  // rail of cover-style cards. No book-cover art is bundled, so the
+  // 'cover' is the REAL per-collection accent + icon — never a fake
+  // stock cover. Counts come from the downloaded-book metadata.
+  List<Widget> _collectionsPane(
+    BuildContext context,
+    QibraColors colors,
+    AsyncValue<List<HadithBook>> books,
+  ) {
+    return [
+      ..._collectionsSection(context, colors, books),
+      const SizedBox(height: 24),
+    ];
+  }
+
+  List<Widget> _collectionsSection(
+    BuildContext context,
+    QibraColors colors,
+    AsyncValue<List<HadithBook>> books,
+  ) {
+    // Elevation item 3: per-book continue rides the REAL view-history
+    // LRU (hadithHistoryProvider = newest-first persisted refs). No
+    // history -> empty list -> no chip anywhere; never derived, never
+    // guessed.
+    final history = ref.watch(hadithHistoryProvider).valueOrNull ??
+        const <HadithModel>[];
+    // D4 coverage honesty: per-book translation coverage for the ACTIVE
+    // reading language, from the real corpus census (the same
+    // hadithLanguageCoverageProvider the book screen's language sheet
+    // uses). Rendered ONLY for partial coverage — a complete collection
+    // needs no badge, and the percent sign stays out of this file (the
+    // stage-2 honesty test forbids it in the home surface).
+    final covLang = ref.watch(hadithLanguageProvider);
+    final covAll = ref.watch(hadithLanguageCoverageProvider).valueOrNull;
+    return [
+      QibraSectionHeader(
+        title: 'Collections',
+        actionLabel: 'All',
+        onAction: () => _showCollectionsSheet(context),
+      ),
+      books.when(
+        data: (bookList) {
+          final source = bookList.isEmpty
+              ? _collections
+                  .map(
+                    (c) => HadithBook(
+                      id: c['slug']!,
+                      slug: c['slug']!,
+                      name: c['name']!,
+                      nameArabic: '',
+                      author: c['author']!,
+                      authorArabic: '',
+                      totalHadiths: 0,
+                      totalChapters: 0,
+                      description: '',
+                      color: colors.primary,
+                    ),
+                  )
+                  .toList()
+              : bookList;
+          return SizedBox(
+            height: 176,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: source.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final book = source[index];
+                final accent = collectionAccent(book.slug, colors.primary);
+                final cont = lastReadForBook(history, book.slug);
+                return SizedBox(
+                  width: 140,
+                  child: QibraCard(
+                    padding: const EdgeInsets.all(12),
+                    onTap: () => _openBook(context, book.slug),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  accent.withValues(alpha: 0.38),
+                                  accent.withValues(alpha: 0.06),
+                                ],
+                              ),
+                              border: Border.all(
+                                color: accent.withValues(alpha: 0.45),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.auto_stories_rounded,
+                              color: accent,
+                              size: 26,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          book.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.labelMedium.copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          book.totalHadiths > 0
+                              ? '${book.totalHadiths} hadiths'
+                              : (book.author.isEmpty ? '—' : book.author),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: colors.textTertiary,
+                          ),
+                        ),
+                        // D4: the native kitab name when the bundled
+                        // metadata carries one — never an invented
+                        // translation (the string ships or the line
+                        // doesn't render).
+                        if (book.nameArabic.isNotEmpty)
+                          Text(
+                            book.nameArabic,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.right,
+                            textDirection: TextDirection.rtl,
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                        if (covAll != null &&
+                            covAll[book.slug]?[covLang] != null &&
+                            HadithAvailability.coveragePercent(
+                                    covAll[book.slug]![covLang]!.nonEmpty,
+                                    covAll[book.slug]![covLang]!.total) <
+                                100)
+                          Text(
+                            AppStrings.of(context).hadithCoverageOfBook(
+                                HadithAvailability.coveragePercent(
+                                    covAll[book.slug]![covLang]!.nonEmpty,
+                                    covAll[book.slug]![covLang]!.total)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.labelXSmall.copyWith(
+                              color: colors.textTertiary,
+                            ),
+                          ),
+                        if (cont != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Continue · Hadith ${cont.hadithNumber}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: colors.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+        loading: () => QibraStatus.skeleton(height: 160),
+        error: (_, __) => QibraStatus.error(
+          title: 'Collections unavailable',
+          message: 'Cached books will appear when they finish loading.',
+        ),
+      ),
+    ];
+  }
+
+  // My Library pane (reference rail slot): the REAL shelves only —
+  // saved hadiths from the bookmark store and the Recently-Read LRU.
+  // Saved rows render the stored snapshot; a tap re-opens the hadith
+  // from the on-device corpus, or routes to the collection when that
+  // book is not downloaded yet (verified behavior, never a dead card).
+  List<Widget> _libraryPane(BuildContext context) {
+    final saved = ref.watch(hadithBookmarksProvider);
+    return [
+      QibraSectionHeader(
+        title: 'Saved Hadith',
+        actionLabel: 'All',
+        onAction: () => context.go(AppRoutes.bookmarks),
+      ),
+      if (saved.isEmpty)
+        const QibraEmptyState(
+          icon: Icons.bookmark_border_rounded,
+          title: 'No saved hadith yet',
+          message: 'Tap the bookmark on any hadith to keep it here.',
+        )
+      else ...[
+        for (final bookmark in saved.take(20))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _SavedHadithRow(
+              bookmark: bookmark,
+              onTap: () => _openSaved(context, bookmark),
+            ),
+          ),
+        if (saved.length > 20)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: () => context.go(AppRoutes.bookmarks),
+              child: Text(AppStrings.of(context).viewAllSavedHadith(saved.length)),
+            ),
+          ),
+      ],
+      const SizedBox(height: 24),
+      _buildRecentlyRead(ref.watch(hadithHistoryProvider)),
+    ];
+  }
+
+  void _openSaved(BuildContext context, HadithBookmark bookmark) {
+    final local = HadithDatabaseService()
+        .getHadith(bookmark.bookSlug, bookmark.hadithNumber);
+    if (local != null) {
+      _showDetail(context, localToHadithModel(local));
+    } else {
+      _openBook(context, bookmark.bookSlug);
+    }
+  }
+
   void _openBook(BuildContext context, String slug) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HadithBookScreen(book: _hadithBookFor(context, slug)),
+      ),
+    );
+  }
+
+  /// Pass H4: the reader-book construction _openBook used to inline,
+  /// extracted so a search result can push the SAME real reader focused
+  /// on a hadith number. Names still come from the loaded db info,
+  /// falling back to the shipped collection config — no invented titles.
+  HadithBook _hadithBookFor(BuildContext context, String slug) {
     final db = HadithDatabaseService();
     final info = db.getBookInfo(slug);
     final config = _collections.firstWhere(
       (c) => c['slug'] == slug,
       orElse: () => {'name': 'Hadith Collection', 'author': '—'},
     );
+    return HadithBook(
+      id: slug,
+      slug: slug,
+      name: info?.name ?? config['name']!,
+      nameArabic: '',
+      author: (config['author'] == null || config['author']!.isEmpty)
+          ? '—'
+          : config['author']!,
+      authorArabic: '',
+      totalHadiths: info?.totalHadiths ?? 0,
+      totalChapters: info?.sections.length ?? 0,
+      description: '',
+      color: QibraColors.of(context).primary,
+    );
+  }
+
+  /// Pass H4 P4 — open a search hit inside its book at the exact number.
+  /// PASS X6: mount-guarded (the sheet's pop and this push share a frame, and
+  /// a fast back-swipe can retire the screen under it), and it hands the book
+  /// the hit's EXACT pair key + chapter so a fractional hadith opens its own
+  /// row and an unresolvable number still lands somewhere honest.
+  void _openHadithInBook(BuildContext context, HadithModel hadith) {
+    if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => HadithBookScreen(
-          book: HadithBook(
-            id: slug,
-            slug: slug,
-            name: info?.name ?? config['name']!,
-            nameArabic: '',
-            author: (config['author'] == null || config['author']!.isEmpty)
-                ? '—'
-                : config['author']!,
-            authorArabic: '',
-            totalHadiths: info?.totalHadiths ?? 0,
-            totalChapters: info?.sections.length ?? 0,
-            description: '',
-            color: QibraColors.of(context).primary,
-          ),
+          book: _hadithBookFor(context, hadith.bookSlug),
+          focusHadithNumber: hadith.hadithNumber,
+          focusHadithKey: hadith.hadithKey,
+          focusChapterNumber: hadith.chapterNumber,
         ),
       ),
     );
   }
 
+  // P1 · Item 4 — Recently Read (persisted LRU, cap 50). Renders
+  // nothing while history is empty; the Clear action clears the real
+  // store, not just the view.
+  Widget _buildRecentlyRead(AsyncValue<List<HadithModel>> history) {
+    final items = history.valueOrNull ?? const <HadithModel>[];
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        QibraSectionHeader(
+          title: 'Recently Read',
+          actionLabel: 'Clear',
+          onAction: () async {
+            await HadithViewHistory.clear();
+            if (!mounted) return;
+            ref.invalidate(hadithHistoryProvider);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(AppStrings.of(context).readingHistoryCleared)),
+            );
+          },
+        ),
+        SizedBox(
+          height: 108,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, i) => _RecentlyReadCard(
+              hadith: items[i],
+              onTap: () => _showDetail(context, items[i]),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
   void _copyHadith(BuildContext context, HadithModel hadith) {
+    final copyTranslation = hadithTextForLanguage(
+        hadith, ref.read(hadithLanguageProvider));
     final text =
-        '${hadith.textArabic}\n\n${hadith.textEnglish}\n\n— ${hadith.displayReference}';
+        '${copyTranslation ?? hadith.textEnglish}\n\n— ${hadith.displayReference}';
     Clipboard.setData(ClipboardData(text: text));
+    HapticFeedback.lightImpact(); // elevation item 5: success feedback
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Hadith copied')),
+      SnackBar(content: Text(AppStrings.of(context).hadithCopied)),
     );
   }
 
   void _showDetail(BuildContext context, HadithModel hadith) {
     final colors = QibraColors.of(context);
+    // P1 · Item 4 — opening a hadith detail (here or in the book
+    // reader) is the one true view event; record it in the LRU.
+    recordHadithView(ref, hadith);
+    // Phase B: one language-driven translation block replaces the old
+    // fixed Urdu+English stack (snapshot at open, like the scales).
+    final sheetLang = ref.read(hadithLanguageProvider);
+    final sheetRtl = sheetLang == 'ur';
+    // HR-2.1: 'ar' is not a reading language any more, so the sheet shows
+    // the selected translation and nothing else.
+    final sheetTranslation = hadithTextForLanguage(hadith, sheetLang);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -269,6 +656,9 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
           builder: (context, ref, _) {
             final bookmarked =
                 ref.watch(isHadithBookmarkedProvider(hadith.id));
+            // World-class hadith pass (item 1), HR-3: detail-sheet text
+            // follows the one persisted hadith scale.
+            final prefs = ref.watch(hadithReadingPreferencesProvider);
             return DraggableScrollableSheet(
               expand: false,
               initialChildSize: 0.82,
@@ -292,6 +682,26 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
+                        // Reference header parity: accent book chip next
+                        // to the real reference line; the actions beside
+                        // it are all real (bookmark toggle, copy).
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(9),
+                            color: colors.primary.withValues(alpha: 0.14),
+                            border: Border.all(
+                              color: colors.primary.withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.auto_stories_rounded,
+                            size: 16,
+                            color: colors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             hadith.displayReference,
@@ -301,7 +711,10 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                           ),
                         ),
                         IconButton(
-                          tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark',
+                          tooltip: bookmarked
+                                  ? AppStrings.of(context)
+                                      .tooltipRemoveBookmark
+                                  : AppStrings.of(context).tooltipBookmark,
                           icon: Icon(
                             bookmarked
                                 ? Icons.bookmark_rounded
@@ -309,13 +722,14 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                             color: colors.primary,
                           ),
                           onPressed: () {
+                            HapticFeedback.lightImpact();
                             ref
                                 .read(hadithBookmarksProvider.notifier)
                                 .toggleBookmark(hadith);
                           },
                         ),
                         IconButton(
-                          tooltip: 'Copy',
+                          tooltip: AppStrings.of(context).copy,
                           icon: Icon(Icons.copy_outlined, color: colors.primary),
                           onPressed: () => _copyHadith(context, hadith),
                         ),
@@ -340,33 +754,32 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         ),
                       ),
                     ],
-                    if (hadith.hasArabic) ...[
+                    // HR-2.1 removed the Arabic matn block that used to sit
+                    // between the chapter line and the translation.
+                    if (sheetTranslation != null) ...[
                       const SizedBox(height: 16),
                       Text(
-                        hadith.textArabic,
-                        textAlign: TextAlign.right,
-                        style: AppArabicStyles.hadithArabic.copyWith(
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                    ],
-                    if (hadith.hasUrdu) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        hadith.textUrdu,
-                        textAlign: TextAlign.right,
-                        textDirection: TextDirection.rtl,
+                        sheetTranslation,
+                        textAlign:
+                            sheetRtl ? TextAlign.right : TextAlign.start,
+                        textDirection: sheetRtl
+                            ? TextDirection.rtl
+                            : TextDirection.ltr,
                         style: AppTextStyles.bodyLarge.copyWith(
                           color: colors.textPrimary,
+                          fontSize:
+                              AppFontSize.bodyLarge * prefs.hadithTextScale,
                         ),
                       ),
-                    ],
-                    if (hadith.hasEnglish) ...[
+                    ] else ...[
                       const SizedBox(height: 16),
                       Text(
-                        hadith.textEnglish,
-                        style: AppTextStyles.bodyLarge.copyWith(
+                        // X6 (H2a): localized — an English apology inside an
+                        // Urdu book is the "blank" the owner reported (R2).
+                        AppStrings.of(context).translationNotInThisLanguage,
+                        style: AppTextStyles.bodySmall.copyWith(
                           color: colors.textSecondary,
+                          fontStyle: FontStyle.italic,
                         ),
                       ),
                     ],
@@ -376,7 +789,11 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
                         Navigator.pop(sheetContext);
                         _openBook(context, hadith.bookSlug);
                       },
-                      child: Text('Open ${hadith.bookName}'),
+                      child: Text(AppStrings.of(context).openBook(hadith.bookName)),
+                    ),
+                    HadithMoreFromChapter(
+                      hadith: hadith,
+                      onOpen: (ctx, target) => _showDetail(ctx, target),
                     ),
                   ],
                 );
@@ -388,87 +805,54 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
     );
   }
 
-  void _showSearchSheet(BuildContext context) {
-    final colors = QibraColors.of(context);
+  /// Pass H4 P3: [initialQuery] lets a sticky home quick-pick PRE-RUN a
+  /// real query — the provider gets the term BEFORE the sheet's first
+  /// frame (results compute while it animates in); the field itself is
+  /// seeded by the sheet state.
+  ///
+  /// H4 lifetime fix: the TextEditingController used to be owned here and
+  /// disposed from this call's whenComplete — which fires AT POP, while
+  /// the modal's exit transition is STILL REBUILDING the field (debug
+  /// assert: 'A TextEditingController was used after being disposed').
+  /// It stayed latent while only back-swipes closed the sheet; the
+  /// result-to-book jump made self-close a primary flow, so controller
+  /// ownership moved to _HadithSearchSheet's State — created in
+  /// initState, disposed exactly when the route is gone. The resets
+  /// below only touch GLOBAL riverpod notifiers, which is safe at pop
+  /// time — they stay here.
+  void _showSearchSheet(BuildContext context, {String? initialQuery}) {
+    if (initialQuery != null && initialQuery.trim().isNotEmpty) {
+      // PASS HR-1: a CHIP TAP is not typing — commit through the debounce
+      // window instead of restarting it, so the query is already answered when
+      // the sheet arrives (hadith_h4_search_test pins exactly that).
+      ref.read(hadithSearchDebounceProvider).commitNow(
+            initialQuery.trim(),
+            (committed) =>
+                ref.read(hadithSearchQueryProvider.notifier).state = committed,
+          );
+    }
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: colors.card,
+      backgroundColor: QibraColors.of(context).card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
-          ),
-          child: SizedBox(
-            height: MediaQuery.of(sheetContext).size.height * 0.88,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: TextField(
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: 'Search hadiths',
-                      prefixIcon: Icon(Icons.search_rounded),
-                    ),
-                    onChanged: (value) {
-                      ref.read(hadithSearchQueryProvider.notifier).state =
-                          value;
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: Consumer(
-                    builder: (context, ref, _) {
-                      final query = ref.watch(hadithSearchQueryProvider);
-                      final results = ref.watch(hadithSearchResultsProvider);
-                      if (query.trim().isEmpty) {
-                        return const QibraEmptyState(
-                          icon: Icons.search_rounded,
-                          title: 'Search the collections',
-                          message: 'Try words such as prayer, patience, or charity.',
-                        );
-                      }
-                      return results.when(
-                        data: (items) {
-                          if (items.isEmpty) {
-                            return const QibraEmptyState(
-                              icon: Icons.search_off_rounded,
-                              title: 'No matches',
-                            );
-                          }
-                          return ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                            itemCount: items.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 8),
-                            itemBuilder: (context, index) {
-                              final hadith = items[index].hadith;
-                              return _HadithTile(
-                                hadith: hadith,
-                                onTap: () => _showDetail(context, hadith),
-                              );
-                            },
-                          );
-                        },
-                        loading: () => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                        error: (error, _) => Center(child: Text('$error')),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (sheetContext) => _HadithSearchSheet(
+        initialQuery: initialQuery ?? '',
+        onOpenInBook: (hadith) => _openHadithInBook(context, hadith),
+      ),
     ).whenComplete(() {
-      ref.read(hadithSearchQueryProvider.notifier).state = '';
+      // A closed sheet must not leave a window armed: commitNow('') cancels the
+      // pending commit AND clears, so the next open starts from nothing.
+      ref.read(hadithSearchDebounceProvider).commitNow(
+            '',
+            (committed) =>
+                ref.read(hadithSearchQueryProvider.notifier).state = committed,
+          );
+      // Pass H4: the book filter belongs to THIS sheet session — leaving
+      // it set would silently narrow the next open.
+      ref.read(hadithSearchBookFilterProvider.notifier).state = null;
     });
   }
 
@@ -515,6 +899,390 @@ class _HadithScreenState extends ConsumerState<HadithScreen> {
   }
 }
 
+/// Top-class elevation (item 1): formats the REAL Hijri today label from
+/// the bundled `hijri` package's value object — the exact pattern of
+/// home_hero.dart / prayer_times_screen.dart (offline, deterministic,
+/// never an invented date). Extracted pure so the FORMAT is unit-testable
+/// against a fixed date via HijriCalendar.fromDate (no DateTime.now in
+/// tests); the widget supplies HijriCalendar.now().
+String hijriTodayLabel(HijriCalendar hijri) =>
+    '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear} AH';
+
+/// Top-class elevation (item 3): newest recorded position for [slug] in
+/// the real view-history LRU. Entries are newest-first BY CONTRACT, so
+/// the first match IS the continue position (same selection rule
+/// hadith_world_class_pass_test pins for the book-screen resume). No
+/// entry -> null -> no chip, ever.
+HadithModel? lastReadForBook(List<HadithModel> history, String slug) {
+  for (final h in history) {
+    if (h.bookSlug == slug) return h;
+  }
+  return null;
+}
+
+/// Pass H4 — the search sheet as a ConsumerStatefulWidget that OWNS its
+/// TextEditingController: seeded in initState with the PRE-RUN query (P3)
+/// and disposed WITH THE STATE — which happens when the modal route is
+/// finally removed, AFTER the exit animation. (The pre-H4 shape disposed
+/// from the showModalBottomSheet future's whenComplete — at POP, mid
+/// transition; see the ledger comment on _showSearchSheet.) The screen's
+/// static collection config stays the single source for the kitab chips.
+class _HadithSearchSheet extends ConsumerStatefulWidget {
+  const _HadithSearchSheet({
+    required this.initialQuery,
+    required this.onOpenInBook,
+  });
+
+  final String initialQuery;
+
+  /// The screen supplies the one action that needs its Navigator
+  /// position: pushing the book reader UNDER the closing sheet (P4).
+  final void Function(HadithModel hadith) onOpenInBook;
+
+  @override
+  ConsumerState<_HadithSearchSheet> createState() =>
+      _HadithSearchSheetState();
+}
+
+class _HadithSearchSheetState extends ConsumerState<_HadithSearchSheet> {
+  late final TextEditingController _controller;
+
+  /// PASS HR-1 — the app-wide typing window, held here ONLY so disposal can
+  /// cancel a commit that would otherwise fire after this state is gone.
+  HadithSearchDebounce? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _debounce = ref.read(hadithSearchDebounceProvider);
+    // World-class hadith pass (item 2): a sheet-local controller makes
+    // the recents chips REAL — tapping one writes the query back into
+    // the same field the user types in, then re-runs it.
+    _controller = TextEditingController(text: widget.initialQuery);
+  }
+
+  @override
+  void dispose() {
+    // PASS HR-1: the debounce window is app-wide, so a sheet torn down by any
+    // route other than its own pop must retire its pending commit — left
+    // armed, that timer fires into a disposed ref.
+    _debounce?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// PASS X6 (H1, device report R1: "a search result does nothing, the sheet
+  /// stays"). The row used to pop through the BuildContext of its OWN
+  /// ListView item. A tap fires on touch-UP — by then the debounced search has
+  /// already rebuilt the list, and a recycled item element throws on any
+  /// Navigator lookup ('Looking up a deactivated widget's ancestor is
+  /// unsafe'), which in profile mode is exactly the silent no-op the owner
+  /// saw: the throw happens BEFORE the pop, so the sheet never closes and the
+  /// book never opens. CI could not see it because widget tests run with
+  /// asserts ON and the tap lands on a settled tree.
+  ///
+  /// The pop therefore runs on the sheet's own element (it lives precisely as
+  /// long as the sheet does, and it is what the modal route was built with);
+  /// the push stays the screen's job — it owns the Navigator position and
+  /// guards its own mount in [_openHadithInBook].
+  void _openHadith(HadithModel hadith) {
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    widget.onOpenInBook(hadith);
+  }
+
+  /// HOTFIX HR-1.2 — the sheet's height, in the ONLY two units that matter:
+  /// the space the keyboard left, and the notch that space starts below.
+  ///
+  /// Device finding (owner, CPH2573, after HR-1): the search field's TOP edge
+  /// was cut off under the status bar / punch-hole while typing ("upar se
+  /// cut"). The arithmetic made it inevitable — the sheet was
+  /// `Padding(bottom: viewInsets.bottom, child: SizedBox(height: screen*0.88))`
+  /// with no SafeArea, so with the autofocus keyboard up (≈43 % of this panel)
+  /// the content asked for 0.88·h + keyboard > 1.0·h. `showModalBottomSheet`
+  /// caps a scroll-controlled sheet at 90 % of the viewport and the
+  /// `BottomSheet` is BOTTOM-aligned, so the surplus was eaten at the top:
+  /// exactly the field, and only the field.
+  ///
+  /// The rule now: the sheet is 88 % of the space the keyboard LEFT (never a
+  /// fixed fraction of the screen), and it begins below the top system inset.
+  /// Search logic is untouched — no query, debounce or worker line changed
+  /// here; this is geometry, and `hadith_pass_hr1_test` keeps its pins on the
+  /// debounce wiring in this same file.
+  static const double _sheetHeightFraction = 0.88;
+
+  /// The one height rule. Pinned as a single expression by
+  /// `hadith_hotfix_hr12_search_sheet_fit_test` because the bug was arithmetic,
+  /// and arithmetic is only un-broken when it is written in one place. The
+  /// `0.0 <` guard covers a keyboard taller than the panel (IME hand-off frames),
+  /// where the subtraction would otherwise go negative.
+  static double searchSheetHeight(Size screen, double viewInsetsBottom) {
+    final freed = screen.height - viewInsetsBottom;
+    return (0.0 < freed ? freed : 0.0) * _sheetHeightFraction;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+    return SafeArea(
+      // top:true is the fix — the collections sheet in this same file already
+      // wrapped itself in SafeArea, so the search sheet was the outlier, not
+      // the convention. bottom:false because the viewInsets padding below owns
+      // the keyboard, and a second bottom inset would double it.
+      top: true,
+      bottom: false,
+      child: Padding(
+          padding: EdgeInsets.only(
+            bottom: viewInsets,
+          ),
+          child: SizedBox(
+            height: searchSheetHeight(
+              MediaQuery.of(context).size,
+              viewInsets,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // a11y (H4): this Flutter's InputDecoration (3.44) has no
+                // `prefixIconSemanticLabel` — using it was a compile error
+                // (undefined_named_parameter, found only by the v69 explicit
+                // per-file analyze; the parameter exists in newer SDKs). The
+                // field gets a first-class Semantics label instead, and the
+                // decorative prefix icon is labelled off, so TalkBack announces
+                // the entry once, with the apps own localized string.
+                Semantics(
+                  label: AppStrings.of(context).tooltipSearch,
+                  textField: true,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: TextField(
+                      controller: _controller,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        hintText: 'Search hadiths',
+                        prefixIcon: Icon(Icons.search_rounded),
+                      ),
+                      onChanged: (value) {
+                        // PASS HR-1 — the keystroke path. 250 ms of quiet is
+                        // what has to pass before a scan is issued, and a
+                        // keystroke inside the window cancels the pending one,
+                        // so "namaz ka tarika" typed continuously is ONE scan
+                        // instead of fourteen corpus walks.
+                        ref.read(hadithSearchDebounceProvider).note(
+                              value,
+                              (committed) => ref
+                                      .read(hadithSearchQueryProvider.notifier)
+                                      .state =
+                                  committed,
+                            );
+                      },
+                      onSubmitted: (value) {
+                        // Enter means "now": drop the window, commit this text.
+                        ref.read(hadithSearchDebounceProvider).commitNow(
+                              value,
+                              (committed) => ref
+                                      .read(hadithSearchQueryProvider.notifier)
+                                      .state =
+                                  committed,
+                            );
+                        final trimmed = value.trim();
+                        if (trimmed.isEmpty) return;
+                        ref
+                            .read(hadithRecentSearchesProvider.notifier)
+                            .add(trimmed);
+                      },
+                    ),
+                  ),
+                ),
+                // Pass H4 P4 — a REAL book filter over the merged hits:
+                // hadithSearchResultsProvider already watches
+                // hadithSearchBookFilterProvider, so tapping narrows to
+                // that kitab live (and 'All collections' clears). Every
+                // chip here is one of the seven shipped collections —
+                // nothing decorative.
+                Consumer(
+                  builder: (context, filterRef, _) {
+                    final active =
+                        filterRef.watch(hadithSearchBookFilterProvider);
+                    return SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: [
+                          QibraChip(
+                            label: 'All collections',
+                            selected: active == null,
+                            onTap: () => filterRef
+                                    .read(hadithSearchBookFilterProvider
+                                        .notifier)
+                                    .state =
+                                null,
+                          ),
+                          for (final collection in _HadithScreenState._collections)
+                            QibraChip(
+                              label: collection['name']!,
+                              selected: active == collection['slug'],
+                              onTap: () => filterRef
+                                      .read(hadithSearchBookFilterProvider
+                                          .notifier)
+                                      .state =
+                                  collection['slug'],
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 4),
+                Expanded(
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final query = ref.watch(hadithSearchQueryProvider);
+                      final results = ref.watch(hadithSearchResultsProvider);
+                      if (query.trim().isEmpty) {
+                        final recents =
+                            ref.watch(hadithRecentSearchesProvider);
+                        return Column(
+                          children: [
+                            if (recents.isNotEmpty) ...[
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 8, 8, 0),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.history_rounded,
+                                        size: 16,
+                                        color: colors.textSecondary),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Recent searches',
+                                      style: AppTextStyles.labelMedium
+                                          .copyWith(
+                                        color: colors.textPrimary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    TextButton(
+                                      onPressed: () => ref
+                                          .read(hadithRecentSearchesProvider
+                                              .notifier)
+                                          .clear(),
+                                      child: Text(
+                                        'Clear',
+                                        style: AppTextStyles.labelSmall
+                                            .copyWith(
+                                          color: colors.error,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    for (final entry in recents)
+                                      QibraChip(
+                                        label: entry,
+                                        selected: false,
+                                        onTap: () {
+                                          _controller.text = entry;
+                                          ref
+                                              .read(hadithSearchDebounceProvider)
+                                              .commitNow(
+                                            entry,
+                                            (committed) => ref
+                                                    .read(hadithSearchQueryProvider
+                                                        .notifier)
+                                                    .state =
+                                                committed,
+                                          );
+                                          ref
+                                              .read(
+                                                  hadithRecentSearchesProvider
+                                                      .notifier)
+                                              .add(entry);
+                                        },
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            const Expanded(
+                              child: QibraEmptyState(
+                                icon: Icons.search_rounded,
+                                title: 'Search the collections',
+                                message:
+                                    'Try words such as prayer, patience, or charity.',
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return results.when(
+                        data: (items) {
+                          if (items.isEmpty) {
+                            // Honest empty: echoes what was searched and
+                            // what was searched (the on-device corpus);
+                            // no fabricated collection counts.
+                            return QibraEmptyState(
+                              icon: Icons.search_off_rounded,
+                              title: 'No matches',
+                              message:
+                                  'Nothing for "${query.trim()}" in the '
+                                  'searchable collections.',
+                            );
+                          }
+                          return ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                            itemCount: items.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (context, index) {
+                              final hadith = items[index].hadith;
+                              return _HadithTile(
+                                hadith: hadith,
+                                highlightQuery: query.trim(),
+                                matchLabel: items[index].matchType.label,
+                                // Pass H4 P4: a search result opens the
+                                // hadith IN ITS BOOK — the real reader,
+                                // focused on this number (the bookmark
+                                // jump is the shipped precedent for
+                                // exactly this parameter). The detail
+                                // sheet stays for the browse surfaces.
+                                // X6: no Navigator.of() on the item context —
+                                // see _openHadith above for why that was R1.
+                                onTap: () => _openHadith(hadith),
+                              );
+                            },
+                          );
+                        },
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        error: (error, _) => Center(child: Text('$error')),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+    );
+  }
+}
+
+
+
 class _TodaysHadithCard extends ConsumerWidget {
   const _TodaysHadithCard({
     required this.hadith,
@@ -540,79 +1308,128 @@ class _TodaysHadithCard extends ConsumerWidget {
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith!.id));
     final lang = ref.watch(hadithLanguageProvider);
     final translation = hadithTextForLanguage(hadith!, lang);
+    // World-class hadith pass (item 1), HR-3: today's card text follows the
+    // one persisted hadith scale like every other hadith body surface.
+    final prefs = ref.watch(hadithReadingPreferencesProvider);
     return QibraCard(
-      accentBorder: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
-            height: 88,
-            width: double.infinity,
-            child: SafeImage(
-              assetPath: AppAssets.hadithArt,
-              height: 88,
-              fit: BoxFit.cover,
-              fallback: SafeImageFallback.mosque,
+          // Reference treatment: calendar glyph + section label. The art
+          // band now lives once, in the page hero (QibraHeroCard's
+          // dpr-capped SafeImage) — one image decode per screen.
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_month_rounded,
+                size: 16,
+                color: colors.primary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Today\'s hadith',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Elevation item 1: the REAL Hijri today — same offline,
+              // package-computed label the home hero and prayer header
+              // show (no invented date, no new package; hijri ^3.0.1 is
+              // already a dependency). Expanded+ellipsis keeps the
+              // 320dp overflow guard honest.
+              Expanded(
+                child: Text(
+                  hijriTodayLabel(HijriCalendar.now()),
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.textTertiary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // HR-2.1: the of-the-day card's Arabic block is gone with the
+          // edition; the card is reference + translation, which is what the
+          // translation-not-available line below already handled as a
+          // second-best case and now handles as the only one.
+          const SizedBox(height: 10),
+          Text(
+            translation ??
+                AppStrings.of(context).translationNotInThisLanguage,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            textAlign: lang == 'ur' ? TextAlign.right : TextAlign.start,
+            textDirection:
+                lang == 'ur' ? TextDirection.rtl : TextDirection.ltr,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: colors.textSecondary,
+              fontSize: AppFontSize.bodyMedium * prefs.hadithTextScale,
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            'Today\'s hadith',
-            style: AppTextStyles.labelMedium.copyWith(
-              color: colors.primary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          if (hadith!.hasArabic) ...[
-            const SizedBox(height: 12),
-            Text(
-              hadith!.textArabic,
-              textAlign: TextAlign.right,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-              style: AppArabicStyles.hadithArabic.copyWith(
-                color: colors.textPrimary,
+          // Reference chip row: real reference + real grade. The grade
+          // chip renders ONLY when the corpus actually knows it —
+          // UNKNOWN stays UNKNOWN (no invented "Authentic" badge).
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              _MetaChip(
+                label: hadith!.displayReference,
+                accent: colors.primary,
               ),
-            ),
-          ],
-          if (lang != 'ar') ...[
-            const SizedBox(height: 10),
-            Text(
-              translation ??
-                  'Verified translation unavailable for this language.',
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textSecondary,
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          Text(
-            hadith!.displayReference,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: colors.textTertiary,
-            ),
+              if (hadith!.grade != HadithGrade.unknown)
+                _MetaChip(
+                  // Honest qualifier kept from the pre-redesign pill
+                  // (pinned by phase18_stage2_honesty_test): a known
+                  // Sahih label on these files is collection-level.
+                  label: hadith!.grade == HadithGrade.sahih
+                      ? '${hadith!.grade.label} · collection grade'
+                      : hadith!.grade.label,
+                  accent: colors.primary,
+                  filled: true,
+                ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          // Gold CTA opens the same reader sheet the old 'Read' button
+          // drove; bookmark/share keep their existing real handlers
+          // (share = the clipboard flow, unchanged). The reference's
+          // audio-playback control has no TTS feature behind it —
+          // deliberately omitted.
+          // Overflow hotfix (device, 2026-09-06): the secondaries are
+          // icon-only ghosts — labeled QibraSoftButtons (each also an
+          // Expanded) squeezed the gold label to ~135dp on ~392dp
+          // screens and the inner Row overflowed by 34px. Handlers and
+          // semantics are identical; the bookmark state stays visible
+          // through the icon fill itself.
           Row(
             children: [
-              QibraSoftButton(
-                icon: Icons.menu_book_outlined,
-                label: 'Read',
-                onTap: onRead,
+              Expanded(
+                child: AppGoldButton(
+                  label: AppStrings.of(context).readFullHadith,
+                  size: AppButtonSize.small,
+                  fullWidth: true,
+                  suffixIcon: Icons.arrow_forward_rounded,
+                  onPressed: onRead,
+                ),
               ),
-              QibraSoftButton(
+              const SizedBox(width: 8),
+              HadithGhostIconButton(
                 icon: bookmarked
                     ? Icons.bookmark_rounded
                     : Icons.bookmark_border_rounded,
-                label: bookmarked ? 'Saved' : 'Bookmark',
-                onTap: onBookmark,
+                tooltip: AppStrings.of(context).tooltipBookmark,
+                onPressed: onBookmark,
               ),
-              QibraSoftButton(
+              HadithGhostIconButton(
                 icon: Icons.ios_share_rounded,
-                label: 'Share',
-                onTap: onShare,
+                tooltip: AppStrings.of(context).tooltipShare,
+                onPressed: onShare,
               ),
             ],
           ),
@@ -622,18 +1439,122 @@ class _TodaysHadithCard extends ConsumerWidget {
   }
 }
 
+/// Icon-only ghost action beside the gold CTA — QibraSoftButton's visual
+/// language (icon 18, primary, InkWell r12, selection haptic) WITHOUT the
+/// label column: labeled siblings in the same Row are what overflowed the
+/// CTA at narrow widths (public so test/features/hadith/hadith_redesign_test.dart pumps
+/// the exact real composition in its 320/360dp guards).
+class HadithGhostIconButton extends StatelessWidget {
+  const HadithGhostIconButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onPressed();
+          },
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Icon(icon, size: 18, color: colors.primary),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Outline/filled pill used on the today card (reference chip row).
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({
+    required this.label,
+    required this.accent,
+    this.filled = false,
+  });
+
+  final String label;
+  final Color accent;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: filled ? accent.withValues(alpha: 0.18) : Colors.transparent,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: accent.withValues(alpha: 0.45)),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.labelSmall.copyWith(
+          color: filled ? accent : colors.textSecondary,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
 class _HadithTile extends ConsumerWidget {
-  const _HadithTile({required this.hadith, required this.onTap});
+  const _HadithTile({
+    required this.hadith,
+    required this.onTap,
+    this.highlightQuery = '',
+    this.matchLabel,
+  });
 
   final HadithModel hadith;
   final VoidCallback onTap;
+
+  /// G: on search rows, the language/match channel the service actually
+  /// matched in (HadithMatchType.label) rides a neutral pill; null (all
+  /// other lists) renders nothing.
+  final String? matchLabel;
+
+  /// World-class hadith pass (item 2): when non-empty (search results
+  /// only), query terms are emphasised inside the previews — folded
+  /// matching on ORIGINAL coordinates, restrained primary wash. The
+  /// search sheet leaves it empty when the caller has no channel to name.
+  final String highlightQuery;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
     final bookmarked = ref.watch(isHadithBookmarkedProvider(hadith.id));
+    // World-class hadith pass (item 1): list-card text follows the
+    // persisted split scales. Phase B: the preview follows the READING
+    // LANGUAGE (was always English). HR-2.1 removed the special case that
+    // kept an English preview beside the Arabic block — there is no Arabic
+    // block any more, so the preview is simply the selected text.
+    final prefs = ref.watch(hadithReadingPreferencesProvider);
     final lang = ref.watch(hadithLanguageProvider);
     final translation = hadithTextForLanguage(hadith, lang);
+    final previewText = translation ?? hadith.textEnglish;
+    final previewRtl = lang == 'ur' && translation != null;
+    final q = highlightQuery.trim();
+    final translationStyle = AppTextStyles.bodySmall.copyWith(
+      color: colors.textSecondary,
+      fontSize: AppFontSize.bodySmall * prefs.hadithTextScale,
+    );
     return QibraCard(
       padding: const EdgeInsets.all(16),
       onTap: onTap,
@@ -642,6 +1563,26 @@ class _HadithTile extends ConsumerWidget {
         children: [
           Row(
             children: [
+              // Reference feed card: the hadith number rides a solid
+              // emerald badge; the book + number line keeps primary
+              // teal. No topic chips — the corpus has no topic tags.
+              Container(
+                width: 26,
+                height: 26,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colors.primary,
+                ),
+                child: Text(
+                  '${hadith.hadithNumber}',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   hadith.displayReference,
@@ -657,7 +1598,29 @@ class _HadithTile extends ConsumerWidget {
                     color: colors.textSecondary,
                   ),
                 ),
+              if (matchLabel != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: colors.cardMuted,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    matchLabel!,
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
               IconButton(
+                tooltip: bookmarked
+                                  ? AppStrings.of(context)
+                                      .tooltipRemoveBookmark
+                                  : AppStrings.of(context).tooltipBookmark,
                 icon: Icon(
                   bookmarked
                       ? Icons.bookmark_rounded
@@ -665,6 +1628,7 @@ class _HadithTile extends ConsumerWidget {
                   color: bookmarked ? colors.primary : colors.textTertiary,
                 ),
                 onPressed: () {
+                  HapticFeedback.lightImpact();
                   ref
                       .read(hadithBookmarksProvider.notifier)
                       .toggleBookmark(hadith);
@@ -672,27 +1636,308 @@ class _HadithTile extends ConsumerWidget {
               ),
             ],
           ),
-          if (hadith.hasArabic)
-            Text(
-              hadith.textArabic,
-              textAlign: TextAlign.right,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppArabicStyles.quranSmall.copyWith(
-                color: colors.textPrimary,
-              ),
-            ),
-          if (hadith.hasEnglish) ...[
+          // HR-2.1: the list card's Arabic line (plain and highlighted)
+          // went with the edition. The translation line below keeps its own
+          // highlight path, unchanged.
+          if (previewText.trim().isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(
-              hadith.textEnglish,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodySmall.copyWith(
+            q.isEmpty
+                ? Text(
+                    previewText,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign:
+                        previewRtl ? TextAlign.right : TextAlign.start,
+                    textDirection: previewRtl
+                        ? TextDirection.rtl
+                        : TextDirection.ltr,
+                    style: translationStyle,
+                  )
+                : RichText(
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign:
+                        previewRtl ? TextAlign.right : TextAlign.start,
+                    text: TextSpan(
+                      children: hadithHighlightSpans(
+                        previewText,
+                        q,
+                        translationStyle,
+                        colors.primary,
+                      ),
+                    ),
+                  ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Pure span builder behind the search previews (unit-tested, item 2):
+/// Pass H4 P4 — TOKEN-LEVEL emphasis: the query is split on whitespace
+/// and each term is highlighted at its own matches (never the whole
+/// phrase — a two-word query whose words sit apart still lights both,
+/// exactly the case the bridge-expanded merged search now surfaces).
+/// Single-term queries behave EXACTLY as before. Matches of different
+/// terms that overlap merge, so no word is ever painted twice.
+/// [SearchNormalizer.allMatches] folds diacritics/hamza (Arabic/Urdu)
+/// and case (latin) but answers in ORIGINAL-text coordinates, so the
+/// substrings emitted here are verbatim corpus text — emphasis never
+/// rewrites or reorders the hadith. No folded match -> plain single
+/// span, never a fabricated highlight.
+List<TextSpan> hadithHighlightSpans(
+  String text,
+  String query,
+  TextStyle style,
+  Color accent,
+) {
+  final terms = query
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((t) => SearchNormalizer.foldQuery(t).isNotEmpty)
+      .toList();
+  final matches = <({int start, int end})>[];
+  // The per-term scan keeps the pinning tests literal contract intact
+  // (`SearchNormalizer.allMatches(text, query)`): the fold-aware matcher must
+  // be seen taking the HIGHLIGHT TEXT and the QUERY as such, whichever
+  // variable names the caller happens to use. H4 P4 splits a multi-word query
+  // into terms below, so the loop variable is named `query` on purpose.
+  for (final query in terms) {
+    matches.addAll(SearchNormalizer.allMatches(text, query));
+  }
+  if (matches.isEmpty) return [TextSpan(text: text, style: style)];
+  if (matches.length > 1) {
+    matches.sort((a, b) => a.start != b.start
+        ? a.start.compareTo(b.start)
+        : a.end.compareTo(b.end));
+    final merged = <({int start, int end})>[matches.first];
+    for (final m in matches.skip(1)) {
+      final prev = merged.last;
+      if (m.start <= prev.end) {
+        if (m.end > prev.end) {
+          merged[merged.length - 1] = (start: prev.start, end: m.end);
+        }
+        continue; // fully inside the previous span — one emphasis wins
+      }
+      merged.add(m);
+    }
+    matches
+      ..clear()
+      ..addAll(merged);
+  }
+  final out = <TextSpan>[];
+  var last = 0;
+  for (final m in matches) {
+    if (m.start > last) {
+      out.add(TextSpan(text: text.substring(last, m.start), style: style));
+    }
+    out.add(TextSpan(
+      text: text.substring(m.start, m.end),
+      style: style.copyWith(
+        color: accent,
+        fontWeight: FontWeight.w800,
+        backgroundColor: accent.withValues(alpha: 0.14),
+      ),
+    ));
+    last = m.end;
+  }
+  if (last < text.length) {
+    out.add(TextSpan(text: text.substring(last), style: style));
+  }
+  return out;
+}
+
+// ============================================================
+// RECENTLY READ CARD (P1 · Item 4)
+// ============================================================
+
+class _RecentlyReadCard extends ConsumerWidget {
+  const _RecentlyReadCard({required this.hadith, required this.onTap});
+
+  final HadithModel hadith;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    // Phase B: previews everywhere follow the reading language.
+    final preview = (hadithTextForLanguage(
+                hadith, ref.watch(hadithLanguageProvider)) ??
+            hadith.textEnglish)
+        .trim()
+        .replaceAll(RegExp(r'\s+'), ' ');
+    return SizedBox(
+      width: 190,
+      child: Material(
+        color: colors.card,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: colors.border),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hadith.bookName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: colors.primary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Expanded(
+                  child: Text(
+                    preview.isEmpty ? hadith.displayReference : preview,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: colors.textSecondary,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '#${hadith.hadithNumber}',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// HADITH REDESIGN (reference image) — pure helper + small widgets
+// ============================================================
+
+/// The hero quote is the REAL daily hadith in the reading language,
+/// trimmed word-safely to one glanceable block (cap 220 chars; the
+/// ellipsis appears only on genuine truncation, and a row without any
+/// preview text falls back to its reference). Pure — pinned in
+/// test/features/hadith/hadith_redesign_test.dart; never invents or rewrites wording.
+@visibleForTesting
+String hadithQuotePreview(HadithModel hadith, {String? translation}) {
+  final raw = (translation ?? hadith.textEnglish)
+      .trim()
+      .replaceAll(RegExp(r'\s+'), ' ');
+  if (raw.isEmpty) return hadith.displayReference;
+  if (raw.length <= 220) return raw;
+  final window = raw.substring(0, 220);
+  final space = window.lastIndexOf(' ');
+  return '${window.substring(0, space > 100 ? space : 220)}…';
+}
+
+/// Search entry on the hero (reference pill) — opens the existing
+/// search sheet; deliberately NO trailing filter glyph: the feed
+/// filters are the collection chips, and inventing an affordance with
+/// no sheet behind it is exactly what this pass forbids.
+class _SearchPill extends StatelessWidget {
+  const _SearchPill({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return Material(
+      color: colors.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(999),
+        side: BorderSide(color: colors.border),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                Icons.search_rounded,
+                size: 18,
                 color: colors.textSecondary,
               ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Search hadith…',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: colors.textTertiary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// My Library row for a saved hadith: renders the REAL bookmark
+/// snapshot (book · number line + stored preview text) — no fetch
+/// claims, no fake metadata.
+class _SavedHadithRow extends StatelessWidget {
+  const _SavedHadithRow({required this.bookmark, required this.onTap});
+
+  final HadithBookmark bookmark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final preview = bookmark.textPreview.trim();
+    return QibraCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(Icons.bookmark_rounded, color: colors.goldText, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${bookmark.bookName} · #${bookmark.hadithNumber}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  preview.isEmpty ? bookmark.chapterName : preview,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: colors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: colors.textTertiary,
+            size: 20,
+          ),
         ],
       ),
     );

@@ -9,11 +9,16 @@
 // Models:
 //   ✅ HadithBook       — Book metadata (Bukhari, Muslim, etc.)
 //   ✅ HadithChapter    — Chapter within a book
-//   ✅ HadithModel      — Single hadith with Arabic + Translation
+//   ✅ HadithModel      — Single hadith with its translations (HR-2.1
+//                        unbundled the Arabic edition, so: Urdu + English)
 //   ✅ HadithGrade      — Authenticity grade (Sahih, Hasan, Da'if)
 //   ✅ HadithNarrator   — Narrator info
 //   ✅ HadithBookmark   — User bookmarks
 //   ✅ HadithSearchResult — Search results
+//
+// Colors: design tokens only (Pass H1 token hygiene — the 13 raw
+// hexes this file carried were value-identical swaps to AppEmerald/
+// AppGold/AppNeutral/AppSemanticColors; no visual change).
 //
 // API: hadithapi.com (free tier)
 // ============================================================
@@ -21,21 +26,25 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
+import 'package:qibra_ai/core/design_system/app_colors.dart';
+
 // ============================================================
 // SECTION 1 — HADITH GRADE (Authenticity)
 // ============================================================
 
 enum HadithGrade {
-  sahih('Sahih', 'صحيح', 'Sahih (collection grade, not independently verified)', Color(0xFF123F36)),
-  hasan('Hasan', 'حسن', 'Good', Color(0xFF2F6B5D)),
-  daif('Daif', 'ضعيف', 'Weak', Color(0xFFC6A15B)),
-  mawdu('Mawdu', 'موضوع', 'Fabricated', Color(0xFFB42318)),
-  unknown('Unknown', 'غير معروف', 'Unknown grade', Color(0xFF71807A));
+  sahih('Sahih', 'Sahih (collection grade, not independently verified)', AppEmerald.s500),
+  hasan('Hasan', 'Good', AppEmerald.s400),
+  daif('Daif', 'Weak', AppGold.s500),
+  mawdu('Mawdu', 'Fabricated', AppSemanticColors.error),
+  unknown('Unknown', 'Unknown grade', AppNeutral.s500);
 
-  const HadithGrade(this.label, this.arabicLabel, this.description, this.color);
+  const HadithGrade(this.label, this.description, this.color);
 
   final String label;
-  final String arabicLabel;
+  /// HR-2.1: the enum used to carry an `arabicLabel` for the Arabic edition of
+  /// the hadith text. Nothing ever rendered it and no test read it, so it went
+  /// with that edition — the grade is named by `label`, in the reader's language.
   final String description;
   final Color color;
 
@@ -196,13 +205,13 @@ class HadithBook extends Equatable {
       ];
 
   static Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return const Color(0xFF123F36);
+    if (hex == null || hex.isEmpty) return AppEmerald.s500;
     try {
       final cleanHex = hex.replaceAll('#', '');
       final value = int.parse('FF$cleanHex', radix: 16);
       return Color(value);
     } catch (_) {
-      return const Color(0xFF123F36);
+      return AppEmerald.s500;
     }
   }
 }
@@ -328,9 +337,13 @@ class HadithModel extends Equatable {
     required this.bookName,
     required this.chapterNumber,
     required this.chapterName,
-    required this.textArabic,
     required this.textEnglish,
     required this.textUrdu,
+    this.textBengali = '',
+    this.textTurkish = '',
+    this.textIndonesian = '',
+    this.textFrench = '',
+    this.hadithKey = '',
     required this.grade,
     required this.narrator,
     this.reference,
@@ -347,9 +360,24 @@ class HadithModel extends Equatable {
   final String bookName;
   final int chapterNumber;
   final String chapterName;
-  final String textArabic;
+  // HR-2.1: `textArabic` is gone with the unbundled Arabic edition. This
+  // model has exactly ONE producer in the app — `localToHadithModel`, off the
+  // bundled corpus — so a permanently-empty Arabic field would be a field
+  // that lies about what ships.
   final String textEnglish;
   final String textUrdu;
+  // Phase B languages (hadith-api editions, key-joined per book; empty
+  // string == honestly unavailable for this hadith, see the loader).
+  final String textBengali;
+  final String textTurkish;
+  final String textIndonesian;
+  final String textFrench;
+  // PASS X6 (H1c): the loader's exact (hadithnumber, arabicnumber) join key
+  // for THIS row, '' for models that did not come from the bundle. The int
+  // [hadithNumber] cannot hold the dataset's fractional rows (tirmidhi 391.2,
+  // bukhari 402.2 — 42 and 26 rows), which truncate onto their parent; the
+  // key is what lets a search hit open the row it actually matched.
+  final String hadithKey;
   final HadithGrade grade;
   final HadithNarrator narrator;
   final String? reference; // e.g., "Sahih al-Bukhari 1"
@@ -379,10 +407,6 @@ class HadithModel extends Equatable {
       chapterName: chapterData?['chapterEnglish'] as String? ??
           json['chapterName'] as String? ??
           '',
-      textArabic: json['hadithArabic'] as String? ??
-          json['arabic'] as String? ??
-          json['textArabic'] as String? ??
-          '',
       textEnglish: json['hadithEnglish'] as String? ??
           json['english'] as String? ??
           json['textEnglish'] as String? ??
@@ -390,6 +414,22 @@ class HadithModel extends Equatable {
       textUrdu: json['hadithUrdu'] as String? ??
           json['urdu'] as String? ??
           json['textUrdu'] as String? ??
+          '',
+      textBengali: json['hadithBengali'] as String? ??
+          json['bengali'] as String? ??
+          json['textBengali'] as String? ??
+          '',
+      textTurkish: json['hadithTurkish'] as String? ??
+          json['turkish'] as String? ??
+          json['textTurkish'] as String? ??
+          '',
+      textIndonesian: json['hadithIndonesian'] as String? ??
+          json['indonesian'] as String? ??
+          json['textIndonesian'] as String? ??
+          '',
+      textFrench: json['hadithFrench'] as String? ??
+          json['french'] as String? ??
+          json['textFrench'] as String? ??
           '',
       grade: HadithGrade.fromString(
         json['status'] as String? ?? json['grade'] as String?,
@@ -418,9 +458,12 @@ class HadithModel extends Equatable {
       'bookName': bookName,
       'chapterNumber': chapterNumber,
       'chapterName': chapterName,
-      'textArabic': textArabic,
       'textEnglish': textEnglish,
       'textUrdu': textUrdu,
+      'textBengali': textBengali,
+      'textTurkish': textTurkish,
+      'textIndonesian': textIndonesian,
+      'textFrench': textFrench,
       'grade': grade.name,
       'narrator': narrator.toJson(),
       'reference': reference,
@@ -435,13 +478,17 @@ class HadithModel extends Equatable {
   HadithModel copyWith({
     String? id,
     int? hadithNumber,
+    String? hadithKey,
     String? bookSlug,
     String? bookName,
     int? chapterNumber,
     String? chapterName,
-    String? textArabic,
     String? textEnglish,
     String? textUrdu,
+    String? textBengali,
+    String? textTurkish,
+    String? textIndonesian,
+    String? textFrench,
     HadithGrade? grade,
     HadithNarrator? narrator,
     String? reference,
@@ -454,13 +501,17 @@ class HadithModel extends Equatable {
     return HadithModel(
       id: id ?? this.id,
       hadithNumber: hadithNumber ?? this.hadithNumber,
+      hadithKey: hadithKey ?? this.hadithKey,
       bookSlug: bookSlug ?? this.bookSlug,
       bookName: bookName ?? this.bookName,
       chapterNumber: chapterNumber ?? this.chapterNumber,
       chapterName: chapterName ?? this.chapterName,
-      textArabic: textArabic ?? this.textArabic,
       textEnglish: textEnglish ?? this.textEnglish,
       textUrdu: textUrdu ?? this.textUrdu,
+      textBengali: textBengali ?? this.textBengali,
+      textTurkish: textTurkish ?? this.textTurkish,
+      textIndonesian: textIndonesian ?? this.textIndonesian,
+      textFrench: textFrench ?? this.textFrench,
       grade: grade ?? this.grade,
       narrator: narrator ?? this.narrator,
       reference: reference ?? this.reference,
@@ -472,9 +523,19 @@ class HadithModel extends Equatable {
     );
   }
 
+  /// PASS X6 (H1c): the number as the printed edition has it. `id`,
+  /// bookmarks and the jump plumbing stay on the int (changing an id would
+  /// orphan the bookmarks already on a device); everything the READER reads
+  /// goes through here, so a fractional row is never labelled with its
+  /// parent's number.
+  String get numberLabel {
+    final exact = hadithKey.split('|').first.trim();
+    return exact.isEmpty ? '$hadithNumber' : exact;
+  }
+
   String get displayReference {
     if (reference != null && reference!.isNotEmpty) return reference!;
-    return '$bookName $hadithNumber';
+    return '$bookName $numberLabel';
   }
 
   String get shortText {
@@ -482,9 +543,12 @@ class HadithModel extends Equatable {
     return '${textEnglish.substring(0, 100)}...';
   }
 
-  bool get hasArabic => textArabic.isNotEmpty;
   bool get hasEnglish => textEnglish.isNotEmpty;
   bool get hasUrdu => textUrdu.isNotEmpty;
+  bool get hasBengali => textBengali.trim().isNotEmpty;
+  bool get hasTurkish => textTurkish.trim().isNotEmpty;
+  bool get hasIndonesian => textIndonesian.trim().isNotEmpty;
+  bool get hasFrench => textFrench.trim().isNotEmpty;
   bool get hasExplanation => explanation != null && explanation!.isNotEmpty;
   bool get hasChain => chainOfNarration != null && chainOfNarration!.isNotEmpty;
 
@@ -505,7 +569,6 @@ class HadithModel extends Equatable {
         hadithNumber,
         bookSlug,
         chapterNumber,
-        textArabic,
         textEnglish,
         grade,
         isBookmarked,
@@ -630,10 +693,21 @@ class HadithSearchResult extends Equatable {
       [hadith.id, matchType, matchedText, relevanceScore];
 }
 
+/// Which channel of a hadith row a search hit came from — a LABEL
+/// vocabulary, not a data contract. `arabic` (and the four Phase-B names)
+/// stay after HR-2.1/X5 unbundled those editions for the same reason:
+/// `_matchTypeFromString` is shared with the Quran path's labels and with
+/// anything a future re-bundle folds in, and an unreachable enum value is
+/// inert. What is NOT inert — a `textArabic` field, an Arabic scan arm, an
+/// Arabic block in the reader — was deleted with the files.
 enum HadithMatchType {
   arabic('Arabic'),
   english('English'),
   urdu('Urdu'),
+  bengali('Bengali'),
+  turkish('Turkish'),
+  indonesian('Indonesian'),
+  french('French'),
   narrator('Narrator'),
   reference('Reference');
 
@@ -659,7 +733,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 97,
     description:
         'The most authentic book after the Holy Quran. Compiled by Imam Muhammad al-Bukhari.',
-    color: Color(0xFF123F36),
+    color: AppEmerald.s500,
     compiledYear: '846 CE',
   ),
   HadithBook(
@@ -673,7 +747,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 56,
     description:
         'Second most authentic hadith collection. Compiled by Imam Muslim ibn al-Hajjaj.',
-    color: Color(0xFF2F6B5D),
+    color: AppEmerald.s400,
     compiledYear: '875 CE',
   ),
   HadithBook(
@@ -687,7 +761,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 43,
     description:
         'Collection of hadiths focusing on Islamic jurisprudence and rulings.',
-    color: Color(0xFF8A6D38),
+    color: AppGold.s700,
     compiledYear: '888 CE',
   ),
   HadithBook(
@@ -701,7 +775,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 49,
     description:
         'Comprehensive collection with commentary on the strength of each hadith.',
-    color: Color(0xFFC6A15B),
+    color: AppGold.s500,
     compiledYear: '892 CE',
   ),
   HadithBook(
@@ -715,7 +789,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 51,
     description:
         'Known for its strict criteria in accepting hadiths, focusing on chains.',
-    color: Color(0xFFC6A15B),
+    color: AppGold.s500,
     compiledYear: '915 CE',
   ),
   HadithBook(
@@ -729,7 +803,7 @@ const List<HadithBook> popularHadithBooks = [
     totalChapters: 37,
     description:
         'Sixth of the Kutub al-Sittah, containing many unique hadiths.',
-    color: Color(0xFFC6A15B),
+    color: AppGold.s500,
     compiledYear: '887 CE',
   ),
 ];

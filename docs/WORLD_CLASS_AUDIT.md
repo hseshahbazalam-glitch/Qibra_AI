@@ -183,7 +183,7 @@ Do **not** delete:
 | Item | Classification | Notes |
 | --- | --- | --- |
 | Bookmarks/progress/settings/sync/`/users/me` scoped to `user.id` | KEEP | IDOR filtered |
-| `/ai/ask` unauthenticated | KEEP | `test_ask_does_not_require_auth` |
+| `/ai/ask` unauthenticated | ~~KEEP~~ **REVERSED by G2 QB-011 (2026-11-14)** — the endpoint costs inference per call, so it now needs a token and a per-user budget; the pin became `test_ask_requires_auth_and_says_so` |
 | Rate limit 60/60 + store reset | KEEP | Do not weaken |
 | Health `*_production_ready` false | KEEP | Do not flip |
 | CORS `allow_origins=*` | KEEP absent | Do not add |

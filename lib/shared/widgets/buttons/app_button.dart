@@ -182,16 +182,10 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton>
           height: config.height,
           width: widget.fullWidth ? double.infinity : null,
           decoration: BoxDecoration(
-            gradient: isDisabled
-                ? LinearGradient(
-                    colors: [
-                      colors.primary.withValues(alpha: 0.40),
-                      colors.primary.withValues(alpha: 0.40),
-                    ],
-                  )
-                : AppGradients.emerald,
+            color: isDisabled
+                ? colors.primary.withValues(alpha: 0.40)
+                : colors.primary,
             borderRadius: BorderRadius.circular(config.borderRadius),
-            boxShadow: isDisabled ? null : AppShadows.emeraldGlow,
           ),
           child: Padding(
             padding: config.padding,
@@ -508,16 +502,10 @@ class _AppGoldButtonState extends State<AppGoldButton>
           height: config.height,
           width: widget.fullWidth ? double.infinity : null,
           decoration: BoxDecoration(
-            gradient: isDisabled
-                ? LinearGradient(
-                    colors: [
-                      colors.accent.withValues(alpha: 0.40),
-                      colors.goldText.withValues(alpha: 0.40),
-                    ],
-                  )
-                : AppGradients.gold,
+            color: isDisabled
+                ? colors.accent.withValues(alpha: 0.40)
+                : colors.accent,
             borderRadius: BorderRadius.circular(config.borderRadius),
-            boxShadow: isDisabled ? null : AppShadows.goldGlow,
           ),
           child: Padding(
             padding: config.padding,
@@ -559,13 +547,21 @@ class _AppGoldButtonState extends State<AppGoldButton>
           ),
           const SizedBox(width: AppSpacing.sm),
         ],
-        Text(
-          widget.label,
-          style: AppTextStyles.buttonLarge.copyWith(
-            fontSize: config.fontSize,
-            color: isDisabled
-                ? colors.textPrimary.withValues(alpha: 0.50)
-                : colors.textPrimary,
+        // Overflow hotfix (2026-09-06): the label degrades to an
+        // ellipsis inside a tight parent instead of pushing the Row
+        // past its constraint. mainAxisSize logic above is untouched —
+        // unconstrained widths behave exactly as before.
+        Flexible(
+          child: Text(
+            widget.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.buttonLarge.copyWith(
+              fontSize: config.fontSize,
+              color: isDisabled
+                  ? colors.textPrimary.withValues(alpha: 0.50)
+                  : colors.textPrimary,
+            ),
           ),
         ),
         if (widget.suffixIcon != null) ...[
@@ -770,7 +766,6 @@ class _AppIconBtnState extends State<AppIconBtn>
                         width: 1.5,
                       )
                     : null,
-                boxShadow: widget.isFilled ? AppShadows.emeraldGlow : null,
               ),
               child: Icon(
                 widget.icon,
@@ -1012,7 +1007,6 @@ class _AppLoadingButtonState extends State<AppLoadingButton> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
     if (widget.isGold) {
       return AppGoldButton(
         label:

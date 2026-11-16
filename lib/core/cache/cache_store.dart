@@ -116,7 +116,7 @@ class CacheStore {
   static const _prefix = 'qibra_cache_';
 
   Future<CacheBackend> _backend() async {
-    if (_injected != null) return _injected!;
+    if (_injected != null) return _injected;
     return _prefsBackend ??=
         PrefsCacheBackend(await SharedPreferences.getInstance());
   }

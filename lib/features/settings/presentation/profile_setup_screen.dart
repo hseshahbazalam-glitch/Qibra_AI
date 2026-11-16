@@ -7,17 +7,24 @@
 //              and Islamic preferences. Completes Phase 5.
 // ============================================================
 
-import 'dart:math' as math;
-import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:qibra_ai/core/constants/app_constants.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
+
+part 'profile_setup_form.dart';
 
 // ============================================================
 // PROFILE SETUP SCREEN
@@ -26,12 +33,31 @@ import 'package:qibra_ai/core/design_system/app_typography.dart';
 class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
 
+  /// Pure path shape (Windows separators normalized) — unit-tested.
+  static String avatarDestPath(String appSupportRoot) {
+    return '${appSupportRoot.replaceAll('\\', '/')}/profile/avatar.jpg';
+  }
+
+  /// Pure pick semantics — unit-tested: a null result (user cancelled or
+  /// the pick/copy failed) NEVER changes the stored path.
+  static String? nextAvatarPath({
+    required String? current,
+    required String? pickedAndStored,
+  }) {
+    return pickedAndStored ?? current;
+  }
+
   @override
   ConsumerState<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
 }
 
 class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     with TickerProviderStateMixin {
+  // (Rev) Part-file widget builders live in extensions, and the
+  // analyzer treats setState as protected — this thin in-class wrapper
+  // keeps their updates legal with zero runtime difference.
+  void _patchUi(VoidCallback fn) => setState(fn);
+
   // ── FORM ─────────────────────────────────────────────
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -50,14 +76,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   DateTime? _dateOfBirth;
   String _selectedGender = 'male';
   String _selectedCountry = 'Pakistan';
-  String _selectedCountryFlag = '🇵🇰';
   String _selectedMadhab = 'Hanafi';
   String _selectedPrayerMethod = 'Karachi';
-  bool _hasAvatar = false;
+  /// Path of the REAL stored avatar file, or null when none exists.
+  /// The single source of truth: UI state mirrors the filesystem, never
+  /// the other way around.
+  String? _avatarPath;
   bool _isLoading = false;
 
   // ── ANIMATIONS ───────────────────────────────────────
-  late AnimationController _particleController;
   late AnimationController _entranceController;
   late Animation<double> _entranceFade;
   late Animation<Offset> _entranceSlide;
@@ -66,18 +93,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
   // ── COUNTRY LIST ─────────────────────────────────────
   final List<Map<String, String>> _countries = [
-    {'name': 'Pakistan', 'flag': '🇵🇰', 'code': '+92'},
-    {'name': 'India', 'flag': '🇮🇳', 'code': '+91'},
-    {'name': 'Saudi Arabia', 'flag': '🇸🇦', 'code': '+966'},
-    {'name': 'UAE', 'flag': '🇦🇪', 'code': '+971'},
-    {'name': 'Turkey', 'flag': '🇹🇷', 'code': '+90'},
-    {'name': 'Egypt', 'flag': '🇪🇬', 'code': '+20'},
-    {'name': 'Indonesia', 'flag': '🇮🇩', 'code': '+62'},
-    {'name': 'Malaysia', 'flag': '🇲🇾', 'code': '+60'},
-    {'name': 'Bangladesh', 'flag': '🇧🇩', 'code': '+880'},
-    {'name': 'United Kingdom', 'flag': '🇬🇧', 'code': '+44'},
-    {'name': 'United States', 'flag': '🇺🇸', 'code': '+1'},
-    {'name': 'Canada', 'flag': '🇨🇦', 'code': '+1'},
+    {'name': 'Pakistan', 'code': '+92'},
+    {'name': 'India', 'code': '+91'},
+    {'name': 'Saudi Arabia', 'code': '+966'},
+    {'name': 'UAE', 'code': '+971'},
+    {'name': 'Turkey', 'code': '+90'},
+    {'name': 'Egypt', 'code': '+20'},
+    {'name': 'Indonesia', 'code': '+62'},
+    {'name': 'Malaysia', 'code': '+60'},
+    {'name': 'Bangladesh', 'code': '+880'},
+    {'name': 'United Kingdom', 'code': '+44'},
+    {'name': 'United States', 'code': '+1'},
+    {'name': 'Canada', 'code': '+1'},
   ];
 
   @override
@@ -100,12 +127,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       setState(() => _isCityFocused = _cityFocus.hasFocus);
       if (_cityFocus.hasFocus) HapticFeedback.selectionClick();
     });
-
-    // Particles
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 15),
-    )..repeat();
 
     // Entrance
     _entranceController = AnimationController(
@@ -145,6 +166,21 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
     _entranceController.forward();
     _avatarController.forward();
+    _loadStoredAvatar();
+  }
+
+  /// Read the avatar back from its stored file at init — what the screen
+  /// shows is what the app-internal storage actually holds.
+  Future<void> _loadStoredAvatar() async {
+    try {
+      final dir = await getApplicationSupportDirectory();
+      final path = ProfileSetupScreen.avatarDestPath(dir.path);
+      if (await File(path).exists() && mounted) {
+        setState(() => _avatarPath = path);
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('\u26a0\ufe0f profile avatar load failed: $e');
+    }
   }
 
   @override
@@ -155,7 +191,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     _nameFocus.dispose();
     _phoneFocus.dispose();
     _cityFocus.dispose();
-    _particleController.dispose();
     _entranceController.dispose();
     _avatarController.dispose();
     super.dispose();
@@ -200,20 +235,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       borderRadius: const BorderRadius.vertical(
         top: Radius.circular(24),
       ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.xl2),
-          decoration: BoxDecoration(
-            color: colors.surface.withValues(alpha: 0.95),
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
-            border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
-              width: 1,
-            ),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.xl2),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(24),
           ),
+          border: Border.all(
+            color: colors.border,
+            width: 1,
+          ),
+        ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -222,7 +255,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.30),
+                  color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -247,7 +280,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                       label: 'Camera',
                       onTap: () {
                         Navigator.pop(context);
-                        _mockAvatarUpload('Camera');
+                        pickAvatar(ImageSource.camera);
                       },
                     ),
                   ),
@@ -258,7 +291,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                       label: 'Gallery',
                       onTap: () {
                         Navigator.pop(context);
-                        _mockAvatarUpload('Gallery');
+                        pickAvatar(ImageSource.gallery);
                       },
                     ),
                   ),
@@ -267,13 +300,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
               const SizedBox(height: AppSpacing.lg),
 
-              // Remove option (if avatar exists)
-              if (_hasAvatar) ...[
+              // Remove option — visible only when a REAL file exists, and
+              // it deletes that file before the state changes.
+              if (_avatarPath != null) ...[
                 GestureDetector(
                   onTap: () {
                     Navigator.pop(context);
                     HapticFeedback.selectionClick();
-                    setState(() => _hasAvatar = false);
+                    _removeAvatar();
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -292,7 +326,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -309,15 +342,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           vertical: AppSpacing.lg,
         ),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              colors.primary.withValues(alpha: 0.20),
-              colors.primary.withValues(alpha: 0.10),
-            ],
-          ),
+          color: colors.primary.withValues(alpha: 0.12),
           borderRadius: AppRadius.cardRadius,
           border: Border.all(
-            color: colors.primary.withValues(alpha: 0.30),
+            color: colors.primary.withValues(alpha: 0.16),
             width: 1,
           ),
         ),
@@ -342,33 +370,107 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     );
   }
 
-  void _mockAvatarUpload(String source) {
-    final colors = QibraColors.of(context);
-    HapticFeedback.heavyImpact();
-    setState(() => _hasAvatar = true);
-    _avatarController.reset();
-    _avatarController.forward();
+  /// Real avatar selection via image_picker (already a dependency — no
+  /// new package, no manifest edits, no cloud upload). Rules:
+  ///   • cancel (null) → NOTHING happens — cancel is not an error;
+  ///   • success → the bytes are copied into app-internal storage and the
+  ///     UI updates from that real file — a success toast is only ever
+  ///     shown after a verified stored file;
+  ///   • failure (permission denied, copy error) → the real error text is
+  ///     shown and the stored avatar state stays exactly as it was.
+  Future<void> pickAvatar(ImageSource source) async {
+    try {
+      final picked = await ImagePicker().pickImage(source: source);
+      if (picked == null) return; // user cancelled — no toast, no state change
+      final bytes = await picked.readAsBytes();
+      if (bytes.isEmpty) throw StateError('the picked file was empty');
+      final dir = await getApplicationSupportDirectory();
+      final dest = ProfileSetupScreen.avatarDestPath(dir.path);
+      await File(dest).parent.create(recursive: true);
+      final tmp = File('$dest.tmp');
+      await tmp.writeAsBytes(bytes, flush: true);
+      // staged copy verified non-empty, then atomic-ish swap
+      if (await tmp.length() > 0) {
+        if (await File(dest).exists()) await File(dest).delete();
+        await tmp.rename(dest);
+      } else {
+        await tmp.delete();
+        throw StateError('could not store the avatar file');
+      }
+      if (!mounted) return;
+      final stored =
+          ProfileSetupScreen.nextAvatarPath(current: _avatarPath, pickedAndStored: dest);
+      setState(() => _avatarPath = stored);
+      _avatarController.reset();
+      _avatarController.forward();
+      final colors = QibraColors.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: QibraNavy.textPrimary,
+                size: 20,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Photo selected from '
+                '${source == ImageSource.camera ? 'Camera' : 'Gallery'}',
+              ),
+            ],
+          ),
+          backgroundColor: colors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.cardRadius,
+          ),
+        ),
+      );
+    } catch (e) {
+      // Honest failure copy; the existing avatar state is untouched.
+      if (kDebugMode) debugPrint('\u26a0\ufe0f profile avatar pick failed: $e');
+      if (!mounted) return;
+      final colors = QibraColors.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.of(context).avatarNotChanged('$e')),
+          backgroundColor: colors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.cardRadius,
+          ),
+        ),
+      );
+    }
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.check_circle,
-              color: const Color(0xFF19312C),
-              size: 20,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Text('Photo selected from $source'),
-          ],
+  /// Delete the stored file first; only on a real delete does the UI
+  /// drop the avatar. A failed delete keeps the avatar (the file exists).
+  Future<void> _removeAvatar() async {
+    final path = _avatarPath;
+    if (path == null) return;
+    try {
+      final f = File(path);
+      if (await f.exists()) await f.delete();
+    } catch (e) {
+      if (kDebugMode) debugPrint('\u26a0\ufe0f profile avatar delete failed: $e');
+      if (!mounted) return;
+      final colors = QibraColors.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.of(context).photoDeleteFailed('$e')),
+          backgroundColor: colors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.cardRadius,
+          ),
         ),
-        backgroundColor: colors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.cardRadius,
-        ),
-      ),
-    );
+      );
+      return; // state unchanged — the file is genuinely still there
+    }
+    if (!mounted) return;
+    setState(() => _avatarPath = null);
   }
 
   // ── DATE PICKER ──────────────────────────────────────
@@ -417,21 +519,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       borderRadius: const BorderRadius.vertical(
         top: Radius.circular(24),
       ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-        child: Container(
-          height: MediaQuery.sizeOf(context).height * 0.6,
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: colors.surface.withValues(alpha: 0.95),
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
-            border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
-              width: 1,
-            ),
+      child: Container(
+        height: MediaQuery.sizeOf(context).height * 0.6,
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(24),
           ),
+          border: Border.all(
+            color: colors.border,
+            width: 1,
+          ),
+        ),
           child: Column(
             children: [
               // Handle
@@ -439,7 +539,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF19312C).withValues(alpha: 0.30),
+                  color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -462,7 +562,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                         HapticFeedback.selectionClick();
                         setState(() {
                           _selectedCountry = country['name']!;
-                          _selectedCountryFlag = country['flag']!;
                         });
                         Navigator.pop(context);
                       },
@@ -472,32 +571,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                         ),
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? LinearGradient(
-                                  colors: [
-                                    colors.primary.withValues(alpha: 0.20),
-                                    colors.primary.withValues(alpha: 0.10),
-                                  ],
-                                )
-                              : null,
                           color: isSelected
-                              ? null
-                              : QibraColors.light.textPrimary.withValues(alpha: 0.05),
+                              ? colors.primary.withValues(alpha: 0.12)
+                              : Colors.white.withValues(alpha: 0.05),
                           borderRadius: AppRadius.cardRadius,
                           border: Border.all(
                             color: isSelected
                                 ? colors.primary
-                                : QibraColors.light.textPrimary.withValues(alpha: 0.10),
+                                : Colors.white.withValues(alpha: 0.10),
                             width: 1,
                           ),
                         ),
                         child: Row(
                           children: [
-                            Text(
-                              country['flag']!,
-                              style: const TextStyle(fontSize: 24),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: Text(
                                 country['name']!,
@@ -532,7 +618,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -555,15 +640,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
         HapticFeedback.heavyImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
                 Icon(
                   Icons.check_circle,
-                  color: const Color(0xFF19312C),
+                  color: QibraNavy.textPrimary,
                   size: 20,
                 ),
                 SizedBox(width: AppSpacing.sm),
-                Text('Profile setup complete!'),
+                Text(AppStrings.of(context).profileSetupComplete),
               ],
             ),
             backgroundColor: colors.success,
@@ -591,14 +676,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       body: Stack(
         children: [
           _buildBackground(),
-          _buildParticles(size),
           SafeArea(
             child: FadeTransition(
               opacity: _entranceFade,
@@ -647,16 +729,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topCenter,
-            radius: 1.5,
-            colors: [
-              Color(0xFFEEF1EA),
-              Color(0xFFF5F3EC),
-              colors.background,
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
+          color: colors.background,
         ),
       ),
     );
@@ -665,23 +738,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // ══════════════════════════════════════════
   // PARTICLES
   // ══════════════════════════════════════════
-
-  Widget _buildParticles(Size size) {
-    final colors = QibraColors.of(context);
-    return Positioned.fill(
-      child: AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _ProfileParticlePainter(
-              animationValue: _particleController.value,
-            ),
-            size: size,
-          );
-        },
-      ),
-    );
-  }
 
   // ══════════════════════════════════════════
   // HEADER
@@ -694,26 +750,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
       children: [
         GestureDetector(
           onTap: () => context.go(AppRoutes.login),
-          child: ClipOval(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF19312C).withValues(alpha: 0.10),
-                  border: Border.all(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.15),
-                    width: 1,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: const Color(0xFF19312C),
-                  size: 20,
-                ),
-              ),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colors.cardMuted,
+              border: Border.all(color: colors.border),
+            ),
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              color: QibraNavy.textPrimary,
+              size: 20,
             ),
           ),
         ),
@@ -723,25 +771,21 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
             vertical: AppSpacing.xs,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFF19312C).withValues(alpha: 0.10),
+            color: colors.cardMuted,
             borderRadius: AppRadius.pillRadius,
             border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.15),
+              color: colors.border,
               width: 1,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppGradients.gold.createShader(bounds),
-                child: Text(
-                  '3',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: const Color(0xFF19312C),
-                    fontWeight: FontWeight.w800,
-                  ),
+              Text(
+                '3',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               Text(
@@ -776,46 +820,40 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      colors.primary.withValues(alpha: 0.30),
-                      colors.primary.withValues(alpha: 0.05),
-                    ],
-                  ),
+                  color: colors.card,
                   border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.50),
+                    color: colors.primary.withValues(alpha: 0.24),
                     width: 2,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.40),
-                      blurRadius: 40,
-                      spreadRadius: 8,
-                    ),
-                  ],
                 ),
                 child: Center(
-                  child: _hasAvatar
-                      ? Container(
+                  child: _avatarPath == null
+                      ? const Icon(
+                          Icons.person_add_alt_1_rounded,
+                          color: QibraNavy.textPrimary,
+                          size: 48,
+                        )
+                      // The REAL picked photo; the icon fallback only
+                      // renders if the stored file fails to decode.
+                      : Container(
                           width: 100,
                           height: 100,
-                          decoration: const BoxDecoration(
+                          clipBehavior: Clip.antiAlias,
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: AppGradients.emerald,
+                            color: colors.primary,
                           ),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            color: const Color(0xFF19312C),
-                            size: 60,
-                          ),
-                        )
-                      : ShaderMask(
-                          shaderCallback: (bounds) =>
-                              AppGradients.emerald.createShader(bounds),
-                          child: const Icon(
-                            Icons.person_add_alt_1_rounded,
-                            color: const Color(0xFF19312C),
-                            size: 48,
+                          child: Image.file(
+                            File(_avatarPath!),
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                              Icons.person_rounded,
+                              color: QibraNavy.textPrimary,
+                              size: 60,
+                            ),
                           ),
                         ),
                 ),
@@ -830,17 +868,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: AppGradients.gold,
+                    color: colors.accent,
                     border: Border.all(
                       color: colors.background,
                       width: 3,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.accent.withValues(alpha: 0.40),
-                        blurRadius: 12,
-                      ),
-                    ],
                   ),
                   child: Icon(
                     Icons.camera_alt_rounded,
@@ -864,15 +896,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
     final colors = QibraColors.of(context);
     return Column(
       children: [
-        ShaderMask(
-          shaderCallback: (bounds) => AppGradients.emerald.createShader(bounds),
-          child: Text(
-            'ALMOST THERE',
-            style: AppTextStyles.labelSmall.copyWith(
-              color: const Color(0xFF19312C),
-              letterSpacing: 3,
-              fontWeight: FontWeight.w800,
-            ),
+        Text(
+          'ALMOST THERE',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: colors.primary,
+            letterSpacing: 3,
+            fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -904,27 +933,16 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
 
   Widget _buildFormCard() {
     final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadiusLarge,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                QibraColors.light.textPrimary.withValues(alpha: 0.08),
-                QibraColors.light.textPrimary.withValues(alpha: 0.03),
-              ],
-            ),
-            borderRadius: AppRadius.cardRadiusLarge,
-            border: Border.all(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
-              width: 1,
-            ),
-          ),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: AppRadius.cardRadiusLarge,
+        border: Border.all(
+          color: colors.border,
+          width: 1,
+        ),
+      ),
           child: Column(
             children: [
               // Section title
@@ -997,8 +1015,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               // Country
               _buildPickerField(
                 label: 'Country',
-                icon: Icons.flag_outlined,
-                value: '$_selectedCountryFlag  $_selectedCountry',
+                icon: Icons.public_rounded,
+                value: _selectedCountry,
                 placeholder: 'Select country',
                 onTap: _pickCountry,
               ),
@@ -1017,8 +1035,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -1026,559 +1042,4 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
   // TEXT FIELD
   // ══════════════════════════════════════════
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required bool isFocused,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required String? Function(String?)? validator,
-    TextInputType? keyboardType,
-  }) {
-    final colors = QibraColors.of(context);
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.cardRadius,
-        boxShadow: isFocused
-            ? [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.30),
-                  blurRadius: 20,
-                ),
-              ]
-            : null,
-      ),
-      child: TextFormField(
-        controller: controller,
-        focusNode: focusNode,
-        validator: validator,
-        keyboardType: keyboardType,
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: const Color(0xFF19312C),
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: colors.textTertiary,
-          ),
-          labelStyle: AppTextStyles.bodyMedium.copyWith(
-            color: isFocused ? colors.primary : colors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-          prefixIcon: Icon(
-            icon,
-            color: isFocused ? colors.primary : colors.textSecondary,
-            size: 22,
-          ),
-          filled: true,
-          fillColor: isFocused
-              ? QibraColors.light.textPrimary.withValues(alpha: 0.05)
-              : QibraColors.light.textPrimary.withValues(alpha: 0.02),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
-              width: 1,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: const Color(0xFF19312C).withValues(alpha: 0.10),
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: colors.primary,
-              width: 2,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: colors.error,
-              width: 1,
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: AppRadius.cardRadius,
-            borderSide: BorderSide(
-              color: colors.error,
-              width: 2,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // PICKER FIELD (Date, Country)
-  // ══════════════════════════════════════════
-
-  Widget _buildPickerField({
-    required String label,
-    required IconData icon,
-    required String? value,
-    required String placeholder,
-    required VoidCallback onTap,
-  }) {
-    final colors = QibraColors.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        decoration: BoxDecoration(
-          color: const Color(0xFF19312C).withValues(alpha: 0.02),
-          borderRadius: AppRadius.cardRadius,
-          border: Border.all(
-            color: const Color(0xFF19312C).withValues(alpha: 0.10),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: colors.textSecondary,
-              size: 22,
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: colors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value ?? placeholder,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color:
-                          value != null ? Colors.white : colors.textTertiary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: colors.textTertiary,
-              size: 14,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // GENDER SELECTOR
-  // ══════════════════════════════════════════
-
-  Widget _buildGenderSelector() {
-    final colors = QibraColors.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Gender',
-          style: AppTextStyles.labelSmall.copyWith(
-            color: colors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            _buildGenderOption('male', 'Male', Icons.male_rounded),
-            const SizedBox(width: AppSpacing.sm),
-            _buildGenderOption('female', 'Female', Icons.female_rounded),
-            const SizedBox(width: AppSpacing.sm),
-            _buildGenderOption('other', 'Other', Icons.transgender_rounded),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGenderOption(String value, String label, IconData icon) {
-    final colors = QibraColors.of(context);
-    final isSelected = _selectedGender == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          setState(() => _selectedGender = value);
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.md,
-          ),
-          decoration: BoxDecoration(
-            gradient: isSelected
-                ? LinearGradient(
-                    colors: [
-                      colors.primary.withValues(alpha: 0.30),
-                      colors.primary.withValues(alpha: 0.15),
-                    ],
-                  )
-                : null,
-            color: isSelected ? null : QibraColors.light.textPrimary.withValues(alpha: 0.02),
-            borderRadius: AppRadius.cardRadius,
-            border: Border.all(
-              color: isSelected
-                  ? colors.primary
-                  : QibraColors.light.textPrimary.withValues(alpha: 0.10),
-              width: isSelected ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? colors.primary : colors.textSecondary,
-                size: 24,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: AppTextStyles.labelSmall.copyWith(
-                  color:
-                      isSelected ? colors.primary : colors.textSecondary,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // ISLAMIC PREFS CARD
-  // ══════════════════════════════════════════
-
-  Widget _buildIslamicPrefsCard() {
-    final colors = QibraColors.of(context);
-    return ClipRRect(
-      borderRadius: AppRadius.cardRadiusLarge,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colors.accent.withValues(alpha: 0.10),
-                colors.accent.withValues(alpha: 0.05),
-              ],
-            ),
-            borderRadius: AppRadius.cardRadiusLarge,
-            border: Border.all(
-              color: colors.accent.withValues(alpha: 0.20),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            children: [
-              // Section title
-              Row(
-                children: [
-                  Icon(
-                    Icons.mosque_rounded,
-                    color: colors.accent,
-                    size: 18,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    'ISLAMIC PREFERENCES',
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: colors.accent,
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: AppSpacing.lg),
-
-              // Madhab
-              _buildDropdown(
-                label: 'Madhab',
-                icon: Icons.school_outlined,
-                value: _selectedMadhab,
-                items: const [
-                  'Hanafi',
-                  'Shafi',
-                  'Maliki',
-                  'Hanbali',
-                ],
-                onChanged: (val) {
-                  HapticFeedback.selectionClick();
-                  setState(() => _selectedMadhab = val!);
-                },
-              ),
-
-              const SizedBox(height: AppSpacing.md),
-
-              // Prayer Method
-              _buildDropdown(
-                label: 'Prayer Calculation Method',
-                icon: Icons.access_time_rounded,
-                value: _selectedPrayerMethod,
-                items: const [
-                  'Karachi',
-                  'ISNA',
-                  'MWL',
-                  'Egypt',
-                  'Makkah',
-                ],
-                onChanged: (val) {
-                  HapticFeedback.selectionClick();
-                  setState(() => _selectedPrayerMethod = val!);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // DROPDOWN
-  // ══════════════════════════════════════════
-
-  Widget _buildDropdown({
-    required String label,
-    required IconData icon,
-    required String value,
-    required List<String> items,
-    required void Function(String?) onChanged,
-  }) {
-    final colors = QibraColors.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF19312C).withValues(alpha: 0.02),
-        borderRadius: AppRadius.cardRadius,
-        border: Border.all(
-          color: const Color(0xFF19312C).withValues(alpha: 0.10),
-          width: 1,
-        ),
-      ),
-      child: DropdownButtonFormField<String>(
-        initialValue: value,
-        onChanged: onChanged,
-        isExpanded: true,
-        dropdownColor: colors.surface,
-        icon: Icon(
-          Icons.arrow_drop_down_rounded,
-          color: colors.textSecondary,
-        ),
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: const Color(0xFF19312C),
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: AppTextStyles.bodyMedium.copyWith(
-            color: colors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-          prefixIcon: Icon(
-            icon,
-            color: colors.textSecondary,
-            size: 22,
-          ),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.md,
-          ),
-        ),
-        items: items.map((String item) {
-          return DropdownMenuItem<String>(
-            value: item,
-            child: Text(
-              item,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: const Color(0xFF19312C),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // ACTIONS (Save + Skip)
-  // ══════════════════════════════════════════
-
-  Widget _buildActions() {
-    final colors = QibraColors.of(context);
-    return Column(
-      children: [
-        // Save button
-        GestureDetector(
-          onTap: _isLoading ? null : _handleSave,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: double.infinity,
-            height: 56,
-            decoration: BoxDecoration(
-              gradient: _isLoading
-                  ? LinearGradient(
-                      colors: [
-                        colors.primary.withValues(alpha: 0.60),
-                        colors.primary.withValues(alpha: 0.60),
-                      ],
-                    )
-                  : AppGradients.emerald,
-              borderRadius: AppRadius.buttonRadiusLg,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.50),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Center(
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white,
-                        ),
-                      ),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: const Color(0xFF19312C),
-                          size: 22,
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Text(
-                          'Save & Continue',
-                          style: AppTextStyles.buttonLarge.copyWith(
-                            color: const Color(0xFF19312C),
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: AppSpacing.md),
-
-        // Skip button
-        GestureDetector(
-          onTap: _isLoading ? null : _handleSkip,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-            child: Text(
-              'Skip for now',
-              style: AppTextStyles.buttonMedium.copyWith(
-                color: colors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ============================================================
-// PARTICLE PAINTER
-// ============================================================
-
-class _ProfileParticlePainter extends CustomPainter {
-  final double animationValue;
-
-  _ProfileParticlePainter({required this.animationValue});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final random = math.Random(88);
-
-    for (int i = 0; i < 22; i++) {
-      final baseX = random.nextDouble() * size.width;
-      final baseY = random.nextDouble() * size.height;
-
-      final offset = math.sin(
-        (animationValue * 2 * math.pi) + i,
-      );
-
-      final x = baseX + (offset * 25);
-      final y = baseY + (offset * 35);
-
-      final particleSize = 1.5 + random.nextDouble() * 2;
-      final isGold = i % 3 == 0;
-      final color = isGold ? const Color(0xFFC6A15B) : const Color(0xFF123F36);
-      final alpha = 0.15 + (random.nextDouble() * 0.25);
-
-      final paint = Paint()
-        ..color = color.withValues(alpha: alpha)
-        ..style = PaintingStyle.fill;
-
-      canvas.drawCircle(Offset(x, y), particleSize, paint);
-
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: alpha * 0.3)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize * 4,
-        glowPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(
-    covariant _ProfileParticlePainter oldDelegate,
-  ) =>
-      oldDelegate.animationValue != animationValue;
 }

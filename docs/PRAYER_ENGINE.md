@@ -1,5 +1,13 @@
 # Prayer engine
 
+> **PASS X3 (2026-09-02) — dead modules removed.** The Phase-7 companion files
+> `lib/features/prayer/data/services/next_prayer_engine.dart`,
+> `prayer_schedule_cache.dart` and `prayer_source.dart` (`AladhanParser`) had
+> zero importers in `lib/` — the wiring this table already described as
+> "parser only / not a live network source" never grew a caller — so they were
+> deleted with the tests that pinned them. Recover them from git if the Aladhan
+> provider is ever really wired; the local calculation path below is unchanged.
+
 Local astronomical calculation (`PrayerCalculationService`) is the source of truth on device. **Formulas were not rewritten in Phase 7.**
 
 ## Provider

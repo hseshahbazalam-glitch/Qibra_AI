@@ -1,10 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy.orm import Session
 
 from ..db.models import User
 from ..db.session import get_db
 from ..deps import current_user
+from ..security import MAX_PASSWORD_CHARS
+from ..services.login_guard import (
+    check_login_attempt,
+    note_login_failure,
+    note_login_success,
+)
 from ..services.auth_service import (
     AuthError,
     list_sessions,
@@ -18,23 +26,50 @@ from ..services.auth_service import (
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+# QB-015: the caps below are the row shape the database already declares
+# (users.email String(255), users.name String(120)), enforced on the way IN instead of
+# silently truncated on the way out.
+MAX_EMAIL_CHARS = 255
+MAX_NAME_CHARS = 120
+
+
+def _canonical_email(value: object) -> object:
+    """Trim + lowercase before validation, so ` User@Example.COM ` and `user@example.com`
+    are one account. Login normalises the same way; a stored row that predates this pass
+    can still sign in, which is why the syntax rules stay on registration only."""
+    if isinstance(value, str):
+        return value.strip().lower()
+    return value
+
 
 class RegisterIn(BaseModel):
-    email: str
-    password: str
-    name: str = ""
+    email: EmailStr = Field(max_length=MAX_EMAIL_CHARS)
+    password: str = Field(min_length=1, max_length=MAX_PASSWORD_CHARS)
+    name: str = Field(default="", max_length=MAX_NAME_CHARS)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def _email_canonical(cls, value: object) -> object:
+        return _canonical_email(value)
 
 
 class LoginIn(BaseModel):
-    email: str
-    password: str
+    # `str`, not EmailStr: the syntax rules must not lock a legacy row out of its own
+    # account. Length is still bounded, because login runs PBKDF2 on the password.
+    email: str = Field(min_length=1, max_length=MAX_EMAIL_CHARS)
+    password: str = Field(min_length=1, max_length=MAX_PASSWORD_CHARS)
     device_id: str = ""
     platform: str = ""
     app_version: str = ""
 
+    @field_validator("email", mode="before")
+    @classmethod
+    def _email_canonical(cls, value: object) -> object:
+        return _canonical_email(value)
+
 
 class RefreshIn(BaseModel):
-    refresh_token: str
+    refresh_token: str = Field(min_length=1, max_length=256)
 
 
 def _auth_error(exc: AuthError) -> HTTPException:
@@ -49,11 +84,27 @@ def register_user(body: RegisterIn, db: Session = Depends(get_db)):
         user = register(db, body.email, body.password, body.name)
     except AuthError as exc:
         raise _auth_error(exc) from exc
+    except IntegrityError:
+        # QB-002, at the boundary: the service already converts its own UNIQUE loss,
+        # and any other write that races the index still cannot surface as a 500.
+        db.rollback()
+        raise HTTPException(status_code=409, detail="email_taken") from None
     return {"id": user.id, "email": user.email, "name": user.name}
 
 
 @router.post("/login")
-def login_user(body: LoginIn, db: Session = Depends(get_db)):
+def login_user(request: Request, body: LoginIn, db: Session = Depends(get_db)):
+    """QB-013: a login-specific throttle on top of the global 60/60 limiter, per IP and
+    per account, counting failed attempts only.
+
+    The refusal is returned as a response rather than raised, because it has to carry
+    `Retry-After` — and it travels back out through RequestId + SecurityHeaders, so a
+    429 here is a fully-formed response like any other on this API.
+    """
+    ip = request.client.host if request.client else "unknown"
+    blocked = check_login_attempt(ip=ip, email=body.email)
+    if blocked is not None:
+        return JSONResponse(blocked, status_code=429, headers={"Retry-After": str(blocked["retry_after_seconds"])})
     try:
         user, access, refresh = login(
             db,
@@ -64,7 +115,10 @@ def login_user(body: LoginIn, db: Session = Depends(get_db)):
             app_version=body.app_version,
         )
     except AuthError as exc:
+        if exc.status == 401:
+            note_login_failure(ip=ip, email=body.email)
         raise _auth_error(exc) from exc
+    note_login_success(ip=ip, email=body.email)
     return {
         "access_token": access,
         "refresh_token": refresh,

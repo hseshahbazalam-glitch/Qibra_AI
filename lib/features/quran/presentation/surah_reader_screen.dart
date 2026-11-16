@@ -1,457 +1,1279 @@
 // lib/features/quran/presentation/surah_reader_screen.dart
 // ============================================================
-// QIBRA AI — SURAH READER (Multi-Translation & Flagship UI)
+// QIBRA AI — SURAH READER (Stage B rewrite, midnight navy)
+//
+// What changed vs the legacy screen (audit findings):
+//  • 76 hardcoded hexes -> QibraColors tokens (theme-driven:
+//    navy by default, sanctioned ivory when the app theme is light).
+//  • The deleted floating audio-player bar (fabricated play/duration
+//    timestamps for unbundled audio) is GONE for good; the audio stage
+//    restored recitation as REAL: a single app-wide just_audio player
+//    (stream + offline), per-ayah play with live position from the
+//    player's own streams, and a mini bar in the shell that renders
+//    only while the player is active. Nothing here may fake a time.
+//  • Deleted dead affordances: no-op search/bookmark appbar icons
+//    (they now route to the real screens), the font-family pill
+//    (labelled with the Amiri font that is not bundled as a local
+//    asset) and the empty agenda pill.
+//  • Deleted the 'Tafsir' mode tab — the reader has no tafsir
+//    data; the verified Tafseer screen is reachable from every
+//    ayah through the options sheet.
+//  • Header shows REAL metadata (revelation type, ayah count,
+//    starting juz/page) instead of the hardcoded 'Juz 1 • Page 1'.
+//  • Tapping an ayah opens the real options sheet (copy / share /
+//    note / bookmark / tafsir / AI explain); the row bookmark
+//    toggle writes to the real bookmarks provider.
+//  • Loading/error go through QibraStatus (skeleton + retry).
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/l10n/app_strings.dart';
-import '../../../shared/widgets/controls/app_switch_tile.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
+import 'package:qibra_ai/features/quran/presentation/surah_reading_handle.dart';
+import 'package:qibra_ai/shared/widgets/controls/app_switch_tile.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
+import '../data/audio/tilawat.dart';
 import '../data/models/quran_models.dart';
-import '../providers/quran_provider.dart' hide readingProgressProvider;
+import '../providers/quran_audio_provider.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 import '../providers/reading_preferences_provider.dart';
+import '../providers/quran_download_provider.dart';
+import '../providers/reading_progress_provider.dart';
+import '../providers/quran_provider.dart';
+import 'package:qibra_ai/core/content/edition_resolver.dart';
+import '../data/repository/urdu_edition_catalog.dart';
+import 'ayah_options_sheet.dart';
+import '../data/word/quran_word_data.dart';
+import '../providers/quran_word_provider.dart';
+import 'word_explain_sheet.dart';
+
+/// The reader's auto-advance queue, built from the REAL ayah list with
+/// the app's own global ayah numbers (numberInQuran; QuranMeta prefix
+/// sum as fallback). No invented entries.
+/// Follow-along state machine (world-class pass item 1 — pure, unit-
+/// tested). "Armed" = auto-scroll follows the playing ayah. A REAL user
+/// drag disarms it for the rest of the playback session; a NEW playback
+/// session (startQueue → session bump, incl. 'Play from here'/Listen or
+/// a mini-bar tap that (re)opens the reader) re-arms it. The reader
+/// wires this machine directly — the tests and the widget share one
+/// definition of the semantics.
+class AyahFollowMachine {
+  const AyahFollowMachine({this.armed = true});
+
+  final bool armed;
+
+  /// A user-initiated scroll disarms; programmatic scrolls (no drag
+  /// details) never do.
+  AyahFollowMachine userScrolled({required bool dragging}) {
+    if (!dragging || !armed) return this;
+    return const AyahFollowMachine(armed: false);
+  }
+
+  /// A new playback session re-arms follow.
+  AyahFollowMachine newSession() =>
+      armed ? this : const AyahFollowMachine(armed: true);
+
+  /// The highlight contract: gold appears ONLY while the player is
+  /// actually playing THIS ayah — pause, stop, loading and failure all
+  /// show no highlight (nothing is claimed while nothing plays).
+  static bool highlightFor({required bool isPlayingThisAyah}) =>
+      isPlayingThisAyah;
+}
+
+/// The ONE resume-position definition (see LastReadNotifier): the last
+/// opened card, else the last played ayah, else the entry position.
+/// Pure — unit-tested.
+int resumeAyahForVisit({
+  required int? tapped,
+  required int? played,
+  required int? initialAyah,
+}) {
+  return tapped ?? played ?? initialAyah ?? 1;
+}
+
+List<PlayableAyah> tilawatQueueFor(SurahModel surah) => [
+      for (final a in surah.ayahs)
+        PlayableAyah(
+          surah: surah.number,
+          ayah: a.number,
+          global: Tilawat.globalAyahNumber(
+            surah: surah.number,
+            ayah: a.number,
+            numberInQuran: a.numberInQuran,
+          ),
+        ),
+    ];
 
 class SurahReaderScreen extends ConsumerStatefulWidget {
-  final int surahNumber;
-  final int? initialAyah;
-
   const SurahReaderScreen({
     super.key,
     required this.surahNumber,
     this.initialAyah,
+    this.initialTab,
+    this.playOnOpen = false,
   });
+
+  final int surahNumber;
+  final int? initialAyah;
+
+  /// One of 'Arabic' | 'Translation' | 'Roman Urdu'. (Pass E renamed
+  /// the third tab: its content is the Maududi ROMAN URDU TRANSLATION
+  /// — a translation written in latin script, not a transliteration.
+  /// Calling it 'Transliteration' was the picker's last lie.)
+  final String? initialTab;
+
+  /// Pass Q2 deep links: open AND start recitation at [initialAyah]
+  /// (falls back to the surah's first ayah — documented fallback, only
+  /// when no position was in the link). One-shot per visit; rides the
+  /// SAME startQueue as the in-card play button — no parallel path.
+  final bool playOnOpen;
 
   @override
   ConsumerState<SurahReaderScreen> createState() => _SurahReaderScreenState();
 }
 
-class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
-  String _activeTab = 'Arabic';
-  final String _fontFamily = 'Uthmani';
-  double _fontSize = 24.0;
-  bool _isNightMode = true;
-  bool _isPlayingAudio = false;
-  int _playingAyah = 1;
-  final Set<int> _bookmarkedAyahs = {};
+class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
+    with WidgetsBindingObserver {
+  static const _tabs = ['Arabic', 'Translation', 'Roman Urdu'];
 
-  String? _bundledTranslation(AyahModel ayah, ReadingPreferences prefs) {
-    final id = prefs.translationId.toLowerCase();
-    if (id.startsWith('ur')) {
-      final urdu = ayah.translationUrdu?.trim();
-      return (urdu == null || urdu.isEmpty) ? null : urdu;
-    }
-    final english = ayah.translation?.trim();
-    return (english == null || english.isEmpty) ? null : english;
+  /// Arabic text-size stops offered by the pill.
+  static const scales = <double>[1.0, 1.25, 1.5];
+
+  /// NOT final despite the old 'late final' — a tab pill tap
+  /// REASSIGNS (setState at the strip's callback); 'late final' made
+  /// that throw LateInitializationError 'already been initialized'.
+  /// Caught by the Pass Q2 widget test that taps a tab; the pre-Q2
+  /// suite never tapped one, so the gate never saw it.
+  late String _activeTab;
+  final ScrollController _scroll = ScrollController();
+  bool _didInitialScroll = false;
+
+  /// Pass Q2: playOnOpen is a ONE-SHOT per visit (rebuilds and tab
+  /// flips never retrigger it — the queue owns playback from there).
+  bool _didAutoPlay = false;
+
+  // Last-read tracking (item 2). Written on dispose/app-pause; NOT
+  // setState-bound — no UI depends on these mid-frame.
+  int? _tappedAyah;
+  int? _playedAyah;
+
+  // Bug A (device session 3: 'Bad state: Cannot use ref after the widget
+  // was disposed'): dispose() ran _persistLastRead() which touched ref.
+  // Canonical field capture — the store and the latest loaded surah are
+  // captured WHILE MOUNTED, so the dispose path never uses ref at all.
+  late final LastReadNotifier _lastReadStore;
+  SurahModel? _latestSurah;
+
+  AyahFollowMachine _followM = const AyahFollowMachine();
+  final GlobalKey _followKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _activeTab =
+        _tabs.contains(widget.initialTab) ? widget.initialTab! : 'Arabic';
+    // ref.read IS legal in initState — capture once for the dispose path.
+    _lastReadStore = ref.read(lastReadStoreProvider.notifier);
+    // Download status is read back from disk — check the real files.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(quranDownloadProvider.notifier).checkSurah(widget.surahNumber);
+    });
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 'visibility pause' of the resume contract: backgrounding persists.
+    if (state == AppLifecycleState.paused) _persistLastRead();
+  }
+
+  /// Store the visit's position using the documented definition. If the
+  /// surah data never loaded there is nothing real to store — skip.
+  void _persistLastRead() {
+    // Zero ref calls — safe to run from dispose(): reads ONLY fields.
+    // 'If the surah data never loaded there is nothing real to store'
+    // is preserved exactly via the null/empty guard on the cache.
+    final surah = _latestSurah;
+    if (surah == null || surah.ayahs.isEmpty) return;
+    final ayah = resumeAyahForVisit(
+      tapped: _tappedAyah,
+      played: _playedAyah,
+      initialAyah: widget.initialAyah,
+    );
+    _lastReadStore.record(
+      surahNumber: surah.number,
+      ayahNumber: ayah,
+      surahName: surah.name,
+      totalAyahsInSurah: surah.ayahs.length,
+    );
+  }
+
+  @override
+  void dispose() {
+    _persistLastRead();
+    WidgetsBinding.instance.removeObserver(this);
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _stepArabicScale() {
+    HapticFeedback.selectionClick();
+    final prefs = ref.read(readingPreferencesProvider);
+    final i = scales.indexOf(prefs.arabicScale);
+    ref
+        .read(readingPreferencesProvider.notifier)
+        .setArabicScale(scales[(i + 1) % scales.length]);
+  }
+
+  /// Keeps the playing ayah visible while follow is armed: exact
+  /// ensure-when-built, animated estimate when the card is far off the
+  /// viewport (the same 184px per-item approximation the initial jump
+  /// already uses — and it re-centers once the real card builds).
+  void _ensureAyahVisible(int ayahNumber) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_followM.armed || !_scroll.hasClients) return;
+      final ctx = _followKey.currentContext;
+      if (ctx != null) {
+        await Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          alignment: 0.3,
+        );
+        return;
+      }
+      final s = ref.read(surahDetailProvider(widget.surahNumber)).value;
+      if (s == null) return;
+      final idx = s.ayahs.indexWhere((a) => a.number == ayahNumber);
+      if (idx < 0) return;
+      final showBismillah = widget.surahNumber != 9 && widget.surahNumber != 1;
+      final item = idx + (showBismillah ? 2 : 1);
+      final target = ((item + 1) * 184.0 - 40)
+          .clamp(0.0, _scroll.position.maxScrollExtent);
+      await _scroll.animateTo(
+        target,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
+  void _jumpToInitialAyah(SurahModel surah) {
+    _maybeAutoPlay(surah);
+    if (_didInitialScroll || widget.initialAyah == null) return;
+    _didInitialScroll = true;
+    final idx = surah.ayahs.indexWhere((a) => a.number == widget.initialAyah);
+    if (idx <= 0) return; // already near the top
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      // Approximate per-item height; lands close enough to fine-tune.
+      _scroll.jumpTo((idx + 1) * 184.0);
+    });
+  }
+
+  /// Pass Q2 deep-open-and-play: after data arrives, start the surah's
+  /// recitation queue at the linked ayah via the SAME startQueue the
+  /// in-card button uses (session bump re-arms follow automatically).
+  void _maybeAutoPlay(SurahModel surah) {
+    if (!widget.playOnOpen || _didAutoPlay) return;
+    _didAutoPlay = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final idx = surah.ayahs
+          .indexWhere((a) => a.number == (widget.initialAyah ?? 1));
+      ref.read(quranAudioProvider.notifier).startQueue(
+            surahNumber: surah.number,
+            surahName: surah.name,
+            queue: tilawatQueueFor(surah),
+            startIndex: idx < 0 ? 0 : idx,
+          );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final surahAsync = ref.watch(surahDetailProvider(widget.surahNumber));
     final prefs = ref.watch(readingPreferencesProvider);
+    final colors = QibraColors.of(context);
+    final surah = surahAsync.value;
+    // Narrow selects so unrelated playback (or per-tick position
+    // updates of a DIFFERENT track) never rebuild this list.
+    //  -1: not playing this surah · 1: loading/buffering · 2: playing
+    //   0: paused or failed on this surah (tap resumes/retries)
+    final audioMark = ref.watch(quranAudioProvider.select((s) {
+      if (s.surahNumber != widget.surahNumber || !s.active) return -1;
+      if (s.buffering || s.phase == QuranAudioPhase.loading) return 1;
+      if (s.isPlaying) return 2;
+      return 0;
+    }));
+    final dlStatus = ref.watch(quranDownloadProvider
+        .select((m) => m[widget.surahNumber] ?? const SurahAudioStatus()));
+    // Resume tracking + follow-along target: the ayah the player is
+    // REALLY playing right now for this surah (null = nothing to follow,
+    // so highlight/chip/scroll all switch off together on pause/stop/
+    // error by construction).
+    final followAyah = ref.watch(quranAudioProvider.select((aud) =>
+        (aud.active && aud.surahNumber == widget.surahNumber &&
+                aud.isPlaying)
+            ? aud.ayahNumber
+            : null));
+    ref.listen(
+      quranAudioProvider.select((aud) =>
+          (aud.active && aud.surahNumber == widget.surahNumber &&
+                  aud.isPlaying)
+              ? aud.ayahNumber
+              : null),
+      (_, next) {
+        if (next != null) {
+          _playedAyah = next;
+          // Pass Q2 seen-signal: the player ADVANCING onto an ayah is
+          // a documented khatm mark — no setState, no rebuild churn.
+          _lastReadStore.markPlayed(
+              surah: widget.surahNumber, ayah: next);
+        }
+        if (next == null || !_followM.armed) return;
+        _ensureAyahVisible(next);
+      },
+    );
+    // A NEW playback session (play-from-here / Listen / play-surah)
+    // re-arms follow even if the user had scrolled away.
+    ref.listen(quranAudioProvider.select((aud) => aud.session),
+        (_, __) => setState(() => _followM = _followM.newSession()));
 
-    return Scaffold(
-      backgroundColor:
-          _isNightMode ? const Color(0xFF020A08) : const Color(0xFFFBF9F4),
-      appBar: _buildReaderAppBar(context, surahAsync.value),
+    // Pass D2: paper scope over the whole reading surface. NIGHT:
+    // scope(active:false) returns the child UNWRAPPED — identical
+    // widget identity, zero added objects on the navy path.
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: QibraPaper.scope(
+      active:
+          ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
+      child: Scaffold(
+      backgroundColor: colors.background,
+      appBar: QibraAppBar(
+        title: surah?.name ?? 'Surah ${widget.surahNumber}',
+        subtitle: surah == null ? null : 'Surah ${surah.number} of 114',
+        actions: [
+          IconButton(
+            tooltip: audioMark == 2
+                ? AppStrings.of(context).tooltipPauseRecitation
+                : (audioMark == 1
+                    ? AppStrings.of(context).tooltipBuffering
+                    : (audioMark == 0
+                        ? AppStrings.of(context).tooltipResumeRecitation
+                        : AppStrings.of(context).tooltipPlaySurah)),
+            icon: audioMark == 1
+                ? SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colors.primary,
+                    ),
+                  )
+                : Icon(
+                    audioMark == 2
+                        ? Icons.pause_circle_outline_rounded
+                        : Icons.play_circle_outline_rounded,
+                    color: audioMark == -1
+                        ? colors.textSecondary
+                        : colors.primary,
+                  ),
+            onPressed: () {
+              final s = ref.read(surahDetailProvider(widget.surahNumber)).value;
+              if (s == null || s.ayahs.isEmpty) return;
+              final ctl = ref.read(quranAudioProvider.notifier);
+              if (audioMark == -1) {
+                ctl.startQueue(
+                  surahNumber: s.number,
+                  surahName: s.name,
+                  queue: tilawatQueueFor(s),
+                  startIndex: 0,
+                );
+              } else {
+                ctl.toggle();
+              }
+            },
+          ),
+          IconButton(
+            tooltip: dlStatus.label,
+            onPressed: dlStatus.checking || dlStatus.downloading
+                ? null
+                : () {
+                    final ctl = ref.read(quranDownloadProvider.notifier);
+                    if (dlStatus.downloaded) {
+                      _confirmDeleteDownload(ctl, dlStatus);
+                    } else {
+                      ctl.startDownload(widget.surahNumber);
+                    }
+                  },
+            icon: dlStatus.checking || dlStatus.downloading
+                ? SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: dlStatus.downloading
+                          ? colors.primary
+                          : colors.textTertiary,
+                    ),
+                  )
+                : Icon(
+                    dlStatus.downloaded
+                        ? Icons.download_done_rounded
+                        : (dlStatus.failed > 0
+                            ? Icons.sync_problem_rounded
+                            : Icons.download_rounded),
+                    color: dlStatus.downloaded
+                        ? QibraNavy.emerald
+                        : (dlStatus.failed > 0
+                            ? QibraNavy.red
+                            : colors.textSecondary),
+                  ),
+          ),
+          IconButton(
+            tooltip: AppStrings.of(context).tooltipSearchQuran,
+            icon: const Icon(Icons.search_rounded),
+            onPressed: () => context.go(AppRoutes.quranSearch),
+          ),
+          IconButton(
+            tooltip: AppStrings.of(context).bookmarksTitle,
+            icon: const Icon(Icons.bookmark_border_rounded),
+            onPressed: () => context.push('/quran/bookmarks'),
+          ),
+          IconButton(
+            tooltip: AppStrings.of(context).tooltipReadingSettings,
+            icon: const Icon(Icons.tune_rounded),
+            onPressed: () => _showSettingsSheet(context),
+          ),
+        ],
+      ),
       body: surahAsync.when(
-        data: (surah) {
-          if (surah == null) {
-            return const Center(
-                child: Text('Surah not found',
-                    style: TextStyle(color: const Color(0xFF19312C))));
+        data: (s) {
+          if (s == null) {
+            return QibraStatus.empty(
+              title: 'Surah not found',
+              message: 'Surah ${widget.surahNumber} is not in the bundled '
+                  'Quran data.',
+            );
           }
+          _jumpToInitialAyah(s);
+          _latestSurah = s; // dispose-path cache (bug A field capture)
           return Column(
             children: [
-              _buildTopModeTabs(),
-              _buildControlPillsBar(),
+              ModeTabs(
+                tabs: _tabs,
+                active: _activeTab,
+                arabicScale: prefs.arabicScale,
+                onSelect: (tab) {
+                  HapticFeedback.selectionClick();
+                  setState(() => _activeTab = tab);
+                },
+                onSizeStep: _stepArabicScale,
+              ),
               Expanded(
-                // ListView.builder with SliverChildBuilderDelegate semantics
-                // for O(1) per-frame construction → 60fps on 286-ayah surahs.
-                child: ListView.builder(
+                child: Stack(
+                  children: [
+                    NotificationListener<ScrollUpdateNotification>(
+                      // Manual (drag) scrolling PAUSES auto-follow for
+                      // this playback session — silent state change, no
+                      // snackbar. Programmatic scrolls have no
+                      // dragDetails and never disarm.
+                      onNotification: (n) {
+                        final next = _followM.userScrolled(
+                          dragging: n.dragDetails != null,
+                        );
+                        if (!identical(next, _followM)) {
+                          setState(() => _followM = next);
+                        }
+                        return false;
+                      },
+                      child: ListView.builder(
+                // ListView.builder keeps long surahs (286 ayahs) at
+                // O(1) construction per frame.
+                  controller: _scroll,
                   physics: const BouncingScrollPhysics(),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  itemCount: surah.ayahs.length + 4,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  itemCount: s.ayahs.length + 3,
                   itemBuilder: (context, index) {
-                    // 0: title header
-                    // 1: bismillah (when applicable)
-                    // 2..2+N-1: ayahs
-                    // 2+N: multi-translation comparison
-                    // last: bottom spacer
-                    final bool showBismillah =
+                    final showBismillah =
                         widget.surahNumber != 9 && widget.surahNumber != 1;
-                    final int bismillahOffset = showBismillah ? 1 : 0;
-                    if (index == 0) return _buildSurahTitleHeader(surah);
+                    if (index == 0) return _SurahHeader(surah: s);
                     if (index == 1 && showBismillah) {
-                      return Column(
-                        children: [
-                          const SizedBox(height: 16),
-                          _buildBismillahHeader(),
-                        ],
+                      return const _BismillahHeader();
+                    }
+                    final ayahIndex = index - (showBismillah ? 2 : 1);
+                    if (ayahIndex < s.ayahs.length) {
+                      return KeyedSubtree(
+                        // The follow scroll lands on this key when the
+                        // playing ayah is currently built; off-screen
+                        // targets fall back to the animated estimate.
+                        key: followAyah == s.ayahs[ayahIndex].number
+                            ? _followKey
+                            : null,
+                        child: _AyahCard(
+                          surah: s,
+                          ayah: s.ayahs[ayahIndex],
+                          activeTab: _activeTab,
+                          prefs: prefs,
+                          onAyahOpened: () {
+                            _tappedAyah = s.ayahs[ayahIndex].number;
+                            // Pass Q2 seen-signal: opening an ayah's
+                            // options card credits EXACTLY this ayah to
+                            // the khatm high-water (idempotent store).
+                            _lastReadStore.markPlayed(
+                              surah: widget.surahNumber,
+                              ayah: s.ayahs[ayahIndex].number,
+                            );
+                          },
+                        ),
                       );
                     }
-                    final int ayahIndex = index - 1 - bismillahOffset;
-                    if (ayahIndex >= 0 && ayahIndex < surah.ayahs.length) {
-                      return _buildAyahCard(
-                          surah.ayahs[ayahIndex], surah, prefs);
-                    }
-                    if (ayahIndex == surah.ayahs.length) {
-                      return Column(
-                        children: [
-                          const SizedBox(height: 16),
-                          _buildMultiTranslationComparisonCard(
-                              surah.ayahs.first, prefs),
-                        ],
-                      );
-                    }
-                    return const SizedBox(height: 120);
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: _TranslationCompareCard(ayah: s.ayahs.first),
+                    );
                   },
+                      ),
+                    ),
+                    // Follow chip — only while something is actually
+                    // playing THIS surah. QibraChip is Material-owned ink.
+                    if (followAyah != null)
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          // clears the shell mini bar (~56 + insets)
+                          padding: const EdgeInsets.only(bottom: 76),
+                          child: QibraChip(
+                            label:
+                                _followM.armed ? 'Following •' : 'Follow',
+                            selected: _followM.armed,
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              if (!_followM.armed) {
+                                setState(
+                                    () => _followM = _followM.newSession());
+                              }
+                              // (Rev: no redundant != null — the enclosing
+                              // block already guarantees a non-null ayah.)
+                              _ensureAyahVisible(followAyah);
+                            },
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              _buildFloatingAudioPlayer(surah),
-              _buildBottomActionStrip(),
             ],
           );
         },
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF123F36))),
-        error: (_, __) => const Center(
-            child: Text('Error loading surah',
-                style: TextStyle(color: const Color(0xFF19312C)))),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildReaderAppBar(
-      BuildContext context, SurahModel? surah) {
-    final title = surah?.name ?? 'Surah ${widget.surahNumber}';
-    final ayahsCount = surah?.numberOfAyahs ?? 7;
-
-    return AppBar(
-      backgroundColor: const Color(0xFFEEF1EA),
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: const Color(0xFF19312C), size: 20),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(
-                  color: const Color(0xFF19312C),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold)),
-          Text('Juz 1 • Page 1 • $ayahsCount Ayahs',
-              style: const TextStyle(color: Color(0xFF123F36), fontSize: 10.5)),
-        ],
-      ),
-      actions: [
-        IconButton(
-            icon:
-                const Icon(Icons.search_rounded, color: const Color(0xFF19312C), size: 20),
-            onPressed: () {}),
-        IconButton(
-            icon: const Icon(Icons.bookmark_border_rounded,
-                color: const Color(0xFF19312C), size: 20),
-            onPressed: () {}),
-        IconButton(
-            icon: const Icon(Icons.more_vert_rounded,
-                color: const Color(0xFF19312C), size: 20),
-            onPressed: () => _showSettingsModal(context)),
+        loading: () => Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              QibraStatus.skeleton(height: 96),
+              const SizedBox(height: 12),
+              QibraStatus.skeleton(height: 220),
+              const SizedBox(height: 12),
+              QibraStatus.skeleton(height: 220),
+            ],
+          ),
+        ),
+        error: (e, st) => QibraStatus.error(
+          title: 'Could not open this surah',
+          message: 'The bundled Quran data could not be read.',
+          onRetry: () =>
+              ref.invalidate(surahDetailProvider(widget.surahNumber)),
+        ),
+          ),
+        ),
+          ),
+        ),
+        // QH: the handle rides OUTSIDE the paper scope on purpose —
+        // QibraPaper.scope returns its child UNWRAPPED on NIGHT (a
+        // widget-type swap at the same slot; the D2 physics pin blesses
+        // it), so a handle living inside that child would be REMOUNTED
+        // by its own theme button (open panel, one tap, gone). As a
+        // root-level sibling it never rides the flip; the Stack is also
+        // why the reader keeps its old constraints.
+        const Positioned.fill(child: SurahReadingHandle()),
       ],
     );
   }
 
-  Widget _buildTopModeTabs() {
-    final tabs = ['Arabic', 'Translation', 'Tafsir', 'Transliteration'];
-
-    return Container(
-      color: const Color(0xFF041710),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: tabs.map((tab) {
-          final isSelected = _activeTab == tab;
-          return GestureDetector(
-            onTap: () => setState(() => _activeTab = tab),
+  /// Real disk facts only: size and counts are the ones checkSurah()
+  /// read back from the filesystem.
+  void _confirmDeleteDownload(
+      QuranDownloadController ctl, SurahAudioStatus st) {
+    final colors = QibraColors.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: QibraColors.of(dialogContext).card,
+        title: Text(
+          'Offline recitation',
+          style: AppTextStyles.titleSmall
+              .copyWith(color: QibraColors.of(dialogContext).textPrimary),
+        ),
+        content: Text(
+          '${st.done}/${st.total} files on disk · '
+          '${SurahAudioStatus.bytesLabel(st.bytes)}. '
+          'Delete this surah\'s download?',
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: QibraColors.of(dialogContext).textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text(
-              tab,
-              style: TextStyle(
-                color: isSelected
-                    ? const Color(0xFF123F36)
-                    : const Color(0xFF71807A),
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                decoration: isSelected ? TextDecoration.underline : null,
-                decorationColor: const Color(0xFF123F36),
-                decorationThickness: 2,
-              ),
+              'Keep',
+              style: AppTextStyles.labelMedium
+                  .copyWith(color: QibraColors.of(dialogContext).textSecondary),
             ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildControlPillsBar() {
-    final prefs = ref.watch(readingPreferencesProvider);
-    return Container(
-      color: const Color(0xFF061A13),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          _buildPill(
-              icon: Icons.format_shapes_rounded,
-              label: _fontFamily,
-              onTap: () {}),
-          const SizedBox(width: 8),
-          _buildPill(
-              icon: Icons.text_fields_rounded,
-              label: 'A^A',
-              onTap: () =>
-                  setState(() => _fontSize = _fontSize == 24.0 ? 30.0 : 24.0)),
-          const SizedBox(width: 8),
-          _buildPill(icon: Icons.view_agenda_outlined, label: '', onTap: () {}),
-          const Spacer(),
-          _buildPill(
-            icon:
-                _isNightMode ? Icons.nightlight_round : Icons.wb_sunny_rounded,
-            label: _isNightMode ? 'Night Mode' : 'Light Mode',
-            onTap: () => setState(() => _isNightMode = !_isNightMode),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              ctl.deleteDownload(widget.surahNumber);
+            },
+            child: Text(
+              'Delete',
+              style: AppTextStyles.labelMedium
+                  .copyWith(color: colors.textSecondary),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPill(
-      {required IconData icon,
-      required String label,
-      required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEEF1EA),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF16543D)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+  void _showSettingsSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      // CPH2573 device fix (bottom RenderFlex overflow, verifier-traced):
+      // the DEFAULT sheet caps content at 9/16 of screen height, and this
+      // body is a bare Column — every section Pass Q1/Q2 added (reciter
+      // picker, download-all, storage manager, compare toggle) pushed it
+      // past the cap. isScrollControlled lets the sheet grow to its
+      // content; the 0.85 ceiling keeps a sliver of scrim above it. On
+      // tall screens where everything already fit, height == content and
+      // the scroll view stays dormant — pixel-identical to before (same
+      // dormancy principle as the ModeTabs strip fix).
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+      ),
+      // D2: the sheet's own frame matches the surface (paper reader →
+      // paper sheet chrome, rounded corners included). Modal content
+      // cannot toggle while open, so a read is the honest primitive.
+      backgroundColor: ref.read(readingPreferencesProvider).isPaper
+          ? QibraPaper.paper
+          : QibraColors.of(context).card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => _ReadingSettingsSheet(surahNumber: widget.surahNumber),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Mode tabs + text-size control
+// ─────────────────────────────────────────────────────────────
+
+/// Reader mode strip. Public as a widget-test seam (bug B); nothing
+/// outside this screen should depend on it.
+class ModeTabs extends StatelessWidget {
+  const ModeTabs({
+    required this.tabs,
+    required this.active,
+    required this.arabicScale,
+    required this.onSelect,
+    required this.onSizeStep,
+  });
+
+  final List<String> tabs;
+  final String active;
+  final double arabicScale;
+  final ValueChanged<String> onSelect;
+  final VoidCallback onSizeStep;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.card,
+        border: Border(bottom: BorderSide(color: colors.border)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          // Bug B (device session 3): three fixed tab chips + the Aa pill
+          // measured ~378dp on a 360dp screen -> 'RenderFlex overflowed
+          // by 21 pixels' on EVERY surah. Tabs now scroll horizontally
+          // when needed (Expanded strip); the pill keeps its full,
+          // tappable place at the right. Spacer is illegal inside an
+          // unbounded scroll child -> fixed 12 gap at the strip's end.
+          // >=390dp the extent fits the viewport: pixel-identical.
+          // Typography, colors, active underline, onSizeStep, paddings:
+          // untouched.
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+          for (final tab in tabs)
+            GestureDetector(
+              onTap: () => onSelect(tab),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color:
+                          active == tab ? colors.primary : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  tab,
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: active == tab
+                        ? colors.textPrimary
+                        : colors.textSecondary,
+                    fontWeight:
+                        active == tab ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+                  const SizedBox(width: 12),
+                ],
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: onSizeStep,
+            borderRadius: BorderRadius.circular(999),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 13,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: colors.border),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.format_size_rounded,
+                      size: 16, color: colors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    arabicScale == 1.0
+                        ? 'Aa'
+                        : 'Aa+${((arabicScale - 1) * 100).round()}',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Surah header — real metadata only
+// ─────────────────────────────────────────────────────────────
+
+class _SurahHeader extends StatelessWidget {
+  const _SurahHeader({required this.surah});
+
+  final SurahModel surah;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final first = surah.ayahs.isNotEmpty ? surah.ayahs.first : null;
+    final meta = <String>[
+      surah.revelationType == 'Meccan' ? 'Meccan' : 'Medinan',
+      '${surah.numberOfAyahs} ayahs',
+      if (first != null) 'Juz ${first.juz}',
+      if (first != null) 'from page ${first.page}',
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: QibraCard(
+        child: Column(
           children: [
-            Icon(icon, color: const Color(0xFF123F36), size: 14),
-            if (label.isNotEmpty) ...[
-              const SizedBox(width: 4),
-              Text(label,
-                  style: const TextStyle(
-                      color: const Color(0xFF19312C),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600)),
-              const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: const Color(0xFF71807A), size: 12),
-            ],
+            Text(
+              surah.nameArabic,
+              style:
+                  AppArabicStyles.surahName.copyWith(color: colors.textPrimary),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${surah.name} — ${surah.englishNameTranslation}',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.titleSmall.copyWith(
+                color: colors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(height: 1, color: colors.border),
+            const SizedBox(height: 8),
+            Text(
+              meta.join('  ·  '),
+              style: AppTextStyles.labelSmall.copyWith(
+                color: colors.textTertiary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSurahTitleHeader(SurahModel surah) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF061A13),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE4E0D5)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            surah.nameArabic,
-            style: const TextStyle(
-                color: Color(0xFFC6A15B),
-                fontFamily: 'Amiri',
-                fontSize: 28,
-                fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text('Surah ${surah.name}',
-              style: const TextStyle(
-                  color: const Color(0xFF71807A),
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
+class _BismillahHeader extends StatelessWidget {
+  const _BismillahHeader();
 
-  Widget _buildBismillahHeader() {
-    return const Padding(
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    return Padding(
       padding: EdgeInsets.symmetric(vertical: 12),
       child: Center(
         child: Text(
-          'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-          style: TextStyle(
-              color: const Color(0xFF19312C),
-              fontFamily: 'Amiri',
-              fontSize: 22,
-              fontWeight: FontWeight.bold),
+          'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+          style:
+              AppArabicStyles.bismillah.copyWith(color: colors.textSecondary),
         ),
       ),
     );
   }
+}
 
-  Widget _buildAyahCard(
-    AyahModel ayah,
-    SurahModel surah,
-    ReadingPreferences prefs,
-  ) {
+// ─────────────────────────────────────────────────────────────
+// Ayah card
+// ─────────────────────────────────────────────────────────────
+
+class _AyahCard extends ConsumerWidget {
+  const _AyahCard({
+    required this.surah,
+    required this.ayah,
+    required this.activeTab,
+    required this.prefs,
+    this.onAyahOpened,
+  });
+
+  final SurahModel surah;
+  final AyahModel ayah;
+  final String activeTab;
+  final ReadingPreferences prefs;
+
+  /// Fires the instant the card's options sheet is opened — the
+  /// last-read definition's primary signal (documented in item 2).
+  final VoidCallback? onAyahOpened;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
     final bookmarked = ref.watch(
       isBookmarkedProvider((surah: surah.number, ayah: ayah.number)),
     );
-    final isBookmarked = bookmarked;
-    final isPlayingThis = false;
+    final strings = AppStrings.of(context);
+    // Only the card the single player is actually on re-renders with
+    // position ticks; all other cards stay static (narrow select).
+    final cur = ref.watch(quranAudioProvider.select((s) =>
+        s.active &&
+                s.surahNumber == surah.number &&
+                s.ayahNumber == ayah.number
+            ? s
+            : null));
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color:
-            isPlayingThis ? const Color(0xFF0A2B1F) : const Color(0xFF061A13),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: isPlayingThis
-                ? const Color(0xFF123F36)
-                : const Color(0xFFE4E0D5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEF1EA),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF16543D)),
+    // Split scales (world-class pass): Arabic follows arabicScale; the
+    // latin body lines follow translationScale.
+    // Gold highlight ONLY while this exact ayah is the playing track;
+    // pause/stop/loading/error render no highlight (see machine doc).
+    final playingHere = AyahFollowMachine.highlightFor(
+        isPlayingThisAyah: cur != null && cur.isPlaying);
+    final arabicSize = AppFontSize.arabicMedium * prefs.arabicScale;
+    final translationSize = AppFontSize.bodyMedium * prefs.translationScale;
+    final translitSize = AppFontSize.bodySmall * prefs.translationScale;
+    final showTranslation = activeTab == 'Translation' ||
+        (activeTab != 'Arabic' && prefs.showTranslation);
+    final showTranslit =
+        activeTab == 'Roman Urdu' && prefs.showTransliteration;
+    // Pass E: the selected edition resolves through the catalog (LRU,
+    // lazy). While a map is still loading, .valueOrNull is null and the
+    // model's default face keeps the frame stable — keep-old-until-
+    // ready, never blank-by-switch, never another edition in the slot.
+    final editionId = EditionResolver.canonical(prefs.translationId);
+    final editionTexts = ref.watch(editionTextProvider(editionId)).valueOrNull;
+    final translation = _translationFor(ayah, prefs,
+        surahNumber: surah.number, texts: editionTexts);
+    final roman = ayah.translationRoman?.trim();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      // Border (never a fill) so no corner-bleed over QibraCard's own
+      // rounded surface; ink stays inside QibraCard's Material.
+      child: DecoratedBox(
+        decoration: playingHere
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: QibraNavy.gold.withValues(alpha: 0.7),
+                  width: 1.5,
                 ),
-                child: Center(
-                  child: Text('${ayah.number}',
-                      style: const TextStyle(
-                          color: Color(0xFF123F36),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold)),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(AppStrings.of(context).recitationNotBundled),
+              )
+            : const BoxDecoration(),
+        child: QibraCard(
+        onTap: () {
+          // Hifz range arming (Pass Q1): while a range endpoint pick is
+          // pending, this tap FIXES the endpoint instead of opening the
+          // per-ayah menu. consumeRangePick returns true when it ate the
+          // tap — real state machine in the controller, never a guess.
+          if (ref
+              .read(quranAudioProvider.notifier)
+              .consumeRangePick(surah.number, ayah.number)) {
+            return;
+          }
+          onAyahOpened?.call();
+          showAyahOptions(
+          context: context,
+          surahNumber: surah.number,
+          ayahNumber: ayah.number,
+          surahName: surah.name,
+          ayah: ayah,
+        );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: playingHere
+                        ? QibraNavy.gold.withValues(alpha: 0.22)
+                        : colors.primarySoft,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: playingHere
+                          ? QibraNavy.gold
+                          : colors.border,
                     ),
-                  );
-                },
-                child: const Icon(Icons.play_circle_fill_rounded,
-                    color: Color(0xFF123F36), size: 22),
-              ),
-              const Spacer(),
-              IconButton(
-                  icon: const Icon(Icons.more_vert_rounded,
-                      color: Color(0xFF71807A), size: 18),
-                  onPressed: () {}),
-              InkWell(
-                onTap: () {
-                  ref.read(bookmarksProvider.notifier).toggleBookmark(
-                        BookmarkModel(
-                          surahNumber: surah.number,
-                          ayahNumber: ayah.number,
-                          surahName: surah.name,
-                          ayahText: ayah.text,
-                          bookmarkedAt: DateTime.now(),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${ayah.number}',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  tooltip: cur == null
+                      ? AppStrings.of(context).playFromHere
+                      : (cur.phase == QuranAudioPhase.failed
+                          ? AppStrings.of(context).retry
+                          : (cur.isPlaying
+                              ? AppStrings.of(context).tooltipPause
+                              : (cur.buffering ||
+                                      cur.phase == QuranAudioPhase.loading
+                                  ? AppStrings.of(context).tooltipBuffering
+                                  : AppStrings.of(context).tooltipResume))),
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    final ctl = ref.read(quranAudioProvider.notifier);
+                    if (cur != null) {
+                      ctl.toggle();
+                      return;
+                    }
+                    final idx =
+                        surah.ayahs.indexWhere((a) => a.number == ayah.number);
+                    ctl.startQueue(
+                      surahNumber: surah.number,
+                      surahName: surah.name,
+                      queue: tilawatQueueFor(surah),
+                      startIndex: idx < 0 ? 0 : idx,
+                    );
+                  },
+                  icon: cur != null &&
+                          (cur.buffering ||
+                              cur.phase == QuranAudioPhase.loading)
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colors.primary,
+                          ),
+                        )
+                      : Icon(
+                          cur != null && cur.isPlaying
+                              ? Icons.pause_circle_filled_rounded
+                              : Icons.play_circle_outline_rounded,
+                          color: cur == null
+                              ? colors.textTertiary
+                              : colors.primary,
+                          size: 20,
                         ),
-                      );
-                },
-                child: Icon(
-                    isBookmarked
+                ),
+                IconButton(
+                  tooltip: bookmarked
+                      ? AppStrings.of(context)
+                          .tooltipRemoveBookmark
+                      : AppStrings.of(context).tooltipBookmarkAyah,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    ref.read(bookmarksProvider.notifier).toggleBookmark(
+                          BookmarkModel(
+                            surahNumber: surah.number,
+                            ayahNumber: ayah.number,
+                            surahName: surah.name,
+                            ayahText: ayah.text,
+                            bookmarkedAt: DateTime.now(),
+                          ),
+                        );
+                  },
+                  icon: Icon(
+                    bookmarked
                         ? Icons.bookmark_rounded
                         : Icons.bookmark_border_rounded,
-                    color: isBookmarked
-                        ? const Color(0xFF123F36)
-                        : const Color(0xFF71807A),
-                    size: 20),
+                    color: bookmarked ? colors.primary : colors.textTertiary,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Pass Q3 word layer: the SAME ayah text as per-word spans
+            // whenever the bundled dataset aligns (validator-gated —
+            // a non-aligned ayah renders the plain Text below, exactly
+            // the historical behavior). Long-press a word = explain
+            // sheet (always available for aligned ayahs); tap = play
+            // from that word ONLY in listen word-by-word mode, else it
+            // bubbles to the card's whole-ayah options (unchanged).
+            _AyahArabicLayer(
+              surah: surah,
+              ayah: ayah,
+              prefs: prefs,
+              arabicSize: arabicSize,
+              color: colors.textPrimary,
+            ),
+            if (showTranslit) ...[
+              const SizedBox(height: 8),
+              Text(
+                (roman != null && roman.isNotEmpty)
+                    ? roman
+                    : strings.romanUrduUnavailable,
+                style: AppTextStyles.bodySmall.copyWith(
+                  fontSize: translitSize,
+                  color: colors.textSecondary,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            ayah.text,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-                color: const Color(0xFF19312C),
-                fontFamily: 'Amiri',
-                fontSize: _fontSize,
-                fontWeight: FontWeight.bold,
-                height: 1.8),
-          ),
-          const SizedBox(height: 8),
-          if (_activeTab == 'Arabic' || _activeTab == 'Transliteration')
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                ayah.translationRoman ?? 'Bismillāhir raḥmānir raḥīm',
-                style: const TextStyle(
-                    color: Color(0xFF123F36),
-                    fontSize: 11.5,
-                    fontStyle: FontStyle.italic),
+            if (showTranslation) ...[
+              const SizedBox(height: 8),
+              Text(
+                translation ?? strings.translationUnavailable,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontSize: translationSize,
+                  color: colors.textSecondary,
+                  // D2 T1: paper leading window for the body line.
+                  height: QibraPaper.isActive(context)
+                      ? QibraPaper.bodyLeadingOn(1.5)
+                      : 1.5,
+                ),
               ),
-            ),
-          if (_activeTab == 'Arabic' || _activeTab == 'Translation')
-            Text(
-              ayah.translation ?? '',
-              style: const TextStyle(
-                  color: Color(0xFF71807A), fontSize: 12, height: 1.4),
-            ),
-        ],
+            ],
+            // Pass Q2 (reader setting 'Compare translations'): the ONE
+            // compare card, rendered per ayah while the Translation
+            // tab is active. Gated on real prefs; title states the ayah.
+            if (prefs.translationCompare && activeTab == 'Translation') ...[
+              const SizedBox(height: 10),
+              _TranslationCompareCard(
+                ayah: ayah,
+                title: strings.bundledTranslationsForAyah(ayah.number),
+                prefs: prefs,
+                surahNumber: surah.number,
+                editionTexts: editionTexts,
+              ),
+            ],
+            // Playback UI for THIS ayah exists only while the player is
+            // on it: real reported progress, an honest indeterminate
+            // line while buffering, and the truthful failure copy.
+            if (cur != null) ...[
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: cur.progress != null
+                    ? LinearProgressIndicator(
+                        value: cur.progress,
+                        minHeight: 3,
+                        color: colors.primary,
+                        backgroundColor: colors.border,
+                      )
+                    : const LinearProgressIndicator(minHeight: 3),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                cur.phase == QuranAudioPhase.failed
+                    ? (cur.error ?? Tilawat.offlineFailureMessage)
+                    : (cur.buffering || cur.phase == QuranAudioPhase.loading
+                        ? 'Buffering…'
+                        : (cur.duration != null
+                            ? '${Tilawat.clockLabel(cur.position)} / '
+                                '${Tilawat.clockLabel(cur.duration!)}'
+                            : Tilawat.clockLabel(cur.position))),
+                textAlign: TextAlign.right,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: cur.phase == QuranAudioPhase.failed
+                      ? QibraNavy.red
+                      : colors.textTertiary,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
       ),
     );
   }
 
-  Widget _buildMultiTranslationComparisonCard(
+  static String? _translationFor(
     AyahModel ayah,
-    ReadingPreferences prefs,
-  ) {
-    final english = ayah.translation?.trim();
-    final urdu = ayah.translationUrdu?.trim();
+    ReadingPreferences prefs, {
+    required int surahNumber,
+    Map<String, String>? texts,
+  }) {
+    // Pass E: edition truth in ONE seam — the loaded map answers for
+    // every selected Urdu edition (its blanks stored as absent, so the
+    // caller's honest unavailable line fires); the legacy model fields
+    // serve English and the two resident Urdu faces exactly as before.
+    final urdu = UrduEditionCatalog.selectedText(
+      ayah: ayah,
+      prefs: prefs,
+      surahNumber: surahNumber,
+      editionTexts: texts,
+    );
+    // A blank that arrives from ANY face collapses to null here — the
+    // P3 contract (pinned in pass_p3_polish_test): the reader can
+    // never show a silent blank; null renders the honest unavailable
+    // line. The catalog already stores blanks absent; this is the
+    // consumer-side guarantee for the model-field faces.
+    return (urdu == null || urdu.isEmpty) ? null : urdu;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Bundled-translation comparison (EN + UR side by side)
+// ─────────────────────────────────────────────────────────────
+
+class _TranslationCompareCard extends StatelessWidget {
+  const _TranslationCompareCard({
+    required this.ayah,
+    this.title,
+    this.prefs,
+    this.surahNumber,
+    this.editionTexts,
+  });
+
+  final AyahModel ayah;
+
+  // Pass E: reader instances pass preferences, so the Urdu column
+  // shows the SELECTED edition; the trailing surah-list card (no
+  // prefs) keeps the fixed EN + Jalandhry pairing its 'first ayah'
+  // title has always meant — Q2's pinned contract, untouched.
+  final ReadingPreferences? prefs;
+  final int? surahNumber;
+  final Map<String, String>? editionTexts;
+
+  /// Pass Q2: per-ayah instances (reader settings toggle) pass a real
+  /// title; the trailing list item keeps its original text untouched —
+  /// ONE widget serves both, no fork (the compare card was already this
+  /// shape, so extending it beat re-inventing an equal row widget).
+  final String? title;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     final strings = AppStrings.of(context);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF061A13),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE4E0D5)),
-      ),
+    final english = ayah.translation?.trim();
+    final p = prefs;
+    final id =
+        p == null ? '' : EditionResolver.canonical(p.translationId);
+    final urduSelected = p != null && id.startsWith('ur');
+    // A column may only NAME an edition once it shows that edition:
+    // the two faces riding the model are immediately true; a lazy
+    // edition names itself when its map lands (before that, the
+    // unlabeled default face holds the frame — no mislabel window).
+    final byModelFace =
+        id == 'ur_jalandhry' || id == 'ur_maududi_roman';
+    final named = urduSelected && (byModelFace || editionTexts != null);
+    final urdu = named
+        ? UrduEditionCatalog.selectedText(
+            ayah: ayah,
+            prefs: p,
+            surahNumber: surahNumber ?? ayah.number,
+            editionTexts: editionTexts,
+          )
+        : ayah.translationUrdu?.trim();
+    final urduLang =
+        named ? (EditionResolver.resolve(id)?.label ?? 'اردو') : 'اردو';
+    final urduRtl = !(named && id == 'ur_maududi_roman');
+    return QibraCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.language_rounded,
-                  color: Color(0xFF123F36), size: 16),
+              Icon(Icons.language_rounded, size: 16, color: colors.primary),
               const SizedBox(width: 6),
-              const Text('Bundled translations',
-                  style: TextStyle(
-                      color: Color(0xFF19312C),
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold)),
+              Text(
+                title ??
+                    'Bundled translations — first ayah',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -459,266 +1281,673 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                  child: _buildTranslationColumn(
-                      lang: 'English',
-                      text: (english != null && english.isNotEmpty)
-                          ? english
-                          : strings.translationUnavailable,
-                      isRtl: false)),
+                child: _TranslationColumn(
+                  lang: 'English',
+                  text: (english != null && english.isNotEmpty)
+                      ? english
+                      : strings.translationUnavailable,
+                  isRtl: false,
+                ),
+              ),
               const SizedBox(width: 8),
               Expanded(
-                  child: _buildTranslationColumn(
-                      lang: 'اردو',
-                      text: (urdu != null && urdu.isNotEmpty)
-                          ? urdu
-                          : strings.translationUnavailable,
-                      isRtl: true)),
+                child: _TranslationColumn(
+                  lang: urduLang,
+                  text: (urdu != null && urdu.isNotEmpty)
+                      ? urdu
+                      : strings.translationUnavailable,
+                  isRtl: urduRtl,
+                ),
+              ),
             ],
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _langChip(String label, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF123F36) : const Color(0xFFEEF1EA),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-            color: isSelected ? const Color(0xFF020A08) : Colors.white70,
-            fontSize: 9,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
-      ),
-    );
-  }
+class _TranslationColumn extends StatelessWidget {
+  const _TranslationColumn({
+    required this.lang,
+    required this.text,
+    required this.isRtl,
+  });
 
-  Widget _buildTranslationColumn(
-      {required String lang, required String text, required bool isRtl}) {
+  final String lang;
+  final String text;
+  final bool isRtl;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFF03100B),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF103023)),
+        color: colors.cardMuted,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment:
             isRtl ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(lang,
-                  style: const TextStyle(
-                      color: Color(0xFFC6A15B),
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold)),
-              const Icon(Icons.volume_up_rounded,
-                  color: Color(0xFF123F36), size: 12),
-            ],
+          Text(
+            lang,
+            style: AppTextStyles.labelSmall.copyWith(
+              color: colors.textSecondary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 6),
-          Text(text,
-              textAlign: isRtl ? TextAlign.right : TextAlign.left,
-              style: TextStyle(
-                  color: const Color(0xFF71807A),
-                  fontSize: 10,
-                  fontFamily: isRtl ? 'Amiri' : null,
-                  height: 1.4)),
+          Text(
+            text,
+            textAlign: isRtl ? TextAlign.right : TextAlign.left,
+            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+            // D2 T1: the compare columns ride the same paper leading
+            // window as the body (Urdu and latin alike).
+            style: QibraPaper.isActive(context)
+                ? (isRtl
+                    ? AppArabicStyles.quranSmall
+                        .copyWith(color: colors.textPrimary)
+                        .copyWith(height: QibraPaper.bodyLeadingOn(1.8))
+                    : AppTextStyles.bodySmall.copyWith(
+                        color: colors.textSecondary,
+                        height: QibraPaper.bodyLeadingOn(1.5)))
+                : (isRtl
+                    ? AppArabicStyles.quranSmall
+                        .copyWith(color: colors.textPrimary)
+                    : AppTextStyles.bodySmall
+                        .copyWith(color: colors.textSecondary, height: 1.5)),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildFloatingAudioPlayer(SurahModel surah) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Color(0xFF041710),
-        border: Border(top: BorderSide(color: Color(0xFFE4E0D5))),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
+// ─────────────────────────────────────────────────────────────
+// Reading settings (all switches write real preferences)
+// ─────────────────────────────────────────────────────────────
+
+class _ReadingSettingsSheet extends ConsumerWidget {
+  const _ReadingSettingsSheet({this.surahNumber});
+
+  /// Surah the reader is on, so the reciter list can show REAL per-surah
+  /// download presence across qaris (null = no context, rows simply
+  /// omit the presence line rather than guess one).
+  final int? surahNumber;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = QibraColors.of(context);
+    final prefs = ref.watch(readingPreferencesProvider);
+    return QibraPaper.scope(
+      active: ref.watch(
+          readingPreferencesProvider.select((p) => p.isPaper)),
+      child: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        // The whole sheet body scrolls (see _showSettingsSheet CPH2573
+        // note): SafeArea+Padding stay OUTSIDE, so drag-to-dismiss and
+        // the rounded surface behave exactly as before.
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border:
-                        Border.all(color: const Color(0xFFC6A15B), width: 1.2)),
-                child: const Center(
-                    child: Text('🎙️', style: TextStyle(fontSize: 16))),
+              Text(
+                'Reading settings',
+                style: AppTextStyles.titleMedium.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 8),
+              AppSwitchListTile(
+                title: Text(AppStrings.of(context).showTranslation),
+                subtitle: Text(
+                  'Display the bundled translation under the Arabic.',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: colors.textSecondary),
+                ),
+                value: prefs.showTranslation,
+                onChanged: (v) => ref
+                    .read(readingPreferencesProvider.notifier)
+                    .setShowTranslation(v),
+              ),
+              AppSwitchListTile(
+                title: Text(AppStrings.of(context).showTransliteration),
+                subtitle: Text(
+                  'Only where a roman edition exists in the bundle.',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: colors.textSecondary),
+                ),
+                value: prefs.showTransliteration,
+                onChanged: (v) => ref
+                    .read(readingPreferencesProvider.notifier)
+                    .setShowTransliteration(v),
+              ),
+              AppSwitchListTile(
+                title: Text(AppStrings.of(context).listenWordByWord),
+                subtitle: Text(
+                  AppStrings.of(context).listenWordByWordHint,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: colors.textSecondary),
+                ),
+                value: prefs.listenWordByWord,
+                onChanged: (v) => ref
+                    .read(readingPreferencesProvider.notifier)
+                    .setListenWordByWord(v),
+              ),
+              AppSwitchListTile(
+                title: Text(AppStrings.of(context).compareTranslations),
+                subtitle: Text(
+                  AppStrings.of(context).compareTranslationsHint,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: colors.textSecondary),
+                ),
+                value: prefs.translationCompare,
+                onChanged: (v) => ref
+                    .read(readingPreferencesProvider.notifier)
+                    .setTranslationCompare(v),
+              ),
+              const SizedBox(height: 8),
+              // Split font controls (world-class pass): Arabic and
+              // translation scale independently over the same clamped
+              // range; the sliders reflect and persist REAL pref state.
+              for (final entry in const [
+                ('Arabic text', 'arabic'),
+                ('Translation & transliteration', 'translation'),
+              ]) ...[
+                Text(
+                  entry.$1,
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Row(
                   children: [
-                    const Text('Recitation not bundled',
-                        style: TextStyle(
-                            color: const Color(0xFF19312C),
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold)),
-                    Text('Surah ${surah.name}',
-                        style: const TextStyle(
-                            color: Color(0xFF71807A), fontSize: 9.5)),
+                    Expanded(
+                      child: Slider(
+                        value: entry.$2 == 'arabic'
+                            ? prefs.arabicScale
+                            : prefs.translationScale,
+                        min: ReadingPreferences.scaleMin,
+                        max: ReadingPreferences.scaleMax,
+                        divisions: 8,
+                        activeColor: colors.primary,
+                        label:
+                            '${(((entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale) - 1) * 100).round()}%',
+                        onChanged: (v) => entry.$2 == 'arabic'
+                            ? ref
+                                .read(readingPreferencesProvider.notifier)
+                                .setArabicScale(v)
+                            : ref
+                                .read(readingPreferencesProvider.notifier)
+                                .setTranslationScale(v),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 52,
+                      child: Text(
+                        '${(entry.$2 == 'arabic' ? prefs.arabicScale : prefs.translationScale).toStringAsFixed(2)}\u00d7',
+                        textAlign: TextAlign.end,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: colors.textTertiary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
+                const SizedBox(height: 2),
+              ],
+              const SizedBox(height: 14),
+              Container(height: 1, color: colors.border),
+              const SizedBox(height: 10),
+              // ── Pass Q1: reciter choice / full-Quran download / storage ──
+              _TilawatReciterSection(surahNumber: surahNumber),
+              const SizedBox(height: 8),
+              Container(height: 1, color: colors.border),
+              const SizedBox(height: 8),
+              _TilawatDownloadsSection(surahNumber: surahNumber),
+              const SizedBox(height: 10),
+              Text(
+                'Recitation streams from everyayah.com with a '
+                'cdn.islamic.network fallback; downloads are per-qari and '
+                'live on this device only. No audio files are bundled '
+                'with the app.',
+                style:
+                    AppTextStyles.labelSmall.copyWith(color: colors.textTertiary),
               ),
-              IconButton(
-                  icon: const Icon(Icons.skip_previous_rounded,
-                      color: const Color(0xFF19312C), size: 20),
-                  onPressed: () {}),
-              InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content:
-                          Text(AppStrings.of(context).recitationNotBundled),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(
-                      color: Color(0xFF123F36), shape: BoxShape.circle),
-                  child: const Icon(Icons.play_arrow_rounded,
-                      color: Colors.black, size: 20),
-                ),
-              ),
-              IconButton(
-                  icon: const Icon(Icons.skip_next_rounded,
-                      color: const Color(0xFF19312C), size: 20),
-                  onPressed: () {}),
-              IconButton(
-                  icon: const Icon(Icons.queue_music_rounded,
-                      color: Color(0xFF71807A), size: 18),
-                  onPressed: () {}),
             ],
           ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('00:09',
-                  style: TextStyle(color: Color(0xFF71807A), fontSize: 8)),
-              Text('01:01',
-                  style: TextStyle(color: Color(0xFF71807A), fontSize: 8)),
-            ],
+        ),
+      ),
+    ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Pass Q1 — reciter choice (with REAL per-qari download presence)
+// and the downloads/storage manager. Everything on screen is read
+// back from the filesystem or from live controller state — unknown
+// renders as unknown, there are no estimates anywhere.
+// ─────────────────────────────────────────────────────────────
+
+class _TilawatReciterSection extends ConsumerStatefulWidget {
+  const _TilawatReciterSection({this.surahNumber});
+
+  final int? surahNumber;
+
+  @override
+  ConsumerState<_TilawatReciterSection> createState() =>
+      _TilawatReciterSectionState();
+}
+
+class _TilawatReciterSectionState
+    extends ConsumerState<_TilawatReciterSection> {
+  Map<String, ({int present, int total})> _presence = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final s = widget.surahNumber;
+    if (s == null) return;
+    final m =
+        await ref.read(quranDownloadProvider.notifier).presenceForSurahAcrossQaris(s);
+    if (mounted) setState(() => _presence = m);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final strings = AppStrings.of(context);
+    final prefs = ref.watch(readingPreferencesProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          strings.reciter,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: colors.textSecondary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        for (final q in Tilawat.qaris)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
+            leading: Icon(
+              prefs.qariId == q.id
+                  ? Icons.check_circle_rounded
+                  : Icons.circle_outlined,
+              size: 18,
+              color: prefs.qariId == q.id ? colors.primary : colors.textTertiary,
+            ),
+            title: Text(
+              q.displayName, // catalog data, not chrome copy
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: colors.textPrimary,
+              ),
+            ),
+            subtitle: _presence.isEmpty
+                ? null
+                : Text(
+                    _presenceLine(q.id, strings),
+                    style: AppTextStyles.labelSmall
+                        .copyWith(color: colors.textTertiary),
+                  ),
+            onTap: () async {
+              await ref
+                  .read(readingPreferencesProvider.notifier)
+                  .setQariId(q.id);
+              // selectQari persists + re-anchors live playback onto the
+              // new qari (no-op safely when idle).
+              await ref.read(quranAudioProvider.notifier).selectQari(q.id);
+              final s = widget.surahNumber;
+              if (s != null) {
+                // Status is per-qari now: re-read it for this surah, and
+                // refresh the presence column for every qari.
+                await ref
+                    .read(quranDownloadProvider.notifier)
+                    .checkSurah(s);
+                _load();
+              }
+            },
+          ),
+      ],
+    );
+  }
+
+  String _presenceLine(
+      String id, AppStrings strings) {
+    final p = _presence[id];
+    if (p == null || p.total <= 0) return strings.downloadable;
+    if (p.present >= p.total) {
+      return '${strings.downloadedLabel} · ${p.total}/${p.total}';
+    }
+    if (p.present <= 0) return '${strings.downloadable} · 0/${p.total}';
+    return '${strings.downloadable} · ${p.present}/${p.total}';
+  }
+}
+
+class _TilawatDownloadsSection extends ConsumerStatefulWidget {
+  const _TilawatDownloadsSection({this.surahNumber});
+
+  final int? surahNumber;
+
+  @override
+  ConsumerState<_TilawatDownloadsSection> createState() =>
+      _TilawatDownloadsSectionState();
+}
+
+class _TilawatDownloadsSectionState
+    extends ConsumerState<_TilawatDownloadsSection> {
+  @override
+  void initState() {
+    super.initState();
+    // The storage report reads the real filesystem — refresh once on
+    // open so the sheet shows CURRENT truth, not the app's memory of it.
+    ref.read(quranStorageProvider.notifier).refresh();
+  }
+
+  void _confirmDeleteAll() {
+    final strings = AppStrings.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: QibraColors.of(dialogContext).card,
+        title: Text(
+          strings.deleteAllRecitations,
+          style: AppTextStyles.titleSmall
+              .copyWith(color: QibraColors.of(dialogContext).textPrimary),
+        ),
+        content: Text(
+          strings.confirmDeleteAllBody,
+          style: AppTextStyles.bodyMedium
+              .copyWith(color: QibraColors.of(dialogContext).textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              strings.cancel,
+              style: AppTextStyles.labelMedium.copyWith(
+                  color: QibraColors.of(dialogContext).textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              ref.read(quranStorageProvider.notifier).deleteEverything();
+            },
+            child: Text(
+              strings.delete,
+              style:
+                  AppTextStyles.labelMedium.copyWith(color: QibraNavy.red),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomActionStrip() {
-    final actions = [
-      {'icon': Icons.share_outlined, 'label': 'Share'},
-      {'icon': Icons.edit_note_rounded, 'label': 'Note'},
-      {'icon': Icons.copy_rounded, 'label': 'Copy'},
-      {'icon': Icons.download_rounded, 'label': 'Download'},
-      {'icon': Icons.more_horiz_rounded, 'label': 'More'},
-    ];
-
-    return Container(
-      color: const Color(0xFF020B08),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: actions.map((a) {
-          return InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text('${a['label']} triggered'),
-                    backgroundColor: const Color(0xFFEEF1EA),
-                    duration: const Duration(seconds: 1)),
-              );
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(a['icon'] as IconData,
-                    color: const Color(0xFF71807A), size: 18),
-                const SizedBox(height: 3),
-                Text(a['label'] as String,
-                    style:
-                        const TextStyle(color: Color(0xFF71807A), fontSize: 9)),
-              ],
+  @override
+  Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
+    final strings = AppStrings.of(context);
+    final dl = ref.watch(quranDownloadAllProvider);
+    final storage = ref.watch(quranStorageProvider);
+    final ctl = ref.read(quranDownloadAllProvider.notifier);
+    final fileProgress = dl.filesTotal > 0
+        ? (dl.filesDone / dl.filesTotal).clamp(0.0, 1.0).toDouble()
+        : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                strings.downloadAll,
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-          );
-        }).toList(),
-      ),
+            if (dl.running)
+              TextButton(
+                onPressed: ctl.cancel,
+                child: Text(
+                  strings.cancel,
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: colors.textSecondary),
+                ),
+              )
+            else
+              TextButton(
+                onPressed: () => ctl.start(),
+                child: Text(
+                  strings.downloadAll,
+                  style: AppTextStyles.labelSmall
+                      .copyWith(color: colors.primary),
+                ),
+              ),
+          ],
+        ),
+        if (dl.running) ...[
+          LinearProgressIndicator(
+            value: fileProgress,
+            minHeight: 3,
+            color: colors.primary,
+            backgroundColor: colors.border,
+          ),
+          Text(
+            '${dl.filesDone}/${dl.filesTotal} files · '
+            '${dl.surahsDone}/${Tilawat.totalSurahs} surahs',
+            style: AppTextStyles.labelSmall
+                .copyWith(color: colors.textTertiary),
+          ),
+        ] else if (dl.finished)
+          Text(
+            '${dl.surahsDone}/${Tilawat.totalSurahs} surahs · '
+            '${SurahAudioStatus.bytesLabel(dl.bytes)}',
+            style: AppTextStyles.labelSmall
+                .copyWith(color: colors.textTertiary),
+          ),
+        const SizedBox(height: 8),
+        Text(
+          strings.storage,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: colors.textSecondary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        if (storage == null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colors.textTertiary,
+              ),
+            ),
+          )
+        else ...[
+          for (final row in storage.perQari)
+            Text(
+              '${row.displayName} · ${SurahAudioStatus.bytesLabel(row.bytes)}'
+              ' · ${row.files} files',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: colors.textTertiary),
+            ),
+          Text(
+            '${strings.tilawatCache} · '
+            '${SurahAudioStatus.bytesLabel(storage.totalBytes)}',
+            style: AppTextStyles.labelSmall
+                .copyWith(color: colors.textSecondary),
+          ),
+          if (storage.totalBytes > 0 || storage.perQari.isNotEmpty)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: _confirmDeleteAll,
+                child: Text(
+                  strings.deleteAllRecitations,
+                  style:
+                      AppTextStyles.labelSmall.copyWith(color: QibraNavy.red),
+                ),
+              ),
+            ),
+        ],
+      ],
     );
   }
+}
 
-  void _showSettingsModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFFEEF1EA),
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final prefs = ref.watch(readingPreferencesProvider);
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Reading settings',
-                      style: TextStyle(
-                          color: Color(0xFF19312C),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  AppSwitchListTile(
-                    title: const Text('Show Translation',
-                        style:
-                            TextStyle(color: Color(0xFF19312C), fontSize: 13)),
-                    subtitle: const Text('Display bundled translation below Arabic',
-                        style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
-                    value: prefs.showTranslation,
-                    activeColor: const Color(0xFF123F36),
-                    onChanged: (val) {
-                      ref
-                          .read(readingPreferencesProvider.notifier)
-                          .setShowTranslation(val);
-                    },
+// ─────────────────────────────────────────────────────────────
+// Pass Q3 — per-word Arabic layer (validator-gated, additive)
+// ─────────────────────────────────────────────────────────────
+
+class _AyahArabicLayer extends ConsumerWidget {
+  const _AyahArabicLayer({
+    required this.surah,
+    required this.ayah,
+    required this.prefs,
+    required this.arabicSize,
+    required this.color,
+  });
+
+  final SurahModel surah;
+  final AyahModel ayah;
+  final ReadingPreferences prefs;
+  final double arabicSize;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final corpus = ref.watch(quranWordCorpusProvider).valueOrNull;
+    final words = corpus?.wordsFor(surah.number, ayah.number, ayah.text);
+    var style = AppArabicStyles.quranMedium.copyWith(
+      fontSize: arabicSize,
+      height: prefs.lineHeight,
+      color: color,
+    );
+    // D2 T1/T2 (paper only): one size step up and the 1.75–1.85
+    // leading window; the word-chip render below inherits the bumped
+    // size through the same style object.
+    if (QibraPaper.isActive(context)) {
+      style = QibraPaper.paperArabicBody(style);
+    }
+    if (words == null) {
+      // No verified word mapping for this ayah (or the corpus failed to
+      // load): the historical single-Text render, byte-identical UX.
+      return Text(
+        ayah.text,
+        textAlign: TextAlign.right,
+        textDirection: TextDirection.rtl,
+        style: style,
+      );
+    }
+
+    final cues = corpus!.cuesFor(prefs.qariId, surah.number, ayah.number);
+    final roman = ayah.translationRoman?.trim();
+
+    void playFromSpan(int spanIndex) {
+      final ctl = ref.read(quranAudioProvider.notifier);
+      final idx =
+          surah.ayahs.indexWhere((a) => a.number == ayah.number);
+      ctl.playFromWord(
+        surahNumber: surah.number,
+        surahName: surah.name,
+        queue: tilawatQueueFor(surah),
+        startIndex: idx < 0 ? 0 : idx,
+        spanIndex: spanIndex,
+        cues: cues,
+      );
+    }
+
+    void openSheet(int spanIndex) {
+      final w = words.spans[spanIndex];
+      showWordExplainSheet(
+        context,
+        surahNumber: surah.number,
+        surahName: surah.name,
+        ayahNumber: ayah.number,
+        ayahText: ayah.text,
+        word: w.word,
+        gloss: w.gloss,
+        spanIndex: spanIndex,
+        hasExactTimings:
+            QuranWordCorpus.seekStartMs(cues, spanIndex) != null,
+        romanUrdu: (roman != null && roman.isNotEmpty) ? roman : null,
+        onPlayFromWord: () => playFromSpan(spanIndex),
+      );
+    }
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Text.rich(
+        TextSpan(
+          style: style,
+          children: [
+            for (var i = 0; i < words.spans.length; i++) ...[
+              WidgetSpan(
+                alignment: PlaceholderAlignment.baseline,
+                baseline: TextBaseline.alphabetic,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  // Tap follows listen word-by-word mode ONLY; when
+                  // OFF the child claims no tap so the card's existing
+                  // whole-ayah options gesture fires (zero conflict).
+                  onTap: prefs.listenWordByWord
+                      ? () => playFromSpan(i)
+                      : null,
+                  onLongPress: () => openSheet(i),
+                  // Pass A: each word is its own semantics node — the
+                  // gestures above are otherwise invisible to TalkBack.
+                  // excludeSemantics keeps one clean node (the child Text
+                  // would duplicate the word); button only when a tap
+                  // actually does something, so we never promise a
+                  // double-tap that no-ops.
+                  child: Semantics(
+                    button: prefs.listenWordByWord,
+                    label: words.spans[i].word,
+                    tooltip: prefs.listenWordByWord
+                        ? AppStrings.of(context).a11yWordPlayHint
+                        : AppStrings.of(context).a11yWordMeaningHint,
+                    excludeSemantics: true,
+                    onTap: prefs.listenWordByWord
+                        ? () => playFromSpan(i)
+                        : null,
+                    onLongPress: () => openSheet(i),
+                    child: Text(words.spans[i].word, style: style),
                   ),
-                  AppSwitchListTile(
-                    title: const Text('Show transliteration',
-                        style:
-                            TextStyle(color: Color(0xFF19312C), fontSize: 13)),
-                    subtitle: const Text(
-                        'Only when a bundled roman edition exists',
-                        style: TextStyle(color: Color(0xFF71807A), fontSize: 10)),
-                    value: prefs.showTransliteration,
-                    activeColor: const Color(0xFF123F36),
-                    onChanged: (val) {
-                      ref
-                          .read(readingPreferencesProvider.notifier)
-                          .setShowTransliteration(val);
-                    },
-                  ),
-                ],
+                ),
               ),
-            );
-          },
-        );
-      },
+              if (i != words.spans.length - 1)
+                const TextSpan(text: ' '),
+            ],
+          ],
+        ),
+        textAlign: TextAlign.right,
+      ),
     );
   }
 }

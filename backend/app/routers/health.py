@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from ..config import get_settings
+from ..config import database_summary, get_settings
 from ..observability.metrics import snapshot as metrics_snapshot
 
 router = APIRouter()
@@ -12,6 +12,9 @@ def health():
     return {
         "status": "ok",
         "version": s.version,
+        # QB-004: a wrong DATABASE_URL on Render becomes visible here — as a type, and
+        # nothing else. The URL itself (host, port, credentials) never leaves the box.
+        "database": database_summary(s.database_url),
         "flags": {
             "auth_production_ready": s.auth_production_ready,
             "content_production_ready": s.content_production_ready,

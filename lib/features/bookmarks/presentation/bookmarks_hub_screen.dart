@@ -5,16 +5,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_constants.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/qibra_ui.dart';
-import '../../duas/presentation/dua_detail_screen.dart';
-import '../../duas/providers/dua_provider.dart';
-import '../../hadith/providers/hadith_provider.dart';
-import '../../quran/data/models/quran_models.dart';
-import '../../quran/presentation/surah_reader_screen.dart';
-import '../../quran/providers/quran_provider.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/features/duas/presentation/dua_detail_screen.dart';
+import 'package:qibra_ai/features/duas/providers/dua_provider.dart';
+import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
+import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
+import 'package:qibra_ai/features/hadith/presentation/hadith_book_screen.dart';
+import 'package:qibra_ai/features/hadith/providers/hadith_provider.dart';
+import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
+import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
+import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
 
 enum BookmarkSortOption {
   newestFirst('Newest'),
@@ -61,9 +66,9 @@ class _BookmarksHubScreenState extends ConsumerState<BookmarksHubScreen>
       backgroundColor: colors.background,
       appBar: AppBar(
         backgroundColor: colors.background,
-        title: const Text('Bookmarks'),
+        title: Text(AppStrings.of(context).bookmarksTitle),
         leading: IconButton(
-          tooltip: 'Back',
+          tooltip: AppStrings.of(context).tooltipBack,
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
             if (context.canPop()) {
@@ -76,7 +81,7 @@ class _BookmarksHubScreenState extends ConsumerState<BookmarksHubScreen>
         actions: [
           if (_tabs.index == 0 && quran.isNotEmpty)
             IconButton(
-              tooltip: 'Clear Quran bookmarks',
+              tooltip: AppStrings.of(context).tooltipClearQuranBookmarks,
               icon: const Icon(Icons.delete_sweep_outlined),
               onPressed: _confirmClearQuran,
             ),
@@ -118,14 +123,14 @@ class _BookmarksHubScreenState extends ConsumerState<BookmarksHubScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(AppStrings.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(bookmarksProvider.notifier).clearAll();
               Navigator.pop(dialogContext);
             },
-            child: const Text('Clear'),
+            child: Text(AppStrings.of(context).clear),
           ),
         ],
       ),
@@ -212,6 +217,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
                     suffixIcon: _search.text.isEmpty
                         ? null
                         : IconButton(
+                            tooltip: AppStrings.of(context).tooltipClearSearch,
                             icon: const Icon(Icons.close_rounded, size: 18),
                             onPressed: () {
                               _search.clear();
@@ -234,7 +240,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
               ),
               const SizedBox(width: 8),
               PopupMenuButton<BookmarkSortOption>(
-                tooltip: 'Sort',
+                tooltip: AppStrings.of(context).tooltipSort,
                 initialValue: _sort,
                 onSelected: (value) => setState(() => _sort = value),
                 itemBuilder: (context) => [
@@ -280,6 +286,27 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
                                   .copyWith(color: colors.primary),
                             ),
                           ),
+                          // Pass Q2: play-from-here per bookmark row —
+                          // opens the reader at the ayah AND starts the
+                          // recitation queue there (same deep link the
+                          // search results use).
+                          Semantics(
+                            button: true,
+                            label: AppStrings.of(context).playFromHere,
+                            child: IconButton(
+                              onPressed: () => _openAyah(item, play: true),
+                              tooltip: AppStrings.of(context).playFromHere,
+                              icon: const Icon(Icons.play_circle_outline,
+                                  size: 22),
+                              color: colors.textSecondary,
+                              visualDensity: VisualDensity.compact,
+                              style: IconButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4),
+                                minimumSize: const Size(36, 36),
+                              ),
+                            ),
+                          ),
                           Text(
                             item.formattedTime,
                             style: AppTextStyles.labelSmall
@@ -296,13 +323,13 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
                                   _delete(item);
                               }
                             },
-                            itemBuilder: (context) => const [
+                            itemBuilder: (context) => [
                               PopupMenuItem(
-                                  value: 'copy', child: Text('Copy')),
+                                  value: 'copy', child: Text(AppStrings.of(context).copy)),
                               PopupMenuItem(
-                                  value: 'note', child: Text('Note')),
+                                  value: 'note', child: Text(AppStrings.of(context).note)),
                               PopupMenuItem(
-                                  value: 'delete', child: Text('Delete')),
+                                  value: 'delete', child: Text(AppStrings.of(context).delete)),
                             ],
                           ),
                         ],
@@ -340,12 +367,15 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
     );
   }
 
-  void _openAyah(BookmarkModel bookmark) {
+  void _openAyah(BookmarkModel bookmark, {bool play = false}) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SurahReaderScreen(
           surahNumber: bookmark.surahNumber,
           initialAyah: bookmark.ayahNumber,
+          // Pass Q2: the row's play affordance resumes recitation at
+          // the bookmarked ayah the moment the reader opens.
+          playOnOpen: play,
         ),
       ),
     );
@@ -363,7 +393,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
     );
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied')),
+      SnackBar(content: Text(AppStrings.of(context).copied)),
     );
   }
 
@@ -396,7 +426,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(AppStrings.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -409,7 +439,7 @@ class _QuranBookmarksTabState extends ConsumerState<_QuranBookmarksTab> {
                   );
               Navigator.pop(dialogContext);
             },
-            child: const Text('Save'),
+            child: Text(AppStrings.of(context).save),
           ),
         ],
       ),
@@ -423,8 +453,8 @@ class _HadithBookmarksTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = QibraColors.of(context);
-    final items = ref.watch(hadithBookmarksProvider);
-    if (items.isEmpty) {
+    final saves = ref.watch(hadithBookmarksProvider);
+    if (saves.isEmpty) {
       return const QibraEmptyState(
         icon: Icons.bookmark_border_rounded,
         title: 'No Hadith bookmarks',
@@ -433,11 +463,16 @@ class _HadithBookmarksTab extends ConsumerWidget {
     }
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      itemCount: items.length,
+      itemCount: saves.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        final item = items[index];
+        final saved = saves[index];
         return QibraCard(
+          // World-class hadith pass (item 5): the card's body opens the
+          // hadith's real detail via its book screen — a genuine
+          // lookup, not a synthesized preview. The trailing button
+          // un-bookmarks (removeBookmark on the persisted store).
+          onTap: () => _openHadithBookmark(context, ref, saved),
           child: Row(
             children: [
               Expanded(
@@ -445,14 +480,14 @@ class _HadithBookmarksTab extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${item.bookName} #${item.hadithNumber}',
+                      '${saved.bookName} #${saved.hadithNumber}',
                       style: AppTextStyles.labelLarge.copyWith(
                         color: colors.primary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      item.textPreview,
+                      saved.textPreview,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bodySmall.copyWith(
@@ -463,17 +498,69 @@ class _HadithBookmarksTab extends ConsumerWidget {
                 ),
               ),
               IconButton(
+                tooltip: AppStrings.of(context).tooltipRemoveBookmark,
                 icon: Icon(Icons.delete_outline, color: colors.textTertiary),
                 onPressed: () {
                   ref
                       .read(hadithBookmarksProvider.notifier)
-                      .removeBookmark(item.hadithId);
+                      .removeBookmark(saved.hadithId);
                 },
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  /// Item 5: resolve through the REAL bundled corpus. When this device's
+  /// data does not contain the bookmarked number, the honest message
+  /// fires — nothing is fabricated to fill the gap.
+  Future<void> _openHadithBookmark(
+    BuildContext context,
+    WidgetRef ref,
+    HadithBookmark saved,
+  ) async {
+    final ok =
+        await ref.read(hadithDatabaseInitProvider.future).catchError((_) {
+      return false;
+    });
+    if (!context.mounted) return;
+    final db = HadithDatabaseService();
+    if (!ok || !db.isInitialized ||
+        db.getHadith(saved.bookSlug, saved.hadithNumber) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text(AppStrings.of(context).thatHadithNotBundled)),
+      );
+      return;
+    }
+    final books =
+        ref.read(hadithBooksProvider).valueOrNull ?? const <HadithBook>[];
+    final matches =
+        books.where((bk) => bk.slug == saved.bookSlug).toList();
+    final target = matches.isNotEmpty
+        ? matches.first
+        : HadithBook(
+            id: saved.bookSlug,
+            slug: saved.bookSlug,
+            name: saved.bookName,
+            nameArabic: '',
+            author: '—',
+            authorArabic: '',
+            totalHadiths: 0,
+            totalChapters: 0,
+            description: '',
+            color: QibraNavy.emeraldDeep,
+          );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HadithBookScreen(
+          book: target,
+          focusHadithNumber: saved.hadithNumber,
+        ),
+      ),
     );
   }
 }

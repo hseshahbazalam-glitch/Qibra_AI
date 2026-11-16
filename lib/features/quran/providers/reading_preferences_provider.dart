@@ -1,9 +1,19 @@
 // Persisted Quran reading preferences. Unbundled editions stay unresolved.
+//
+// World-class pass (2026-09-04): the single `fontScale` was SPLIT into
+// `arabicScale` and `translationScale` — readers routinely want the
+// Arabic larger than the latin translation (or vice versa). On first
+// load, the legacy `font_scale` value migrates: BOTH new scales default
+// to whatever the old single scale was (clamped to the shared range).
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/content/edition_resolver.dart';
+import 'package:qibra_ai/core/content/edition_resolver.dart';
+
+import '../data/audio/tilawat.dart';
+
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
 
 enum QuranReadingMode { arabicOnly, arabicAndTranslation, translationOnly }
 
@@ -12,19 +22,92 @@ class ReadingPreferences {
     this.translationId = 'en',
     this.showTranslation = true,
     this.showTransliteration = false,
-    this.fontScale = 1.0,
+    this.arabicScale = 1.0,
+    this.translationScale = 1.0,
     this.lineHeight = 1.8,
     this.fontFamily = 'Amiri',
     this.mode = QuranReadingMode.arabicAndTranslation,
+    this.qariId = 'ar.alafasy',
+    this.listenWordByWord = false,
+    this.playbackSpeed = 1.0,
+    this.translationCompare = false,
+    this.wordByWordGloss = false,
+    this.readingTheme = QibraReadingTheme.night,
   });
+
+  /// Shared clamp range for both scales.
+  static const double scaleMin = 0.8;
+  static const double scaleMax = 1.6;
 
   final String translationId;
   final bool showTranslation;
   final bool showTransliteration;
-  final double fontScale;
+
+  /// Multiplier for the Arabic Quran text.
+  final double arabicScale;
+
+  /// Multiplier for translation + transliteration body text.
+  final double translationScale;
   final double lineHeight;
   final String fontFamily;
   final QuranReadingMode mode;
+
+  /// Selected tilawat reciter — a TilawatQari id. Unknown values are
+  /// rejected at the boundary (setter + load), so the player always
+  /// resolves a real catalog entry; default Alafasy (Tilawat.current).
+  final String qariId;
+
+  /// Listen word-by-word (Pass Q3): when ON, tapping a word plays the
+  /// recitation FROM THAT WORD (exact where the qari has bundled cue
+  /// data; otherwise honestly from the ayah start). Explicit user
+  /// state only — never auto-armed.
+  final bool listenWordByWord;
+
+  /// just_audio playback speed — one of Tilawat.knownSpeeds (validated
+  /// at the setter and at load; anything else stores/loads 1.0).
+  final double playbackSpeed;
+
+  /// Pass Q2: render the bundled EN+UR compare card under EVERY ayah on
+  /// the Translation tab (off = only the trailing first-ayah card,
+  /// exactly the pre-Q2 layout).
+  final bool translationCompare;
+
+  /// Pass M6 (W): WORD-BY-WORD GLOSS on the mushaf pages — each
+  /// Arabic word rendered over its bundled English gloss, tappable
+  /// to the word-explain sheet. Default OFF, persisted, instant.
+  /// Deliberately SEPARATE from [listenWordByWord] (that is the
+  /// audio cue mode on the surah reader). Honest by construction:
+  /// the gloss corpus is English-only — no Urdu data exists, and
+  /// the toggle promises nothing beyond the data (W4).
+  final bool wordByWordGloss;
+
+  /// Pass D2: the reading-surface palette switch. NIGHT (default) is
+  /// the untouched global navy; PAPER paints the cream duotone on
+  /// the reading surfaces via QibraPaper.scope. The app theme, every
+  /// other screen, and every default in this class stay navy.
+  final QibraReadingTheme readingTheme;
+
+  /// Convenience for the scopes: true only in paper mode.
+  bool get isPaper => readingTheme == QibraReadingTheme.paper;
+
+  /// Boundary validation for the persisted surface name: known names
+  /// pass, everything else is night (never a crash, never a guess).
+  static QibraReadingTheme validSurface(String? name) =>
+      QibraReadingTheme.values.firstWhere(
+        (t) => t.name == name,
+        orElse: () => QibraReadingTheme.night,
+      );
+
+  static double clampScale(double v) => v.clamp(scaleMin, scaleMax).toDouble();
+
+  /// Pure legacy migration — unit-tested. A missing/null old value means
+  /// both scales are the default 1.0; an out-of-range old value clamps.
+  static ({double arabic, double translation}) splitLegacyScale(
+      double? legacyScale) {
+    final base = legacyScale ?? 1.0;
+    final v = clampScale(base);
+    return (arabic: v, translation: v);
+  }
 
   bool get translationBundled => EditionResolver.isBundled(translationId);
 
@@ -32,21 +115,51 @@ class ReadingPreferences {
     String? translationId,
     bool? showTranslation,
     bool? showTransliteration,
-    double? fontScale,
+    double? arabicScale,
+    double? translationScale,
     double? lineHeight,
     String? fontFamily,
     QuranReadingMode? mode,
+    String? qariId,
+    bool? listenWordByWord,
+    double? playbackSpeed,
+    bool? translationCompare,
+    bool? wordByWordGloss,
+    QibraReadingTheme? readingTheme,
   }) {
     return ReadingPreferences(
       translationId: translationId ?? this.translationId,
       showTranslation: showTranslation ?? this.showTranslation,
       showTransliteration: showTransliteration ?? this.showTransliteration,
-      fontScale: fontScale ?? this.fontScale,
+      arabicScale: arabicScale ?? this.arabicScale,
+      translationScale: translationScale ?? this.translationScale,
       lineHeight: lineHeight ?? this.lineHeight,
       fontFamily: fontFamily ?? this.fontFamily,
       mode: mode ?? this.mode,
+      qariId: qariId ?? this.qariId,
+      listenWordByWord: listenWordByWord ?? this.listenWordByWord,
+      playbackSpeed: playbackSpeed ?? this.playbackSpeed,
+      translationCompare: translationCompare ?? this.translationCompare,
+      wordByWordGloss: wordByWordGloss ?? this.wordByWordGloss,
+      readingTheme: readingTheme ?? this.readingTheme,
     );
   }
+
+  /// Boundary validation for a persisted/recalled qari id: catalog ids
+  /// pass verbatim, everything else becomes the default (never a
+  /// crash, never a guessed slug).
+  static String validQariId(String? id) {
+    if (id != null) {
+      for (final q in Tilawat.qaris) {
+        if (q.id == id) return id;
+      }
+    }
+    return Tilawat.defaultQariId;
+  }
+
+  /// Boundary validation for the speed: whitelist or 1.0.
+  static double validSpeed(double? v) =>
+      (v != null && Tilawat.isKnownSpeed(v)) ? v : 1.0;
 }
 
 class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
@@ -57,38 +170,145 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
   static const _key = 'quran_reading_preferences_v1';
 
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
+    late final SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } catch (_) {
+      // Storage unreachable (pure-widget tests without the platform
+      // mock; transient store failures on device): keep the compiled
+      // defaults — an unawaited constructor load must never raise an
+      // unhandled async error into the spawning zone.
+      return;
+    }
     final id = prefs.getString('${_key}_translation') ?? 'en';
     final showT = prefs.getBool('${_key}_show_translation') ?? true;
     final showTr = prefs.getBool('${_key}_show_transliteration') ?? false;
-    final scale = prefs.getDouble('${_key}_font_scale') ?? 1.0;
     final height = prefs.getDouble('${_key}_line_height') ?? 1.8;
     final font = prefs.getString('${_key}_font_family') ?? 'Amiri';
     final modeName = prefs.getString('${_key}_mode') ?? QuranReadingMode.arabicAndTranslation.name;
+    final listenWord =
+        prefs.getBool('${_key}_listen_word_by_word') ?? false;
     final mode = QuranReadingMode.values.firstWhere(
       (m) => m.name == modeName,
       orElse: () => QuranReadingMode.arabicAndTranslation,
     );
+    // Split-scale load with backward-compatible migration from the old
+    // single font_scale key (legacy value is left in place, never
+    // rewritten — a downgrade still finds it).
+    final legacyScale = prefs.getDouble('${_key}_font_scale');
+    final arabic = prefs.getDouble('${_key}_arabic_scale');
+    final translation = prefs.getDouble('${_key}_translation_scale');
+    final migrated =
+        (arabic == null || translation == null)
+            ? ReadingPreferences.splitLegacyScale(legacyScale)
+            : null;
+    final scales = migrated ??
+        (arabic: ReadingPreferences.clampScale(arabic!),
+         translation: ReadingPreferences.clampScale(translation!));
     state = ReadingPreferences(
-      translationId: EditionResolver.isBundled(id) ? id : 'en',
+      // Canonicalize on the way in: a persisted legacy 'ur' alias
+      // becomes ur_jalandhry — same content, one identity (Pass E).
+      translationId: EditionResolver.isBundled(id)
+          ? EditionResolver.canonical(id)
+          : 'en',
       showTranslation: showT,
       showTransliteration: showTr,
-      fontScale: scale.clamp(0.8, 1.8),
+      arabicScale: scales.arabic,
+      translationScale: scales.translation,
       lineHeight: height.clamp(1.4, 2.4),
       fontFamily: font,
       mode: mode,
+      qariId: ReadingPreferences.validQariId(
+        prefs.getString('${_key}_qari_id'),
+      ),
+      listenWordByWord: listenWord,
+      playbackSpeed: ReadingPreferences.validSpeed(
+        prefs.getDouble('${_key}_playback_speed'),
+      ),
+      translationCompare:
+          prefs.getBool('${_key}_translation_compare') ?? false,
+      wordByWordGloss:
+          prefs.getBool('${_key}_word_by_word_gloss') ?? false,
+      readingTheme: ReadingPreferences.validSurface(
+        prefs.getString('${_key}_reading_theme'),
+      ),
     );
   }
 
   Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
+    late final SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } catch (_) {
+      // Same boundary discipline as _load(): an unreachable store must
+      // not surface as an unhandled async error from a setter. State
+      // itself is updated regardless; persistence is retried by the
+      // next setter call once the store answers.
+      return;
+    }
     await prefs.setString('${_key}_translation', state.translationId);
     await prefs.setBool('${_key}_show_translation', state.showTranslation);
     await prefs.setBool('${_key}_show_transliteration', state.showTransliteration);
-    await prefs.setDouble('${_key}_font_scale', state.fontScale);
+    await prefs.setDouble('${_key}_arabic_scale', state.arabicScale);
+    await prefs.setDouble('${_key}_translation_scale', state.translationScale);
     await prefs.setDouble('${_key}_line_height', state.lineHeight);
     await prefs.setString('${_key}_font_family', state.fontFamily);
     await prefs.setString('${_key}_mode', state.mode.name);
+    await prefs.setString('${_key}_qari_id', state.qariId);
+    await prefs.setBool('${_key}_listen_word_by_word',
+        state.listenWordByWord);
+    await prefs.setDouble('${_key}_playback_speed', state.playbackSpeed);
+    await prefs.setBool(
+        '${_key}_translation_compare', state.translationCompare);
+    await prefs.setBool(
+        '${_key}_word_by_word_gloss', state.wordByWordGloss);
+    await prefs.setString('${_key}_reading_theme', state.readingTheme.name);
+  }
+
+  /// Persist the reading-surface theme (Pass D2). Fires on the spot —
+  /// every scoped surface rebuilds through the provider; no restart.
+  Future<void> setReadingTheme(QibraReadingTheme theme) async {
+    if (theme == state.readingTheme) return;
+    state = state.copyWith(readingTheme: theme);
+    await _save();
+  }
+
+  /// Persist the per-ayah translation-compare toggle (Pass Q2).
+  Future<void> setTranslationCompare(bool value) async {
+    if (value == state.translationCompare) return;
+    state = state.copyWith(translationCompare: value);
+    await _save();
+  }
+
+  /// Persist the mushaf word-by-word gloss mode (M6 W1) — the same
+  /// guard-then-save shape as every other setter.
+  Future<void> setWordByWordGloss(bool value) async {
+    if (value == state.wordByWordGloss) return;
+    state = state.copyWith(wordByWordGloss: value);
+    await _save();
+  }
+
+  /// Persist the selected reciter (validated at the boundary).
+  Future<void> setQariId(String id) async {
+    final v = ReadingPreferences.validQariId(id);
+    if (v == state.qariId) return;
+    state = state.copyWith(qariId: v);
+    await _save();
+  }
+
+  /// Persist the Listen word-by-word mode (Pass Q3). Explicit user
+  /// state only: nothing in the app flips this without this call.
+  Future<void> setListenWordByWord(bool value) async {
+    if (value == state.listenWordByWord) return;
+    state = state.copyWith(listenWordByWord: value);
+    await _save();
+  }
+
+  /// Persist the playback speed (whitelist; invalid → 1.0, stored as-is).
+  Future<void> setPlaybackSpeed(double v) async {
+    final s = ReadingPreferences.validSpeed(v);
+    state = state.copyWith(playbackSpeed: s);
+    await _save();
   }
 
   Future<void> setTranslation(String id) async {
@@ -96,7 +316,9 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     if (miss != null) {
       return;
     }
-    state = state.copyWith(translationId: id);
+    // One identity persisted — the picker checkmark and every reader
+    // seam read exactly this string (Pass E).
+    state = state.copyWith(translationId: EditionResolver.canonical(id));
     await _save();
   }
 
@@ -110,8 +332,22 @@ class ReadingPreferencesNotifier extends StateNotifier<ReadingPreferences> {
     await _save();
   }
 
-  Future<void> setFontScale(double value) async {
-    state = state.copyWith(fontScale: value.clamp(0.8, 1.8));
+  Future<void> setArabicScale(double value) async {
+    state = state.copyWith(arabicScale: ReadingPreferences.clampScale(value));
+    await _save();
+  }
+
+  Future<void> setTranslationScale(double value) async {
+    state = state.copyWith(
+        translationScale: ReadingPreferences.clampScale(value));
+    await _save();
+  }
+
+  /// Settings-screen single-knob behavior: sets BOTH scales together
+  /// (the split fine-tuning lives in the reader's settings sheet).
+  Future<void> setBothScales(double value) async {
+    final v = ReadingPreferences.clampScale(value);
+    state = state.copyWith(arabicScale: v, translationScale: v);
     await _save();
   }
 

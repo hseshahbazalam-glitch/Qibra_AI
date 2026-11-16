@@ -1,12 +1,12 @@
 """Phase 15 — RAG honesty + security headers."""
 
-from helpers import fresh_client
+from helpers import ai_headers, fresh_client
 from app.rag import answer, retrieve
 
 
 def test_ask_refuses_empty_corpus():
     with fresh_client() as client:
-        r = client.post("/ai/ask", json={"query": "xyz", "corpus": []})
+        r = client.post("/ai/ask", json={"query": "xyz", "corpus": []}, headers=ai_headers(client))
         assert r.status_code == 200
         assert r.json()["refused"] is True
         assert r.json()["answer"] is None
@@ -16,6 +16,7 @@ def test_ask_returns_passage_not_verified():
     with fresh_client() as client:
         r = client.post(
             "/ai/ask",
+            headers=ai_headers(client),
             json={
                 "query": "merciful",
                 "corpus": [{"text": "Allah is most merciful", "source": "Quran 1:1"}],
@@ -50,10 +51,22 @@ def test_security_headers():
         assert health.headers.get("X-Request-Id")
 
 
-def test_ask_does_not_require_auth():
+def test_ask_requires_auth_and_says_so():
+    """Reverses `test_ask_does_not_require_auth` (Phase 15), which pinned the endpoint as
+    public on purpose and was listed as KEEP in docs/WORLD_CLASS_AUDIT.md. QB-011 is the
+    external audit overriding that decision: the endpoint costs real inference per call,
+    so it belongs to a signed-in user now. The old name is kept in this docstring so the
+    reversal is findable, and the sibling pin below (no-store) still holds."""
     with fresh_client() as client:
         r = client.post("/ai/ask", json={"query": "x", "corpus": []})
-        assert r.status_code == 200
+        assert r.status_code == 401
+        assert r.json()["detail"] == "auth_required"
+        assert r.json()["reason"] == "missing_token"
+        assert "sign in" in r.json()["hint"].lower()
+        ok = client.post(
+            "/ai/ask", json={"query": "x", "corpus": []}, headers=ai_headers(client)
+        )
+        assert ok.status_code == 200
 
 
 def test_multiple_citations():
@@ -75,5 +88,7 @@ def test_health_auth_not_production():
 
 def test_no_store_on_ask():
     with fresh_client() as client:
-        r = client.post("/ai/ask", json={"query": "x", "corpus": []})
+        r = client.post(
+            "/ai/ask", json={"query": "x", "corpus": []}, headers=ai_headers(client)
+        )
         assert r.headers["Cache-Control"] == "no-store"

@@ -4,7 +4,8 @@ import 'package:qibra_ai/features/calendar/presentation/islamic_calendar_screen.
 import 'package:qibra_ai/features/settings/presentation/settings_screen.dart';
 import 'package:qibra_ai/features/qibla/presentation/qibla_screen.dart';
 import 'package:qibra_ai/features/duas/presentation/duas_home_screen.dart';
-import 'package:qibra_ai/features/tools/screens/tools_hub_screen.dart';
+import 'package:qibra_ai/features/duas/presentation/dua_detail_screen.dart';
+import 'package:qibra_ai/features/tools/presentation/tools_hub_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +25,7 @@ import 'package:qibra_ai/features/prayer/presentation/salah_schedule_screen.dart
 import 'package:qibra_ai/features/prayer/presentation/prayer_statistics_screen.dart';
 import 'package:qibra_ai/features/prayer/presentation/tahajjud_details_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/quran_screen.dart';
+import 'package:qibra_ai/features/quran/presentation/quran_mini_player.dart';
 import 'package:qibra_ai/features/quran/presentation/mushaf_reader_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/surah_reader_screen.dart';
 import 'package:qibra_ai/features/quran/presentation/quran_search_screen.dart';
@@ -37,17 +39,13 @@ import 'package:qibra_ai/features/hadith/presentation/hadith_book_screen.dart';
 import 'package:qibra_ai/features/hadith/data/models/hadith_models.dart';
 import 'package:qibra_ai/features/hadith/data/services/hadith_database_service.dart';
 import 'package:qibra_ai/features/tasbih/presentation/tasbih_screen.dart';
-import 'package:qibra_ai/features/tools/screens/zakat_calculator_screen.dart';
-import 'package:qibra_ai/features/tools/screens/sadaqah_tracker_screen.dart';
-import 'package:qibra_ai/features/tools/screens/habit_tracker_screen.dart';
-import 'package:qibra_ai/features/tools/screens/ramadan_timer_screen.dart';
-import 'package:qibra_ai/features/tools/screens/hajj_guide_screen.dart';
-import 'package:qibra_ai/features/tools/screens/umrah_guide_screen.dart';
-import 'package:qibra_ai/features/tools/screens/nikah_guide_screen.dart';
-import 'package:qibra_ai/features/tools/screens/halal_scanner_screen.dart';
-import 'package:qibra_ai/features/tools/screens/asma_ul_husna_screen.dart';
-import 'package:qibra_ai/features/tools/screens/islamic_name_finder_screen.dart';
-import 'package:qibra_ai/features/tools/screens/inheritance_calculator_screen.dart';
+import 'package:qibra_ai/features/tools/presentation/zakat_calculator_screen.dart';
+import 'package:qibra_ai/features/tools/presentation/habit_tracker_screen.dart';
+import 'package:qibra_ai/features/tools/presentation/hajj_guide_screen.dart';
+import 'package:qibra_ai/features/tools/presentation/umrah_guide_screen.dart';
+import 'package:qibra_ai/features/tools/presentation/halal_scanner_screen.dart';
+import 'package:qibra_ai/features/tools/presentation/asma_ul_husna_screen.dart';
+import 'package:qibra_ai/features/tools/presentation/inheritance_calculator_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/notification_settings_screen.dart';
 import 'package:qibra_ai/features/home/presentation/home_screen.dart';
 import 'package:qibra_ai/features/settings/presentation/user_profile_screen.dart';
@@ -96,9 +94,14 @@ class _ErrorScreen extends StatelessWidget {
   }
 }
 
+/// Root navigator key — lets platform-level events (notification
+/// taps) route through the same GoRouter the UI uses.
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = _RouterRefreshNotifier(ref);
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: false,
     refreshListenable: refreshNotifier,
@@ -134,6 +137,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: AppRoutes.onboarding,
           name: 'onboarding',
           builder: (context, state) => const OnboardingScreen()),
+      // P1 · Item 1 — tap target for dua-reminder notifications.
+      // Top-level (over any tab); id travels as a query param so the
+      // location stays restorable. Empty/unknown id shows the honest
+      // "Dua not found" state, never a stub.
+      GoRoute(
+          path: AppRoutes.duaDetail,
+          name: 'dua-detail',
+          builder: (context, state) =>
+              DuaDetailScreen(duaId: state.uri.queryParameters['id'] ?? '')),
       GoRoute(
           path: AppRoutes.login,
           name: 'login',
@@ -171,7 +183,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           final surah = int.tryParse(state.uri.queryParameters['surah'] ?? '1') ?? 1;
           final ayahStr = state.uri.queryParameters['ayah'];
           final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
-          return SurahReaderScreen(surahNumber: surah, initialAyah: ayah);
+          final tab = state.uri.queryParameters['tab'];
+          // Pass Q2 deep link: ?play=1 opens AND starts recitation at
+          // the linked ayah (anything else — absent/0/garbage — is the
+          // plain open; no autoplay is ever implied).
+          final playParam = state.uri.queryParameters['play'];
+          final play = playParam == '1' || playParam == 'true';
+          return SurahReaderScreen(
+            surahNumber: surah,
+            initialAyah: ayah,
+            initialTab: tab,
+            playOnOpen: play,
+          );
         },
       ),
       GoRoute(
@@ -181,7 +204,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           final surah = int.tryParse(state.uri.queryParameters['surah'] ?? '1') ?? 1;
           final ayahStr = state.uri.queryParameters['ayah'];
           final ayah = ayahStr != null ? int.tryParse(ayahStr) : null;
-          return SurahReaderScreen(surahNumber: surah, initialAyah: ayah);
+          final playParam = state.uri.queryParameters['play'];
+          final play = playParam == '1' || playParam == 'true';
+          return SurahReaderScreen(
+            surahNumber: surah,
+            initialAyah: ayah,
+            playOnOpen: play,
+          );
         },
       ),
       GoRoute(
@@ -202,7 +231,24 @@ final routerProvider = Provider<GoRouter>((ref) {
           onHadithTap: () => context.go(AppRoutes.hadith),
           onAiTap: () => context.go(AppRoutes.aiChat),
           onMoreTap: () => context.go(AppRoutes.more),
-          child: child,
+          // Quran recitation mini bar: renders ONLY while the single
+          // app-wide player is active (hidden when idle), so it
+          // persists across tab navigation and never overlays an idle
+          // UI with chrome that would need fake state to look alive.
+          child: Stack(
+            children: [
+              Positioned.fill(child: child),
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  top: false,
+                  child: QuranMiniPlayer(),
+                ),
+              ),
+            ],
+          ),
         ),
         routes: [
           GoRoute(
@@ -331,17 +377,9 @@ final routerProvider = Provider<GoRouter>((ref) {
               name: 'tools-dhikr',
               redirect: (context, state) => AppRoutes.tasbih),
           GoRoute(
-              path: '/tools/sadaqah',
-              name: 'tools-sadaqah',
-              builder: (context, state) => const SadaqahTrackerScreen()),
-          GoRoute(
               path: '/tools/habits',
               name: 'tools-habits',
               builder: (context, state) => const HabitTrackerScreen()),
-          GoRoute(
-              path: '/tools/ramadan',
-              name: 'tools-ramadan',
-              builder: (context, state) => const RamadanTimerScreen()),
           GoRoute(
               path: '/tools/hajj',
               name: 'tools-hajj',
@@ -351,10 +389,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               name: 'tools-umrah',
               builder: (context, state) => const UmrahGuideScreen()),
           GoRoute(
-              path: '/tools/nikah',
-              name: 'tools-nikah',
-              builder: (context, state) => const NikahGuideScreen()),
-          GoRoute(
               path: '/tools/asma',
               name: 'tools-asma',
               builder: (context, state) => const AsmaUlHusnaScreen()),
@@ -362,10 +396,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: '/tools/halal',
               name: 'tools-halal',
               builder: (context, state) => const HalalScannerScreen()),
-          GoRoute(
-              path: '/tools/names',
-              name: 'tools-names',
-              builder: (context, state) => const IslamicNameFinderScreen()),
           GoRoute(
               path: '/tools/inheritance',
               name: 'tools-inheritance',

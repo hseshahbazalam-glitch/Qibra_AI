@@ -2,6 +2,7 @@
 // Timeline prayer tile with notification bell
 
 import 'package:flutter/material.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import 'package:flutter/services.dart';
 import 'package:qibra_ai/core/design_system/qibra_colors.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
@@ -43,9 +44,8 @@ class SchedulePrayerTile extends StatelessWidget {
         borderRadius: AppRadius.cardRadius,
         border: Border.all(
           color: isNext
-              ? iconColor.withValues(alpha: 0.5)
+              ? iconColor.withValues(alpha: 0.16)
               : colors.border,
-          width: isNext ? 1.5 : 1,
         ),
       ),
       child: Row(
@@ -58,7 +58,7 @@ class SchedulePrayerTile extends StatelessWidget {
               color: iconColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
               border: Border.all(
-                color: iconColor.withValues(alpha: 0.3),
+                color: iconColor.withValues(alpha: 0.16),
               ),
             ),
             child: Icon(icon, color: iconColor, size: 22),
@@ -88,11 +88,11 @@ class SchedulePrayerTile extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: iconColor.withValues(alpha: 0.2),
+                          color: iconColor.withValues(alpha: 0.12),
                           borderRadius: AppRadius.pillRadius,
                         ),
                         child: Text(
-                          'NEXT',
+                          AppStrings.of(context).pillNextCaps,
                           style: AppTextStyles.labelSmall.copyWith(
                             color: iconColor,
                             fontWeight: FontWeight.w800,
@@ -107,11 +107,9 @@ class SchedulePrayerTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   nameArabic,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
+                  style: AppArabicStyles.quranSmall.copyWith(
                     fontSize: 13,
-                    color: colors.goldText,
-                    fontWeight: FontWeight.w600,
+                    color: colors.textSecondary,
                   ),
                   textDirection: TextDirection.rtl,
                 ),
@@ -147,7 +145,7 @@ class SchedulePrayerTile extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: notificationEnabled
-                      ? iconColor.withValues(alpha: 0.3)
+                      ? iconColor.withValues(alpha: 0.16)
                       : colors.border,
                 ),
               ),

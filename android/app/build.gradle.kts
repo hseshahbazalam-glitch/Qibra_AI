@@ -1,9 +1,15 @@
 import java.util.Properties
 import java.io.FileInputStream
 
+// The keystore file is gitignored (developer/CI machines only). Load it
+// conditionally so fresh clones and debug builds never fail in the
+// configuration phase with "The system cannot find the file specified".
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("keystore.properties")
-keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+val hasKeystore = keystorePropertiesFile.exists()
+if (hasKeystore) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 plugins {
     id("com.android.application")
@@ -22,11 +28,13 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["storePassword"] as String
+        if (hasKeystore) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
         }
     }
 
@@ -40,7 +48,14 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // No keystore.properties on this machine? Fall back to the debug
+            // keystore so release-mode local builds/CI still assemble (they
+            // are simply not publishable). Real signing is only for stores.
+            signingConfig = if (hasKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

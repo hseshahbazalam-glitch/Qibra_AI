@@ -1,0 +1,39 @@
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: analyze + test + battery
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      # pinned to the owner's exact local SDK (3.44.6) so the committed
+      # pubspec.lock solves identically here and on the device.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.6
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      # --no-fatal-infos: 160+ infos are sanctioned in this repo; the
+      # gate is 0 errors / 0 warnings (both stay fatal by default).
+      - name: 'Analyze (gate: 0 errors, 0 warnings - infos are sanctioned)'
+        run: flutter analyze --no-fatal-infos
+
+      - name: Full test suite (the ~318-test gate)
+        run: flutter test
+
+      - name: Static battery (hard findings must be 0)
+        run: python3 scripts/static_battery.py

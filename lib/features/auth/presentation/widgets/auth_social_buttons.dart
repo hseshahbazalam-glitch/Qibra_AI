@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:qibra_ai/core/design_system/app_design_system.dart';
 import 'package:qibra_ai/core/design_system/app_typography.dart';
@@ -28,7 +26,6 @@ class AuthSocialButtons extends StatelessWidget {
         Expanded(
           child: _AuthSocialButton(
             label: googleAvailable ? 'Google' : 'Google (soon)',
-            color: const Color(0xFF2F6B5D),
             icon: 'G',
             isEnabled: !isLoading && googleAvailable,
             onTap: isLoading || !googleAvailable ? null : onGoogleTap,
@@ -38,7 +35,6 @@ class AuthSocialButtons extends StatelessWidget {
         Expanded(
           child: _AuthSocialButton(
             label: appleAvailable ? 'Apple' : 'Apple (soon)',
-            color: const Color(0xFF19312C),
             iconData: Icons.apple,
             isEnabled: !isLoading && appleAvailable,
             onTap: isLoading || !appleAvailable ? null : onAppleTap,
@@ -52,7 +48,6 @@ class AuthSocialButtons extends StatelessWidget {
 class _AuthSocialButton extends StatelessWidget {
   const _AuthSocialButton({
     required this.label,
-    required this.color,
     this.icon,
     this.iconData,
     this.onTap,
@@ -60,7 +55,6 @@ class _AuthSocialButton extends StatelessWidget {
   });
 
   final String label;
-  final Color color;
   final String? icon;
   final IconData? iconData;
   final VoidCallback? onTap;
@@ -68,6 +62,7 @@ class _AuthSocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = QibraColors.of(context);
     return Semantics(
       button: true,
       enabled: isEnabled,
@@ -76,27 +71,13 @@ class _AuthSocialButton extends StatelessWidget {
         opacity: isEnabled ? 1 : 0.45,
         child: GestureDetector(
           onTap: onTap,
-          child: ClipRRect(
-            borderRadius: AppRadius.buttonRadiusLg,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      QibraColors.light.textPrimary.withValues(alpha: 0.08),
-                      QibraColors.light.textPrimary.withValues(alpha: 0.03),
-                    ],
-                  ),
-                  borderRadius: AppRadius.buttonRadiusLg,
-                  border: Border.all(
-                    color: const Color(0xFF19312C).withValues(alpha: 0.15),
-                    width: 1,
-                  ),
-                ),
+          child: Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: colors.card,
+              borderRadius: AppRadius.buttonRadiusLg,
+              border: Border.all(color: colors.border, width: 1),
+            ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -104,15 +85,15 @@ class _AuthSocialButton extends StatelessWidget {
                       Container(
                         width: 22,
                         height: 22,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF19312C),
+                          color: colors.cardMuted,
                         ),
                         child: Center(
                           child: Text(
                             icon!,
                             style: TextStyle(
-                              color: color,
+                              color: colors.textPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
                             ),
@@ -122,14 +103,14 @@ class _AuthSocialButton extends StatelessWidget {
                     else if (iconData != null)
                       Icon(
                         iconData,
-                        color: color,
+                        color: colors.textSecondary,
                         size: 24,
                       ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       label,
                       style: AppTextStyles.buttonMedium.copyWith(
-                        color: const Color(0xFF19312C),
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -138,8 +119,6 @@ class _AuthSocialButton extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 }

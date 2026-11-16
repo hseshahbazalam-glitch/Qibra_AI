@@ -4,23 +4,28 @@
 // QIBRA AI — TAFSEER SCREEN (v2.0 — Multi-Language)
 // ============================================================
 // Features:
-//   ✅ 3 Tabs (Translation / Tafsir / Word by Word)
-//   ✅ Multiple translations (English + Urdu + Roman)
-//   ⚪ Tafsir tab clearly reports when a verified tafsir dataset is unavailable
-//   ✅ Beautiful reference-match design
-//   ✅ Ayah navigation (prev/next)
-//   ✅ Font size control
-//   ✅ Copy & Share
+//   - 3 tabs: Translation / Tafsir / Word by Word
+//   - Multiple translations (English + Urdu + Roman)
+//   - Tafsir tab clearly reports when a verified tafsir
+//     dataset is unavailable (never a placeholder commentary)
+//   - Ayah navigation (prev/next) + font size control
+//   - Copy & share via clipboard
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/content/word_by_word.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../quran/data/models/quran_models.dart';
-import '../../quran/providers/quran_provider.dart';
+import 'package:qibra_ai/core/content/word_by_word.dart';
+import '../data/tafsir_bundle.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
+import 'package:qibra_ai/shared/widgets/qibra_status.dart';
+import 'package:qibra_ai/features/quran/data/models/quran_models.dart';
+import 'package:qibra_ai/features/quran/providers/quran_provider.dart';
+import 'package:qibra_ai/core/design_system/qibra_paper.dart';
+import 'package:qibra_ai/features/quran/providers/reading_preferences_provider.dart';
 
 // ============================================================
 // PROVIDERS
@@ -82,7 +87,11 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
     final surahAsync = ref.watch(surahDetailProvider(widget.surahNumber));
     final currentAyah = ref.watch(_currentAyahProvider);
 
-    return Scaffold(
+    // Pass D2: paper scope (night → child unwrapped, byte-identical).
+    return QibraPaper.scope(
+      active:
+          ref.watch(readingPreferencesProvider.select((p) => p.isPaper)),
+      child: Scaffold(
       backgroundColor: colors.background,
       body: surahAsync.when(
         data: (surah) {
@@ -127,11 +136,21 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
             ),
           );
         },
-        loading: () => Center(
-          child: CircularProgressIndicator(color: colors.primary),
+        loading: () => Padding(
+          padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
+          child: Column(
+            children: [
+              QibraStatus.skeleton(height: 120),
+              const SizedBox(height: 12),
+              QibraStatus.skeleton(height: 200),
+              const SizedBox(height: 12),
+              QibraStatus.skeleton(height: 200),
+            ],
+          ),
         ),
         error: (e, _) => _buildError(e.toString()),
       ),
+    ),
     );
   }
 
@@ -198,25 +217,6 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          // More
-          GestureDetector(
-            onTap: () => _showMoreOptions(),
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: colors.surfaceElevated,
-                shape: BoxShape.circle,
-                border: Border.all(color: colors.border),
-              ),
-              child: Icon(
-                Icons.more_vert_rounded,
-                color: colors.textPrimary,
-                size: 18,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -229,18 +229,9 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.primary.withValues(alpha: 0.15),
-            colors.accent.withValues(alpha: 0.08),
-          ],
-        ),
+        color: colors.card,
         border: Border(
-          bottom: BorderSide(
-            color: colors.accent.withValues(alpha: 0.2),
-          ),
+          bottom: BorderSide(color: colors.border),
         ),
       ),
       child: Row(
@@ -249,24 +240,16 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [colors.primary, colors.accent],
-              ),
+              color: colors.primarySoft,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.4),
-                  blurRadius: 8,
-                ),
-              ],
+              border: Border.all(color: colors.border),
             ),
             child: Center(
               child: Text(
                 '$ayahNumber',
-                style: const TextStyle(
-                  color: const Color(0xFF19312C),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
+                style: AppTextStyles.titleMedium.copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -294,25 +277,6 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               ],
             ),
           ),
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              _showToast('Bookmark not saved — tafsir not bundled');
-            },
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: colors.accent.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.bookmark_border_rounded,
-                color: colors.accent,
-                size: 18,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -331,9 +295,9 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
       ),
       child: TabBar(
         controller: _tabController,
-        indicatorColor: colors.accent,
+        indicatorColor: colors.primary,
         indicatorWeight: 3,
-        labelColor: colors.accent,
+        labelColor: colors.primary,
         unselectedLabelColor: colors.textSecondary,
         labelStyle: const TextStyle(
           fontSize: 13,
@@ -379,19 +343,16 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
               margin: const EdgeInsets.symmetric(horizontal: 12),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: colors.accent.withValues(alpha: 0.15),
+                color: colors.cardMuted,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: colors.accent.withValues(alpha: 0.3),
-                ),
+                border: Border.all(color: colors.border),
               ),
               child: Text(
                 'Ayah $currentAyah / ${surah.numberOfAyahs}',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: colors.accent,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -421,19 +382,13 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: enabled
-              ? colors.accent.withValues(alpha: 0.15)
-              : colors.surface,
+          color: enabled ? colors.primarySoft : colors.surface,
           shape: BoxShape.circle,
-          border: Border.all(
-            color: enabled
-                ? colors.accent.withValues(alpha: 0.3)
-                : colors.border,
-          ),
+          border: Border.all(color: colors.border),
         ),
         child: Icon(
           icon,
-          color: enabled ? colors.accent : colors.textTertiary,
+          color: enabled ? colors.primary : colors.textTertiary,
           size: 22,
         ),
       ),
@@ -453,7 +408,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           final currentSize = ref.watch(_tafsirFontSizeProvider);
 
           return Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
             decoration: BoxDecoration(
               color: colors.surface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -506,31 +461,13 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
     );
   }
 
-  void _showMoreOptions() {
-    HapticFeedback.selectionClick();
-    _showToast('More options coming soon');
-  }
-
-  void _showToast(String message) {
-    final colors = QibraColors.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-        backgroundColor: colors.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   Widget _buildError(String message) {
     final colors = QibraColors.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline_rounded,
-              size: 60, color: colors.error),
+          Icon(Icons.error_outline_rounded, size: 60, color: colors.error),
           const SizedBox(height: 12),
           Text(
             message,
@@ -539,7 +476,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(AppStrings.of(context).goBack),
           ),
         ],
       ),
@@ -567,31 +504,39 @@ class _TranslationTab extends ConsumerWidget {
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
-      return const Center(child: Text('Ayah not found'));
+      return Center(child: Text(AppStrings.of(context).ayahNotFound));
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Arabic Text
           _buildLanguageCard(
+            context,
             label: 'Arabic',
             icon: Icons.mosque_rounded,
-            color: colors.accent,
             content: Text(
               ayah.text,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontSize: fontSize + 10,
-                color: colors.textPrimary,
-                height: 2.2,
-                fontWeight: FontWeight.w600,
-              ),
+              // D2 T1: the quoted Arabic sits in the paper leading
+              // window on paper (2.2 navy stays exactly 2.2).
+              style: QibraPaper.isActive(context)
+                  ? AppArabicStyles.quranMedium.copyWith(
+                      fontSize: fontSize + 10,
+                      color: colors.textPrimary,
+                      height: QibraPaper.bodyLeadingOn(2.2),
+                      fontWeight: FontWeight.w600,
+                    )
+                  : AppArabicStyles.quranMedium.copyWith(
+                      fontSize: fontSize + 10,
+                      color: colors.textPrimary,
+                      height: 2.2,
+                      fontWeight: FontWeight.w600,
+                    ),
             ),
           ),
 
@@ -600,12 +545,12 @@ class _TranslationTab extends ConsumerWidget {
           // English
           if (ayah.translation != null)
             _buildLanguageCard(
+              context,
               label: 'English',
               icon: Icons.language_rounded,
-              color: const Color(0xFF2F6B5D),
               content: Text(
                 ayah.translation!,
-                style: TextStyle(
+                style: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textPrimary,
                   fontSize: fontSize,
                   height: 1.7,
@@ -619,18 +564,17 @@ class _TranslationTab extends ConsumerWidget {
           // Urdu
           if (ayah.translationUrdu != null)
             _buildLanguageCard(
+              context,
               label: 'اردو',
               icon: Icons.translate_rounded,
-              color: const Color(0xFF123F36),
               content: Text(
                 ayah.translationUrdu!,
                 textDirection: TextDirection.rtl,
                 textAlign: TextAlign.right,
-                style: TextStyle(
-                  fontFamily: 'Amiri',
+                style: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textPrimary,
                   fontSize: fontSize + 2,
-                  height: 2.0,
+                  height: 1.9,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -641,12 +585,12 @@ class _TranslationTab extends ConsumerWidget {
           // Roman Urdu
           if (ayah.translationRoman != null)
             _buildLanguageCard(
+              context,
               label: 'Roman Urdu',
               icon: Icons.abc_rounded,
-              color: colors.goldText,
               content: Text(
                 ayah.translationRoman!,
-                style: TextStyle(
+                style: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textPrimary,
                   fontSize: fontSize,
                   height: 1.7,
@@ -670,9 +614,8 @@ class _TranslationTab extends ConsumerWidget {
               HapticFeedback.mediumImpact();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Copied to clipboard'),
+                  content: Text(AppStrings.of(context).copiedToClipboard),
                   duration: Duration(seconds: 1),
-                  backgroundColor: colors.primary,
                 ),
               );
             },
@@ -682,32 +625,32 @@ class _TranslationTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildLanguageCard({
+  Widget _buildLanguageCard(
+    BuildContext context, {
     required String label,
     required IconData icon,
-    required Color color,
     required Widget content,
   }) {
+    final colors = QibraColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        color: colors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 16),
+              Icon(icon, color: colors.textSecondary, size: 16),
               const SizedBox(width: 6),
               Text(
                 label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -732,29 +675,19 @@ class _TranslationTab extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [colors.primary, colors.accent],
-          ),
+          color: colors.primary,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: const Color(0xFF19312C), size: 18),
+            Icon(icon, color: colors.onPrimary, size: 18),
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
-                color: const Color(0xFF19312C),
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
+              style: AppTextStyles.labelLarge.copyWith(
+                color: colors.onPrimary,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -784,11 +717,16 @@ class _TafsirTab extends ConsumerWidget {
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
-      return const Center(child: Text('Ayah not found'));
+      return Center(child: Text(AppStrings.of(context).ayahNotFound));
     }
 
+    final tafsirAsync = ref.watch(tafsirBundleProvider);
+    final TafsirPassage? passage = tafsirAsync.hasValue
+        ? tafsirAsync.value?.passageFor(surah.number, ayahNumber)
+        : null;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -797,37 +735,93 @@ class _TafsirTab extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colors.accent.withValues(alpha: 0.15),
-                  colors.accent.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: colors.accent.withValues(alpha: 0.3),
-              ),
+              color: colors.card,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colors.border),
             ),
             child: Text(
               ayah.text,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontSize: fontSize + 8,
-                color: colors.textPrimary,
-                height: 2.2,
-                fontWeight: FontWeight.w600,
-              ),
+              style: QibraPaper.isActive(context)
+                  ? AppArabicStyles.quranMedium.copyWith(
+                      fontSize: fontSize + 8,
+                      color: colors.textPrimary,
+                      height: QibraPaper.bodyLeadingOn(2.2),
+                      fontWeight: FontWeight.w600,
+                    )
+                  : AppArabicStyles.quranMedium.copyWith(
+                      fontSize: fontSize + 8,
+                      color: colors.textPrimary,
+                      height: 2.2,
+                      fontWeight: FontWeight.w600,
+                    ),
             ),
           ),
 
           const SizedBox(height: 16),
 
-          // The app does not currently include a verified tafsir dataset.
-          // Keep this state explicit rather than presenting a broken loader or
-          // incorrectly presenting a translation as tafsir.
-          _buildTafsirUnavailable(context, ayah),
+          // A verbatim-bundled English tafsir dataset ships at
+          // assets/data/tafsir (provenance: assets/data/content_manifest.json).
+          // If it ever fails to load, keep the explicit unavailable state
+          // rather than presenting a translation as tafsir.
+          if (passage != null)
+            _buildBundledPassage(context, colors, passage, fontSize)
+          else
+            _buildTafsirUnavailable(context, ayah),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBundledPassage(
+      BuildContext context,
+      QibraColors colors,
+      TafsirPassage passage,
+      double fontSize) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.menu_book_rounded, size: 16, color: colors.accent),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Tafsir Ibn Kathir (abridged, Eng. tr.)',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: colors.accent,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+              Text(
+                passage.start == passage.end
+                    ? 'Ayah ${passage.start}'
+                    : 'Ayahs ${passage.start}–${passage.end}',
+                style: AppTextStyles.labelXSmall.copyWith(
+                  color: colors.textTertiary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            passage.text,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: fontSize,
+              color: colors.textPrimary,
+              height: 1.75,
+            ),
+          ),
         ],
       ),
     );
@@ -888,9 +882,7 @@ class _TafsirTab extends ConsumerWidget {
               ayah.translationUrdu!,
               textDirection: TextDirection.rtl,
               textAlign: TextAlign.right,
-              style: TextStyle(
-                fontFamily: 'Amiri',
-                fontSize: 18,
+              style: AppArabicStyles.quranSmall.copyWith(
                 color: colors.textPrimary,
                 height: 1.8,
               ),
@@ -921,13 +913,13 @@ class _WordByWordTab extends StatelessWidget {
     final ayah = surah.getAyahByNumber(ayahNumber);
 
     if (ayah == null) {
-      return const Center(child: Text('Ayah not found'));
+      return Center(child: Text(AppStrings.of(context).ayahNotFound));
     }
 
     final words = WordByWordResolver.tokenize(ayah.text);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -936,11 +928,9 @@ class _WordByWordTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: colors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.3),
-              ),
+              color: colors.primarySoft,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colors.border),
             ),
             child: Row(
               children: [
@@ -991,25 +981,16 @@ class _WordByWordTab extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        colors.accent.withValues(alpha: 0.15),
-                        colors.accent.withValues(alpha: 0.05),
-                      ],
-                    ),
+                    color: colors.cardMuted,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: colors.accent.withValues(alpha: 0.3),
-                    ),
+                    border: Border.all(color: colors.border),
                   ),
                   child: Column(
                     children: [
                       Text(
                         word.token,
                         textDirection: TextDirection.rtl,
-                        style: TextStyle(
-                          fontFamily: 'Amiri',
-                          fontSize: 24,
+                        style: AppArabicStyles.quranMedium.copyWith(
                           color: colors.textPrimary,
                           fontWeight: FontWeight.w700,
                         ),
@@ -1017,10 +998,9 @@ class _WordByWordTab extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         meaning,
-                        style: TextStyle(
-                          color: colors.goldText,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -1042,8 +1022,7 @@ class _WordByWordTab extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.info_outline,
-                    color: colors.textSecondary, size: 16),
+                Icon(Icons.info_outline, color: colors.textSecondary, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   '${words.length} words in this ayah',

@@ -1,0 +1,12 @@
+# Backend test-only dependencies (QB-014, G2-D).
+#
+# Split out of requirements.txt on purpose: pytest is not a runtime need, and
+# keeping it there meant the production image installed a test runner. Install
+# with `pip install -r requirements.txt -r requirements-dev.txt`.
+#
+# python-jose[cryptography]==3.3.0 is NOT re-listed here: it was deleted from the
+# backend in this pass because nothing imports it — `grep -rn "jose" app/ tests/`
+# is empty. app/security.py signs and verifies tokens with hmac + hashlib.sha256
+# directly, so jose was a dependency carrying CVE weight for code that does not
+# exist.
+pytest==9.0.3

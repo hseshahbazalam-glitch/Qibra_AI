@@ -4,10 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_constants.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 import '../data/models/mosque_model.dart';
 import '../providers/mosque_provider.dart';
 import '../providers/prayer_provider.dart';
@@ -43,6 +44,7 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
         backgroundColor: colors.background,
         elevation: 0,
         leading: IconButton(
+          tooltip: AppStrings.of(context).tooltipBack,
           icon: Icon(Icons.arrow_back_ios_new_rounded,
               color: colors.textPrimary, size: 20),
           onPressed: () {
@@ -73,6 +75,7 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: AppStrings.of(context).tooltipRefreshMosques,
             icon: Icon(Icons.refresh_rounded, color: colors.primary),
             onPressed: () {
               HapticFeedback.lightImpact();
@@ -265,7 +268,7 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
                   decoration: BoxDecoration(
                     color: colors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
+                    border: Border.all(color: colors.primary.withValues(alpha: 0.16)),
                   ),
                   child: Icon(Icons.mosque_rounded,
                       color: colors.primary, size: 24),
@@ -322,7 +325,7 @@ class _MosqueFinderScreenState extends ConsumerState<MosqueFinderScreen> {
                   decoration: BoxDecoration(
                     color: colors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: colors.primary.withValues(alpha: 0.35)),
+                    border: Border.all(color: colors.primary.withValues(alpha: 0.16)),
                   ),
                   child: Center(
                     child: Text(

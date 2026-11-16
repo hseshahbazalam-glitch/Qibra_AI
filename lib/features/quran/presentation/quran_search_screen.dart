@@ -6,17 +6,21 @@
 // ============================================================
 
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/design_system/app_design_system.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../data/models/quran_models.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
+import 'package:qibra_ai/core/utils/search_normalizer.dart';
+import 'package:qibra_ai/core/design_system/app_design_system.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 import '../providers/quran_provider.dart';
+import '../data/models/quran_models.dart';
+import '../data/search/quran_ayah_search.dart';
 import 'surah_reader_screen.dart';
 
 // ============================================================
@@ -24,26 +28,63 @@ import 'surah_reader_screen.dart';
 // ============================================================
 
 class RecentSearchesNotifier extends StateNotifier<List<String>> {
-  RecentSearchesNotifier() : super([]);
+  RecentSearchesNotifier() : super(const []) {
+    _load();
+  }
 
-  void add(String query) {
+  static const _prefsKey = 'quran_recent_searches_v1';
+
+  /// At most this many distinct recent queries persist (owner: last 10).
+  static const int cap = 10;
+
+  /// Pure update — unit-tested: trim, drop empties, dedupe (newest wins
+  /// position), newest first, capped at [cap].
+  static List<String> applyRecent(List<String> current, String query) {
     final trimmed = query.trim();
-    if (trimmed.isEmpty) return;
+    if (trimmed.isEmpty) return List.unmodifiable(current);
+    final out = [trimmed, ...current.where((q) => q != trimmed)];
+    return List.unmodifiable(out.length > cap ? out.sublist(0, cap) : out);
+  }
 
-    final newList = [trimmed, ...state.where((q) => q != trimmed)];
-    if (newList.length > 10) {
-      state = newList.sublist(0, 10);
-    } else {
-      state = newList;
+  Future<void> _load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getStringList(_prefsKey);
+      if (saved == null || saved.isEmpty) return;
+      if (mounted) state = List.unmodifiable(saved);
+    } catch (_) {
+      // Storage unreadable: an empty recent list is the honest state.
     }
   }
 
+  Future<void> _save() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_prefsKey, state);
+    } catch (_) {
+      // Persisting is best-effort; the in-session list stays truthful.
+    }
+  }
+
+  void add(String query) {
+    final next = applyRecent(state, query);
+    if (next.length == state.length &&
+        List.generate(next.length, (i) => next[i] == state[i])
+            .every((b) => b)) {
+      return; // unchanged — no pointless write
+    }
+    state = next;
+    unawaited(_save());
+  }
+
   void remove(String query) {
-    state = state.where((q) => q != query).toList();
+    state = List.unmodifiable(state.where((q) => q != query));
+    unawaited(_save());
   }
 
   void clear() {
-    state = [];
+    state = const [];
+    unawaited(_save());
   }
 }
 
@@ -71,55 +112,55 @@ class PopularTopic {
 }
 
 List<PopularTopic> _popularTopicsFor(QibraColors colors) => [
-  PopularTopic(
-    label: 'Mercy',
-    icon: Icons.favorite_rounded,
-    color: colors.primary,
-    searchQuery: 'mercy',
-  ),
-  PopularTopic(
-    label: 'Patience',
-    icon: Icons.self_improvement_rounded,
-    color: colors.primarySoft,
-    searchQuery: 'patience',
-  ),
-  PopularTopic(
-    label: 'Paradise',
-    icon: Icons.park_rounded,
-    color: colors.primarySoft,
-    searchQuery: 'paradise',
-  ),
-  PopularTopic(
-    label: 'Prayer',
-    icon: Icons.mosque_rounded,
-    color: colors.primary,
-    searchQuery: 'prayer',
-  ),
-  PopularTopic(
-    label: 'Faith',
-    icon: Icons.light_mode_rounded,
-    color: colors.accent,
-    searchQuery: 'faith',
-  ),
-  PopularTopic(
-    label: 'Guidance',
-    icon: Icons.explore_rounded,
-    color: colors.primarySoft,
-    searchQuery: 'guidance',
-  ),
-  PopularTopic(
-    label: 'Forgiveness',
-    icon: Icons.healing_rounded,
-    color: colors.primary,
-    searchQuery: 'forgive',
-  ),
-  PopularTopic(
-    label: 'Charity',
-    icon: Icons.volunteer_activism_rounded,
-    color: colors.goldText,
-    searchQuery: 'charity',
-  ),
-];
+      PopularTopic(
+        label: 'Mercy',
+        icon: Icons.favorite_rounded,
+        color: colors.primary,
+        searchQuery: 'mercy',
+      ),
+      PopularTopic(
+        label: 'Patience',
+        icon: Icons.self_improvement_rounded,
+        color: colors.primarySoft,
+        searchQuery: 'patience',
+      ),
+      PopularTopic(
+        label: 'Paradise',
+        icon: Icons.park_rounded,
+        color: colors.primarySoft,
+        searchQuery: 'paradise',
+      ),
+      PopularTopic(
+        label: 'Prayer',
+        icon: Icons.mosque_rounded,
+        color: colors.primary,
+        searchQuery: 'prayer',
+      ),
+      PopularTopic(
+        label: 'Faith',
+        icon: Icons.light_mode_rounded,
+        color: colors.primary,
+        searchQuery: 'faith',
+      ),
+      PopularTopic(
+        label: 'Guidance',
+        icon: Icons.explore_rounded,
+        color: colors.primarySoft,
+        searchQuery: 'guidance',
+      ),
+      PopularTopic(
+        label: 'Forgiveness',
+        icon: Icons.healing_rounded,
+        color: colors.primary,
+        searchQuery: 'forgive',
+      ),
+      PopularTopic(
+        label: 'Charity',
+        icon: Icons.volunteer_activism_rounded,
+        color: colors.primary,
+        searchQuery: 'charity',
+      ),
+    ];
 
 // ============================================================
 // SECTION 3 — MAIN SCREEN
@@ -214,7 +255,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
     HapticFeedback.lightImpact();
   }
 
-  void _openAyah(SearchResultModel result) {
+  void _openAyah(SearchResultModel result, {bool play = false}) {
     HapticFeedback.selectionClick();
     ref.read(recentSearchesProvider.notifier).add(_currentQuery);
     Navigator.of(context).push(
@@ -222,6 +263,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
         builder: (_) => SurahReaderScreen(
           surahNumber: result.surahNumber,
           initialAyah: result.ayahNumber,
+          playOnOpen: play, // Pass Q2: deep-link straight into recitation
         ),
       ),
     );
@@ -239,16 +281,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
       backgroundColor: colors.background,
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colors.primary.withValues(alpha: 0.07),
-              colors.background,
-              colors.background,
-            ],
-            stops: const [0.0, 0.18, 1.0],
-          ),
+          color: colors.background,
         ),
         child: SafeArea(
           child: Column(
@@ -284,7 +317,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             children: [
               _CircleButton(
                 icon: Icons.arrow_back_ios_new_rounded,
-                tooltip: 'Back',
+                tooltip: AppStrings.of(context).tooltipBack,
                 onTap: () {
                   HapticFeedback.lightImpact();
                   Navigator.of(context).maybePop();
@@ -298,7 +331,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                     Text(
                       'Explore the Quran',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: colors.goldText,
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.4,
                       ),
@@ -328,98 +361,78 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
     final isFocused = _searchFocusNode.hasFocus;
     final hasText = _currentQuery.isNotEmpty;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.xl2),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(AppRadius.xl2),
-            border: Border.all(
-              color: isFocused
-                  ? colors.primary.withValues(alpha: 0.50)
-                  : colors.primary.withValues(alpha: 0.16),
-              width: 1.4,
-            ),
-            boxShadow: isFocused
-                ? [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.14),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : null,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(AppRadius.xl2),
+        border: Border.all(
+          color: isFocused ? colors.primary : colors.border,
+        ),
+      ),
+      child: TextField(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: colors.textPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+        cursorColor: colors.primary,
+        textInputAction: TextInputAction.search,
+        onSubmitted: _performSearch,
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md + 4,
           ),
-          child: TextField(
-            controller: _searchController,
-            focusNode: _searchFocusNode,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-            cursorColor: colors.primary,
-            textInputAction: TextInputAction.search,
-            onSubmitted: _performSearch,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.md + 4,
-              ),
-              border: InputBorder.none,
-              prefixIcon: Icon(
-                Icons.search_rounded,
-                color: colors.primary.withValues(alpha: 0.90),
-                size: 24,
-              ),
-              hintText: 'Search Quran (English or Arabic)...',
-              hintStyle: AppTextStyles.bodyMedium.copyWith(
-                color: colors.textTertiary,
-                fontWeight: FontWeight.w500,
-              ),
-              suffixIcon: hasText
-                  ? IconButton(
-                      onPressed: _clearSearch,
-                      icon: Icon(
-                        Icons.close_rounded,
-                        color: colors.textSecondary,
-                        size: 20,
-                      ),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.only(right: AppSpacing.md),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xs + 2,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                        child: Text(
-                          '6236',
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: colors.primary,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 10,
-                          ),
-                        ),
+          border: InputBorder.none,
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: colors.primary,
+            size: 24,
+          ),
+          hintText: 'Search Quran (English or Arabic)...',
+          hintStyle: AppTextStyles.bodyMedium.copyWith(
+            color: colors.textTertiary,
+            fontWeight: FontWeight.w500,
+          ),
+          suffixIcon: hasText
+              ? IconButton(
+                  tooltip: AppStrings.of(context).tooltipClearSearch,
+                  onPressed: _clearSearch,
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: colors.textSecondary,
+                    size: 20,
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.md),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xs + 2,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Text(
+                      '6236',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-            ),
-          ),
+                  ),
+                ),
         ),
       ),
     );
   }
-
   // ── Body ──────────────────────────────────────────────────
 
   Widget _buildBody(SearchState searchState, List<String> recentSearches) {
-    final colors = QibraColors.of(context);
     // No search query - show suggestions
     if (_currentQuery.isEmpty) {
       return _buildSuggestionsView(recentSearches);
@@ -518,7 +531,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             children: [
               Icon(
                 Icons.trending_up_rounded,
-                color: colors.accent,
+                color: colors.primary,
                 size: 18,
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -569,18 +582,9 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.primary.withValues(alpha: 0.14),
-            colors.accent.withValues(alpha: 0.08),
-          ],
-        ),
+        color: colors.card,
         borderRadius: BorderRadius.circular(AppRadius.xl2),
-        border: Border.all(
-          color: colors.accent.withValues(alpha: 0.20),
-        ),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -591,12 +595,13 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: colors.accent.withValues(alpha: 0.16),
+                  color: colors.cardMuted,
                   shape: BoxShape.circle,
+                  border: Border.all(color: colors.border),
                 ),
                 child: Icon(
                   Icons.lightbulb_outline_rounded,
-                  color: colors.accent,
+                  color: colors.textSecondary,
                   size: 18,
                 ),
               ),
@@ -611,22 +616,26 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          _buildTip('🔤', 'Search in English or Arabic text'),
-          _buildTip('📖', 'Type surah name like "Al-Fatiha"'),
-          _buildTip('🔢', 'Enter numbers for surah 1-114'),
-          _buildTip('✨', 'Try topics: mercy, forgiveness, prayer'),
+          _buildTip(
+              Icons.translate_rounded, 'Search in English or Arabic text'),
+          _buildTip(
+              Icons.menu_book_rounded, 'Type surah name like "Al-Fatiha"'),
+          _buildTip(Icons.format_list_numbered_rounded,
+              'Enter numbers for surah 1-114'),
+          _buildTip(Icons.auto_awesome_rounded,
+              'Try topics: mercy, forgiveness, prayer'),
         ],
       ),
     );
   }
 
-  Widget _buildTip(String emoji, String text) {
+  Widget _buildTip(IconData icon, String text) {
     final colors = QibraColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 14)),
+          Icon(icon, size: 14, color: colors.textSecondary),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -659,7 +668,7 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
               itemBuilder: (context, index) => Container(
                 height: 140,
                 decoration: BoxDecoration(
-                  color: colors.cardMuted.withValues(alpha: 0.60),
+                  color: colors.cardMuted,
                   borderRadius: BorderRadius.circular(AppRadius.xl2),
                 ),
               ),
@@ -758,7 +767,6 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
   }
 
   Widget _buildResultsList(List<SearchResultModel> results) {
-    final colors = QibraColors.of(context);
     return Column(
       children: [
         Padding(
@@ -769,6 +777,31 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
           ),
         ),
         const SizedBox(height: AppSpacing.md),
+        // Pass Q2 — scope chips: WHICH fields are searched. Honest
+        // filter, not a re-rank: Translations never borrows an Arabic
+        // hit and vice versa (pure rule: data/search/quran_ayah_search).
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Row(
+            children: [
+              Text(
+                AppStrings.of(context).searchScope,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: QibraColors.of(context).textTertiary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _scopeChip(context, QuranSearchScope.translations,
+                  AppStrings.of(context).scopeTranslations),
+              _scopeChip(context, QuranSearchScope.arabic,
+                  AppStrings.of(context).scopeArabic),
+              _scopeChip(context, QuranSearchScope.all,
+                  AppStrings.of(context).scopeAll),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
         Expanded(
           child: ListView.separated(
             physics: const BouncingScrollPhysics(),
@@ -786,11 +819,30 @@ class _QuranSearchScreenState extends ConsumerState<QuranSearchScreen>
                 result: result,
                 query: _currentQuery,
                 onTap: () => _openAyah(result),
+                // Pass Q2: play-from-here — opens the reader on this
+                // ayah AND starts its recitation queue immediately.
+                onPlay: () => _openAyah(result, play: true),
               );
             },
           ),
         ),
       ],
+    );
+  }
+
+  Widget _scopeChip(
+      BuildContext context, QuranSearchScope scope, String label) {
+    final selected =
+        ref.read(searchQuranProvider.notifier).scope == scope;
+    return QibraChip(
+      label: label,
+      selected: selected,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        // Re-runs the current query inside the new scope (notifier
+        // owns the scope; state churn rebuilds this row's selection).
+        ref.read(searchQuranProvider.notifier).setScope(scope);
+      },
     );
   }
 
@@ -851,11 +903,16 @@ class _SearchResultCard extends StatelessWidget {
     required this.result,
     required this.query,
     required this.onTap,
+    this.onPlay,
   });
 
   final SearchResultModel result;
   final String query;
   final VoidCallback onTap;
+
+  /// Pass Q2: optional play-from-here — same navigation as [onTap] but
+  /// the reader starts this ayah's recitation queue on open.
+  final VoidCallback? onPlay;
 
   @override
   Widget build(BuildContext context) {
@@ -868,18 +925,9 @@ class _SearchResultCard extends StatelessWidget {
         splashColor: colors.primary.withValues(alpha: 0.10),
         child: Ink(
           decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.90),
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(AppRadius.xl2),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.14),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: colors.primary.withValues(alpha: 0.10),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            border: Border.all(color: colors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -891,7 +939,7 @@ class _SearchResultCard extends StatelessWidget {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: colors.surface.withValues(alpha: 0.60),
+                  color: colors.surface,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(AppRadius.xl2),
                     topRight: Radius.circular(AppRadius.xl2),
@@ -903,12 +951,7 @@ class _SearchResultCard extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            colors.primary.withValues(alpha: 0.90),
-                            colors.accent.withValues(alpha: 0.70),
-                          ],
-                        ),
+                        color: colors.primary,
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -949,27 +992,40 @@ class _SearchResultCard extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: result.isArabicMatch
-                            ? colors.accent.withValues(alpha: 0.14)
-                            : colors.primarySoft.withValues(alpha: 0.14),
+                        color: colors.cardMuted,
                         borderRadius: BorderRadius.circular(AppRadius.full),
-                        border: Border.all(
-                          color: result.isArabicMatch
-                              ? colors.accent.withValues(alpha: 0.24)
-                              : colors.primarySoft.withValues(alpha: 0.24),
-                        ),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Text(
                         result.isArabicMatch ? 'AR' : 'EN',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: result.isArabicMatch
-                              ? colors.goldText
-                              : colors.primarySoft,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 10,
+                              ? colors.textPrimary
+                              : colors.textSecondary,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
+                    if (onPlay != null)
+                      Semantics(
+                        button: true,
+                        label: AppStrings.of(context).playFromHere,
+                        child: IconButton(
+                          // stopPropagation: the card's InkWell keeps its
+                          // own tap — the play button wins the hit test.
+                          onPressed: onPlay,
+                          tooltip: AppStrings.of(context).playFromHere,
+                          icon: const Icon(Icons.play_circle_outline,
+                              size: 22),
+                          color: colors.textSecondary,
+                          visualDensity: VisualDensity.compact,
+                          style: IconButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xs),
+                            minimumSize: const Size(36, 36),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -988,12 +1044,8 @@ class _SearchResultCard extends StatelessWidget {
                   textDirection: TextDirection.rtl,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
-                    fontSize: 20,
-                    color: colors.textPrimary,
-                    height: 2.0,
-                  ),
+                  style: AppArabicStyles.quranMedium
+                      .copyWith(color: colors.textPrimary),
                 ),
               ),
 
@@ -1024,7 +1076,7 @@ class _SearchResultCard extends StatelessWidget {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: colors.surface.withValues(alpha: 0.40),
+                  color: colors.surface,
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(AppRadius.xl2),
                     bottomRight: Radius.circular(AppRadius.xl2),
@@ -1073,36 +1125,30 @@ class _SearchResultCard extends StatelessWidget {
           style: style, maxLines: 3, overflow: TextOverflow.ellipsis);
     }
 
-    final lowerText = text.toLowerCase();
-    final lowerQuery = query.toLowerCase();
+    // Diacritic/hamza-aware matching (Stage 3: SearchNormalizer) — spans
+    // come back in ORIGINAL-text coordinates, so highlights never shift.
+    final spans = SearchNormalizer.allMatches(text, query);
     final matches = <TextSpan>[];
     int lastIndex = 0;
 
-    int index = lowerText.indexOf(lowerQuery);
-    while (index != -1) {
-      // Text before match
-      if (index > lastIndex) {
+    for (final m in spans) {
+      if (m.start > lastIndex) {
         matches.add(TextSpan(
-          text: text.substring(lastIndex, index),
+          text: text.substring(lastIndex, m.start),
           style: style,
         ));
       }
-
-      // Matched text
       matches.add(TextSpan(
-        text: text.substring(index, index + query.length),
+        text: text.substring(m.start, m.end),
         style: style.copyWith(
-          color: colors.goldText,
+          color: colors.primary,
           fontWeight: FontWeight.w800,
-          backgroundColor: colors.goldText.withValues(alpha: 0.12),
+          backgroundColor: colors.primary.withValues(alpha: 0.14),
         ),
       ));
-
-      lastIndex = index + query.length;
-      index = lowerText.indexOf(lowerQuery, lastIndex);
+      lastIndex = m.end;
     }
 
-    // Remaining text
     if (lastIndex < text.length) {
       matches.add(TextSpan(
         text: text.substring(lastIndex),
@@ -1111,7 +1157,7 @@ class _SearchResultCard extends StatelessWidget {
     }
 
     return RichText(
-      text: TextSpan(children: matches),
+      text: TextSpan(children: matches, style: style),
       maxLines: 3,
       overflow: TextOverflow.ellipsis,
     );
@@ -1147,11 +1193,9 @@ class _RecentSearchChip extends StatelessWidget {
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.78),
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(AppRadius.full),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.14),
-            ),
+            border: Border.all(color: colors.border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1212,11 +1256,9 @@ class _TopicCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Ink(
           decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.80),
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(
-              color: topic.color.withValues(alpha: 0.24),
-            ),
+            border: Border.all(color: colors.border),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1278,11 +1320,9 @@ class _CircleButton extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: colors.surfaceElevated.withValues(alpha: 0.82),
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.14),
-            ),
+            border: Border.all(color: colors.border),
           ),
           child: Icon(icon, size: 20, color: colors.textPrimary),
         ),

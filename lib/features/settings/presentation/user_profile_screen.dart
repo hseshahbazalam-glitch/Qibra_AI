@@ -6,13 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_constants.dart';
-import '../../../core/design_system/app_design_system.dart';
-import '../../../core/design_system/app_typography.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/providers/auth_provider.dart';
-import '../../../shared/widgets/media/safe_image.dart';
-import '../../../shared/widgets/qibra_ui.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_design_system.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/shared/widgets/media/safe_image.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
@@ -47,27 +46,17 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [colors.primary, colors.accent],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: colors.primary,
                     border: Border.all(
-                      color: colors.accent.withValues(alpha: 0.6),
+                      color: colors.accent.withValues(alpha: 0.24),
                       width: 2,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: 0.35),
-                        blurRadius: 24,
-                        spreadRadius: 1,
-                      ),
-                    ],
                   ),
                   child: const SafeImage(
                     assetPath: AppAssets.logo,
                     width: 100,
                     height: 100,
+                    cacheWidth: 300,
                     fallback: SafeImageFallback.logo,
                   ),
                 ),
@@ -82,7 +71,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'May Allah accept your worship 🤲',
+                'May Allah accept your worship',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textSecondary,
                 ),
@@ -93,6 +82,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 title: 'Edit Profile',
                 subtitle: 'Name, email, photo',
                 accent: colors.primary,
+                onTap: () => context.push(AppRoutes.profileSetup),
               ),
               _buildTile(
                 icon: Icons.notifications_active_rounded,
@@ -100,36 +90,6 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                 subtitle: 'Adhan, reminders, alerts',
                 accent: colors.accent,
                 onTap: () => context.push('/settings/notifications'),
-              ),
-              _buildTile(
-                icon: Icons.translate_rounded,
-                title: 'Language',
-                subtitle: 'English / العربية / اردو',
-                accent: colors.primarySoft,
-              ),
-              _buildTile(
-                icon: Icons.palette_rounded,
-                title: 'Appearance',
-                subtitle: 'Theme, font size',
-                accent: colors.accent,
-              ),
-              _buildTile(
-                icon: Icons.shield_rounded,
-                title: 'Privacy & Security',
-                subtitle: 'Data, permissions',
-                accent: colors.success,
-              ),
-              _buildTile(
-                icon: Icons.help_outline_rounded,
-                title: 'Help & Support',
-                subtitle: 'FAQ, contact us',
-                accent: colors.info,
-              ),
-              _buildTile(
-                icon: Icons.logout_rounded,
-                title: 'Sign Out',
-                subtitle: 'Log out of your account',
-                accent: colors.error,
               ),
             ],
           ),

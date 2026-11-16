@@ -7,16 +7,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 
-import '../../../core/design_system/app_design_system.dart';
-import '../../../core/design_system/qibra_colors.dart';
-import '../../../core/providers/auth_provider.dart';
-import '../../../shared/widgets/media/safe_image.dart';
-import '../../../shared/widgets/qibra_ui.dart';
-import '../providers/ai_provider.dart';
-import '../services/ai_action_service.dart';
-import '../services/voice_service.dart';
+import 'package:qibra_ai/core/constants/app_constants.dart';
+import 'package:qibra_ai/core/design_system/app_design_system.dart';
+import 'package:qibra_ai/core/design_system/app_typography.dart';
+import 'package:qibra_ai/core/design_system/qibra_colors.dart';
+import 'package:qibra_ai/core/design_system/qibra_navy.dart';
+import 'package:qibra_ai/core/providers/auth_provider.dart';
+import 'package:qibra_ai/shared/widgets/media/safe_image.dart';
+import 'package:qibra_ai/shared/widgets/qibra_ui.dart';
+import '../data/ai_provider.dart';
+import '../domain/ai_action_service.dart';
+import '../domain/voice_service.dart';
+import 'package:qibra_ai/core/l10n/app_strings.dart';
 
 class AIExplainScreen extends ConsumerStatefulWidget {
   const AIExplainScreen({
@@ -25,12 +30,27 @@ class AIExplainScreen extends ConsumerStatefulWidget {
     this.surahName,
     this.ayahNumber,
     this.surahNumber,
+    // P1 · Item 2 — dua context (the dua screen's "Ask AI" entry).
+    this.duaTitle,
+    this.duaArabic,
+    this.duaTranslation,
+    // Pass Q3: the word a long-press started from. It only SHAPES THE
+    // QUESTION; grounding stays the real ayah passage (the backend RAG
+    // is ayah-passage based — no fake word-scope claims).
+    this.focusWord,
   });
 
   final String? ayahText;
   final String? surahName;
   final int? ayahNumber;
   final int? surahNumber;
+  final String? duaTitle;
+  final String? duaArabic;
+  final String? duaTranslation;
+  final String? focusWord;
+
+  bool get _hasDuaContext =>
+      ayahText == null && duaTitle != null && duaTitle!.isNotEmpty;
 
   @override
   ConsumerState<AIExplainScreen> createState() => _AIExplainScreenState();
@@ -42,6 +62,13 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   final FocusNode _focusNode = FocusNode();
 
   final VoiceService _voice = VoiceService();
+
+  // Level 3 — voice INPUT SHIPPED (AI Revival Stage 1, 2026-09-07):
+  // RECORD_AUDIO is now in the manifest (the surgical one-line addition
+  // the feature gate required) and the mic entry points are live.
+  // Kept final (not const) so the subtree stays lint-clean per the
+  // original owner note.
+  static final bool _voiceInputEnabled = true;
 
   bool _isListening = false;
   bool _isSpeaking = false;
@@ -65,7 +92,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       await _initVoice();
 
       // Initial ayah message
-      if (widget.ayahText != null) {
+      if (widget.ayahText != null || widget._hasDuaContext) {
         _sendInitialMessage();
       }
     });
@@ -129,8 +156,34 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   }
 
   void _sendInitialMessage() async {
-    final question =
-        'Please explain this ayah: "${widget.ayahText}" from ${widget.surahName} (${widget.surahNumber}:${widget.ayahNumber})';
+    if (widget._hasDuaContext) {
+      // Dua opened via the detail screen's Ask-AI action: the dua's own
+      // title + bundled translation are passed as the question context.
+      final translation = (widget.duaTranslation ?? '').trim();
+      final arabic = (widget.duaArabic ?? '').trim();
+      final parts = <String>[
+        if (translation.isNotEmpty) 'English translation: "$translation"',
+        if (arabic.isNotEmpty) 'Arabic: "$arabic"',
+      ];
+      final context = parts.isEmpty
+          ? 'Dua: "${widget.duaTitle}"'
+          : 'Dua: "${widget.duaTitle}" — ${parts.join(' — ')}';
+      await ref.read(chatProvider.notifier).sendMessage(
+            'What is the significance of this dua?',
+            context: context,
+          );
+      _scrollToBottom();
+      _autoSpeakLastMessage();
+      return;
+    }
+    final word = widget.focusWord?.trim();
+    final question = (word == null || word.isEmpty)
+        ? 'Please explain this ayah: "${widget.ayahText}" '
+            'from ${widget.surahName} '
+            '(${widget.surahNumber}:${widget.ayahNumber})'
+        : 'Please explain the word "$word" in this ayah: '
+            '"${widget.ayahText}" from ${widget.surahName} '
+            '(${widget.surahNumber}:${widget.ayahNumber})';
     await ref.read(chatProvider.notifier).sendMessage(
           question,
           context: 'Surah ${widget.surahName}, Ayah ${widget.ayahNumber}',
@@ -227,7 +280,9 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           : (_isListening ? 'Listening...' : 'Retrieval only — not a fatwa'),
       actions: [
         IconButton(
-          tooltip: _autoSpeak ? 'Auto speak on' : 'Auto speak off',
+          tooltip: _autoSpeak
+              ? AppStrings.of(context).tooltipAutoSpeakOn
+              : AppStrings.of(context).tooltipAutoSpeakOff,
           onPressed: _toggleAutoSpeak,
           icon: Icon(
             _autoSpeak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
@@ -238,7 +293,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           width: 48,
           height: 48,
           child: IconButton(
-            tooltip: 'Delete conversation',
+            tooltip: AppStrings.of(context).tooltipDeleteConversation,
             onPressed: () {
               HapticFeedback.mediumImpact();
               _showClearDialog();
@@ -250,6 +305,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       child: Column(
         children: [
           if (widget.ayahText != null) _buildAyahContext(),
+          if (widget._hasDuaContext) _buildDuaContext(),
           Expanded(
             child: _isListening
                 ? _buildListeningView()
@@ -257,153 +313,14 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                     ? _buildEmptyState()
                     : _buildMessagesList(messages)),
           ),
-          if (messages.isEmpty && widget.ayahText == null && !_isListening)
-            _buildSuggestedQuestions(),
+          if (messages.isEmpty &&
+              widget.ayahText == null &&
+              !widget._hasDuaContext &&
+              !_isListening) _buildSuggestedQuestions(),
           Container(
             padding: EdgeInsets.only(bottom: bottomPadding),
             color: colors.card,
             child: _buildInputBar(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── APP BAR ─────────────────────────
-
-  Widget _buildAppBar() {
-    final colors = QibraColors.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(bottom: BorderSide(color: colors.border)),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.pop(context);
-            },
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: colors.surfaceElevated,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: colors.textPrimary,
-                size: 18,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [colors.primarySoft, colors.accent],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primarySoft.withValues(alpha: 0.4),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child:
-                Icon(Icons.auto_awesome, color: colors.textPrimary, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Qibra AI',
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _isSpeaking
-                            ? colors.accent
-                            : (_isListening
-                                ? colors.error
-                                : colors.primarySoft),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _isSpeaking
-                          ? 'Speaking...'
-                          : (_isListening
-                              ? 'Listening...'
-                              : 'Retrieval only — not a fatwa'),
-                      style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Auto speak toggle
-          GestureDetector(
-            onTap: _toggleAutoSpeak,
-            child: Container(
-              width: 48,
-              height: 48,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: _autoSpeak
-                    ? colors.primarySoft.withValues(alpha: 0.2)
-                    : colors.surfaceElevated,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _autoSpeak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-                color: _autoSpeak
-                    ? colors.primarySoft
-                    : colors.textPrimary,
-                size: 18,
-              ),
-            ),
-          ),
-          // Clear chat
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              _showClearDialog();
-            },
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: colors.surfaceElevated,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.delete_outline_rounded,
-                color: colors.textPrimary,
-                size: 18,
-              ),
-            ),
           ),
         ],
       ),
@@ -419,27 +336,29 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           AvatarGlow(
-            glowColor: colors.primarySoft,
+            glowColor: colors.violetAi,
             duration: const Duration(milliseconds: 2000),
             repeat: true,
             child: Container(
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colors.primarySoft, colors.accent],
+                gradient: const LinearGradient(
+                  colors: [QibraNavy.violet, QibraNavy.violetDeep],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: colors.primarySoft.withValues(alpha: 0.6),
+                    color: colors.violetAi.withValues(alpha: 0.6),
                     blurRadius: 30,
                     spreadRadius: 10,
                   ),
                 ],
               ),
               child: Icon(
-                Icons.mic_rounded,
+                _voiceInputEnabled
+                    ? Icons.mic_rounded
+                    : Icons.auto_awesome_rounded,
                 color: colors.textPrimary,
                 size: 60,
               ),
@@ -448,18 +367,16 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           const SizedBox(height: 30),
           Text(
             'Listening...',
-            style: TextStyle(
+            style: AppTextStyles.titleLarge.copyWith(
               color: colors.textPrimary,
-              fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Speak now',
-            style: TextStyle(
+            style: AppTextStyles.bodyMedium.copyWith(
               color: colors.textSecondary,
-              fontSize: 14,
             ),
           ),
           if (_partialText.isNotEmpty) ...[
@@ -475,9 +392,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               child: Text(
                 _partialText,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: AppTextStyles.bodyLarge.copyWith(
                   color: colors.textPrimary,
-                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -547,9 +463,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                 ),
                 child: Text(
                   'AYAH ${widget.ayahNumber}',
-                  style: TextStyle(
+                  style: AppTextStyles.labelXSmall.copyWith(
                     color: colors.goldText,
-                    fontSize: 10,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1,
                   ),
@@ -558,10 +473,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               const SizedBox(width: 8),
               Text(
                 widget.surahName ?? '',
-                style: TextStyle(
+                style: AppTextStyles.labelLarge.copyWith(
                   color: colors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -571,13 +484,91 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             widget.ayahText ?? '',
             textAlign: TextAlign.right,
             textDirection: TextDirection.rtl,
-            style: TextStyle(
-              fontFamily: 'Amiri',
-              fontSize: 20,
+            style: AppArabicStyles.hadithArabic.copyWith(
               color: colors.textPrimary,
               height: 1.8,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // ─── DUA CONTEXT (P1 · Item 2) ─────────────────────────
+
+  Widget _buildDuaContext() {
+    final colors = QibraColors.of(context);
+    final arabic = (widget.duaArabic ?? '').trim();
+    final translation = (widget.duaTranslation ?? '').trim();
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors.primary.withValues(alpha: 0.2),
+            colors.accent.withValues(alpha: 0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.accent.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: colors.accent.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'DUA',
+                  style: AppTextStyles.labelXSmall.copyWith(
+                    color: colors.goldText,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.duaTitle ?? '',
+                  style: AppTextStyles.labelLarge.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          if (arabic.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              arabic,
+              textAlign: TextAlign.right,
+              textDirection: TextDirection.rtl,
+              style: AppArabicStyles.hadithArabic.copyWith(
+                color: colors.textPrimary,
+                height: 1.8,
+              ),
+            ),
+          ],
+          if (translation.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              translation,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: colors.textSecondary,
+                height: 1.5,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -598,6 +589,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               assetPath: AppAssets.aiArt,
               width: 100,
               height: 100,
+              cacheWidth: 300,
               fit: BoxFit.cover,
               fallback: SafeImageFallback.pattern,
             ),
@@ -605,19 +597,17 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           const SizedBox(height: 20),
           Text(
             'Qibra AI Assistant',
-            style: TextStyle(
+            style: AppTextStyles.titleLarge.copyWith(
               color: colors.textPrimary,
-              fontSize: 22,
               fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Type or speak to ask\nabout Islam or control the app',
+            'Type to ask\nabout Islam or control the app',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: AppTextStyles.bodySmall.copyWith(
               color: colors.textSecondary,
-              fontSize: 13,
               height: 1.5,
             ),
           ),
@@ -631,14 +621,13 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.mic_rounded, color: colors.violetAi, size: 16),
+                Icon(Icons.keyboard_rounded, color: colors.violetAi, size: 16),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Tap mic to speak — All languages supported',
-                    style: TextStyle(
+                    'Type your question — answers cite retrieved passages',
+                    style: AppTextStyles.labelSmall.copyWith(
                       color: colors.textSecondary,
-                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -653,7 +642,6 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   // ─── MESSAGES LIST ─────────────────────────
 
   Widget _buildMessagesList(List<ChatMessage> messages) {
-    final colors = QibraColors.of(context);
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
@@ -668,7 +656,24 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
   Widget _buildMessageBubble(ChatMessage message) {
     final colors = QibraColors.of(context);
-    if (message.isTyping) return _buildTypingBubble();
+    if (message.isTyping) {
+      // Level 1 typewriter: while the /ai/ask stream is delivering deltas,
+      // render the growing answer in place of the three-dot bubble (the
+      // dots remain the fallback before the first delta arrives).
+      final chat = ref.read(chatProvider.notifier);
+      if (chat.liveAnswer.value.isEmpty) return _buildTypingBubble();
+      return ValueListenableBuilder<String>(
+        valueListenable: chat.liveAnswer,
+        builder: (context, live, _) => live.isEmpty
+            ? _buildTypingBubble()
+            : _buildMessageBubble(ChatMessage(
+                id: 'live',
+                content: live,
+                role: MessageRole.ai,
+                timestamp: DateTime.now(),
+              )),
+      );
+    }
 
     final isUser = message.isUser;
 
@@ -730,11 +735,10 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
                       children: [
                         Text(
                           _formatTime(message.timestamp),
-                          style: TextStyle(
+                          style: AppTextStyles.labelXSmall.copyWith(
                             color: isUser
                                 ? colors.onPrimary.withValues(alpha: 0.7)
                                 : colors.textTertiary,
-                            fontSize: 10,
                           ),
                         ),
                         if (!isUser) ...[
@@ -780,39 +784,87 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
 
   List<Widget> _sourceChips(String content) {
     final colors = QibraColors.of(context);
-    final tags = <String>{};
-    for (final match in RegExp(r'Quran\s+\d+:\d+', caseSensitive: false)
-        .allMatches(content)) {
-      tags.add(match.group(0)!);
+    // Level 1: numeric citation chips ([surah:ayah] from the model, or
+    // "Quran s:a" from the extractive fallback) are tappable and deep-link
+    // straight into the reader at that ayah. Other tags stay display-only.
+    final tags = <({String label, int? surah, int? ayah})>[];
+    final seen = <String>{};
+    void addTag(String label, int? surah, int? ayah) {
+      if (seen.add(label)) tags.add((label: label, surah: surah, ayah: ayah));
     }
-    for (final match in RegExp(r'\[(\d+)\]\s+([^:\n]+):').allMatches(content)) {
-      final label = match.group(2)?.trim();
-      if (label != null && label.isNotEmpty) tags.add(label);
+
+    for (final m in RegExp(r'\[(\d{1,3}):(\d{1,4})\]').allMatches(content)) {
+      final surah = int.parse(m.group(1)!);
+      final ayah = int.parse(m.group(2)!);
+      if (surah >= 1 && surah <= 114 && ayah >= 1) {
+        addTag('$surah:$ayah', surah, ayah);
+      }
+    }
+    for (final m in RegExp(r'Quran\s+(\d+):(\d+)', caseSensitive: false)
+        .allMatches(content)) {
+      final surah = int.parse(m.group(1)!);
+      final ayah = int.parse(m.group(2)!);
+      if (surah >= 1 && surah <= 114 && ayah >= 1) {
+        addTag(m.group(0)!, surah, ayah);
+      }
+    }
+    for (final m in RegExp(r'\[(\d+)\]\s+([^:\n]+):').allMatches(content)) {
+      final label = m.group(2)?.trim();
+      if (label != null && label.isNotEmpty) addTag(label, null, null);
     }
     if (tags.isEmpty) return const [];
     return [
-      const SizedBox(height: 8),
+      const SizedBox(height: 10),
+      Text(
+        'SOURCES',
+        style: AppTextStyles.labelXSmall.copyWith(
+          color: colors.textTertiary,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.6,
+        ),
+      ),
+      const SizedBox(height: 6),
       Wrap(
         spacing: 6,
         runSpacing: 6,
         children: [
           for (final tag in tags)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: colors.violetAi.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colors.violetAi.withValues(alpha: 0.4)),
-              ),
-              child: Text(
-                tag,
-                style: TextStyle(
-                  color: colors.violetAi,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
+            Builder(builder: (context) {
+              final chip = Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colors.violetAi.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(8),
+                  border:
+                      Border.all(color: colors.violetAi.withValues(alpha: 0.4)),
                 ),
-              ),
-            ),
+                child: Text(
+                  tag.label,
+                  style: AppTextStyles.labelXSmall.copyWith(
+                    color: colors.violetAi,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              );
+              if (tag.surah == null) return chip;
+              return Tooltip(
+                message: AppStrings.of(context).tooltipOpenInReader,
+                triggerMode: TooltipTriggerMode.manual,
+                showDuration: const Duration(milliseconds: 600),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => context.push(Uri(
+                    path: AppRoutes.surahReader,
+                    queryParameters: {
+                      'surah': '${tag.surah}',
+                      'ayah': '${tag.ayah}',
+                    },
+                  ).toString()),
+                  child: chip,
+                ),
+              );
+            }),
         ],
       ),
     ];
@@ -828,9 +880,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       if (part.startsWith('**') && part.endsWith('**')) {
         spans.add(TextSpan(
           text: part.substring(2, part.length - 2),
-          style: TextStyle(
+          style: AppTextStyles.bodyMedium.copyWith(
             color: color,
-            fontSize: 14,
             height: 1.6,
             fontWeight: FontWeight.w800,
           ),
@@ -838,14 +889,20 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       } else {
         spans.add(TextSpan(
           text: part,
-          style: TextStyle(color: color, fontSize: 14, height: 1.6),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: color,
+            height: 1.6,
+          ),
         ));
       }
     }
 
     return SelectableText.rich(
       TextSpan(children: spans),
-      style: TextStyle(color: color, fontSize: 14, height: 1.6),
+      style: AppTextStyles.bodyMedium.copyWith(
+        color: color,
+        height: 1.6,
+      ),
     );
   }
 
@@ -874,7 +931,16 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: colors.border),
             ),
-            child: const _TypingDots(),
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  colors.textTertiary,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -892,12 +958,11 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   Widget _buildSuggestedQuestions() {
     final colors = QibraColors.of(context);
     final suggestions = [
-      '🎤 Tap mic to speak',
-      '🕌 Tahajjud alarm 2 baje',
-      '📖 Quran kholo',
-      '🕋 Qibla dikhao',
-      '🤲 Namaz kaise padhein',
-      '💚 Zakat calculator kholo',
+      'What time is Tahajjud?',
+      'Open the Quran',
+      'Show Qibla direction',
+      'How do I perform wudu?',
+      'Open Zakat calculator',
     ];
 
     return Container(
@@ -911,12 +976,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
           return GestureDetector(
             onTap: () {
               HapticFeedback.selectionClick();
-              if (index == 0) {
-                _toggleVoice();
-              } else {
-                _controller.text = suggestions[index].substring(3);
-                _sendMessage();
-              }
+              _controller.text = suggestions[index];
+              _sendMessage();
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -928,9 +989,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               child: Center(
                 child: Text(
                   suggestions[index],
-                  style: TextStyle(
+                  style: AppTextStyles.labelMedium.copyWith(
                     color: colors.textPrimary,
-                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -954,7 +1014,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
       ),
       child: Row(
         children: [
-          // Mic Button
+          // Mic Button — gated: dead without RECORD_AUDIO wiring (Level 3).
+          if (_voiceInputEnabled)
           GestureDetector(
             onTap: _toggleVoice,
             child: AnimatedContainer(
@@ -998,15 +1059,13 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
               maxLines: null,
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => _sendMessage(),
-              style: TextStyle(
+              style: AppTextStyles.bodyMedium.copyWith(
                 color: colors.textPrimary,
-                fontSize: 14,
               ),
               decoration: InputDecoration(
-                hintText: 'Type or tap mic to speak...',
-                hintStyle: TextStyle(
+                hintText: 'Ask about Islam or control the app...',
+                hintStyle: AppTextStyles.bodyMedium.copyWith(
                   color: colors.textTertiary,
-                  fontSize: 14,
                 ),
                 filled: true,
                 fillColor: colors.surfaceElevated,
@@ -1108,68 +1167,6 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ============================================================
-// TYPING DOTS ANIMATION
-// ============================================================
-
-class _TypingDots extends StatefulWidget {
-  const _TypingDots();
-
-  @override
-  State<_TypingDots> createState() => _TypingDotsState();
-}
-
-class _TypingDotsState extends State<_TypingDots>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = QibraColors.of(context);
-    return SizedBox(
-      width: 40,
-      height: 16,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: List.generate(3, (index) {
-          return AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) {
-              final delay = index * 0.2;
-              final value = ((_controller.value - delay) % 1.0).clamp(0.0, 1.0);
-              final scale = 0.5 + (0.5 * (1 - (value * 2 - 1).abs()));
-              return Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  color: colors.textPrimary.withValues(alpha: scale),
-                  shape: BoxShape.circle,
-                ),
-              );
-            },
-          );
-        }),
       ),
     );
   }

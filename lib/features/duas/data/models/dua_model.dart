@@ -5,6 +5,8 @@
 // Complete data structure for each Dua
 // ============================================================
 
+import 'package:flutter/material.dart';
+
 class DuaModel {
   final String id;
   final String titleArabic;
@@ -124,4 +126,35 @@ class DuaCategoryModel {
     this.duaCount = 0,
     this.sortOrder = 0,
   });
+}
+
+/// Category rows carry legacy emoji strings as icon KEYS in the seed data.
+/// Presentation must never render them raw — this maps each key onto the
+/// app's single icon language (Stage D). colorHex (legacy per-category
+/// palette) is deliberately left unread by any screen: one accent per
+/// domain beats a rainbow.
+extension DuaCategoryGlyph on DuaCategoryModel {
+  IconData get iconGlyph {
+    // Match on the leading code point so variation selectors (U+FE0F)
+    // in the seed data can't silently break the mapping.
+    final lead = icon.runes.isEmpty ? 0 : icon.runes.first;
+    switch (lead) {
+      case 0x1F305:
+        return Icons.wb_twilight; // dawn
+      case 0x2600:
+        return Icons.wb_sunny; // midday
+      case 0x1F319:
+        return Icons.nightlight_round; // night
+      case 0x1F37D:
+        return Icons.restaurant_rounded; // food
+      case 0x2708:
+        return Icons.flight_takeoff_rounded; // travel
+      case 0x1F6D5:
+        return Icons.mosque_rounded; // mosque
+      case 0x1F4D6:
+        return Icons.menu_book_rounded; // scripture
+      default:
+        return Icons.volunteer_activism_rounded;
+    }
+  }
 }

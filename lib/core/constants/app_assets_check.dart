@@ -1,9 +1,10 @@
 // lib/core/constants/app_assets_check.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../design_system/app_design_system.dart';
+import 'package:qibra_ai/core/design_system/app_design_system.dart';
 
 abstract final class AppAssetsCheck {
   static const List<String> registeredAssets = [
@@ -11,14 +12,10 @@ abstract final class AppAssetsCheck {
     AppAssets.splashBackground,
     AppAssets.homeHeroBg,
     AppAssets.patternTile,
-    AppAssets.emptyState,
-    AppAssets.quranArt,
-    AppAssets.prayerArt,
     AppAssets.hadithArt,
     AppAssets.aiArt,
     AppAssets.onboarding1,
     AppAssets.onboarding2,
-    AppAssets.onboarding3,
     AppAssets.iconQuran,
     AppAssets.iconPrayer,
     AppAssets.iconQibla,
@@ -27,18 +24,12 @@ abstract final class AppAssetsCheck {
     AppAssets.iconCalendar,
     AppAssets.iconTasbih,
     AppAssets.iconDua,
-    AppAssets.loadingAnimation,
-    AppAssets.successAnimation,
-    AppAssets.errorAnimation,
-    AppAssets.prayerAnimation,
-    AppAssets.quranAnimation,
-    AppAssets.aiAnimation,
   ];
 
   static Future<void> verifyAllAssets() async {
-    debugPrint('╔══════════════════════════════════════╗');
-    debugPrint('║   QIBRA AI — Assets Verification     ║');
-    debugPrint('╠══════════════════════════════════════╣');
+    if (kDebugMode) debugPrint('╔══════════════════════════════════════╗');
+    if (kDebugMode) debugPrint('║   QIBRA AI — Assets Verification     ║');
+    if (kDebugMode) debugPrint('╠══════════════════════════════════════╣');
 
     int found = 0;
     int missing = 0;
@@ -47,17 +38,20 @@ abstract final class AppAssetsCheck {
       try {
         await rootBundle.load(asset);
         found++;
-        debugPrint('║  OK $asset');
+        // PASS X2 (print diet): the per-asset '║  OK …' row printed one line per
+        // registered asset INSIDE this boot loop (16 reads, 16 rows, a table nobody
+        // acts on while everything is fine). Success is the summary count below;
+        // only a MISSING asset still gets its own row.
       } catch (e) {
         missing++;
-        debugPrint('║  MISSING: $asset');
+        if (kDebugMode) debugPrint('║  MISSING: $asset');
       }
     }
 
-    debugPrint('╠══════════════════════════════════════╣');
-    debugPrint('║  Found  : $found/${registeredAssets.length}');
-    debugPrint('║  Missing: $missing/${registeredAssets.length}');
-    debugPrint('╚══════════════════════════════════════╝');
+    if (kDebugMode) debugPrint('╠══════════════════════════════════════╣');
+    if (kDebugMode) debugPrint('║  Found  : $found/${registeredAssets.length}');
+    if (kDebugMode) debugPrint('║  Missing: $missing/${registeredAssets.length}');
+    if (kDebugMode) debugPrint('╚══════════════════════════════════════╝');
   }
 
   static Future<bool> assetExists(String path) async {
