@@ -80,7 +80,12 @@ def test_hadith_no_duplicate_ids_all_files_present():
     # Content pass (2026-09-02) backfilled tirmidhi/urdu.json from the same
     # dataset family; the old expectation that it be MISSING is retired.
     rows = scan_hadith()
-    assert len(rows) == 21
+    # 14 = 7 books x 2 editions. Re-pinned from 21 by QB-014 (G2-D): the count went
+    # stale in HR-2.1, which set HADITH_LANGS = ("english", "urdu") in
+    # app/content/integrity.py and deleted the seven arabic.json files. Nothing
+    # re-pinned this assertion then, so it has been red on the tip ever since
+    # (`assert 14 == 21`); no dependency change is involved.
+    assert len(rows) == 14
     missing = [r for r in rows if not r["exists"]]
     assert missing == []
     for row in rows:

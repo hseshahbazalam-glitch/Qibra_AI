@@ -11,7 +11,7 @@ Live since 2026-09-02. This is the single reproducible description of the produc
 | Repo / branch | `hseshahbazalam-glitch/Qibra_AI` → `arena/01a05b41-qibra-ai` (auto-deploy on push) |
 | Root directory | `backend` |
 | Runtime | Python **3.12.7** |
-| Install command | `pip install -r requirements.txt` |
+| Install command | `pip install -r requirements.txt` (runtime pins only — `requirements-dev.txt` is NOT installed on the service; it holds pytest) |
 | Start command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"` |
 | Health check path | `/health` |
 

@@ -199,7 +199,20 @@ def test_a_legitimately_large_sync_payload_still_gets_through():
         ]
         blob = json.dumps({"items": items}).encode()
         assert MAX_BODY_BYTES > len(blob) > 8000  # a real payload, not a toy one
+        # QB-014 (G2-D) added the content-type header, and only that. FastAPI 0.116+
+        # parses a body as JSON only when the request says it is JSON, so posting raw
+        # bytes with no media type now yields 422 model_attributes_type instead of
+        # reaching the endpoint. That is the stricter-and-correct behaviour, not a
+        # regression: lib/core/network/api_client.dart:49-50 already sends
+        # `Content-Type: application/json` on every request, and the sibling test above
+        # (line 176) was already explicit about it. Loosening the app to keep this
+        # fixture as it was would be the actual bug.
         r = client.post(
-            "/sync", content=blob, headers=dict(auth, **{"content-length": str(len(blob))})
+            "/sync",
+            content=blob,
+            headers=dict(auth, **{
+                "content-length": str(len(blob)),
+                "content-type": "application/json",
+            }),
         )
         assert r.status_code == 200, (r.status_code, r.text[:200])
