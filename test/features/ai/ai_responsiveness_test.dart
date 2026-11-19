@@ -22,28 +22,35 @@ void main() {
           isFalse,
           reason: 'context must be formatted from the same passages, not '
               'retrieved a second time');
-      expect(provider.contains('RagService.contextFrom(_lastRetrieved)'), isTrue);
+      expect(
+          provider.contains('RagService.contextFrom(_lastRetrieved)'), isTrue);
     });
 
     test('bridge batches into ONE off-main scan per data source', () {
       final rag =
           File('lib/features/ai/domain/rag_service.dart').readAsStringSync();
       expect(rag.contains('searchBatchOffMain(terms, perQuery: topK)'), isTrue);
-      expect(rag.contains('searchBatchOffMain(terms, maxPerQuery: topK)'), isTrue);
+      expect(
+          rag.contains('searchBatchOffMain(terms, maxPerQuery: topK)'), isTrue);
       expect(rag.contains('_retrieveOnce'), isFalse,
           reason: 'the per-term synchronous fan-out was the ANR');
     });
 
     test('both repos provide isolate batch scans', () {
-      final quran = File('lib/features/quran/data/repository/quran_repository.dart')
-          .readAsStringSync();
+      final quran =
+          File('lib/features/quran/data/repository/quran_repository.dart')
+              .readAsStringSync();
       final hadith =
           File('lib/features/hadith/data/services/hadith_database_service.dart')
               .readAsStringSync();
-      expect(quran.contains('Future<List<List<SearchResultModel>>> searchBatchOffMain'),
+      expect(
+          quran.contains(
+              'Future<List<List<SearchResultModel>>> searchBatchOffMain'),
           isTrue);
       expect(quran.contains('return Isolate.run(() {'), isTrue);
-      expect(hadith.contains('Future<List<List<LocalSearchResult>>> searchBatchOffMain'),
+      expect(
+          hadith.contains(
+              'Future<List<List<LocalSearchResult>>> searchBatchOffMain'),
           isTrue);
       expect(hadith.contains('double hadithRelevanceFor('), isTrue,
           reason: 'top-level so the isolate closure can capture it');
@@ -56,31 +63,39 @@ void main() {
       final constants =
           File('lib/core/constants/parts/app_api.dart').readAsStringSync();
       expect(
-        constants.contains('static const Duration aiAskTimeout = Duration(seconds: 90);'),
+        constants.contains(
+            'static const Duration aiAskTimeout = Duration(seconds: 90);'),
         isTrue,
       );
       final provider =
           File('lib/features/ai/data/ai_provider.dart').readAsStringSync();
       expect(provider.contains('receiveTimeout: AppApi.aiAskTimeout'), isTrue);
       expect(provider.contains("extra: const {'noRetry': true},"), isTrue);
-      expect(provider.contains("options: Options(extra: const {'noRetry': true}),"), isTrue);
+      expect(
+          provider
+              .contains("options: Options(extra: const {'noRetry': true}),"),
+          isTrue);
       expect(provider.contains('.timeout(AppApi.aiAskTimeout)'), isTrue);
       expect(provider.contains('Duration(seconds: 120)'), isFalse);
     });
 
     test('a timeout is final — no second 90s retry stacked behind it', () {
-      final client = File('lib/core/network/api_client.dart').readAsStringSync();
+      final client =
+          File('lib/core/network/api_client.dart').readAsStringSync();
       expect(
-        client.contains("if (e.requestOptions.extra['noRetry'] == true) return false;"),
+        client.contains(
+            "if (e.requestOptions.extra['noRetry'] == true) return false;"),
         isTrue,
         reason: 'AI ask opts out of the 3x retry ladder — one attempt, '
             'hard 90s (retry stack would reach ~370s on a cold tier)',
       );
       final provider =
           File('lib/features/ai/data/ai_provider.dart').readAsStringSync();
-      expect(provider.contains('final isTimeout = e is TimeoutException ||'), isTrue);
+      expect(provider.contains('final isTimeout = e is TimeoutException ||'),
+          isTrue);
       expect(provider.contains('DioExceptionType.receiveTimeout'), isTrue);
-      expect(provider.contains('slow to respond (it may be starting up'), isTrue,
+      expect(
+          provider.contains('slow to respond (it may be starting up'), isTrue,
           reason: 'graceful server-slow message, per owner spec');
     });
 
@@ -99,7 +114,8 @@ void main() {
       expect('MaterialType.transparency'.allMatches(ui).isNotEmpty, isTrue);
     });
 
-    test('QibraChip is a plain Material pill — no ChoiceChip-internal tile', () {
+    test('QibraChip is a plain Material pill — no ChoiceChip-internal tile',
+        () {
       final ui = File('lib/shared/widgets/qibra_ui.dart').readAsStringSync();
       expect(ui.contains('ChoiceChip('), isFalse);
       expect(ui.contains('child: InkWell('), isTrue);
@@ -113,8 +129,7 @@ void main() {
       // to re-indentation; the pattern itself lives at
       // prayer_times_screen:809-811.
       expect(
-        RegExp(
-                r'Material\(\s*type:\s*MaterialType\.transparency,\s*child:\s*ListTile\(')
+        RegExp(r'Material\(\s*type:\s*MaterialType\.transparency,\s*child:\s*ListTile\(')
             .hasMatch(row),
         isTrue,
       );
@@ -123,7 +138,8 @@ void main() {
     test('no new bare Container(decoration)+ListTile without Material', () {
       // Repo-wide sweep mirroring the fix mandate: any Container whose
       // decoration wraps a ListTile must mention Material in between.
-      for (final f in Directory('lib').listSync(recursive: true).whereType<File>()) {
+      for (final f
+          in Directory('lib').listSync(recursive: true).whereType<File>()) {
         if (!f.path.endsWith('.dart')) continue;
         final src = f.readAsStringSync();
         for (final m in RegExp(r'Container\(\s*\n\s*decoration: BoxDecoration')
@@ -147,7 +163,7 @@ void main() {
       final screen = File('lib/features/ai/presentation/ai_explain_screen.dart')
           .readAsStringSync();
       expect(
-        screen.contains('static final bool _voiceInputEnabled = true;'),
+        screen.contains('static const bool _voiceInputEnabled = true;'),
         isTrue,
       );
       expect(screen.contains("'Tap mic to speak'"), isFalse);
