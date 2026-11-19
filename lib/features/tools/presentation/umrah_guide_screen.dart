@@ -247,7 +247,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
           Row(
             children: [
               Icon(Icons.mosque_rounded, size: 28, color: colors.primary),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -534,7 +534,7 @@ class _UmrahGuideScreenState extends State<UmrahGuideScreen> {
           Row(
             children: [
               Icon(Icons.menu_book_rounded, size: 14, color: colors.primary),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(AppStrings.of(context).hadithLabel,
                   style: TextStyle(
                       color: colors.primary,

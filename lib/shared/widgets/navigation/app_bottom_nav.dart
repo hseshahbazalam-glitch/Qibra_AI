@@ -123,7 +123,7 @@ class _NavItem extends StatelessWidget {
                       ]
                     : null,
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(

@@ -82,7 +82,7 @@ class _MushafRibbonState extends State<MushafRibbon> {
         // 40 logical px of grabbable column (the silk itself stays
         // ribbonWide) — 28 made the drop gesture easy to miss near the
         // screen corner; fingers, not pixels, are the spec.
-        final hit = MushafRibbon.ribbonWidth + 28;
+        const hit = MushafRibbon.ribbonWidth + 28;
         final usable =
             math.max(0.0, constraints.maxWidth - 2 * 10 - hit);
         final left = 10 + usable * f;

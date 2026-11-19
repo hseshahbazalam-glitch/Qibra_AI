@@ -184,7 +184,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           ),
           child: SafeArea(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(60, 8, 20, 0),
+              padding: const EdgeInsets.fromLTRB(60, 8, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -543,7 +543,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         ),
         decoration: BoxDecoration(
           color: colors.card,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

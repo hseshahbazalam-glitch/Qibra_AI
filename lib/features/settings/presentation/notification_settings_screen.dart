@@ -90,7 +90,7 @@ class _NotificationSettingsScreenState
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(AppStrings.of(context).settingsSaved,
-          style: TextStyle(color: QibraNavy.textPrimary)),
+          style: const TextStyle(color: QibraNavy.textPrimary)),
       backgroundColor: QibraNavy.emeraldDeep,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -160,7 +160,7 @@ class _NotificationSettingsScreenState
                     QibraNavy.emerald,
                   ),
                   if (_prayerNotifications) ...[
-                    Divider(color: QibraNavy.hairline, height: 20),
+                    const Divider(color: QibraNavy.hairline, height: 20),
                     _settingToggle(
                       'Pre-Prayer Alert',
                       'Alert before prayer time',
@@ -190,7 +190,7 @@ class _NotificationSettingsScreenState
                     QibraNavy.gold,
                   ),
                   if (_tahajjudNotification) ...[
-                    Divider(color: QibraNavy.hairline, height: 20),
+                    const Divider(color: QibraNavy.hairline, height: 20),
                     _timeSelector(
                       'Alarm Time',
                       _tahajjudHour,
@@ -215,7 +215,7 @@ class _NotificationSettingsScreenState
                     (v) => setState(() => _morningAdhkar = v),
                     QibraNavy.gold,
                   ),
-                  Divider(color: QibraNavy.hairline, height: 20),
+                  const Divider(color: QibraNavy.hairline, height: 20),
                   _settingToggle(
                     'Evening Adhkar',
                     'Daily reminder at 5:30 PM',
@@ -237,7 +237,7 @@ class _NotificationSettingsScreenState
                     (v) => setState(() => _jummahNotification = v),
                     QibraNavy.emerald,
                   ),
-                  Divider(color: QibraNavy.hairline, height: 20),
+                  const Divider(color: QibraNavy.hairline, height: 20),
                   _settingToggle(
                     'Quran Daily',
                     'Read Quran reminder',
@@ -296,7 +296,7 @@ class _NotificationSettingsScreenState
                           fontSize: 22,
                           fontFamily: 'Amiri')),
                   Text(AppStrings.of(context).notificationSettings,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: QibraNavy.textPrimary,
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
@@ -358,12 +358,12 @@ class _NotificationSettingsScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(AppStrings.of(context).enableNotifications,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: QibraNavy.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w700)),
                   Text(AppStrings.of(context).tapToGrantNotificationPermission,
-                      style: TextStyle(color: QibraNavy.emerald, fontSize: 11)),
+                      style: const TextStyle(color: QibraNavy.emerald, fontSize: 11)),
                 ],
               ),
             ),
@@ -649,11 +649,11 @@ class _NotificationSettingsScreenState
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.notifications_rounded,
+            const Icon(Icons.notifications_rounded,
                 color: QibraNavy.emerald, size: 18),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(AppStrings.of(context).testAdanAndNotification,
-                style: TextStyle(
+                style: const TextStyle(
                     color: QibraNavy.emerald,
                     fontSize: 14,
                     fontWeight: FontWeight.w600)),
@@ -685,11 +685,11 @@ class _NotificationSettingsScreenState
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.save_rounded,
+                  const Icon(Icons.save_rounded,
                       color: QibraNavy.textPrimary, size: 20),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Text(AppStrings.of(context).saveSettings,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: QibraNavy.textPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w700)),

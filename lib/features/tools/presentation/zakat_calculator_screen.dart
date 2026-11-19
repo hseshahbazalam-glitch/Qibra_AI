@@ -321,7 +321,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.favorite_rounded, size: 14, color: colors.primary),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
                           'Zakat Calculator',
                           style: TextStyle(
@@ -417,7 +417,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
                     children: [
                       Icon(Icons.edit_rounded,
                           color: colors.primary, size: 12),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(AppStrings.of(context).editPrice,
                           style: TextStyle(
                               color: colors.primary,
@@ -795,7 +795,7 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.calculate_rounded, color: colors.onPrimary, size: 22),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Text(
               'Calculate Zakat',
               style: TextStyle(
@@ -1024,8 +1024,8 @@ class _ZakatCalculatorScreenState extends State<ZakatCalculatorScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.menu_book_rounded, size: 14),
-              SizedBox(width: 8),
+              const Icon(Icons.menu_book_rounded, size: 14),
+              const SizedBox(width: 8),
               Text(
                 'Islamic Reminder',
                 style: TextStyle(

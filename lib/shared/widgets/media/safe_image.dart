@@ -185,7 +185,7 @@ class _MosqueVectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
+    const colors = QibraColors.light;
     final w = size.width;
     final h = size.height;
     if (w == 0 || h == 0) return;
@@ -342,7 +342,7 @@ class _QuranVectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
+    const colors = QibraColors.light;
     final w = size.width;
     final h = size.height;
     if (w == 0 || h == 0) return;
@@ -435,12 +435,12 @@ class _QuranVectorPainter extends CustomPainter {
 
   void _drawCornerOrnament(
       Canvas canvas, Offset anchor, double dirX, double dirY) {
-    final colors = QibraColors.light;
+    const colors = QibraColors.light;
     final p = Paint()
       ..color = colors.primary.withValues(alpha: 0.85)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
-    final len = 18.0;
+    const len = 18.0;
     canvas.drawLine(anchor,
         Offset(anchor.dx + dirX * len, anchor.dy), p);
     canvas.drawLine(anchor,
@@ -464,7 +464,7 @@ class _LogoVectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
+    const colors = QibraColors.light;
     final w = size.width;
     final h = size.height;
     if (w == 0 || h == 0) return;
@@ -536,7 +536,7 @@ class _PatternVectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
+    const colors = QibraColors.light;
     final w = size.width;
     final h = size.height;
     if (w == 0 || h == 0) return;

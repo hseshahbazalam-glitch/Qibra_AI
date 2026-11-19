@@ -156,8 +156,8 @@ void main() {
       const ReachabilityState(Reachability.reconnecting).mayUseNetwork,
       isFalse,
     );
-    final avail = ServiceAvailability(
-      reachability: const ReachabilityState(Reachability.online),
+    const avail = ServiceAvailability(
+      reachability: ReachabilityState(Reachability.online),
       backendEnabled: false,
       backendHealthy: false,
     );

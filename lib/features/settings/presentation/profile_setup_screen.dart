@@ -642,12 +642,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen>
           SnackBar(
             content: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.check_circle,
                   color: QibraNavy.textPrimary,
                   size: 20,
                 ),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 Text(AppStrings.of(context).profileSetupComplete),
               ],
             ),

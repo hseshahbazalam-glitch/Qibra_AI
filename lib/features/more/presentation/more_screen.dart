@@ -69,7 +69,7 @@ class MoreScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             const QibraSectionHeader(title: 'Worship'),
-            _MoreGroup(
+            const _MoreGroup(
               items: [
                 _MoreItem(
                   icon: Icons.explore_outlined,
@@ -111,7 +111,7 @@ class MoreScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             const QibraSectionHeader(title: 'Library'),
-            _MoreGroup(
+            const _MoreGroup(
               items: [
                 _MoreItem(
                   icon: Icons.bookmark_border_rounded,
@@ -129,7 +129,7 @@ class MoreScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             const QibraSectionHeader(title: 'Account'),
-            _MoreGroup(
+            const _MoreGroup(
               items: [
                 _MoreItem(
                   icon: Icons.person_outline_rounded,

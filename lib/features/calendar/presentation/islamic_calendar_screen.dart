@@ -282,9 +282,9 @@ class _IslamicCalendarScreenState extends State<IslamicCalendarScreen> {
             // only the durable content moved here. Suhoor/iftar duas are
             // already in the Duas feature (Fast & Food category).
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: _RamadanSunanCard(),
               ),
             ),

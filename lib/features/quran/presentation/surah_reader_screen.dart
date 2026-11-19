@@ -698,7 +698,7 @@ class _SurahReaderScreenState extends ConsumerState<SurahReaderScreen>
 /// Reader mode strip. Public as a widget-test seam (bug B); nothing
 /// outside this screen should depend on it.
 class ModeTabs extends StatelessWidget {
-  const ModeTabs({
+  const ModeTabs({super.key, 
     required this.tabs,
     required this.active,
     required this.arabicScale,
@@ -869,7 +869,7 @@ class _BismillahHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = QibraColors.of(context);
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Center(
         child: Text(
           'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',

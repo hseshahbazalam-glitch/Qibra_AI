@@ -69,7 +69,7 @@ void main() {
 
   group('ZakatCalculator', () {
     const silverPrice = 280.0; // PKR/g default
-    final nisab = 612.36 * silverPrice;
+    const nisab = 612.36 * silverPrice;
 
     test('totals subtract debts', () {
       expect(
@@ -271,9 +271,9 @@ void main() {
 
   group('PrayerCalculationService (astronomical sanity)', () {
     final svc = PrayerCalculationService();
-    final makkah = const PrayerLocation(
+    const makkah = PrayerLocation(
         latitude: 21.4225, longitude: 39.8262, city: 'Makkah', country: 'SA');
-    final london = const PrayerLocation(
+    const london = PrayerLocation(
         latitude: 51.5074, longitude: -0.1278, city: 'London', country: 'UK');
 
     DailyPrayerTimes timesAt(PrayerLocation loc, DateTime date,
@@ -325,9 +325,9 @@ void main() {
     });
 
     test('qibla bearing matches published great-circle values (±2°)', () {
-      final dubai = const PrayerLocation(
+      const dubai = PrayerLocation(
           latitude: 25.2048, longitude: 55.2708, city: 'Dubai', country: 'AE');
-      final nyc = const PrayerLocation(
+      const nyc = PrayerLocation(
           latitude: 40.7128, longitude: -74.0060, city: 'NYC', country: 'US');
       expect(svc.calculateQiblaDirection(dubai), closeTo(258.2, 2.0));
       expect(svc.calculateQiblaDirection(nyc), closeTo(58.5, 2.0));
@@ -336,9 +336,9 @@ void main() {
 
     test('great-circle distances to the Kaaba match published values (±2%)',
         () {
-      final dubai = const PrayerLocation(
+      const dubai = PrayerLocation(
           latitude: 25.2048, longitude: 55.2708, city: 'Dubai', country: 'AE');
-      final londonLoc = const PrayerLocation(
+      const londonLoc = PrayerLocation(
           latitude: 51.5074, longitude: -0.1278, city: 'London', country: 'UK');
       expect(svc.calculateDistanceToKaaba(dubai), closeTo(1630, 1630 * 0.025));
       expect(

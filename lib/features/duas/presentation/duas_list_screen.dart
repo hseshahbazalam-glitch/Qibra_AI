@@ -341,7 +341,7 @@ class _DuaCard extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
               decoration: BoxDecoration(
                 color: colors.surfaceElevated,
-                borderRadius: BorderRadius.vertical(
+                borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(20),
                 ),
               ),

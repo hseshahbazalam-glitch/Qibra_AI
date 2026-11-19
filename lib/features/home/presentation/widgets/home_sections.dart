@@ -260,7 +260,7 @@ class HomeContinueReading extends StatelessWidget {
                       horizontal: 4, vertical: 2),
                   child: Row(
                     children: [
-                      Icon(Icons.search_rounded,
+                      const Icon(Icons.search_rounded,
                           size: 15, color: QibraNavy.blue),
                       const SizedBox(width: 4),
                       Text(
@@ -507,7 +507,7 @@ class HomeHadithCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.verified_outlined, size: 15, color: QibraNavy.blue),
+              const Icon(Icons.verified_outlined, size: 15, color: QibraNavy.blue),
               const SizedBox(width: 6),
               Text(
                 s.hadithOfDayBadge,

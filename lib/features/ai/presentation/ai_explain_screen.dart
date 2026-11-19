@@ -68,7 +68,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
   // the feature gate required) and the mic entry points are live.
   // Kept final (not const) so the subtree stays lint-clean per the
   // original owner note.
-  static final bool _voiceInputEnabled = true;
+  static const bool _voiceInputEnabled = true;
 
   bool _isListening = false;
   bool _isSpeaking = false;
@@ -584,8 +584,8 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 40),
-          ClipOval(
-            child: const SafeImage(
+          const ClipOval(
+            child: SafeImage(
               assetPath: AppAssets.aiArt,
               width: 100,
               height: 100,
@@ -622,7 +622,7 @@ class _AIExplainScreenState extends ConsumerState<AIExplainScreen> {
             child: Row(
               children: [
                 Icon(Icons.keyboard_rounded, color: colors.violetAi, size: 16),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Type your question — answers cite retrieved passages',

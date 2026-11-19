@@ -232,7 +232,7 @@ void main() {
     });
 
     test('position beyond unknown-total progress clamps honestly', () {
-      final s = const QuranAudioState(
+      const s = QuranAudioState(
         phase: QuranAudioPhase.playing,
         position: Duration(seconds: 30),
         duration: Duration(seconds: 12),

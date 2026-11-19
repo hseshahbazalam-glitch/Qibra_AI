@@ -336,15 +336,15 @@ List<List<LocalSearchResult>> scanFoldedHadithCorpus(
         final lq = terms[qi];
         double relevance = 0;
         String matchedIn = '';
-        if (text.english.indexOf(q) >= 0) {
+        if (text.english.contains(q)) {
           relevance = hadithRelevanceFor(hadith.textEnglish, lq);
           matchedIn = 'english';
         }
-        if (text.urdu.indexOf(q) >= 0 && 0.85 > relevance) {
+        if (text.urdu.contains(q) && 0.85 > relevance) {
           relevance = 0.85;
           matchedIn = 'urdu';
         }
-        if (text.chapter.indexOf(q) >= 0 && relevance == 0) {
+        if (text.chapter.contains(q) && relevance == 0) {
           relevance = 0.5;
           matchedIn = 'chapter';
         }
@@ -360,7 +360,7 @@ List<List<LocalSearchResult>> scanFoldedHadithCorpus(
           (text.french, hadith.textFrench, 'french'),
         ]) {
           if (candidate.$2.trim().isEmpty) continue;
-          if (candidate.$1.indexOf(q) >= 0) {
+          if (candidate.$1.contains(q)) {
             final candidateRelevance = hadithRelevanceFor(candidate.$2, lq);
             if (candidateRelevance > relevance) {
               relevance = candidateRelevance;
@@ -685,10 +685,12 @@ class HadithDatabaseService {
 
       _isInitialized = true;
       stopwatch.stop();
-      if (kDebugMode) debugPrint(
+      if (kDebugMode) {
+        debugPrint(
         '[HADITH_DB] Initialized in ${stopwatch.elapsedMilliseconds}ms '
         '- $totalHadiths hadiths loaded across ${_bookData.length} collections',
       );
+      }
     } catch (e) {
       if (kDebugMode) debugPrint('[HADITH_DB] Initialization error: $e');
     } finally {
@@ -950,9 +952,11 @@ class HadithDatabaseService {
   static void _logDecodeTiming(String path, Stopwatch? sw) {
     if (sw == null) return;
     sw.stop();
-    if (kDebugMode) debugPrint('[HADITH_DB] decoded '
+    if (kDebugMode) {
+      debugPrint('[HADITH_DB] decoded '
         '${path.substring(path.lastIndexOf('/') + 1)} in '
         '${sw.elapsedMilliseconds}ms (off-main)');
+    }
   }
 
   /// Per-file decode stopwatches for the owner's boot profiling (perf

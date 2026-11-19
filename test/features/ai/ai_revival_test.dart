@@ -137,8 +137,7 @@ void main() {
         () async {
       final cold = _CountingColdDb();
       RagService.instance.attachHadithDb(cold);
-      final passages =
-          await RagService.instance.retrieve('namz kiya hai');
+      final passages = await RagService.instance.retrieve('namz kiya hai');
       expect(cold.readyWaits, 1,
           reason: 'one bounded wait per retrieve — the primary AND the '
               'typo _collect pass must not each pay for it');
@@ -168,10 +167,9 @@ void main() {
     });
 
     test('voice input is shipped: flag, manifest line, service import', () {
-      final screen =
-          File('lib/features/ai/presentation/ai_explain_screen.dart')
-              .readAsStringSync();
-      expect(screen.contains('static final bool _voiceInputEnabled = true;'),
+      final screen = File('lib/features/ai/presentation/ai_explain_screen.dart')
+          .readAsStringSync();
+      expect(screen.contains('static const bool _voiceInputEnabled = true;'),
           isTrue);
       final manifest =
           File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
@@ -181,9 +179,10 @@ void main() {
           isTrue);
       // still exactly one RECORD_AUDIO line (the surgical touch)
       expect('RECORD_AUDIO'.allMatches(manifest).length, 1);
-      final voice = File('lib/features/ai/domain/voice_service.dart')
-          .readAsStringSync();
-      expect(voice.contains("import 'package:speech_to_text/speech_to_text.dart'"),
+      final voice =
+          File('lib/features/ai/domain/voice_service.dart').readAsStringSync();
+      expect(
+          voice.contains("import 'package:speech_to_text/speech_to_text.dart'"),
           isTrue);
     });
 

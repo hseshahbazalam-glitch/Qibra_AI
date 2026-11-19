@@ -101,7 +101,7 @@ class _CountdownRingPainter extends CustomPainter {
         colors: [deepColor, activeColor, activeColor, deepColor],
         stops: const [0.0, 0.35, 0.9, 1.0],
         tileMode: TileMode.clamp,
-        transform: GradientRotation(-math.pi / 2),
+        transform: const GradientRotation(-math.pi / 2),
       ).createShader(rect);
     // Draw the elapsed fraction from the top, clockwise.
     canvas.drawArc(rect, -math.pi / 2, 2 * math.pi * t, false, arc);

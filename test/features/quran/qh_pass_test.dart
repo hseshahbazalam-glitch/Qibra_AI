@@ -107,12 +107,12 @@ Future<void> _pumpReader(WidgetTester tester) async {
       quranWordCorpusProvider
           .overrideWith((ref) async => _realCorpus()),
     ],
-    child: MaterialApp(
+    child: const MaterialApp(
       home: AppStringsScope(
-        locale: const Locale('en'),
+        locale: Locale('en'),
         child: Scaffold(
           resizeToAvoidBottomInset: false,
-          body: const SurahReaderScreen(surahNumber: 1),
+          body: SurahReaderScreen(surahNumber: 1),
         ),
       ),
     ),
@@ -131,9 +131,9 @@ Future<void> _open(WidgetTester tester) async {
 
 Future<void> _pumpTasbih(WidgetTester tester) async {
   SharedPreferences.setMockInitialValues({});
-  await tester.pumpWidget(ProviderScope(
+  await tester.pumpWidget(const ProviderScope(
     child: MaterialApp(
-      home: const AppStringsScope(
+      home: AppStringsScope(
         locale: Locale('en'),
         child: TasbihScreen(),
       ),
@@ -157,8 +157,8 @@ void main() {
 
   group('QH — screen scope, tokens, rest-quiet (source)', () {
     test('the handle renders on the surah reader ONLY', () {
-      final def = 'lib/features/quran/presentation/surah_reading_handle.dart';
-      final host = 'lib/features/quran/presentation/surah_reader_screen.dart';
+      const def = 'lib/features/quran/presentation/surah_reading_handle.dart';
+      const host = 'lib/features/quran/presentation/surah_reader_screen.dart';
       for (final path in _dartFiles('lib')) {
         if (path == def) continue;
         final src = File(path).readAsStringSync(encoding: utf8);
@@ -207,7 +207,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final n = TasbihNotifier();
       await pumpEventQueue();
-      final first = Dhikrs.subhanAllah;
+      const first = Dhikrs.subhanAllah;
       expect(n.state.currentDhikr.id, first.id);
       for (var i = 0; i < 3; i++) {
         n.increment();

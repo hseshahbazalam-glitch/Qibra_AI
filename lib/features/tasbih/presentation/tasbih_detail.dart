@@ -173,7 +173,7 @@ class _DhikrSelectorSheet extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
+            const BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -312,7 +312,7 @@ class _TargetSelectorSheet extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
+            const BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -394,7 +394,7 @@ class _DailyGoalSheet extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
+            const BorderRadius.vertical(top: Radius.circular(AppRadius.xl2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

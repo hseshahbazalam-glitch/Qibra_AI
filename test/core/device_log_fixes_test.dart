@@ -65,7 +65,7 @@ void main() {
     });
 
     test('headers defeat the 406: identifiable UA + JSON accept', () {
-      final h = MosqueService.requestHeaders;
+      const h = MosqueService.requestHeaders;
       expect(h['User-Agent'], isNotNull);
       expect(h['User-Agent']!, startsWith('QibraAI/'));
       expect(h['Accept'], 'application/json');

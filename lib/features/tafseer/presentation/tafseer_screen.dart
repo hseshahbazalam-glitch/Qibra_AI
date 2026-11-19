@@ -411,7 +411,7 @@ class _TafseerScreenState extends ConsumerState<TafseerScreen>
             padding: EdgeInsets.all(QibraPaper.pad(context, 20)),
             decoration: BoxDecoration(
               color: colors.surface,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -615,7 +615,7 @@ class _TranslationTab extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(AppStrings.of(context).copiedToClipboard),
-                  duration: Duration(seconds: 1),
+                  duration: const Duration(seconds: 1),
                 ),
               );
             },
@@ -935,7 +935,7 @@ class _WordByWordTab extends StatelessWidget {
             child: Row(
               children: [
                 Icon(Icons.auto_awesome, color: colors.primary, size: 20),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Word tokens only. Meanings are UNKNOWN — no licensed word corpus.',

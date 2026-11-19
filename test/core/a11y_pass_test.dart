@@ -510,11 +510,11 @@ void main() {
         ],
         child: MaterialApp(
           home: _scaled(
-            AppStringsScope(
-              locale: const Locale('en'),
+            const AppStringsScope(
+              locale: Locale('en'),
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
-                body: const SurahReaderScreen(surahNumber: 1),
+                body: SurahReaderScreen(surahNumber: 1),
               ),
             ),
             scale,
@@ -594,7 +594,7 @@ void main() {
         ],
         child: MaterialApp(
           home: _scaled(
-            Scaffold(bottomNavigationBar: const QuranMiniPlayer()),
+            const Scaffold(bottomNavigationBar: QuranMiniPlayer()),
             scale,
           ),
         ),
@@ -634,10 +634,10 @@ void main() {
       for (final scale in [1.3, 2.0]) {
         await tester.pumpWidget(MaterialApp(
           home: _scaled(
-            Scaffold(
+            const Scaffold(
               body: SingleChildScrollView(
                 child: Column(
-                  children: const [
+                  children: [
                     QibraStatus(kind: QibraStatusKind.loading),
                     QibraStatus(kind: QibraStatusKind.error),
                   ],

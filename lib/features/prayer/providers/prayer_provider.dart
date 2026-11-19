@@ -844,8 +844,10 @@ Future<void> _scheduleAllAzanNotifications(
 
     if (kDebugMode) debugPrint('✅ All prayer notifications scheduled');
     if (kDebugMode) debugPrint('   Azan: ${settings.enableAdhan}');
-    if (kDebugMode) debugPrint(
+    if (kDebugMode) {
+      debugPrint(
         '   Pre-reminder: ${settings.enablePreReminder} (${settings.preReminderMinutes} min)');
+    }
   } catch (e) {
     if (kDebugMode) debugPrint('❌ Azan schedule error: $e');
   }

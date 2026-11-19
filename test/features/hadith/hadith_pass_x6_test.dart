@@ -121,7 +121,7 @@ Future<void> _pumpCard(
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        extensions: <ThemeExtension<dynamic>>[QibraColors.dark],
+        extensions: const <ThemeExtension<dynamic>>[QibraColors.dark],
       ),
       home: AppStringsScope(
         locale: locale,
@@ -336,7 +336,7 @@ void main() {
         theme: ThemeData(
           useMaterial3: true,
           brightness: Brightness.dark,
-          extensions: <ThemeExtension<dynamic>>[QibraColors.dark],
+          extensions: const <ThemeExtension<dynamic>>[QibraColors.dark],
         ),
         home: const Scaffold(
           body: Center(

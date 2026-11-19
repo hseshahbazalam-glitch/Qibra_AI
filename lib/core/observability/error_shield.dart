@@ -9,7 +9,6 @@
 // existing debugPrint flows, observability consent semantics, and
 // notification-tap routing.
 
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 

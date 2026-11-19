@@ -344,7 +344,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
                 color: colors.textPrimary,
                 size: 20,
               ),
-              SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.sm),
               Text(AppStrings.of(context).otpSentSuccessfully),
             ],
           ),

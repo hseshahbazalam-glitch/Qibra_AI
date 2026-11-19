@@ -45,7 +45,7 @@ void main() {
   // is now empty and the file-reading loops below are no-ops. Re-bundle an
   // edition (add it to HadithAvailability.newLanguageFiles) and every join
   // contract in this group switches back on with no test edit.
-  final newLangs = HadithAvailability.newLanguageFiles;
+  const newLangs = HadithAvailability.newLanguageFiles;
 
   group('availability matrix ⇔ data on disk', () {
     test('every advertised (language, book) file exists and parses', () {
@@ -357,7 +357,7 @@ void main() {
     });
 
     test('model JSON round-trips the new fields (aliases included)', () {
-      final fromAlias = HadithModel.fromJson({
+      final fromAlias = HadithModel.fromJson(const {
         'hadithBengali': 'bn-alias',
         'textTurkish': 'tr-direct',
         'indonesian': 'id-short',

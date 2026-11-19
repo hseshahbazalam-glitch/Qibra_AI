@@ -34,7 +34,7 @@ enum _PasswordStrength {
   strong;
 
   Color get color {
-    final colors = QibraColors.light;
+    const colors = QibraColors.light;
     switch (this) {
       case _PasswordStrength.none:
         return colors.border;
@@ -293,7 +293,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                 color: colors.textPrimary,
                 size: 20,
               ),
-              SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.sm),
               Text(AppStrings.of(context).acceptTermsAndConditions),
             ],
           ),
