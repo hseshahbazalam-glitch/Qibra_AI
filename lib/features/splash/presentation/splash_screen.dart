@@ -238,7 +238,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         child: Stack(
           fit: StackFit.expand,
           children: [
-            SafeImage(
+            const SafeImage(
               assetPath: AppAssets.splashBackground,
               fit: BoxFit.cover,
               fallback: SafeImageFallback.mosque,
@@ -410,7 +410,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             child: Icon(Icons.star, color: colors.accent, size: 12),
           ),
           Container(

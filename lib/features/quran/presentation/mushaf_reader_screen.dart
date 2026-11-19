@@ -1568,7 +1568,7 @@ class _MushafPage extends StatelessWidget {
           child: IgnorePointer(
             child: RepaintBoundary(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                     0,
                     60,
                     10,

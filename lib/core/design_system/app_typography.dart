@@ -74,117 +74,117 @@ abstract final class AppLetterSpacing {
 }
 
 abstract final class AppTextStyles {
-  static TextStyle get displayLarge => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get displayLarge => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.displayLarge,
       fontWeight: AppFontWeight.black,
       height: AppLineHeight.snug,
       letterSpacing: AppLetterSpacing.tighter);
-  static TextStyle get displayMedium => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get displayMedium => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.displayMedium,
       fontWeight: AppFontWeight.extraBold,
       height: AppLineHeight.snug,
       letterSpacing: AppLetterSpacing.tighter);
-  static TextStyle get displaySmall => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get displaySmall => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.displaySmall,
       fontWeight: AppFontWeight.bold,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.tight);
-  static TextStyle get headlineLarge => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get headlineLarge => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.headlineLarge,
       fontWeight: AppFontWeight.bold,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.tight);
-  static TextStyle get headlineMedium => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get headlineMedium => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.headlineMedium,
       fontWeight: AppFontWeight.bold,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get headlineSmall => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get headlineSmall => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.headlineSmall,
       fontWeight: AppFontWeight.semiBold,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get titleLarge => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get titleLarge => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.titleLarge,
       fontWeight: AppFontWeight.semiBold,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get titleMedium => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get titleMedium => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.titleMedium,
       fontWeight: AppFontWeight.semiBold,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get titleSmall => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get titleSmall => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.titleSmall,
       fontWeight: AppFontWeight.medium,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get bodyLarge => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get bodyLarge => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.bodyLarge,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get bodyMedium => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get bodyMedium => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.bodyMedium,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get bodySmall => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get bodySmall => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get labelLarge => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get labelLarge => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelLarge,
       fontWeight: AppFontWeight.semiBold,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get labelMedium => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get labelMedium => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.medium,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get labelSmall => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get labelSmall => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelSmall,
       fontWeight: AppFontWeight.medium,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wider);
-  static TextStyle get labelXSmall => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get labelXSmall => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelXSmall,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.widest);
-  static TextStyle get buttonLarge => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get buttonLarge => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelLarge,
       fontWeight: AppFontWeight.semiBold,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get buttonMedium => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get buttonMedium => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.semiBold,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get buttonSmall => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get buttonSmall => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelSmall,
       fontWeight: AppFontWeight.medium,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get inputText => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get inputText => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.bodyLarge,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get inputHint => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get inputHint => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.bodyLarge,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.normal,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get inputLabel => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get inputLabel => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.medium,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.wide);
-  static TextStyle get inputError => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get inputError => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.regular,
       color: AppColors.error,
@@ -197,22 +197,22 @@ abstract final class AppTextStyles {
   static TextStyle get arabicLarge => AppArabicStyles.quranLarge;
   static TextStyle get arabicDisplay => AppArabicStyles.surahName;
 
-  static TextStyle get cardTitle => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get cardTitle => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.titleMedium,
       fontWeight: AppFontWeight.semiBold,
       height: AppLineHeight.compact,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get cardSubtitle => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get cardSubtitle => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.relaxed,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get badge => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get badge => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelXSmall,
       fontWeight: AppFontWeight.bold,
       height: AppLineHeight.tight,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get chip => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get chip => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelMedium,
       fontWeight: AppFontWeight.medium,
       height: AppLineHeight.tight,
@@ -220,52 +220,52 @@ abstract final class AppTextStyles {
 }
 
 abstract final class AppArabicStyles {
-  static TextStyle get quranSmall => TextStyle(fontFamily: AppFontFamily.arabic,
+  static TextStyle get quranSmall => const TextStyle(fontFamily: AppFontFamily.arabic,
       fontSize: AppFontSize.arabicSmall,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.arabicNormal);
-  static TextStyle get quranMedium => TextStyle(fontFamily: AppFontFamily.arabic,
+  static TextStyle get quranMedium => const TextStyle(fontFamily: AppFontFamily.arabic,
       fontSize: AppFontSize.arabicMedium,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.arabicRelaxed);
-  static TextStyle get quranLarge => TextStyle(fontFamily: AppFontFamily.arabic,
+  static TextStyle get quranLarge => const TextStyle(fontFamily: AppFontFamily.arabic,
       fontSize: AppFontSize.arabicLarge,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.arabicLoose);
-  static TextStyle get quranBold => TextStyle(fontFamily: AppFontFamily.arabic,
+  static TextStyle get quranBold => const TextStyle(fontFamily: AppFontFamily.arabic,
       fontSize: AppFontSize.arabicMedium,
       fontWeight: AppFontWeight.bold,
       height: AppLineHeight.arabicRelaxed);
-  static TextStyle get surahName => TextStyle(fontFamily: AppFontFamily.arabic,
+  static TextStyle get surahName => const TextStyle(fontFamily: AppFontFamily.arabic,
       fontSize: AppFontSize.arabicDisplay,
       fontWeight: AppFontWeight.bold,
       height: AppLineHeight.arabicNormal);
-  static TextStyle get bismillah => TextStyle(fontFamily: AppFontFamily.arabic,
+  static TextStyle get bismillah => const TextStyle(fontFamily: AppFontFamily.arabic,
       fontSize: AppFontSize.arabicDisplay,
       fontWeight: AppFontWeight.bold,
       height: AppLineHeight.arabicRelaxed);
-  static TextStyle get bismillahHero => TextStyle(fontFamily: AppFontFamily.arabic,
+  static TextStyle get bismillahHero => const TextStyle(fontFamily: AppFontFamily.arabic,
       fontSize: AppFontSize.arabicHero,
       fontWeight: AppFontWeight.bold,
       height: AppLineHeight.arabicRelaxed);
-  static TextStyle get hadithArabic => TextStyle(fontFamily: AppFontFamily.arabic,
+  static TextStyle get hadithArabic => const TextStyle(fontFamily: AppFontFamily.arabic,
       fontSize: AppFontSize.arabicMedium,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.arabicRelaxed);
-  static TextStyle get duaArabic => TextStyle(fontFamily: AppFontFamily.arabic,
+  static TextStyle get duaArabic => const TextStyle(fontFamily: AppFontFamily.arabic,
       fontSize: AppFontSize.arabicLarge,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.arabicLoose);
-  static TextStyle get ayahNumber => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get ayahNumber => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.labelSmall,
       fontWeight: AppFontWeight.semiBold,
       height: AppLineHeight.tight);
-  static TextStyle get translation => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get translation => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.bodyMedium,
       fontWeight: AppFontWeight.regular,
       height: AppLineHeight.loose,
       letterSpacing: AppLetterSpacing.normal);
-  static TextStyle get transliteration => TextStyle(fontFamily: AppFontFamily.primary,
+  static TextStyle get transliteration => const TextStyle(fontFamily: AppFontFamily.primary,
       fontSize: AppFontSize.bodySmall,
       fontWeight: AppFontWeight.light,
       height: AppLineHeight.relaxed,

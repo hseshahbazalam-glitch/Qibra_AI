@@ -599,7 +599,7 @@ class SettingsScreen extends ConsumerWidget {
                       color: colors.onPrimary,
                       size: 12,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
                       'BETA',
                       style: TextStyle(
@@ -725,7 +725,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Icon(
                 Icons.star_rounded,
                 color: colors.accent,
@@ -742,7 +742,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         Text(
           'بَارَكَ اللَّهُ فِيك',
           style: TextStyle(
@@ -753,7 +753,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           textDirection: TextDirection.rtl,
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           'May Allah bless you',
           style: AppTextStyles.labelSmall.copyWith(
@@ -762,7 +762,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 10,
           ),
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         Text(
           '© 2026 Shahbaz Alam',
           style: AppTextStyles.labelSmall.copyWith(
@@ -770,7 +770,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 10,
           ),
         ),
-        SizedBox(height: 2),
+        const SizedBox(height: 2),
         Text(
           'All Rights Reserved',
           style: AppTextStyles.labelSmall.copyWith(
@@ -778,7 +778,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 9,
           ),
         ),
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           'QIBRA AI',
           style: AppTextStyles.labelSmall.copyWith(

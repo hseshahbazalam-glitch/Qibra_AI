@@ -155,7 +155,7 @@ void main() {
     // A 336dp keyboard on the CPH2573 (1080x2400 @ 2.8125, IME
     // ~35% of the panel) — the exact storm the device log named.
     tester.view.viewInsets =
-        FakeViewPadding(top: 0, left: 0, right: 0, bottom: 336);
+        const FakeViewPadding(top: 0, left: 0, right: 0, bottom: 336);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     final during = tester.getSize(find.byType(PageView));

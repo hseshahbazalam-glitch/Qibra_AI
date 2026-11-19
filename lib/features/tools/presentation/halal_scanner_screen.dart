@@ -298,7 +298,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.verified_rounded, color: colors.primary, size: 12),
-                SizedBox(width: 4),
+                const SizedBox(width: 4),
                 Text(AppStrings.of(context).proBadge,
                     style: TextStyle(
                         color: colors.primary,
@@ -1169,7 +1169,7 @@ class _HalalScannerScreenState extends State<HalalScannerScreen>
           children: [
             Icon(Icons.qr_code_scanner_rounded,
                 color: colors.onPrimary, size: 22),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Text(AppStrings.of(context).scanAgain,
                 style: TextStyle(
                     color: colors.onPrimary,

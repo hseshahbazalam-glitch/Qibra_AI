@@ -176,7 +176,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                           color: QibraNavy.blue
                               .withValues(alpha: 0.16)),
                     ),
-                    child: Icon(Icons.help_outline_rounded,
+                    child: const Icon(Icons.help_outline_rounded,
                         color: QibraNavy.blue, size: 20),
                   ),
                   const SizedBox(width: 12),
@@ -434,7 +434,7 @@ class PrayerTimesScreen extends ConsumerWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.info_outline_rounded,
+                        const Icon(Icons.info_outline_rounded,
                             size: 18, color: QibraNavy.blue),
                         const SizedBox(width: 10),
                         Expanded(

@@ -84,12 +84,18 @@ class QuranRepository {
       stopwatch.stop();
 
       if (kDebugMode) debugPrint('[QURAN] Initialized in ${stopwatch.elapsedMilliseconds}ms');
-      if (kDebugMode) debugPrint(
+      if (kDebugMode) {
+        debugPrint(
           '   English translations: ${_cachedTranslationsEn?.length ?? 0}');
-      if (kDebugMode) debugPrint(
+      }
+      if (kDebugMode) {
+        debugPrint(
           '   Urdu translations: ${_cachedTranslationsUrdu?.length ?? 0}');
-      if (kDebugMode) debugPrint(
+      }
+      if (kDebugMode) {
+        debugPrint(
           '   Roman translations: ${_cachedTranslationsRoman?.length ?? 0}');
+      }
     } catch (e, stackTrace) {
       throw QuranRepositoryException(
         'Failed to initialize Quran data: $e',

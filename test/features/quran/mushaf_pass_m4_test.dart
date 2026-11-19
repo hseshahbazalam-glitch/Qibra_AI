@@ -126,8 +126,8 @@ Future<void> pumpReader(WidgetTester tester) async {
   addTearDown(container.dispose);
   await tester.pumpWidget(UncontrolledProviderScope(
     container: container,
-    child: MaterialApp(
-      home: const AppStringsScope(
+    child: const MaterialApp(
+      home: AppStringsScope(
         locale: Locale('en'),
         child: MushafReaderScreen(initialPage: 1),
       ),
@@ -251,7 +251,7 @@ void main() {
           userDisplayNameProvider.overrideWithValue('Guest'),
           isGuestModeProvider.overrideWithValue(true),
         ],
-        child: MaterialApp(home: const SettingsScreen()),
+        child: const MaterialApp(home: SettingsScreen()),
       ));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
@@ -363,9 +363,9 @@ void main() {
           .getClip(const Size(w, h));
       for (final q in [
         const Offset(1, 1),
-        Offset(w - 1, 1),
+        const Offset(w - 1, 1),
         const Offset(1, h - 1),
-        Offset(w - 1, h - 1),
+        const Offset(w - 1, h - 1),
       ]) {
         expect(restClip.contains(q), isTrue,
             reason: 'touch-down must not shear a single page pixel');

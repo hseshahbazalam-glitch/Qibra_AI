@@ -142,12 +142,12 @@ Future<void> _pumpReader(
       if (recordingAudio != null)
         quranAudioProvider.overrideWith(() => recordingAudio),
     ],
-    child: MaterialApp(
+    child: const MaterialApp(
       home: AppStringsScope(
-        locale: const Locale('en'),
+        locale: Locale('en'),
         child: Scaffold(
           resizeToAvoidBottomInset: false,
-          body: const SurahReaderScreen(surahNumber: 1),
+          body: SurahReaderScreen(surahNumber: 1),
         ),
       ),
     ),

@@ -52,8 +52,8 @@ extension _AsmaLearnWidgets on _AsmaUlHusnaScreenState {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.menu_book_rounded, size: 14),
-                    SizedBox(width: 8),
+                    const Icon(Icons.menu_book_rounded, size: 14),
+                    const SizedBox(width: 8),
                     Text(
                       'Hadith',
                       style: TextStyle(

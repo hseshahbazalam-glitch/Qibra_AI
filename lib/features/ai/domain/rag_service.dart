@@ -183,7 +183,7 @@ class RagService {
       ..sort();
   }
 
-  static late final Set<String> _bridgeDictionary = {
+  static final Set<String> _bridgeDictionary = {
     for (final e in romanUrduBridge.entries)
       ...[e.key, ...e.value]
           .where((t) => RegExp(r"^[a-z']{3,}$").hasMatch(t))

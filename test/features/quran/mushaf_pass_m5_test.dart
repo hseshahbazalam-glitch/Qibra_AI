@@ -390,7 +390,7 @@ void main() {
         Offset(r.left, r.bottom),
       ]) {
         final q = projectPoint(m, p);
-        if ((Offset(0, 0) & clipSize).contains(q)) {
+        if ((const Offset(0, 0) & clipSize).contains(q)) {
           expect(path.contains(q), isTrue,
               reason: 'content point $q (global-mapped into clip '
                   'space) sits inside the leaf bounds but OUTSIDE '
@@ -653,7 +653,7 @@ void main() {
     expect(src, contains('final wr = 1 + perspective * xr;'));
     for (var a = 0; a <= 40; a++) {
       final ang = a / 40 * math.pi / 2.6;
-      final w = 390.0, h = 844.0;
+      const w = 390.0, h = 844.0;
       final box =
           MushafTurnGeometry.projectedQuad(0, 0, w, h, ang, 2.5);
       final old =

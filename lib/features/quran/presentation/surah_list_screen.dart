@@ -664,7 +664,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
 /// Reader list card. Public as a widget-test seam (device-log hardening
 /// probe); layout untouched — do not depend on it outside this screen.
 class SurahCard extends StatelessWidget {
-  const SurahCard({
+  const SurahCard({super.key, 
     required this.surah,
     required this.revelationColor,
     required this.revelationLabel,

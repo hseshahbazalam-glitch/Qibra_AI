@@ -746,12 +746,12 @@ void main() {
                   }),
           quranDownloadProvider.overrideWith(_NoopDownloads.new),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           home: AppStringsScope(
-            locale: const Locale('en'),
+            locale: Locale('en'),
             child: Scaffold(
               resizeToAvoidBottomInset: false,
-              body: const MushafReaderScreen(),
+              body: MushafReaderScreen(),
             ),
           ),
         ),
@@ -876,11 +876,11 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(ProviderScope(
+      await tester.pumpWidget(const ProviderScope(
         child: MaterialApp(
           home: AppStringsScope(
-            locale: const Locale('en'),
-            child: const Scaffold(body: Center(child: Text('host'))),
+            locale: Locale('en'),
+            child: Scaffold(body: Center(child: Text('host'))),
           ),
         ),
       ));

@@ -668,8 +668,8 @@ extension _InheritanceResultsWidgets on _InheritanceCalculatorScreenState {
         children: [
           Row(
             children: [
-              Icon(Icons.menu_book_rounded, size: 14),
-              SizedBox(width: 8),
+              const Icon(Icons.menu_book_rounded, size: 14),
+              const SizedBox(width: 8),
               Text(AppStrings.of(context).quranReference,
                   style: TextStyle(
                       color: colors.primarySoft,
@@ -715,7 +715,7 @@ class _PieChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final colors = QibraColors.light;
+    const colors = QibraColors.light;
     if (total <= 0 || results.isEmpty) return;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width, size.height) / 2 - 10;

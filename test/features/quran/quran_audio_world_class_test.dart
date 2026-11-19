@@ -463,9 +463,9 @@ void main() {
         overrides: [
           quranAudioProvider.overrideWith(() => fake!),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           home: Scaffold(
-            bottomNavigationBar: const QuranMiniPlayer(),
+            bottomNavigationBar: QuranMiniPlayer(),
           ),
         ),
       ));
@@ -525,7 +525,7 @@ void main() {
       final target = fake!.seeks.single;
       expect(target.inMilliseconds, greaterThanOrEqualTo(0));
       expect(target.inMilliseconds, lessThanOrEqualTo(60000)); // clamped
-      expect(target, Duration(seconds: 60)); // drag ran to the real end
+      expect(target, const Duration(seconds: 60)); // drag ran to the real end
     });
 
     testWidgets('hifz row echoes real state: count, speed, range banner',

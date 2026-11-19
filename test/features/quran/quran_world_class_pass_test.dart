@@ -30,7 +30,7 @@ void main() {
     });
 
     test('once disarmed, further drags keep it disarmed (per session)', () {
-      final m = const AyahFollowMachine(armed: false);
+      const m = AyahFollowMachine(armed: false);
       expect(m.userScrolled(dragging: true).armed, isFalse);
       expect(identical(m.userScrolled(dragging: true), m), isTrue);
     });

@@ -194,7 +194,7 @@ void main() {
           theme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.dark,
-            extensions: <ThemeExtension<dynamic>>[QibraColors.dark],
+            extensions: const <ThemeExtension<dynamic>>[QibraColors.dark],
           ),
           home: StatefulBuilder(
             builder: (context, setter) {

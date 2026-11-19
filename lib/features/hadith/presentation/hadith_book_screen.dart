@@ -1642,7 +1642,7 @@ class HadithCard extends ConsumerWidget {
                   child: Text(
                     // X6 (H1c): the edition's own number string — 402.2 reads
                     // 402.2, not its parent's 402.
-                    '${hadith.numberLabel}',
+                    hadith.numberLabel,
                     style: AppTextStyles.labelSmall.copyWith(
                         color: colors.textSecondary,
                         fontWeight: FontWeight.w800),

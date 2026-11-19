@@ -10,7 +10,7 @@ import 'dart:io';
 
 String repoRoot() => Directory.current.path;
 String read(String rel) =>
-    File('${repoRoot()}/${rel}').readAsStringSync();
+    File('${repoRoot()}/$rel').readAsStringSync();
 
 void main() {
   group('LocalErrorLog ring', () {

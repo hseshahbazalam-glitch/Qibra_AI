@@ -96,7 +96,7 @@ void main() {
     test('QibraCard gives its tiles a Material ancestor even untappable', () {
       final ui = File('lib/shared/widgets/qibra_ui.dart').readAsStringSync();
       expect(ui.contains('if (onTap == null) return card;'), isFalse);
-      expect('MaterialType.transparency'.allMatches(ui).length >= 1, isTrue);
+      expect('MaterialType.transparency'.allMatches(ui).isNotEmpty, isTrue);
     });
 
     test('QibraChip is a plain Material pill — no ChoiceChip-internal tile', () {

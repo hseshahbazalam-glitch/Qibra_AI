@@ -21,21 +21,21 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       icon: Icons.mosque_rounded,
       color: QibraColors.light.accent,
       steps: [
-        _HajjStep(
+        const _HajjStep(
           'Enter Ihram',
           'Put on Ihram from your place of stay in Makkah. Make niyyah for Hajj.',
           'لَبَّيْكَ اللَّهُمَّ حَجًّا',
           'Labbayk Allahumma Hajjan',
           Icons.checkroom_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Recite Talbiyah',
           'Keep reciting Talbiyah throughout the journey.',
           'لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ',
           'Labbayk Allahumma Labbayk...',
           Icons.record_voice_over_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Go to Mina',
           'Travel to Mina before Dhuhr. Pray Dhuhr, Asr, Maghrib, Isha (shortened) and stay overnight.',
           '',
@@ -50,21 +50,21 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       icon: Icons.landscape_rounded,
       color: QibraColors.light.primary,
       steps: [
-        _HajjStep(
+        const _HajjStep(
           'Go to Arafah',
           'After Fajr in Mina, proceed to Arafah. This is the MOST important day of Hajj.',
           '',
           '',
           Icons.directions_walk_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Wuquf (Standing) at Arafah',
           'Stand in supplication from Dhuhr until Maghrib. Make abundant dua. The Prophet ﷺ said: "Hajj is Arafah."',
           'لَا إِلٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ',
           'La ilaha illAllahu wahdahu la shareeka lahu...',
           Icons.back_hand_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Go to Muzdalifah',
           'After sunset, proceed to Muzdalifah. Pray Maghrib & Isha combined. Collect pebbles (49-70). Sleep under open sky.',
           '',
@@ -79,35 +79,35 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       icon: Icons.volunteer_activism_rounded,
       color: QibraColors.light.error,
       steps: [
-        _HajjStep(
+        const _HajjStep(
           'Rami al-Jamarat',
           'Stone the large pillar (Jamrat al-Aqabah) with 7 pebbles, saying Takbir with each throw.',
           'بِسْمِ اللَّهِ، اللَّهُ أَكْبَرُ',
           'Bismillah, Allahu Akbar',
           Icons.gps_fixed_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Animal Sacrifice',
           'Offer Qurbani/Hady (sacrifice). This can also be arranged through authorized services.',
           '',
           '',
           Icons.volunteer_activism_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Halq or Taqsir',
           'Men: Shave head (Halq) or trim hair (Taqsir). Women: Cut a fingertip length of hair.',
           '',
           '',
           Icons.content_cut_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Tawaf al-Ifadah',
           'Perform Tawaf (7 rounds) around the Ka\'bah. This is a pillar (rukn) of Hajj.',
           '',
           '',
           Icons.refresh_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Sa\'i',
           'Walk between Safa and Marwah (7 times). Then return to Mina.',
           '',
@@ -122,21 +122,21 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
       icon: Icons.nights_stay_rounded,
       color: QibraColors.light.accent,
       steps: [
-        _HajjStep(
+        const _HajjStep(
           'Stay in Mina',
           'Spend the nights in Mina. Engage in dhikr, dua, and worship.',
           '',
           '',
           Icons.bed_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Rami (Stoning) Daily',
           'Stone all three Jamarat each day (7 pebbles each = 21 per day). Start with small, then medium, then large.',
           'اللَّهُ أَكْبَرُ',
           'Allahu Akbar',
           Icons.gps_fixed_rounded,
         ),
-        _HajjStep(
+        const _HajjStep(
           'Tawaf al-Wida (Farewell)',
           'Before leaving Makkah, perform farewell Tawaf. This is the final act of Hajj.',
           '',
@@ -274,7 +274,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
           Row(
             children: [
               Icon(Icons.mosque_rounded, size: 28, color: colors.accent),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -581,7 +581,7 @@ class _HajjGuideScreenState extends State<HajjGuideScreen> {
           Row(
             children: [
               Icon(Icons.menu_book_rounded, size: 14, color: colors.accent),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text('Quran',
                   style: TextStyle(
                       color: colors.accent,

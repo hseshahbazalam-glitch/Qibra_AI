@@ -95,7 +95,7 @@ class _AyahOptionsSheetState extends ConsumerState<AyahOptionsSheet> {
       child: Container(
       decoration: BoxDecoration(
         color: colors.card,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: SafeArea(
         top: false,
